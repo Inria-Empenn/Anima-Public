@@ -1,0 +1,2 @@
+add_subdirectory(symmetry_constrained_registration)
+add_subdirectory(symmetry_plane)

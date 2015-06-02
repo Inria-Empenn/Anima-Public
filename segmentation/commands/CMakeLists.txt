@@ -1,0 +1,5 @@
+add_subdirectory(connected_components)
+add_subdirectory(dice_measure)
+add_subdirectory(mask_image)
+add_subdirectory(morphological_operations)
+add_subdirectory(thr_image)

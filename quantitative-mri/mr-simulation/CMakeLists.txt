@@ -1,0 +1,8 @@
+add_subdirectory(signal_simulation)
+add_subdirectory(simu_bloch_coherent_gre)
+add_subdirectory(simu_bloch_gre)
+add_subdirectory(simu_bloch_ir_gre)
+add_subdirectory(simu_bloch_ir_se)
+add_subdirectory(simu_bloch_se)
+add_subdirectory(simu_bloch_sp_gre)
+add_subdirectory(stimulated_spin_echo_simulator)

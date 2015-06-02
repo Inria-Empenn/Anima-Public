@@ -1,0 +1,3 @@
+add_subdirectory(nlmeans_patient_to_group_comparison)
+add_subdirectory(patient_to_group_odf_comparison)
+add_subdirectory(patient_to_group_comparison)

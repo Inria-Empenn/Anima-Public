@@ -1,0 +1,49 @@
+if(NOT ANIMA_USE_FILE_INCLUDED)
+
+   set(ANIMA_USE_FILE_INCLUDED 1)
+
+   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ANIMA_CMAKE_DIRS})
+
+   include_directories(${ANIMA_INCLUDE_DIRS})
+   link_directories(${ANIMA_LIBRARY_DIRS})
+   include(ANIMAExports)
+   include(ITKLibs)
+
+   set(ITK_DIR ${ITK_DIR})
+   find_package(ITK REQUIRED)
+   include(${ITK_USE_FILE})
+
+   set(TCLAP_INCLUDE_DIR ${TCLAP_INCLUDE_DIR})
+   include_directories(${TCLAP_INCLUDE_DIR})
+   
+   set(Boost_INCLUDE_DIR ${Boost_INCLUDE_DIR})
+   FIND_PACKAGE(Boost 1.40.0 REQUIRED)
+
+   set(USE_NLOPT ${USE_NLOPT})
+   if (USE_NLOPT)
+     set(NLOPT_INCLUDE_DIR ${NLOPT_INCLUDE_DIR})
+     include_directories(${NLOPT_INCLUDE_DIR})
+     set(NLOPT_LIBRARY_DIR ${NLOPT_LIBRARY_DIR})
+     set(NLOPT_LIBRARY ${NLOPT_LIBRARY})
+   endif(USE_NLOPT)
+
+   set(TinyXML2_INCLUDE_DIR ${TinyXML2_INCLUDE_DIR})
+   include_directories(${TinyXML2_INCLUDE_DIR})
+   set(TinyXML2_LIBRARY_DIR ${TinyXML2_LIBRARY_DIR})
+   set(TinyXML2_LIBRARY ${TinyXML2_LIBRARY})
+
+   set(USE_VTK ${USE_VTK})
+   if (USE_VTK)
+     set(VTK_DIR ${VTK_DIR})
+     find_package(VTK REQUIRED)
+     include(${VTK_USE_FILE})
+   endif(USE_VTK)
+   
+   SET(USE_RPI ${USE_RPI})
+   if (USE_RPI)
+     set(RPI_DIR ${RPI_DIR})
+     find_package(RPI REQUIRED)
+     include(${RPI_USE_FILE})
+   endif(USE_RPI)
+
+endif(NOT ANIMA_USE_FILE_INCLUDED)
