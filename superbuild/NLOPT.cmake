@@ -1,7 +1,9 @@
 set (proj NLOPT)
 
 set (cmake_args
-  -DBUILD_SHARED_LIBS:BOOL=ON
+  -DCMAKE_C_FLAGS:STRING=${cmake_flags}
+  -DCMAKE_CXX_FLAGS:STRING=${cmake_flags}
+  -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
   -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
   )
 
@@ -23,4 +25,4 @@ ExternalProject_Add(${proj}
 
 ExternalProject_Get_Property(${proj} binary_dir)
 set(${proj}_BUILD_DIR ${binary_dir})
-set(${proj}_SRC_DIR ${CMAKE_SOURCE_DIR}/Projects/${proj})
+set(${proj}_SRC_DIR ${CMAKE_SOURCE_DIR}/Projects/${proj}/api)

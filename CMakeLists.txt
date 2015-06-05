@@ -11,6 +11,13 @@ set(CMAKE_MODULE_PATH
   ${CMAKE_MODULE_PATH}
   )
 
+option(BUILD_SHARED_LIBS "Build shared libraries" ON)
+
+set(cmake_flags "")
+if (UNIX AND NOT BUILD_SHARED_LIBS AND "${CMAKE_SYSTEM_PROCESSOR}" MATCHES 64)
+  set (cmake_flags "${cmake_flags} -fPIC")
+endif()
+
 include(ExternalProject)
 set(Anima-Public_DEPS "")
 

@@ -1,7 +1,9 @@
 set (proj RPI)
 
 set (cmake_args
-  -DBUILD_SHARED_LIBS:BOOL=ON
+  -DCMAKE_C_FLAGS:STRING=${cmake_flags}
+  -DCMAKE_CXX_FLAGS:STRING=${cmake_flags}
+  -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
   -DRPI_BUILD_EXAMPLES:BOOL=OFF
   -DITK_DIR:PATH=${ITK_BUILD_DIR}
   -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
@@ -14,7 +16,7 @@ endif()
 
 set(${proj}_DEPS "")
 if (NOT USE_SYSTEM_ITK)
-  set(${proj}_DEPS "${${proj}_DEPS} ITK")
+  set(${proj}_DEPS "${${proj}_DEPS};ITK")
 endif()
 
 ExternalProject_Add(${proj}
