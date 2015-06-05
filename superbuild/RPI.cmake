@@ -12,9 +12,14 @@ if (NOT DEFINED ${proj}_SRC_DIR)
   set(location GIT_REPOSITORY git@github.com:Inria-Asclepios/RPI.git)
 endif()
 
+set(${proj}_DEPS "")
+if (NOT USE_SYSTEM_ITK)
+  set(${proj}_DEPS "${${proj}_DEPS} ITK")
+endif()
+
 ExternalProject_Add(${proj}
   ${location}
-  DEPENDS ITK
+  DEPENDS ${${proj}_DEPS}
   PREFIX ${CMAKE_BINARY_DIR}/${proj}
   SOURCE_DIR ${CMAKE_SOURCE_DIR}/Projects/${proj}
   CMAKE_ARGS ${cmake_args}

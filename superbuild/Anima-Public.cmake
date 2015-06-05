@@ -29,7 +29,7 @@ set (cmake_args
   )
 
 ExternalProject_Add(${proj}
-  DEPENDS Boost TCLAP TinyXML2 NLOPT ITK RPI VTK
+  DEPENDS ${${proj}_DEPS}
   PREFIX ${CMAKE_BINARY_DIR}/${proj}
   SOURCE_DIR ${CMAKE_SOURCE_DIR}/Projects/${proj}
   CMAKE_ARGS ${cmake_args}

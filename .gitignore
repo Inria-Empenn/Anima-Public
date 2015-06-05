@@ -8,3 +8,10 @@
 *.autosave
 CMakeLists.txt.user.*
 CMakeFiles
+Projects/Boost
+Projects/TCLAP
+Projects/TinyXML2
+Projects/NLOPT
+Projects/ITK
+Projects/VTK
+Projects/RPI
