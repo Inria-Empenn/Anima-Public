@@ -12,6 +12,9 @@ set(CMAKE_MODULE_PATH
   )
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
+option(USE_VTK "Build VTK dependencies" ON)
+option(USE_RPI "Build RPI dependencies" ON)
+option(USE_NLOPT "Build NLOPT dependencies" ON)
 
 set(cmake_flags "")
 if (UNIX AND NOT BUILD_SHARED_LIBS AND "${CMAKE_SYSTEM_PROCESSOR}" MATCHES 64)
@@ -55,14 +58,16 @@ else()
 endif()
 
 # NLOPT
-option(USE_SYSTEM_NLOPT "Use system installed NLOPT" OFF)
+if (USE_NLOPT)
+  option(USE_SYSTEM_NLOPT "Use system installed NLOPT" OFF)
 
-if (USE_SYSTEM_NLOPT)
-  find_package(NLOPT REQUIRED)
-  set(NLOPT_BUILD_DIR ${NLOPT_LIBRARY_DIR})
-else()
-  include(NLOPT)
-  set (Anima-Public_DEPS "${Anima-Public_DEPS};NLOPT")
+  if (USE_SYSTEM_NLOPT)
+    find_package(NLOPT REQUIRED)
+    set(NLOPT_BUILD_DIR ${NLOPT_LIBRARY_DIR})
+  else()
+    include(NLOPT)
+    set (Anima-Public_DEPS "${Anima-Public_DEPS};NLOPT")
+  endif()
 endif()
 
 # ITK
@@ -77,25 +82,29 @@ else()
 endif()
 
 # VTK
-option(USE_SYSTEM_VTK "Use system installed VTK" OFF)
+if (USE_VTK)
+  option(USE_SYSTEM_VTK "Use system installed VTK" OFF)
 
-if (USE_SYSTEM_VTK)
-  find_package(VTK REQUIRED)
-  set(VTK_BUILD_DIR ${VTK_DIR})
-else()
-  include(VTK)
-  set (Anima-Public_DEPS "${Anima-Public_DEPS};VTK")
+  if (USE_SYSTEM_VTK)
+    find_package(VTK REQUIRED)
+    set(VTK_BUILD_DIR ${VTK_DIR})
+  else()
+    include(VTK)
+    set (Anima-Public_DEPS "${Anima-Public_DEPS};VTK")
+  endif()
 endif()
 
 # RPI
-option(USE_SYSTEM_RPI "Use system installed RPI" OFF)
+if (USE_RPI)
+  option(USE_SYSTEM_RPI "Use system installed RPI" OFF)
 
-if (USE_SYSTEM_RPI)
-  find_package(RPI REQUIRED)
-  set(RPI_BUILD_DIR ${RPI_DIR})
-else()
-  include(RPI)
-  set (Anima-Public_DEPS "${Anima-Public_DEPS};RPI")
+  if (USE_SYSTEM_RPI)
+    find_package(RPI REQUIRED)
+    set(RPI_BUILD_DIR ${RPI_DIR})
+  else()
+    include(RPI)
+    set (Anima-Public_DEPS "${Anima-Public_DEPS};RPI")
+  endif()
 endif()
 
 include(Anima-Public)
