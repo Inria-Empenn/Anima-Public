@@ -19,7 +19,10 @@ template <class ImageType>
 void
 convert(const arguments &args)
 {
-    anima::writeImage<ImageType>(args.output, anima::readImage<ImageType>(args.input));
+    typename ImageType::Pointer img = anima::readImage<ImageType>(args.input);
+    // Trash Meta data such as the ones stored in nifti.
+    img->SetMetaDataDictionary(itk::MetaDataDictionary());
+    anima::writeImage<ImageType>(args.output, img);
 }
 
 template <class ComponentType, int dimension>

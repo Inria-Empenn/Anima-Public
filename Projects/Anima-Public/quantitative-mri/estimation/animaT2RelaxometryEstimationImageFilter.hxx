@@ -9,7 +9,7 @@
 
 namespace anima
 {
-    
+
 template <typename TInputImage, typename TOutputImage>
 void
 T2RelaxometryEstimationImageFilter <TInputImage,TOutputImage>
@@ -123,7 +123,7 @@ T2RelaxometryEstimationImageFilter <TInputImage,TOutputImage>
            echoTimeAndObservation[2*index+2]=inIterators[index].Get();
          }
 
-        std::vector<double>lowerBounds(2,0);
+        std::vector<double>lowerBounds(2,1e-4);
         opt.set_lower_bounds(lowerBounds);
         std::vector<double>upperBounds(2);upperBounds[0]=m_T2UpperBoundValue;upperBounds[1]=m_M0UpperBoundValue;
         opt.set_upper_bounds(upperBounds);
@@ -143,7 +143,25 @@ T2RelaxometryEstimationImageFilter <TInputImage,TOutputImage>
         }
         catch(nlopt::roundoff_limited& e)
         {
-            itkExceptionMacro("NLOPT optimization error");
+            std::cerr << "NLOPT optimization error, at: "<< inIterators[0].GetIndex() << std::endl;
+            for (unsigned int i = 0;i < numInputs;++i)
+                std::cerr << "inIterators[" <<  i << "]: " << inIterators[i].Get() << std::endl;
+
+            outT2Iterator.Set(lowerBounds[0]);
+            outM0Iterator.Set(lowerBounds[1]);
+
+            ++maskItr;
+            ++outT2Iterator;
+            ++outM0Iterator;
+
+            for (unsigned int i = 0;i < numInputs;++i)
+                ++inIterators[i];
+
+            if (m_T1Map)
+                ++t1MapItr;
+
+            progress.CompletedPixel();
+            continue;
         }
 
         t2Value=optimizedValue[0];

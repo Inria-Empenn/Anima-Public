@@ -124,7 +124,25 @@ T1RelaxometryEstimationImageFilter <TInputImage,TOutputImage>
         double lnValue = secondInputIterator.Get() * std::sin(m_FlipAngles[0] * b1Value) * std::cos(m_FlipAngles[1] * b1Value) - firstInputIterator.Get() * std::cos(m_FlipAngles[0] * b1Value) * std::sin(m_FlipAngles[1] * b1Value);
         lnValue /= secondInputIterator.Get() * std::sin(m_FlipAngles[0] * b1Value) - firstInputIterator.Get() * std::sin(m_FlipAngles[1] * b1Value);
 
-        if (lnValue > 0)
+        if (lnValue != lnValue) // test NaN
+        {
+            outT1Iterator.Set(1e-4);
+            outM0Iterator.Set(0);
+
+            ++maskItr;
+            ++outT1Iterator;
+            ++outM0Iterator;
+
+            ++firstInputIterator;
+            ++secondInputIterator;
+
+            if (m_B1Map)
+                ++b1MapItr;
+
+            progress.CompletedPixel();
+            continue;
+        }
+        else if(lnValue > 0)
             lnValue = std::log(lnValue);
         else
         {
@@ -177,5 +195,5 @@ T1RelaxometryEstimationImageFilter <TInputImage,TOutputImage>
         progress.CompletedPixel();
     }
 }
-	
+
 } // end namespace anima
