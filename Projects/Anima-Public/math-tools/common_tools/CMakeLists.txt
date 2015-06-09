@@ -3,4 +3,5 @@ add_subdirectory(crop_image)
 add_subdirectory(collapse_image)
 add_subdirectory(convert_image)
 add_subdirectory(merge_block_images)
+add_subdirectory(vectorize_images)
 
