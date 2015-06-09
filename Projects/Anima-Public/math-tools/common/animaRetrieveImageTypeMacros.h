@@ -57,9 +57,6 @@ switch (imageIO->GetComponentType())\
 #define ANIMA_RETRIEVE_NUMBER_OF_DIMENSIONS(imageIO, ComponentType, function, ...) \
 switch (imageIO->GetNumberOfDimensions())\
 {\
-    case 2:\
-        function<ComponentType, 2>(__VA_ARGS__);\
-        break;\
     case 3:\
         function<ComponentType, 3>(__VA_ARGS__);\
         break;\
@@ -83,7 +80,7 @@ switch (imageIO->GetNumberOfDimensions())\
   *                    function<itk::Image<ComponentType, Dimension> >(args, args...)
   *                     or
   *                    function<itk::VectorImage<ComponentType, Dimension> >(args, args...)
-  * args...     -> A list of arguments to pass to the function
+  * args...         -> A list of arguments to pass to the function
   */
 #define ANIMA_CHECK_IF_COMPONENTS_ARE_VECTORS(imageIO, ComponentType, Dimension, function, ...) \
 switch (imageIO->GetNumberOfComponents())\

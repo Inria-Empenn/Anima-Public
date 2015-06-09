@@ -119,7 +119,8 @@ evaluateOutputType(const arguments &args)
                 extract<InputImageType, 2>(args);
                 break;
             default:
-                itk::ExceptionObject excp(__FILE__, __LINE__, "Number of collapsed dimension not supported.", ITK_LOCATION);
+                std::string msg = "Number of collapsed dimension not supported.";
+                itk::ExceptionObject excp(__FILE__, __LINE__,msg , ITK_LOCATION);
                 throw excp;
             }
             break;
@@ -142,7 +143,8 @@ evaluateOutputType(const arguments &args)
                 extract<InputImageType, 3>(args);
                 break;
             default:
-                itk::ExceptionObject excp(__FILE__, __LINE__, "Number of collapsed dimension not supported.", ITK_LOCATION);
+                std::string msg = "Number of collapsed dimension not supported.";
+                itk::ExceptionObject excp(__FILE__, __LINE__,msg , ITK_LOCATION);
                 throw excp;
             }
             break;
@@ -169,13 +171,15 @@ evaluateOutputType(const arguments &args)
                 extract<InputImageType, 4>(args);
                 break;
             default:
-                itk::ExceptionObject excp(__FILE__, __LINE__, "Number of collapsed dimension not supported.", ITK_LOCATION);
+                std::string msg = "Number of collapsed dimension not supported.";
+                itk::ExceptionObject excp(__FILE__, __LINE__,msg , ITK_LOCATION);
                 throw excp;
             }
             break;
         }
         default:
-            itk::ExceptionObject excp(__FILE__, __LINE__, "Number of dimension not supported.", ITK_LOCATION);
+            std::string msg = "Number of collapsed dimension not supported.";
+            itk::ExceptionObject excp(__FILE__, __LINE__,msg , ITK_LOCATION);
             throw excp;
     }
 }
@@ -198,13 +202,19 @@ retrieveNbDimensions(itk::ImageIOBase::Pointer imageIO, const arguments &args)
 int main(int ac, const char** av)
 {
 
-    TCLAP::CmdLine cmd("The animaCropImage uses an itkExtractImage filter to crop an image given as input.\n\
-The lower case arguments(x<xindex>, y<yindex>, z<zindex>, t<tindex>) are the starting indexes of the input region to keep. The default value is 0\n \
-The upper case arguments(X<xsize>, Y<ysize>, Z<zsize>, T<tsize>) are the sizes of the input region to keep. The default value is the largest possible sizes given the corresponding indexes.\n \
-If you give args size of zero the corresponding dimension will be collapsed.\n\
-Example: for args a 4D image 4x4x4x4 the arguments :\n --xindex 1 --zindex 1 --zsize 2 --tindex 3 --tsize 0\n will result on an image 3x4x2\n\
-Where the x dim corresponds to [1,2,3] of the input, y[0,3], zindex[1,2] and tindex is collapsed, only the last sequence has been kept.",
-            ' ',"0.0");
+    TCLAP::CmdLine cmd("The animaCropImage uses an itkExtractImage filter to crop "
+                       "an image given as input.\n"
+                       "The lower case arguments(x<xindex>, y<yindex>, z<zindex>, t<tindex>)"
+                       " are the starting indexes of the input region to keep. The default value is 0\n"
+                       "The upper case arguments(X<xsize>, Y<ysize>, Z<zsize>, T<tsize>) are the sizes of "
+                       "the input region to keep. The default value is the largest possible sizes given the "
+                       "corresponding indexes.\nIf you give args size of zero the corresponding dimension will "
+                       "be collapsed.\nExample: for args a 4D image 4x4x4x4 the arguments :\n --xindex 1"
+                       " --zindex 1 --zsize 2 --tindex 3 --tsize 0\n will result on an image 3x4x2\n"
+                       "Where the x dim corresponds to [1,2,3] of the input, y[0,3], zindex[1,2] and tindex is "
+                       "collapsed, only the last sequence has been kept.",
+                       ' ',
+                       "0.0");
 
     TCLAP::ValueArg<std::string> inputArg("i",
             "input",

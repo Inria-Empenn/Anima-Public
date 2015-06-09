@@ -1,28 +1,32 @@
 #include <animaDTIEstimationImageFilter.h>
 #include <animaGradientFileReader.h>
 
+#include <tclap/CmdLine.h>
+
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
-#include <animaReadWriteFunctions.h>
 #include <itkTimeProbe.h>
 
-#include <tclap/CmdLine.h>
+#include <animaReadWriteFunctions.h>
+#include <animaReorientation.h>
 
 int main(int argc,  char **argv)
 {
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',"1.0");
 
-    TCLAP::ValueArg<std::string> inArg("i","inputdwi","DWI volume",true,"","DWI volume",cmd);
-    TCLAP::ValueArg<std::string> resArg("o","output","Result DTI image",true,"","result DTI image",cmd);
-    TCLAP::ValueArg<std::string> b0OutArg("O","output-b0","Resulting B0 image",true,"","result B0 image",cmd);
+    TCLAP::ValueArg<std::string> inArg("i","inputdwi","dwi_volume",true,"","DWI volume",cmd);
+    TCLAP::ValueArg<std::string> resArg("o","output","dit_volume",true,"","result DTI image",cmd);
+    TCLAP::ValueArg<std::string> b0OutArg("O","output-b0","output_b0",true,"","result B0 image",cmd);
 
-    TCLAP::ValueArg<std::string> gradsArg("g","grad","Input gradients",true,"","Input gradients",cmd);
-    TCLAP::ValueArg<std::string> bvalArg("b","bval","Input b-values",true,"","Input b-values",cmd);
+    TCLAP::ValueArg<std::string> gradsArg("g","grad","input_gradients",true,"","Input gradients",cmd);
+    TCLAP::ValueArg<std::string> bvalArg("b","bval","input_b-values",true,"","Input b-values",cmd);
 
     TCLAP::SwitchArg keepDegArg("K","keep-degenerated","Keep degenerated values",cmd,false);
 
-    TCLAP::ValueArg<unsigned int> b0ThrArg("t","b0thr","B0 threshold (default : 0)",false,0,"B0 threshold for computation",cmd);
-    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> b0ThrArg("t","b0thr","bot_treshold",false,0,"B0 threshold (default : 0)",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","nb_thread",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"Number of threads to run on (default: all cores)",cmd);
+    TCLAP::ValueArg<std::string> reorientArg("r","reorient","dwi_reoriented",false,"","Reorient DWI given as input",cmd);
+    TCLAP::ValueArg<std::string> reorientGradArg("R","reorient-G","dwi_reoriented",false,"","Reorient DWI given as input and use reoriented gradients",cmd);
 
     try{
         cmd.parse(argc,argv);
@@ -52,15 +56,36 @@ int main(int argc,  char **argv)
     gfReader.Update();
 
     GFReaderType::GradientVectorType directions = gfReader.GetGradients();
-
-    for(unsigned int i = 0;i < directions.size();++i)
-        mainFilter->AddGradientDirection(i,directions[i]);
-
     GFReaderType::BValueVectorType mb = gfReader.GetBValues();
 
-    mainFilter->SetBValuesList(mb);
+    std::string inputFile = inArg.getValue();
 
-    anima::setMultipleImageFilterInputsFromFileName<InputImageType,Image4DType,FilterType>(inArg.getValue(), mainFilter);
+    Image4DType::Pointer input = anima::readImage<Image4DType>(inArg.getValue());
+
+    if(reorientGradArg.getValue() != "")
+    {
+        input = anima::reorientImageAndGradient<Image4DType, std::vector <float> >
+                (input, itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI, directions);
+        anima::writeImage<Image4DType>(reorientGradArg.getValue(), input);
+        inputFile = reorientGradArg.getValue();
+    }
+    else if(reorientArg.getValue() != "")
+    {
+        input = anima::reorientImage<Image4DType>(input, itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI);
+        anima::writeImage<Image4DType>(reorientArg.getValue(), input);
+
+        inputFile = reorientArg.getValue();
+    }
+
+    mainFilter->SetBValuesList(mb);
+    for(unsigned int i = 0;i < directions.size();++i)
+        mainFilter->AddGradientDirection(i, directions[i]);
+
+    std::vector <InputImageType::Pointer> inputData;
+    inputData = anima::getImagesFromHigherDimensionImage<Image4DType,InputImageType>(input);
+
+    for (unsigned int i = 0;i < inputData.size();++i)
+        mainFilter->SetInput(i,inputData[i]);
 
     mainFilter->SetB0Threshold(b0ThrArg.getValue());
     mainFilter->SetNumberOfThreads(nbpArg.getValue());

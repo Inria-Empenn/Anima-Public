@@ -1,17 +1,15 @@
 #include <tclap/CmdLine.h>
 
 #include <itkImage.h>
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
-#include <itkCommand.h>
-#include <itkExtractImageFilter.h>
+#include <itkOrientImageFilter.h>
 
+#include <animaReorientation.h>
 #include <animaReadWriteFunctions.h>
 #include <animaRetrieveImageTypeMacros.h>
 
 struct arguments
 {
-    std::string input, output;
+    std::string input, output, reorient, space;
     bool displayInfo;
 };
 
@@ -19,10 +17,27 @@ template <class ImageType>
 void
 convert(const arguments &args)
 {
-    typename ImageType::Pointer img = anima::readImage<ImageType>(args.input);
-    // Trash Meta data such as the ones stored in nifti.
-    img->SetMetaDataDictionary(itk::MetaDataDictionary());
-    anima::writeImage<ImageType>(args.output, img);
+    typename ImageType::Pointer input = anima::readImage<ImageType>(args.input);
+
+    if(args.space != "")
+    {
+        typename ImageType::Pointer spaceImage = anima::readImage<ImageType>(args.space);
+
+        input->CopyInformation(spaceImage);
+    }
+
+    if(args.reorient == "AXIAL")
+        input = anima::reorientImage<ImageType>(input,
+                                                itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI);
+    else if(args.reorient == "CORONAL")
+        input = anima::reorientImage<ImageType>(input,
+                                                itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSA);
+    else if(args.reorient == "SAGITTAL")
+        input = anima::reorientImage<ImageType>(input,
+                                                itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_ASL);
+
+    input->SetMetaDataDictionary(itk::MetaDataDictionary());
+    anima::writeImage<ImageType>(args.output, input);
 }
 
 template <class ComponentType, int dimension>
@@ -42,11 +57,16 @@ retrieveNbDimensions(itk::ImageIOBase::Pointer imageIO, const arguments &args)
 int main(int ac, const char** av)
 {
     TCLAP::CmdLine cmd("animaConvertImage can be used to rewrite an image in a new compatible format ie: nii to nrrd. "
-                       "It can also be used to display generic information on an image such as size, origin etc. using the -I option.");
+                       "It can also be used to display generic information on an image such as size, origin etc. using the --info option."
+                       "If an image file is given to the --space option it will be used to rewrite the input in the same"
+                       "real coordinates repair."
+                       "The --reorient option allow to reorient the image in either the AXIAL, CORONAL or SAGITALL orientation."
+                       "Note that the reorientation is perform after the change of coordinate space if --space and --reorient"
+                       "are given together.");
 
     TCLAP::ValueArg<std::string> inputArg("i",
             "input",
-            "Input image",
+            "input_filename",
             true,
             "",
             "Input image.",
@@ -54,7 +74,7 @@ int main(int ac, const char** av)
 
     TCLAP::ValueArg<std::string> outputArg("o",
             "output",
-            "Output image",
+            "output_filename",
             false,
             "",
             "Output image.",
@@ -63,6 +83,21 @@ int main(int ac, const char** av)
     TCLAP::SwitchArg infoArg("I",
             "info",
             "Display info on the image or not",
+            cmd);
+
+    TCLAP::ValueArg<std::string> reorientArg("R",
+            "reorient",
+            "orientation",
+            false,
+            "",
+            "Reorient the image in 'AXIAL' or 'CORONAL' or 'SAGITTAL' direction. [defalut: No reorientation]",
+            cmd);
+    TCLAP::ValueArg<std::string> spaceArg("s",
+            "space",
+            "space_filename",
+            false,
+            "",
+            "Image used as space reference.",
             cmd);
 
     try
@@ -91,6 +126,7 @@ int main(int ac, const char** av)
 
     arguments args;
     args.input = inputArg.getValue(); args.output = outputArg.getValue(); args.displayInfo = infoArg.getValue();
+    args.reorient = reorientArg.getValue(); args.space = spaceArg.getValue();
 
     int numDimensions = imageIO->GetNumberOfDimensions() - 1;
     if(args.displayInfo)

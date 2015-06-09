@@ -70,6 +70,7 @@ applyVectorTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
         origin[i] = geometryImageIO->GetOrigin(i);
         spacing[i] = geometryImageIO->GetSpacing(i);
         for(unsigned int j = 0; j < ImageType::ImageDimension; ++j)
+            // watch out transposition.
             direction[i][j] = geometryImageIO->GetDirection(j)[i];
     }
     vectorResampler->SetSize(size);
