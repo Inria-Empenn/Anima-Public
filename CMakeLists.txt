@@ -21,6 +21,21 @@ if (UNIX AND NOT BUILD_SHARED_LIBS AND "${CMAKE_SYSTEM_PROCESSOR}" MATCHES 64)
   set (cmake_flags "${cmake_flags} -fPIC")
 endif()
 
+# Use github SSH connection or https ?
+
+option(USE_GITHUB_SSH 
+  "Use by default Git SSH addresses, requires public key set on github" ON
+  )
+mark_as_advanced(USE_GITHUB_SSH)
+
+if(${USE_GITHUB_SSH})
+  set(GITHUB_PREFIX git@github.com:)
+else()
+  set(GITHUB_PREFIX https://github.com/)
+endif()
+
+# Deal with external dependencies
+
 include(ExternalProject)
 set(Anima-Public_DEPS "")
 

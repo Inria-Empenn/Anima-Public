@@ -9,7 +9,7 @@ set (cmake_args
 
 set (location "")
 if (NOT DEFINED ${proj}_SRC_DIR)
-  set(location GIT_REPOSITORY git@github.com:leethomason/tinyxml2.git)
+  set(location GIT_REPOSITORY ${GITHUB_PREFIX}leethomason/tinyxml2.git)
 endif()
 
 ExternalProject_Add(${proj}

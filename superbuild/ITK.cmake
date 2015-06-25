@@ -11,7 +11,7 @@ set (cmake_args
 
 set (location "")
 if (NOT DEFINED ${proj}_SRC_DIR)
-  set(location GIT_REPOSITORY git@github.com:InsightSoftwareConsortium/ITK.git)
+  set(location GIT_REPOSITORY ${GITHUB_PREFIX}InsightSoftwareConsortium/ITK.git)
 endif()
 
 ExternalProject_Add(${proj}
