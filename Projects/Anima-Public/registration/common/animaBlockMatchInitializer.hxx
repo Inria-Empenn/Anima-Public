@@ -1,4 +1,5 @@
 #pragma once
+#include "animaBlockMatchInitializer.h"
 
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIteratorWithIndex.h>

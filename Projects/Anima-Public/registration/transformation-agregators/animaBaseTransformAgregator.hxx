@@ -1,4 +1,5 @@
 #pragma once
+#include "animaBaseTransformAgregator.h"
 
 namespace anima
 {

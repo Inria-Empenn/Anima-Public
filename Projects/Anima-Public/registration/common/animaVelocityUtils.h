@@ -15,10 +15,14 @@ void GetSVFExponential(itk::StationaryVelocityFieldTransform <ScalarType,NDimens
                        rpi::DisplacementFieldTransform <ScalarType,NDimensions> *resultTransform,
                        bool invert);
 
+/**
+ * Compose distortion correction opposite updates, ensures opposite symmetry
+ * baseTrsf is replaced by the result !
+ */
 template <class ScalarType, unsigned int NDimensions>
-void composeDistortionCorrections(rpi::DisplacementFieldTransform <ScalarType,NDimensions> *baseTrsf,
-                                  rpi::DisplacementFieldTransform <ScalarType,NDimensions> *positiveAddOn,
-                                  rpi::DisplacementFieldTransform <ScalarType,NDimensions> *negativeAddOn,
+void composeDistortionCorrections(typename rpi::DisplacementFieldTransform <ScalarType,NDimensions>::Pointer &baseTrsf,
+                                  typename rpi::DisplacementFieldTransform <ScalarType,NDimensions>::Pointer &positiveAddOn,
+                                  typename rpi::DisplacementFieldTransform <ScalarType,NDimensions>::Pointer &negativeAddOn,
                                   unsigned int numThreads);
 
 } // end of namespace anima

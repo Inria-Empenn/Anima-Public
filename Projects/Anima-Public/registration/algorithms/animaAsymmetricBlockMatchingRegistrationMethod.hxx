@@ -1,4 +1,5 @@
 #pragma once
+#include "animaAsymmetricBlockMatchingRegistrationMethod.h"
 
 namespace anima
 {

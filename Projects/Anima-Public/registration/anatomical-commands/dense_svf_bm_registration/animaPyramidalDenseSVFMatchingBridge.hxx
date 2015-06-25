@@ -399,6 +399,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
         fieldMultiplier->SetInput(finalTrsfField);
         fieldMultiplier->SetConstant(2.0);
         fieldMultiplier->SetNumberOfThreads(GetNumberOfThreads());
+        fieldMultiplier->InPlaceOn();
 
         fieldMultiplier->Update();
 
@@ -410,8 +411,8 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
     DisplacementFieldTransformPointer outputDispTrsf = DisplacementFieldTransformType::New();
     anima::GetSVFExponential(m_OutputTransform.GetPointer(), outputDispTrsf.GetPointer(), false);
 
-    typedef typename itk::ResampleImageFilter<InputImageType, InputImageType,
-                                              typename BaseAgregatorType::ScalarType> ResampleFilterType;
+    typedef typename anima::ResampleImageFilter<InputImageType, InputImageType,
+                                                typename BaseAgregatorType::ScalarType> ResampleFilterType;
     typename ResampleFilterType::Pointer tmpResample = ResampleFilterType::New();
     tmpResample->SetTransform(outputDispTrsf);
     tmpResample->SetInput(m_FloatingImage);

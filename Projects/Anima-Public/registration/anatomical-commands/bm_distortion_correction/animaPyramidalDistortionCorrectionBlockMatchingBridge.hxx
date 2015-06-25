@@ -279,8 +279,8 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
     oppositeTransform->SetParametersAsVectorField(multiplyFilter->GetOutput());
     
     if (m_InitialTransform)
-        anima::composeDistortionCorrections(m_InitialTransform.GetPointer(),m_OutputTransform.GetPointer(),
-                                            oppositeTransform.GetPointer(),this->GetNumberOfThreads());
+        anima::composeDistortionCorrections<typename BaseAgregatorType::ScalarType,ImageDimension>
+                (m_InitialTransform,m_OutputTransform,oppositeTransform,this->GetNumberOfThreads());
     
     typename ResampleFilterType::Pointer tmpResampleFloating = ResampleFilterType::New();
     tmpResampleFloating->SetTransform(m_OutputTransform);
@@ -322,6 +322,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
     multiplyScalarFilter->SetInput(addFilter->GetOutput());
     multiplyScalarFilter->SetConstant(0.5);
     multiplyScalarFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    multiplyScalarFilter->InPlaceOn();
     
     multiplyScalarFilter->Update();
     

@@ -97,6 +97,7 @@ int main(int ac, const char** av)
         vectorMultiplier->SetConstant(-1.0);
         vectorMultiplier->SetNumberOfThreads(nbpArg.getValue());
         vectorMultiplier->Update();
+        vectorMultiplier->InPlaceOn();
         
         appliedField = vectorMultiplier->GetOutput();
         appliedField->DisconnectPipeline();
@@ -217,6 +218,7 @@ int main(int ac, const char** av)
             outputAdder->SetInput2(backwardResampler->GetOutput());
             outputAdder->SetNumberOfThreads(nbpArg.getValue());
             outputAdder->Update();
+            outputAdder->InPlaceOn();
             
             typedef itk::MultiplyImageFilter <ImageType, itk::Image <double,Dimension>, ImageType> MultiplierFilterType;
             MultiplierFilterType::Pointer outputMultiplier = MultiplierFilterType::New();
@@ -224,6 +226,7 @@ int main(int ac, const char** av)
             outputMultiplier->SetConstant(0.5);
             outputMultiplier->SetNumberOfThreads(nbpArg.getValue());
             outputMultiplier->Update();
+            outputMultiplier->InPlaceOn();
             
             outputSingleImage = outputMultiplier->GetOutput();
             outputSingleImage->DisconnectPipeline();

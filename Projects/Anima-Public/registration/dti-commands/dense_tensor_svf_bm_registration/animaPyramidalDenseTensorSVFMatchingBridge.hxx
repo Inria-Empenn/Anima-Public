@@ -1,4 +1,5 @@
 #pragma once
+#include "animaPyramidalDenseTensorSVFMatchingBridge.h"
 
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
@@ -366,6 +367,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
         fieldMultiplier->SetInput(finalTrsfField);
         fieldMultiplier->SetConstant(2.0);
         fieldMultiplier->SetNumberOfThreads(GetNumberOfThreads());
+        fieldMultiplier->InPlaceOn();
 
         fieldMultiplier->Update();
 

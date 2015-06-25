@@ -43,6 +43,7 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
         multFilter->SetInput1(currentImage);
         multFilter->SetInput2(multImReader->GetOutput());
         multFilter->SetNumberOfThreads(nThreads);
+        multFilter->InPlaceOn();
         
         multFilter->Update();
         currentImage = multFilter->GetOutput();
@@ -55,6 +56,7 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
         multFilter->SetInput1(currentImage);
         multFilter->SetConstant(multConstant);
         multFilter->SetNumberOfThreads(nThreads);
+        multFilter->InPlaceOn();
         
         multFilter->Update();
         currentImage = multFilter->GetOutput();
@@ -67,6 +69,7 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
         divFilter->SetInput1(currentImage);
         divFilter->SetConstant(divideConstant);
         divFilter->SetNumberOfThreads(nThreads);
+        divFilter->InPlaceOn();
         
         divFilter->Update();
         currentImage = divFilter->GetOutput();
@@ -84,6 +87,7 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
         divFilter->SetInput1(currentImage);
         divFilter->SetInput2(divImReader->GetOutput());
         divFilter->SetNumberOfThreads(nThreads);
+        divFilter->InPlaceOn();
         
         divFilter->Update();
         currentImage = divFilter->GetOutput();
@@ -112,6 +116,7 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
         addFilter->SetInput1(currentImage);
         addFilter->SetInput2(addImReader->GetOutput());
         addFilter->SetNumberOfThreads(nThreads);
+        addFilter->InPlaceOn();
         
         addFilter->Update();
         currentImage = addFilter->GetOutput();
@@ -128,6 +133,7 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
         subFilter->SetInput1(currentImage);
         subFilter->SetInput2(subImReader->GetOutput());
         subFilter->SetNumberOfThreads(nThreads);
+        subFilter->InPlaceOn();
         
         subFilter->Update();
         currentImage = subFilter->GetOutput();
@@ -140,6 +146,7 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
         addFilter->SetInput1(currentImage);
         addFilter->SetConstant(addConstant);
         addFilter->SetNumberOfThreads(nThreads);
+        addFilter->InPlaceOn();
         
         addFilter->Update();
         currentImage = addFilter->GetOutput();

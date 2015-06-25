@@ -57,9 +57,9 @@ void GetSVFExponential(itk::StationaryVelocityFieldTransform <ScalarType,NDimens
 }
 
 template <class ScalarType, unsigned int NDimensions>
-void composeDistortionCorrections(rpi::DisplacementFieldTransform <ScalarType,NDimensions> *baseTrsf,
-                                  rpi::DisplacementFieldTransform <ScalarType,NDimensions> *positiveAddOn,
-                                  rpi::DisplacementFieldTransform <ScalarType,NDimensions> *negativeAddOn,
+void composeDistortionCorrections(typename rpi::DisplacementFieldTransform <ScalarType,NDimensions>::Pointer &baseTrsf,
+                                  typename rpi::DisplacementFieldTransform <ScalarType,NDimensions>::Pointer &positiveAddOn,
+                                  typename rpi::DisplacementFieldTransform <ScalarType,NDimensions>::Pointer &negativeAddOn,
                                   unsigned int numThreads)
 {
     typedef rpi::DisplacementFieldTransform <ScalarType,NDimensions> DisplacementFieldTransformType;
@@ -81,6 +81,7 @@ void composeDistortionCorrections(rpi::DisplacementFieldTransform <ScalarType,ND
     multiplyFilter->SetInput(baseTrsf->GetParametersAsVectorField());
     multiplyFilter->SetConstant(-1.0);
     multiplyFilter->SetNumberOfThreads(numThreads);
+    multiplyFilter->InPlaceOn();
 
     multiplyFilter->Update();
 
@@ -109,6 +110,8 @@ void composeDistortionCorrections(rpi::DisplacementFieldTransform <ScalarType,ND
         ++positiveItr;
         ++negativeItr;
     }
+
+    baseTrsf = positiveAddOn;
 }
 
 } // end of namespace anima

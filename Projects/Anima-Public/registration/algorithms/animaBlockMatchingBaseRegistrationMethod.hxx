@@ -1,6 +1,5 @@
 #pragma once
-
-
+#include "animaBlockMatchingBaseRegistrationMethod.h"
 
 #include <animaSmoothingRecursiveYvvGaussianImageFilter.h>
 
@@ -732,7 +731,6 @@ BlockMatchingBaseRegistrationMethod<TInputImage>
     itkDebugMacro(<<"Threaded Block Match " << threadId << " / " << NbThreads << " starting @ " << startBlock << " up to " << endBlock );
 
     // Loop over the desired blocks
-    typename BaseInputTransformType::Pointer realTransform;
     for (unsigned int block = startBlock; block < endBlock; ++block)
     {
 

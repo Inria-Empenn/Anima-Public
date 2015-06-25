@@ -1,4 +1,5 @@
 #pragma once
+#include "animaBalooSVFTransformAgregator.h"
 
 #include <animaSmoothingRecursiveYvvGaussianImageFilter.h>
 
@@ -70,7 +71,6 @@ void
 BalooSVFTransformAgregator <NDimensions>::
 estimateSVFFromTranslations()
 {
-    const unsigned int NDegreesFreedom = NDimensions;
     unsigned int nbPts = this->GetInputRegions().size();
     VelocityFieldPointer velocityField = VelocityFieldType::New();
     velocityField->Initialize();
@@ -124,7 +124,7 @@ estimateSVFFromTranslations()
     for (unsigned int i = 0;i < m_DamIndexes.size();++i)
         weights->SetPixel(m_DamIndexes[i],1.0);
 
-    anima::filterInputs<ScalarType,NDimensions,NDegreesFreedom>(weights,velocityField,curDisps,posIndexes,this);
+    anima::filterInputs<ScalarType,NDimensions,NDimensions>(weights,velocityField,curDisps,posIndexes,this);
 
     // Create the final transform
     typename BaseOutputTransformType::Pointer resultTransform = BaseOutputTransformType::New();
@@ -434,15 +434,6 @@ filterInputs(itk::Image <ScalarType,NDimensions> *weights,
     FieldPixelType zeroTrsf;
     zeroTrsf.Fill(0);
 
-    /*
-    typename itk::ImageFileWriter <WeightImageType>::Pointer tmpWriter = itk::ImageFileWriter <WeightImageType>::New();
-    tmpWriter->SetFileName("test_weight.nii.gz");
-    tmpWriter->SetInput(weights);
-    tmpWriter->SetUseCompression(true);
-
-    tmpWriter->Update();
-    */
-
     typedef anima::SmoothingRecursiveYvvGaussianImageFilter<WeightImageType,WeightImageType> WeightSmootherType;
     typename WeightSmootherType::Pointer weightSmooth = WeightSmootherType::New();
 
@@ -451,6 +442,10 @@ filterInputs(itk::Image <ScalarType,NDimensions> *weights,
     weightSmooth->SetNumberOfThreads(filterPtr->GetNumberOfThreads());
 
     weightSmooth->Update();
+
+    typename WeightImageType::Pointer smoothedWeights = weightSmooth->GetOutput();
+    smoothedWeights->DisconnectPipeline();
+    weightSmooth = 0;
 
     typedef anima::SmoothingRecursiveYvvGaussianImageFilter <FieldType, FieldType> SVFSmoothingFilterType;
     typename SVFSmoothingFilterType::Pointer smootherPtr = SVFSmoothingFilterType::New();
@@ -463,10 +458,9 @@ filterInputs(itk::Image <ScalarType,NDimensions> *weights,
 
     typename FieldType::Pointer smoothedField = smootherPtr->GetOutput();
     smoothedField->DisconnectPipeline();
+    smootherPtr = 0;
 
     // Now remove outliers
-
-    vnl_matrix <double> tmpMatrix(NDimensions+1,NDimensions+1,0);
     FieldPixelType curTrsf;
 
     unsigned int nbPts = filterPtr->GetInputRegions().size();
@@ -474,7 +468,7 @@ filterInputs(itk::Image <ScalarType,NDimensions> *weights,
     double averageResidual = 0, varResidual = 0;
     for (unsigned int i = 0;i < nbPts;++i)
     {
-        double weightSmoothed = weightSmooth->GetOutput()->GetPixel(posIndexes[i]);
+        double weightSmoothed = smoothedWeights->GetPixel(posIndexes[i]);
         if (weightSmoothed > 0)
         {
             curTrsf = smoothedField->GetPixel(posIndexes[i]);
@@ -493,6 +487,9 @@ filterInputs(itk::Image <ScalarType,NDimensions> *weights,
         averageResidual += residual;
         residuals[i] = residual;
     }
+
+    smoothedField = 0;
+    smoothedWeights = 0;
 
     varResidual = sqrt((varResidual - averageResidual * averageResidual / nbPts) / (nbPts - 1.0));
     averageResidual /= nbPts;
@@ -514,6 +511,9 @@ filterInputs(itk::Image <ScalarType,NDimensions> *weights,
 
     weightSmooth->Update();
 
+    smoothedWeights = weightSmooth->GetOutput();
+    smoothedWeights->DisconnectPipeline();
+
     smootherPtr = SVFSmoothingFilterType::New();
 
     smootherPtr->SetInput(output);
@@ -527,7 +527,7 @@ filterInputs(itk::Image <ScalarType,NDimensions> *weights,
 
     typename WeightImageType::RegionType largestRegion = weights->GetLargestPossibleRegion();
     itk::ImageRegionIterator < FieldType > svfIterator = itk::ImageRegionIterator < FieldType > (output,largestRegion);
-    itk::ImageRegionConstIterator < WeightImageType > weightItr(weightSmooth->GetOutput(),largestRegion);
+    itk::ImageRegionConstIterator < WeightImageType > weightItr(smoothedWeights,largestRegion);
 
     while (!svfIterator.IsAtEnd())
     {

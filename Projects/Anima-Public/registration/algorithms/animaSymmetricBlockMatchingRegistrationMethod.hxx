@@ -1,4 +1,5 @@
 #pragma once
+#include "animaSymmetricBlockMatchingRegistrationMethod.h"
 
 #include <itkTimeProbe.h>
 
@@ -113,7 +114,8 @@ SymmetricBlockMatchingRegistrationMethod<TInputImage>
     if (this->GetAgregator()->GetOutputTransformType() == AgregatorType::SVF)
     {
         // Add update to current velocity field (cf. Vercauteren et al, 2008)
-        // First compute the SVF from two asymmetric ones: S = 0.5 * (S_0 - S_1)
+        // First compute the SVF from two asymmetric ones: S = 0.25 * (S_0 - S_1)
+        // It's only a quarter since we are computing the half power of the transform between the two images
         typedef typename SVFTransformType::VectorFieldType VelocityFieldType;
 
         typedef typename itk::ImageRegionConstIterator <VelocityFieldType> VelocityFieldConstIterator;
@@ -122,35 +124,23 @@ SymmetricBlockMatchingRegistrationMethod<TInputImage>
         SVFTransformType *usualAddOnCast = dynamic_cast <SVFTransformType *> (usualAddOn.GetPointer());
         SVFTransformType *reverseAddOnCast = dynamic_cast <SVFTransformType *> (reverseAddOn.GetPointer());
 
-        VelocityFieldConstIterator usualAddOnItr(usualAddOnCast->GetParametersAsVectorField(),
-                                                 usualAddOnCast->GetParametersAsVectorField()->GetLargestPossibleRegion());
+        typename VelocityFieldType::Pointer usualAddOnSVF = const_cast <VelocityFieldType *> (usualAddOnCast->GetParametersAsVectorField());
+
+        VelocityFieldIterator usualAddOnItr(usualAddOnSVF,usualAddOnSVF->GetLargestPossibleRegion());
 
         VelocityFieldConstIterator reverseAddOnItr(reverseAddOnCast->GetParametersAsVectorField(),
                                                    reverseAddOnCast->GetParametersAsVectorField()->GetLargestPossibleRegion());
-
-        typename VelocityFieldType::Pointer resField = VelocityFieldType::New();
-        resField->Initialize();
-        resField->SetRegions (usualAddOnCast->GetParametersAsVectorField()->GetLargestPossibleRegion());
-        resField->SetSpacing (usualAddOnCast->GetParametersAsVectorField()->GetSpacing());
-        resField->SetOrigin (usualAddOnCast->GetParametersAsVectorField()->GetOrigin());
-        resField->SetDirection (usualAddOnCast->GetParametersAsVectorField()->GetDirection());
-        resField->Allocate();
-
-        VelocityFieldIterator resItr(resField,resField->GetLargestPossibleRegion());
 
         typedef typename VelocityFieldType::PixelType VectorType;
         VectorType tmpVec;
         while (!usualAddOnItr.IsAtEnd())
         {
             tmpVec = 0.5 * (usualAddOnItr.Get() - reverseAddOnItr.Get());
-            resItr.Set(tmpVec);
+            usualAddOnItr.Set(tmpVec);
 
             ++usualAddOnItr;
             ++reverseAddOnItr;
-            ++resItr;
         }
-
-        usualAddOnCast->SetParametersAsVectorField(resField.GetPointer());
     }
     else
     {

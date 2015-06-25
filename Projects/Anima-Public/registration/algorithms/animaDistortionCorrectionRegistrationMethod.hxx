@@ -219,9 +219,8 @@ DistortionCorrectionRegistrationMethod<TInputImage>
         DisplacementFieldTransformPointer negativeDispTrsf = DisplacementFieldTransformType::New();
         GetSVFExponential(positiveAddOn.GetPointer(),negativeDispTrsf.GetPointer(),true);
 
-        anima::composeDistortionCorrections(computedTransform.GetPointer(),positiveDispTrsf.GetPointer(),
-                                            negativeDispTrsf.GetPointer(),this->GetNumberOfThreads());
-        computedTransform = positiveDispTrsf;
+        anima::composeDistortionCorrections<typename AgregatorType::ScalarType, InputImageType::ImageDimension>
+                (computedTransform,positiveDispTrsf,negativeDispTrsf,this->GetNumberOfThreads());
 
         // Smooth (elastic)
         if (m_SVFElasticRegSigma > 0)
@@ -497,6 +496,7 @@ DistortionCorrectionRegistrationMethod<TInputImage>
     subFilter->SetInput1(positiveSVF);
     subFilter->SetInput2(negativeSVF);
     subFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    subFilter->InPlaceOn();
 
     subFilter->Update();
 
@@ -504,6 +504,7 @@ DistortionCorrectionRegistrationMethod<TInputImage>
     multiplyFilter->SetInput(subFilter->GetOutput());
     multiplyFilter->SetConstant(0.25);
     multiplyFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    multiplyFilter->InPlaceOn();
 
     multiplyFilter->Update();
 
