@@ -48,7 +48,7 @@ if (USE_SYSTEM_BOOST)
   set(Boost_SRC_DIR ${Boost_INCLUDE_DIR})
 else()
   include(Boost)
-  set (Anima-Public_DEPS "${Anima_DEPS};Boost")
+  set (Anima_DEPS "${Anima_DEPS};Boost")
 endif()
 
 # TCLAP
