@@ -12,7 +12,6 @@
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <animaVectorOperations.h>
 #include <animaLogarithmFunctions.h>
-#include <animaPseudoResidualsNoiseImageFilter.h>
 
 #include <vnl/algo/vnl_matrix_inverse.h>
 
