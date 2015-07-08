@@ -15,6 +15,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(USE_VTK "Build VTK dependencies" ON)
 option(USE_RPI "Build RPI dependencies" ON)
 option(USE_NLOPT "Build NLOPT dependencies" ON)
+option(BUILD_ANIMA_TESTING "Build ANIMA testing executables" OFF)
 
 set(cmake_flags "")
 if (UNIX AND NOT BUILD_SHARED_LIBS AND "${CMAKE_SYSTEM_PROCESSOR}" MATCHES 64)
@@ -123,3 +124,9 @@ if (USE_RPI)
 endif()
 
 include(Anima)
+
+option(USE_ANIMA_PRIVATE "Use ANIMA private part, requires authorized access" OFF)
+
+if (USE_ANIMA_PRIVATE)
+  include(Anima-Private)
+endif()
