@@ -1,3 +1,2 @@
 add_subdirectory(non_local_means_image_filter)
 add_subdirectory(non_local_means_temporal_image_filter)
-add_subdirectory(pseudo_residuals_noise_estimation)
