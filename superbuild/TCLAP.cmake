@@ -7,8 +7,8 @@ endif()
 
 ExternalProject_Add(${proj}
   ${location}
-  PREFIX ${CMAKE_BINARY_DIR}/${proj}
-  SOURCE_DIR ${CMAKE_SOURCE_DIR}/Projects/${proj}
+  PREFIX ${CMAKE_BINARY_DIR}/External-Projects/${proj}
+  SOURCE_DIR ${CMAKE_SOURCE_DIR}/External-Projects/${proj}
   BUILD_IN_SOURCE 0
   BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}
   CMAKE_COMMAND ""
@@ -18,4 +18,4 @@ ExternalProject_Add(${proj}
   INSTALL_COMMAND ""
   )
 
-set(${proj}_SRC_DIR ${CMAKE_SOURCE_DIR}/Projects/${proj})
+set(${proj}_SRC_DIR ${CMAKE_SOURCE_DIR}/External-Projects/${proj})

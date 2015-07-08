@@ -22,8 +22,8 @@ endif()
 ExternalProject_Add(${proj}
   ${location}
   DEPENDS ${${proj}_DEPS}
-  PREFIX ${CMAKE_BINARY_DIR}/${proj}
-  SOURCE_DIR ${CMAKE_SOURCE_DIR}/Projects/${proj}
+  PREFIX ${CMAKE_BINARY_DIR}/External-Projects/${proj}
+  SOURCE_DIR ${CMAKE_SOURCE_DIR}/External-Projects/${proj}
   CMAKE_ARGS ${cmake_args}
   BUILD_IN_SOURCE 0
   BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}
@@ -33,4 +33,4 @@ ExternalProject_Add(${proj}
 
 ExternalProject_Get_Property(${proj} binary_dir)
 set(${proj}_BUILD_DIR ${binary_dir})
-set(${proj}_SRC_DIR ${CMAKE_SOURCE_DIR}/Projects/${proj})
+set(${proj}_SRC_DIR ${CMAKE_SOURCE_DIR}/External-Projects/${proj})

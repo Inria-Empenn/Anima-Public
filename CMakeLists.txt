@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.1)
 project(ANIMA-SUPERBUILD)
 
 set(${PROJECT_NAME}_CMAKE_DIRS
-  ${CMAKE_SOURCE_DIR}/Projects/Anima-Public/cmake
+  ${CMAKE_SOURCE_DIR}/Anima/cmake
   ${CMAKE_SOURCE_DIR}/superbuild
   )
 
@@ -37,7 +37,7 @@ endif()
 # Deal with external dependencies
 
 include(ExternalProject)
-set(Anima-Public_DEPS "")
+set(Anima_DEPS "")
 
 # Boost
 option(USE_SYSTEM_BOOST "Use system installed Boost" OFF)
@@ -47,7 +47,7 @@ if (USE_SYSTEM_BOOST)
   set(Boost_SRC_DIR ${Boost_INCLUDE_DIR})
 else()
   include(Boost)
-  set (Anima-Public_DEPS "${Anima-Public_DEPS};Boost")
+  set (Anima-Public_DEPS "${Anima_DEPS};Boost")
 endif()
 
 # TCLAP
@@ -57,7 +57,7 @@ if (USE_SYSTEM_TCLAP)
   find_package(TCLAP REQUIRED)
 else()
   include(TCLAP)
-  set (Anima-Public_DEPS "${Anima-Public_DEPS};TCLAP")
+  set (Anima_DEPS "${Anima_DEPS};TCLAP")
 endif()
 
 # TinyXML2
@@ -69,7 +69,7 @@ if (USE_SYSTEM_TinyXML2)
   set(TinyXML2_BUILD_DIR ${TinyXML2_LIBRARY_DIR})
 else()
   include(TinyXML2)
-  set (Anima-Public_DEPS "${Anima-Public_DEPS};TinyXML2")
+  set (Anima_DEPS "${Anima_DEPS};TinyXML2")
 endif()
 
 # NLOPT
@@ -81,7 +81,7 @@ if (USE_NLOPT)
     set(NLOPT_BUILD_DIR ${NLOPT_LIBRARY_DIR})
   else()
     include(NLOPT)
-    set (Anima-Public_DEPS "${Anima-Public_DEPS};NLOPT")
+    set (Anima_DEPS "${Anima_DEPS};NLOPT")
   endif()
 endif()
 
@@ -93,7 +93,7 @@ if (USE_SYSTEM_ITK)
   set(ITK_BUILD_DIR ${ITK_DIR})
 else()
   include(ITK)
-  set (Anima-Public_DEPS "${Anima-Public_DEPS};ITK")
+  set (Anima_DEPS "${Anima_DEPS};ITK")
 endif()
 
 # VTK
@@ -105,7 +105,7 @@ if (USE_VTK)
     set(VTK_BUILD_DIR ${VTK_DIR})
   else()
     include(VTK)
-    set (Anima-Public_DEPS "${Anima-Public_DEPS};VTK")
+    set (Anima_DEPS "${Anima_DEPS};VTK")
   endif()
 endif()
 
@@ -118,8 +118,8 @@ if (USE_RPI)
     set(RPI_BUILD_DIR ${RPI_DIR})
   else()
     include(RPI)
-    set (Anima-Public_DEPS "${Anima-Public_DEPS};RPI")
+    set (Anima_DEPS "${Anima_DEPS};RPI")
   endif()
 endif()
 
-include(Anima-Public)
+include(Anima)

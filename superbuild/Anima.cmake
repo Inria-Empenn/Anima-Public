@@ -1,4 +1,4 @@
-set (proj Anima-Public)
+set (proj Anima)
 
 set (cmake_args
   -DCMAKE_C_FLAGS:STRING=${cmake_flags}
@@ -33,7 +33,7 @@ set (cmake_args
 ExternalProject_Add(${proj}
   DEPENDS ${${proj}_DEPS}
   PREFIX ${CMAKE_BINARY_DIR}/${proj}
-  SOURCE_DIR ${CMAKE_SOURCE_DIR}/Projects/${proj}
+  SOURCE_DIR ${CMAKE_SOURCE_DIR}/${proj}
   CMAKE_ARGS ${cmake_args}
   BUILD_IN_SOURCE 0
   BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}
