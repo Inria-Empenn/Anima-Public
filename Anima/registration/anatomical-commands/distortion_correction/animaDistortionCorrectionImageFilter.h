@@ -24,6 +24,7 @@ public:
     typedef itk::SmartPointer<const Self> ConstPointer;
     typedef itk::VectorImage <typename TInputImage::InternalPixelType, TInputImage::ImageDimension> TOutputImage;
     typedef typename TOutputImage::RegionType OutputImageRegionType;
+    typedef typename TInputImage::DirectionType MatrixType;
 
     typedef typename TInputImage::InternalPixelType   PixelType;
     typedef typename TInputImage::ConstPointer InputImagePointer;
@@ -54,6 +55,7 @@ private:
     double m_FieldSmoothingSigma;
 
     itk::ImageRegionSplitterDirection::Pointer m_ImageRegionSplitter;
+    MatrixType m_ReferenceGeometry;
 };
 
 } // end namespace anima

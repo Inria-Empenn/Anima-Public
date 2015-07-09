@@ -53,6 +53,12 @@ void DistortionCorrectionImageFilter < TInputImage >
 {
     Superclass::BeforeThreadedGenerateData();
     this->m_ImageRegionSplitter->SetDirection(m_Direction);
+
+    m_ReferenceGeometry = this->GetInput(0)->GetDirection();
+
+    for (unsigned int i = 0;i < 3;++i)
+        for (unsigned int j = 0;j < 3;++j)
+            m_ReferenceGeometry(i,j) *= this->GetInput(0)->GetSpacing()[j];
 }
 
 template< typename TInputImage >
@@ -78,9 +84,9 @@ void DistortionCorrectionImageFilter < TInputImage >
     double step = 0;
     double epsilon = 0.0001;
     itk::VariableLengthVector< PixelType > fillVectorField(3);
-    fillVectorField[0] = 0;
-    fillVectorField[1] = 0;
-    fillVectorField[2] = 0;
+    itk::VariableLengthVector< PixelType > fillScaledVectorField(3);
+    fillVectorField.Fill(0);
+    fillScaledVectorField.Fill(0);
 
     std::vector<double> forwardScale;
     std::vector<double> backwardScale;
@@ -144,7 +150,13 @@ void DistortionCorrectionImageFilter < TInputImage >
         while (!outputIt.IsAtEndOfLine())
         {
             fillVectorField[m_Direction] = differenceForwardBackwardResampled[i];
-            outputIt.Set(fillVectorField);
+
+            for (unsigned int i = 0;i < 3;++i)
+            {
+                fillScaledVectorField[i] = m_ReferenceGeometry(i,m_Direction) * fillVectorField[m_Direction];
+            }
+
+            outputIt.Set(fillScaledVectorField);
             ++outputIt;
             i++;
         }
