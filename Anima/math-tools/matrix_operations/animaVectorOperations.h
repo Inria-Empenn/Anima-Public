@@ -117,6 +117,7 @@ template <class ScalarType, unsigned int NDimension> void Revert(const vnl_vecto
 
 template <class VectorType> void TransformCartesianToSphericalCoordinates(const VectorType &v, VectorType &resVec);
 template <class VectorType> void TransformSphericalToCartesianCoordinates(const VectorType &v, VectorType &resVec);
+template <class VectorType> void TransformSphericalToCartesianCoordinates(double theta, double phi, double vectorNorm, VectorType &resVec);
 template <class T1, class T2, class T3> void ProjectOnOrthogonalPlane(const std::vector <T1> &v, const std::vector <T2> &normalVec, std::vector <T3> &resVec);
 
 template <class T1, class T2, class T3, class T4> void RotateAroundAxis(const std::vector <T1> &v, const T2 &phi, const std::vector <T3> &normalVec, std::vector <T4> &resVec);

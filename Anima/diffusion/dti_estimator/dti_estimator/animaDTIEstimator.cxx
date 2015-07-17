@@ -47,7 +47,7 @@ int main(int argc,  char **argv)
 
     FilterType::Pointer mainFilter = FilterType::New();
 
-    typedef anima::GradientFileReader < std::vector < float >, float > GFReaderType;
+    typedef anima::GradientFileReader < vnl_vector_fixed<double,3>, double > GFReaderType;
     GFReaderType gfReader;
     gfReader.SetGradientFileName(gradsArg.getValue());
     gfReader.SetBValueBaseString(bvalArg.getValue());
@@ -64,7 +64,7 @@ int main(int argc,  char **argv)
 
     if(reorientGradArg.getValue() != "")
     {
-        input = anima::reorientImageAndGradient<Image4DType, std::vector <float> >
+        input = anima::reorientImageAndGradient<Image4DType, vnl_vector_fixed<double,3> >
                 (input, itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI, directions);
         anima::writeImage<Image4DType>(reorientGradArg.getValue(), input);
         inputFile = reorientGradArg.getValue();

@@ -182,14 +182,8 @@ RecomposeTensor(vnl_diag_matrix <T1> &eigs, vnl_matrix <T1> &eigVecs, vnl_matrix
 }
 
 template <class T1, class T2>
-void
-RotateSymmetricMatrix(vnl_matrix <T1> &tensor, vnl_matrix <T2> &rotationMatrix, vnl_matrix <T2> &rotated_tensor)
+void RotateSymmetricMatrix(T1 &tensor, T2 &rotationMatrix, T2 &rotated_tensor, unsigned int tensorDim)
 {
-    //tensor = rotationMatrixTranspose * tensor;
-    //tensor *= rotationMatrix;
-    unsigned int tensorDim = tensor.rows();
-    rotated_tensor.set_size(tensorDim,tensorDim);
-
     for (unsigned int i = 0;i < tensorDim;++i)
         for (unsigned int j = i;j < tensorDim;++j)
         {
@@ -207,6 +201,22 @@ RotateSymmetricMatrix(vnl_matrix <T1> &tensor, vnl_matrix <T2> &rotationMatrix, 
             if (i != j)
                 rotated_tensor(j,i) = rotated_tensor(i,j);
         }
+}
+
+template <class T1, class T2>
+void RotateSymmetricMatrix(vnl_matrix <T1> &tensor, vnl_matrix <T2> &rotationMatrix, vnl_matrix <T2> &rotated_tensor)
+{
+    unsigned int tensorDim = tensor.rows();
+    rotated_tensor.set_size(tensorDim,tensorDim);
+
+    anima::RotateSymmetricMatrix(tensor,rotationMatrix,rotated_tensor,tensorDim);
+}
+
+template <class T1, class T2, unsigned int NDim>
+void RotateSymmetricMatrix(itk::Matrix <T1,NDim,NDim> &tensor, itk::Matrix <T2,NDim,NDim> &rotationMatrix,
+                           itk::Matrix <T2,NDim,NDim> &rotated_tensor)
+{
+    anima::RotateSymmetricMatrix(tensor,rotationMatrix,rotated_tensor,NDim);
 }
 
 template <class T1>

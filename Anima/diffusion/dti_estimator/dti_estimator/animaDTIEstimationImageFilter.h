@@ -38,9 +38,7 @@ public:
     typedef typename Superclass::InputImageRegionType InputImageRegionType;
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
-    // ItkSetMacro does not handle vector in debug
-    //itkSetMacro(BValuesList, std::vector <float>);
-    void SetBValuesList(std::vector <float> bValuesList ){m_BValuesList = bValuesList;};
+    void SetBValuesList(std::vector <double> bValuesList ){m_BValuesList = bValuesList;}
 
     itkSetMacro(B0Threshold, float);
     itkGetMacro(B0Threshold, float);
@@ -49,7 +47,7 @@ public:
 
     itkGetMacro(EstimatedB0Image, OutputB0ImageType *);
 
-    void AddGradientDirection(unsigned int i, std::vector <float> &grad);
+    void AddGradientDirection(unsigned int i, vnl_vector_fixed<double,3> &grad);
 
 protected:
     DTIEstimationImageFilter()
@@ -80,8 +78,8 @@ private:
     DTIEstimationImageFilter(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
 
-    std::vector <float> m_BValuesList;
-    std::vector< std::vector <float> > m_GradientDirections;
+    std::vector <double> m_BValuesList;
+    std::vector< vnl_vector_fixed<double,3> > m_GradientDirections;
     std::vector <unsigned int> m_NonColinearDirectionIndexes;
 
     float m_B0Threshold;

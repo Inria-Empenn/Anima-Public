@@ -48,21 +48,6 @@ void computeTranslationLSWFromTranslations(std::vector < itk::Point<TInput,NDime
         barY[j] /= sumWeights;
     }
 
-    for (unsigned int i = 0;i < nbPts;++i)
-    {
-        anima::pairingToQuaternion(inputOrigins[i] - barX,inputTransformed[i] - barY,tmpMatrix);
-        AMatrix += weights[i]*tmpMatrix.transpose()*tmpMatrix;
-    }
-
-    itk::SymmetricEigenAnalysis < vnl_matrix <TInput>, vnl_diag_matrix<TInput>, vnl_matrix <TInput> > eigenSystem(4);
-    vnl_matrix <double> eVec(4,4);
-    vnl_diag_matrix <double> eVals(4);
-
-    eigenSystem.SetOrderEigenValues(true);
-    eigenSystem.ComputeEigenValuesAndVectors(AMatrix, eVals, eVec);
-
-    vnl_matrix <TScalarType> rotationMatrix = anima::computeRotationFromQuaternion<TInput,TScalarType>(eVec.get_row(0));
-
     itk::Vector <TScalarType,NDimensions> translationPart;
     for (unsigned int i = 0;i < NDimensions;++i)
         translationPart[i] = barY[i] - barX[i];
@@ -109,9 +94,12 @@ void computeRigidLSWFromTranslations(std::vector < itk::Point<TInput,NDimensions
         barY[j] /= sumWeights;
     }
 
+    itk::Vector <TInput,NDimensions> xVector, yVector;
     for (unsigned int i = 0;i < nbPts;++i)
     {
-        anima::pairingToQuaternion(inputOrigins[i] - barX,inputTransformed[i] - barY,tmpMatrix);
+        xVector = inputOrigins[i] - barX;
+        yVector = inputTransformed[i] - barY;
+        anima::pairingToQuaternion(xVector,yVector,tmpMatrix);
         AMatrix += weights[i]*tmpMatrix.transpose()*tmpMatrix;
     }
 
@@ -263,14 +251,27 @@ template <class TInput, class TOutput> vnl_matrix <TOutput> computeRotationFromQ
     return resVal;
 }
 
-template <class TInput, class TOutput, unsigned int NDimensions> void pairingToQuaternion(itk::Vector<TInput,NDimensions> inputPoint,
-                                                                                          itk::Vector<TInput,NDimensions> inputTransformedPoint,
-                                                                                          vnl_matrix <TOutput> &outputMatrix)
+template <class TInput, class TOutput, unsigned int NDimensions>
+void pairingToQuaternion(const vnl_vector_fixed <TInput,NDimensions> &inputPoint, const vnl_vector_fixed <TInput,NDimensions> &inputTransformedPoint,
+                         vnl_matrix <TOutput> &outputMatrix)
 {
-    outputMatrix.set_size(4,4);
+    return pairingToQuaternion(inputPoint,inputTransformedPoint,outputMatrix,NDimensions);
+}
+
+template <class TInput, class TOutput, unsigned int NDimensions>
+void pairingToQuaternion(const itk::Vector <TInput,NDimensions> &inputPoint, const itk::Vector <TInput,NDimensions> &inputTransformedPoint,
+                         vnl_matrix <TOutput> &outputMatrix)
+{
+    return pairingToQuaternion(inputPoint,inputTransformedPoint,outputMatrix,NDimensions);
+}
+
+template <class PointType, class TOutput>
+void pairingToQuaternion(const PointType &inputPoint, const PointType &inputTransformedPoint, vnl_matrix <TOutput> &outputMatrix, unsigned int ndim)
+{
+    outputMatrix.set_size(ndim+1,ndim+1);
     outputMatrix.fill(0);
 
-    for (unsigned int i = 0;i < NDimensions;++i)
+    for (unsigned int i = 0;i < ndim;++i)
     {
         switch (i)
         {

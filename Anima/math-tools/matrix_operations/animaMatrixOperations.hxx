@@ -9,7 +9,7 @@ namespace anima
 {
 
 template <class VectorType>
-MatrixType
+itk::Matrix <double,3,3>
 GetRotationMatrixFromVectors(const VectorType &first_direction, const VectorType &second_direction, const unsigned int dimension)
 {
     vnl_matrix<double> tmpMatrix(dimension+1,dimension+1,0);
@@ -17,7 +17,11 @@ GetRotationMatrixFromVectors(const VectorType &first_direction, const VectorType
     vnl_matrix<double> AMatrix = tmpMatrix.transpose()*tmpMatrix;
 
     // Needs two points, providing one on normal vector (cross product)
-    VectorType tmpVec = itk::CrossProduct(first_direction,second_direction);
+    VectorType tmpVec;
+    tmpVec[0] = first_direction[1] * second_direction[2] - first_direction[2] * second_direction[1];
+    tmpVec[1] = first_direction[2] * second_direction[0] - first_direction[0] * second_direction[2];
+    tmpVec[2] = first_direction[0] * second_direction[1] - first_direction[1] * second_direction[0];
+
     anima::pairingToQuaternion(tmpVec,tmpVec,tmpMatrix);
     AMatrix += tmpMatrix.transpose()*tmpMatrix;
 
@@ -34,15 +38,7 @@ GetRotationMatrixFromVectors(const VectorType &first_direction, const VectorType
 }
 
 template <class ScalarType>
-MatrixType
-GetRotationMatrixFromVectors(const std::vector <ScalarType> &first_direction, const std::vector <ScalarType> &second_direction)
-{
-    unsigned int dimension = first_direction.size();
-    return GetRotationMatrixFromVectors(first_direction, second_direction, dimension);
-}
-
-template <class ScalarType>
-MatrixType
+itk::Matrix <double,3,3>
 GetRotationMatrixFromVectors(const itk::Point<ScalarType> &first_direction, const itk::Point<ScalarType> &second_direction)
 {
     unsigned int dimension = first_direction.GetPointDimension();
@@ -50,8 +46,15 @@ GetRotationMatrixFromVectors(const itk::Point<ScalarType> &first_direction, cons
 }
 
 template <class ScalarType, unsigned int NDimension>
-MatrixType
+itk::Matrix <double,3,3>
 GetRotationMatrixFromVectors(const itk::Vector<ScalarType,NDimension> &first_direction, const itk::Vector<ScalarType,NDimension> &second_direction)
+{
+    return GetRotationMatrixFromVectors(first_direction, second_direction, NDimension);
+}
+
+template <class ScalarType, unsigned int NDimension>
+itk::Matrix <double,3,3>
+GetRotationMatrixFromVectors(const vnl_vector_fixed<ScalarType,NDimension> &first_direction, const vnl_vector_fixed<ScalarType,NDimension> &second_direction)
 {
     return GetRotationMatrixFromVectors(first_direction, second_direction, NDimension);
 }

@@ -19,7 +19,7 @@ namespace anima
 template <class PixelScalarType>
 void
 DTIEstimationImageFilter<PixelScalarType>
-::AddGradientDirection(unsigned int i, std::vector <float> &grad)
+::AddGradientDirection(unsigned int i, vnl_vector_fixed<double,3> &grad)
 {
     if (i == m_GradientDirections.size())
         m_GradientDirections.push_back(grad);
