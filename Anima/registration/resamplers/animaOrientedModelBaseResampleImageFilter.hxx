@@ -21,6 +21,17 @@ OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorP
 }
 
 template <typename TInputScalarType, unsigned int Dimension, typename TInterpolatorPrecisionType>
+unsigned int
+OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorPrecisionType>
+::GetOutputVectorLength()
+{
+    if (this->GetNumberOfIndexedInputs() > 0)
+        return this->GetInput(0)->GetVectorLength();
+    else
+        return 0;
+}
+
+template <typename TInputScalarType, unsigned int Dimension, typename TInterpolatorPrecisionType>
 void
 OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorPrecisionType>
 ::BeforeThreadedGenerateData()
@@ -40,7 +51,7 @@ OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorP
     this->GetOutput()->SetOrigin(m_OutputOrigin);
     this->GetOutput()->SetDirection(m_OutputDirection);
     this->GetOutput()->SetRegions(m_OutputLargestPossibleRegion);
-    this->GetOutput()->SetNumberOfComponentsPerPixel(this->GetInput(0)->GetNumberOfComponentsPerPixel());
+    this->GetOutput()->SetNumberOfComponentsPerPixel(this->GetOutputVectorLength());
 
     this->GetOutput()->Allocate();
     this->GetOutput()->SetRequestedRegion(this->GetOutput()->GetLargestPossibleRegion());
@@ -74,7 +85,7 @@ OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorP
 
     InputIndexType tmpInd;
     PointType tmpPoint;
-    unsigned int vectorSize = this->GetOutput()->GetNumberOfComponentsPerPixel();
+    unsigned int vectorSize = this->GetOutputVectorLength();
     InputPixelType tmpDisp(ImageDimension), tmpRes(vectorSize), resRotated(vectorSize);
     ContinuousIndexType index;
 
@@ -126,7 +137,7 @@ OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorP
 
     InputIndexType tmpInd;
     PointType tmpPoint;
-    unsigned int vectorSize = this->GetOutput()->GetNumberOfComponentsPerPixel();
+    unsigned int vectorSize = this->GetOutputVectorLength();
     InputPixelType tmpRes(vectorSize), resRotated(vectorSize);
     ContinuousIndexType index;
 

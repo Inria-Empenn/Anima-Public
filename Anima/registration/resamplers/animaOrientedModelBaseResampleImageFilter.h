@@ -101,6 +101,8 @@ namespace anima
         virtual void BeforeThreadedGenerateData(void);
 		void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId);
 		
+        virtual unsigned int GetOutputVectorLength();
+
 		bool isZero(const InputPixelType &dataVec)
 		{
             unsigned int vectorSize = dataVec.GetNumberOfElements();
