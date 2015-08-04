@@ -145,11 +145,11 @@ void DistortionCorrectionImageFilter < TInputImage >
 
         CubicInterpolator<double>(differenceForwardBackward, middleScale, differenceForwardBackwardResampled, lengthLine);
 
-        int i=0;
+        unsigned int pos = 0;
 
         while (!outputIt.IsAtEndOfLine())
         {
-            fillVectorField[m_Direction] = differenceForwardBackwardResampled[i];
+            fillVectorField[m_Direction] = differenceForwardBackwardResampled[pos];
 
             for (unsigned int i = 0;i < 3;++i)
             {
@@ -158,7 +158,7 @@ void DistortionCorrectionImageFilter < TInputImage >
 
             outputIt.Set(fillScaledVectorField);
             ++outputIt;
-            i++;
+            pos++;
         }
 
         forwardIt.NextLine();
