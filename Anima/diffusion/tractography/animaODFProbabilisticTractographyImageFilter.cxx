@@ -130,7 +130,8 @@ void ODFProbabilisticTractographyImageFilter::PrepareTractography()
 ODFProbabilisticTractographyImageFilter::Vector3DType
 ODFProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDirection, VectorType &modelValue,
                                                              Vector3DType &sampling_direction, double &log_prior,
-                                                             double &log_proposal, boost::mt19937 &random_generator)
+                                                             double &log_proposal, boost::mt19937 &random_generator,
+                                                             unsigned int threadId)
 {
     Vector3DType resVec(0.0);
     bool is2d = (this->GetInputImage(0)->GetLargestPossibleRegion().GetSize()[2] == 1);
@@ -216,7 +217,7 @@ ODFProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDi
 }
 
 ODFProbabilisticTractographyImageFilter::Vector3DType ODFProbabilisticTractographyImageFilter::InitializeFirstIterationFromModel(Vector3DType &colinearDir, VectorType &modelValue,
-                                                                                                                                 boost::mt19937 &random_generator)
+                                                                                                                                 unsigned int threadId)
 {
     Vector3DType resVec(0.0), tmpVec;
     bool is2d = (this->GetInputImage(0)->GetLargestPossibleRegion().GetSize()[2] == 1);
@@ -273,7 +274,7 @@ ODFProbabilisticTractographyImageFilter::Vector3DType ODFProbabilisticTractograp
     return resVec;
 }
 
-bool ODFProbabilisticTractographyImageFilter::CheckModelProperties(double estimatedB0Value, VectorType &modelValue)
+bool ODFProbabilisticTractographyImageFilter::CheckModelProperties(double estimatedB0Value, double estimatedNoiseValue, VectorType &modelValue, unsigned int threadId)
 {
     if (estimatedB0Value < 50.0)
         return false;
@@ -298,9 +299,9 @@ bool ODFProbabilisticTractographyImageFilter::CheckModelProperties(double estima
     return true;
 }
 
-double ODFProbabilisticTractographyImageFilter::ComputeLogWeightUpdate(double b0Value, Vector3DType &newDirection, Vector3DType &sampling_direction,
+double ODFProbabilisticTractographyImageFilter::ComputeLogWeightUpdate(double b0Value, double noiseValue, Vector3DType &newDirection, Vector3DType &sampling_direction,
                                                                        VectorType &modelValue, VectorType &dwiValue,
-                                                                       double &log_prior, double &log_proposal)
+                                                                       double &log_prior, double &log_proposal, unsigned int threadId)
 {
     Matrix3DType rotationMatrix = anima::GetRotationMatrixFromVectors(sampling_direction,newDirection);
     rotationMatrix = rotationMatrix.GetTranspose();
@@ -365,9 +366,9 @@ double ODFProbabilisticTractographyImageFilter::ComputeLogWeightUpdate(double b0
         signalValue = b0Value * exp(-exp(signalValue));
         //std::cout << signalValue << " " << dwiValue[i] << std::endl;
 
-        double tmpVal = - 0.5 * log(20.0 * 2 * M_PI); // ADD NOISE replace 20.0
+        double tmpVal = - 0.5 * log(noiseValue * 2 * M_PI);
         double residual = dwiValue[i] - signalValue;
-        tmpVal -= residual * residual / (2.0 * 20.0); // ADD NOISE replace 20.0
+        tmpVal -= residual * residual / (2.0 * noiseValue);
 
         logLikelihood += tmpVal;
     }
@@ -521,7 +522,7 @@ unsigned int ODFProbabilisticTractographyImageFilter::FindODFMaxima(const Vector
 }
 
 double ODFProbabilisticTractographyImageFilter::ComputeModelEstimation(DWIInterpolatorPointerVectorType &dwiInterpolators, ContinuousIndexType &index,
-                                                                       VectorType &dwiValue, VectorType &modelValue)
+                                                                       VectorType &dwiValue, double &noiseValue, VectorType &modelValue)
 {
     unsigned int numInputs = dwiInterpolators.size();
     dwiValue.SetSize(numInputs);
@@ -534,6 +535,8 @@ double ODFProbabilisticTractographyImageFilter::ComputeModelEstimation(DWIInterp
     modelValue.SetSize(this->GetModelDimension());
     modelValue.Fill(0.0);
 
+    // Hard coded noise value for now
+    noiseValue = 20;
     if (b0Value <= 0)
         return 0;
 
@@ -581,11 +584,6 @@ double ODFProbabilisticTractographyImageFilter::GetGeneralizedFractionalAnisotro
         sumSquares += modelValue[i]*modelValue[i];
 
     return sqrt(1.0 - modelValue[0]*modelValue[0]/sumSquares);
-}
-
-void ODFProbabilisticTractographyImageFilter::ExtractOrientations(const VectorType &modelValue, DirectionVectorType &diffusionOrientations)
-{
-    this->FindODFMaxima(modelValue,diffusionOrientations,m_MinimalDiffusionProbability,false);
 }
 
 } // end of namespace anima

@@ -207,27 +207,23 @@ protected:
 
     //! Propose new direction for a particle, given the old direction, and a model (model dependent, not implemented here)
     virtual Vector3DType ProposeNewDirection(Vector3DType &oldDirection, VectorType &modelValue,
-                                          Vector3DType &sampling_direction, double &log_prior, double &log_proposal,
-                                          boost::mt19937 &random_generator) = 0;
+                                             Vector3DType &sampling_direction, double &log_prior, double &log_proposal,
+                                             boost::mt19937 &random_generator, unsigned int threadId) = 0;
 
     //! Update particle weight based on an underlying model and the chosen direction (model dependent, not implemented here)
-    virtual double ComputeLogWeightUpdate(double b0Value, Vector3DType &newDirection, Vector3DType &sampling_direction,
+    virtual double ComputeLogWeightUpdate(double b0Value, double noiseValue, Vector3DType &newDirection, Vector3DType &sampling_direction,
                                           VectorType &modelValue, VectorType &dwiValue,
-                                          double &log_prior, double &log_proposal) = 0;
+                                          double &log_prior, double &log_proposal, unsigned int threadId) = 0;
 
     //! Estimate model from raw diffusion data (model dependent, not implemented here)
     virtual double ComputeModelEstimation(DWIInterpolatorPointerVectorType &dwiInterpolators, ContinuousIndexType &index,
-                                          VectorType &dwiValue, VectorType &modelValue) = 0;
-
-    //! Extract diffusion directions from model (model dependent, not implemented here)
-    virtual void ExtractOrientations(const VectorType &modelValue, DirectionVectorType &diffusionOrientations) = 0;
+                                          VectorType &dwiValue, double &noiseValue, VectorType &modelValue) = 0;
 
     //! Initialize first direction from user input (model dependent, not implemented here)
-    virtual Vector3DType InitializeFirstIterationFromModel(Vector3DType &colinearDir, VectorType &modelValue,
-                                                           boost::mt19937 &random_generator) = 0;
+    virtual Vector3DType InitializeFirstIterationFromModel(Vector3DType &colinearDir, VectorType &modelValue, unsigned int threadId) = 0;
 
     //! Check stopping criterions to stop a particle (model dependent, not implemented here)
-    virtual bool CheckModelProperties(double estimatedB0Value, VectorType &modelValue) = 0;
+    virtual bool CheckModelProperties(double estimatedB0Value, double estimatedNoiseValue, VectorType &modelValue, unsigned int threadId) = 0;
 
 private:
     //Internal variable for model vector dimension, has to be set by child class !

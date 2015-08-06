@@ -41,7 +41,8 @@ void DTIProbabilisticTractographyImageFilter::PrepareTractography()
 DTIProbabilisticTractographyImageFilter::Vector3DType
 DTIProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDirection, VectorType &modelValue,
                                                              Vector3DType &sampling_direction, double &log_prior,
-                                                             double &log_proposal, boost::mt19937 &random_generator)
+                                                             double &log_proposal, boost::mt19937 &random_generator,
+                                                             unsigned int threadId)
 {
     Vector3DType resVec(0.0);
     
@@ -97,7 +98,7 @@ DTIProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDi
 
 DTIProbabilisticTractographyImageFilter::Vector3DType
 DTIProbabilisticTractographyImageFilter::
-InitializeFirstIterationFromModel(Vector3DType &colinearDir, VectorType &modelValue, boost::mt19937 &random_generator)
+InitializeFirstIterationFromModel(Vector3DType &colinearDir, VectorType &modelValue, unsigned int threadId)
 {    
     Vector3DType resVec, tmpVec;
     bool is2d = (this->GetInputImage(0)->GetLargestPossibleRegion().GetSize()[2] == 1);
@@ -169,7 +170,7 @@ InitializeFirstIterationFromModel(Vector3DType &colinearDir, VectorType &modelVa
     return resVec;
 }
 
-bool DTIProbabilisticTractographyImageFilter::CheckModelProperties(double estimatedB0Value, VectorType &modelValue)
+bool DTIProbabilisticTractographyImageFilter::CheckModelProperties(double estimatedB0Value, double estimatedNoiseValue, VectorType &modelValue, unsigned int threadId)
 {
     if (estimatedB0Value < 50.0)
         return false;
@@ -194,9 +195,9 @@ bool DTIProbabilisticTractographyImageFilter::CheckModelProperties(double estima
     return true;
 }
 
-double DTIProbabilisticTractographyImageFilter::ComputeLogWeightUpdate(double b0Value, Vector3DType &newDirection, Vector3DType &sampling_direction,
+double DTIProbabilisticTractographyImageFilter::ComputeLogWeightUpdate(double b0Value, double noiseValue, Vector3DType &newDirection, Vector3DType &sampling_direction,
                                                                        VectorType &modelValue, VectorType &dwiValue,
-                                                                       double &log_prior, double &log_proposal)
+                                                                       double &log_prior, double &log_proposal, unsigned int threadId)
 {
     double resVal = 0;
     
@@ -223,7 +224,7 @@ double DTIProbabilisticTractographyImageFilter::ComputeLogWeightUpdate(double b0
         for (unsigned int i = 0;i < numInputs;++i)
         {
 			double diffSignalValue = 0, meanSignalValue = 0;
-			double var = 20.0; // ADD NOISE
+            double var = noiseValue;
 
 			if (var > 0)
 			{
@@ -372,7 +373,7 @@ void DTIProbabilisticTractographyImageFilter::GetDTIMinorDirection(VectorType &m
 }
 
 double DTIProbabilisticTractographyImageFilter::ComputeModelEstimation(DWIInterpolatorPointerVectorType &dwiInterpolators, ContinuousIndexType &index,
-                                                                       VectorType &dwiValue, VectorType &modelValue)
+                                                                       VectorType &dwiValue, double &noiseValue, VectorType &modelValue)
 {
 	unsigned int numInputs = dwiInterpolators.size();
 	
@@ -383,6 +384,9 @@ double DTIProbabilisticTractographyImageFilter::ComputeModelEstimation(DWIInterp
     
     modelValue.SetSize(this->GetModelDimension());
     
+    // Hard coded noise value for now
+    noiseValue = 20;
+
     std::vector <double> logDWISignal(numInputs);
     
     // Search for the minimal b0 value
@@ -529,12 +533,6 @@ void DTIProbabilisticTractographyImageFilter::GetEigenValueCombinations(VectorTy
     }
     
     meanLambda /= 3.0;
-}
-
-void DTIProbabilisticTractographyImageFilter::ExtractOrientations(const VectorType &modelValue, DirectionVectorType &diffusionOrientations)
-{
-    diffusionOrientations.resize(1);
-    this->GetDTIPrincipalDirection(modelValue, diffusionOrientations[0], false);
 }
 
 } // end of namespace anima

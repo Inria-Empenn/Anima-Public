@@ -287,7 +287,8 @@ void BaseProbabilisticTractographyImageFilter::ThreadTrack(unsigned int numThrea
         dwiValue.Fill(0.0);
         VectorType modelValue(m_ModelDimension);
         modelValue.Fill(0.0);
-        this->ComputeModelEstimation(dwiInterpolators, startIndex, dwiValue, modelValue);
+        double noiseValue = 20;
+        this->ComputeModelEstimation(dwiInterpolators, startIndex, dwiValue, noiseValue, modelValue);
 
         // CHECK NEEDED : Do we update the right things ?
         tmpFibers = this->ComputeFiber(m_PointsToProcess[i], dwiInterpolators, numThread, tmpWeights);
@@ -550,9 +551,10 @@ BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInte
             // Computes diffusion information at current position
             dwiValue.Fill(0.0);
             modelValue.Fill(0.0);
-            double estimatedB0Value = this->ComputeModelEstimation(dwiInterpolators, currentIndex, dwiValue, modelValue);
+            double estimatedNoiseValue = 20.0;
+            double estimatedB0Value = this->ComputeModelEstimation(dwiInterpolators, currentIndex, dwiValue, estimatedNoiseValue, modelValue);
 
-            if (!this->CheckModelProperties(estimatedB0Value,modelValue))
+            if (!this->CheckModelProperties(estimatedB0Value,estimatedNoiseValue,modelValue,numThread))
             {
                 fiberComputationData.stoppedParticles[i] = true;
                 fiberComputationData.particleWeights[i] = 0;
@@ -598,13 +600,13 @@ BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInte
                     initDir[2] = 0;
                 initDir.Normalize();
 
-                previousDirections[i] = this->InitializeFirstIterationFromModel(initDir,modelValue,m_Generators[numThread]);
+                previousDirections[i] = this->InitializeFirstIterationFromModel(initDir,modelValue,numThread);
             }
 
             // Propose a new direction based on the previous one and the diffusion information at current position
             double log_prior = 0, log_proposal = 0;
             newDirection = this->ProposeNewDirection(previousDirections[i], modelValue, sampling_direction, log_prior,
-                                                     log_proposal, m_Generators[numThread]);
+                                                     log_proposal, m_Generators[numThread], numThread);
 
             // Update the position of the particle
             for (unsigned int j = 0;j < InputImageType::ImageDimension;++j)
@@ -627,11 +629,11 @@ BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInte
                 continue;
             }
 
-            estimatedB0Value = this->ComputeModelEstimation(dwiInterpolators, newIndex, dwiValue, modelValue);
+            estimatedB0Value = this->ComputeModelEstimation(dwiInterpolators, newIndex, dwiValue, estimatedNoiseValue, modelValue);
 
             // Update the weight of the particle
-            double updateWeightLogVal = this->ComputeLogWeightUpdate(estimatedB0Value, newDirection, sampling_direction,
-                                                                     modelValue, dwiValue, log_prior, log_proposal);
+            double updateWeightLogVal = this->ComputeLogWeightUpdate(estimatedB0Value, estimatedNoiseValue, newDirection, sampling_direction,
+                                                                     modelValue, dwiValue, log_prior, log_proposal, numThread);
 
             logWeightVals[i] = updateWeightLogVal + anima::safe_log(oldFiberWeights[i]);
         }
