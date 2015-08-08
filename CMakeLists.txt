@@ -35,6 +35,11 @@ else()
   set(GITHUB_PREFIX https://github.com/)
 endif()
 
+# Handle Mac compiling option if CMake version greater or equal to 3
+if (${CMAKE_MAJOR_VERSION} GREATER 2)
+  set(MACOSX_RPATH_OPTION "-DCMAKE_MACOSX_RPATH:BOOL=OFF")
+endif()
+
 # Deal with external dependencies
 
 include(ExternalProject)
