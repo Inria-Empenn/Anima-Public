@@ -1,6 +1,11 @@
 #pragma once
 
 #include <boost/random/mersenne_twister.hpp>
+#include <vnl/vnl_matrix.h>
+#include <vnl/vnl_vector_fixed.h>
+
+#include <itkPoint.h>
+#include <itkvector.h>
 
 namespace anima
 {

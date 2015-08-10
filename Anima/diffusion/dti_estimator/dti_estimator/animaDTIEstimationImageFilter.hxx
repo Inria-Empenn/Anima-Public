@@ -10,6 +10,7 @@
 #include <vnl/algo/vnl_symmetric_eigensystem.h>
 
 #include <animaVectorOperations.h>
+#include <animaBaseTensorTools.h>
 
 #include <boost/lexical_cast.hpp>
 
@@ -263,16 +264,7 @@ DTIEstimationImageFilter<PixelScalarType>
 
         outB0Value = exp(outB0Value);
 
-        unsigned int pos = 0;
-        for (unsigned int i = 0;i < 3;++i)
-            for (unsigned int j = 0;j <= i;++j)
-            {
-                tmpTensor(i,j) = resVec[pos];
-                if (i != j)
-                    tmpTensor(j,i) = tmpTensor(i,j);
-                ++pos;
-            }
-
+        anima::GetTensorFromVectorRepresentation(resVec,tmpTensor,3);
         vnl_symmetric_eigensystem <double> tmpEigs(tmpTensor);
 
         bool isTensorOk = true;

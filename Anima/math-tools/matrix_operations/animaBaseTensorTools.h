@@ -29,8 +29,8 @@ void ExtractRotationFromMatrixTransform(itk::MatrixOffsetTransformBase <PixelRaw
 template <class T1, class T2>
 void RecomposeTensor(vnl_diag_matrix <T1> &eigs, vnl_matrix <T1> &eigVecs, vnl_matrix <T2> &resMatrix);
 
-template <class T1, class T2>
-void RotateSymmetricMatrix(T1 &tensor, T2 &rotationMatrix, T2 &rotated_tensor, unsigned int tensorDim);
+template <class T1, class T2, class T3>
+void RotateSymmetricMatrix(T1 &tensor, T2 &rotationMatrix, T3 &rotated_tensor, unsigned int tensorDim);
 
 template <class T1, class T2>
 void RotateSymmetricMatrix(vnl_matrix <T1> &tensor, vnl_matrix <T2> &rotationMatrix, vnl_matrix <T2> &rotated_tensor);
