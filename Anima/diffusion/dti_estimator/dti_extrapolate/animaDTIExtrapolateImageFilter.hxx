@@ -2,14 +2,11 @@
 #include "animaDTIExtrapolateImageFilter.h"
 
 #include <animaBaseTensorTools.h>
+#include <itkSymmetricEigenAnalysis.h>
 
 #include <itkImageRegionIterator.h>
 #include <itkImageRegionIteratorWithIndex.h>
 #include <itkImageRegionConstIterator.h>
-
-#include <vnl/algo/vnl_determinant.h>
-#include <vnl/algo/vnl_matrix_inverse.h>
-#include <vnl/algo/vnl_symmetric_eigensystem.h>
 
 namespace anima
 {
@@ -71,29 +68,25 @@ namespace anima
         OutputPixelType resVec(m_NumberOfComponents);
         OutputPixelType tmpVec(m_NumberOfComponents);
         vnl_matrix <double> tmpTensor(3,3);
+        vnl_matrix <double> workTensor(3,3);
         typename OutputB0ImageType::PointType refPoint, tmpPoint;
 
+        typedef itk::SymmetricEigenAnalysis < vnl_matrix <double>, vnl_diag_matrix<double>, vnl_matrix <double> > EigenAnalysisType;
+        EigenAnalysisType eigenAnalysis(3);
+        eigenAnalysis.SetOrderEigenValues(true);
+        vnl_diag_matrix <double> eigVals(3);
+
         OutputImageRegionType totalRegion = this->GetOutput()->GetLargestPossibleRegion();
+        OutputImageRegionType interpRegion;
 
         while (!inIterator.IsAtEnd())
         {
             resVec = inIterator.Get();
 
             anima::GetTensorFromVectorRepresentation(resVec,tmpTensor,3);
-            vnl_symmetric_eigensystem <double> tmpEigs(tmpTensor);
+            eigenAnalysis.ComputeEigenValues(tmpTensor,eigVals);
 
-            bool isTensorOk = true;
-
-            for (unsigned int i = 0;i < 3;++i)
-            {
-                if (tmpEigs.D[i] <= 0)
-                {
-                    isTensorOk = false;
-                    break;
-                }
-            }
-
-            if (isTensorOk)
+            if (eigVals[0] > 0)
             {
                 interpOutIterator.Set(resVec);
                 interpOutB0Iterator.Set(b0Iterator.Get());
@@ -106,7 +99,6 @@ namespace anima
                 continue;
             }
 
-            OutputImageRegionType interpRegion;
             for (unsigned int i = 0;i < 3;++i)
             {
                 interpRegion.SetIndex(i,std::max((int)0, (int)inIterator.GetIndex()[i] - 1));
@@ -134,19 +126,9 @@ namespace anima
                 }
 
                 anima::GetTensorFromVectorRepresentation(internalIt.Get(),tmpTensor,3);
-                tmpEigs = vnl_symmetric_eigensystem <double> (tmpTensor);
-                isTensorOk = true;
+                eigenAnalysis.ComputeEigenValues(tmpTensor,eigVals);
 
-                for (unsigned int i = 0;i < 3;++i)
-                {
-                    if (tmpEigs.D[i] <= 0)
-                    {
-                        isTensorOk = false;
-                        break;
-                    }
-                }
-
-                if (!isTensorOk)
+                if (eigVals[0] <= 0)
                 {
                     ++internalIt;
                     ++internalB0It;
@@ -158,16 +140,13 @@ namespace anima
                 for (unsigned int i = 0;i < 3;++i)
                     pointDist += (tmpPoint[i] - refPoint[i]) * (tmpPoint[i] - refPoint[i]);
 
-                double weight = 1.0 / (1.0 + sqrt(pointDist));
+                double weight = 1.0 / (1.0 + std::sqrt(pointDist));
 
                 interpB0 += weight * internalB0It.Get();
 
-                for (unsigned int i = 0;i < 3;++i)
-                    tmpEigs.D[i] = std::log(tmpEigs.D[i]);
-
-                tmpTensor = tmpEigs.recompose();
-                tmpTensor *= weight;
-                anima::GetVectorRepresentation(tmpTensor,tmpVec,m_NumberOfComponents);
+                anima::GetTensorLogarithm(tmpTensor,workTensor);
+                workTensor *= weight;
+                anima::GetVectorRepresentation(workTensor,tmpVec,m_NumberOfComponents);
 
                 resVec += tmpVec;
                 sumWeights += weight;
@@ -181,13 +160,8 @@ namespace anima
                 resVec /= sumWeights;
 
                 anima::GetTensorFromVectorRepresentation(resVec,tmpTensor,3);
-                tmpEigs = vnl_symmetric_eigensystem <double> (tmpTensor);
-
-                for (unsigned int i = 0;i < 3;++i)
-                    tmpEigs.D[i] = std::exp(tmpEigs.D[i]);
-
-                tmpTensor = tmpEigs.recompose();
-                anima::GetVectorRepresentation(tmpTensor,resVec,m_NumberOfComponents);
+                anima::GetTensorExponential(tmpTensor,workTensor);
+                anima::GetVectorRepresentation(workTensor,resVec,m_NumberOfComponents);
 
                 interpOutIterator.Set(resVec);
                 interpOutB0Iterator.Set(interpB0 / sumWeights);
