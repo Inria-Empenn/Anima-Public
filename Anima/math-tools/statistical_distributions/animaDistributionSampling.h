@@ -5,7 +5,7 @@
 #include <vnl/vnl_vector_fixed.h>
 
 #include <itkPoint.h>
-#include <itkvector.h>
+#include <itkVector.h>
 
 namespace anima
 {
