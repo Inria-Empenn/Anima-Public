@@ -15,6 +15,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(USE_VTK "Build VTK dependencies" ON)
 option(USE_RPI "Build RPI dependencies" ON)
 option(USE_NLOPT "Build NLOPT dependencies" ON)
+option(BUILD_ANIMA_TOOLS "Build ANIMA tools" ON)
 option(BUILD_ANIMA_TESTING "Build ANIMA testing executables" OFF)
 
 set(cmake_flags "")
