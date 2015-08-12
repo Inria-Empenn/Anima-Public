@@ -4,6 +4,7 @@
 #include <vtkPolyDataWriter.h>
 #include <vtkXMLPolyDataWriter.h>
 #include <vtksys/SystemTools.hxx>
+#include <boost/algorithm/string/replace.hpp>
 
 #include <fstream>
 
@@ -47,23 +48,33 @@ void FibersWriter::WriteFileAsVTKXML()
 
 void FibersWriter::WriteFileAsMedinriaFibers()
 {
+    boost::algorithm::replace_all(m_FileName,"\\","/");
+
     std::string baseName;
-    std::string::iterator fileNameItr = m_FileName.begin();
-    while (fileNameItr != m_FileName.begin() + m_FileName.find_last_of('.'))
+    std::size_t lastDotPos = m_FileName.find_last_of('.');
+    baseName.append(m_FileName.begin(),m_FileName.begin() + lastDotPos);
+
+    std::string noPathName = baseName;
+    std::size_t lastSlashPos = m_FileName.find_last_of("/");
+
+    if (lastSlashPos != std::string::npos)
     {
-        baseName += *fileNameItr;
-        fileNameItr++;
+        noPathName.clear();
+        noPathName.append(m_FileName.begin() + lastSlashPos + 1,m_FileName.end());
     }
 
     vtksys::SystemTools::MakeDirectory(baseName.c_str());
 
-    std::string vtkFileName = baseName + "/";
-    vtkFileName += baseName;
+    std::string vtkFileName = noPathName + "/";
+    vtkFileName += noPathName;
     vtkFileName += "_0.vtp";
+
+    std::string vtkWriteFileName = m_FileName + "/";
+    vtkWriteFileName += noPathName + "_0.vtp";
 
     vtkSmartPointer <vtkXMLPolyDataWriter> vtkWriter = vtkXMLPolyDataWriter::New();
     vtkWriter->SetInputData(m_InputData);
-    vtkWriter->SetFileName(vtkFileName.c_str());
+    vtkWriter->SetFileName(vtkWriteFileName.c_str());
     vtkWriter->SetDataModeToBinary();
     vtkWriter->EncodeAppendedDataOff();
     vtkWriter->SetCompressorTypeToZLib();
