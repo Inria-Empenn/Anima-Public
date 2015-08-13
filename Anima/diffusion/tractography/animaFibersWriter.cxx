@@ -69,7 +69,7 @@ void FibersWriter::WriteFileAsMedinriaFibers()
     vtkFileName += noPathName;
     vtkFileName += "_0.vtp";
 
-    std::string vtkWriteFileName = m_FileName + "/";
+    std::string vtkWriteFileName = baseName + "/";
     vtkWriteFileName += noPathName + "_0.vtp";
 
     vtkSmartPointer <vtkXMLPolyDataWriter> vtkWriter = vtkXMLPolyDataWriter::New();
