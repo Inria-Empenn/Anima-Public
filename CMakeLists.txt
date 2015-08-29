@@ -17,34 +17,29 @@ option(USE_RPI "Build RPI dependencies" ON)
 option(USE_NLOPT "Build NLOPT dependencies" ON)
 option(BUILD_ANIMA_TOOLS "Build ANIMA tools" ON)
 option(BUILD_ANIMA_TESTING "Build ANIMA testing executables" OFF)
-
-set(cmake_flags "")
-if (UNIX AND NOT BUILD_SHARED_LIBS AND "${CMAKE_SYSTEM_PROCESSOR}" MATCHES 64)
-  set (cmake_flags "${cmake_flags} -fPIC")
-endif()
+option(USE_ANIMA_PRIVATE "Use ANIMA private part, requires authorized access" OFF)
 
 # Use github SSH connection or https ?
 
 option(USE_GITHUB_SSH 
-  "Use by default Git SSH addresses, requires public key set on github" ON
+  "Use by default Git SSH addresses, requires public key set on github" OFF
   )
 mark_as_advanced(USE_GITHUB_SSH)
 
-if(${USE_GITHUB_SSH})
-  set(GITHUB_PREFIX git@github.com:)
-else()
-  set(GITHUB_PREFIX https://github.com/)
+if (USE_ANIMA_PRIVATE)
+  set(USE_GITHUB_SSH ON)
 endif()
 
-# Handle Mac compiling option if CMake version greater or equal to 3
-if (${CMAKE_MAJOR_VERSION} GREATER 2)
-  set(MACOSX_RPATH_OPTION "-DCMAKE_MACOSX_RPATH:BOOL=OFF")
-endif()
-
+include(CheckEnvironment)
 # Deal with external dependencies
 
 include(ExternalProject)
+include(ConfigureExternalProjectVariables)
+
+#Variables for dependencies and update custom, updated in external projects
 set(Anima_DEPS "")
+set(Update_Repositories "")
+set(Build_Targets "")
 
 # Boost
 option(USE_SYSTEM_BOOST "Use system installed Boost" OFF)
@@ -54,7 +49,6 @@ if (USE_SYSTEM_BOOST)
   set(Boost_SRC_DIR ${Boost_INCLUDE_DIR})
 else()
   include(Boost)
-  set (Anima_DEPS "${Anima_DEPS};Boost")
 endif()
 
 # TCLAP
@@ -64,7 +58,6 @@ if (USE_SYSTEM_TCLAP)
   find_package(TCLAP REQUIRED)
 else()
   include(TCLAP)
-  set (Anima_DEPS "${Anima_DEPS};TCLAP")
 endif()
 
 # TinyXML2
@@ -76,7 +69,6 @@ if (USE_SYSTEM_TinyXML2)
   set(TinyXML2_BUILD_DIR ${TinyXML2_LIBRARY_DIR})
 else()
   include(TinyXML2)
-  set (Anima_DEPS "${Anima_DEPS};TinyXML2")
 endif()
 
 # NLOPT
@@ -88,7 +80,6 @@ if (USE_NLOPT)
     set(NLOPT_BUILD_DIR ${NLOPT_LIBRARY_DIR})
   else()
     include(NLOPT)
-    set (Anima_DEPS "${Anima_DEPS};NLOPT")
   endif()
 endif()
 
@@ -100,7 +91,6 @@ if (USE_SYSTEM_ITK)
   set(ITK_BUILD_DIR ${ITK_DIR})
 else()
   include(ITK)
-  set (Anima_DEPS "${Anima_DEPS};ITK")
 endif()
 
 # VTK
@@ -112,7 +102,6 @@ if (USE_VTK)
     set(VTK_BUILD_DIR ${VTK_DIR})
   else()
     include(VTK)
-    set (Anima_DEPS "${Anima_DEPS};VTK")
   endif()
 endif()
 
@@ -125,14 +114,26 @@ if (USE_RPI)
     set(RPI_BUILD_DIR ${RPI_DIR})
   else()
     include(RPI)
-    set (Anima_DEPS "${Anima_DEPS};RPI")
   endif()
 endif()
 
 include(Anima)
 
-option(USE_ANIMA_PRIVATE "Use ANIMA private part, requires authorized access" OFF)
-
 if (USE_ANIMA_PRIVATE)
   include(Anima-Private)
 endif()
+
+# Add update target
+
+add_custom_target(update
+  DEPENDS ${Update_Repositories}
+  COMMAND echo All project have been updated
+  )
+
+# Add build target
+
+add_custom_target(build
+  DEPENDS ${Build_Targets}
+  COMMAND echo All project have been built
+  )
+

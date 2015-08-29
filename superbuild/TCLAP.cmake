@@ -19,3 +19,5 @@ ExternalProject_Add(${proj}
   )
 
 set(${proj}_SRC_DIR ${CMAKE_SOURCE_DIR}/External-Projects/${proj})
+
+set(Anima_DEPS "${Anima_DEPS};${proj}")
