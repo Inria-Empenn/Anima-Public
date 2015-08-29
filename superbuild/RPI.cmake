@@ -47,9 +47,9 @@ set(Update_Repositories "${Update_Repositories};update-${proj}")
 
 # Build custom target
 add_custom_target(build-${proj} 
-  COMMAND ${CMAKE_GENERATOR} --build . --config ${CMAKE_BUILD_TYPE}
+  COMMAND ${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE}
   WORKING_DIRECTORY ${${proj}_BUILD_DIR}
-  COMMENT "build '${proj}' with '${CMAKE_GENERATOR} --build . --config ${CMAKE_BUILD_TYPE}'"
+  COMMENT "build '${proj}' with '${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE}'"
   )
 
 set(Build_Targets "${Build_Targets};build-${proj}")
