@@ -42,16 +42,6 @@ ExternalProject_Add(${proj}
 ExternalProject_Get_Property(${proj} binary_dir)
 set(${proj}_BUILD_DIR ${binary_dir})
 
-# Update custom target
-set (GIT_COMMAND ${GIT_BIN} pull --ff-only)
-add_custom_target(update-${proj} 
-  COMMAND ${GIT_COMMAND}
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  COMMENT "Updating '${proj}' with '${GIT_COMMAND}'"
-  )
-
-set(Update_Repositories "${Update_Repositories};update-${proj}")
-
 # Build custom target
 add_custom_target(build-${proj} 
   COMMAND ${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE}
