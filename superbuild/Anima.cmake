@@ -44,7 +44,9 @@ set(${proj}_BUILD_DIR ${binary_dir})
 
 # Build custom target
 foreach (dep ${${proj}_DEPS})
+  if (TARGET build-${dep})
     set(build-${proj}_deps build-${dep} ${build-${proj}_deps})
+  endif()
 endforeach()
 
 add_custom_target(build-${proj} 
