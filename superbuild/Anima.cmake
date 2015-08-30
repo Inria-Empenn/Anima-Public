@@ -43,10 +43,15 @@ ExternalProject_Get_Property(${proj} binary_dir)
 set(${proj}_BUILD_DIR ${binary_dir})
 
 # Build custom target
+foreach (dep ${${proj}_DEPS})
+    set(build-${proj}_deps build-${dep} ${build-${proj}_deps})
+endforeach()
+
 add_custom_target(build-${proj} 
   COMMAND ${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE}
   WORKING_DIRECTORY ${${proj}_BUILD_DIR}
   COMMENT "build '${proj}' with '${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE}'"
+  DEPENDS ${build-${proj}_deps}
   )
 
 set(Build_Targets "${Build_Targets};build-${proj}")

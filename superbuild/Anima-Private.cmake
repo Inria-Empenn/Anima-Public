@@ -42,6 +42,7 @@ add_custom_target(build-${proj}
   COMMAND ${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE}
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/${proj}
   COMMENT "build '${proj}' with '${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE}'"
+  DEPENDS build-Anima
   )
 
 set(Build_Targets "${Build_Targets};build-${proj}")
