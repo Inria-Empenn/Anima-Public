@@ -9,10 +9,16 @@ project(ANIMA)
 # On Macs, disable MACOSX_RPATH (cmake 3.x)
 set(CMAKE_MACOSX_RPATH OFF)
 
+#On windows, add definitions for M_PI
+if (WIN32)
+  add_definitions(-D_USE_MATH_DEFINES)
+endif()
+
+set(ANIMA_CMAKE_DOCUMENTATION_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cmake/documentation)
 set(${PROJECT_NAME}_CMAKE_DIRS
   ${CMAKE_SOURCE_DIR}/ # for CTestConfig file
   ${CMAKE_SOURCE_DIR}/cmake
-  ${CMAKE_SOURCE_DIR}/cmake/documentation
+  ${ANIMA_CMAKE_DOCUMENTATION_DIR}
   ${CMAKE_SOURCE_DIR}/cmake/module
   ${CMAKE_CURRENT_BINARY_DIR}/cmake # for auto generated ${PROJECT_NAME}Exports
   )

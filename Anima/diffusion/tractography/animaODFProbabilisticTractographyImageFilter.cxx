@@ -1,6 +1,4 @@
 #include "animaODFProbabilisticTractographyImageFilter.h"
-
-#define _USE_MATH_DEFINES
 #include <cmath>
 
 #include <animaODFMaximaCostFunction.h>

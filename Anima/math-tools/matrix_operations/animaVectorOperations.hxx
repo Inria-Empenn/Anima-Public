@@ -1,4 +1,4 @@
-#define _USE_MATH_DEFINES
+#include "animaVectorOperations.h"
 #include <cmath>
 
 #include <animaLogarithmFunctions.h>

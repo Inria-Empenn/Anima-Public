@@ -47,7 +47,7 @@ find_package(Doxygen)
 
 if(DOXYGEN_FOUND)
 	find_file(DOXYFILE_IN "Doxyfile.in"
-			PATHS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/documentation" "${CMAKE_ROOT}/Modules/")
+			PATHS "${ANIMA_CMAKE_DOCUMENTATION_DIR}" "${CMAKE_ROOT}/Modules/")
 
 	include(FindPackageHandleStandardArgs)
 	find_package_handle_standard_args(Doxyfile.in DEFAULT_MSG DOXYFILE_IN)
@@ -65,8 +65,7 @@ if(DOXYGEN_FOUND AND DOXYFILE_IN)
 
 	configure_file(${DOXYFILE_IN} Doxyfile ESCAPE_QUOTES IMMEDIATE @ONLY)
 
-	get_target_property(DOC_TARGET doc TYPE)
-	if(NOT DOC_TARGET)
+	if(NOT TARGET doc)
 		add_custom_target(doc)
 	endif()
 		

@@ -1,7 +1,6 @@
 #include <iostream>
 #include <tclap/CmdLine.h>
 
-#define _USE_MATH_DEFINES
 #include <cmath>
 
 #include <itkImageFileReader.h>

@@ -1,13 +1,10 @@
-
-
 /*
 ** An ITK interface for the Newuoa optimizer, heavily based on powell's fortran version (f2c'ed)
 ** The raw optimization is exactly the f2c version, but c++ encapsulated to match with itk optimizers (non linear optimizers, like PowellOptimizer).
   */
 
-
-
 #include "animaNewuoaOptimizer.h"
+#include <algorithm>
 
 namespace anima
 {

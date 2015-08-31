@@ -46,5 +46,3 @@ add_custom_target(build-${proj}
   WORKING_DIRECTORY ${${proj}_BUILD_DIR}
   COMMENT "build '${proj}' with '${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE}'"
   )
-
-set(Build_Targets "${Build_Targets};build-${proj}")

@@ -17,6 +17,7 @@ option(USE_RPI "Build RPI dependencies" ON)
 option(USE_NLOPT "Build NLOPT dependencies" ON)
 option(BUILD_ANIMA_TOOLS "Build ANIMA tools" ON)
 option(BUILD_ANIMA_TESTING "Build ANIMA testing executables" OFF)
+option(BUILD_ANIMA_DOCUMENTATION "Build ANIMA doxygen" OFF)
 option(USE_ANIMA_PRIVATE "Use ANIMA private part, requires authorized access" OFF)
 
 # Use github SSH connection or https ?
@@ -39,7 +40,6 @@ include(ConfigureExternalProjectVariables)
 #Variables for dependencies and update custom, updated in external projects
 set(Anima_DEPS "")
 set(Update_Repositories "")
-set(Build_Targets "")
 
 # Boost
 option(USE_SYSTEM_BOOST "Use system installed Boost" OFF)
@@ -132,8 +132,14 @@ add_custom_target(update
 
 # Add build target
 
-add_custom_target(build
-  DEPENDS ${Build_Targets}
-  COMMAND echo All project have been built
-  )
-
+if (USE_ANIMA_PRIVATE)
+  add_custom_target(build
+    DEPENDS build-Anima-Private
+    COMMAND echo All project have been built
+    )
+else()
+  add_custom_target(build
+    DEPENDS build-Anima
+    COMMAND echo All project have been built
+    )
+endif()

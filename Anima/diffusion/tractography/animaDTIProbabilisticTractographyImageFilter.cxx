@@ -1,6 +1,4 @@
 #include "animaDTIProbabilisticTractographyImageFilter.h"
-
-#define _USE_MATH_DEFINES
 #include <cmath>
 
 #include <animaVectorOperations.h>
@@ -229,9 +227,9 @@ double DTIProbabilisticTractographyImageFilter::ComputeLogWeightUpdate(double b0
 			if (var > 0)
 			{
                 double sclPrd = anima::ComputeScalarProduct(this->GetDiffusionGradient(i), dtiPrincipalDirection);
-                double signalValue = b0Value * exp(-this->GetBValue(i) * (perpLambda + 3.0 * sclPrd * sclPrd * (meanLambda - perpLambda)));
+                double signalValue = b0Value * exp(-this->GetBValueItem(i) * (perpLambda + 3.0 * sclPrd * sclPrd * (meanLambda - perpLambda)));
                 sclPrd = anima::ComputeScalarProduct(this->GetDiffusionGradient(i), newDirection);
-                double rotatedSignalValue = b0Value * exp(-this->GetBValue(i) * (perpLambda + 3.0 * sclPrd * sclPrd * (meanLambda - perpLambda)));
+                double rotatedSignalValue = b0Value * exp(-this->GetBValueItem(i) * (perpLambda + 3.0 * sclPrd * sclPrd * (meanLambda - perpLambda)));
 	        
 	            diffSignalValue = rotatedSignalValue - signalValue;
 	            meanSignalValue = (rotatedSignalValue + signalValue) / 2.0;
@@ -285,9 +283,9 @@ void DTIProbabilisticTractographyImageFilter::SetDesignMatrix()
             for (unsigned int k = 0;k <= j;++k)
             {
                 if (j != k)
-                    m_DesignMatrix(i,pos) = - 2 * this->GetBValue(i) * this->GetDiffusionGradient(i)[j] * this->GetDiffusionGradient(i)[k];
+                    m_DesignMatrix(i,pos) = - 2 * this->GetBValueItem(i) * this->GetDiffusionGradient(i)[j] * this->GetDiffusionGradient(i)[k];
                 else
-                    m_DesignMatrix(i,pos) = - this->GetBValue(i) * this->GetDiffusionGradient(i)[j] * this->GetDiffusionGradient(i)[j];
+                    m_DesignMatrix(i,pos) = - this->GetBValueItem(i) * this->GetDiffusionGradient(i)[j] * this->GetDiffusionGradient(i)[j];
                 
                 ++pos;
             }
@@ -393,7 +391,7 @@ double DTIProbabilisticTractographyImageFilter::ComputeModelEstimation(DWIInterp
     double b0Value = 1.0e10;
     for (unsigned int i = 0;i < numInputs;++i)
     {
-        if (this->GetBValue(i) == 0)
+        if (this->GetBValueItem(i) == 0)
         {
             double tmpVal = dwiValue[i];
             
@@ -410,7 +408,7 @@ double DTIProbabilisticTractographyImageFilter::ComputeModelEstimation(DWIInterp
     // Compute log-signals
     for (unsigned int i = 0;i < numInputs;++i)
     {
-        if (this->GetBValue(i) > 0)
+        if (this->GetBValueItem(i) > 0)
         {
             double tmpVal = dwiValue[i];
             

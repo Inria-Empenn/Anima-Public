@@ -137,7 +137,7 @@ public:
     Vector3DType &GetDiffusionGradient(unsigned int i) {return m_DiffusionGradients[i];}
 
     void SetBValuesList(ListType bValuesList) {m_BValuesList = bValuesList;}
-    MathScalarType GetBValue(unsigned int i) {return m_BValuesList[i];}
+    MathScalarType GetBValueItem(unsigned int i) {return m_BValuesList[i];}
 
     itkSetObjectMacro(SeedMask,MaskImageType);
     itkSetObjectMacro(FilterMask,MaskImageType);

@@ -7,6 +7,7 @@ set (cmake_args
   -DLIBRARY_OUTPUT_PATH=${CMAKE_BINARY_DIR}/lib
   -DBUILD_TOOLS:BOOL=${BUILD_ANIMA_TOOLS}
   -DBUILD_TESTING:BOOL=${BUILD_ANIMA_TESTING}
+  -DBUILD_DOCUMENTATION:BOOL=${BUILD_ANIMA_DOCUMENTATION}
   )
 
 set (location "")
@@ -44,5 +45,3 @@ add_custom_target(build-${proj}
   COMMENT "build '${proj}' with '${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE}'"
   DEPENDS build-Anima
   )
-
-set(Build_Targets "${Build_Targets};build-${proj}")

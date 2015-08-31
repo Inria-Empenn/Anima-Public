@@ -56,5 +56,3 @@ add_custom_target(build-${proj}
   COMMENT "build '${proj}' with '${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE}'"
   DEPENDS ${build-${proj}_deps}
   )
-
-set(Build_Targets "${Build_Targets};build-${proj}")
