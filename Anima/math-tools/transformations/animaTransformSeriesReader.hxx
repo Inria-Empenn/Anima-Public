@@ -4,6 +4,8 @@
 #include <tinyxml2.h>
 
 #include <itkTransformFileReader.h>
+#include <itkImageFileReader.h>
+
 #include <itkMatrixOffsetTransformBase.h>
 #include <itkStationaryVelocityFieldTransform.h>
 #include <rpiDisplacementFieldTransform.h>
