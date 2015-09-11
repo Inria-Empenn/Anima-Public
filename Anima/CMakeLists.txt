@@ -12,6 +12,7 @@ set(CMAKE_MACOSX_RPATH OFF)
 #On windows, add definitions for M_PI
 if (WIN32)
   add_definitions(-D_USE_MATH_DEFINES)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:strict")
 endif()
 
 set(ANIMA_CMAKE_DOCUMENTATION_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cmake/documentation)
