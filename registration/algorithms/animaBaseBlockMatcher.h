@@ -59,8 +59,8 @@ public:
 
     std::vector <ImageRegionType> &GetBlockRegions() {return m_BlockRegions;}
     std::vector <ImageIndexType> &GetDamIndexes() {return m_DamIndexes;}
-    std::vector <double> &GetBlockTransformPointers() {return m_BlockTransformPointers;}
-    std::vector <BaseInputTransformPointer> &GetBlockWeights() {return m_BlockWeights;}
+    std::vector <BaseInputTransformPointer> &GetBlockTransformPointers() {return m_BlockTransformPointers;}
+    const std::vector <double> &GetBlockWeights() {return m_BlockWeights;}
 
     void SetOptimizerType(OptimizerDefinition val) {m_OptimizerType = val;}
     virtual bool GetMaximizedMetric() = 0;
@@ -84,6 +84,7 @@ protected:
     // May be overloaded but in practice, much easier if this superclass implementation is always called
     virtual OptimizerPointer SetupOptimizer();
 
+    virtual void BlockMatchingSetup(MetricPointer &metric, unsigned int block) = 0;
     virtual void TransformDependantOptimizerSetup(OptimizerPointer &optimizer) = 0;
 
 private:

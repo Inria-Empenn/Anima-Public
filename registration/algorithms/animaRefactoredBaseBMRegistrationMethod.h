@@ -33,8 +33,6 @@ public:
     /** Run-time type information (and related methods). */
     itkTypeMacro(RefactoredBaseBMRegistrationMethod, itk::ProcessObject);
 
-    itkNewMacro(Self);
-
     typedef typename TInputImageType::IOPixelType ImageScalarType;
 
     /** Type of Transform Agregator */    
@@ -95,6 +93,7 @@ public:
 
     itkSetMacro(InitialTransform, TransformPointer);
     void SetBlockMatcher(BlockMatcherType *matcher) {m_BlockMatcher = matcher;}
+    BlockMatcherType *GetBlockMatcher() {return m_BlockMatcher;}
 
     /** Returns the transform resulting from the registration process  */
     TransformOutputType *GetOutput();
@@ -105,8 +104,6 @@ public:
     using Superclass::MakeOutput;
     virtual DataObjectPointer MakeOutput(DataObjectPointerArraySizeType idx);
 
-    void StartOptimization();
-
 protected:
     RefactoredBaseBMRegistrationMethod();
     virtual ~RefactoredBaseBMRegistrationMethod() {}
@@ -114,9 +111,10 @@ protected:
     virtual void PrintSelf(std::ostream& os, itk::Indent indent) const;
 
     void GenerateData();
+    void StartOptimization();
 
     void SetupTransform(TransformPointer &optimizedTransform);
-    virtual void PerformOneIteration(InputImageType *refImage, InputImageType *movingImage, TransformPointer &addOn) {}
+    virtual void PerformOneIteration(InputImageType *refImage, InputImageType *movingImage, TransformPointer &addOn) = 0;
     void ResampleImages(TransformType *currentTransform, InputImagePointer &refImage, InputImagePointer &movingImage);
     virtual bool ComposeAddOnWithTransform(TransformType *computedTransform, TransformType *addOn);
 

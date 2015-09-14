@@ -24,6 +24,7 @@ add_executable(${PROJECT_NAME}
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME}
+  ITKOptimizers
   ${ITKIO_LIBRARIES}
   ${ITK_TRANSFORM_LIBRARIES}
   ${TinyXML2_LIBRARY}

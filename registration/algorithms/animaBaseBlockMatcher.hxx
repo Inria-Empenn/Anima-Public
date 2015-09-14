@@ -38,14 +38,14 @@ BaseBlockMatcher <TInputImageType>
 ::InitializeBlocks()
 {
     // Init blocks on reference image
-    typedef typename TInputImageType::PixelType InputPixelType;
+    typedef typename TInputImageType::IOPixelType InputPixelType;
     typedef typename anima::BlockMatchingInitializer<InputPixelType,TInputImageType::ImageDimension> InitializerType;
     typedef typename InitializerType::Pointer InitializerPointer;
 
     InitializerPointer initPtr = InitializerType::New();
     initPtr->AddReferenceImage(m_ReferenceImage);
 
-    if (this->GetNumberOfThreads() != 0)
+    if (m_NumberOfThreads != 0)
         initPtr->SetNumberOfThreads(m_NumberOfThreads);
 
     initPtr->SetPercentageKept(m_BlockPercentageKept);
@@ -187,9 +187,7 @@ BaseBlockMatcher <TInputImageType>
     // Loop over the desired blocks
     for (unsigned int block = startBlock; block < endBlock; ++block)
     {
-        m_BlockTransformPointers[block]->SetIdentity();
-        this->AdditionalBlockMatchingSetup(metric, block);
-
+        this->BlockMatchingSetup(metric, block);
         optimizer->SetCostFunction(metric);
         optimizer->SetInitialPosition(m_BlockTransformPointers[block]->GetParameters());
 

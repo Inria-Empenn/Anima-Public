@@ -1,15 +1,15 @@
-#include <animaRefactoredBaseBMRegistrationMethod.h>
+#include <animaRefactoredAsymmetricBMRegistrationMethod.h>
 #include <itkVectorImage.h>
 
 int main(int argc, char **argv)
 {
-    typedef anima::RefactoredBaseBMRegistrationMethod <itk::Image <float, 3> > RegistrationType;
+    typedef anima::RefactoredAsymmetricBMRegistrationMethod <itk::Image <float, 3> > RegistrationType;
 
     RegistrationType::Pointer tmpPtr = RegistrationType::New();
 
     tmpPtr->Update();
 
-    typedef anima::RefactoredBaseBMRegistrationMethod <itk::VectorImage <float, 3> > VectorRegistrationType;
+    typedef anima::RefactoredAsymmetricBMRegistrationMethod <itk::VectorImage <float, 3> > VectorRegistrationType;
 
     VectorRegistrationType::Pointer tmpPtr2 = VectorRegistrationType::New();
 
