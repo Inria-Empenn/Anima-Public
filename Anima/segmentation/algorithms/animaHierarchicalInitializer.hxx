@@ -328,7 +328,9 @@ void HierarchicalInitializer<TInputImage,TMaskImage>
             const unsigned int localMax = 3;
             for (unsigned int i = 0; i < smoothedBins; i++ )
             {
-                unsigned int jmin = ( i - localMax ) < 0 ? 0 : i - localMax;
+		int testVal = i - localMax;
+                unsigned int jmin = testVal < 0 ? 0 : testVal;	
+
                 unsigned int jmax = ( i + localMax ) > smoothedBins ? smoothedBins : ( i + localMax );
 
                 bool ismax = true;
