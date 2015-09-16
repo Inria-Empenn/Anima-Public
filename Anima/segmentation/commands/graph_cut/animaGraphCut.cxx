@@ -1,7 +1,7 @@
 #include <tclap/CmdLine.h>
-#include <itkNiftiImageIO.h>
+
 #include <itkTimeProbe.h>
-#include <itkImageFileReader.h>
+#include <animaReadWriteFunctions.h>
 #include "animaGraphCutFilter.h"
 
 int main(int argc, const char** argv)
@@ -43,102 +43,61 @@ int main(int argc, const char** argv)
     }
 
     const unsigned int Dimension = 3;
-
     typedef itk::Image <float,Dimension> InputImageTypeF;
-    typedef InputImageTypeF::Pointer InputImagePointerF;
-    typedef itk::ImageFileReader<InputImageTypeF> ReaderTypeF;
-
     typedef itk::Image <unsigned char,Dimension> InputImageTypeUC;
-    typedef InputImageTypeUC::Pointer InputImagePointerUC;
-    typedef itk::ImageFileReader<InputImageTypeUC> ReaderTypeUC;
 
     // Create instance of graph cut filter
     typedef anima::GraphCutFilter<InputImageTypeF,InputImageTypeUC>  FilterTypeGraphCut;
     FilterTypeGraphCut::Pointer GraphCutFilter = FilterTypeGraphCut::New();
 
-    // Open Images
-    ReaderTypeF::Pointer tmpReadF;
-    ReaderTypeUC::Pointer tmpReadUC;
-
     if( inputFileT1Arg.getValue()!="" )
     {
-        tmpReadF = ReaderTypeF::New();
-        tmpReadF->SetFileName( inputFileT1Arg.getValue() );
-        tmpReadF->Update();
-        GraphCutFilter->SetInputImage1( tmpReadF->GetOutput() );
+        GraphCutFilter->SetInputImage1( anima::readImage<InputImageTypeF>(inputFileT1Arg.getValue()) );
     }
 
     if( inputFileT2Arg.getValue()!="" )
     {
-        tmpReadF = ReaderTypeF::New();
-        tmpReadF->SetFileName( inputFileT2Arg.getValue() );
-        tmpReadF->Update();
-        GraphCutFilter->SetInputImage2( tmpReadF->GetOutput() );
+        GraphCutFilter->SetInputImage2( anima::readImage<InputImageTypeF>(inputFileT2Arg.getValue()) );
     }
 
     if( inputFileDPArg.getValue()!="" )
     {
-        tmpReadF = ReaderTypeF::New();
-        tmpReadF->SetFileName( inputFileDPArg.getValue() );
-        tmpReadF->Update();
-        GraphCutFilter->SetInputImage3( tmpReadF->GetOutput() );
+        GraphCutFilter->SetInputImage3( anima::readImage<InputImageTypeF>(inputFileDPArg.getValue()) );
     }
 
     if( inputFileFLAIRArg.getValue()!="" )
     {
-        tmpReadF = ReaderTypeF::New();
-        tmpReadF->SetFileName( inputFileFLAIRArg.getValue() );
-        tmpReadF->Update();
-        GraphCutFilter->SetInputImage4( tmpReadF->GetOutput() );
+        GraphCutFilter->SetInputImage4( anima::readImage<InputImageTypeF>(inputFileFLAIRArg.getValue()) );
     }
 
     if( inputFileT1GdArg.getValue()!="" )
     {
-        tmpReadF = ReaderTypeF::New();
-        tmpReadF->SetFileName( inputFileT1GdArg.getValue() );
-        tmpReadF->Update();
-        GraphCutFilter->SetInputImage5( tmpReadF->GetOutput() );
+        GraphCutFilter->SetInputImage5( anima::readImage<InputImageTypeF>(inputFileT1GdArg.getValue()) );
     }
 
     if( sourcesProbaFileArg.getValue()!="" )
     {
-        tmpReadF = ReaderTypeF::New();
-        tmpReadF->SetFileName( sourcesProbaFileArg.getValue() );
-        tmpReadF->Update();
-        GraphCutFilter->SetInputSeedSourcesProba( tmpReadF->GetOutput() );
+        GraphCutFilter->SetInputSeedSourcesProba( anima::readImage<InputImageTypeF>(sourcesProbaFileArg.getValue()) );
     }
 
     if( sinksProbaFileArg.getValue()!="" )
     {
-        tmpReadF = ReaderTypeF::New();
-        tmpReadF->SetFileName( sinksProbaFileArg.getValue() );
-        tmpReadF->Update();
-        GraphCutFilter->SetInputSeedSinksProba( tmpReadF->GetOutput() );
+        GraphCutFilter->SetInputSeedSinksProba( anima::readImage<InputImageTypeF>(sinksProbaFileArg.getValue()) );
     }
-
 
     if( maskFileArg.getValue()!="" )
     {
-        tmpReadUC = ReaderTypeUC::New();
-        tmpReadUC->SetFileName( maskFileArg.getValue() );
-        tmpReadUC->Update();
-        GraphCutFilter->SetMask( tmpReadUC->GetOutput() );
+        GraphCutFilter->SetMask( anima::readImage<InputImageTypeUC>(maskFileArg.getValue()) );
     }
 
     if( sourcesMaskFileArg.getValue()!="" )
     {
-        tmpReadUC = ReaderTypeUC::New();
-        tmpReadUC->SetFileName( sourcesMaskFileArg.getValue() );
-        tmpReadUC->Update();
-        GraphCutFilter->SetInputSeedSourcesMask( tmpReadUC->GetOutput() );
+        GraphCutFilter->SetInputSeedSourcesMask( anima::readImage<InputImageTypeUC>(sourcesMaskFileArg.getValue()) );
     }
 
     if( sinksMaskFileArg.getValue()!="" )
     {
-        tmpReadUC = ReaderTypeUC::New();
-        tmpReadUC->SetFileName( sinksMaskFileArg.getValue() );
-        tmpReadUC->Update();
-        GraphCutFilter->SetInputSeedSinksMask( tmpReadUC->GetOutput() );
+        GraphCutFilter->SetInputSeedSinksMask( anima::readImage<InputImageTypeUC>(sinksMaskFileArg.getValue()) );
     }
 
     // Set parameters

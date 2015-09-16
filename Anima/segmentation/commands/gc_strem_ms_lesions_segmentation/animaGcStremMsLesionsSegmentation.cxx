@@ -1,17 +1,14 @@
 #include <tclap/CmdLine.h>
 
 #include <itkTimeProbe.h>
-#include <itkImageFileReader.h>
+#include <animaReadWriteFunctions.h>
 #include "animaGcStremMsLesionsSegmentationFilter.h"
 
 int main(int argc, const char** argv)
 {
     const unsigned int Dimension = 3;
-
     typedef itk::Image <float,Dimension> InputImageTypeF;
-    typedef itk::ImageFileReader<InputImageTypeF> ReaderTypeF;
     typedef itk::Image <unsigned char,Dimension> InputImageTypeUC;
-    typedef itk::ImageFileReader<InputImageTypeUC> ReaderTypeUC;
     typedef anima::GcStremMsLesionsSegmentationFilter<InputImageTypeF>  FilterTypeSeg;
 
     // Parsing arguments
@@ -115,95 +112,60 @@ int main(int argc, const char** argv)
     }
 
     FilterTypeSeg::Pointer segFilter = FilterTypeSeg::New();
-    ReaderTypeF::Pointer tmpReadF;
-    ReaderTypeUC::Pointer tmpReadUC;
 
     if( inputFileT1Arg.getValue()!="" )
     {
-        tmpReadF = ReaderTypeF::New();
-        tmpReadF->SetFileName( inputFileT1Arg.getValue() );
-        tmpReadF->Update();
-        segFilter->SetInputImageT1( tmpReadF->GetOutput() );
+        segFilter->SetInputImageT1( anima::readImage<InputImageTypeF>( inputFileT1Arg.getValue() ) );
     }
 
     if( inputFileT2Arg.getValue()!="" )
     {
-        tmpReadF = ReaderTypeF::New();
-        tmpReadF->SetFileName( inputFileT2Arg.getValue() );
-        tmpReadF->Update();
-        segFilter->SetInputImageT2( tmpReadF->GetOutput() );
+        segFilter->SetInputImageT2( anima::readImage<InputImageTypeF>( inputFileT2Arg.getValue() ) );
     }
 
     if( inputFileDPArg.getValue()!="" )
     {
-        tmpReadF = ReaderTypeF::New();
-        tmpReadF->SetFileName( inputFileDPArg.getValue() );
-        tmpReadF->Update();
-        segFilter->SetInputImageDP( tmpReadF->GetOutput() );
+        segFilter->SetInputImageDP( anima::readImage<InputImageTypeF>( inputFileDPArg.getValue() ) );
     }
 
     if( inputFileFLAIRArg.getValue()!="" )
     {
-        tmpReadF = ReaderTypeF::New();
-        tmpReadF->SetFileName( inputFileFLAIRArg.getValue() );
-        tmpReadF->Update();
-        segFilter->SetInputImageFLAIR( tmpReadF->GetOutput() );
+        segFilter->SetInputImageFLAIR( anima::readImage<InputImageTypeF>( inputFileFLAIRArg.getValue() ) );
     }
 
     if( inputFileT1GdArg.getValue()!="" )
     {
-        tmpReadF = ReaderTypeF::New();
-        tmpReadF->SetFileName( inputFileT1GdArg.getValue() );
-        tmpReadF->Update();
-        segFilter->SetInputImageT1Gd( tmpReadF->GetOutput() );
+        segFilter->SetInputImageT1Gd( anima::readImage<InputImageTypeF>( inputFileT1GdArg.getValue() ) );
     }
 
     if( atlasFileCSFArg.getValue()!="" )
     {
-        tmpReadF = ReaderTypeF::New();
-        tmpReadF->SetFileName( atlasFileCSFArg.getValue() );
-        tmpReadF->Update();
-        segFilter->SetInputCSFAtlas( tmpReadF->GetOutput() );
+        segFilter->SetInputCSFAtlas( anima::readImage<InputImageTypeF>( atlasFileCSFArg.getValue() ) );
     }
 
     if( atlasFileGMArg.getValue()!="" )
     {
-        tmpReadF = ReaderTypeF::New();
-        tmpReadF->SetFileName( atlasFileGMArg.getValue() );
-        tmpReadF->Update();
-        segFilter->SetInputGMAtlas( tmpReadF->GetOutput() );
+        segFilter->SetInputGMAtlas( anima::readImage<InputImageTypeF>( atlasFileGMArg.getValue() ) );
     }
 
     if( atlasFileWMArg.getValue()!="" )
     {
-        tmpReadF = ReaderTypeF::New();
-        tmpReadF->SetFileName( atlasFileWMArg.getValue() );
-        tmpReadF->Update();
-        segFilter->SetInputWMAtlas( tmpReadF->GetOutput() );
+        segFilter->SetInputWMAtlas( anima::readImage<InputImageTypeF>( atlasFileWMArg.getValue() ) );
     }
 
     if( maskFileArg.getValue()!="" )
     {
-        tmpReadF = ReaderTypeF::New();
-        tmpReadF->SetFileName( maskFileArg.getValue() );
-        tmpReadF->Update();
-        segFilter->SetMask( tmpReadF->GetOutput() );
+        segFilter->SetMask( anima::readImage<InputImageTypeF>( maskFileArg.getValue() ) );
     }
 
     if( sourcesMaskFileArg.getValue()!="" )
     {
-        tmpReadUC = ReaderTypeUC::New();
-        tmpReadUC->SetFileName( sourcesMaskFileArg.getValue() );
-        tmpReadUC->Update();
-        segFilter->SetSourcesMask( tmpReadUC->GetOutput() );
+        segFilter->SetSourcesMask( anima::readImage<InputImageTypeUC>( sourcesMaskFileArg.getValue()) );
     }
 
     if( sinksMaskFileArg.getValue()!="" )
     {
-        tmpReadUC = ReaderTypeUC::New();
-        tmpReadUC->SetFileName( sinksMaskFileArg.getValue() );
-        tmpReadUC->Update();
-        segFilter->SetSinksMask( tmpReadUC->GetOutput() );
+        segFilter->SetSinksMask( anima::readImage<InputImageTypeUC>( sinksMaskFileArg.getValue()) );
     }
 
     // Set parameters
