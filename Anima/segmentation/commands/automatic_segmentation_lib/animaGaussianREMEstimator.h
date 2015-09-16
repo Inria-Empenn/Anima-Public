@@ -16,7 +16,7 @@ namespace anima
  * @see GaussianEMEstimator
  */
 template <typename TInputImage, typename TMaskImage>
-class GaussianREMEstimator :virtual  public GaussianEMEstimator<TInputImage,TMaskImage>
+class GaussianREMEstimator : public GaussianEMEstimator<TInputImage,TMaskImage>
 {
 public:
 
