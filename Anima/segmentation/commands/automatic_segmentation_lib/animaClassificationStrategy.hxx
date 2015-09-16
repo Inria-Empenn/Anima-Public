@@ -179,6 +179,9 @@ bool ClassificationStrategy<TInputImage,TMaskImage>::sameModel( std::vector<Gaus
     std::vector<int> comparisonVector(NbClasses,-1);
     unsigned int params = NbDimension + NbDimension*NbDimension;
 
+    float *p1 = new float[params];
+    float *p2 = new float[params];
+
     for(unsigned int i = 0; i < NbClasses; i++)
     {
         for(unsigned int j = 0; j < NbClasses; j++)
@@ -188,9 +191,6 @@ bool ClassificationStrategy<TInputImage,TMaskImage>::sameModel( std::vector<Gaus
                 comparisonVector[i] = -1;
                 continue;
             }
-
-            float *p1 = new float[params];
-            float *p2 = new float[params];
 
             unsigned int t = 0;
             for(unsigned int l = 0; l < NbDimension; l++)
@@ -222,10 +222,11 @@ bool ClassificationStrategy<TInputImage,TMaskImage>::sameModel( std::vector<Gaus
                 comparisonVector[i]=j;
                 break;
             }
-            delete[] p1;
-            delete[] p2;
         }
     }
+
+    delete[] p1;
+    delete[] p2;
 
    for (unsigned int i=0; i < NbClasses; i++)
     {

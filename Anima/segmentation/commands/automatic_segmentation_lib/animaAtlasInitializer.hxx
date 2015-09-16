@@ -191,18 +191,18 @@ void AtlasInitializer<TInputImage, TMaskImage, TAtlasImage>::Update()
         AtlasVectorVectorIt[i].GoToBegin();
     }
 
+    //Covariance
+    DoubleVariableSizeMatrixType x(numberOfClasses,1);
+    DoubleVariableSizeMatrixType xT (1,numberOfClasses);
+    DoubleVariableSizeMatrixType meanT(1,numberOfClasses);
+    DoubleVariableSizeMatrixType meanTTrans(numberOfClasses,1);
+
     while(!MaskIt.IsAtEnd())
     {
         if ( MaskIt.Get() != 0 )
         {
             for(unsigned int c = 0; c < numberOfClasses; c++)
             {
-                //Covariance
-                DoubleVariableSizeMatrixType x(numberOfClasses,1);
-                DoubleVariableSizeMatrixType xT (1,numberOfClasses);
-                DoubleVariableSizeMatrixType meanT(1,numberOfClasses);
-                DoubleVariableSizeMatrixType meanTTrans(numberOfClasses,1);
-
                 for(unsigned int m = 0; m < numberOfClasses; m++)
                 {
                     x(m,0) = ImagesVectorVectorIt[m].Get();
