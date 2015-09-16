@@ -159,7 +159,7 @@ void HierarchicalInitializer<TInputImage,TMaskImage>
     std::vector<InputIteratorType> classesIt;
     for(int i = 0; i < 3; i++)
     {
-        InputImagePointer im= InputImageType::New();
+        InputImagePointer im = InputImageType::New();
         im->SetRegions(this->GetMask()->GetLargestPossibleRegion());
         im->CopyInformation(this->GetMask());
         im->Allocate();
@@ -399,12 +399,12 @@ template <typename TInputImage, typename TMaskImage>
 void HierarchicalInitializer<TInputImage,TMaskImage>
 ::ComputeVariances()
 {
-    ImageTypeF::Pointer diff = ImageTypeF::New();
+    ImageTypeD::Pointer diff = ImageTypeD::New();
     diff->SetRegions(this->GetMask()->GetLargestPossibleRegion());
     diff->CopyInformation(this->GetMask());
     diff->Allocate();
     diff->FillBuffer(0);
-    ImageIteratorTypeF diffIt(diff, diff->GetLargestPossibleRegion() );
+    ImageIteratorTypeD diffIt(diff, diff->GetLargestPossibleRegion() );
 
     std::vector<InputIteratorType> classesItVec;
     for(unsigned int i = 0; i < m_ImagesClasses.size(); i++)
@@ -497,13 +497,13 @@ void HierarchicalInitializer<TInputImage,TMaskImage>
 }
 
 template <typename TInputImage, typename TMaskImage>
-float HierarchicalInitializer<TInputImage,TMaskImage>
-::regionMedianValue(itk::Image< float, 3 >::Pointer image, typename TInputImage::Pointer mask )
+double HierarchicalInitializer<TInputImage,TMaskImage>
+::regionMedianValue(itk::Image< double, 3 >::Pointer image, typename TInputImage::Pointer mask )
 {
-    ImageIteratorTypeF imageIt(image, image->GetLargestPossibleRegion() );
+    ImageIteratorTypeD imageIt(image, image->GetLargestPossibleRegion() );
     InputIteratorType maskIt(mask, mask->GetLargestPossibleRegion() );
 
-    std::vector<float> regionValueVector;
+    std::vector<double> regionValueVector;
 
     while(!imageIt.IsAtEnd())
     {

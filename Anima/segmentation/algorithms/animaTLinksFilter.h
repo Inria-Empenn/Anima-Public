@@ -46,8 +46,8 @@ public:
     typedef typename TOutput::Pointer OutputImagePointer;
     typedef itk::ImageRegionIterator< TOutput > OutRegionIteratorType;
 
-    typedef float 	PixelTypeF;
-    typedef itk::Image <PixelTypeF,3> TSeedProba;
+    typedef double 	PixelTypeD;
+    typedef itk::Image <PixelTypeD,3> TSeedProba;
     typedef itk::ImageRegionConstIterator< TSeedProba > SeedProbaRegionConstIteratorType;
 
     typedef unsigned char 	PixelTypeUC;

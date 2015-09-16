@@ -50,11 +50,6 @@ public:
     /**  Type of the output images. */
     typedef TMaskImage MaskImageType;
 
-    /** Atlas image type */
-    typedef float 	PixelTypeF;
-    typedef itk::Image <PixelTypeF,3> ImageTypeF;
-    typedef itk::ImageRegionIterator <ImageTypeF> ImageIteratorTypeF;
-
     /**   */
     typedef unsigned char 	PixelTypeUC;
     typedef itk::Image <PixelTypeUC,3> ImageTypeUC;

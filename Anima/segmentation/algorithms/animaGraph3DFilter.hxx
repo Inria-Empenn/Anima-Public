@@ -70,14 +70,14 @@ typename TInput::ConstPointer Graph3DFilter<TInput, TOutput>::GetInputImage1()
 }
 
 template <typename TInput, typename TOutput>
-itk::Image <float,3>::ConstPointer Graph3DFilter<TInput, TOutput>::GetInputSeedProbaSources()
+itk::Image <double,3>::ConstPointer Graph3DFilter<TInput, TOutput>::GetInputSeedProbaSources()
 {
     return static_cast< const TSeedProba * >
             ( this->itk::ProcessObject::GetInput(1) );
 }
 
 template <typename TInput, typename TOutput>
-itk::Image <float,3>::ConstPointer Graph3DFilter<TInput, TOutput>::GetInputSeedProbaSinks()
+itk::Image <double,3>::ConstPointer Graph3DFilter<TInput, TOutput>::GetInputSeedProbaSinks()
 {
     return static_cast< const TSeedProba * >
             ( this->itk::ProcessObject::GetInput(2) );

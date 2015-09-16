@@ -127,14 +127,14 @@ itk::Image <unsigned char,3>::ConstPointer GraphCutFilter<TInput, TOutput>::GetI
 }
 
 template <typename TInput, typename TOutput>
-itk::Image <float,3>::ConstPointer GraphCutFilter<TInput, TOutput>::GetInputSeedSourcesProba()
+itk::Image <double,3>::ConstPointer GraphCutFilter<TInput, TOutput>::GetInputSeedSourcesProba()
 {
     return static_cast< const TSeedProba * >
             ( this->itk::ProcessObject::GetInput(m_IndexSourcesProba) );
 }
 
 template <typename TInput, typename TOutput>
-itk::Image <float,3>::ConstPointer GraphCutFilter<TInput, TOutput>::GetInputSeedSinksProba()
+itk::Image <double,3>::ConstPointer GraphCutFilter<TInput, TOutput>::GetInputSeedSinksProba()
 {
     return static_cast< const TSeedProba * >
             ( this->itk::ProcessObject::GetInput(m_IndexSinksProba) );

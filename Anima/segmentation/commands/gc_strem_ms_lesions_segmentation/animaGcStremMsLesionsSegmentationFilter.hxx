@@ -57,25 +57,25 @@ void GcStremMsLesionsSegmentationFilter <TInputImage>::SetInputImageT1Gd(const T
 }
 
 template <typename TInputImage>
-void GcStremMsLesionsSegmentationFilter <TInputImage>::SetInputCSFAtlas(const ImageTypeF* atlas)
+void GcStremMsLesionsSegmentationFilter <TInputImage>::SetInputCSFAtlas(const ImageTypeD* atlas)
 {
-    this->SetNthInput(m_NbInputs, const_cast<ImageTypeF*>(atlas));
+    this->SetNthInput(m_NbInputs, const_cast<ImageTypeD*>(atlas));
     m_IndexAtlasCSF = m_NbInputs;
     m_NbInputs++;
 }
 
 template <typename TInputImage>
-void GcStremMsLesionsSegmentationFilter <TInputImage>::SetInputGMAtlas(const ImageTypeF* atlas)
+void GcStremMsLesionsSegmentationFilter <TInputImage>::SetInputGMAtlas(const ImageTypeD* atlas)
 {
-    this->SetNthInput(m_NbInputs, const_cast<ImageTypeF*>(atlas));
+    this->SetNthInput(m_NbInputs, const_cast<ImageTypeD*>(atlas));
     m_IndexAtlasGM = m_NbInputs;
     m_NbInputs++;
 }
 
 template <typename TInputImage>
-void GcStremMsLesionsSegmentationFilter <TInputImage>::SetInputWMAtlas(const ImageTypeF* atlas)
+void GcStremMsLesionsSegmentationFilter <TInputImage>::SetInputWMAtlas(const ImageTypeD* atlas)
 {
-    this->SetNthInput(m_NbInputs, const_cast<ImageTypeF*>(atlas));
+    this->SetNthInput(m_NbInputs, const_cast<ImageTypeD*>(atlas));
     m_IndexAtlasWM = m_NbInputs;
     m_NbInputs++;
 }
@@ -141,23 +141,23 @@ typename TInputImage::ConstPointer GcStremMsLesionsSegmentationFilter <TInputIma
 
 
 template <typename TInputImage>
-itk::Image <float,3>::ConstPointer GcStremMsLesionsSegmentationFilter <TInputImage>::GetInputCSFAtlas()
+itk::Image <double,3>::ConstPointer GcStremMsLesionsSegmentationFilter <TInputImage>::GetInputCSFAtlas()
 {
-    return static_cast< const ImageTypeF * >
+    return static_cast< const ImageTypeD * >
             ( this->itk::ProcessObject::GetInput(m_IndexAtlasCSF) );
 }
 
 template <typename TInputImage>
-itk::Image <float,3>::ConstPointer GcStremMsLesionsSegmentationFilter <TInputImage>::GetInputGMAtlas()
+itk::Image <double,3>::ConstPointer GcStremMsLesionsSegmentationFilter <TInputImage>::GetInputGMAtlas()
 {
-    return static_cast< const ImageTypeF * >
+    return static_cast< const ImageTypeD * >
             ( this->itk::ProcessObject::GetInput(m_IndexAtlasGM) );
 }
 
 template <typename TInputImage>
-itk::Image <float,3>::ConstPointer GcStremMsLesionsSegmentationFilter <TInputImage>::GetInputWMAtlas()
+itk::Image <double,3>::ConstPointer GcStremMsLesionsSegmentationFilter <TInputImage>::GetInputWMAtlas()
 {
-    return static_cast< const ImageTypeF * >
+    return static_cast< const ImageTypeD * >
             ( this->itk::ProcessObject::GetInput(m_IndexAtlasWM) );
 }
 
@@ -216,22 +216,22 @@ itk::DataObject::Pointer GcStremMsLesionsSegmentationFilter <TInputImage>::MakeO
         output = ( TOutputImage::New() ).GetPointer();
         break;
     case 11:
-        output = ( ImageTypeF::New() ).GetPointer();
+        output = ( ImageTypeD::New() ).GetPointer();
         break;
     case 12:
-        output = ( ImageTypeF::New() ).GetPointer();
+        output = ( ImageTypeD::New() ).GetPointer();
         break;
     case 13:
-        output = ( ImageTypeF::New() ).GetPointer();
+        output = ( ImageTypeD::New() ).GetPointer();
         break;
     case 14:
-        output = ( ImageTypeF::New() ).GetPointer();
+        output = ( ImageTypeD::New() ).GetPointer();
         break;
     case 15:
-        output = ( ImageTypeF::New() ).GetPointer();
+        output = ( ImageTypeD::New() ).GetPointer();
         break;
     case 16:
-        output = ( ImageTypeF::New() ).GetPointer();
+        output = ( ImageTypeD::New() ).GetPointer();
         break;
     case 17:
         output = ( TOutputImage::New() ).GetPointer();
@@ -301,34 +301,34 @@ itk::Image <unsigned char, 3>* GcStremMsLesionsSegmentationFilter <TInputImage>:
     return dynamic_cast< TOutputImage* >( this->itk::ProcessObject::GetOutput(10) );
 }
 template <typename TInputImage>
-itk::Image <float,3>* GcStremMsLesionsSegmentationFilter <TInputImage>::GetOutputFuzzyObjectImage()
+itk::Image <double,3>* GcStremMsLesionsSegmentationFilter <TInputImage>::GetOutputFuzzyObjectImage()
 {
-    return dynamic_cast< ImageTypeF* >( this->itk::ProcessObject::GetOutput(11) );
+    return dynamic_cast< ImageTypeD* >( this->itk::ProcessObject::GetOutput(11) );
 }
 template <typename TInputImage>
-itk::Image <float,3>* GcStremMsLesionsSegmentationFilter <TInputImage>::GetOutputMahaCSFImage()
+itk::Image <double,3>* GcStremMsLesionsSegmentationFilter <TInputImage>::GetOutputMahaCSFImage()
 {
-    return dynamic_cast< ImageTypeF* >( this->itk::ProcessObject::GetOutput(12) );
+    return dynamic_cast< ImageTypeD* >( this->itk::ProcessObject::GetOutput(12) );
 }
 template <typename TInputImage>
-itk::Image <float,3>* GcStremMsLesionsSegmentationFilter <TInputImage>::GetOutputMahaGMImage()
+itk::Image <double,3>* GcStremMsLesionsSegmentationFilter <TInputImage>::GetOutputMahaGMImage()
 {
-    return dynamic_cast< ImageTypeF* >( this->itk::ProcessObject::GetOutput(13) );
+    return dynamic_cast< ImageTypeD* >( this->itk::ProcessObject::GetOutput(13) );
 }
 template <typename TInputImage>
-itk::Image <float,3>* GcStremMsLesionsSegmentationFilter <TInputImage>::GetOutputMahaWMImage()
+itk::Image <double,3>* GcStremMsLesionsSegmentationFilter <TInputImage>::GetOutputMahaWMImage()
 {
-    return dynamic_cast< ImageTypeF* >( this->itk::ProcessObject::GetOutput(14) );
+    return dynamic_cast< ImageTypeD* >( this->itk::ProcessObject::GetOutput(14) );
 }
 template <typename TInputImage>
-itk::Image <float,3>* GcStremMsLesionsSegmentationFilter <TInputImage>::GetOutputMahaMinimumImage()
+itk::Image <double,3>* GcStremMsLesionsSegmentationFilter <TInputImage>::GetOutputMahaMinimumImage()
 {
-    return dynamic_cast< ImageTypeF* >( this->itk::ProcessObject::GetOutput(15) );
+    return dynamic_cast< ImageTypeD* >( this->itk::ProcessObject::GetOutput(15) );
 }
 template <typename TInputImage>
-itk::Image <float,3>* GcStremMsLesionsSegmentationFilter <TInputImage>::GetOutputMahaMaximumImage()
+itk::Image <double,3>* GcStremMsLesionsSegmentationFilter <TInputImage>::GetOutputMahaMaximumImage()
 {
-    return dynamic_cast< ImageTypeF* >( this->itk::ProcessObject::GetOutput(16) );
+    return dynamic_cast< ImageTypeD* >( this->itk::ProcessObject::GetOutput(16) );
 }
 template <typename TInputImage>
 itk::Image <unsigned char, 3>* GcStremMsLesionsSegmentationFilter <TInputImage>::GetOutputGraphCut()
@@ -387,7 +387,7 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::WriteOutputs()
         if( m_OutputFuzzyObjectFilename != "" )
         {
             std::cout << "Writing fuzzy object output image to: " << m_OutputFuzzyObjectFilename << std::endl;
-            anima::writeImage<ImageTypeF>(m_OutputFuzzyObjectFilename, this->GetOutputFuzzyObjectImage());
+            anima::writeImage<ImageTypeD>(m_OutputFuzzyObjectFilename, this->GetOutputFuzzyObjectImage());
         }
     }
 
@@ -746,8 +746,8 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::CreateFuzzyRuleImage()
     MinimumFilterTypeF::Pointer filtermin1 = MinimumFilterTypeF::New();
     MinimumFilterTypeF::Pointer filtermin2 = MinimumFilterTypeF::New();
 
-    const float minimumOutputValue = 0;
-    const float maximumOutputValue = 1;
+    const double minimumOutputValue = 0;
+    const double maximumOutputValue = 1;
 
     const unsigned int indexWM = 2;
     GaussianFunctionType::MeanVectorType mean = (m_GaussianModel[indexWM])->GetMean();
@@ -803,7 +803,7 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::CreateFuzzyRuleImage()
     maskFilter->Update();
     this->GraftNthOutput( 11 , maskFilter->GetOutput() );
 
-    m_FuzzyObject = ImageTypeF::New();
+    m_FuzzyObject = ImageTypeD::New();
     m_FuzzyObject->Graft(maskFilter->GetOutput());
 }
 
@@ -1187,11 +1187,11 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::ComputeNABT()
     itOutputImageWholeSeg.GoToBegin();
     if(m_LesionSegmentationType!=manualGC)
     {
-        float minimumThWM = 0.3; // set a minimum proba value to avoid classifying grey matter as white matter
+        double minimumThWM = 0.3; // set a minimum proba value to avoid classifying grey matter as white matter
 
-        ImageIteratorTypeF itmahaWM(m_MahalanobisFilter->GetOutputMahaWM(),m_MahalanobisFilter->GetOutputMahaWM()->GetLargestPossibleRegion());
-        ImageIteratorTypeF itmahaGM(m_MahalanobisFilter->GetOutputMahaGM(),m_MahalanobisFilter->GetOutputMahaGM()->GetLargestPossibleRegion());
-        ImageIteratorTypeF itmahaCSF(m_MahalanobisFilter->GetOutputMahaCSF(),m_MahalanobisFilter->GetOutputMahaCSF()->GetLargestPossibleRegion());
+        ImageIteratorTypeD itmahaWM(m_MahalanobisFilter->GetOutputMahaWM(),m_MahalanobisFilter->GetOutputMahaWM()->GetLargestPossibleRegion());
+        ImageIteratorTypeD itmahaGM(m_MahalanobisFilter->GetOutputMahaGM(),m_MahalanobisFilter->GetOutputMahaGM()->GetLargestPossibleRegion());
+        ImageIteratorTypeD itmahaCSF(m_MahalanobisFilter->GetOutputMahaCSF(),m_MahalanobisFilter->GetOutputMahaCSF()->GetLargestPossibleRegion());
 
         itMask.GoToBegin();
         itImageLesions.GoToBegin();

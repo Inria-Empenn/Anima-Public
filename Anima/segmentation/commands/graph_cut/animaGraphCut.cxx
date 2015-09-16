@@ -24,10 +24,10 @@ int main(int argc, const char** argv)
 
     TCLAP::SwitchArg notUseSpecGradArg("u","no-usg","Do not use spectral gradient (default: false)",cmd,false);
     TCLAP::ValueArg<int> TLinkModeArg("","mode","Graph cut computation mode (default: 1 --> strem mode)",false,1,"graph cut computation mode",cmd);
-    TCLAP::ValueArg<float> multiVarSourcesArg("","mv","Coefficient to multiply the variance value of the sources seed (default: 1)",false,1,"sources multiply variance",cmd);
-    TCLAP::ValueArg<float> multiVarSinksArg("","ms","Coefficient to multiply the variance value of the seed (default: 1)",false,1,"sinks multiply variance",cmd);
-    TCLAP::ValueArg<float> sigmaArg("s","sigma","sigma value (default: 0.6)",false,0.6,"sigma",cmd);
-    TCLAP::ValueArg<float> alphaArg("a","alpha","Alpha value (default: 10)",false,10,"alpha",cmd);
+    TCLAP::ValueArg<double> multiVarSourcesArg("","mv","Coefficient to multiply the variance value of the sources seed (default: 1)",false,1,"sources multiply variance",cmd);
+    TCLAP::ValueArg<double> multiVarSinksArg("","ms","Coefficient to multiply the variance value of the seed (default: 1)",false,1,"sinks multiply variance",cmd);
+    TCLAP::ValueArg<double> sigmaArg("s","sigma","sigma value (default: 0.6)",false,0.6,"sigma",cmd);
+    TCLAP::ValueArg<double> alphaArg("a","alpha","Alpha value (default: 10)",false,10,"alpha",cmd);
     TCLAP::ValueArg<std::string> matrixGradArg("","mat","Spectral gradient matrix file",false,"","spectral gradient matrix file",cmd);
 
     TCLAP::ValueArg<std::string> outputGCFileArg("o","out","Spectral gradient matrix file",false,"","spectral gradient matrix file",cmd);
@@ -43,46 +43,46 @@ int main(int argc, const char** argv)
     }
 
     const unsigned int Dimension = 3;
-    typedef itk::Image <float,Dimension> InputImageTypeF;
+    typedef itk::Image <double,Dimension> InputImageTypeD;
     typedef itk::Image <unsigned char,Dimension> InputImageTypeUC;
 
     // Create instance of graph cut filter
-    typedef anima::GraphCutFilter<InputImageTypeF,InputImageTypeUC>  FilterTypeGraphCut;
+    typedef anima::GraphCutFilter<InputImageTypeD,InputImageTypeUC>  FilterTypeGraphCut;
     FilterTypeGraphCut::Pointer GraphCutFilter = FilterTypeGraphCut::New();
 
     if( inputFileT1Arg.getValue()!="" )
     {
-        GraphCutFilter->SetInputImage1( anima::readImage<InputImageTypeF>(inputFileT1Arg.getValue()) );
+        GraphCutFilter->SetInputImage1( anima::readImage<InputImageTypeD>(inputFileT1Arg.getValue()) );
     }
 
     if( inputFileT2Arg.getValue()!="" )
     {
-        GraphCutFilter->SetInputImage2( anima::readImage<InputImageTypeF>(inputFileT2Arg.getValue()) );
+        GraphCutFilter->SetInputImage2( anima::readImage<InputImageTypeD>(inputFileT2Arg.getValue()) );
     }
 
     if( inputFileDPArg.getValue()!="" )
     {
-        GraphCutFilter->SetInputImage3( anima::readImage<InputImageTypeF>(inputFileDPArg.getValue()) );
+        GraphCutFilter->SetInputImage3( anima::readImage<InputImageTypeD>(inputFileDPArg.getValue()) );
     }
 
     if( inputFileFLAIRArg.getValue()!="" )
     {
-        GraphCutFilter->SetInputImage4( anima::readImage<InputImageTypeF>(inputFileFLAIRArg.getValue()) );
+        GraphCutFilter->SetInputImage4( anima::readImage<InputImageTypeD>(inputFileFLAIRArg.getValue()) );
     }
 
     if( inputFileT1GdArg.getValue()!="" )
     {
-        GraphCutFilter->SetInputImage5( anima::readImage<InputImageTypeF>(inputFileT1GdArg.getValue()) );
+        GraphCutFilter->SetInputImage5( anima::readImage<InputImageTypeD>(inputFileT1GdArg.getValue()) );
     }
 
     if( sourcesProbaFileArg.getValue()!="" )
     {
-        GraphCutFilter->SetInputSeedSourcesProba( anima::readImage<InputImageTypeF>(sourcesProbaFileArg.getValue()) );
+        GraphCutFilter->SetInputSeedSourcesProba( anima::readImage<InputImageTypeD>(sourcesProbaFileArg.getValue()) );
     }
 
     if( sinksProbaFileArg.getValue()!="" )
     {
-        GraphCutFilter->SetInputSeedSinksProba( anima::readImage<InputImageTypeF>(sinksProbaFileArg.getValue()) );
+        GraphCutFilter->SetInputSeedSinksProba( anima::readImage<InputImageTypeD>(sinksProbaFileArg.getValue()) );
     }
 
     if( maskFileArg.getValue()!="" )

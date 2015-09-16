@@ -121,14 +121,14 @@ itk::Image <unsigned char,3>::ConstPointer TLinksFilter<TInput, TOutput>::GetInp
 }
 
 template <typename TInput, typename TOutput>
-itk::Image <float,3>::ConstPointer TLinksFilter<TInput, TOutput>::GetInputSeedSourcesProba()
+itk::Image <double,3>::ConstPointer TLinksFilter<TInput, TOutput>::GetInputSeedSourcesProba()
 {
     return static_cast< const TSeedProba * >
             ( this->itk::ProcessObject::GetInput(m_IndexSourcesProba) );
 }
 
 template <typename TInput, typename TOutput>
-itk::Image <float,3>::ConstPointer TLinksFilter<TInput, TOutput>::GetInputSeedSinksProba()
+itk::Image <double,3>::ConstPointer TLinksFilter<TInput, TOutput>::GetInputSeedSinksProba()
 {
     return static_cast< const TSeedProba * >
             ( this->itk::ProcessObject::GetInput(m_IndexSinksProba) );

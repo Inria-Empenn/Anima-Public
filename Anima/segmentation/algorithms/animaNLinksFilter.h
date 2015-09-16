@@ -46,8 +46,8 @@ public:
     typedef typename TOutput::PixelType OutputPixelType;
     typedef typename itk::ImageRegionIterator < TOutput > OutputIteratorType;
 
-    typedef float 	PixelTypeF;
-    typedef itk::Image <PixelTypeF,3> TSeedProba;
+    typedef double 	PixelTypeD;
+    typedef itk::Image <PixelTypeD,3> TSeedProba;
     typedef TSeedProba::Pointer ImagePointerProba;
     typedef itk::ImageRegionIterator <TSeedProba> ImageIteratorTypeProba;
     typedef TSeedProba::PixelType SeedProbaPixelType;
@@ -65,7 +65,7 @@ public:
 
     typedef Graph<double,double,double> GraphType;
 
-    typedef float                    NumericType;
+    typedef double                    NumericType;
     typedef itk::VariableSizeMatrix<NumericType> FloatVariableSizeMatrixType;
 
     /** The mri images.*/

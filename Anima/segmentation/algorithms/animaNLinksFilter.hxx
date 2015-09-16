@@ -80,14 +80,14 @@ typename TInput::ConstPointer NLinksFilter<TInput, TOutput>::GetInputImage1()
 }
 
 template <typename TInput, typename TOutput>
-itk::Image <float,3>::ConstPointer NLinksFilter<TInput, TOutput>::GetInputSeedProbaSources()
+itk::Image <double,3>::ConstPointer NLinksFilter<TInput, TOutput>::GetInputSeedProbaSources()
 {
     return static_cast< const TSeedProba * >
             ( this->itk::ProcessObject::GetInput(1) );
 }
 
 template <typename TInput, typename TOutput>
-itk::Image <float,3>::ConstPointer NLinksFilter<TInput, TOutput>::GetInputSeedProbaSinks()
+itk::Image <double,3>::ConstPointer NLinksFilter<TInput, TOutput>::GetInputSeedProbaSinks()
 {
     return static_cast< const TSeedProba * >
             ( this->itk::ProcessObject::GetInput(2) );
@@ -165,7 +165,7 @@ template <typename TInput, typename TOutput>
 bool NLinksFilter<TInput, TOutput>::readMatrixFile()
 {
     // Read and Parse the data
-    typedef itk::CSVArray2DFileReader<float> ReaderType;
+    typedef itk::CSVArray2DFileReader<double> ReaderType;
     ReaderType::Pointer reader = ReaderType::New();
 
     reader->SetFileName ( m_MatFilename );
@@ -188,7 +188,7 @@ bool NLinksFilter<TInput, TOutput>::readMatrixFile()
 
     reader->Print(std::cout);
 
-    typedef itk::CSVArray2DDataObject<float> DataFrameObjectType;
+    typedef itk::CSVArray2DDataObject<double> DataFrameObjectType;
     DataFrameObjectType::Pointer dfo = reader->GetOutput();
 
     m_Matrix = dfo->GetMatrix();
@@ -386,9 +386,9 @@ void NLinksFilter<TInput, TOutput>::CreateGraph()
         while((!e1It.IsAtEnd()) && (!e2It.IsAtEnd()))
         {
 
-            float e = 0;
-            float e_l = 0;
-            float e_l_l = 0;
+            double e = 0;
+            double e_l = 0;
+            double e_l_l = 0;
 
             for(unsigned int m=0; m < m_ListImages.size(); m++)
             {

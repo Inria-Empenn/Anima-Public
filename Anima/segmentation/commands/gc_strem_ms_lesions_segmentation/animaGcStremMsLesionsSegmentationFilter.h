@@ -101,9 +101,9 @@ public:
     typedef itk::ImageRegionIterator <ImageTypeUC> ImageIteratorTypeUC;
     typedef itk::ImageRegionConstIterator <ImageTypeUC> ImageIteratorTypeConstUC;
 
-    typedef float 	PixelTypeF;
-    typedef itk::Image <PixelTypeF,3> ImageTypeF;
-    typedef itk::ImageRegionIterator <ImageTypeF> ImageIteratorTypeF;
+    typedef double 	PixelTypeD;
+    typedef itk::Image <PixelTypeD,3> ImageTypeD;
+    typedef itk::ImageRegionIterator <ImageTypeD> ImageIteratorTypeD;
 
     typedef int 	PixelTypeInt;
     typedef itk::Image <PixelTypeInt,3> ImageTypeInt;
@@ -116,19 +116,19 @@ public:
     typedef anima::GraphCutFilter< TInputImage, ImageTypeUC > GraphCutFilterType;
     typedef anima::CheckStructureNeighborFilter< ImageTypeUC,ImageTypeUC > CheckStructureNeighborFilterFilterType;
     typedef anima::RemoveTouchingBorderFilter<ImageTypeUC,ImageTypeUC> RemoveTouchingBorderFilterType;
-    typedef anima::TLinksFilter<TInputImage,ImageTypeF> TLinksFilterType;
-    typedef anima::ComputeMahalanobisImagesFilter<ImageTypeUC,ImageTypeUC,ImageTypeF> ComputeMahalanobisImagesFilterType;
-    typedef anima::ComputeSolution<ImageTypeUC,ImageTypeUC, ImageTypeF> ComputeSolutionType;
+    typedef anima::TLinksFilter<TInputImage,ImageTypeD> TLinksFilterType;
+    typedef anima::ComputeMahalanobisImagesFilter<ImageTypeUC,ImageTypeUC,ImageTypeD> ComputeMahalanobisImagesFilterType;
+    typedef anima::ComputeSolution<ImageTypeUC,ImageTypeUC, ImageTypeD> ComputeSolutionType;
 
     typedef itk::RescaleIntensityImageFilter<TInputImage,ImageTypeUC> RescaleFilterType;
-    typedef itk::MaximumImageFilter<ImageTypeF,ImageTypeF,ImageTypeF> MaximumFilterType;
-    typedef itk::MinimumImageFilter<ImageTypeF,ImageTypeF,ImageTypeF> MinimumFilterTypeF;
+    typedef itk::MaximumImageFilter<ImageTypeD,ImageTypeD,ImageTypeD> MaximumFilterType;
+    typedef itk::MinimumImageFilter<ImageTypeD,ImageTypeD,ImageTypeD> MinimumFilterTypeF;
     typedef itk::MinimumImageFilter<ImageTypeUC,ImageTypeUC,ImageTypeUC> MinimumFilterTypeUC;
-    typedef itk::BinaryThresholdImageFilter <ImageTypeF, ImageTypeUC> BinaryThresholdImageFilterType_F_UC;
+    typedef itk::BinaryThresholdImageFilter <ImageTypeD, ImageTypeUC> BinaryThresholdImageFilterType_F_UC;
     typedef itk::BinaryThresholdImageFilter <ImageTypeUC, ImageTypeUC> BinaryThresholdImageFilterType_UC_UC;
-    typedef itk::IntensityWindowingImageFilter <ImageTypeUC, ImageTypeF> IntensityWindowingImageFilterType;
+    typedef itk::IntensityWindowingImageFilter <ImageTypeUC, ImageTypeD> IntensityWindowingImageFilterType;
     typedef itk::MaskImageFilter< ImageTypeUC, ImageTypeUC > MaskFilterType_UC_UC;
-    typedef itk::MaskImageFilter< ImageTypeF, ImageTypeUC > MaskFilterType_F_UC;
+    typedef itk::MaskImageFilter< ImageTypeD, ImageTypeUC > MaskFilterType_F_UC;
     typedef itk::ConnectedComponentImageFilter <ImageTypeUC,ImageTypeInt> ConnectedComponentType;
     typedef itk::RelabelComponentImageFilter< ImageTypeInt, ImageTypeInt > RelabelComponentType;
 
@@ -153,9 +153,9 @@ public:
     void SetInputImageFLAIR(const InputImageType* image);
     void SetInputImageT1Gd(const InputImageType* image);
 
-    void SetInputCSFAtlas(const ImageTypeF* image);
-    void SetInputGMAtlas(const ImageTypeF* image);
-    void SetInputWMAtlas(const ImageTypeF* image);
+    void SetInputCSFAtlas(const ImageTypeD* image);
+    void SetInputGMAtlas(const ImageTypeD* image);
+    void SetInputWMAtlas(const ImageTypeD* image);
 
     void SetMask(const TInputImage* MaskImage);
 
@@ -173,12 +173,12 @@ public:
     TOutputImage* GetOutputStremWM();
     TOutputImage* GetOutputIntensityImage1();
     TOutputImage* GetOutputIntensityImage2();
-    itk::Image <float,3>* GetOutputFuzzyObjectImage();
-    itk::Image <float,3>* GetOutputMahaCSFImage();
-    itk::Image <float,3>* GetOutputMahaGMImage();
-    itk::Image <float,3>* GetOutputMahaWMImage();
-    itk::Image <float,3>* GetOutputMahaMinimumImage();
-    itk::Image <float,3>* GetOutputMahaMaximumImage();
+    itk::Image <double,3>* GetOutputFuzzyObjectImage();
+    itk::Image <double,3>* GetOutputMahaCSFImage();
+    itk::Image <double,3>* GetOutputMahaGMImage();
+    itk::Image <double,3>* GetOutputMahaWMImage();
+    itk::Image <double,3>* GetOutputMahaMinimumImage();
+    itk::Image <double,3>* GetOutputMahaMaximumImage();
     TOutputImage* GetOutputGraphCut();
 
     void SetTol(const double tol)
@@ -236,17 +236,17 @@ public:
     itkSetMacro(UseFLAIR, bool);
     itkGetMacro(UseFLAIR, bool);
 
-    itkSetMacro(Alpha, float);
-    itkGetMacro(Alpha, float);
+    itkSetMacro(Alpha, double);
+    itkGetMacro(Alpha, double);
 
-    itkSetMacro(MultiVarSources, float);
-    itkGetMacro(MultiVarSources, float);
+    itkSetMacro(MultiVarSources, double);
+    itkGetMacro(MultiVarSources, double);
 
-    itkSetMacro(MultiVarSinks, float);
-    itkGetMacro(MultiVarSinks, float);
+    itkSetMacro(MultiVarSinks, double);
+    itkGetMacro(MultiVarSinks, double);
 
-    itkSetMacro(Sigma, float);
-    itkGetMacro(Sigma, float);
+    itkSetMacro(Sigma, double);
+    itkGetMacro(Sigma, double);
 
     itkSetMacro(UseSpecGrad, bool);
     itkGetMacro(UseSpecGrad, bool);
@@ -459,9 +459,9 @@ protected:
 
     typename InputImageType::ConstPointer GetMask();
 
-    ImageTypeF::ConstPointer GetInputCSFAtlas();
-    ImageTypeF::ConstPointer GetInputGMAtlas();
-    ImageTypeF::ConstPointer GetInputWMAtlas();
+    ImageTypeD::ConstPointer GetInputCSFAtlas();
+    ImageTypeD::ConstPointer GetInputGMAtlas();
+    ImageTypeD::ConstPointer GetInputWMAtlas();
 
     ImageTypeUC::ConstPointer GetSourcesMask();
     ImageTypeUC::ConstPointer GetSinksMask();
@@ -512,9 +512,9 @@ private:
     int m_EmIter_concentration;     /*!< number of iterations for EM algorithm between each concentration step if REME */
     bool m_EM_before_concentration; /*!< Process EM before first concentration step */
 
-    float m_MahalanobisThCSF;       /*!< Outliers Selection, mahalanobis distance for CSF */
-    float m_MahalanobisThGM;        /*!< Outliers Selection, mahalanobis distance GM */
-    float m_MahalanobisThWM;        /*!< Outliers Selection, mahalanobis distance WM*/
+    double m_MahalanobisThCSF;       /*!< Outliers Selection, mahalanobis distance for CSF */
+    double m_MahalanobisThGM;        /*!< Outliers Selection, mahalanobis distance GM */
+    double m_MahalanobisThWM;        /*!< Outliers Selection, mahalanobis distance WM*/
 
     double m_FuzzyRuleMin;          /*!< define fuzzy rules minimum value */
     double m_FuzzyRuleMax;          /*!< define fuzzy rules maximym value */
@@ -526,12 +526,12 @@ private:
     * Graph Cut Parameters
     * */
     bool m_UseSpecGrad;
-    float m_Sigma;
-    std::vector<float> m_Matrix;    /*!< matrice M 3x3 or 4x3 or 5x3 */
+    double m_Sigma;
+    std::vector<double> m_Matrix;    /*!< matrice M 3x3 or 4x3 or 5x3 */
     std::string m_MatrixGradFilename;
-    float m_Alpha;
-    float m_MultiVarSources;
-    float m_MultiVarSinks;
+    double m_Alpha;
+    double m_MultiVarSources;
+    double m_MultiVarSinks;
 
     /**
     * Heurisitic Rules Parameters
@@ -548,7 +548,7 @@ private:
     unsigned int m_IndexWMinModel;
 
     double m_RatioContourWM;              /*!< White matter ratio */
-    float m_ThresoldWMmap ;
+    double m_ThresoldWMmap ;
 
     /**
     * Filenames
@@ -585,7 +585,7 @@ private:
     ImageTypeUC::Pointer m_MaskUC;
     ImageTypeUC::Pointer m_LesionsDetectionImage;
     ImageTypeInt::Pointer m_LabeledLesions;
-    ImageTypeF::Pointer m_FuzzyObject;
+    ImageTypeD::Pointer m_FuzzyObject;
 };
 
 }

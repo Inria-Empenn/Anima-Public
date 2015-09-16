@@ -48,10 +48,10 @@ public:
     /** Run-time type information (and related methods). */
     itkTypeMacro(HierarchicalInitializer, itk::ProcessObject);
 
-    typedef float 	PixelTypeF;
-    typedef itk::Image <PixelTypeF,3> ImageTypeF;
-    typedef itk::ImageRegionIterator <ImageTypeF> ImageIteratorTypeF;
-    typedef itk::ImageRegionIterator< ImageTypeF > InputIteratorTypeF;
+    typedef double 	PixelTypeD;
+    typedef itk::Image <PixelTypeD,3> ImageTypeD;
+    typedef itk::ImageRegionIterator <ImageTypeD> ImageIteratorTypeD;
+    typedef itk::ImageRegionIterator< ImageTypeD > InputIteratorTypeD;
 
     /**  Type of the input image. */
     typedef TInputImage InputImageType;
@@ -93,7 +93,7 @@ public:
     void SetMask(const TMaskImage* mask);
     typename TMaskImage::ConstPointer GetMask();
 
-    float regionMedianValue(itk::Image< float, 3 >::Pointer image, typename TInputImage::Pointer mask );
+    double regionMedianValue(itk::Image< double, 3 >::Pointer image, typename TInputImage::Pointer mask );
 
     void Update();
 

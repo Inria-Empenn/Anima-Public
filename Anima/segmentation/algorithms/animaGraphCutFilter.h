@@ -37,10 +37,10 @@ public:
     typedef itk::Image <PixelTypeUC,3> TMask;
     typedef TMask::Pointer TMaskPointer;
 
-    typedef float 	PixelTypeF;
-    typedef itk::Image <PixelTypeF,3> TSeedProba;
+    typedef double 	PixelTypeD;
+    typedef itk::Image <PixelTypeD,3> TSeedProba;
 
-    typedef float                    NumericType;
+    typedef double                    NumericType;
     typedef itk::VariableSizeMatrix<NumericType> FloatVariableSizeMatrixType;
 
     /** The mri images.*/
