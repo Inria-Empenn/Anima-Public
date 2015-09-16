@@ -212,9 +212,14 @@ double GaussianEMEstimator<TInputImage,TMaskImage>::expectation()
         for(unsigned int i = 0; i < probas.size(); i++)
         {
             x = intensities - xi[i];
-            xT = x.GetTranspose();
-            result = xT * inverseCovariance[i] * x;
-            probas[i] = result(0,0);
+            double result = 0;
+            for (unsigned int j = 0;j < probas.size();++j)
+            {
+                result += inverseCovariance[i](j,j) * x(j,0) * x(j,0);
+                for (unsigned int k = j+1;k < probas.size();++k)
+                    result += 2 * inverseCovariance[i](j,k) * x(j,0) * x(k,0);
+            }
+            probas[i] = result;
             if( minExpoTerm > probas[i])
             {
                 minExpoTerm = probas[i];
