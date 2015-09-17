@@ -151,7 +151,7 @@ double GaussianEMEstimator<TInputImage,TMaskImage>::expectation()
     this->m_APosterioriProbability.clear();
 
     //1. We calculate the inverse of the covariance and the determinant;
-    GaussianFunctionType::CovarianceMatrixType *inverseCovariance = new GaussianFunctionType::CovarianceMatrixType[this->m_GaussianModel.size()];
+    GaussianFunctionType::CovarianceMatrixType *inverseCovariance = new GaussianFunctionType::CovarianceMatrixType[nbClasses];
     double *determinantCovariance = new double[nbClasses];
     for(unsigned int i = 0 ; i < nbClasses; i++)
     {
@@ -181,9 +181,11 @@ double GaussianEMEstimator<TInputImage,TMaskImage>::expectation()
     std::vector<double> probas(nbClasses);
 
     GaussianFunctionType::CovarianceMatrixType *xi = new GaussianFunctionType::CovarianceMatrixType[nbClasses];
+    unsigned int matrixSize = 0;
     for(unsigned int i = 0; i < nbClasses; i++)
     {
         GaussianFunctionType::MeanVectorType mu = (m_GaussianModel[i])->GetMean();
+        matrixSize = mu.Size();
         for(unsigned int j = 0; j < mu.Size(); j++)
         {
             (xi[i]).SetSize(mu.Size(),1);
@@ -191,7 +193,7 @@ double GaussianEMEstimator<TInputImage,TMaskImage>::expectation()
         }
     }
 
-    GaussianFunctionType::CovarianceMatrixType x,xT,result;
+    GaussianFunctionType::CovarianceMatrixType x;
 
     for(histoIt = this->m_JointHistogram.begin(); histoIt != this->m_JointHistogram.end(); ++histoIt)
     {
@@ -209,17 +211,19 @@ double GaussianEMEstimator<TInputImage,TMaskImage>::expectation()
         double sumProba = 0.0;
 
         //Calculate the exponential term and the minimum of them
-        for(unsigned int i = 0; i < probas.size(); i++)
+        for(unsigned int i = 0; i < nbClasses; i++)
         {
             x = intensities - xi[i];
+
             double result = 0;
-            for (unsigned int j = 0;j < probas.size();++j)
+            for (unsigned int j = 0; j < matrixSize; ++j)
             {
                 result += inverseCovariance[i](j,j) * x(j,0) * x(j,0);
-                for (unsigned int k = j+1;k < probas.size();++k)
+                for (unsigned int k = j+1; k < matrixSize; ++k)
                     result += 2 * inverseCovariance[i](j,k) * x(j,0) * x(k,0);
             }
             probas[i] = result;
+
             if( minExpoTerm > probas[i])
             {
                 minExpoTerm = probas[i];
