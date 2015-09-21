@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AnimaAutomaticSegmentationExport.h"
 #include "animaModelInitializer.h"
 #include "time.h"
 
@@ -9,7 +10,7 @@ namespace anima
 /** @brief Class initializing ramdomly a gaussian model
  *
    */
-class RandomInitializer: public ModelInitializer
+class ANIMAAUTOMATICSEGMENTATION_EXPORT RandomInitializer: public ModelInitializer
 {
 public:
 

@@ -42,4 +42,3 @@ generate_export_header(${PROJECT_NAME}
 ## #############################################################################
 
 set_lib_install_rules(${PROJECT_NAME})
-
