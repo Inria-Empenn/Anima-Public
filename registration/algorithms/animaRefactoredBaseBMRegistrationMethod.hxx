@@ -156,7 +156,7 @@ RefactoredBaseBMRegistrationMethod <TInputImageType>
 ::ResampleImages(TransformType *currentTransform, InputImagePointer &refImage, InputImagePointer &movingImage)
 {
     // Moving image resampling
-    if (refImage->GetNumberOfComponentsPerPixel() > 1)
+    if (m_MovingImage->GetNumberOfComponentsPerPixel() > 1)
     {
         // Model resampling
         typedef itk::VectorImage <ImageScalarType, TInputImageType::ImageDimension> InternalVectorImageType;
@@ -169,7 +169,7 @@ RefactoredBaseBMRegistrationMethod <TInputImageType>
             DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
             SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (currentTransform);
 
-            GetSVFExponential(svfCast,dispTrsf.GetPointer(),false);
+            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),false);
 
             resampleFilter->SetTransform(dispTrsf);
         }
@@ -192,7 +192,7 @@ RefactoredBaseBMRegistrationMethod <TInputImageType>
             DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
             SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (currentTransform);
 
-            GetSVFExponential(svfCast,dispTrsf.GetPointer(),false);
+            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),false);
 
             resampleFilter->SetTransform(dispTrsf);
         }
@@ -209,7 +209,7 @@ RefactoredBaseBMRegistrationMethod <TInputImageType>
     movingImage->DisconnectPipeline();
 
     // Fixed image resampling
-    if (refImage->GetNumberOfComponentsPerPixel() > 1)
+    if (m_FixedImage->GetNumberOfComponentsPerPixel() > 1)
     {
         // Model resampling
         typedef itk::VectorImage <ImageScalarType, TInputImageType::ImageDimension> InternalVectorImageType;
@@ -222,7 +222,7 @@ RefactoredBaseBMRegistrationMethod <TInputImageType>
             DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
             SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (currentTransform);
 
-            GetSVFExponential(svfCast,dispTrsf.GetPointer(),true);
+            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),true);
 
             resampleFilter->SetTransform(dispTrsf);
         }
@@ -249,7 +249,7 @@ RefactoredBaseBMRegistrationMethod <TInputImageType>
             DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
             SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (currentTransform);
 
-            GetSVFExponential(svfCast,dispTrsf.GetPointer(),true);
+            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),true);
 
             resampleFilter->SetTransform(dispTrsf);
         }

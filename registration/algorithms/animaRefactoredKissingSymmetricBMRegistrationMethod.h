@@ -5,35 +5,38 @@ namespace anima
 {
 
 template <typename TInputImageType>
-class RefactoredAsymmetricBMRegistrationMethod : public anima::RefactoredBaseBMRegistrationMethod <TInputImageType>
+class RefactoredKissingSymmetricBMRegistrationMethod : public anima::RefactoredBaseBMRegistrationMethod <TInputImageType>
 {
 public:
     /** Standard class typedefs. */
-    typedef RefactoredAsymmetricBMRegistrationMethod Self;
+    typedef RefactoredKissingSymmetricBMRegistrationMethod Self;
     typedef RefactoredBaseBMRegistrationMethod <TInputImageType> Superclass;
     typedef itk::SmartPointer <Self> Pointer;
     typedef itk::SmartPointer <const Self> ConstPointer;
 
     typedef typename Superclass::InputImageType InputImageType;
     typedef typename Superclass::TransformPointer TransformPointer;
+    typedef typename Superclass::BlockMatcherType BlockMatcherType;
     typedef typename Superclass::AgregatorType AgregatorType;
+    typedef typename Superclass::AffineTransformType AffineTransformType;
+    typedef typename Superclass::SVFTransformType SVFTransformType;
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(RefactoredAsymmetricBMRegistrationMethod, RefactoredBaseBMRegistrationMethod);
+    itkTypeMacro(RefactoredKissingSymmetricBMRegistrationMethod, RefactoredBaseBMRegistrationMethod);
 
     itkNewMacro(Self);
 
 protected:
-    RefactoredAsymmetricBMRegistrationMethod() {}
-    virtual ~RefactoredAsymmetricBMRegistrationMethod() {}
+    RefactoredKissingSymmetricBMRegistrationMethod() {}
+    virtual ~RefactoredKissingSymmetricBMRegistrationMethod() {}
 
     virtual void PerformOneIteration(InputImageType *refImage, InputImageType *movingImage, TransformPointer &addOn);
 
 private:
-    RefactoredAsymmetricBMRegistrationMethod(const Self&); //purposely not implemented
+    RefactoredKissingSymmetricBMRegistrationMethod(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
 };
 
 } // end namespace anima
 
-#include "animaRefactoredAsymmetricBMRegistrationMethod.hxx"
+#include "animaRefactoredKissingSymmetricBMRegistrationMethod.hxx"

@@ -17,7 +17,7 @@ public:
 
     enum OptimizerDefinition
     {
-        Exhaustive,
+        Exhaustive = 0,
         Bobyqa
     };
 
@@ -25,8 +25,10 @@ public:
     typedef typename InputImageType::Pointer InputImagePointer;
     typedef typename InputImageType::RegionType ImageRegionType;
     typedef typename InputImageType::IndexType ImageIndexType;
+    typedef typename InputImageType::PointType PointType;
 
     typedef anima::BaseTransformAgregator<TInputImageType::ImageDimension> AgregatorType;
+    typedef typename AgregatorType::InternalScalarType InternalScalarType;
     typedef typename AgregatorType::BaseInputTransformType BaseInputTransformType;
     typedef typename BaseInputTransformType::Pointer BaseInputTransformPointer;
 
@@ -47,6 +49,8 @@ public:
     void SetNumberOfThreads(unsigned int val) {m_NumberOfThreads = val;}
 
     void SetBlockVarianceThreshold(double val) {m_BlockVarianceThreshold = val;}
+    double GetBlockVarianceThreshold() {return m_BlockVarianceThreshold;}
+
     void SetBlockPercentageKept(double val) {m_BlockPercentageKept = val;}
 
     void SetBlockSize(unsigned int val) {m_BlockSize = val;}
@@ -55,14 +59,30 @@ public:
     void SetUseTransformationDam(bool val) {m_UseTransformationDam = val;}
     void SetDamDistance(double val) {m_DamDistance = val;}
 
+    void SetSearchRadius(double val) {m_SearchRadius = val;}
+    double GetSearchRadius() {return m_SearchRadius;}
+    void SetFinalRadius(double val) {m_FinalRadius = val;}
+    void SetStepSize (double val) {m_StepSize = val;}
+
+    void SetOptimizerMaximumIterations (unsigned int val) {m_OptimizerMaximumIterations = val;}
+
     void Update();
 
     std::vector <ImageRegionType> &GetBlockRegions() {return m_BlockRegions;}
+    ImageRegionType &GetBlockRegion(unsigned int i) {return m_BlockRegions[i];}
     std::vector <ImageIndexType> &GetDamIndexes() {return m_DamIndexes;}
+
     std::vector <BaseInputTransformPointer> &GetBlockTransformPointers() {return m_BlockTransformPointers;}
+    BaseInputTransformPointer &GetBlockTransformPointer(unsigned int i) {return m_BlockTransformPointers[i];}
+
     const std::vector <double> &GetBlockWeights() {return m_BlockWeights;}
 
     void SetOptimizerType(OptimizerDefinition val) {m_OptimizerType = val;}
+    OptimizerDefinition GetOptimizerType() {return m_OptimizerType;}
+
+    InputImagePointer &GetReferenceImage() {return m_ReferenceImage;}
+    InputImagePointer &GetMovingImage() {return m_MovingImage;}
+
     virtual bool GetMaximizedMetric() = 0;
 
 protected:
@@ -79,7 +99,7 @@ protected:
 
     virtual MetricPointer SetupMetric() = 0;
     virtual double ComputeBlockWeight(double val) = 0;
-    virtual BaseInputTransformPointer GetNewBlockTransform() = 0;
+    virtual BaseInputTransformPointer GetNewBlockTransform(PointType &blockCenter) = 0;
 
     // May be overloaded but in practice, much easier if this superclass implementation is always called
     virtual OptimizerPointer SetupOptimizer();

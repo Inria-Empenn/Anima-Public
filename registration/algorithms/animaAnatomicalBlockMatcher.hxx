@@ -1,11 +1,6 @@
 #pragma once
 #include <animaAnatomicalBlockMatcher.h>
 
-/* Transforms */
-#include <itkTranslationTransform.h>
-#include <animaLogRigid3DTransform.h>
-#include <animaSplitAffine3DTransform.h>
-
 /* Similarity measures */
 #include <animaFastCorrelationImageToImageMetric.h>
 #include <itkMeanSquaresImageToImageMetric.h>
@@ -20,27 +15,7 @@ template <typename TInputImageType>
 AnatomicalBlockMatcher<TInputImageType>
 ::AnatomicalBlockMatcher()
 {
-    m_BlockTransformType = Translation;
     m_SimilarityType = SquaredCorrelation;
-}
-
-template <typename TInputImageType>
-typename AnatomicalBlockMatcher<TInputImageType>::AgregatorType::TRANSFORM_TYPE
-AnatomicalBlockMatcher<TInputImageType>
-::GetAgregatorInputTransformType()
-{
-    switch (m_BlockTransformType)
-    {
-        case Translation:
-            return AgregatorType::TRANSLATION;
-
-        case Rigid:
-            return AgregatorType::RIGID;
-
-        case Affine:
-        default:
-            return AgregatorType::AFFINE;
-    }
 }
 
 template <typename TInputImageType>
@@ -55,7 +30,7 @@ AnatomicalBlockMatcher<TInputImageType>
 }
 
 template <typename TInputImageType>
-AnatomicalBlockMatcher<TInputImageType>::MetricPointer
+typename AnatomicalBlockMatcher<TInputImageType>::MetricPointer
 AnatomicalBlockMatcher<TInputImageType>
 ::SetupMetric()
 {
@@ -69,7 +44,7 @@ AnatomicalBlockMatcher<TInputImageType>
             typedef anima::FastCorrelationImageToImageMetric <InputImageType,InputImageType> LocalMetricType;
 
             typename LocalMetricType::Pointer tmpMetric = LocalMetricType::New();
-            tmpMetric->SetSquaredCorrelation(m_MetricKind == SquaredCorrelation);
+            tmpMetric->SetSquaredCorrelation(m_SimilarityType == SquaredCorrelation);
             tmpMetric->SetVarianceThreshold(this->GetBlockVarianceThreshold());
 
             metric = tmpMetric;
@@ -87,15 +62,19 @@ AnatomicalBlockMatcher<TInputImageType>
     }
 
     typedef itk::ImageToImageMetric <InputImageType,InputImageType> BaseMetricType;
-    BaseMetricType *baseMetric = dynamic_cast <BaseMetricType *> (metric);
+    BaseMetricType *baseMetric = dynamic_cast <BaseMetricType *> (metric.GetPointer());
 
     typedef anima::FasterLinearInterpolateImageFunction<InputImageType,double> LocalInterpolatorType;
-    interpolator = LocalInterpolatorType::New();
+    typename LocalInterpolatorType::Pointer interpolator = LocalInterpolatorType::New();
 
     baseMetric->SetInterpolator(interpolator);
     baseMetric->ComputeGradientOff();
 
-    interpolator->SetInputImage(m_MovingImage);
+    baseMetric->SetFixedImage(this->GetReferenceImage());
+    baseMetric->SetMovingImage(this->GetMovingImage());
+    interpolator->SetInputImage(this->GetMovingImage());
+
+    return metric;
 }
 
 template <typename TInputImageType>
@@ -118,69 +97,21 @@ AnatomicalBlockMatcher<TInputImageType>
 }
 
 template <typename TInputImageType>
-typename AnatomicalBlockMatcher<TInputImageType>::BaseInputTransformPointer
-AnatomicalBlockMatcher<TInputImageType>
-::GetNewBlockTransform()
-{
-    BaseInputTransformPointer outputValue;
-
-    switch(m_BlockTransformType)
-    {
-        case Translation:
-        {
-            typedef itk::TranslationTransform <double, InputImageType::ImageDimension> itkTransformType;
-            typename itkTransformType::Pointer tr = itkTransformType::New();
-            tr->SetIdentity();
-            outputValue = tr;
-
-            break;
-        }
-
-        case Rigid:
-        {
-            if (InputImageType::ImageDimension == 3)
-            {
-                typedef anima::LogRigid3DTransform<double> itkTransformType;
-                typename itkTransformType::Pointer tr = itkTransformType::New();
-                tr->SetIdentity();
-
-                outputValue = tr;
-            }
-            else
-                std::cerr << "Only Rigid 3D transforms handled right now." << std::endl;
-            break;
-        }
-
-        case Affine:
-        default:
-        {
-            typedef anima::SplitAffine3DTransform <double> itkTransformType;
-            typename itkTransformType::Pointer tr = itkTransformType::New();
-            tr->SetIdentity();
-
-            outputValue = tr;
-
-            break;
-        }
-    }
-
-    return outputValue;
-}
-
-template <typename TInputImageType>
 void
 AnatomicalBlockMatcher<TInputImageType>
 ::BlockMatchingSetup(MetricPointer &metric, unsigned int block)
 {
+    // For transform related init
+    this->Superclass::BlockMatchingSetup(metric,block);
 
-}
-
-template <typename TInputImageType>
-void
-AnatomicalBlockMatcher<TInputImageType>
-::TransformDependantOptimizerSetup(OptimizerPointer &optimizer)
-{
-
+    // Metric specific init
+    typedef itk::ImageToImageMetric <InputImageType, InputImageType> InternalMetricType;
+    InternalMetricType *tmpMetric = dynamic_cast <InternalMetricType *> (metric.GetPointer());
+    tmpMetric->SetFixedImageRegion(this->GetBlockRegion(block));
+    tmpMetric->SetTransform(this->GetBlockTransformPointer(block));
+    tmpMetric->Initialize();
+    if (m_SimilarityType != MeanSquares)
+        ((anima::FastCorrelationImageToImageMetric<InputImageType, InputImageType> *)metric.GetPointer())->PreComputeFixedValues();
 }
 
 } // end namespace anima

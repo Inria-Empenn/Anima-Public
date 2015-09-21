@@ -1,6 +1,6 @@
-if(BUILD_TESTING AND USE_RPI AND RPI_FOUND)
+if(BUILD_TOOLS AND USE_RPI AND RPI_FOUND)
 
-project(animaRefactoredTest)
+project(animaRefactoredPyramidalBMRegistration)
 
 ## #############################################################################
 ## List Sources
@@ -24,6 +24,7 @@ add_executable(${PROJECT_NAME}
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME}
+  AnimaOptimizers
   ITKOptimizers
   ${ITKIO_LIBRARIES}
   ${ITK_TRANSFORM_LIBRARIES}

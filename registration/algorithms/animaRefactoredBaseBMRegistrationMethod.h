@@ -64,11 +64,11 @@ public:
     typedef anima::BaseBlockMatcher <TInputImageType> BlockMatcherType;
 
     /** Set/Get the Fixed image. */
-    void SetFixedImage (InputImageType *fixedImage);
+    itkSetObjectMacro (FixedImage, InputImageType);
     itkGetMacro (FixedImage, InputImageType *);
 
     /** Set/Get the Moving image. */
-    void SetMovingImage(InputImageType *movingImage);
+    itkSetObjectMacro (MovingImage, InputImageType);
     itkGetMacro (MovingImage, InputImageType *);
 
     void SetReferenceImageResampler(ResamplerFilterType *filter) {m_ReferenceImageResampler = filter;}
