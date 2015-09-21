@@ -180,66 +180,18 @@ itk::DataObject::Pointer GcStremMsLesionsSegmentationFilter <TInputImage>::MakeO
 {
     itk::DataObject::Pointer output;
 
-    switch ( idx )
+    if( idx < 11 )
     {
-    case 0:
         output = ( TOutputImage::New() ).GetPointer();
-        break;
-    case 1:
-        output = ( TOutputImage::New() ).GetPointer();
-        break;
-    case 2:
-        output = ( TOutputImage::New() ).GetPointer();
-        break;
-    case 3:
-        output = ( TOutputImage::New() ).GetPointer();
-        break;
-    case 4:
-        output = ( TOutputImage::New() ).GetPointer();
-        break;
-    case 5:
-        output = ( TOutputImage::New() ).GetPointer();
-        break;
-    case 6:
-        output = ( TOutputImage::New() ).GetPointer();
-        break;
-    case 7:
-        output = ( TOutputImage::New() ).GetPointer();
-        break;
-    case 8:
-        output = ( TOutputImage::New() ).GetPointer();
-        break;
-    case 9:
-        output = ( TOutputImage::New() ).GetPointer();
-        break;
-    case 10:
-        output = ( TOutputImage::New() ).GetPointer();
-        break;
-    case 11:
+    }
+    else if(( 11 < idx ) && ( idx < 18 ))
+    {
         output = ( ImageTypeD::New() ).GetPointer();
-        break;
-    case 12:
-        output = ( ImageTypeD::New() ).GetPointer();
-        break;
-    case 13:
-        output = ( ImageTypeD::New() ).GetPointer();
-        break;
-    case 14:
-        output = ( ImageTypeD::New() ).GetPointer();
-        break;
-    case 15:
-        output = ( ImageTypeD::New() ).GetPointer();
-        break;
-    case 16:
-        output = ( ImageTypeD::New() ).GetPointer();
-        break;
-    case 17:
-        output = ( TOutputImage::New() ).GetPointer();
-        break;
-    default:
+    }
+    else
+    {
         std::cerr << "No output " << idx << std::endl;
         output = NULL;
-        break;
     }
     return output.GetPointer();
 }
