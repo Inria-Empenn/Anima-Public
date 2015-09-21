@@ -97,7 +97,7 @@ public:
     void SetReferenceImage(InputImageConstPointer referenceImage) {m_ReferenceImage = referenceImage;}
     void SetFloatingImage(InputImageConstPointer floatingImage) {m_FloatingImage = floatingImage;}
 
-    InputImagePointer GetOutputImage() {return m_OutputImage;};
+    InputImagePointer GetOutputImage() {return m_OutputImage;}
 
     /**
     * Setter for transform
@@ -114,10 +114,10 @@ public:
     * Setter/Getter for parameters
     * */
 
-    std::string GetResultFile() {return m_resultFile;};
-    void SetResultFile(std::string resultFile) {m_resultFile=resultFile;};
+    std::string GetResultFile() {return m_resultFile;}
+    void SetResultFile(std::string resultFile) {m_resultFile=resultFile;}
 
-    std::string GetOutputTransformFile() {return m_outputTransformFile;};
+    std::string GetOutputTransformFile() {return m_outputTransformFile;}
     void SetOutputTransformFile(std::string outputTransformFile) {m_outputTransformFile=outputTransformFile;}
 
     unsigned int GetBlockSize() {return m_BlockSize;}

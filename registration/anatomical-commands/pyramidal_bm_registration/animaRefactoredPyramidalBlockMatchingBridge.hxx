@@ -195,7 +195,8 @@ void RefactoredPyramidalBlockMatchingBridge<ImageDimension>::Update()
             m_bmreg->AddObserver(itk::ProgressEvent(), m_callback);
         }
 
-        m_bmreg->SetNumberOfThreads(GetNumberOfThreads());
+        if (this->GetNumberOfThreads() != 0)
+            m_bmreg->SetNumberOfThreads(this->GetNumberOfThreads());
 
         m_bmreg->SetFixedImage(refImage);
         m_bmreg->SetMovingImage(floImage);
@@ -459,13 +460,7 @@ template <unsigned int ImageDimension>
 void RefactoredPyramidalBlockMatchingBridge<ImageDimension>::WriteOutputs()
 {
     std::cout << "Writing output image to: " << GetResultFile() << std::endl;
-
-    typename itk::ImageFileWriter <InputImageType>::Pointer imageWriter = itk::ImageFileWriter <InputImageType>::New();
-    imageWriter->SetUseCompression(true);
-    imageWriter->SetInput(m_OutputImage);
-    imageWriter->SetFileName(GetResultFile());
-
-    imageWriter->Update();
+    anima::writeImage <InputImageType> (GetResultFile(),m_OutputImage);
 
     if (GetOutputTransformFile() != "")
     {
