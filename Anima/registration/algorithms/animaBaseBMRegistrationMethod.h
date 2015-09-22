@@ -21,17 +21,17 @@ namespace anima
 {
 
 template <typename TInputImageType>
-class RefactoredBaseBMRegistrationMethod : public itk::ProcessObject
+class BaseBMRegistrationMethod : public itk::ProcessObject
 {
 public:
     /** Standard class typedefs. */
-    typedef RefactoredBaseBMRegistrationMethod Self;
+    typedef BaseBMRegistrationMethod Self;
     typedef itk::ProcessObject Superclass;
     typedef itk::SmartPointer <Self> Pointer;
     typedef itk::SmartPointer <const Self> ConstPointer;
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(RefactoredBaseBMRegistrationMethod, itk::ProcessObject);
+    itkTypeMacro(BaseBMRegistrationMethod, itk::ProcessObject);
 
     typedef typename TInputImageType::IOPixelType ImageScalarType;
 
@@ -105,8 +105,8 @@ public:
     virtual DataObjectPointer MakeOutput(DataObjectPointerArraySizeType idx);
 
 protected:
-    RefactoredBaseBMRegistrationMethod();
-    virtual ~RefactoredBaseBMRegistrationMethod() {}
+    BaseBMRegistrationMethod();
+    virtual ~BaseBMRegistrationMethod() {}
 
     virtual void PrintSelf(std::ostream& os, itk::Indent indent) const;
 
@@ -119,7 +119,7 @@ protected:
     virtual bool ComposeAddOnWithTransform(TransformType *computedTransform, TransformType *addOn);
 
 private:
-    RefactoredBaseBMRegistrationMethod(const Self&); //purposely not implemented
+    BaseBMRegistrationMethod(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
 
     InputImagePointer m_FixedImage;
@@ -146,4 +146,4 @@ private:
 
 } // end of namespace anima
 
-#include "animaRefactoredBaseBMRegistrationMethod.hxx"
+#include "animaBaseBMRegistrationMethod.hxx"

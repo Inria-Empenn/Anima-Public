@@ -1,12 +1,10 @@
 #pragma once
 #include "animaPyramidalDenseTensorSVFMatchingBridge.h"
 
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
-
-#include <animaTensorAsymmetricBlockMatchingRegistrationMethod.h>
-#include <animaTensorSymmetricBlockMatchingRegistrationMethod.h>
-#include <animaTensorKissingSymmetricBlockMatchingRegistrationMethod.h>
+#include <animaReadWriteFunctions.h>
+#include <animaAsymmetricBMRegistrationMethod.h>
+#include <animaSymmetricBMRegistrationMethod.h>
+#include <animaKissingSymmetricBMRegistrationMethod.h>
 
 #include <itkVectorResampleImageFilter.h>
 
@@ -14,8 +12,7 @@
 #include <animaExpTensorImageFilter.h>
 
 #include <animaVelocityUtils.h>
-
-// ------------------------------
+#include <animaTensorBlockMatcher.h>
 
 namespace anima
 {
@@ -73,28 +70,6 @@ template <unsigned int ImageDimension>
 PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::~PyramidalDenseTensorSVFMatchingBridge()
 {
 }
-
-template <unsigned int ImageDimension>
-void
-PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::InitializeBlocksOnImage(InitializerPointer &initPtr, InputImageType *image)
-{
-    // Init blocks
-    initPtr = InitializerType::New();
-    initPtr->AddReferenceImage(image);
-
-    if (this->GetNumberOfThreads() != 0)
-        initPtr->SetNumberOfThreads(this->GetNumberOfThreads());
-
-    initPtr->SetPercentageKept(m_PercentageKept);
-    initPtr->SetBlockSize(m_BlockSize);
-    initPtr->SetBlockSpacing(m_BlockSpacing);
-    initPtr->SetTensorVarianceThreshold(m_StDevThreshold * m_StDevThreshold);
-
-    initPtr->SetRequestedRegion(image->GetLargestPossibleRegion());
-    initPtr->SetComputeOuterDam(m_UseTransformationDam);
-    initPtr->SetDamDistance(m_DamDistance * m_ExtrapolationSigma);
-}
-
 
 template <unsigned int ImageDimension>
 void
@@ -184,73 +159,53 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
         }
 
         // Init matcher
+        typedef anima::TensorBlockMatcher <InputImageType> BlockMatcherType;
+
+        BlockMatcherType *mainMatcher = new BlockMatcherType;
+        BlockMatcherType *reverseMatcher = 0;
+        mainMatcher->SetBlockPercentageKept(GetPercentageKept());
+        mainMatcher->SetBlockSize(GetBlockSize());
+        mainMatcher->SetBlockSpacing(GetBlockSpacing());
+        mainMatcher->SetBlockVarianceThreshold(GetStDevThreshold() * GetStDevThreshold());
+        mainMatcher->SetUseTransformationDam(m_UseTransformationDam);
+        mainMatcher->SetDamDistance(m_DamDistance * m_ExtrapolationSigma);
+
         switch (m_SymmetryType)
         {
             case Asymmetric:
             {
-                typedef typename anima::TensorAsymmetricBlockMatchingRegistrationMethod <InputImageType> BlockMatchRegistrationType;
+                typedef typename anima::AsymmetricBMRegistrationMethod <InputImageType> BlockMatchRegistrationType;
                 m_bmreg = BlockMatchRegistrationType::New();
-
-                typename InitializerType::Pointer initPtr;
-                this->InitializeBlocksOnImage(initPtr, refImage);
-
-                m_bmreg->SetBlockRegions(initPtr->GetOutput());
-                if (m_Agregator == MSmoother)
-                {
-                    MEstimateAgregatorType *agreg = dynamic_cast <MEstimateAgregatorType *> (agregPtr);
-                    agreg->SetDamIndexes(initPtr->GetDamIndexes());
-                }
-                else
-                {
-                    BalooAgregatorType *agreg = dynamic_cast <BalooAgregatorType *> (agregPtr);
-                    agreg->SetDamIndexes(initPtr->GetDamIndexes());
-                }
-
-                std::cout << "Generated " << initPtr->GetOutput().size() << " blocks..." << std::endl;
-
                 break;
             }
 
             case Symmetric:
             {
-                typedef typename anima::TensorSymmetricBlockMatchingRegistrationMethod <InputImageType> BlockMatchRegistrationType;
+                typedef typename anima::SymmetricBMRegistrationMethod <InputImageType> BlockMatchRegistrationType;
                 typename BlockMatchRegistrationType::Pointer tmpReg = BlockMatchRegistrationType::New();
+                reverseMatcher = new BlockMatcherType;
+                reverseMatcher->SetBlockPercentageKept(GetPercentageKept());
+                reverseMatcher->SetBlockSize(GetBlockSize());
+                reverseMatcher->SetBlockSpacing(GetBlockSpacing());
+                reverseMatcher->SetBlockVarianceThreshold(GetStDevThreshold() * GetStDevThreshold());
+                reverseMatcher->SetUseTransformationDam(m_UseTransformationDam);
+                reverseMatcher->SetDamDistance(m_DamDistance * m_ExtrapolationSigma);
 
-                typename InitializerType::Pointer initPtr;
-                this->InitializeBlocksOnImage(initPtr, refImage);
-
-                tmpReg->SetFixedBlockRegions(initPtr->GetOutput());
-                tmpReg->SetFixedDamIndexes(initPtr->GetDamIndexes());
-                std::cout << "Generated " << initPtr->GetOutput().size() << " blocks..." << std::endl;
-
-                this->InitializeBlocksOnImage(initPtr, floImage);
-
-                tmpReg->SetMovingBlockRegions(initPtr->GetOutput());
-                tmpReg->SetMovingDamIndexes(initPtr->GetDamIndexes());
-                std::cout << "Generated " << initPtr->GetOutput().size() << " blocks..." << std::endl;
-
+                tmpReg->SetReverseBlockMatcher(reverseMatcher);
                 m_bmreg = tmpReg;
                 break;
             }
+
             case Kissing:
             {
-                typedef typename anima::TensorKissingSymmetricBlockMatchingRegistrationMethod <InputImageType> BlockMatchRegistrationType;
-                typename BlockMatchRegistrationType::Pointer tmpReg = BlockMatchRegistrationType::New();
-
-                tmpReg->SetBlockPercentageKept(GetPercentageKept());
-                tmpReg->SetBlockSize(GetBlockSize());
-                tmpReg->SetBlockSpacing(GetBlockSpacing());
-                tmpReg->SetUseTransformationDam(m_UseTransformationDam);
-                tmpReg->SetDamDistance(m_DamDistance * m_ExtrapolationSigma);
-
-                m_bmreg = tmpReg;
-
+                typedef typename anima::KissingSymmetricBMRegistrationMethod <InputImageType> BlockMatchRegistrationType;
+                m_bmreg = BlockMatchRegistrationType::New();
                 break;
             }
         }
 
+        m_bmreg->SetBlockMatcher(mainMatcher);
         m_bmreg->SetAgregator(agregPtr);
-        m_bmreg->SetBlockTensorVarianceThreshold(GetStDevThreshold() * GetStDevThreshold());
 
         if (this->GetNumberOfThreads() != 0)
             m_bmreg->SetNumberOfThreads(this->GetNumberOfThreads());
@@ -260,93 +215,142 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
 
         m_bmreg->SetSVFElasticRegSigma(m_ElasticSigma * meanSpacing);
 
-        switch (m_Transform)
+        typedef typename anima::FiniteStrainTensorResampleImageFilter<InputInternalPixelType, ImageDimension,
+                                                                      typename BaseAgregatorType::ScalarType> ResampleFilterType;
+
+        typename ResampleFilterType::Pointer refResampler = ResampleFilterType::New();
+        refResampler->SetOutputLargestPossibleRegion(floImage->GetLargestPossibleRegion());
+        refResampler->SetOutputOrigin(floImage->GetOrigin());
+        refResampler->SetOutputSpacing(floImage->GetSpacing());
+        refResampler->SetOutputDirection(floImage->GetDirection());
+        refResampler->SetNumberOfThreads(GetNumberOfThreads());
+        m_bmreg->SetReferenceImageResampler(refResampler);
+
+        typename ResampleFilterType::Pointer movingResampler = ResampleFilterType::New();
+        movingResampler->SetOutputLargestPossibleRegion(refImage->GetLargestPossibleRegion());
+        movingResampler->SetOutputOrigin(refImage->GetOrigin());
+        movingResampler->SetOutputSpacing(refImage->GetSpacing());
+        movingResampler->SetOutputDirection(refImage->GetDirection());
+        movingResampler->SetNumberOfThreads(GetNumberOfThreads());
+        m_bmreg->SetMovingImageResampler(movingResampler);
+
+        switch (GetTransform())
         {
             case Translation:
-                m_bmreg->SetTransformKind(BaseBlockMatchRegistrationType::Translation);
-                agregPtr->SetInputTransformType(BaseAgregatorType::TRANSLATION);
+                mainMatcher->SetBlockTransformType(BlockMatcherType::Superclass::Translation);
+                if (reverseMatcher)
+                    reverseMatcher->SetBlockTransformType(BlockMatcherType::Superclass::Translation);
                 break;
             case Rigid:
-                m_bmreg->SetTransformKind(BaseBlockMatchRegistrationType::Rigid);
-                agregPtr->SetInputTransformType(BaseAgregatorType::RIGID);
+                mainMatcher->SetBlockTransformType(BlockMatcherType::Superclass::Rigid);
+                if (reverseMatcher)
+                    reverseMatcher->SetBlockTransformType(BlockMatcherType::Superclass::Rigid);
                 break;
             case Affine:
             default:
-                m_bmreg->SetTransformKind(BaseBlockMatchRegistrationType::Affine);
-                agregPtr->SetInputTransformType(BaseAgregatorType::AFFINE);
+                mainMatcher->SetBlockTransformType(BlockMatcherType::Superclass::Affine);
+                if (reverseMatcher)
+                    reverseMatcher->SetBlockTransformType(BlockMatcherType::Superclass::Affine);
                 break;
         }
 
-        switch (m_Optimizer)
+        switch (GetOptimizer())
         {
             case Exhaustive:
-                m_bmreg->SetOptimizerKind(BaseBlockMatchRegistrationType::Exhaustive);
+                mainMatcher->SetOptimizerType(BlockMatcherType::Exhaustive);
+                if (reverseMatcher)
+                    reverseMatcher->SetOptimizerType(BlockMatcherType::Exhaustive);
                 break;
+
             case Bobyqa:
             default:
-                m_bmreg->SetOptimizerKind(BaseBlockMatchRegistrationType::Bobyqa);
+                mainMatcher->SetOptimizerType(BlockMatcherType::Bobyqa);
+                if (reverseMatcher)
+                    reverseMatcher->SetOptimizerType(BlockMatcherType::Bobyqa);
                 break;
         }
 
         switch (m_Metric)
         {
             case TensorCorrelation:
-                m_bmreg->SetMetricKind(BaseBlockMatchRegistrationType::TensorCorrelation);
+                mainMatcher->SetSimilarityType(BlockMatcherType::TensorCorrelation);
+                if (reverseMatcher)
+                    reverseMatcher->SetSimilarityType(BlockMatcherType::TensorCorrelation);
                 break;
             case TensorGeneralizedCorrelation:
-                m_bmreg->SetMetricKind(BaseBlockMatchRegistrationType::TensorGeneralizedCorrelation);
+                mainMatcher->SetSimilarityType(BlockMatcherType::TensorGeneralizedCorrelation);
+                if (reverseMatcher)
+                    reverseMatcher->SetSimilarityType(BlockMatcherType::TensorGeneralizedCorrelation);
                 break;
             case TensorOrientedGeneralizedCorrelation:
-                m_bmreg->SetMetricKind(BaseBlockMatchRegistrationType::TensorOrientedGeneralizedCorrelation);
+                mainMatcher->SetSimilarityType(BlockMatcherType::TensorOrientedGeneralizedCorrelation);
+                if (reverseMatcher)
+                    reverseMatcher->SetSimilarityType(BlockMatcherType::TensorOrientedGeneralizedCorrelation);
                 break;
             case TensorMeanSquares:
             default:
-                m_bmreg->SetMetricKind(BaseBlockMatchRegistrationType::TensorMeanSquares);
+                mainMatcher->SetSimilarityType(BlockMatcherType::TensorMeanSquares);
+                if (reverseMatcher)
+                    reverseMatcher->SetSimilarityType(BlockMatcherType::TensorMeanSquares);
                 break;
         }
 
         m_bmreg->SetMaximumIterations(m_MaximumIterations);
         m_bmreg->SetMinimalTransformError(m_MinimalTransformError);
-        m_bmreg->SetOptimizerMaximumIterations(m_OptimizerMaximumIterations);
-
         m_bmreg->SetInitialTransform(m_OutputTransform.GetPointer());
 
+        mainMatcher->SetOptimizerMaximumIterations(m_OptimizerMaximumIterations);
+
         double sr = m_SearchRadius;
-        m_bmreg->SetSearchRadius(sr);
+        mainMatcher->SetSearchRadius(sr);
 
         double sar = m_SearchAngleRadius;
-        m_bmreg->SetSearchAngleRadius(sar);
+        mainMatcher->SetSearchAngleRadius(sar);
 
         double skr = m_SearchSkewRadius;
-        m_bmreg->SetSearchSkewRadius(skr);
+        mainMatcher->SetSearchSkewRadius(skr);
 
         double scr = m_SearchScaleRadius;
-        m_bmreg->SetSearchScaleRadius(scr);
+        mainMatcher->SetSearchScaleRadius(scr);
 
         double fr = m_FinalRadius;
-        m_bmreg->SetFinalRadius(fr);
+        mainMatcher->SetFinalRadius(fr);
 
         double ss = m_StepSize;
-        m_bmreg->SetStepSize(ss);
+        mainMatcher->SetStepSize(ss);
 
         double tub = m_TranslateUpperBound;
-        m_bmreg->SetTranslateMax(tub);
+        mainMatcher->SetTranslateMax(tub);
 
         double aub = m_AngleUpperBound;
-        m_bmreg->SetAngleMax(aub);
+        mainMatcher->SetAngleMax(aub);
 
         double skub = m_SkewUpperBound;
-        m_bmreg->SetSkewMax(skub);
+        mainMatcher->SetSkewMax(skub);
 
         double scub = m_ScaleUpperBound;
-        m_bmreg->SetScaleMax(scub);
+        mainMatcher->SetScaleMax(scub);
+
+        if (reverseMatcher)
+        {
+            reverseMatcher->SetNumberOfThreads(GetNumberOfThreads());
+            reverseMatcher->SetOptimizerMaximumIterations(GetOptimizerMaximumIterations());
+
+            reverseMatcher->SetSearchRadius(sr);
+            reverseMatcher->SetSearchAngleRadius(sar);
+            reverseMatcher->SetSearchSkewRadius(skr);
+            reverseMatcher->SetSearchScaleRadius(scr);
+            reverseMatcher->SetFinalRadius(fr);
+            reverseMatcher->SetStepSize(ss);
+            reverseMatcher->SetTranslateMax(tub);
+            reverseMatcher->SetAngleMax(aub);
+            reverseMatcher->SetSkewMax(skub);
+            reverseMatcher->SetScaleMax(scub);
+        }
 
         try
         {
             m_bmreg->Update();
-            std::cout << "Block Matching Registration stop condition "
-                      << m_bmreg->GetStopConditionDescription()
-                      << std::endl;
         }
         catch( itk::ExceptionObject & err )
         {
@@ -356,6 +360,10 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
 
         const BaseTransformType *resTrsf = dynamic_cast <const BaseTransformType *> (m_bmreg->GetOutput()->Get());
         m_OutputTransform->SetParametersAsVectorField(resTrsf->GetParametersAsVectorField());
+
+        delete mainMatcher;
+        if (reverseMatcher)
+            delete reverseMatcher;
     }
     
     if (m_SymmetryType == Kissing)
@@ -420,21 +428,13 @@ void
 PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::WriteOutputs()
 {
     std::cout << "Writing output image to: " << m_resultFile << std::endl;
-
-    typename itk::ImageFileWriter <InputImageType>::Pointer imageWriter = itk::ImageFileWriter <InputImageType>::New();
-    imageWriter->SetUseCompression(true);
-    imageWriter->SetInput(m_OutputImage);
-    imageWriter->SetFileName(m_resultFile);
-
-    imageWriter->Update();
+    anima::writeImage <InputImageType> (m_resultFile,m_OutputImage);
 
     if (m_outputTransformFile != "")
     {
         std::cout << "Writing output SVF to: " << m_outputTransformFile << std::endl;
-        typename itk::ImageFileWriter <VelocityFieldType>::Pointer writer = itk::ImageFileWriter <VelocityFieldType>::New();
-        writer->SetInput(m_OutputTransform->GetParametersAsVectorField());
-        writer->SetFileName(m_outputTransformFile);
-        writer->Update();
+        anima::writeImage <VelocityFieldType> (m_outputTransformFile,
+                                               const_cast <VelocityFieldType *> (m_OutputTransform->GetParametersAsVectorField()));
     }
 }
 

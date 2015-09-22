@@ -1,168 +1,81 @@
 #pragma once
-#include "animaKissingSymmetricBlockMatchingRegistrationMethod.h"
-
-#include <itkTimeProbe.h>
-
-#include <animaMatrixLogExp.h>
+#include "animaKissingSymmetricBMRegistrationMethod.h"
 
 #include <animaBalooSVFTransformAgregator.h>
 #include <animaDenseSVFTransformAgregator.h>
 
 namespace anima
 {
-/**
- * Constructor
- */
-template <typename TInputImage>
-KissingSymmetricBlockMatchingRegistrationMethod<TInputImage>
-::KissingSymmetricBlockMatchingRegistrationMethod()
-{
-    m_BlockPercentageKept = 0.8;
-    m_BlockSize = 5;
-    m_BlockSpacing = 2;
 
-    m_UseTransformationDam = true;
-    m_DamDistance = 6;
-}
-
-template <typename TInputImage>
+template <typename TInputImageType>
 void
-KissingSymmetricBlockMatchingRegistrationMethod<TInputImage>
-::InitializeBlocksOnImage(InitializerPointer &initPtr, InputImageType *image)
+KissingSymmetricBMRegistrationMethod <TInputImageType>
+::PerformOneIteration(InputImageType *refImage, InputImageType *movingImage, TransformPointer &addOn)
 {
-    // Init blocks
-    initPtr = InitializerType::New();
-    initPtr->AddReferenceImage(image);
-
-    if (this->GetNumberOfThreads() != 0)
-        initPtr->SetNumberOfThreads(this->GetNumberOfThreads());
-
-    initPtr->SetPercentageKept(m_BlockPercentageKept);
-    initPtr->SetBlockSize(m_BlockSize);
-    initPtr->SetBlockSpacing(m_BlockSpacing);
-    initPtr->SetScalarVarianceThreshold(this->GetBlockScalarVarianceThreshold());
-
-    initPtr->SetRequestedRegion(image->GetLargestPossibleRegion());
-
-    if (this->GetAgregator()->GetOutputTransformType() == AgregatorType::SVF)
-    {
-        initPtr->SetComputeOuterDam(m_UseTransformationDam);
-        initPtr->SetDamDistance(m_DamDistance);
-    }
-}
-
-template <typename TInputImage>
-void
-KissingSymmetricBlockMatchingRegistrationMethod<TInputImage>
-::PerformOneIteration(InputImageType *refImage, InputImageType *movingImage,
-                      TransformPointer &addOn)
-{
-    // First initialize blocks (and dams if needed)
-    InitializerPointer initPtr;
-    this->InitializeBlocksOnImage(initPtr,refImage);
-
-    std::vector <ImageRegionType> fixedBlockRegions = initPtr->GetOutput();
-    std::vector <ImageIndexType> fixedDamIndexes = initPtr->GetDamIndexes();
-
-    std::cout << "Generated " << fixedBlockRegions.size() << " blocks..." << std::endl;
-
-    // Do a threaded block match computation for forward matching
-    this->SetBlockRegions(fixedBlockRegions);
-    this->GetAgregator()->SetInputRegions(refImage, fixedBlockRegions);
-
-    itk::MultiThreader::Pointer threader = itk::MultiThreader::New();
-
-    ThreadedMatchData data;
-    data.BlockMatch = this;
-    data.fixedImage = refImage;
-    data.movingImage = movingImage;
-
     itk::TimeProbe tmpTime;
     tmpTime.Start();
 
-    unsigned int numThreads = std::min(this->GetNumberOfThreads(),(unsigned int)this->GetBlockRegions().size());
-
-    threader->SetNumberOfThreads(numThreads);
-    threader->SetSingleMethod(this->ThreadedMatching, &data);
-    threader->SingleMethodExecute();
+    this->GetBlockMatcher()->SetForceComputeBlocks(true);
+    this->GetBlockMatcher()->SetReferenceImage(refImage);
+    this->GetBlockMatcher()->SetMovingImage(movingImage);
+    this->GetBlockMatcher()->Update();
 
     tmpTime.Stop();
     std::cout << "Matching performed in " << tmpTime.GetTotal() << std::endl;
 
-    this->GetAgregator()->SetInputWeights(this->GetBlockWeights());
-    this->GetAgregator()->SetInputTransforms(this->GetBaseTransformsPointers());
+    this->GetAgregator()->SetInputRegions(this->GetFixedImage(), this->GetBlockMatcher()->GetBlockRegions());
 
     if (this->GetAgregator()->GetOutputTransformType() == AgregatorType::SVF)
     {
-        typedef BalooSVFTransformAgregator<TInputImage::ImageDimension> SVFAgregatorType;
+        typedef anima::BalooSVFTransformAgregator<InputImageType::ImageDimension> SVFAgregatorType;
         SVFAgregatorType *tmpAgreg = dynamic_cast <SVFAgregatorType *> (this->GetAgregator());
 
         if (tmpAgreg)
-            tmpAgreg->SetDamIndexes(fixedDamIndexes);
+            tmpAgreg->SetDamIndexes(this->GetBlockMatcher()->GetDamIndexes());
         else
         {
-            typedef DenseSVFTransformAgregator<TInputImage::ImageDimension> SVFAgregatorType;
+            typedef anima::DenseSVFTransformAgregator<InputImageType::ImageDimension> SVFAgregatorType;
             SVFAgregatorType *tmpDenseAgreg = dynamic_cast <SVFAgregatorType *> (this->GetAgregator());
 
-            tmpDenseAgreg->SetDamIndexes(fixedDamIndexes);
+            tmpDenseAgreg->SetDamIndexes(this->GetBlockMatcher()->GetDamIndexes());
         }
     }
 
-    fixedBlockRegions.clear();
-    fixedDamIndexes.clear();
+    this->GetAgregator()->SetInputWeights(this->GetBlockMatcher()->GetBlockWeights());
+    this->GetAgregator()->SetInputTransforms(this->GetBlockMatcher()->GetBlockTransformPointers());
 
     TransformPointer usualAddOn = this->GetAgregator()->GetOutput();
-    this->GetAgregator()->SetInputRegions(refImage, fixedBlockRegions);
-
-    // Initialize blocks (and dams if needed)
-    this->InitializeBlocksOnImage(initPtr,movingImage);
-
-    std::vector <ImageRegionType> movingBlockRegions = initPtr->GetOutput();
-    std::vector <ImageIndexType> movingDamIndexes = initPtr->GetDamIndexes();
-
-    std::cout << "Generated " << movingBlockRegions.size() << " blocks..." << std::endl;
-
-    // Do a threaded block match computation for backward matching
-    this->SetBlockRegions(movingBlockRegions);
-    this->GetAgregator()->SetInputRegions(movingImage, movingBlockRegions);
-
-    threader = itk::MultiThreader::New();
-
-    data.BlockMatch = this;
-    data.fixedImage = movingImage;
-    data.movingImage = refImage;
 
     itk::TimeProbe tmpTimeReverse;
     tmpTimeReverse.Start();
 
-    threader->SetNumberOfThreads(numThreads);
-    threader->SetSingleMethod(this->ThreadedMatching, &data);
-    threader->SingleMethodExecute();
+    this->GetBlockMatcher()->SetReferenceImage(movingImage);
+    this->GetBlockMatcher()->SetMovingImage(refImage);
+    this->GetBlockMatcher()->Update();
 
     tmpTimeReverse.Stop();
     std::cout << "Matching performed in " << tmpTimeReverse.GetTotal() << std::endl;
 
-    this->GetAgregator()->SetInputWeights(this->GetBlockWeights());
-    this->GetAgregator()->SetInputTransforms(this->GetBaseTransformsPointers());
+    this->GetAgregator()->SetInputRegions(this->GetMovingImage(), this->GetBlockMatcher()->GetBlockRegions());
 
     if (this->GetAgregator()->GetOutputTransformType() == AgregatorType::SVF)
     {
-        typedef BalooSVFTransformAgregator<TInputImage::ImageDimension> SVFAgregatorType;
+        typedef anima::BalooSVFTransformAgregator<InputImageType::ImageDimension> SVFAgregatorType;
         SVFAgregatorType *tmpAgreg = dynamic_cast <SVFAgregatorType *> (this->GetAgregator());
 
         if (tmpAgreg)
-            tmpAgreg->SetDamIndexes(movingDamIndexes);
+            tmpAgreg->SetDamIndexes(this->GetBlockMatcher()->GetDamIndexes());
         else
         {
-            typedef DenseSVFTransformAgregator<TInputImage::ImageDimension> SVFAgregatorType;
+            typedef anima::DenseSVFTransformAgregator<InputImageType::ImageDimension> SVFAgregatorType;
             SVFAgregatorType *tmpDenseAgreg = dynamic_cast <SVFAgregatorType *> (this->GetAgregator());
 
-            tmpDenseAgreg->SetDamIndexes(movingDamIndexes);
+            tmpDenseAgreg->SetDamIndexes(this->GetBlockMatcher()->GetDamIndexes());
         }
     }
 
-    movingBlockRegions.clear();
-    movingDamIndexes.clear();
+    this->GetAgregator()->SetInputWeights(this->GetBlockMatcher()->GetBlockWeights());
+    this->GetAgregator()->SetInputTransforms(this->GetBlockMatcher()->GetBlockTransformPointers());
 
     TransformPointer reverseAddOn = this->GetAgregator()->GetOutput();
 
@@ -202,7 +115,7 @@ KissingSymmetricBlockMatchingRegistrationMethod<TInputImage>
         AffineTransformType *usualAddOnCast = dynamic_cast <AffineTransformType *> (usualAddOn.GetPointer());
         AffineTransformType *reverseAddOnCast = dynamic_cast <AffineTransformType *> (reverseAddOn.GetPointer());
 
-        unsigned int NDimensions = TInputImage::GetImageDimension();
+        unsigned int NDimensions = InputImageType::ImageDimension;
         vnl_matrix <double> usualAddOnMatrix(NDimensions+1,NDimensions+1,0);
         vnl_matrix <double> reverseAddOnMatrix(NDimensions+1,NDimensions+1,0);
         usualAddOnMatrix.set_identity();
@@ -234,7 +147,6 @@ KissingSymmetricBlockMatchingRegistrationMethod<TInputImage>
             for (unsigned int j = 0;j < NDimensions;++j)
                 trsfMatrix(i,j) = usualAddOnMatrix(i,j);
 
-        usualAddOnCast->SetIdentity();
         usualAddOnCast->SetMatrix(trsfMatrix);
 
         typename AffineTransformType::OffsetType trsfOffset;
@@ -247,4 +159,4 @@ KissingSymmetricBlockMatchingRegistrationMethod<TInputImage>
     addOn = usualAddOn;
 }
 
-} // end namespace anima
+}

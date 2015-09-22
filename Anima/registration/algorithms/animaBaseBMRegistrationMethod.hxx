@@ -1,5 +1,5 @@
 #pragma once
-#include "animaRefactoredBaseBMRegistrationMethod.h"
+#include "animaBaseBMRegistrationMethod.h"
 
 #include <animaResampleImageFilter.h>
 #include <animaOrientedModelBaseResampleImageFilter.h>
@@ -11,8 +11,8 @@ namespace anima
 {
 
 template <typename TInputImageType>
-RefactoredBaseBMRegistrationMethod <TInputImageType>
-::RefactoredBaseBMRegistrationMethod()
+BaseBMRegistrationMethod <TInputImageType>
+::BaseBMRegistrationMethod()
 {
     m_Abort = false;
     m_FixedImage = 0;
@@ -38,8 +38,8 @@ RefactoredBaseBMRegistrationMethod <TInputImageType>
  *  Get Output
  */
 template <typename TInputImageType>
-typename RefactoredBaseBMRegistrationMethod <TInputImageType>::TransformOutputType *
-RefactoredBaseBMRegistrationMethod <TInputImageType>
+typename BaseBMRegistrationMethod <TInputImageType>::TransformOutputType *
+BaseBMRegistrationMethod <TInputImageType>
 ::GetOutput()
 {
     return static_cast <TransformOutputType *> (this->ProcessObject::GetOutput(0));
@@ -47,7 +47,7 @@ RefactoredBaseBMRegistrationMethod <TInputImageType>
 
 template <typename TInputImageType>
 itk::DataObject::Pointer
-RefactoredBaseBMRegistrationMethod <TInputImageType>
+BaseBMRegistrationMethod <TInputImageType>
 ::MakeOutput(DataObjectPointerArraySizeType output)
 {
     switch (output)
@@ -66,7 +66,7 @@ RefactoredBaseBMRegistrationMethod <TInputImageType>
  */
 template <typename TInputImageType>
 void
-RefactoredBaseBMRegistrationMethod <TInputImageType>
+BaseBMRegistrationMethod <TInputImageType>
 ::GenerateData()
 {
     m_Abort = false;
@@ -78,7 +78,7 @@ RefactoredBaseBMRegistrationMethod <TInputImageType>
  */
 template <typename TInputImageType>
 void
-RefactoredBaseBMRegistrationMethod <TInputImageType>
+BaseBMRegistrationMethod <TInputImageType>
 ::StartOptimization()
 {
     m_Agregator->SetInputTransformType(m_BlockMatcher->GetAgregatorInputTransformType());
@@ -120,7 +120,7 @@ RefactoredBaseBMRegistrationMethod <TInputImageType>
 
 template <typename TInputImageType>
 void
-RefactoredBaseBMRegistrationMethod <TInputImageType>
+BaseBMRegistrationMethod <TInputImageType>
 ::SetupTransform(TransformPointer &optimizedTransform)
 {
     if (m_Agregator->GetOutputTransformType() != AgregatorType::SVF)
@@ -152,7 +152,7 @@ RefactoredBaseBMRegistrationMethod <TInputImageType>
 
 template <typename TInputImageType>
 void
-RefactoredBaseBMRegistrationMethod <TInputImageType>
+BaseBMRegistrationMethod <TInputImageType>
 ::ResampleImages(TransformType *currentTransform, InputImagePointer &refImage, InputImagePointer &movingImage)
 {
     // Moving image resampling
@@ -273,7 +273,7 @@ RefactoredBaseBMRegistrationMethod <TInputImageType>
 
 template <typename TInputImageType>
 bool
-RefactoredBaseBMRegistrationMethod <TInputImageType>
+BaseBMRegistrationMethod <TInputImageType>
 ::ComposeAddOnWithTransform(TransformType *computedTransform, TransformType *addOn)
 {
     if (m_Agregator->GetOutputTransformType() != AgregatorType::SVF)
@@ -329,7 +329,7 @@ RefactoredBaseBMRegistrationMethod <TInputImageType>
  */
 template <typename TInputImageType>
 void
-RefactoredBaseBMRegistrationMethod <TInputImageType>
+BaseBMRegistrationMethod <TInputImageType>
 ::PrintSelf(std::ostream& os, itk::Indent indent) const
 {
     Superclass::PrintSelf( os, indent );

@@ -1,5 +1,5 @@
 #pragma once
-#include <animaBlockMatchingBaseRegistrationMethod.h>
+#include <animaBaseBMRegistrationMethod.h>
 
 #include <itkImage.h>
 #include <animaDenseSVFTransformAgregator.h>
@@ -7,9 +7,6 @@
 #include <itkAffineTransform.h>
 #include <animaPyramidImageFilter.h>
 #include <rpiDisplacementFieldTransform.h>
-
-#include <animaBlockMatchInitializer.h>
-
 
 enum SymmetryType
 {
@@ -74,11 +71,8 @@ public:
     typedef anima::PyramidImageFilter <InputImageType,InputImageType> PyramidType;
     typedef typename PyramidType::Pointer PyramidPointer;
 
-    typedef typename anima::BlockMatchingBaseRegistrationMethod<InputImageType> BaseBlockMatchRegistrationType;
+    typedef typename anima::BaseBMRegistrationMethod<InputImageType> BaseBlockMatchRegistrationType;
     typedef typename BaseBlockMatchRegistrationType::Pointer BaseBlockMatchRegistrationPointer;
-
-    typedef typename anima::BlockMatchingInitializer<InputPixelType,ImageDimension> InitializerType;
-    typedef typename InitializerType::Pointer InitializerPointer;
 
     /** SmartPointer typedef support  */
     typedef PyramidalDenseSVFMatchingBridge Self;
@@ -224,7 +218,6 @@ protected:
     PyramidalDenseSVFMatchingBridge();
     virtual ~PyramidalDenseSVFMatchingBridge();
 
-    void InitializeBlocksOnImage(InitializerPointer &initPtr, InputImageType *image);
     void SetupPyramids();
 
     void EmitProgress(int prog);

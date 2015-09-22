@@ -1,5 +1,5 @@
 #pragma once
-#include <animaTensorBlockMatchingBaseRegistrationMethod.h>
+#include <animaBaseBMRegistrationMethod.h>
 
 #include <itkVectorImage.h>
 #include <animaDenseSVFTransformAgregator.h>
@@ -7,9 +7,6 @@
 #include <itkAffineTransform.h>
 #include <animaPyramidImageFilter.h>
 #include <rpiDisplacementFieldTransform.h>
-
-#include <animaBlockMatchInitializer.h>
-
 
 enum SymmetryType
 {
@@ -76,16 +73,19 @@ public:
     typedef anima::PyramidImageFilter <InputImageType,InputImageType> PyramidType;
     typedef typename PyramidType::Pointer PyramidPointer;
 
-    typedef typename anima::TensorBlockMatchingBaseRegistrationMethod<InputImageType> BaseBlockMatchRegistrationType;
+    typedef typename anima::BaseBMRegistrationMethod<InputImageType> BaseBlockMatchRegistrationType;
     typedef typename BaseBlockMatchRegistrationType::Pointer BaseBlockMatchRegistrationPointer;
 
-    typedef typename anima::BlockMatchingInitializer<InputPixelType,ImageDimension> InitializerType;
-    typedef typename InitializerType::Pointer InitializerPointer;
+    /** SmartPointer typedef support  */
+    typedef PyramidalDenseTensorSVFMatchingBridge Self;
+    typedef itk::ProcessObject Superclass;
 
-    PyramidalDenseTensorSVFMatchingBridge();
-    virtual ~PyramidalDenseTensorSVFMatchingBridge();
+    typedef itk::SmartPointer<Self> Pointer;
+    typedef itk::SmartPointer<const Self> ConstPointer;
 
-    void ParseParameters(int argc, const char **argv);
+    itkNewMacro(Self);
+
+    itkTypeMacro(PyramidalDenseTensorSVFMatchingBridge,itk::ProcessObject);
 
     void Update();
 
@@ -211,7 +211,9 @@ public:
     void SetPercentageKept(double PercentageKept) {m_PercentageKept=PercentageKept;}
 
 protected:
-    void InitializeBlocksOnImage(InitializerPointer &initPtr, InputImageType *image);
+    PyramidalDenseTensorSVFMatchingBridge();
+    virtual ~PyramidalDenseTensorSVFMatchingBridge();
+
     void SetupPyramids();
 
 private:
@@ -264,4 +266,5 @@ private:
 };
 
 } // end of namespace anima
+
 #include "animaPyramidalDenseTensorSVFMatchingBridge.hxx"

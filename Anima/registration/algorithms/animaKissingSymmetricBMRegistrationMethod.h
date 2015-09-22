@@ -1,16 +1,16 @@
 #pragma once
-#include <animaRefactoredBaseBMRegistrationMethod.h>
+#include <animaBaseBMRegistrationMethod.h>
 
 namespace anima
 {
 
 template <typename TInputImageType>
-class RefactoredKissingSymmetricBMRegistrationMethod : public anima::RefactoredBaseBMRegistrationMethod <TInputImageType>
+class KissingSymmetricBMRegistrationMethod : public anima::BaseBMRegistrationMethod <TInputImageType>
 {
 public:
     /** Standard class typedefs. */
-    typedef RefactoredKissingSymmetricBMRegistrationMethod Self;
-    typedef RefactoredBaseBMRegistrationMethod <TInputImageType> Superclass;
+    typedef KissingSymmetricBMRegistrationMethod Self;
+    typedef BaseBMRegistrationMethod <TInputImageType> Superclass;
     typedef itk::SmartPointer <Self> Pointer;
     typedef itk::SmartPointer <const Self> ConstPointer;
 
@@ -22,21 +22,21 @@ public:
     typedef typename Superclass::SVFTransformType SVFTransformType;
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(RefactoredKissingSymmetricBMRegistrationMethod, RefactoredBaseBMRegistrationMethod);
+    itkTypeMacro(KissingSymmetricBMRegistrationMethod, BaseBMRegistrationMethod);
 
     itkNewMacro(Self);
 
 protected:
-    RefactoredKissingSymmetricBMRegistrationMethod() {}
-    virtual ~RefactoredKissingSymmetricBMRegistrationMethod() {}
+    KissingSymmetricBMRegistrationMethod() {}
+    virtual ~KissingSymmetricBMRegistrationMethod() {}
 
     virtual void PerformOneIteration(InputImageType *refImage, InputImageType *movingImage, TransformPointer &addOn);
 
 private:
-    RefactoredKissingSymmetricBMRegistrationMethod(const Self&); //purposely not implemented
+    KissingSymmetricBMRegistrationMethod(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
 };
 
 } // end namespace anima
 
-#include "animaRefactoredKissingSymmetricBMRegistrationMethod.hxx"
+#include "animaKissingSymmetricBMRegistrationMethod.hxx"

@@ -6,8 +6,7 @@
 #include <itkCommand.h>
 #include <itkAffineTransform.h>
 #include <animaPyramidImageFilter.h>
-#include <animaBlockMatchInitializer.h>
-#include <animaBlockMatchingBaseRegistrationMethod.h>
+#include <animaBaseBMRegistrationMethod.h>
 
 enum SymmetryType
 {
@@ -62,7 +61,7 @@ public:
     typedef typename InputImageType::Pointer InputImagePointer;
     typedef typename InputImageType::ConstPointer InputImageConstPointer;
 
-    typedef BaseTransformAgregator < ImageDimension > AgregatorType;
+    typedef anima::BaseTransformAgregator < ImageDimension > AgregatorType;
     typedef typename AgregatorType::BaseOutputTransformType BaseTransformType;
     typedef typename BaseTransformType::Pointer BaseTransformPointer;
 
@@ -72,11 +71,8 @@ public:
     typedef anima::PyramidImageFilter <InputImageType,InputImageType> PyramidType;
     typedef typename PyramidType::Pointer PyramidPointer;
 
-    typedef typename anima::BlockMatchingBaseRegistrationMethod<InputImageType> BaseBlockMatchRegistrationType;
+    typedef typename anima::BaseBMRegistrationMethod<InputImageType> BaseBlockMatchRegistrationType;
     typedef typename BaseBlockMatchRegistrationType::Pointer BaseBlockMatchRegistrationPointer;
-
-    typedef typename anima::BlockMatchingInitializer<InputPixelType,ImageDimension> InitializerType;
-    typedef typename InitializerType::Pointer InitializerPointer;
 
     /** SmartPointer typedef support  */
     typedef PyramidalBlockMatchingBridge Self;
@@ -98,36 +94,30 @@ public:
     /**
     * Setter for images
     * */
-    //void SetReferenceImage(InputImagePointer referenceImage) {m_ReferenceImage = referenceImage;};
-    void SetReferenceImage(InputImageConstPointer referenceImage) {m_ReferenceImage = referenceImage;};
+    void SetReferenceImage(InputImageConstPointer referenceImage) {m_ReferenceImage = referenceImage;}
+    void SetFloatingImage(InputImageConstPointer floatingImage) {m_FloatingImage = floatingImage;}
 
-    //void SetFloatingImage(InputImagePointer floatingImage) {m_FloatingImage= floatingImage;};
-    void SetFloatingImage(InputImageConstPointer floatingImage) {m_FloatingImage= floatingImage;};
-
-    InputImagePointer GetOutputImage() {return m_OutputImage;};
-
+    InputImagePointer GetOutputImage() {return m_OutputImage;}
 
     /**
     * Setter for transform
     * */
     void SetInitialTransform(AffineTransformPointer initialTransform) {m_InitialTransform=initialTransform;}
-
     void SetInitialTransform(std::string initialTransformFile);
 
     BaseTransformPointer GetOutputTransform() {return m_OutputTransform;}
     void SetOutputTransform(BaseTransformPointer outputTransform) {m_OutputTransform=outputTransform;}
 
-
-    void SetProgressCallback(itk::CStyleCommand::Pointer callback ) {m_progressCallback = callback;}
+    void SetProgressCallback(itk::CStyleCommand::Pointer callback) {m_progressCallback = callback;}
 
     /**
     * Setter/Getter for parameters
     * */
 
-    std::string GetResultFile() {return m_resultFile;};
-    void SetResultFile(std::string resultFile) {m_resultFile=resultFile;};
+    std::string GetResultFile() {return m_resultFile;}
+    void SetResultFile(std::string resultFile) {m_resultFile=resultFile;}
 
-    std::string GetOutputTransformFile() {return m_outputTransformFile;};
+    std::string GetOutputTransformFile() {return m_outputTransformFile;}
     void SetOutputTransformFile(std::string outputTransformFile) {m_outputTransformFile=outputTransformFile;}
 
     unsigned int GetBlockSize() {return m_BlockSize;}
@@ -218,9 +208,7 @@ protected:
     PyramidalBlockMatchingBridge();
     virtual ~PyramidalBlockMatchingBridge();
 
-    void InitializeBlocksOnImage(InitializerPointer &initPtr, InputImageType *image);
     void SetupPyramids();
-
     void EmitProgress(int prog);
 
     static void ManageProgress( itk::Object* caller, const itk::EventObject& event, void* clientData );

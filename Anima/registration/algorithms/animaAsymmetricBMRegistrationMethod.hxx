@@ -1,5 +1,5 @@
 #pragma once
-#include "animaRefactoredAsymmetricBMRegistrationMethod.h"
+#include "animaAsymmetricBMRegistrationMethod.h"
 
 #include <animaBalooSVFTransformAgregator.h>
 #include <animaDenseSVFTransformAgregator.h>
@@ -9,7 +9,7 @@ namespace anima
 
 template <typename TInputImageType>
 void
-RefactoredAsymmetricBMRegistrationMethod <TInputImageType>
+AsymmetricBMRegistrationMethod <TInputImageType>
 ::PerformOneIteration(InputImageType *refImage, InputImageType *movingImage, TransformPointer &addOn)
 {
     itk::TimeProbe tmpTime;

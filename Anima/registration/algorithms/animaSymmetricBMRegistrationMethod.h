@@ -1,16 +1,16 @@
 #pragma once
-#include <animaRefactoredBaseBMRegistrationMethod.h>
+#include <animaBaseBMRegistrationMethod.h>
 
 namespace anima
 {
 
 template <typename TInputImageType>
-class RefactoredSymmetricBMRegistrationMethod : public anima::RefactoredBaseBMRegistrationMethod <TInputImageType>
+class SymmetricBMRegistrationMethod : public anima::BaseBMRegistrationMethod <TInputImageType>
 {
 public:
     /** Standard class typedefs. */
-    typedef RefactoredSymmetricBMRegistrationMethod Self;
-    typedef RefactoredBaseBMRegistrationMethod <TInputImageType> Superclass;
+    typedef SymmetricBMRegistrationMethod Self;
+    typedef BaseBMRegistrationMethod <TInputImageType> Superclass;
     typedef itk::SmartPointer <Self> Pointer;
     typedef itk::SmartPointer <const Self> ConstPointer;
 
@@ -22,20 +22,20 @@ public:
     typedef typename Superclass::SVFTransformType SVFTransformType;
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(RefactoredSymmetricBMRegistrationMethod, RefactoredBaseBMRegistrationMethod);
+    itkTypeMacro(SymmetricBMRegistrationMethod, BaseBMRegistrationMethod);
 
     itkNewMacro(Self);
 
     void SetReverseBlockMatcher(BlockMatcherType *matcher) {m_ReverseBlockMatcher = matcher;}
 
 protected:
-    RefactoredSymmetricBMRegistrationMethod() {}
-    virtual ~RefactoredSymmetricBMRegistrationMethod() {}
+    SymmetricBMRegistrationMethod() {}
+    virtual ~SymmetricBMRegistrationMethod() {}
 
     virtual void PerformOneIteration(InputImageType *refImage, InputImageType *movingImage, TransformPointer &addOn);
 
 private:
-    RefactoredSymmetricBMRegistrationMethod(const Self&); //purposely not implemented
+    SymmetricBMRegistrationMethod(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
 
     BlockMatcherType *m_ReverseBlockMatcher;
@@ -43,4 +43,4 @@ private:
 
 } // end namespace anima
 
-#include "animaRefactoredSymmetricBMRegistrationMethod.hxx"
+#include "animaSymmetricBMRegistrationMethod.hxx"
