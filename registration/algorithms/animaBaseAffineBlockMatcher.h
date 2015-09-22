@@ -28,6 +28,7 @@ public:
 
     typename AgregatorType::TRANSFORM_TYPE GetAgregatorInputTransformType();
     void SetBlockTransformType(TransformDefinition val) {m_BlockTransformType = val;}
+    TransformDefinition &GetBlockTransformType() {return m_BlockTransformType;}
 
     void SetSearchAngleRadius(double val) {m_SearchAngleRadius = val;}
     void SetSearchSkewRadius(double val) {m_SearchSkewRadius = val;}
