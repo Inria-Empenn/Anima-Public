@@ -1,1 +1,0 @@
-add_subdirectory(refactored_dense_tensor_svf_bm_registration)

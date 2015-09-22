@@ -1,3 +1,0 @@
-add_subdirectory(dense_svf_bm_registration)
-add_subdirectory(pyramidal_bm_registration)
-add_subdirectory(pyramidal_registration)
