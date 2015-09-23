@@ -175,9 +175,6 @@ BaseBMRegistrationMethod <TInputImageType>
         }
         else
             resampleFilter->SetTransform(currentTransform);
-
-        InternalVectorImageType *inputImage = dynamic_cast <InternalVectorImageType *> (m_MovingImage.GetPointer());
-        resampleFilter->SetInput(inputImage);
     }
     else
     {
@@ -198,11 +195,9 @@ BaseBMRegistrationMethod <TInputImageType>
         }
         else
             resampleFilter->SetTransform(currentTransform);
-
-        InternalScalarImageType *inputImage = dynamic_cast <InternalScalarImageType *> (m_MovingImage.GetPointer());
-        resampleFilter->SetInput(inputImage);
     }
 
+    m_MovingImageResampler->SetInput(m_MovingImage);
     m_MovingImageResampler->Update();
 
     movingImage = m_MovingImageResampler->GetOutput();
@@ -232,9 +227,6 @@ BaseBMRegistrationMethod <TInputImageType>
             TransformPointer reverseTrsf = affCast->GetInverseTransform();
             resampleFilter->SetTransform(reverseTrsf);
         }
-
-        InternalVectorImageType *inputImage = dynamic_cast <InternalVectorImageType *> (m_FixedImage.GetPointer());
-        resampleFilter->SetInput(inputImage);
     }
     else
     {
@@ -259,9 +251,6 @@ BaseBMRegistrationMethod <TInputImageType>
             TransformPointer reverseTrsf = affCast->GetInverseTransform();
             resampleFilter->SetTransform(reverseTrsf);
         }
-
-        InternalScalarImageType *inputImage = dynamic_cast <InternalScalarImageType *> (m_MovingImage.GetPointer());
-        resampleFilter->SetInput(inputImage);
     }
 
     m_ReferenceImageResampler->SetInput(m_FixedImage);
@@ -274,13 +263,13 @@ BaseBMRegistrationMethod <TInputImageType>
 template <typename TInputImageType>
 bool
 BaseBMRegistrationMethod <TInputImageType>
-::ComposeAddOnWithTransform(TransformType *computedTransform, TransformType *addOn)
+::ComposeAddOnWithTransform(TransformPointer &computedTransform, TransformType *addOn)
 {
     if (m_Agregator->GetOutputTransformType() != AgregatorType::SVF)
     {
         typename TransformType::ParametersType oldPars = computedTransform->GetParameters();
 
-        AffineTransformType *tmpTrsf = dynamic_cast<AffineTransformType *>(computedTransform);
+        AffineTransformType *tmpTrsf = dynamic_cast<AffineTransformType *>(computedTransform.GetPointer());
         AffineTransformType *tmpAddOn = dynamic_cast<AffineTransformType *>(addOn);
         tmpTrsf->Compose(tmpAddOn, true);
 
@@ -297,7 +286,7 @@ BaseBMRegistrationMethod <TInputImageType>
     else
     {
         // Add update to current velocity field (cf. Vercauteren et al, 2008)
-        SVFTransformType *tmpTrsf = dynamic_cast<SVFTransformType *>(computedTransform);
+        SVFTransformType *tmpTrsf = dynamic_cast<SVFTransformType *>(computedTransform.GetPointer());
         SVFTransformType *tmpAddOn = dynamic_cast<SVFTransformType *>(addOn);
 
         anima::composeSVF(tmpTrsf,tmpAddOn);

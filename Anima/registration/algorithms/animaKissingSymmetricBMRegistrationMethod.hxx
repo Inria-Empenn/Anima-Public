@@ -4,6 +4,9 @@
 #include <animaBalooSVFTransformAgregator.h>
 #include <animaDenseSVFTransformAgregator.h>
 
+#include <itkMultiplyImageFilter.h>
+#include <itkSubtractImageFilter.h>
+
 namespace anima
 {
 
@@ -86,29 +89,32 @@ KissingSymmetricBMRegistrationMethod <TInputImageType>
         // It's only a quarter since we are computing the half power of the transform between the two images
         typedef typename SVFTransformType::VectorFieldType VelocityFieldType;
 
-        typedef typename itk::ImageRegionConstIterator <VelocityFieldType> VelocityFieldConstIterator;
-        typedef typename itk::ImageRegionIterator <VelocityFieldType> VelocityFieldIterator;
+        typedef itk::MultiplyImageFilter <VelocityFieldType,itk::Image <float,InputImageType::ImageDimension>,VelocityFieldType> MultiplyFilterType;
+        typedef itk::SubtractImageFilter <VelocityFieldType,VelocityFieldType,VelocityFieldType> SubtractFilterType;
 
         SVFTransformType *usualAddOnCast = dynamic_cast <SVFTransformType *> (usualAddOn.GetPointer());
         SVFTransformType *reverseAddOnCast = dynamic_cast <SVFTransformType *> (reverseAddOn.GetPointer());
 
-        typename VelocityFieldType::Pointer usualAddOnSVF = const_cast <VelocityFieldType *> (usualAddOnCast->GetParametersAsVectorField());
+        typename SubtractFilterType::Pointer subFilter = SubtractFilterType::New();
+        subFilter->SetInput1(usualAddOnCast->GetParametersAsVectorField());
+        subFilter->SetInput2(reverseAddOnCast->GetParametersAsVectorField());
+        subFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+        subFilter->InPlaceOn();
 
-        VelocityFieldIterator usualAddOnItr(usualAddOnSVF,usualAddOnSVF->GetLargestPossibleRegion());
+        subFilter->Update();
 
-        VelocityFieldConstIterator reverseAddOnItr(reverseAddOnCast->GetParametersAsVectorField(),
-                                                   reverseAddOnCast->GetParametersAsVectorField()->GetLargestPossibleRegion());
+        typename MultiplyFilterType::Pointer multiplyFilter = MultiplyFilterType::New();
+        multiplyFilter->SetInput(subFilter->GetOutput());
+        multiplyFilter->SetConstant(0.25);
+        multiplyFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+        multiplyFilter->InPlaceOn();
 
-        typedef typename VelocityFieldType::PixelType VectorType;
-        VectorType tmpVec;
-        while (!usualAddOnItr.IsAtEnd())
-        {
-            tmpVec = 0.25 * (usualAddOnItr.Get() - reverseAddOnItr.Get());
-            usualAddOnItr.Set(tmpVec);
+        multiplyFilter->Update();
 
-            ++usualAddOnItr;
-            ++reverseAddOnItr;
-        }
+        VelocityFieldType *addonSVF = multiplyFilter->GetOutput();
+        addonSVF->DisconnectPipeline();
+
+        usualAddOnCast->SetParametersAsVectorField(addonSVF);
     }
     else
     {

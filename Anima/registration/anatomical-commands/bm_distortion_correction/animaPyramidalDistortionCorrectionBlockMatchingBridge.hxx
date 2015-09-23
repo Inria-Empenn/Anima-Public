@@ -4,7 +4,10 @@
 #include <itkMultiResolutionPyramidImageFilter.h>
 #include <itkImageMomentsCalculator.h>
 
-#include <animaDistortionCorrectionRegistrationMethod.h>
+#include <animaDistortionCorrectionBMRegistrationMethod.h>
+#include <animaDistortionCorrectionBlockMatcher.h>
+#include <animaResampleImageFilter.h>
+
 #include <itkVectorResampleImageFilter.h>
 
 #include <animaVelocityUtils.h>
@@ -78,7 +81,7 @@ template <unsigned int ImageDimension>
 void 
 PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
 {
-    typedef typename anima::DistortionCorrectionRegistrationMethod<InputImageType> BlockMatchRegistrationType;
+    typedef typename anima::DistortionCorrectionBMRegistrationMethod<InputImageType> BlockMatchRegistrationType;
 
     this->SetupPyramids();
 
@@ -159,16 +162,44 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
 
         bmreg->SetNumberOfThreads(this->GetNumberOfThreads());
         
-        // for blocks init inside registration
-        bmreg->SetBlockPercentageKept(m_PercentageKept);
-        bmreg->SetBlockSize(m_BlockSize);
-        bmreg->SetBlockSpacing(m_BlockSpacing);
-        bmreg->SetBlockScalarVarianceThreshold(m_StDevThreshold * m_StDevThreshold);
-        bmreg->SetUseTransformationDam(m_UseTransformationDam);
-        bmreg->SetDamDistance(m_DamDistance * m_ExtrapolationSigma);
+        typedef anima::ResampleImageFilter<InputImageType, InputImageType,
+                                         typename BaseAgregatorType::ScalarType> ResampleFilterType;
 
-        bmreg->SetBackwardImage(backwardImage);
-        bmreg->SetForwardImage(forwardImage);
+        typename ResampleFilterType::Pointer refResampler = ResampleFilterType::New();
+        refResampler->SetSize(forwardImage->GetLargestPossibleRegion().GetSize());
+        refResampler->SetOutputOrigin(forwardImage->GetOrigin());
+        refResampler->SetOutputSpacing(forwardImage->GetSpacing());
+        refResampler->SetOutputDirection(forwardImage->GetDirection());
+        refResampler->SetDefaultPixelValue(0);
+        refResampler->SetNumberOfThreads(GetNumberOfThreads());
+        refResampler->SetScaleIntensitiesWithJacobian(true);
+        bmreg->SetReferenceImageResampler(refResampler);
+
+        typename ResampleFilterType::Pointer movingResampler = ResampleFilterType::New();
+        movingResampler->SetSize(backwardImage->GetLargestPossibleRegion().GetSize());
+        movingResampler->SetOutputOrigin(backwardImage->GetOrigin());
+        movingResampler->SetOutputSpacing(backwardImage->GetSpacing());
+        movingResampler->SetOutputDirection(backwardImage->GetDirection());
+        movingResampler->SetDefaultPixelValue(0);
+        movingResampler->SetNumberOfThreads(GetNumberOfThreads());
+        movingResampler->SetScaleIntensitiesWithJacobian(true);
+        bmreg->SetMovingImageResampler(movingResampler);
+
+        // Init matcher
+        typedef anima::DistortionCorrectionBlockMatcher <InputImageType> BlockMatcherType;
+
+        BlockMatcherType *mainMatcher = new BlockMatcherType;
+        mainMatcher->SetBlockPercentageKept(GetPercentageKept());
+        mainMatcher->SetBlockSize(GetBlockSize());
+        mainMatcher->SetBlockSpacing(GetBlockSpacing());
+        mainMatcher->SetBlockVarianceThreshold(GetStDevThreshold() * GetStDevThreshold());
+        mainMatcher->SetUseTransformationDam(m_UseTransformationDam);
+        mainMatcher->SetDamDistance(m_DamDistance * m_ExtrapolationSigma);
+
+        bmreg->SetBlockMatcher(mainMatcher);
+
+        bmreg->SetFixedImage(backwardImage);
+        bmreg->SetMovingImage(forwardImage);
         
         // Init agregator mean shift parameters
         BaseAgregatorType* agregPtr = NULL;
@@ -187,7 +218,6 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
             agreg->SetDistanceBoundary(m_ExtrapolationSigma * meanSpacing * m_NeighborhoodApproximation);
             agreg->SetMEstimateConvergenceThreshold(m_MEstimateConvergenceThreshold);
 
-            bmreg->SetAgregatorType(BlockMatchRegistrationType::MEstimate);
             agregPtr = agreg;
         }
         else
@@ -200,39 +230,36 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
             agreg->SetNumberOfThreads(this->GetNumberOfThreads());
             agreg->SetGeometryInformation(backwardImage.GetPointer());
             
-            bmreg->SetAgregatorType(BlockMatchRegistrationType::Baloo);
             agregPtr = agreg;
         }
 
         bmreg->SetAgregator(agregPtr);
 
-        bmreg->SetTransformationKind((typename BlockMatchRegistrationType::TransformationDefinition) m_TransformKind);
-        agregPtr->SetInputTransformType(BaseAgregatorType::AFFINE);
-
-        bmreg->SetMetricKind((typename BlockMatchRegistrationType::SimilarityDefinition) m_Metric);
+        mainMatcher->SetBlockTransformType((typename BlockMatcherType::TransformDefinition) m_TransformKind);
+        mainMatcher->SetSimilarityType((typename BlockMatcherType::SimilarityDefinition) m_Metric);
+        mainMatcher->SetOptimizerType(BlockMatcherType::Bobyqa);
 
         bmreg->SetSVFElasticRegSigma(m_ElasticSigma * meanSpacing);
-        bmreg->SetWeightedAgregation(!m_WeightedAgregation);
 
         bmreg->SetMaximumIterations(m_MaximumIterations);
-        bmreg->SetOptimizerMaximumIterations(m_OptimizerMaximumIterations);
-        bmreg->SetTransformDirection(m_TransformDirection);
+        mainMatcher->SetOptimizerMaximumIterations(m_OptimizerMaximumIterations);
+        mainMatcher->SetTransformDirection(m_TransformDirection);
         
         if (initialTransform)
-            bmreg->SetInitialTransform(initialTransform);
+            bmreg->SetInitialTransform(initialTransform.GetPointer());
         
         bmreg->SetCurrentTransform(m_OutputTransform.GetPointer());
 
-        bmreg->SetSearchRadius(m_SearchRadius);
-        bmreg->SetSearchScaleRadius(m_SearchScaleRadius);
-        bmreg->SetSearchSkewRadius(m_SearchSkewRadius);
-        bmreg->SetFinalRadius(m_FinalRadius);
-        bmreg->SetTranslateMax(m_TranlateUpperBound);
-        bmreg->SetScaleMax(m_ScaleUpperBound);
-        bmreg->SetSkewMax(m_SkewUpperBound);
+        mainMatcher->SetSearchRadius(m_SearchRadius);
+        mainMatcher->SetSearchScaleRadius(m_SearchScaleRadius);
+        mainMatcher->SetSearchSkewRadius(m_SearchSkewRadius);
+        mainMatcher->SetFinalRadius(m_FinalRadius);
+        mainMatcher->SetTranslateMax(m_TranlateUpperBound);
+        mainMatcher->SetScaleMax(m_ScaleUpperBound);
+        mainMatcher->SetSkewMax(m_SkewUpperBound);
+        mainMatcher->SetNumberOfThreads(GetNumberOfThreads());
 
         bmreg->Update();
-        std::cout << "Block Matching Registration stop condition " << bmreg->GetStopConditionDescription() << std::endl;
 
         const DisplacementFieldTransformType *resTrsf = dynamic_cast <const DisplacementFieldTransformType *> (bmreg->GetOutput()->Get());
         m_OutputTransform->SetParametersAsVectorField(resTrsf->GetParametersAsVectorField());

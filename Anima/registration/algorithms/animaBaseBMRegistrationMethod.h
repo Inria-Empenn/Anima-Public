@@ -73,6 +73,8 @@ public:
 
     void SetReferenceImageResampler(ResamplerFilterType *filter) {m_ReferenceImageResampler = filter;}
     void SetMovingImageResampler(ResamplerFilterType *filter) {m_MovingImageResampler = filter;}
+    ResamplerFilterPointer &GetReferenceImageResampler() {return m_ReferenceImageResampler;}
+    ResamplerFilterPointer &GetMovingImageResampler() {return m_MovingImageResampler;}
 
     /** Set/Get Method for the Agregator */
     itkSetObjectMacro(Agregator, AgregatorType);
@@ -92,6 +94,8 @@ public:
     void Abort() {m_Abort = true;}
 
     itkSetMacro(InitialTransform, TransformPointer);
+    TransformPointer &GetInitialTransform() {return m_InitialTransform;}
+
     void SetBlockMatcher(BlockMatcherType *matcher) {m_BlockMatcher = matcher;}
     BlockMatcherType *GetBlockMatcher() {return m_BlockMatcher;}
 
@@ -113,10 +117,10 @@ protected:
     void GenerateData();
     void StartOptimization();
 
-    void SetupTransform(TransformPointer &optimizedTransform);
+    virtual void SetupTransform(TransformPointer &optimizedTransform);
     virtual void PerformOneIteration(InputImageType *refImage, InputImageType *movingImage, TransformPointer &addOn) = 0;
-    void ResampleImages(TransformType *currentTransform, InputImagePointer &refImage, InputImagePointer &movingImage);
-    virtual bool ComposeAddOnWithTransform(TransformType *computedTransform, TransformType *addOn);
+    virtual void ResampleImages(TransformType *currentTransform, InputImagePointer &refImage, InputImagePointer &movingImage);
+    virtual bool ComposeAddOnWithTransform(TransformPointer &computedTransform, TransformType *addOn);
 
 private:
     BaseBMRegistrationMethod(const Self&); //purposely not implemented

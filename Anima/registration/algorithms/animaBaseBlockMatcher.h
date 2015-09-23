@@ -98,7 +98,7 @@ protected:
     virtual void InitializeBlocks();
 
     virtual MetricPointer SetupMetric() = 0;
-    virtual double ComputeBlockWeight(double val) = 0;
+    virtual double ComputeBlockWeight(double val, unsigned int block) = 0;
     virtual BaseInputTransformPointer GetNewBlockTransform(PointType &blockCenter) = 0;
 
     // May be overloaded but in practice, much easier if this superclass implementation is always called

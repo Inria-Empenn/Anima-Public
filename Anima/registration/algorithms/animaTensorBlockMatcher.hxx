@@ -93,7 +93,7 @@ TensorBlockMatcher<TInputImageType>
 template <typename TInputImageType>
 double
 TensorBlockMatcher<TInputImageType>
-::ComputeBlockWeight(double val)
+::ComputeBlockWeight(double val, unsigned int block)
 {
     switch (m_SimilarityType)
     {

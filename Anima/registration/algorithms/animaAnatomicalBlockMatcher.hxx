@@ -80,7 +80,7 @@ AnatomicalBlockMatcher<TInputImageType>
 template <typename TInputImageType>
 double
 AnatomicalBlockMatcher<TInputImageType>
-::ComputeBlockWeight(double val)
+::ComputeBlockWeight(double val, unsigned int block)
 {
     switch (m_SimilarityType)
     {

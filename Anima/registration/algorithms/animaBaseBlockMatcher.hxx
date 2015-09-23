@@ -214,7 +214,7 @@ BaseBlockMatcher <TInputImageType>
         m_BlockTransformPointers[block]->SetParameters(optimizer->GetCurrentPosition());
 
         double val = optimizer->GetValue(optimizer->GetCurrentPosition());
-        m_BlockWeights[block] = this->ComputeBlockWeight(val);
+        m_BlockWeights[block] = this->ComputeBlockWeight(val,block);
     }
 }
 

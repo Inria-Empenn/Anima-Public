@@ -31,7 +31,7 @@ public:
 
 protected:
     virtual MetricPointer SetupMetric();
-    virtual double ComputeBlockWeight(double val);
+    virtual double ComputeBlockWeight(double val, unsigned int block);
 
     virtual void BlockMatchingSetup(MetricPointer &metric, unsigned int block);
 
