@@ -1,7 +1,14 @@
 set (proj TinyXML2)
 
+if (BUILD_SHARED_LIBS)
+  set(BUILD_STATIC_LIBS OFF)
+else()
+  set(BUILD_STATIC_LIBS ON)
+endif()
+
 set (cmake_args
   ${common_cache_args}
+  -DBUILD_STATIC_LIBS:BOOL=${BUILD_STATIC_LIBS}
   )
 
 set (location "")

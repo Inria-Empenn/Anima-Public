@@ -15,7 +15,7 @@ FIND_PATH(TinyXML2_INCLUDE_DIR tinyxml2.h
 
 set(TinyXML2_LIBRARY_DIR "" CACHE PATH "TinyXML2 library folder")
 
-FIND_LIBRARY(TinyXML2_LIBRARY NAMES tinyxml2 libtinyxml2
+FIND_LIBRARY(TinyXML2_LIBRARY NAMES tinyxml2 libtinyxml2 tinyxml2_static libtinyxml2_static
   HINTS "${TinyXML2_LIBRARY_DIR}" "${TinyXML2_LIBRARY_DIR}/Release" "${TinyXML2_LIBRARY_DIR}/Debug"
 )
 
