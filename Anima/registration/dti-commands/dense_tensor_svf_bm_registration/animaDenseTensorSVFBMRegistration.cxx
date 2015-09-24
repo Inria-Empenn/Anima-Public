@@ -72,7 +72,7 @@ int main(int ac, const char** av)
         exit(-1);
     }
 
-    PyramidBMType *matcher = new PyramidBMType;
+    PyramidBMType::Pointer matcher = PyramidBMType::New();
 
     ReaderType::Pointer tmpRead = ReaderType::New();
     tmpRead->SetFileName(fixedArg.getValue());
@@ -153,8 +153,16 @@ int main(int ac, const char** av)
 
     timer.Start();
 
-    matcher->Update();
-    matcher->WriteOutputs();
+    try
+    {
+        matcher->Update();
+        matcher->WriteOutputs();
+    }
+    catch (itk::ExceptionObject &e)
+    {
+        std::cerr << e << std::endl;
+        return 1;
+    }
 
     timer.Stop();
 
