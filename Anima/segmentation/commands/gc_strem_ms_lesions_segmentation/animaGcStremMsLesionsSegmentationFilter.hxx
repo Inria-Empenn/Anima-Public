@@ -184,7 +184,7 @@ itk::DataObject::Pointer GcStremMsLesionsSegmentationFilter <TInputImage>::MakeO
     {
         output = ( TOutputImage::New() ).GetPointer();
     }
-    else if(( 11 < idx ) && ( idx < 18 ))
+    else if(( 11 <= idx ) && ( idx < 18 ))
     {
         output = ( ImageTypeD::New() ).GetPointer();
     }
