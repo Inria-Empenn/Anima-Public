@@ -1,16 +1,16 @@
 #pragma once
 
-#include <animaBaseTensorImageToImageMetric.h>
+#include <animaBaseOrientedModelImageToImageMetric.h>
 #include <itkVectorImage.h>
 #include <itkCovariantVector.h>
 #include <itkPoint.h>
 
-
 namespace anima
 {
+
 template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >
 class TensorCorrelationImageToImageMetric :
-public BaseTensorImageToImageMetric< itk::VectorImage < TFixedImagePixelType, ImageDimension >, itk::VectorImage < TMovingImagePixelType, ImageDimension > >
+public BaseOrientedModelImageToImageMetric< itk::VectorImage < TFixedImagePixelType, ImageDimension >, itk::VectorImage < TMovingImagePixelType, ImageDimension > >
 {
 public:
 
@@ -19,7 +19,7 @@ public:
     typedef itk::VectorImage < TMovingImagePixelType, ImageDimension > TMovingImage;
 
     typedef TensorCorrelationImageToImageMetric                         Self;
-    typedef BaseTensorImageToImageMetric<TFixedImage, TMovingImage >  Superclass;
+    typedef BaseOrientedModelImageToImageMetric<TFixedImage, TMovingImage >  Superclass;
     typedef itk::SmartPointer<Self>                                          Pointer;
     typedef itk::SmartPointer<const Self>                                    ConstPointer;
 
@@ -27,7 +27,7 @@ public:
     itkNewMacro(Self);
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(TensorCorrelationImageToImageMetric, BaseTensorImageToImageMetric);
+    itkTypeMacro(TensorCorrelationImageToImageMetric, BaseOrientedModelImageToImageMetric);
 
     /** Types transferred from the base class */
     typedef typename TFixedImage::PixelType               PixelType;
@@ -54,7 +54,7 @@ public:
 
 protected:
     TensorCorrelationImageToImageMetric();
-    virtual ~TensorCorrelationImageToImageMetric() {};
+    virtual ~TensorCorrelationImageToImageMetric() {}
     void PrintSelf(std::ostream& os, itk::Indent indent) const;
 
 private:

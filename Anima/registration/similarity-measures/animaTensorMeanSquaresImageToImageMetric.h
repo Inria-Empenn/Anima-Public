@@ -1,6 +1,6 @@
 #pragma once
 
-#include <animaBaseTensorImageToImageMetric.h>
+#include <animaBaseOrientedModelImageToImageMetric.h>
 #include <itkPoint.h>
 
 
@@ -9,7 +9,7 @@ namespace anima
 
 template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >
 class TensorMeanSquaresImageToImageMetric :
-public anima::BaseTensorImageToImageMetric< itk::VectorImage < TFixedImagePixelType, ImageDimension >, itk::VectorImage < TMovingImagePixelType, ImageDimension > >
+public anima::BaseOrientedModelImageToImageMetric< itk::VectorImage < TFixedImagePixelType, ImageDimension >, itk::VectorImage < TMovingImagePixelType, ImageDimension > >
 {
 public:
 
@@ -18,7 +18,7 @@ public:
     typedef itk::VectorImage < TMovingImagePixelType, ImageDimension > TMovingImage;
 
     typedef TensorMeanSquaresImageToImageMetric            Self;
-    typedef anima::BaseTensorImageToImageMetric<TFixedImage, TMovingImage >  Superclass;
+    typedef anima::BaseOrientedModelImageToImageMetric<TFixedImage, TMovingImage >  Superclass;
     typedef itk::SmartPointer<Self>                             Pointer;
     typedef itk::SmartPointer<const Self>                       ConstPointer;
 
@@ -26,7 +26,7 @@ public:
     itkNewMacro(Self);
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(TensorMeanSquaresImageToImageMetric, BaseTensorImageToImageMetric);
+    itkTypeMacro(TensorMeanSquaresImageToImageMetric, BaseOrientedModelImageToImageMetric);
 
     /** Types transferred from the base class */
     typedef typename TFixedImage::PixelType               PixelType;

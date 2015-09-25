@@ -5,7 +5,7 @@
 #include <animaTensorCorrelationImageToImageMetric.h>
 #include <animaTensorGeneralizedCorrelationImageToImageMetric.h>
 #include <animaTensorMeanSquaresImageToImageMetric.h>
-#include <animaBaseTensorImageToImageMetric.h>
+#include <animaBaseOrientedModelImageToImageMetric.h>
 
 #include <animaVectorModelLinearInterpolateImageFunction.h>
 
@@ -74,9 +74,9 @@ TensorBlockMatcher<TInputImageType>
         }
     }
 
-    typedef anima::BaseTensorImageToImageMetric <InputImageType,InputImageType> BaseMetricType;
+    typedef anima::BaseOrientedModelImageToImageMetric <InputImageType,InputImageType> BaseMetricType;
     BaseMetricType *baseMetric = dynamic_cast <BaseMetricType *> (metric.GetPointer());
-    baseMetric->SetRotateTensors(this->GetBlockTransformType() != Superclass::Translation);
+    baseMetric->SetRotateModel(this->GetBlockTransformType() != Superclass::Translation);
 
     typedef anima::VectorModelLinearInterpolateImageFunction<InputImageType,double> LocalInterpolatorType;
     typename LocalInterpolatorType::Pointer interpolator = LocalInterpolatorType::New();
@@ -114,7 +114,7 @@ TensorBlockMatcher<TInputImageType>
     this->Superclass::BlockMatchingSetup(metric,block);
 
     // Metric specific init
-    typedef anima::BaseTensorImageToImageMetric <InputImageType,InputImageType> InternalMetricType;
+    typedef anima::BaseOrientedModelImageToImageMetric <InputImageType,InputImageType> InternalMetricType;
     InternalMetricType *tmpMetric = dynamic_cast <InternalMetricType *> (metric.GetPointer());
     tmpMetric->SetFixedImageRegion(this->GetBlockRegion(block));
     tmpMetric->SetTransform(this->GetBlockTransformPointer(block));

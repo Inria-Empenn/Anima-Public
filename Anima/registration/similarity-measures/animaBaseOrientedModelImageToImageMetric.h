@@ -10,11 +10,11 @@
 namespace anima
 {
 template <class TFixedImage,  class TMovingImage>
-class BaseTensorImageToImageMetric : public itk::SingleValuedCostFunction
+class BaseOrientedModelImageToImageMetric : public itk::SingleValuedCostFunction
 {
 public:
     /** Standard class typedefs. */
-    typedef BaseTensorImageToImageMetric Self;
+    typedef BaseOrientedModelImageToImageMetric Self;
     typedef itk::SingleValuedCostFunction Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self> ConstPointer;
@@ -23,7 +23,7 @@ public:
     typedef typename Superclass::ParametersValueType CoordinateRepresentationType;
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(BaseTensorImageToImageMetric, SingleValuedCostFunction);
+    itkTypeMacro(BaseOrientedModelImageToImageMetric, SingleValuedCostFunction);
 
     /**  Type of the moving Image. */
     typedef TMovingImage                               MovingImageType;
@@ -155,12 +155,12 @@ public:
         itkExceptionMacro("No derivatives implemented for tensor metrics...");
     }
 
-    itkSetMacro(RotateTensors, bool);
-    itkGetConstMacro(RotateTensors, bool);
+    itkSetMacro(RotateModel, bool);
+    itkGetConstMacro(RotateModel, bool);
 
 protected:
-    BaseTensorImageToImageMetric();
-    virtual ~BaseTensorImageToImageMetric();
+    BaseOrientedModelImageToImageMetric();
+    virtual ~BaseOrientedModelImageToImageMetric();
     void PrintSelf(std::ostream& os, itk::Indent indent) const;
 
     mutable unsigned long       m_NumberOfPixelsCounted;
@@ -175,14 +175,14 @@ protected:
     MovingImageMaskConstPointer m_MovingImageMask;
 
 private:
-    BaseTensorImageToImageMetric(const Self&); //purposely not implemented
+    BaseOrientedModelImageToImageMetric(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
 
     FixedImageRegionType        m_FixedImageRegion;
 
-    bool m_RotateTensors;
+    bool m_RotateModel;
 };
 
 } // end of namespace anima
 
-#include "animaBaseTensorImageToImageMetric.hxx"
+#include "animaBaseOrientedModelImageToImageMetric.hxx"

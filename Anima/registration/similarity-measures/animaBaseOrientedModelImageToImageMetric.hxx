@@ -1,5 +1,5 @@
 #pragma once
-#include "animaBaseTensorImageToImageMetric.h"
+#include "animaBaseOrientedModelImageToImageMetric.h"
 
 namespace anima
 {
@@ -8,8 +8,8 @@ namespace anima
  * Constructor
  */
 template <class TFixedImage, class TMovingImage>
-BaseTensorImageToImageMetric<TFixedImage,TMovingImage>
-::BaseTensorImageToImageMetric()
+BaseOrientedModelImageToImageMetric<TFixedImage,TMovingImage>
+::BaseOrientedModelImageToImageMetric()
 {
     m_FixedImage    = 0; // has to be provided by the user.
     m_MovingImage   = 0; // has to be provided by the user.
@@ -17,15 +17,15 @@ BaseTensorImageToImageMetric<TFixedImage,TMovingImage>
     m_Interpolator  = 0; // has to be provided by the user.
     m_NumberOfPixelsCounted = 0; // initialize to zero
 
-    m_RotateTensors = true;
+    m_RotateModel = true;
 }
 
 /**
  * Destructor
  */
 template <class TFixedImage, class TMovingImage>
-BaseTensorImageToImageMetric<TFixedImage,TMovingImage>
-::~BaseTensorImageToImageMetric()
+BaseOrientedModelImageToImageMetric<TFixedImage,TMovingImage>
+::~BaseOrientedModelImageToImageMetric()
 {
 
 }
@@ -36,7 +36,7 @@ BaseTensorImageToImageMetric<TFixedImage,TMovingImage>
  */
 template <class TFixedImage, class TMovingImage>
 void
-BaseTensorImageToImageMetric<TFixedImage,TMovingImage>
+BaseOrientedModelImageToImageMetric<TFixedImage,TMovingImage>
 ::SetTransformParameters( const ParametersType & parameters ) const
 {
     if( !m_Transform )
@@ -52,7 +52,7 @@ BaseTensorImageToImageMetric<TFixedImage,TMovingImage>
  */
 template <class TFixedImage, class TMovingImage>
 void
-BaseTensorImageToImageMetric<TFixedImage,TMovingImage>
+BaseOrientedModelImageToImageMetric<TFixedImage,TMovingImage>
 ::Initialize(void) throw ( itk::ExceptionObject )
 {
 
@@ -113,7 +113,7 @@ BaseTensorImageToImageMetric<TFixedImage,TMovingImage>
  */
 template <class TFixedImage, class TMovingImage>
 void
-BaseTensorImageToImageMetric<TFixedImage,TMovingImage>
+BaseOrientedModelImageToImageMetric<TFixedImage,TMovingImage>
 ::PrintSelf(std::ostream& os, itk::Indent indent) const
 {
     Superclass::PrintSelf( os, indent );

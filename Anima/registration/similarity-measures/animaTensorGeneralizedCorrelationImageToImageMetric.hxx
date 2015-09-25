@@ -62,7 +62,7 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
     vnl_matrix <double> tmpMat(tensorDimension, tensorDimension);
     vnl_matrix <double> currentTensor(tensorDimension, tensorDimension);
 
-    if (this->GetRotateTensors())
+    if (this->GetRotateModel())
     {
         typedef itk::MatrixOffsetTransformBase <CoordinateRepresentationType, ImageDimension, ImageDimension> BaseTransformType;
         BaseTransformType *currentTrsf = dynamic_cast<BaseTransformType *> (this->m_Transform.GetPointer());
@@ -79,7 +79,7 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
         {
             movingValue = this->m_Interpolator->EvaluateAtContinuousIndex( transformedIndex );
 
-            if (this->GetRotateTensors())
+            if (this->GetRotateModel())
             {
                 // Rotating tensor
                 anima::GetTensorFromVectorRepresentation(movingValue,tmpMat,tensorDimension,true);
