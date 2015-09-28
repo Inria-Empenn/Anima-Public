@@ -31,21 +31,22 @@ enum InitializationType
     HierarchicalFLAIR
 };
 
+
 /** @brief Class performing lesion segmentation.
  *
  * The segmentation method has three steps:
  *
  *  1) Estimation of the NABT model:
- *  The NABT model computation requires strickly 3 sequences: T1-w and two sequences among T2-w, DP and FLAIR.
+ *  The NABT model computation requires strictly 3 sequences: T1-w and two sequences among T2-w, DP and FLAIR.
  *
  *  2) Detection of candidate lesions:
  *  The lesion detection can be done two different ways:
- *  - applying a simple threshold after computing the mahalanobis distances on each one of the healty tissus. (LesionSegmentationType == strem)
+ *  - applying a simple threshold after computing the mahalanobis distances on each one of the healthy tissues. (LesionSegmentationType == strem)
  *  - applying a graph cut segmentation. (LesionSegmentationType == gcem)
  *    The automatic graph cut segmentation requires a sources and a sink probabilities maps that are computed from the mahalanobis images.
- *    The sources map is computed using also fuzzy weights between 0 and 1, based on T2-w, DP and FLAIR hyperintensities.
+ *    The sources map is computed using also fuzzy weights between 0 and 1, based on T2-w, DP and FLAIR hyper-intensities.
  *    Additionally, binary sources and sinks masks can be added as entries of the graph cut.(LesionSegmentationType == gcemAndManualGC)
- *    Their information will be mixed with the automatic sources ans sinks probabilties map.
+ *    Their information will be mixed with the automatic sources and sinks probabilities map.
  *    This option simulates the lesion segmentation correction done by a user that adds/removes seeds for the graph cut computation.
  *
  *    The last segmentation type option (LesionSegmentationType == manualGC) just uses manual binary sources and sinks masks as entries of the graph cut.
@@ -60,8 +61,7 @@ enum InitializationType
  *  - white matter neighbor rule to remove lesions that are not in white matter.
  *
  *
- * Additionally to the lesions segmentation, the filter provides a segmentation of the healty tissus based on the NABT estimation.
- *
+ * Additionally to the lesions segmentation, the filter provides a segmentation of the healthy tissues based on the NABT estimation.
  *
  */
 
