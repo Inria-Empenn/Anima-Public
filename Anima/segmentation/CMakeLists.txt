@@ -5,3 +5,4 @@ project(ANIMA-SEGMENTATION)
 ################################################################################
 
 add_subdirectory(commands)
+add_subdirectory(algorithms)
