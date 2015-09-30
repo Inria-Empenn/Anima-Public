@@ -180,11 +180,11 @@ itk::DataObject::Pointer GcStremMsLesionsSegmentationFilter <TInputImage>::MakeO
 {
     itk::DataObject::Pointer output;
 
-    if( idx < 11 )
+    if( (idx < 11) || (idx == 17) )
     {
         output = ( TOutputImage::New() ).GetPointer();
     }
-    else if(( 11 <= idx ) && ( idx < 18 ))
+    else if(( 11 <= idx ) && ( idx < 17 ))
     {
         output = ( ImageTypeD::New() ).GetPointer();
     }
@@ -195,7 +195,6 @@ itk::DataObject::Pointer GcStremMsLesionsSegmentationFilter <TInputImage>::MakeO
     }
     return output.GetPointer();
 }
-
 
 template <typename TInputImage>
 itk::Image <unsigned char, 3>* GcStremMsLesionsSegmentationFilter <TInputImage>::GetOutputLesions()
