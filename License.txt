@@ -17,4 +17,4 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 --------
 
 This software is distributed under the AGPL v3 or later license. If you wish
-to use the code under another license, contact us at ???
+to use the code under another license, contact us at anima-licensing@inria.fr
