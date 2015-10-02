@@ -25,7 +25,7 @@ set (cmake_args
   -DITK_DIR:PATH=${ITK_BUILD_DIR}
   -DVTK_DIR:PATH=${VTK_BUILD_DIR}
   -DBoost_INCLUDE_DIR:PATH=${Boost_SRC_DIR}
-  -DTCLAP_INCLUDE_DIR:PATH=${TCLAP_SRC_DIR}/include
+  -DTCLAP_INCLUDE_DIR:PATH=${TCLAP_SRC_DIR}
   )
 
 ExternalProject_Add(${proj}

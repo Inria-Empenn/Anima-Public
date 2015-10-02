@@ -18,6 +18,6 @@ ExternalProject_Add(${proj}
   INSTALL_COMMAND ""
   )
 
-set(${proj}_SRC_DIR ${CMAKE_SOURCE_DIR}/External-Projects/${proj})
+set(${proj}_SRC_DIR ${CMAKE_SOURCE_DIR}/External-Projects/${proj}/include)
 
 set(Anima_DEPS "${Anima_DEPS};${proj}")
