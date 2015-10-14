@@ -122,6 +122,7 @@ endif()
 include(Anima)
 
 if (USE_ANIMA_PRIVATE)
+  set(USE_GITHUB_SSH ON CACHE BOOL "Use by default Git SSH addresses, requires public key set on github" FORCE)
   include(Anima-Private)
 endif()
 
