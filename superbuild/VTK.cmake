@@ -8,7 +8,7 @@ set (cmake_args
 
 set (location "")
 if (NOT DEFINED ${proj}_SRC_DIR)
-  set(tag v6.3.0)
+  set(tag release)
   set(location GIT_REPOSITORY ${GITHUB_PREFIX}Kitware/VTK.git GIT_TAG ${tag})
 endif()
 
