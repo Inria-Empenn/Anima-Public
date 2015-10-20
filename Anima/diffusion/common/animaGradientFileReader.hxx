@@ -144,13 +144,11 @@ namespace anima
             if (gradFile.eof())
                 throw itk::ExceptionObject(__FILE__, __LINE__,"BVec file is missing data",ITK_LOCATION);
 
-            char tmpStr[8192];
-            tmpStr[0] = '\0';
+            std::string workStr;
+            do {
+                std::getline(gradFile,workStr);
+            } while((workStr == "")&&(!gradFile.eof()));
 
-            while((strcmp(tmpStr,"") == 0)&&(!gradFile.eof()))
-                gradFile.getline(tmpStr,8192);
-
-            std::string workStr(tmpStr);
             boost::algorithm::trim_right(workStr);
 
             std::istringstream iss(workStr);
@@ -232,9 +230,11 @@ namespace anima
 
         if (boost::algorithm::ends_with(m_BValueBaseString, "bvals") || boost::algorithm::ends_with(m_BValueBaseString, "bval")) // bval file
         {
-            char tmpStr[8192];
-            bvalFile.getline(tmpStr,8192);
-            std::string workStr(tmpStr);
+            std::string workStr;
+            do {
+                std::getline(bvalFile,workStr);
+            } while((workStr == "")&&(!bvalFile.eof()));
+
             boost::algorithm::trim_right(workStr);
 
             std::istringstream iss(workStr);
