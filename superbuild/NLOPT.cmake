@@ -15,7 +15,6 @@ ExternalProject_Add(${proj}
   SOURCE_DIR ${CMAKE_SOURCE_DIR}/External-Projects/${proj}
   CMAKE_GENERATOR ${cmake_gen}
   CMAKE_ARGS ${cmake_args}
-  BUILD_IN_SOURCE 0
   BUILD_ALWAYS 1
   BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}
   INSTALL_COMMAND ""
