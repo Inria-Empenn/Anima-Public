@@ -125,24 +125,3 @@ if (USE_ANIMA_PRIVATE)
   set(USE_GITHUB_SSH ON CACHE BOOL "Use by default Git SSH addresses, requires public key set on github" FORCE)
   include(Anima-Private)
 endif()
-
-# Add update target
-
-add_custom_target(update
-  DEPENDS ${Update_Repositories}
-  COMMAND echo All project have been updated
-  )
-
-# Add build target
-
-if (USE_ANIMA_PRIVATE)
-  add_custom_target(build
-    DEPENDS build-Anima-Private
-    COMMAND echo All project have been built
-    )
-else()
-  add_custom_target(build
-    DEPENDS build-Anima
-    COMMAND echo All project have been built
-    )
-endif()

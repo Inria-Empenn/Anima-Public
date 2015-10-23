@@ -35,24 +35,10 @@ ExternalProject_Add(${proj}
   CMAKE_GENERATOR ${cmake_gen}
   CMAKE_ARGS ${cmake_args}
   BUILD_IN_SOURCE 0
+  BUILD_ALWAYS 1
   BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}
-  UPDATE_COMMAND ""
   INSTALL_COMMAND ""
   )
 
 ExternalProject_Get_Property(${proj} binary_dir)
 set(${proj}_BUILD_DIR ${binary_dir})
-
-# Build custom target
-foreach (dep ${${proj}_DEPS})
-  if (TARGET build-${dep})
-    set(build-${proj}_deps build-${dep} ${build-${proj}_deps})
-  endif()
-endforeach()
-
-add_custom_target(build-${proj} 
-  COMMAND ${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE}
-  WORKING_DIRECTORY ${${proj}_BUILD_DIR}
-  COMMENT "build '${proj}' with '${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE}'"
-  DEPENDS ${build-${proj}_deps}
-  )

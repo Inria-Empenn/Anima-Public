@@ -24,8 +24,8 @@ ExternalProject_Add(${proj}
   CMAKE_GENERATOR ${cmake_gen}
   CMAKE_ARGS ${cmake_args}
   BUILD_IN_SOURCE 0
+  BUILD_ALWAYS 1
   BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}
-  UPDATE_COMMAND ""
   INSTALL_COMMAND ""
   )
 
@@ -34,25 +34,3 @@ set(${proj}_BUILD_DIR ${binary_dir})
 set(${proj}_SRC_DIR ${CMAKE_SOURCE_DIR}/External-Projects/${proj})
 
 set(Anima_DEPS "${Anima_DEPS};${proj}")
-
-# Update custom target
-set (GIT_COMMAND ${GIT_BIN} pull --ff-only)
-add_custom_target(update-${proj} 
-  COMMAND ${GIT_COMMAND}
-  WORKING_DIRECTORY ${${proj}_SRC_DIR}
-  COMMENT "Updating '${proj}' with '${GIT_COMMAND}'"
-  )
-
-set(Update_Repositories "${Update_Repositories};update-${proj}")
-
-# Build custom target
-foreach (dep ${${proj}_DEPS})
-    set(build-${proj}_deps build-${dep} ${build-${proj}_deps})
-endforeach()
-
-add_custom_target(build-${proj} 
-  COMMAND ${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE}
-  WORKING_DIRECTORY ${${proj}_BUILD_DIR}
-  COMMENT "build '${proj}' with '${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE}'"
-  DEPENDS ${build-${proj}_deps}
-  )
