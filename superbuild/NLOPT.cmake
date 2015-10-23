@@ -6,7 +6,7 @@ set (cmake_args
 
 set (location "")
 if (NOT DEFINED ${proj}_SRC_DIR)
-  set(location GIT_REPOSITORY ${GITHUB_PREFIX}ocommowi/nlopt.git GIT_TAG cmake-support)
+  set(location GIT_REPOSITORY ${GITHUB_PREFIX}ocommowi/nlopt.git GIT_TAG origin/cmake-support)
 endif()
 
 ExternalProject_Add(${proj}
