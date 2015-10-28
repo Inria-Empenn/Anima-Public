@@ -26,7 +26,8 @@ KissingSymmetricBMRegistrationMethod <TInputImageType>
     tmpTime.Stop();
     std::cout << "Matching performed in " << tmpTime.GetTotal() << std::endl;
 
-    this->GetAgregator()->SetInputRegions(this->GetFixedImage(), this->GetBlockMatcher()->GetBlockRegions());
+    this->GetAgregator()->SetInputRegions(this->GetBlockMatcher()->GetBlockRegions());
+    this->GetAgregator()->SetInputOrigins(this->GetBlockMatcher()->GetBlockPositions());
 
     if (this->GetAgregator()->GetOutputTransformType() == AgregatorType::SVF)
     {
@@ -59,7 +60,8 @@ KissingSymmetricBMRegistrationMethod <TInputImageType>
     tmpTimeReverse.Stop();
     std::cout << "Matching performed in " << tmpTimeReverse.GetTotal() << std::endl;
 
-    this->GetAgregator()->SetInputRegions(this->GetMovingImage(), this->GetBlockMatcher()->GetBlockRegions());
+    this->GetAgregator()->SetInputRegions(this->GetBlockMatcher()->GetBlockRegions());
+    this->GetAgregator()->SetInputOrigins(this->GetBlockMatcher()->GetBlockPositions());
 
     if (this->GetAgregator()->GetOutputTransformType() == AgregatorType::SVF)
     {

@@ -45,23 +45,9 @@ public:
         m_UpToDate = false;
     }
 
-    template <class TInputImageType> void SetInputRegions(const TInputImageType *refImage, const std::vector <RegionType> &inputRegions)
+    void SetInputRegions(const std::vector <RegionType> &inputRegions)
     {
-        m_InputOrigins.clear();
-        m_InputOrigins.resize(inputRegions.size());
-
-        itk::ContinuousIndex <InternalScalarType, NDimensions> tmpCenter;
-
-        for (unsigned int i = 0;i < inputRegions.size();++i)
-        {
-            for (unsigned int j = 0;j < NDimensions;++j)
-                tmpCenter[j] = inputRegions[i].GetIndex()[j] + (inputRegions[i].GetSize()[j] - 1.0) / 2.0;
-
-            refImage->TransformContinuousIndexToPhysicalPoint(tmpCenter,m_InputOrigins[i]);
-        }
-
         m_InputRegions = inputRegions;
-
         m_UpToDate = false;
     }
 

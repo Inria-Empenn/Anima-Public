@@ -60,6 +60,7 @@ BaseBlockMatcher <TInputImageType>
     initPtr->SetDamDistance(m_DamDistance);
 
     m_BlockRegions = initPtr->GetOutput();
+    m_BlockPositions = initPtr->GetOutputPositions();
     m_DamIndexes = initPtr->GetDamIndexes();
 
     std::cout << "Generated " << m_BlockRegions.size() << " blocks..." << std::endl;

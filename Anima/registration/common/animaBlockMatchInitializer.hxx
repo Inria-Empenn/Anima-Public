@@ -11,11 +11,22 @@ namespace anima
 
 template <class PixelType, unsigned int NDimensions>
 std::vector < typename BlockMatchingInitializer<PixelType,NDimensions>::ImageRegionType > &
-BlockMatchingInitializer<PixelType,NDimensions>::GetOutput()
+BlockMatchingInitializer<PixelType,NDimensions>
+::GetOutput()
 {
     this->Update();
 
     return m_Output;
+}
+
+template <class PixelType, unsigned int NDimensions>
+std::vector < typename BlockMatchingInitializer<PixelType,NDimensions>::PointType > &
+BlockMatchingInitializer<PixelType,NDimensions>
+::GetOutputPositions()
+{
+    this->Update();
+
+    return m_OutputPositions;
 }
 
 template <class PixelType, unsigned int NDimensions>
@@ -52,27 +63,37 @@ BlockMatchingInitializer<PixelType,NDimensions>
 }
 
 template <class PixelType, unsigned int NDimensions>
-void BlockMatchingInitializer<PixelType,NDimensions>::Update()
+void BlockMatchingInitializer<PixelType,NDimensions>
+::Update()
 {
     itk::MultiThreader::Pointer threaderBlockGenerator = itk::MultiThreader::New();
 
+    BlockGeneratorThreadStruct *tmpStr = new BlockGeneratorThreadStruct;
+
     std::vector <unsigned int> totalNbBlocks(NDimensions);
+    tmpStr->blockStartOffsets.resize(NDimensions);
 
     for (unsigned int i = 0;i < NDimensions;++i)
-        totalNbBlocks[i] = std::max(1,(int) floor((float)(this->GetRequestedRegion().GetSize()[i] / this->GetBlockSpacing())));
+    {
+        totalNbBlocks[i] = floor((float)(this->GetRequestedRegion().GetSize()[i] / this->GetBlockSpacing())) + 1;
+        unsigned int spaceRequired = this->GetRequestedRegion().GetSize()[i] - (totalNbBlocks[i] - 1) * this->GetBlockSpacing();
+
+        tmpStr->blockStartOffsets[i] = floor(spaceRequired / 2.0);
+    }
 
     unsigned int nb_blocks_per_thread = (unsigned int) floor((float)(totalNbBlocks[NDimensions-1] / this->GetNumberOfThreads()));
     if (nb_blocks_per_thread < 1)
         nb_blocks_per_thread = 1;
 
-    std::vector < std::vector <unsigned int> > startBlocks(this->GetNumberOfThreads()), nb_blocks(this->GetNumberOfThreads());
+    tmpStr->startBlocks.resize(this->GetNumberOfThreads());
+    tmpStr->nb_blocks.resize(this->GetNumberOfThreads());
 
     unsigned int currentCount = 0;
     for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
     {
         std::vector <unsigned int> startBlock(NDimensions,0);
         startBlock[NDimensions-1] = currentCount;
-        startBlocks[i] = startBlock;
+        tmpStr->startBlocks[i] = startBlock;
 
         std::vector <unsigned int> numBlockVec(NDimensions);
         for (unsigned int j = 0;j < NDimensions-1;++j)
@@ -87,24 +108,22 @@ void BlockMatchingInitializer<PixelType,NDimensions>::Update()
             numBlocksForThread = totalNbBlocks[NDimensions-1] - currentCount;
 
         numBlockVec[NDimensions-1] = numBlocksForThread;
-        nb_blocks[i] = numBlockVec;
+        tmpStr->nb_blocks[i] = numBlockVec;
 
         currentCount += numBlocksForThread;
     }
 
-    BlockGeneratorThreadStruct *tmpStr = new BlockGeneratorThreadStruct;
     tmpStr->Filter = this;
-    tmpStr->startBlocks = startBlocks;
-    tmpStr->nb_blocks = nb_blocks;
-
     tmpStr->tmpOutput.resize(this->GetNumberOfThreads());
     tmpStr->totalNumberOfBlocks.resize(this->GetNumberOfThreads());
+    tmpStr->blocks_positions.resize(this->GetNumberOfThreads());
     tmpStr->blocks_variances.resize(this->GetNumberOfThreads());
 
     for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
     {
         tmpStr->tmpOutput[i].clear();
         tmpStr->totalNumberOfBlocks[i] = 0;
+        tmpStr->blocks_positions[i].clear();
         tmpStr->blocks_variances[i].clear();
     }
 
@@ -126,21 +145,31 @@ void BlockMatchingInitializer<PixelType,NDimensions>::Update()
 
     if (percentageBlocksKept > m_PercentageKept)
     {
-        std::vector < std::pair <double, ImageRegionType> > sortVector;
+        std::vector < std::pair <double, std::pair <PointType, ImageRegionType> > > sortVector;
         for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
             for (unsigned int j = 0;j < tmpStr->tmpOutput[i].size();++j)
-                sortVector.push_back(std::make_pair(tmpStr->blocks_variances[i][j],tmpStr->tmpOutput[i][j]));
+            {
+                std::pair <PointType, ImageRegionType> tmpPair(tmpStr->blocks_positions[i][j],tmpStr->tmpOutput[i][j]);
+                sortVector.push_back(std::make_pair(tmpStr->blocks_variances[i][j],tmpPair));
+            }
 
         unsigned int numRemoved = std::floor((1.0 - m_PercentageKept) * totalNumberOfBlocks);
         std::partial_sort(sortVector.begin(),sortVector.begin() + numRemoved,sortVector.end(),pair_comparator());
 
         for (unsigned int i = numRemoved;i < sortVector.size();++i)
-            m_Output.push_back(sortVector[i].second);
+        {
+            m_Output.push_back(sortVector[i].second.second);
+            m_OutputPositions.push_back(sortVector[i].second.first);
+        }
     }
     else
     {
         for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
-            m_Output.insert( m_Output.end(), tmpStr->tmpOutput[i].begin(), tmpStr->tmpOutput[i].end() );
+        {
+            m_Output.insert(m_Output.end(), tmpStr->tmpOutput[i].begin(), tmpStr->tmpOutput[i].end());
+            m_OutputPositions.insert(m_OutputPositions.end(), tmpStr->blocks_positions[i].begin(),
+                                     tmpStr->blocks_positions[i].end());
+        }
     }
 
     delete tmpStr;
@@ -160,85 +189,74 @@ BlockMatchingInitializer<PixelType,NDimensions>
 
     BlockGeneratorThreadStruct *tmpStr = (BlockGeneratorThreadStruct *)threadArgs->UserData;
 
-    tmpStr->Filter->RegionBlockGenerator(tmpStr->startBlocks[nbThread],tmpStr->nb_blocks[nbThread],
-                                         tmpStr->tmpOutput[nbThread],tmpStr->blocks_variances[nbThread],
-                                         tmpStr->totalNumberOfBlocks[nbThread]);
+    tmpStr->Filter->RegionBlockGenerator(tmpStr->startBlocks[nbThread], tmpStr->blockStartOffsets, tmpStr->nb_blocks[nbThread],
+                                         tmpStr->tmpOutput[nbThread], tmpStr->blocks_positions[nbThread],
+                                         tmpStr->blocks_variances[nbThread], tmpStr->totalNumberOfBlocks[nbThread]);
 
     return NULL;
 }
 
 template <class PixelType, unsigned int NDimensions>
-void BlockMatchingInitializer<PixelType,NDimensions>::
-RegionBlockGenerator(std::vector <unsigned int> &num_start, std::vector <unsigned int> &num_blocks,
-                     std::vector <ImageRegionType> &tmpOutput, std::vector <double> &block_variances,
-                     unsigned int &total_num_blocks)
+void BlockMatchingInitializer<PixelType,NDimensions>
+::RegionBlockGenerator(std::vector <unsigned int> &num_start, std::vector <unsigned int> &block_start_offsets,
+                       std::vector <unsigned int> &num_blocks, std::vector <ImageRegionType> &tmpOutput,
+                       std::vector<PointType> &block_origins, std::vector <double> &block_variances,
+                       unsigned int &total_num_blocks)
 {
-    typename ImageRegionType::IndexType startPosition;
-    typename ImageRegionType::IndexType reqStartIndex = this->GetRequestedRegion().GetIndex();
+    typename ImageRegionType::IndexType startPosition, blockPosition;
     typename ImageRegionType::SizeType blockSize;
-
-    for (unsigned int i = 0;i < NDimensions;++i)
-    {
-        if (this->GetBlockSize() <= this->GetRequestedRegion().GetSize()[i])
-            blockSize[i] = this->GetBlockSize();
-        else
-            blockSize[i] = this->GetRequestedRegion().GetSize()[i];
-    }
+    PointType blockOrigin;
+    ImageRegionType largestRegion = this->GetFirstReferenceImage()->GetLargestPossibleRegion();
 
     ImageRegionType tmpBlock;
-    tmpBlock.SetSize(blockSize);
+    int indexPos;
     double blockVar = 0;
     total_num_blocks = 0;
     block_variances.clear();
+    block_origins.clear();
 
-    if (NDimensions == 2)
+    unsigned int block_half_size = floor ((this->GetBlockSize() - 1) / 2.0);
+
+    bool continueLoop = true;
+    std::vector <unsigned int> positionCounter(NDimensions,0);
+
+    while (continueLoop)
     {
-        for (unsigned int j = 0;j < num_blocks[1];++j)
+        for (unsigned int i = 0;i < NDimensions;++i)
         {
-            startPosition[1] = reqStartIndex[1] + (num_start[1] + j)*this->GetBlockSpacing();
-            for (unsigned int i = 0;i < num_blocks[0];++i)
+            blockSize[i] = this->GetBlockSize();
+            indexPos = block_start_offsets[i] + (num_start[i] + positionCounter[i])*this->GetBlockSpacing() - block_half_size;
+            if (indexPos < largestRegion.GetIndex()[i])
             {
-                startPosition[0] = reqStartIndex[0] + (num_start[0] + i)*this->GetBlockSpacing();
-                tmpBlock.SetIndex(startPosition);
-                total_num_blocks++;
-
-                if (this->CheckBlockConditions(tmpBlock,blockVar))
-                {
-                    tmpOutput.push_back(tmpBlock);
-                    block_variances.push_back(blockVar);
-                }
+                blockSize[i] += indexPos - largestRegion.GetIndex()[i];
+                indexPos = 0;
             }
+            startPosition[i] = indexPos;
+            if (startPosition[i] + blockSize[i] > largestRegion.GetIndex()[i] + largestRegion.GetSize()[i])
+                blockSize[i] = largestRegion.GetIndex()[i] + largestRegion.GetSize()[i] - startPosition[i] + 1;
         }
-    }
-    else if (NDimensions == 3)
-    {
-        for (unsigned int k = 0;k < num_blocks[2];++k)
+
+        tmpBlock.SetIndex(startPosition);
+        tmpBlock.SetSize(blockSize);
+        total_num_blocks++;
+
+        if (this->CheckBlockConditions(tmpBlock,blockVar))
         {
-            startPosition[2] = reqStartIndex[2] + (num_start[2] + k)*this->GetBlockSpacing();
-            for (unsigned int j = 0;j < num_blocks[1];++j)
-            {
-                startPosition[1] = reqStartIndex[1] + (num_start[1] + j)*this->GetBlockSpacing();
-                for (unsigned int i = 0;i < num_blocks[0];++i)
-                {
-                    startPosition[0] = reqStartIndex[0] + (num_start[0] + i)*this->GetBlockSpacing();
-                    tmpBlock.SetIndex(startPosition);
-                    total_num_blocks++;
-
-                    if (this->CheckBlockConditions(tmpBlock,blockVar))
-                    {
-                        tmpOutput.push_back(tmpBlock);
-                        block_variances.push_back(blockVar);
-                    }
-                }
-            }
+            tmpOutput.push_back(tmpBlock);
+            block_variances.push_back(blockVar);
+            for (unsigned int i = 0;i < NDimensions;++i)
+                blockPosition[i] = block_start_offsets[i] + (num_start[i] + positionCounter[i])*this->GetBlockSpacing();
+            this->GetFirstReferenceImage()->TransformIndexToPhysicalPoint(blockPosition,blockOrigin);
+            block_origins.push_back(blockOrigin);
         }
+
+        continueLoop = this->ProgressCounter(positionCounter,num_blocks);
     }
-    else
-        throw itk::ExceptionObject(__FILE__, __LINE__,"Images of dimension superior to 3 are not handled...",ITK_LOCATION);
 }
 
 template <class PixelType, unsigned int NDimensions>
-void BlockMatchingInitializer<PixelType,NDimensions>::ComputeOuterDamFromBlocks()
+void BlockMatchingInitializer<PixelType,NDimensions>
+::ComputeOuterDamFromBlocks()
 {
     typedef itk::Image<unsigned char, NDimensions> BlockMaskImageType;
     typedef typename BlockMaskImageType::Pointer BlockMaskImagePointer;
@@ -359,7 +377,36 @@ void BlockMatchingInitializer<PixelType,NDimensions>::ComputeOuterDamFromBlocks(
 }
 
 template <class PixelType, unsigned int NDimensions>
-bool BlockMatchingInitializer<PixelType,NDimensions>::CheckBlockConditions(ImageRegionType &region, double &blockVariance)
+bool
+BlockMatchingInitializer<PixelType,NDimensions>
+::ProgressCounter(std::vector <unsigned int> &counter, std::vector <unsigned int> & bounds)
+{
+    unsigned int pos = counter.size() - 1;
+
+    bool needUpdate = false;
+    do
+    {
+        counter[pos]++;
+        needUpdate = false;
+
+        if ((counter[pos] == bounds[pos])&&(pos > 0))
+        {
+            counter[pos] = 0;
+            --pos;
+            needUpdate = true;
+        }
+    } while (needUpdate);
+
+    if (counter[pos] >= bounds[pos])
+        return false;
+
+    return true;
+}
+
+template <class PixelType, unsigned int NDimensions>
+bool
+BlockMatchingInitializer<PixelType,NDimensions>
+::CheckBlockConditions(ImageRegionType &region, double &blockVariance)
 {
     ImageRegionType refRegion = this->GetFirstReferenceImage()->GetLargestPossibleRegion();
 
@@ -398,8 +445,8 @@ bool BlockMatchingInitializer<PixelType,NDimensions>::CheckBlockConditions(Image
 }
 
 template <class PixelType, unsigned int NDimensions>
-bool BlockMatchingInitializer<PixelType,NDimensions>::
-CheckTensorVariance(VectorImageType *refImage, ImageRegionType &region, double &blockVariance)
+bool BlockMatchingInitializer<PixelType,NDimensions>
+::CheckTensorVariance(VectorImageType *refImage, ImageRegionType &region, double &blockVariance)
 {
     itk::ImageRegionConstIterator <VectorImageType> refItr(refImage,region);
     typedef typename VectorImageType::PixelType VectorType;
@@ -450,8 +497,8 @@ CheckTensorVariance(VectorImageType *refImage, ImageRegionType &region, double &
 }
 
 template <class PixelType, unsigned int NDimensions>
-bool BlockMatchingInitializer<PixelType,NDimensions>::
-CheckScalarVariance(ScalarImageType *refImage, ImageRegionType &region, double &blockVariance)
+bool BlockMatchingInitializer<PixelType,NDimensions>
+::CheckScalarVariance(ScalarImageType *refImage, ImageRegionType &region, double &blockVariance)
 {
     itk::ImageRegionConstIterator <ScalarImageType> refItr(refImage,region);
     blockVariance = 0;

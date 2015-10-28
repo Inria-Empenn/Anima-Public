@@ -68,6 +68,7 @@ public:
 
     void Update();
 
+    std::vector <PointType> &GetBlockPositions() {return m_BlockPositions;}
     std::vector <ImageRegionType> &GetBlockRegions() {return m_BlockRegions;}
     ImageRegionType &GetBlockRegion(unsigned int i) {return m_BlockRegions[i];}
     std::vector <ImageIndexType> &GetDamIndexes() {return m_DamIndexes;}
@@ -115,6 +116,7 @@ private:
     unsigned int m_NumberOfThreads;
 
     // The origins of the blocks
+    std::vector <PointType> m_BlockPositions;
     std::vector <ImageRegionType> m_BlockRegions;
     std::vector <ImageIndexType> m_DamIndexes;
 

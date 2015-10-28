@@ -103,19 +103,15 @@ estimateSVFFromTranslations()
     ParametersType tmpParams;
     std::vector <VelocityFieldPixelType> curDisps(nbPts);
     std::vector <VelocityFieldIndexType> posIndexes(nbPts);
-    VelocityFieldRegionType tmpRegion;
 
     for (unsigned int i = 0;i < nbPts;++i)
     {
         tmpParams = this->GetInputTransform(i)->GetParameters();
-        tmpRegion = this->GetInputRegions()[i];
         double tmpWeight = this->GetInputWeight(i);
+        weights->TransformPhysicalPointToIndex(this->GetInputOrigin(i),posIndexes[i]);
 
         for (unsigned int j = 0;j < NDimensions;++j)
-        {
-            posIndexes[i][j] = (unsigned int)floor((tmpRegion.GetIndex()[j] + tmpRegion.GetSize()[j] / 2.0) + 0.5);
             curDisps[i][j] = tmpParams[j];
-        }
 
         velocityField->SetPixel(posIndexes[i],curDisps[i] * tmpWeight);
         weights->SetPixel(posIndexes[i],tmpWeight);
@@ -174,11 +170,7 @@ estimateSVFFromRigidTransforms()
     weights->FillBuffer(anima::zeroWeight);
 
     RigidVectorType curLog;
-    VelocityFieldIndexType posIndex;
-    VelocityFieldRegionType tmpRegion;
 
-    typename BaseMatrixTransformType::MatrixType affinePart;
-    itk::Vector <InternalScalarType,NDimensions> offsetPart;
     vnl_matrix <InternalScalarType> tmpMatrix(NDimensions+1,NDimensions+1,0);
     tmpMatrix(NDimensions,NDimensions) = 1;
     std::vector < RigidVectorType > logVectors(nbPts);
@@ -189,18 +181,13 @@ estimateSVFFromRigidTransforms()
 
     for (unsigned int i = 0;i < nbPts;++i)
     {
-        tmpRegion = this->GetInputRegions()[i];
         double tmpWeight = this->GetInputWeight(i);
-
-        for (unsigned int j = 0;j < NDimensions;++j)
-            posIndex[j] = (unsigned int)floor((tmpRegion.GetIndex()[j] + tmpRegion.GetSize()[j] / 2.0) + 0.5);
-
-        posIndexes[i] = posIndex;
+        weights->TransformPhysicalPointToIndex(this->GetInputOrigin(i),posIndexes[i]);
 
         LogRigidTransformType *tmpTrsf = (LogRigidTransformType *)this->GetInputTransform(i);
         logVectors[i] = tmpTrsf->GetLogVector();
-        rigidField->SetPixel(posIndex,logVectors[i] * tmpWeight);
-        weights->SetPixel(posIndex,tmpWeight);
+        rigidField->SetPixel(posIndexes[i],logVectors[i] * tmpWeight);
+        weights->SetPixel(posIndexes[i],tmpWeight);
     }
 
     for (unsigned int i = 0;i < m_DamIndexes.size();++i)
@@ -306,8 +293,6 @@ estimateSVFFromAffineTransforms()
     weights->FillBuffer(anima::zeroWeight);
 
     AffineVectorType curLog;
-    VelocityFieldIndexType posIndex;
-    VelocityFieldRegionType tmpRegion;
     VelocityFieldPointType curPoint;
 
     vnl_matrix <InternalScalarType> tmpMatrix(NDimensions+1,NDimensions+1,0);
@@ -342,11 +327,8 @@ estimateSVFFromAffineTransforms()
 
     for (unsigned int i = 0;i < nbPts;++i)
     {
-        tmpRegion = this->GetInputRegions()[i];
         double tmpWeight = this->GetInputWeight(i);
-
-        for (unsigned int j = 0;j < NDimensions;++j)
-            posIndex[j] = (unsigned int)floor((tmpRegion.GetIndex()[j] + tmpRegion.GetSize()[j] / 2.0) + 0.5);
+        weights->TransformPhysicalPointToIndex(this->GetInputOrigin(i),posIndexes[i]);
 
         if (boost::math::isnan(logVectors[i][0]))
         {
@@ -354,9 +336,8 @@ estimateSVFFromAffineTransforms()
             tmpWeight = 0;
         }
 
-        posIndexes[i] = posIndex;
-        affineField->SetPixel(posIndex,logVectors[i] * tmpWeight);
-        weights->SetPixel(posIndex,tmpWeight);
+        affineField->SetPixel(posIndexes[i],logVectors[i] * tmpWeight);
+        weights->SetPixel(posIndexes[i],tmpWeight);
     }
 
     for (unsigned int i = 0;i < m_DamIndexes.size();++i)

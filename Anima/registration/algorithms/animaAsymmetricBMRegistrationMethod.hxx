@@ -23,7 +23,8 @@ AsymmetricBMRegistrationMethod <TInputImageType>
     tmpTime.Stop();
     std::cout << "Matching performed in " << tmpTime.GetTotal() << std::endl;
 
-    this->GetAgregator()->SetInputRegions(this->GetFixedImage(), this->GetBlockMatcher()->GetBlockRegions());
+    this->GetAgregator()->SetInputRegions(this->GetBlockMatcher()->GetBlockRegions());
+    this->GetAgregator()->SetInputOrigins(this->GetBlockMatcher()->GetBlockPositions());
 
     if (this->GetAgregator()->GetOutputTransformType() == AgregatorType::SVF)
     {

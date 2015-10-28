@@ -105,21 +105,15 @@ estimateSVFFromTranslations()
     ParametersType tmpParams;
     VelocityFieldPixelType curDisp;
     VelocityFieldIndexType posIndex;
-    VelocityFieldRegionType tmpRegion;
 
     for (unsigned int i = 0;i < nbPts;++i)
     {
         tmpParams = this->GetInputTransform(i)->GetParameters();
-        tmpRegion = this->GetInputRegions()[i];
         double tmpWeight = this->GetInputWeight(i);
 
+        weights->TransformPhysicalPointToIndex(this->GetInputOrigin(i),posIndex);
         for (unsigned int j = 0;j < NDimensions;++j)
-        {
-            //round() is not always defined
-            //round() can be replaced by floor(i+0.5)
-            posIndex[j] = (unsigned int)floor((tmpRegion.GetIndex()[j] + tmpRegion.GetSize()[j] / 2.0) + 0.5);
             curDisp[j] = tmpParams[j];
-        }
 
         velocityField->SetPixel(posIndex,curDisp);
         weights->SetPixel(posIndex,tmpWeight);
@@ -198,7 +192,6 @@ estimateSVFFromRigidTransforms()
 
     RigidVectorType curLog;
     VelocityFieldIndexType posIndex;
-    VelocityFieldRegionType tmpRegion;
 
     vnl_matrix <InternalScalarType> tmpMatrix(NDimensions+1,NDimensions+1,0);
     tmpMatrix(NDimensions,NDimensions) = 1;
@@ -207,11 +200,8 @@ estimateSVFFromRigidTransforms()
 
     for (unsigned int i = 0;i < nbPts;++i)
     {
-        tmpRegion = this->GetInputRegions()[i];
         double tmpWeight = this->GetInputWeight(i);
-
-        for (unsigned int j = 0;j < NDimensions;++j)
-            posIndex[j] = (unsigned int)floor((tmpRegion.GetIndex()[j] + tmpRegion.GetSize()[j] / 2.0) + 0.5);
+        weights->TransformPhysicalPointToIndex(this->GetInputOrigin(i),posIndex);
 
         LogRigidTransformType *tmpTrsf = (LogRigidTransformType *)this->GetInputTransform(i);
         rigidField->SetPixel(posIndex,tmpTrsf->GetLogVector());
@@ -341,7 +331,6 @@ estimateSVFFromAffineTransforms()
 
     AffineVectorType curLog;
     VelocityFieldIndexType posIndex;
-    VelocityFieldRegionType tmpRegion;
 
     vnl_matrix <InternalScalarType> tmpMatrix(NDimensions+1,NDimensions+1,0);
     tmpMatrix(NDimensions,NDimensions) = 1;
@@ -374,11 +363,8 @@ estimateSVFFromAffineTransforms()
 
     for (unsigned int i = 0;i < nbPts;++i)
     {
-        tmpRegion = this->GetInputRegions()[i];
         double tmpWeight = this->GetInputWeight(i);
-
-        for (unsigned int j = 0;j < NDimensions;++j)
-            posIndex[j] = (unsigned int)floor((tmpRegion.GetIndex()[j] + tmpRegion.GetSize()[j] / 2.0) + 0.5);
+        weights->TransformPhysicalPointToIndex(this->GetInputOrigin(i),posIndex);
 
         if (boost::math::isnan(logVectors[i][0]))
         {

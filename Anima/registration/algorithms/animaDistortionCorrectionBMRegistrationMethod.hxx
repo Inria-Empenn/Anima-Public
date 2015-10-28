@@ -196,7 +196,8 @@ DistortionCorrectionBMRegistrationMethod <TInputImageType>
     tmpTime.Stop();
     std::cout << "Forward matching performed in " << tmpTime.GetTotal() << std::endl;
 
-    this->GetAgregator()->SetInputRegions(this->GetFixedImage(), this->GetBlockMatcher()->GetBlockRegions());
+    this->GetAgregator()->SetInputRegions(this->GetBlockMatcher()->GetBlockRegions());
+    this->GetAgregator()->SetInputOrigins(this->GetBlockMatcher()->GetBlockPositions());
 
     typedef anima::BalooSVFTransformAgregator<InputImageType::ImageDimension> SVFAgregatorType;
     SVFAgregatorType *tmpAgreg = dynamic_cast <SVFAgregatorType *> (this->GetAgregator());
@@ -231,7 +232,8 @@ DistortionCorrectionBMRegistrationMethod <TInputImageType>
     tmpTimeReverse.Stop();
     std::cout << "Backward matching performed in " << tmpTimeReverse.GetTotal() << std::endl;
 
-    this->GetAgregator()->SetInputRegions(this->GetMovingImage(), this->GetBlockMatcher()->GetBlockRegions());
+    this->GetAgregator()->SetInputRegions(this->GetBlockMatcher()->GetBlockRegions());
+    this->GetAgregator()->SetInputOrigins(this->GetBlockMatcher()->GetBlockPositions());
 
     typedef anima::BalooSVFTransformAgregator<InputImageType::ImageDimension> SVFAgregatorType;
     tmpAgreg = dynamic_cast <SVFAgregatorType *> (this->GetAgregator());

@@ -22,6 +22,7 @@ public:
 
     typedef itk::Image <PixelType, NDimensions> ScalarImageType;
     typedef typename ScalarImageType::IndexType IndexType;
+    typedef typename ScalarImageType::PointType PointType;
     typedef itk::VectorImage <PixelType, NDimensions> VectorImageType;
 
     /** Method for creation through the object factory. */
@@ -72,11 +73,13 @@ public:
     // Does the splitting and calls RegionBlockGenerator on a sub region
     static ITK_THREAD_RETURN_TYPE ThreadBlockGenerator(void *arg);
 
-    void RegionBlockGenerator(std::vector <unsigned int> &num_start, std::vector <unsigned int> &num_blocks,
-                              std::vector <ImageRegionType> &tmpOutput, std::vector <double> &block_variances,
+    void RegionBlockGenerator(std::vector <unsigned int> &num_start, std::vector <unsigned int> &block_start_offsets,
+                              std::vector <unsigned int> &num_blocks, std::vector <ImageRegionType> &tmpOutput,
+                              std::vector <PointType> &block_origins, std::vector <double> &block_variances,
                               unsigned int &total_num_blocks);
 
     std::vector <ImageRegionType> &GetOutput();
+    std::vector <PointType> &GetOutputPositions();
 
 protected:
     BlockMatchingInitializer() : Superclass()
@@ -103,18 +106,23 @@ protected:
     bool CheckScalarVariance(ScalarImageType *refImage, ImageRegionType &region, double &blockVariance);
     bool CheckTensorVariance(VectorImageType *refImage, ImageRegionType &region, double &blockVariance);
 
+    bool ProgressCounter(std::vector <unsigned int> &counter, std::vector <unsigned int> &bounds);
+
     struct BlockGeneratorThreadStruct
     {
         Pointer Filter;
         std::vector < std::vector <ImageRegionType> > tmpOutput;
+        std::vector <unsigned int> blockStartOffsets;
         std::vector < std::vector <unsigned int> > startBlocks, nb_blocks;
         std::vector <unsigned int> totalNumberOfBlocks;
         std::vector < std::vector <double> > blocks_variances;
+        std::vector < std::vector <PointType> > blocks_positions;
     };
 
     struct pair_comparator
     {
-        bool operator() (const std::pair<double, ImageRegionType> & f, const std::pair<double, ImageRegionType> & s)
+        bool operator() (const std::pair<double, std::pair <PointType, ImageRegionType> > & f,
+                         const std::pair<double, std::pair <PointType, ImageRegionType> > & s)
         { return (f.first < s.first); }
     };
 
@@ -141,6 +149,7 @@ private:
     std::vector <VectorImagePointer> m_ReferenceVectorImages;
 
     std::vector <ImageRegionType> m_Output;
+    std::vector <PointType> m_OutputPositions;
 };
 
 } // end of namespace anima
