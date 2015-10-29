@@ -497,6 +497,12 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::SetupPyramids()
     if (this->GetNumberOfThreads() != 0)
         m_ReferencePyramid->SetNumberOfThreads(this->GetNumberOfThreads());
 
+    typedef anima::ResampleImageFilter<InputImageType, InputImageType,
+                                     typename BaseAgregatorType::ScalarType> ResampleFilterType;
+
+    typename ResampleFilterType::Pointer refResampler = ResampleFilterType::New();
+    m_ReferencePyramid->SetImageResampler(refResampler);
+
     m_ReferencePyramid->Update();
 
     // Create pyramid for floating image
@@ -507,6 +513,9 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::SetupPyramids()
 
     if (this->GetNumberOfThreads() != 0)
         m_FloatingPyramid->SetNumberOfThreads(this->GetNumberOfThreads());
+
+    typename ResampleFilterType::Pointer floResampler = ResampleFilterType::New();
+    m_FloatingPyramid->SetImageResampler(floResampler);
 
     m_FloatingPyramid->Update();
 }

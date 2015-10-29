@@ -5,16 +5,24 @@
 
 namespace anima
 {
+
+/** \class PyramidImageFilter
+ * \brief Computes a pyramid of images using the provided resampler to perform resampling
+ *
+ * Computes a pyramid of images, taking into account voxel anisotropy when dividing dimensions.
+ * Requires an external image resampler provided by the user to resample images
+ *
+ */
 template <class TInputImage, class TOutputImage>
 class PyramidImageFilter :
 public itk::ImageToImageFilter< TInputImage, TOutputImage >
 {
 public:
     /** Standard class typedefs. */
-    typedef PyramidImageFilter                            Self;
-    typedef itk::ImageToImageFilter<TInputImage,TOutputImage>  Superclass;
-    typedef itk::SmartPointer<Self>                            Pointer;
-    typedef itk::SmartPointer<const Self>                      ConstPointer;
+    typedef PyramidImageFilter Self;
+    typedef itk::ImageToImageFilter<TInputImage,TOutputImage> Superclass;
+    typedef itk::SmartPointer<Self> Pointer;
+    typedef itk::SmartPointer<const Self> ConstPointer;
 
     /** Method for creation through the object factory. */
     itkNewMacro(Self);
@@ -40,9 +48,14 @@ public:
     typedef itk::VectorImage <typename TInputImage::IOPixelType,TInputImage::ImageDimension> VectorOutputImageType;
     typedef typename VectorOutputImageType::Pointer VectorOutputImagePointer;
 
+    typedef itk::ImageToImageFilter <TInputImage,TOutputImage> BaseResamplerType;
+    typedef typename BaseResamplerType::Pointer BaseResamplerPointer;
+
     /** Set/Get the number of multi-resolution levels. */
     itkSetMacro(NumberOfLevels, unsigned int);
     itkGetConstMacro(NumberOfLevels, unsigned int);
+
+    itkSetObjectMacro(ImageResampler, BaseResamplerType);
 
 protected:
     PyramidImageFilter();
@@ -61,6 +74,7 @@ private:
     void operator=(const Self&); //purposely not implemented
 
     unsigned int m_NumberOfLevels;
+    BaseResamplerPointer m_ImageResampler;
 
     // Internal variables to compute images
     std::vector <RegionType> m_LevelRegions;

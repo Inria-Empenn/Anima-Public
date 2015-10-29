@@ -485,6 +485,9 @@ template <unsigned int ImageDimension>
     m_ReferencePyramid->SetInput(m_ReferenceImage);
     m_ReferencePyramid->SetNumberOfLevels(GetNumberOfPyramidLevels());
     m_ReferencePyramid->SetNumberOfThreads(GetNumberOfThreads());
+
+    typename ResampleFilterType::Pointer refResampler = ResampleFilterType::New();
+    m_ReferencePyramid->SetImageResampler(refResampler);
     m_ReferencePyramid->Update();
 
     InputImagePointer initialFloatingImage = const_cast <InputImageType *> (m_FloatingImage.GetPointer());
@@ -544,6 +547,10 @@ template <unsigned int ImageDimension>
     m_FloatingPyramid->SetInput(initialFloatingImage);
     m_FloatingPyramid->SetNumberOfLevels(GetNumberOfPyramidLevels());
     m_FloatingPyramid->SetNumberOfThreads(GetNumberOfThreads());
+
+    typename ResampleFilterType::Pointer floResampler = ResampleFilterType::New();
+    m_FloatingPyramid->SetImageResampler(floResampler);
+
     m_FloatingPyramid->Update();
 }
 

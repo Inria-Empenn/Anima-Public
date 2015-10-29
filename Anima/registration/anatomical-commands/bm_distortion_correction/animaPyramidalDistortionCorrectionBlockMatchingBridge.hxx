@@ -1,7 +1,5 @@
 #pragma once
 #include "animaPyramidalDistortionCorrectionBlockMatchingBridge.h"
-
-#include <itkMultiResolutionPyramidImageFilter.h>
 #include <itkImageMomentsCalculator.h>
 
 #include <animaDistortionCorrectionBMRegistrationMethod.h>
@@ -382,6 +380,12 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::SetupPyramids(
     m_BackwardPyramid->SetNumberOfLevels(m_NumberOfPyramidLevels);
     m_BackwardPyramid->SetNumberOfThreads(this->GetNumberOfThreads());
 
+    typedef typename anima::ResampleImageFilter<InputImageType, InputImageType,
+            typename BaseAgregatorType::ScalarType> ResampleFilterType;
+
+    typename ResampleFilterType::Pointer backwardResampler = ResampleFilterType::New();
+    m_BackwardPyramid->SetImageResampler(backwardResampler);
+
     m_BackwardPyramid->Update();
 
     // Create pyramid for floating image
@@ -390,6 +394,9 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::SetupPyramids(
     m_ForwardPyramid->SetInput(m_ForwardImage);
     m_ForwardPyramid->SetNumberOfLevels(m_NumberOfPyramidLevels);
     m_ForwardPyramid->SetNumberOfThreads(this->GetNumberOfThreads());
+
+    typename ResampleFilterType::Pointer forwardResampler = ResampleFilterType::New();
+    m_ForwardPyramid->SetImageResampler(forwardResampler);
 
     m_ForwardPyramid->Update();
 }

@@ -7,6 +7,7 @@
 #include <animaKissingSymmetricBMRegistrationMethod.h>
 
 #include <itkVectorResampleImageFilter.h>
+#include <animaFiniteStrainTensorResampleImageFilter.h>
 
 #include <animaLogTensorImageFilter.h>
 #include <animaExpTensorImageFilter.h>
@@ -451,6 +452,12 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::SetupPyramids()
     if (this->GetNumberOfThreads() != 0)
         m_ReferencePyramid->SetNumberOfThreads(this->GetNumberOfThreads());
 
+    typedef typename anima::FiniteStrainTensorResampleImageFilter<InputInternalPixelType, ImageDimension,
+                                                                  typename BaseAgregatorType::ScalarType> ResampleFilterType;
+
+    typename ResampleFilterType::Pointer refResampler = ResampleFilterType::New();
+    m_ReferencePyramid->SetImageResampler(refResampler);
+
     m_ReferencePyramid->Update();
 
     // Create pyramid for floating image
@@ -461,6 +468,9 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::SetupPyramids()
 
     if (this->GetNumberOfThreads() != 0)
         m_FloatingPyramid->SetNumberOfThreads(this->GetNumberOfThreads());
+
+    typename ResampleFilterType::Pointer floResampler = ResampleFilterType::New();
+    m_FloatingPyramid->SetImageResampler(floResampler);
 
     m_FloatingPyramid->Update();
 }

@@ -4,7 +4,7 @@
 #include <itkImageFileWriter.h>
 
 #include <animaResampleImageFilter.h>
-#include <animaFiniteStrainTensorResampleImageFilter.h>
+#include <animaOrientedModelBaseResampleImageFilter.h>
 
 #include <itkIdentityTransform.h>
 
@@ -16,6 +16,7 @@ PyramidImageFilter<TInputImage,TOutputImage>::
 PyramidImageFilter()
 {
     m_NumberOfLevels = 1;
+    m_ImageResampler = 0;
 }
 
 template <class TInputImage, class TOutputImage>
@@ -183,6 +184,9 @@ void
 PyramidImageFilter<TInputImage,TOutputImage>::
 GenerateData()
 {
+    if (!m_ImageResampler)
+        itkExceptionMacro("Image resampler for pyramid filter not provided");
+
     this->CheckNumberOfLevels();
 
     this->SetNumberOfRequiredOutputs(m_NumberOfLevels);
@@ -220,10 +224,9 @@ CreateLevelVectorImage(unsigned int level)
 
     typename BaseTrsfType::Pointer baseTrsf = idTrsf.GetPointer();
 
-    typedef anima::FiniteStrainTensorResampleImageFilter <InputInternalScalarType, InputImageType::ImageDimension> ResamplerType;
+    typedef anima::OrientedModelBaseResampleImageFilter <InputInternalScalarType, InputImageType::ImageDimension> ResamplerType;
 
-    typename ResamplerType::Pointer resample = ResamplerType::New();
-
+    ResamplerType *resample = dynamic_cast <ResamplerType *> (m_ImageResampler.GetPointer());
     resample->SetNumberOfThreads(this->GetNumberOfThreads());
 
     // Compute new origin
@@ -283,7 +286,7 @@ CreateLevelImage(unsigned int level)
 
     typedef anima::ResampleImageFilter <ScalarInputImageType, ScalarOutputImageType, double> ResamplerType;
 
-    typename ResamplerType::Pointer resample = ResamplerType::New();
+    ResamplerType *resample = dynamic_cast <ResamplerType *> (m_ImageResampler.GetPointer());
 
     resample->SetTransform(idTrsf);
     resample->SetNumberOfThreads(this->GetNumberOfThreads());
