@@ -67,16 +67,8 @@ BaseBlockMatcher <TInputImageType>
 
     m_BlockTransformPointers.resize(m_BlockRegions.size());
     m_BlockWeights.resize(m_BlockRegions.size());
-    itk::ContinuousIndex <InternalScalarType, TInputImageType::ImageDimension> tmpCenter;
-    PointType blockCenter;
     for (unsigned int i = 0;i < m_BlockRegions.size();++i)
-    {
-        for (unsigned int j = 0;j < InputImageType::ImageDimension;++j)
-            tmpCenter[j] = m_BlockRegions[i].GetIndex()[j] + (m_BlockRegions[i].GetSize()[j] - 1.0) / 2.0;
-
-        m_ReferenceImage->TransformContinuousIndexToPhysicalPoint(tmpCenter,blockCenter);
-        m_BlockTransformPointers[i] = this->GetNewBlockTransform(blockCenter);
-    }
+        m_BlockTransformPointers[i] = this->GetNewBlockTransform(m_BlockPositions[i]);
 }
 
 template <typename TInputImageType>

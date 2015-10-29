@@ -47,17 +47,25 @@ public:
 
     void SetForceComputeBlocks(bool val) {m_ForceComputeBlocks = val;}
     void SetNumberOfThreads(unsigned int val) {m_NumberOfThreads = val;}
+    unsigned int GetNumberOfThreads() {return m_NumberOfThreads;}
 
     void SetBlockVarianceThreshold(double val) {m_BlockVarianceThreshold = val;}
     double GetBlockVarianceThreshold() {return m_BlockVarianceThreshold;}
 
     void SetBlockPercentageKept(double val) {m_BlockPercentageKept = val;}
+    double GetBlockPercentageKept() {return m_BlockPercentageKept;}
 
     void SetBlockSize(unsigned int val) {m_BlockSize = val;}
+    unsigned int GetBlockSize() {return m_BlockSize;}
+
     void SetBlockSpacing(unsigned int val) {m_BlockSpacing = val;}
+    unsigned int GetBlockSpacing() {return m_BlockSpacing;}
 
     void SetUseTransformationDam(bool val) {m_UseTransformationDam = val;}
+    bool GetUseTransformationDam() {return m_UseTransformationDam;}
+
     void SetDamDistance(double val) {m_DamDistance = val;}
+    double GetDamDistance() {return m_DamDistance;}
 
     void SetSearchRadius(double val) {m_SearchRadius = val;}
     double GetSearchRadius() {return m_SearchRadius;}
@@ -107,6 +115,11 @@ protected:
 
     virtual void BlockMatchingSetup(MetricPointer &metric, unsigned int block) = 0;
     virtual void TransformDependantOptimizerSetup(OptimizerPointer &optimizer) = 0;
+
+    // Internal setters for re-implementations of block initialization
+    void SetBlockRegions(std::vector <ImageRegionType> &val) {m_BlockRegions = val;}
+    void SetBlockPositions(std::vector <PointType> &val) {m_BlockPositions = val;}
+    void SetDamIndexes(std::vector <ImageIndexType> &val) {m_DamIndexes = val;}
 
 private:
     InputImagePointer m_ReferenceImage;
