@@ -117,6 +117,7 @@ protected:
     virtual void TransformDependantOptimizerSetup(OptimizerPointer &optimizer) = 0;
 
     // Internal setters for re-implementations of block initialization
+    void SetBlockWeights(std::vector <double> &val) {m_BlockWeights = val;}
     void SetBlockRegions(std::vector <ImageRegionType> &val) {m_BlockRegions = val;}
     void SetBlockPositions(std::vector <PointType> &val) {m_BlockPositions = val;}
     void SetDamIndexes(std::vector <ImageIndexType> &val) {m_DamIndexes = val;}
