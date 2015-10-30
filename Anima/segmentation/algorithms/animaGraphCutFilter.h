@@ -43,12 +43,8 @@ public:
     typedef double                    NumericType;
     typedef itk::VariableSizeMatrix<NumericType> FloatVariableSizeMatrixType;
 
-    /** The mri images.*/
-    void SetInputImage1(const TInput* image);
-    void SetInputImage2(const TInput* image);
-    void SetInputImage3(const TInput* image);
-    void SetInputImage4(const TInput* image);
-    void SetInputImage5(const TInput* image);
+    /** The MRI images.*/
+    void SetInputImage(unsigned int i, const TInput* image);
 
     /** mask in which the segmentation will be performed
      */
@@ -128,7 +124,6 @@ protected:
         m_Verbose=false;
         m_NbInputs = 2;
         m_NbMaxImages = 12;
-        m_IndexImage1 = m_NbMaxImages, m_IndexImage2 = m_NbMaxImages,m_IndexImage3 = m_NbMaxImages, m_IndexImage4 = m_NbMaxImages,m_IndexImage5 = m_NbMaxImages,
         m_IndexSourcesMask = m_NbMaxImages, m_IndexSourcesProba = m_NbMaxImages,m_IndexSinksMask = m_NbMaxImages, m_IndexSinksProba = m_NbMaxImages,m_IndexMask= m_NbMaxImages;
 
         m_Tol = 0.0001;
@@ -150,12 +145,6 @@ protected:
 
     /**  Create the Output */
     itk::DataObject::Pointer MakeOutput(unsigned int idx);
-
-    typename TInput::ConstPointer GetInputImage1();
-    typename TInput::ConstPointer GetInputImage2();
-    typename TInput::ConstPointer GetInputImage3();
-    typename TInput::ConstPointer GetInputImage4();
-    typename TInput::ConstPointer GetInputImage5();
 
     TMask::ConstPointer GetMask();
 
@@ -206,8 +195,7 @@ private:
 
     unsigned int m_NbInputs;
     unsigned int m_NbModalities, m_NbMaxImages;
-    unsigned int m_IndexImage1, m_IndexImage2, m_IndexImage3, m_IndexImage4,
-    m_IndexImage5, m_IndexSourcesMask, m_IndexSourcesProba, m_IndexSinksMask, m_IndexSinksProba, m_IndexMask;
+    unsigned int m_IndexSourcesMask, m_IndexSourcesProba, m_IndexSinksMask, m_IndexSinksProba, m_IndexMask;
 
     double m_Tol;
 

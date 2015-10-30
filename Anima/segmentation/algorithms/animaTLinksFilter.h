@@ -62,11 +62,7 @@ public:
 
 
     /** The mri images.*/
-    void SetInputImage1(const TInput* image);
-    void SetInputImage2(const TInput* image);
-    void SetInputImage3(const TInput* image);
-    void SetInputImage4(const TInput* image);
-    void SetInputImage5(const TInput* image);
+    void SetInputImage(unsigned int i, const TInput* image);
 
     /** probabilities containing the seeds for the object and the background or binary masks containing the seeds for the object and the background
      */
@@ -120,8 +116,7 @@ protected:
         m_Verbose=false;
 
         m_NbMaxImage = 11;
-        m_IndexImage1= m_NbMaxImage, m_IndexImage2= m_NbMaxImage,m_IndexImage3= m_NbMaxImage, m_IndexImage4= m_NbMaxImage,
-        m_IndexImage5= m_NbMaxImage,m_IndexSourcesMask= m_NbMaxImage, m_IndexSourcesProba= m_NbMaxImage,m_IndexSinksMask= m_NbMaxImage, m_IndexSinksProba= m_NbMaxImage;
+        m_IndexSourcesMask= m_NbMaxImage, m_IndexSourcesProba= m_NbMaxImage,m_IndexSinksMask= m_NbMaxImage, m_IndexSinksProba= m_NbMaxImage;
 
         this->SetNumberOfRequiredOutputs(2);
         this->SetNumberOfRequiredInputs(2);
@@ -133,12 +128,6 @@ protected:
     virtual ~TLinksFilter()
     {
     }
-
-    typename TInput::ConstPointer GetInputImage1();
-    typename TInput::ConstPointer GetInputImage2();
-    typename TInput::ConstPointer GetInputImage3();
-    typename TInput::ConstPointer GetInputImage4();
-    typename TInput::ConstPointer GetInputImage5();
 
     TSeedMask::ConstPointer GetInputSeedSourcesMask();
     TSeedMask::ConstPointer GetInputSeedSinksMask();
@@ -172,7 +161,7 @@ private:
     bool m_Verbose;
     unsigned int m_NbModalities;
     unsigned int m_NbInputs, m_NbMaxImage;
-    unsigned int m_IndexImage1, m_IndexImage2, m_IndexImage3, m_IndexImage4, m_IndexImage5, m_IndexSourcesMask, m_IndexSourcesProba, m_IndexSinksMask, m_IndexSinksProba;
+    unsigned int m_IndexSourcesMask, m_IndexSourcesProba, m_IndexSinksMask, m_IndexSinksProba;
 
     std::vector<InConstIteratorType> m_imagesVectorIt;
     std::vector<InIteratorType> m_imagesVectorIt2;

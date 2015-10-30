@@ -70,11 +70,7 @@ public:
     typedef itk::ResampleImageFilter<TSeedProba, TSeedProba> ResampleImageFilterFloatType;
 
     /** The mri images.*/
-    void SetInputImage1(const TInput* image);
-    void SetInputImage2(const TInput* image);
-    void SetInputImage3(const TInput* image);
-    void SetInputImage4(const TInput* image);
-    void SetInputImage5(const TInput* image);
+    void SetInputImage(unsigned int i, const TInput* image);
 
     /** mask in which the segmentation will be performed
      */

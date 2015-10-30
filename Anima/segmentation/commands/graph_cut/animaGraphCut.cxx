@@ -10,27 +10,25 @@ int main(int argc, const char** argv)
     // Parsing arguments
     TCLAP::CmdLine  cmd("INRIA / IRISA - VisAGeS Team", ' ',"1.0");
 
-    TCLAP::ValueArg<std::string> inputFileT1Arg("i","input-t1","T1 input image",false,"","T1 input image",cmd);
-    TCLAP::ValueArg<std::string> inputFileT2Arg("j","input-t2","T2 input image",false,"","T2 input image",cmd);
-    TCLAP::ValueArg<std::string> inputFileDPArg("k","input-dp","DP input image",false,"","DP input image",cmd);
-    TCLAP::ValueArg<std::string> inputFileFLAIRArg("l","input-flair","FLAIR input image",false,"","FLAIR input image",cmd);
-    TCLAP::ValueArg<std::string> inputFileT1GdArg("","input-t1Gd","T1Gd input image",false,"","T1Gd input image",cmd);
-    TCLAP::ValueArg<std::string> maskFileArg("m","mask","Brain mask",true,"","mask",cmd);
-    TCLAP::ValueArg<std::string> sourcesMaskFileArg("","sof","Sources input image",false,"","Sources input image",cmd);
-    TCLAP::ValueArg<std::string> sinksMaskFileArg("","sif","Sinks input image",false,"","Sinks input image",cmd);
+    TCLAP::MultiArg<std::string> inputArg("i","input","Input images to segment (up to 5, e.g. T1, T2, DP, FLAIR, T1-Gd)",
+                                          true,"input images",cmd);
+
+    TCLAP::ValueArg<std::string> maskFileArg("m","mask","Brain mask",false,"","brain mask",cmd);
+    TCLAP::ValueArg<std::string> sourcesMaskFileArg("","sof","Sources input image",true,"","Sources input image",cmd);
+    TCLAP::ValueArg<std::string> sinksMaskFileArg("","sif","Sinks input image",true,"","Sinks input image",cmd);
     TCLAP::ValueArg<std::string> sourcesProbaFileArg("","sopf","Probabilities sources input image",false,"","Probabilities sources input image",cmd);
     TCLAP::ValueArg<std::string> sinksProbaFileArg("","sipf","Probabilities sinks input image",false,"","Probabilities sinks input image",cmd);
-    TCLAP::SwitchArg verboseArg("v","verbose","verbose mode (default: false)",cmd,false);
+    TCLAP::SwitchArg verboseArg("V","verbose","verbose mode (default: false)",cmd,false);
 
-    TCLAP::SwitchArg notUseSpecGradArg("u","no-usg","Do not use spectral gradient (default: false)",cmd,false);
-    TCLAP::ValueArg<int> TLinkModeArg("","mode","Graph cut computation mode (default: 1 --> strem mode)",false,1,"graph cut computation mode",cmd);
+    TCLAP::SwitchArg notUseSpecGradArg("U","no-usg","Do not use spectral gradient (default: false)",cmd,false);
+    TCLAP::ValueArg<int> TLinkModeArg("","mode","Graph cut computation mode (0: single Gaussian, 1: STREM mode, default: 0)",false,0,"graph cut computation mode",cmd);
     TCLAP::ValueArg<double> multiVarSourcesArg("","mv","Coefficient to multiply the variance value of the sources seed (default: 1)",false,1,"sources multiply variance",cmd);
     TCLAP::ValueArg<double> multiVarSinksArg("","ms","Coefficient to multiply the variance value of the seed (default: 1)",false,1,"sinks multiply variance",cmd);
     TCLAP::ValueArg<double> sigmaArg("s","sigma","sigma value (default: 0.6)",false,0.6,"sigma",cmd);
     TCLAP::ValueArg<double> alphaArg("a","alpha","Alpha value (default: 10)",false,10,"alpha",cmd);
     TCLAP::ValueArg<std::string> matrixGradArg("","mat","Spectral gradient matrix file",false,"","spectral gradient matrix file",cmd);
 
-    TCLAP::ValueArg<std::string> outputGCFileArg("o","out","Spectral gradient matrix file",false,"","spectral gradient matrix file",cmd);
+    TCLAP::ValueArg<std::string> outputGCFileArg("o","out","Output segmentation",true,"","output segmentation",cmd);
 
     try
     {
@@ -50,30 +48,8 @@ int main(int argc, const char** argv)
     typedef anima::GraphCutFilter<InputImageTypeD,InputImageTypeUC>  FilterTypeGraphCut;
     FilterTypeGraphCut::Pointer GraphCutFilter = FilterTypeGraphCut::New();
 
-    if( inputFileT1Arg.getValue()!="" )
-    {
-        GraphCutFilter->SetInputImage1( anima::readImage<InputImageTypeD>(inputFileT1Arg.getValue()) );
-    }
-
-    if( inputFileT2Arg.getValue()!="" )
-    {
-        GraphCutFilter->SetInputImage2( anima::readImage<InputImageTypeD>(inputFileT2Arg.getValue()) );
-    }
-
-    if( inputFileDPArg.getValue()!="" )
-    {
-        GraphCutFilter->SetInputImage3( anima::readImage<InputImageTypeD>(inputFileDPArg.getValue()) );
-    }
-
-    if( inputFileFLAIRArg.getValue()!="" )
-    {
-        GraphCutFilter->SetInputImage4( anima::readImage<InputImageTypeD>(inputFileFLAIRArg.getValue()) );
-    }
-
-    if( inputFileT1GdArg.getValue()!="" )
-    {
-        GraphCutFilter->SetInputImage5( anima::readImage<InputImageTypeD>(inputFileT1GdArg.getValue()) );
-    }
+    for (unsigned int i = 0;i < inputArg.getValue().size();++i)
+        GraphCutFilter->SetInputImage(i,anima::readImage<InputImageTypeD>(inputArg.getValue()[i]));
 
     if( sourcesProbaFileArg.getValue()!="" )
     {
@@ -86,8 +62,19 @@ int main(int argc, const char** argv)
     }
 
     if( maskFileArg.getValue()!="" )
-    {
         GraphCutFilter->SetMask( anima::readImage<InputImageTypeUC>(maskFileArg.getValue()) );
+    else
+    {
+        InputImageTypeUC::Pointer maskImage = InputImageTypeUC::New();
+        maskImage->SetRegions(GraphCutFilter->GetInput(0)->GetLargestPossibleRegion());
+        maskImage->SetSpacing(GraphCutFilter->GetInput(0)->GetSpacing());
+        maskImage->SetOrigin(GraphCutFilter->GetInput(0)->GetOrigin());
+        maskImage->SetDirection(GraphCutFilter->GetInput(0)->GetDirection());
+
+        maskImage->Allocate();
+        maskImage->FillBuffer(1);
+
+        GraphCutFilter->SetMask(maskImage);
     }
 
     if( sourcesMaskFileArg.getValue()!="" )

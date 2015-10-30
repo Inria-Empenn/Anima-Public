@@ -773,11 +773,12 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::GraphCut()
     m_GraphCutFilter->SetNumberOfThreads(this->GetNumberOfThreads());
     m_GraphCutFilter->SetTol( m_Tol );
 
-    if(this->GetInputImageT1().IsNotNull()){ m_GraphCutFilter->SetInputImage1( this->GetInputImageT1() ); }
-    if(this->GetInputImageT2().IsNotNull()){ m_GraphCutFilter->SetInputImage2( this->GetInputImageT2() ); }
-    if(this->GetInputImageDP().IsNotNull()){ m_GraphCutFilter->SetInputImage3( this->GetInputImageDP() ); }
-    if(this->GetInputImageFLAIR().IsNotNull()){ m_GraphCutFilter->SetInputImage4( this->GetInputImageFLAIR() ); }
-    if(this->GetInputImageT1Gd().IsNotNull()){ m_GraphCutFilter->SetInputImage5( this->GetInputImageT1Gd() ); }
+    unsigned int index = 0;
+    if(this->GetInputImageT1().IsNotNull()){ m_GraphCutFilter->SetInputImage(index, this->GetInputImageT1() ); ++index;}
+    if(this->GetInputImageT2().IsNotNull()){ m_GraphCutFilter->SetInputImage(index, this->GetInputImageT2() ); ++index;}
+    if(this->GetInputImageDP().IsNotNull()){ m_GraphCutFilter->SetInputImage(index, this->GetInputImageDP() ); ++index;}
+    if(this->GetInputImageFLAIR().IsNotNull()){ m_GraphCutFilter->SetInputImage(index, this->GetInputImageFLAIR() ); ++index;}
+    if(this->GetInputImageT1Gd().IsNotNull()){ m_GraphCutFilter->SetInputImage(index, this->GetInputImageT1Gd() ); ++index;}
 
     m_GraphCutFilter->SetMask( m_MaskUC );
 
@@ -799,11 +800,12 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::GraphCut()
         m_TLinksFilter->SetNumberOfThreads( this->GetNumberOfThreads() );
         m_TLinksFilter->SetTol( m_Tol );
 
-        if(this->GetInputImageT1().IsNotNull()){m_TLinksFilter->SetInputImage1( this->GetInputImageT1() );}
-        if(this->GetInputImageT2().IsNotNull()){m_TLinksFilter->SetInputImage2( this->GetInputImageT2() );}
-        if(this->GetInputImageDP().IsNotNull()){m_TLinksFilter->SetInputImage3( this->GetInputImageDP() );}
-        if(this->GetInputImageFLAIR().IsNotNull()){m_TLinksFilter->SetInputImage4( this->GetInputImageFLAIR() );}
-        if(this->GetInputImageT1Gd().IsNotNull()){m_TLinksFilter->SetInputImage5( this->GetInputImageT1Gd() );}
+        index = 0;
+        if(this->GetInputImageT1().IsNotNull()){m_TLinksFilter->SetInputImage(index, this->GetInputImageT1() ); ++index;}
+        if(this->GetInputImageT2().IsNotNull()){m_TLinksFilter->SetInputImage(index, this->GetInputImageT2() ); ++index;}
+        if(this->GetInputImageDP().IsNotNull()){m_TLinksFilter->SetInputImage(index, this->GetInputImageDP() ); ++index;}
+        if(this->GetInputImageFLAIR().IsNotNull()){m_TLinksFilter->SetInputImage(index, this->GetInputImageFLAIR() ); ++index;}
+        if(this->GetInputImageT1Gd().IsNotNull()){m_TLinksFilter->SetInputImage(index, this->GetInputImageT1Gd() ); ++index;}
 
         m_TLinksFilter->SetInputSeedSourcesMask( this->GetSourcesMask() );
         m_TLinksFilter->SetInputSeedSinksMask( this->GetSinksMask() );

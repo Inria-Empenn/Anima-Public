@@ -6,9 +6,39 @@ namespace anima
 {
 
 template <typename TInput, typename TOutput>
-void Graph3DFilter<TInput, TOutput>::SetInputImage1(const TInput* image)
+void Graph3DFilter<TInput, TOutput>::SetInputImage(unsigned int i, const TInput* image)
 {
-    this->SetNthInput(0, const_cast<TInput*>(image));
+    if (i == 0)
+        this->SetNthInput(0, const_cast<TInput*>(image));
+    else
+    {
+        this->SetNthInput(m_NbInputs, const_cast<TInput*>(image));
+
+        switch(i)
+        {
+            case 1:
+                m_IndexImage2 = m_NbInputs;
+                break;
+
+            case 2:
+                m_IndexImage3 = m_NbInputs;
+                break;
+
+            case 3:
+                m_IndexImage4 = m_NbInputs;
+                break;
+
+            case 4:
+                m_IndexImage5 = m_NbInputs;
+                break;
+
+            default:
+                itkExceptionMacro("Only a maximum of 5 input images are accepted");
+                break;
+        }
+
+        m_NbInputs++;
+    }
 }
 
 template <typename TInput, typename TOutput>
@@ -28,39 +58,6 @@ void Graph3DFilter<TInput, TOutput>::SetMask(const TMask* mask)
 {
     this->SetNthInput(3, const_cast<TMask*>(mask));
 }
-
-template <typename TInput, typename TOutput>
-void Graph3DFilter<TInput, TOutput>::SetInputImage2(const TInput* image)
-{
-    this->SetNthInput(m_NbInputs, const_cast<TInput*>(image));
-    m_IndexImage2 = m_NbInputs;
-    m_NbInputs++;
-}
-
-template <typename TInput, typename TOutput>
-void Graph3DFilter<TInput, TOutput>::SetInputImage3(const TInput* image)
-{
-    this->SetNthInput(m_NbInputs, const_cast<TInput*>(image));
-    m_IndexImage3 = m_NbInputs;
-    m_NbInputs++;
-}
-
-template <typename TInput, typename TOutput>
-void Graph3DFilter<TInput, TOutput>::SetInputImage4(const TInput* image)
-{
-    this->SetNthInput(m_NbInputs, const_cast<TInput*>(image));
-    m_IndexImage4 = m_NbInputs;
-    m_NbInputs++;
-}
-
-template <typename TInput, typename TOutput>
-void Graph3DFilter<TInput, TOutput>::SetInputImage5(const TInput* image)
-{
-    this->SetNthInput(m_NbInputs, const_cast<TInput*>(image));
-    m_IndexImage5 = m_NbInputs;
-    m_NbInputs++;
-}
-
 
 template <typename TInput, typename TOutput>
 typename TInput::ConstPointer Graph3DFilter<TInput, TOutput>::GetInputImage1()

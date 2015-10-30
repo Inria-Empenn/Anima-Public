@@ -7,9 +7,16 @@ namespace anima
 {
 
 template <typename TInput, typename TOutput>
-void TLinksFilter<TInput, TOutput>::SetInputImage1(const TInput* image)
+void TLinksFilter<TInput, TOutput>::SetInputImage(unsigned int i, const TInput* image)
 {
-    this->SetNthInput(0, const_cast<TInput*>(image));
+    if (i == 0)
+        this->SetNthInput(0, const_cast<TInput*>(image));
+    else
+    {
+        this->SetNthInput(m_NbInputs, const_cast<TInput*>(image));
+        m_NbInputs++;
+    }
+
     m_NbModalities++;
     InConstIteratorType inputIterator (image, image->GetLargestPossibleRegion());
     m_imagesVectorIt.push_back(inputIterator);
@@ -49,64 +56,6 @@ void TLinksFilter<TInput, TOutput>::SetInputSeedSinksProba(const TSeedProba* mas
 }
 
 template <typename TInput, typename TOutput>
-void TLinksFilter<TInput, TOutput>::SetInputImage2(const TInput* image)
-{
-    this->SetNthInput(m_NbInputs, const_cast<TInput*>(image));
-    m_IndexImage2 = m_NbInputs;
-    m_NbInputs++;
-    m_NbModalities++;
-    InConstIteratorType inputIterator (image, image->GetLargestPossibleRegion());
-    m_imagesVectorIt.push_back(inputIterator);
-    m_imagesVector.push_back(image);
-}
-
-template <typename TInput, typename TOutput>
-void TLinksFilter<TInput, TOutput>::SetInputImage3(const TInput* image)
-{
-    this->SetNthInput(m_NbInputs, const_cast<TInput*>(image));
-    m_IndexImage3 = m_NbInputs;
-    m_NbInputs++;
-    m_NbModalities++;
-    InConstIteratorType inputIterator (image, image->GetLargestPossibleRegion());
-    m_imagesVectorIt.push_back(inputIterator);
-    m_imagesVector.push_back(image);
-}
-
-template <typename TInput, typename TOutput>
-void TLinksFilter<TInput, TOutput>::SetInputImage4(const TInput* image)
-{
-    this->SetNthInput(m_NbInputs, const_cast<TInput*>(image));
-    m_IndexImage4 = m_NbInputs;
-    m_NbInputs++;
-    m_NbModalities++;
-    InConstIteratorType inputIterator (image, image->GetLargestPossibleRegion());
-    m_imagesVectorIt.push_back(inputIterator);
-    m_imagesVector.push_back(image);
-}
-
-template <typename TInput, typename TOutput>
-void TLinksFilter<TInput, TOutput>::SetInputImage5(const TInput* image)
-{
-    this->SetNthInput(m_NbInputs, const_cast<TInput*>(image));
-    m_IndexImage5 = m_NbInputs;
-    m_NbInputs++;
-    m_NbModalities++;
-    InConstIteratorType inputIterator (image, image->GetLargestPossibleRegion());
-    m_imagesVectorIt.push_back(inputIterator);
-    m_imagesVector.push_back(image);
-}
-
-
-
-
-template <typename TInput, typename TOutput>
-typename TInput::ConstPointer TLinksFilter<TInput, TOutput>::GetInputImage1()
-{
-    return static_cast< const TInput * >
-            ( this->itk::ProcessObject::GetInput(0) );
-}
-
-template <typename TInput, typename TOutput>
 itk::Image <unsigned char,3>::ConstPointer TLinksFilter<TInput, TOutput>::GetInputSeedSourcesMask()
 {
     return static_cast< const TSeedMask * >
@@ -133,35 +82,6 @@ itk::Image <double,3>::ConstPointer TLinksFilter<TInput, TOutput>::GetInputSeedS
     return static_cast< const TSeedProba * >
             ( this->itk::ProcessObject::GetInput(m_IndexSinksProba) );
 }
-
-template <typename TInput, typename TOutput>
-typename TInput::ConstPointer TLinksFilter<TInput, TOutput>::GetInputImage2()
-{
-    return static_cast< const TInput * >
-            ( this->itk::ProcessObject::GetInput(m_IndexImage2) );
-}
-
-template <typename TInput, typename TOutput>
-typename TInput::ConstPointer TLinksFilter<TInput, TOutput>::GetInputImage3()
-{
-    return static_cast< const TInput * >
-            ( this->itk::ProcessObject::GetInput(m_IndexImage3) );
-}
-template <typename TInput, typename TOutput>
-typename TInput::ConstPointer TLinksFilter<TInput, TOutput>::GetInputImage4()
-{
-    return static_cast< const TInput * >
-            ( this->itk::ProcessObject::GetInput(m_IndexImage4) );
-}
-
-template <typename TInput, typename TOutput>
-typename TInput::ConstPointer TLinksFilter<TInput, TOutput>::GetInputImage5()
-{
-    return static_cast< const TInput * >
-            ( this->itk::ProcessObject::GetInput(m_IndexImage5) );
-}
-
-
 
 template <typename TInput, typename TOutput>
 itk::DataObject::Pointer TLinksFilter<TInput, TOutput>::MakeOutput(unsigned int idx)
@@ -205,14 +125,14 @@ TLinksFilter<TInput, TOutput>
     std::cout << "Computing T-Links..." << std::endl;
 
     typename TOutput::Pointer output1 = this->GetOutputSources();
-    output1->SetRegions(this->GetInputImage1()->GetLargestPossibleRegion());
-    output1->CopyInformation(this->GetInputImage1());
+    output1->SetRegions(this->GetInput(0)->GetLargestPossibleRegion());
+    output1->CopyInformation(this->GetInput(0));
     output1->Allocate();
     output1->FillBuffer(0);
 
     typename TOutput::Pointer output2 = this->GetOutputSinks();
-    output2->SetRegions(this->GetInputImage1()->GetLargestPossibleRegion());
-    output2->CopyInformation(this->GetInputImage1());
+    output2->SetRegions(this->GetInput(0)->GetLargestPossibleRegion());
+    output2->CopyInformation(this->GetInput(0));
     output2->Allocate();
     output2->FillBuffer(0);
 

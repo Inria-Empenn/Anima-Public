@@ -6,11 +6,18 @@ namespace anima
 {
 
 template <typename TInput, typename TOutput>
-void GraphCutFilter<TInput, TOutput>::SetInputImage1(const TInput* image)
+void GraphCutFilter<TInput, TOutput>::SetInputImage(unsigned int i, const TInput* image)
 {
-    this->SetNthInput(0, const_cast<TInput*>(image));
-    m_TLinksFilter->SetInputImage1( image );
-    m_Graph3DFilter->SetInputImage1( image );
+    if (i == 0)
+        this->SetNthInput(0, const_cast<TInput*>(image));
+    else
+    {
+        this->SetNthInput(m_NbInputs, const_cast<TInput*>(image));
+        m_NbInputs++;
+    }
+
+    m_TLinksFilter->SetInputImage(i, image);
+    m_Graph3DFilter->SetInputImage(i, image);
 }
 
 template <typename TInput, typename TOutput>
@@ -58,54 +65,6 @@ void GraphCutFilter<TInput, TOutput>::SetInputSeedSinksProba(const TSeedProba* m
 }
 
 template <typename TInput, typename TOutput>
-void GraphCutFilter<TInput, TOutput>::SetInputImage2(const TInput* image)
-{
-    this->SetNthInput(m_NbInputs, const_cast<TInput*>(image));
-    m_IndexImage2 = m_NbInputs;
-    m_NbInputs++;
-    m_TLinksFilter->SetInputImage2( image );
-    m_Graph3DFilter->SetInputImage2( image );
-}
-
-template <typename TInput, typename TOutput>
-void GraphCutFilter<TInput, TOutput>::SetInputImage3(const TInput* image)
-{
-    this->SetNthInput(m_NbInputs, const_cast<TInput*>(image));
-    m_IndexImage3 = m_NbInputs;
-    m_NbInputs++;
-    m_TLinksFilter->SetInputImage3( image );
-    m_Graph3DFilter->SetInputImage3( image );
-}
-template <typename TInput, typename TOutput>
-void GraphCutFilter<TInput, TOutput>::SetInputImage4(const TInput* image)
-{
-    this->SetNthInput(m_NbInputs, const_cast<TInput*>(image));
-    m_IndexImage4 = m_NbInputs;
-    m_NbInputs++;
-    m_TLinksFilter->SetInputImage4( image );
-    m_Graph3DFilter->SetInputImage4( image );
-}
-
-template <typename TInput, typename TOutput>
-void GraphCutFilter<TInput, TOutput>::SetInputImage5(const TInput* image)
-{
-    this->SetNthInput(m_NbInputs, const_cast<TInput*>(image));
-    m_IndexImage5 = m_NbInputs;
-    m_NbInputs++;
-    m_TLinksFilter->SetInputImage5( image );
-    m_Graph3DFilter->SetInputImage5( image );
-}
-
-
-
-template <typename TInput, typename TOutput>
-typename TInput::ConstPointer GraphCutFilter<TInput, TOutput>::GetInputImage1()
-{
-    return static_cast< const TInput * >
-            ( this->itk::ProcessObject::GetInput(0) );
-}
-
-template <typename TInput, typename TOutput>
 itk::Image <unsigned char,3>::ConstPointer GraphCutFilter<TInput, TOutput>::GetMask()
 {
     return static_cast< const TMask * >
@@ -138,33 +97,6 @@ itk::Image <double,3>::ConstPointer GraphCutFilter<TInput, TOutput>::GetInputSee
 {
     return static_cast< const TSeedProba * >
             ( this->itk::ProcessObject::GetInput(m_IndexSinksProba) );
-}
-
-template <typename TInput, typename TOutput>
-typename TInput::ConstPointer GraphCutFilter<TInput, TOutput>::GetInputImage2()
-{
-    return static_cast< const TInput * >
-            ( this->itk::ProcessObject::GetInput(m_IndexImage2) );
-}
-
-template <typename TInput, typename TOutput>
-typename TInput::ConstPointer GraphCutFilter<TInput, TOutput>::GetInputImage3()
-{
-    return static_cast< const TInput * >
-            ( this->itk::ProcessObject::GetInput(m_IndexImage3) );
-}
-template <typename TInput, typename TOutput>
-typename TInput::ConstPointer GraphCutFilter<TInput, TOutput>::GetInputImage4()
-{
-    return static_cast< const TInput * >
-            ( this->itk::ProcessObject::GetInput(m_IndexImage4) );
-}
-
-template <typename TInput, typename TOutput>
-typename TInput::ConstPointer GraphCutFilter<TInput, TOutput>::GetInputImage5()
-{
-    return static_cast< const TInput * >
-            ( this->itk::ProcessObject::GetInput(m_IndexImage5) );
 }
 
 template <typename TInputImage, typename TOutput>
