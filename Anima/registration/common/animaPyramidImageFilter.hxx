@@ -217,16 +217,17 @@ CreateLevelVectorImage(unsigned int level)
 
     VectorOutputImagePointer levelImage;
 
-    typedef itk::MatrixOffsetTransformBase <float,InputImageType::ImageDimension> MatrixTrsfType;
-    typedef itk::Transform <float,InputImageType::ImageDimension,InputImageType::ImageDimension> BaseTrsfType;
+    typedef itk::MatrixOffsetTransformBase <double,InputImageType::ImageDimension> MatrixTrsfType;
+    typedef itk::Transform <double,InputImageType::ImageDimension,InputImageType::ImageDimension> BaseTrsfType;
     typename MatrixTrsfType::Pointer idTrsf = MatrixTrsfType::New();
     idTrsf->SetIdentity();
 
     typename BaseTrsfType::Pointer baseTrsf = idTrsf.GetPointer();
 
-    typedef anima::OrientedModelBaseResampleImageFilter <InputInternalScalarType, InputImageType::ImageDimension> ResamplerType;
+    typedef anima::OrientedModelBaseResampleImageFilter <InputInternalScalarType, InputImageType::ImageDimension,
+                                                         double> ResamplerType;
 
-    ResamplerType *resample = dynamic_cast <ResamplerType *> (m_ImageResampler.GetPointer());
+    typename ResamplerType::Pointer resample = dynamic_cast <ResamplerType *> (m_ImageResampler->Clone().GetPointer());
     resample->SetNumberOfThreads(this->GetNumberOfThreads());
 
     // Compute new origin
@@ -286,7 +287,7 @@ CreateLevelImage(unsigned int level)
 
     typedef anima::ResampleImageFilter <ScalarInputImageType, ScalarOutputImageType, double> ResamplerType;
 
-    ResamplerType *resample = dynamic_cast <ResamplerType *> (m_ImageResampler.GetPointer());
+    typename ResamplerType::Pointer resample = dynamic_cast <ResamplerType *> (m_ImageResampler->Clone().GetPointer());
 
     resample->SetTransform(idTrsf);
     resample->SetNumberOfThreads(this->GetNumberOfThreads());

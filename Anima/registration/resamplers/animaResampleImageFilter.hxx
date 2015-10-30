@@ -41,7 +41,6 @@ ResampleImageFilter<TInputImage, TOutputImage,TInterpolatorPrecisionType>
 /**
      * Print out a description of self
      *
-     * \todo Add details about this class
      */
 template <class TInputImage, class TOutputImage, class TInterpolatorPrecisionType>
 void
@@ -63,6 +62,23 @@ ResampleImageFilter<TInputImage, TOutputImage,TInterpolatorPrecisionType>
     os << indent << "UseReferenceImage: " << (m_UseReferenceImage ? "On" : "Off") << std::endl;
     os << indent << "Scale intensities with Jacobian : " << (m_ScaleIntensitiesWithJacobian ? "On" : "Off") << std::endl;
     return;
+}
+
+/**
+  * Returns a class copy with important specific variables set, not the greatest implementation especially in terms
+  * of interpolators and other internal pointers copy (not done here). Use with extreme caution
+  */
+template <class TInputImage, class TOutputImage, class TInterpolatorPrecisionType>
+itk::LightObject::Pointer
+ResampleImageFilter<TInputImage, TOutputImage,TInterpolatorPrecisionType>
+::InternalClone() const
+{
+    itk::LightObject::Pointer outputPointer = Superclass::InternalClone();
+
+    Self *castPointer = dynamic_cast <Self *> (outputPointer.GetPointer());
+    castPointer->SetScaleIntensitiesWithJacobian(m_ScaleIntensitiesWithJacobian);
+
+    return outputPointer;
 }
 
 /**

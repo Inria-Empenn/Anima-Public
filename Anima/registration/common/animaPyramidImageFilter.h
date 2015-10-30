@@ -74,6 +74,8 @@ private:
     void operator=(const Self&); //purposely not implemented
 
     unsigned int m_NumberOfLevels;
+
+    //! External resampler provided by the user. Requires to work on double precision (last template parameter usually)
     BaseResamplerPointer m_ImageResampler;
 
     // Internal variables to compute images

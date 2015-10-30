@@ -202,6 +202,8 @@ namespace anima
         
         double ComputeLinearJacobianValue();
         double ComputeLocalJacobianValue(const InputIndexType &index);
+
+        virtual itk::LightObject::Pointer InternalClone() const;
         
     private:
         ResampleImageFilter( const Self& ); //purposely not implemented
