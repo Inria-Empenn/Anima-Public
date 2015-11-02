@@ -11,7 +11,8 @@ namespace anima
 
 template <class ScalarType, unsigned int NDimensions>
 void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *baseTrsf,
-                itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *addonTrsf)
+                itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *addonTrsf,
+                unsigned int numThreads)
 {
     if ((baseTrsf->GetParametersAsVectorField() == NULL)&&(addonTrsf->GetParametersAsVectorField() == NULL))
         return;
@@ -28,6 +29,9 @@ void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *
     typename AddFilterType::Pointer bchAdder = AddFilterType::New();
     bchAdder->SetInput(0,baseTrsf->GetParametersAsVectorField());
     bchAdder->SetInput(1,addonTrsf->GetParametersAsVectorField());
+
+    if (numThreads > 0)
+        bchAdder->SetNumberOfThreads(numThreads);
 
     bchAdder->Update();
 
@@ -80,7 +84,10 @@ void composeDistortionCorrections(typename rpi::DisplacementFieldTransform <Scal
     typename MultiplyFilterType::Pointer multiplyFilter = MultiplyFilterType::New();
     multiplyFilter->SetInput(baseTrsf->GetParametersAsVectorField());
     multiplyFilter->SetConstant(-1.0);
-    multiplyFilter->SetNumberOfThreads(numThreads);
+
+    if (numThreads > 0)
+        multiplyFilter->SetNumberOfThreads(numThreads);
+
     multiplyFilter->InPlaceOn();
 
     multiplyFilter->Update();
@@ -88,7 +95,9 @@ void composeDistortionCorrections(typename rpi::DisplacementFieldTransform <Scal
     typename ComposeFilterType::Pointer composeNegativeFilter = ComposeFilterType::New();
     composeNegativeFilter->SetWarpingField(negativeAddOn->GetParametersAsVectorField());
     composeNegativeFilter->SetDisplacementField(multiplyFilter->GetOutput());
-    composeNegativeFilter->SetNumberOfThreads(numThreads);
+
+    if (numThreads > 0)
+        composeNegativeFilter->SetNumberOfThreads(numThreads);
 
     composeNegativeFilter->Update();
     negativeAddOn->SetParametersAsVectorField(composeNegativeFilter->GetOutput());

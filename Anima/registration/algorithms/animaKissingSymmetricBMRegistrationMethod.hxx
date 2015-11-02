@@ -21,6 +21,7 @@ KissingSymmetricBMRegistrationMethod <TInputImageType>
     this->GetBlockMatcher()->SetForceComputeBlocks(true);
     this->GetBlockMatcher()->SetReferenceImage(refImage);
     this->GetBlockMatcher()->SetMovingImage(movingImage);
+    this->GetBlockMatcher()->SetNumberOfThreads(this->GetNumberOfThreads());
     this->GetBlockMatcher()->Update();
 
     tmpTime.Stop();

@@ -198,6 +198,7 @@ BaseBMRegistrationMethod <TInputImageType>
     }
 
     m_MovingImageResampler->SetInput(m_MovingImage);
+    m_MovingImageResampler->SetNumberOfThreads(this->GetNumberOfThreads());
     m_MovingImageResampler->Update();
 
     movingImage = m_MovingImageResampler->GetOutput();
@@ -254,6 +255,7 @@ BaseBMRegistrationMethod <TInputImageType>
     }
 
     m_ReferenceImageResampler->SetInput(m_FixedImage);
+    m_ReferenceImageResampler->SetNumberOfThreads(this->GetNumberOfThreads());
     m_ReferenceImageResampler->Update();
 
     refImage = m_ReferenceImageResampler->GetOutput();
@@ -289,7 +291,7 @@ BaseBMRegistrationMethod <TInputImageType>
         SVFTransformType *tmpTrsf = dynamic_cast<SVFTransformType *>(computedTransform.GetPointer());
         SVFTransformType *tmpAddOn = dynamic_cast<SVFTransformType *>(addOn);
 
-        anima::composeSVF(tmpTrsf,tmpAddOn);
+        anima::composeSVF(tmpTrsf,tmpAddOn,this->GetNumberOfThreads());
         if (m_SVFElasticRegSigma > 0)
         {
             typedef typename SVFTransformType::VectorFieldType VelocityFieldType;

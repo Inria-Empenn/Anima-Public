@@ -130,6 +130,7 @@ DistortionCorrectionBMRegistrationMethod <TInputImageType>
     // Fixed image resampling
     resampleFilter = dynamic_cast <InternalFilterType *> (this->GetReferenceImageResampler().GetPointer());
     resampleFilter->SetTransform(negativeTrsf);
+    resampleFilter->SetNumberOfThreads(this->GetNumberOfThreads());
 
     this->GetReferenceImageResampler()->SetInput(this->GetFixedImage());
     this->GetReferenceImageResampler()->Update();
@@ -191,6 +192,7 @@ DistortionCorrectionBMRegistrationMethod <TInputImageType>
     this->GetBlockMatcher()->SetForceComputeBlocks(true);
     this->GetBlockMatcher()->SetReferenceImage(refImage);
     this->GetBlockMatcher()->SetMovingImage(movingImage);
+    this->GetBlockMatcher()->SetNumberOfThreads(this->GetNumberOfThreads());
     this->GetBlockMatcher()->Update();
 
     tmpTime.Stop();
