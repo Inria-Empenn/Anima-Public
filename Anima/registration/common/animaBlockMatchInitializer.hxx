@@ -75,8 +75,8 @@ void BlockMatchingInitializer<PixelType,NDimensions>
 
     for (unsigned int i = 0;i < NDimensions;++i)
     {
-        totalNbBlocks[i] = floor((float)(this->GetRequestedRegion().GetSize()[i] / this->GetBlockSpacing())) + 1;
-        unsigned int spaceRequired = this->GetRequestedRegion().GetSize()[i] - (totalNbBlocks[i] - 1) * this->GetBlockSpacing();
+        totalNbBlocks[i] = floor((float)(this->GetRequestedRegion().GetSize()[i] / this->GetBlockSpacing()) + 0.5);
+        unsigned int spaceRequired = this->GetRequestedRegion().GetSize()[i] - (totalNbBlocks[i] - 1) * this->GetBlockSpacing() - 1;
 
         tmpStr->blockStartOffsets[i] = floor(spaceRequired / 2.0);
     }
@@ -229,11 +229,11 @@ void BlockMatchingInitializer<PixelType,NDimensions>
             if (indexPos < largestRegion.GetIndex()[i])
             {
                 blockSize[i] += indexPos - largestRegion.GetIndex()[i];
-                indexPos = 0;
+                indexPos = largestRegion.GetIndex()[i];
             }
             startPosition[i] = indexPos;
             if (startPosition[i] + blockSize[i] > largestRegion.GetIndex()[i] + largestRegion.GetSize()[i])
-                blockSize[i] = largestRegion.GetIndex()[i] + largestRegion.GetSize()[i] - startPosition[i] + 1;
+                blockSize[i] = largestRegion.GetIndex()[i] + largestRegion.GetSize()[i] - startPosition[i];
         }
 
         tmpBlock.SetIndex(startPosition);
