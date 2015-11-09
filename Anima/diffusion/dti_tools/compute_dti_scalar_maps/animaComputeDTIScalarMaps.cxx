@@ -20,7 +20,7 @@ void eventCallback (itk::Object* caller, const itk::EventObject& event, void* cl
 int main(int ac, const char** av)
 {
 
-    TCLAP::CmdLine cmd("Compute an ADC and a FA image from a DTI volume.",' ',"0.0");
+    TCLAP::CmdLine cmd("Compute an ADC and a FA image from a DTI volume.\nINRIA / IRISA - VisAGeS Team",' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> tensorArg("i",
                                            "input",

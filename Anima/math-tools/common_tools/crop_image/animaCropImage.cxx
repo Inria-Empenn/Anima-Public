@@ -212,9 +212,10 @@ int main(int ac, const char** av)
                        "be collapsed.\nExample: for args a 4D image 4x4x4x4 the arguments :\n --xindex 1"
                        " --zindex 1 --zsize 2 --tindex 3 --tsize 0\n will result on an image 3x4x2\n"
                        "Where the x dim corresponds to [1,2,3] of the input, y[0,3], zindex[1,2] and tindex is "
-                       "collapsed, only the last sequence has been kept.",
+                       "collapsed, only the last sequence has been kept."
+                       "INRIA / IRISA - VisAGeS Team",
                        ' ',
-                       "0.0");
+                       ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inputArg("i",
             "input",

@@ -14,7 +14,7 @@
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',"1.0");
+    TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);
 	
     TCLAP::ValueArg<std::string> t1Arg("l","t1","List of T1 relaxometry images",true,"","T1 relaxometry images",cmd);
     TCLAP::ValueArg<std::string> maskArg("m","maskname","Computation mask",false,"","computation mask",cmd);

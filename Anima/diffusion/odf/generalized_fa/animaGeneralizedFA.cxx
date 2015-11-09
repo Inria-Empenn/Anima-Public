@@ -5,7 +5,7 @@
 
 int main(int argc, char **argv)
 {
-  TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',"1.0");
+  TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
 	
   TCLAP::ValueArg<std::string> inArg("i","inputodf","ODF volume",true,"","ODF volume",cmd);
 	TCLAP::ValueArg<std::string> resArg("o","output","Result image",true,"","result GFA image",cmd);

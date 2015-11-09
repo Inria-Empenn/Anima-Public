@@ -8,7 +8,7 @@
 
 int main(int argc, char *argv[] )
 {
-    TCLAP::CmdLine cmd("SimuBlochSE: Simulator for Spin Echo\nINRIA / IRISA / INSERM - VisAGeS Team", ' ',"0.3");
+    TCLAP::CmdLine cmd("SimuBlochSE: Simulator for Spin Echo\nINRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
     
     TCLAP::ValueArg<std::string> t1MapArg("","t1","Input T1 map",true,"","T1 map",cmd);
     TCLAP::ValueArg<std::string> t2MapArg("","t2","Input T2 map",true,"","T2 map",cmd);

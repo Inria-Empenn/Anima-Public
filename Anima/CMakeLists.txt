@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 2.8.1)
-project(ANIMA)
 
+if (CMAKE_MAJOR_VERSION GREATER 3)
+  cmake_policy(SET CMP0048 NEW)
+  project(ANIMA VERSION 1.1)
+else()
+  project(ANIMA)
+  set(${PROJECT_NAME}_VERSION "1.1")
+endif()
 
 ## #############################################################################
 ## Add additional cmake modules
@@ -8,6 +14,9 @@ project(ANIMA)
 
 # On Macs, disable MACOSX_RPATH (cmake 3.x)
 set(CMAKE_MACOSX_RPATH OFF)
+
+#Add definition for version number
+add_definitions(-D${PROJECT_NAME}_VERSION="${${PROJECT_NAME}_VERSION}")
 
 #On windows, add definitions for M_PI
 if (WIN32)

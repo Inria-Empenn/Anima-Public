@@ -46,7 +46,7 @@ int main(int ac, const char** av)
     descriptionMessage += "Resampler tool to apply a distortion correction to one or two 4D volumes\n";
     descriptionMessage += "INRIA / IRISA - VisAGeS Team";
     
-    TCLAP::CmdLine cmd(descriptionMessage, ' ',"1.0");
+    TCLAP::CmdLine cmd(descriptionMessage, ' ',ANIMA_VERSION);
 	
     TCLAP::ValueArg<std::string> forwardArg("f","forward","Input forward image (eg A-P, 4D)",true,"","input forward image",cmd);
     TCLAP::ValueArg<std::string> backwardArg("b","backward","Input backward image (eg P-A, 3D, or 4D)",false,"","input backward image",cmd);

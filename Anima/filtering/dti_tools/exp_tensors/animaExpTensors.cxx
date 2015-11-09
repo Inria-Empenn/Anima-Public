@@ -7,7 +7,7 @@
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',"1.0");
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team",' ', ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inArg("i","inputlist","Log-tensors image",true,"","input log-tensor image",cmd);
     TCLAP::ValueArg<std::string> resArg("o","outputfile","Result tensor image",true,"","result tensor image",cmd);

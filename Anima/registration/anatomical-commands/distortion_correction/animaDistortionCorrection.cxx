@@ -11,7 +11,7 @@ int main(int ac, const char** av)
     descriptionMessage += "Compute a vector field in order to unwarp distorted EPI\n";
     descriptionMessage += "INRIA / IRISA - VisAGeS Team";
 
-    TCLAP::CmdLine cmd(descriptionMessage, ' ',"1.0");
+    TCLAP::CmdLine cmd(descriptionMessage, ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> forwardArg("f", "forwardImage", "Forward image", true, "", "Forward image", cmd);
     TCLAP::ValueArg<std::string> backwardArg("b", "backwardImage", "Backward image", true, "", "Backward image", cmd);

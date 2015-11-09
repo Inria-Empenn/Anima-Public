@@ -18,7 +18,7 @@ void eventCallback (itk::Object* caller, const itk::EventObject& event, void* cl
 
 int main(int argc,  char*  argv[])
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',"1.0");
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
 
     // Mandatory arguments
     TCLAP::ValueArg<std::string> dwiArg("i","dwi","Input 4D diffusion image",true,"","dwi image",cmd);

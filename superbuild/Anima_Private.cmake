@@ -1,4 +1,4 @@
-set (proj Anima-Private)
+set (proj Anima_Private)
 
 set (cmake_args
   ${common_cache_args}

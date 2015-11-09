@@ -168,7 +168,7 @@ int main(int argc, char **argv)
     descriptionMessage += "it requires the divide and multiply images to be scalar, and the add and subtract images to be of the same format as the input (although this is not verified).\n";
     descriptionMessage += "INRIA / IRISA - VisAGeS Team";
     
-    TCLAP::CmdLine cmd(descriptionMessage, ' ',"1.0");
+    TCLAP::CmdLine cmd(descriptionMessage, ' ',ANIMA_VERSION);
     
     TCLAP::ValueArg<std::string> inArg("i","input","Input image",true,"","input image",cmd);
     TCLAP::ValueArg<std::string> outArg("o","output","output image",true,"","output image",cmd);

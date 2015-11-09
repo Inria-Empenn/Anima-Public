@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.1)
-project(ANIMA-SUPERBUILD)
+project(ANIMA_SUPERBUILD)
 
 set(${PROJECT_NAME}_CMAKE_DIRS
   ${CMAKE_SOURCE_DIR}/Anima/cmake
@@ -123,5 +123,5 @@ include(Anima)
 
 if (USE_ANIMA_PRIVATE)
   set(USE_GITHUB_SSH ON CACHE BOOL "Use by default Git SSH addresses, requires public key set on github" FORCE)
-  include(Anima-Private)
+  include(Anima_Private)
 endif()

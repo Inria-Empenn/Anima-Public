@@ -93,7 +93,7 @@ retrieveDimension(const arguments &args, itk::ImageIOBase::Pointer imageIO)
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',"1.0");
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inArg("i","inputfile","Input image",true,"","input image",cmd);
     TCLAP::ValueArg<std::string> outArg("o","outputfile","Output image",true,"","output image",cmd);

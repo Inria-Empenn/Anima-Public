@@ -239,8 +239,9 @@ A -b base image is facultative, if it is given, all the inputs will be add at th
 if args base is given the geometry of the base is used otherwise it use the geometry of the first given input.\n\
 with the origin -O(def = 0) and spacing -s(def = 1) passed as arguments.\
 It's your responsability to give args set of well formed input.\n\n\
-Example: the arguments -b 4x4x4x1 and -i 4x4x4 -i 4x4x4 will result on an outpu 4x4x4x3.",
-            ' ',"0.0");
+Example: the arguments -b 4x4x4x1 and -i 4x4x4 -i 4x4x4 will result on an outpu 4x4x4x3.\n\
+INRIA / IRISA - VisAGeS Team",
+            ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> baseArg("b",
             "base",

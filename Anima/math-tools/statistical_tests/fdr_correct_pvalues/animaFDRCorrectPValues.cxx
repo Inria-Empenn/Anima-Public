@@ -5,7 +5,7 @@
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',"1.0");
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inArg("i","input","Non corrected P-value image",true,"","Non corrected P-value image",cmd);
     TCLAP::ValueArg<std::string> resArg("o","output","FDR thresholded output image at q",true,"","FDR corrected output image at q",cmd);

@@ -24,7 +24,7 @@ int main(int ac, const char** av)
     descriptionMessage += "</TransformationList>\n\n";
     descriptionMessage += "INRIA / IRISA - VisAGeS Team";
     
-    TCLAP::CmdLine cmd(descriptionMessage, ' ',"1.0");
+    TCLAP::CmdLine cmd(descriptionMessage, ' ',ANIMA_VERSION);
 	
     TCLAP::ValueArg<std::string> inArg("i","input","Input image",true,"","input image",cmd);
     TCLAP::ValueArg<std::string> trArg("t","trsf","Transformations XML list",true,"","transformations list",cmd);

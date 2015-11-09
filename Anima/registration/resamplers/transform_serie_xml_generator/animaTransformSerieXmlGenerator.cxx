@@ -8,7 +8,7 @@
 
 int main(int ac, const char **av)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',"1.0");
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
     
     TCLAP::MultiArg<std::string> inputArg("i", "input", "multiple input transform names",true,"input files",cmd);
     TCLAP::MultiArg<unsigned int> invertArg("I", "invert", "multiple invert transform arguments",false,"invert inputs",cmd);

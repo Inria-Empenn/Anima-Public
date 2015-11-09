@@ -10,7 +10,7 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',"1.0");
+    TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);
     
     TCLAP::ValueArg<std::string> dataLTArg("i","database","Database Image List",true,"","database image list",cmd);
     

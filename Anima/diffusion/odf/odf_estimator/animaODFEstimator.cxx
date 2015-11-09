@@ -9,7 +9,7 @@
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',"1.0");
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
 	
     TCLAP::ValueArg<std::string> inArg("i","inputlist","File containing a list of diffusion weighted images",true,"","input diffusion images",cmd);
 	TCLAP::ValueArg<std::string> gradArg("g","gradientlist","List of gradients (text file)",true,"","list of gradients",cmd);

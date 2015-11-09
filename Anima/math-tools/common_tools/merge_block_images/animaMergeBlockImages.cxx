@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 	typedef itk::ImageFileReader <VectorImageType> itkVectorReader;
 	typedef itk::ImageFileWriter <VectorImageType> itkVectorWriter;
 	
-    TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',"1.0");
+    TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);
     
     TCLAP::ValueArg<std::string> inArg("i","inputlist","Input list of chunks of data",true,"","input list",cmd);
     TCLAP::ValueArg<std::string> outArg("o","outputfile","output image",true,"","output image",cmd);
