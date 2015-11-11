@@ -1,4 +1,5 @@
 #pragma once
+#include "animaVectorImagePatchStatistics.h"
 
 #include <itkImageRegionConstIteratorWithIndex.h>
 #include <itkSymmetricEigenAnalysis.h>
@@ -61,7 +62,7 @@ unsigned int computePatchMeanAndCovariance(const itk::VectorImage <T1, Dimension
 }
 
 template <class T1, class T2, unsigned int Dimension>
-void computeAverageLocalCovariance(vnl_matrix <T2> &resVariance, const itk::VectorImage <T1, Dimension> *inputImage,
+void computeAverageLocalCovariance(vnl_matrix <T2> &resVariance, itk::VectorImage <T1, Dimension> *inputImage,
                                    itk::Image<unsigned char, Dimension> *maskImage, const itk::ImageRegion<Dimension> &averagingRegion,
                                    int localNeighborhood)
 {
@@ -85,7 +86,7 @@ void computeAverageLocalCovariance(vnl_matrix <T2> &resVariance, const itk::Vect
     resVariance.fill(0);
 
     VectorType averageLocalSignal(ndim), diffSignal(ndim);
-    VectorType baseSignal(ndim), tmpSignal(ndim);
+    VectorType baseSignal(ndim);
     ImageIndexType baseIndex;
 
     unsigned int numEstimations = 0;

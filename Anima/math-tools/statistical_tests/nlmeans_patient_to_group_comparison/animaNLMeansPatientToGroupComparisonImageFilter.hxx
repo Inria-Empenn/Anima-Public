@@ -5,10 +5,9 @@
 #include <itkImageRegionIteratorWithIndex.h>
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionConstIteratorWithIndex.h>
-#include <itkSymmetricEigenAnalysis.h>
-
 #include <itkTimeProbe.h>
-#include <animaVectorImagePatchStatistics.h>
+
+#include <animaNLMeansVectorPatchSearcher.h>
 #include <boost/math/distributions/fisher_f.hpp>
 
 namespace anima
@@ -34,44 +33,49 @@ NLMeansPatientToGroupComparisonImageFilter<PixelScalarType>
 ::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
 {
     typedef itk::ImageRegionConstIteratorWithIndex< InputImageType > InIteratorType;
-    typedef itk::ImageRegionIteratorWithIndex< OutputImageType > OutRegionIteratorType;
-    typedef itk::ImageRegionConstIteratorWithIndex < MaskImageType > MaskRegionIteratorType;
+    typedef itk::ImageRegionConstIterator < InputImageType > DatabaseIteratorType;
+    typedef itk::ImageRegionIterator < OutputImageType > OutRegionIteratorType;
+    typedef itk::ImageRegionConstIterator < MaskImageType > MaskRegionIteratorType;
 
     OutRegionIteratorType outIterator(this->GetOutput(0), outputRegionForThread);
     OutRegionIteratorType outScoreIterator(this->GetOutput(1), outputRegionForThread);
     OutRegionIteratorType outNumPatchesIterator(this->GetOutput(2), outputRegionForThread);
 
-    OutRegionIteratorType dbCovarianceDistanceAverageIterator(m_DatabaseCovarianceDistanceAverage,outputRegionForThread);
-    OutRegionIteratorType dbCovarianceDistanceStdIterator(m_DatabaseCovarianceDistanceStd,outputRegionForThread);
-    OutRegionIteratorType dbMeanDistanceAverageIterator(m_DatabaseMeanDistanceAverage,outputRegionForThread);
-    OutRegionIteratorType dbMeanDistanceStdIterator(m_DatabaseMeanDistanceStd,outputRegionForThread);
-
     MaskRegionIteratorType maskIterator (this->GetComputationMask(), outputRegionForThread);
 
     unsigned int numSamplesDatabase = m_DatabaseImages.size();
-    InIteratorType patientIterator(this->GetInput(0), outputRegionForThread);
+    std::vector <DatabaseIteratorType> databaseIterators(numSamplesDatabase);
+    for (unsigned int k = 0;k < numSamplesDatabase;++k)
+        databaseIterators[k] = DatabaseIteratorType(m_DatabaseImages[k],outputRegionForThread);
+
+    InputImageType *input = const_cast<InputImageType *> (this->GetInput());
+    InIteratorType patientIterator(input, outputRegionForThread);
+    VectorType patientSample;
 
     std::vector <VectorType> databaseSamples;
     std::vector <double> databaseWeights;
 
-    unsigned int ndim = this->GetInput(0)->GetNumberOfComponentsPerPixel();
-    VectorType patientVectorValue;
-    VectorType tmpDiffValue;
-
-    OutputImageRegionType largestRegionOut = this->GetOutput()->GetLargestPossibleRegion();
-    OutputImageRegionType tmpBlockRegion, tmpBlockRegionMoving;
-    InputImageIndexType curIndex, dispCurIndex, centerIndex;
-    centerIndex.Fill(0);
-
     int maxAbsDisp = (int)floor((double)(m_SearchNeighborhood / m_SearchStepSize)) * m_SearchStepSize;
 
-    CovarianceType noiseSigma, noiseCovariance;
-    VectorType refPatchMean(ndim), movingPatchMean(ndim);
-    CovarianceType refPatchCov(ndim,ndim,0), logRefPatchCov(ndim,ndim,0), movingPatchCov(ndim,ndim,0);
-    CovarianceType eVec(ndim,ndim);
-    vnl_diag_matrix <double> eVals(ndim);
+    typedef anima::NLMeansVectorPatchSearcher <PixelScalarType, OutputImageType> PatchSearcherType;
 
-    itk::SymmetricEigenAnalysis <vnl_matrix <double>, vnl_diag_matrix <double>, vnl_matrix <double> > EigenAnalysis(ndim);
+    PatchSearcherType patchSearcher;
+    patchSearcher.SetPatchHalfSize(m_PatchHalfSize);
+    patchSearcher.SetSearchStepSize(m_SearchStepSize);
+    patchSearcher.SetMaxAbsDisp(maxAbsDisp);
+    patchSearcher.SetInputImage(input);
+    patchSearcher.SetBetaParameter(m_BetaParameter);
+    patchSearcher.SetWeightThreshold(m_WeightThreshold);
+    patchSearcher.SetMeanThreshold(m_MeanThreshold);
+    patchSearcher.SetVarianceThreshold(m_VarianceThreshold);
+    patchSearcher.SetDatabaseCovarianceDistanceAverage(m_DatabaseCovarianceDistanceAverage);
+    patchSearcher.SetDatabaseCovarianceDistanceStd(m_DatabaseCovarianceDistanceStd);
+    patchSearcher.SetDatabaseMeanDistanceAverage(m_DatabaseMeanDistanceAverage);
+    patchSearcher.SetDatabaseMeanDistanceStd(m_DatabaseMeanDistanceStd);
+    patchSearcher.SetDataMask(this->GetComputationMask());
+
+    for (unsigned int k = 0;k < numSamplesDatabase;++k)
+        patchSearcher.AddComparisonImage(m_DatabaseImages[k]);
 
     while (!outIterator.IsAtEnd())
     {
@@ -86,148 +90,26 @@ NLMeansPatientToGroupComparisonImageFilter<PixelScalarType>
             ++patientIterator;
             ++outNumPatchesIterator;
 
-            ++dbCovarianceDistanceAverageIterator;
-            ++dbCovarianceDistanceStdIterator;
-            ++dbMeanDistanceAverageIterator;
-            ++dbMeanDistanceStdIterator;
+            for (unsigned int k = 0;k < numSamplesDatabase;++k)
+                ++databaseIterators[k];
 
             continue;
         }
 
-        curIndex = maskIterator.GetIndex();
-        databaseWeights.clear();
-        databaseSamples.clear();
+        patchSearcher.UpdateAtPosition(patientIterator.GetIndex());
 
-        for (unsigned int i = 0;i < 3;++i)
-        {
-            tmpBlockRegion.SetIndex(i,std::max(0,(int)curIndex[i] - (int)m_PatchHalfSize));
-            tmpBlockRegion.SetSize(i,std::min((unsigned int)(largestRegionOut.GetSize()[i] - 1),(unsigned int)(curIndex[i] + m_PatchHalfSize)) - tmpBlockRegion.GetIndex(i) + 1);
-        }
+        databaseSamples = patchSearcher.GetDatabaseSamples();
+        databaseWeights = patchSearcher.GetDatabaseWeights();
 
-        OutputImageRegionType regionLocalVariance = tmpBlockRegion;
-        for (unsigned int i = 0;i < 3;++i)
-        {
-            regionLocalVariance.SetIndex(i,std::max(0,(int)curIndex[i] - 2));
-            regionLocalVariance.SetSize(i,std::min((unsigned int)(largestRegionOut.GetSize()[i] - 1),(unsigned int)(curIndex[i] + 2)) - regionLocalVariance.GetIndex(i) + 1);
-        }
-
-        InIteratorType tmpIt (this->GetInput(0),tmpBlockRegion);
-
-        unsigned int refPatchNumElts = anima::computePatchMeanAndCovariance(this->GetInput(0),tmpBlockRegion,refPatchMean,refPatchCov);
-
-        EigenAnalysis.ComputeEigenValuesAndVectors(refPatchCov, eVals, eVec);
-
-        for (unsigned int i = 0;i < ndim;++i)
-            eVals[i] = log(eVals[i]);
-
-        logRefPatchCov = eVec.transpose() * eVals * eVec;
-
-        anima::computeAverageLocalCovariance(noiseCovariance,this->GetInput(0),this->GetComputationMask(),regionLocalVariance,2);
-
-        noiseSigma = vnl_matrix_inverse <double> (noiseCovariance);
-
-        double covStdValue = dbCovarianceDistanceStdIterator.Get();
-        double covMeanValue = dbCovarianceDistanceAverageIterator.Get();
-        double meanStdValue = dbMeanDistanceStdIterator.Get();
-        double meanMeanValue = dbMeanDistanceAverageIterator.Get();
-
+        // Add center pixels
         for (unsigned int k = 0;k < numSamplesDatabase;++k)
         {
-            for (int dispZ = - maxAbsDisp;dispZ <= maxAbsDisp;dispZ += m_SearchStepSize)
-            {
-                dispCurIndex[2] = tmpBlockRegion.GetIndex()[2] + dispZ;
-                int maxBlockZ = dispCurIndex[2] + tmpBlockRegion.GetSize()[2];
-
-                if ((dispCurIndex[2] < 0)||(maxBlockZ > (int)largestRegionOut.GetSize()[2]))
-                    continue;
-
-                for (int dispY = - maxAbsDisp;dispY <= maxAbsDisp;dispY += m_SearchStepSize)
-                {
-                    dispCurIndex[1] = tmpBlockRegion.GetIndex()[1] + dispY;
-                    int maxBlockY = dispCurIndex[1] + tmpBlockRegion.GetSize()[1];
-                    if ((dispCurIndex[1] < 0)||(maxBlockY > (int)largestRegionOut.GetSize()[1]))
-                        continue;
-
-                    for (int dispX = - maxAbsDisp;dispX <= maxAbsDisp;dispX += m_SearchStepSize)
-                    {
-                        dispCurIndex[0] = tmpBlockRegion.GetIndex()[0] + dispX;
-                        int maxBlockX = dispCurIndex[0] + tmpBlockRegion.GetSize()[0];
-                        if ((dispCurIndex[0] < 0)||(maxBlockX > (int)largestRegionOut.GetSize()[0]))
-                            continue;
-
-                        tmpBlockRegionMoving.SetIndex(dispCurIndex);
-                        tmpBlockRegionMoving.SetSize(tmpBlockRegion.GetSize());
-
-                        double weightValue = 0;
-                        if ((dispX != 0)||(dispY != 0)||(dispZ != 0))
-                        {
-                            unsigned int movingPatchNumElts = anima::computePatchMeanAndCovariance(m_DatabaseImages[k].GetPointer(),tmpBlockRegionMoving,
-                                                                                                   movingPatchMean,movingPatchCov);
-
-                            double varTest = anima::VectorCovarianceTest(logRefPatchCov,movingPatchCov);
-
-                            if (varTest > covMeanValue + m_VarianceThreshold * covStdValue)
-                                continue;
-
-                            double meanTestValue = anima::VectorMeansTest(refPatchMean,movingPatchMean,refPatchNumElts,movingPatchNumElts,
-                                                                          refPatchCov,movingPatchCov);
-
-                            if (meanTestValue > meanMeanValue + m_MeanThreshold * meanStdValue)
-                                continue;
-
-                            InIteratorType tmpMovingIt (m_DatabaseImages[k], tmpBlockRegionMoving);
-                            tmpIt.GoToBegin();
-
-                            unsigned int numVoxels = 0;
-
-                            while (!tmpIt.IsAtEnd())
-                            {
-                                tmpDiffValue = tmpIt.Get() - tmpMovingIt.Get();
-
-                                for (unsigned int i = 0;i < ndim;++i)
-                                    for (unsigned int j = i;j < ndim;++j)
-                                    {
-                                        if (j != i)
-                                            weightValue += 2.0 * noiseSigma(i,j) * tmpDiffValue[i] * tmpDiffValue[j];
-                                        else
-                                            weightValue += noiseSigma(i,j) * tmpDiffValue[i] * tmpDiffValue[j];
-                                    }
-
-                                ++numVoxels;
-                                ++tmpIt;
-                                ++tmpMovingIt;
-                            }
-
-                            weightValue = exp(- weightValue / (2.0 * ndim * m_BetaParameter * numVoxels));
-                        }
-                        else
-                        {
-                            weightValue = 1.0;
-                        }
-
-
-                        if (weightValue > m_WeightThreshold)
-                        {
-                            databaseWeights.push_back(weightValue);
-
-                            centerIndex = curIndex;
-                            centerIndex[0] += dispX;
-                            centerIndex[1] += dispY;
-                            centerIndex[2] += dispZ;
-
-                            // Getting center index value
-                            databaseSamples.push_back(m_DatabaseImages[k]->GetPixel(centerIndex));
-                        }
-                    }
-                }
-            }
+            databaseSamples.push_back(databaseIterators[k].Get());
+            databaseWeights.push_back(1.0);
         }
 
-        //std::cout << "Got all samples, total number is: " << databaseWeights.size() << std::endl;
-        //exit(-1);
-
         double diffScore = 0;
-        VectorType patientSample = patientIterator.Get();
+        patientSample = patientIterator.Get();
         double pValue = 0;
 
         try
@@ -250,10 +132,8 @@ NLMeansPatientToGroupComparisonImageFilter<PixelScalarType>
         ++maskIterator;
         ++patientIterator;
 
-        ++dbCovarianceDistanceAverageIterator;
-        ++dbCovarianceDistanceStdIterator;
-        ++dbMeanDistanceAverageIterator;
-        ++dbMeanDistanceStdIterator;
+        for (unsigned int k = 0;k < numSamplesDatabase;++k)
+            ++databaseIterators[k];
     }
 }
 
@@ -327,7 +207,7 @@ NLMeansPatientToGroupComparisonImageFilter<PixelScalarType>
     boost::math::fisher_f_distribution <double> fisherDist(ndim,nsamples - ndim);
     double resVal = 1.0 - boost::math::cdf(fisherDist, testScore);
 
-    diffScore = sqrt(diffScore);
+    diffScore = std::sqrt(diffScore);
 
     return resVal;
 }
