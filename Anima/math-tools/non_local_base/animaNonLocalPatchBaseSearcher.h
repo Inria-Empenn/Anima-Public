@@ -6,6 +6,11 @@
 namespace anima
 {
 
+/**
+ * Abstract class for non local patch matching. May be used to search in multiple images
+ * if the concrete class does support it. Does not compute weights and samples for central voxels
+ * as these would always get a weight of 1. Instead, it is the developer task to implement it in his filter
+ */
 template <class ImageType>
 class NonLocalPatchBaseSearcher
 {
@@ -27,15 +32,19 @@ public:
     void SetInputImage(ImageType *arg) {m_InputImage = arg;}
     itkGetObjectMacro(InputImage, ImageType);
 
+    void AddComparisonImage(ImageType *arg);
+    ImageType *GetComparisonImage(unsigned int index);
+
     itkGetConstReferenceMacro(DatabaseWeights, std::vector <double>);
     itkGetConstReferenceMacro(DatabaseSamples, std::vector <PixelType>);
 
     void UpdateAtPosition(const IndexType &dataIndex);
 
 protected:
-    virtual void UpdateAdditionalProperties(ImageRegionType &movingPatch) {}
-    virtual double computeWeightValue(ImageRegionType &refPatch, ImageRegionType &movingPatch) = 0;
-    virtual bool testPatchConformity(const IndexType &refIndex, const IndexType &movingIndex) = 0;
+    virtual void ComputeInputProperties(const IndexType &refIndex, ImageRegionType &refPatch) {}
+    virtual void ComputeComparisonProperties(unsigned int index, ImageRegionType &movingPatch) {}
+    virtual double ComputeWeightValue(unsigned int index, ImageRegionType &refPatch, ImageRegionType &movingPatch) = 0;
+    virtual bool TestPatchConformity(unsigned int index, const IndexType &refIndex, const IndexType &movingIndex) = 0;
 
 private:
     unsigned int m_PatchHalfSize;
@@ -44,6 +53,7 @@ private:
     double m_WeightThreshold;
 
     ImagePointer m_InputImage;
+    std::vector <ImagePointer> m_ComparisonImages;
 
     std::vector <double> m_DatabaseWeights;
     std::vector <PixelType> m_DatabaseSamples;

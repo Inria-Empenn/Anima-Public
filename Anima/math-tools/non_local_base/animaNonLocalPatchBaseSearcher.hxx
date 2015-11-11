@@ -1,6 +1,7 @@
 #pragma once
 #include "animaNonLocalPatchBaseSearcher.h"
 
+#include <itkImageRegionConstIterator.h>
 #include <itkImageRegionConstIteratorWithIndex.h>
 
 namespace anima
@@ -21,8 +22,31 @@ NonLocalPatchBaseSearcher <ImageType>
 template <class ImageType>
 void
 NonLocalPatchBaseSearcher <ImageType>
+::AddComparisonImage(ImageType *arg)
+{
+    m_ComparisonImages.push_back(arg);
+}
+
+template <class ImageType>
+ImageType *
+NonLocalPatchBaseSearcher <ImageType>
+::GetComparisonImage(unsigned int index)
+{
+    if (index >= m_ComparisonImages.size())
+        return 0;
+
+    return m_ComparisonImages[index];
+}
+
+template <class ImageType>
+void
+NonLocalPatchBaseSearcher <ImageType>
 ::UpdateAtPosition(const IndexType &dataIndex)
 {
+    if (m_ComparisonImages.size() == 0)
+        this->AddComparisonImage(m_InputImage);
+    unsigned int numComparisonImages = m_ComparisonImages.size();
+
     m_DatabaseWeights.clear();
     m_DatabaseSamples.clear();
 
@@ -51,12 +75,19 @@ NonLocalPatchBaseSearcher <ImageType>
     blockRegion.SetIndex(blockIndex);
     blockRegion.SetSize(blockSize);
 
+    this->ComputeInputProperties(blockIndex,blockRegion);
+
     ImageRegionType dispRegion;
     dispRegion.SetIndex(dispIndex);
     dispRegion.SetSize(dispSize);
 
     typedef itk::ImageRegionConstIteratorWithIndex <ImageType> InIteratorType;
     InIteratorType dispIt(m_InputImage, dispRegion);
+
+    typedef itk::ImageRegionConstIterator <ImageType> ComparisonIteratorType;
+    std::vector <ComparisonIteratorType> comparisonIt(numComparisonImages);
+    for (unsigned int k = 0;k < numComparisonImages;++k)
+        comparisonIt[k] = ComparisonIteratorType(m_ComparisonImages[k],dispRegion);
 
     IndexType dispBaseIndex = dispIt.GetIndex();
     IndexType dispCurIndex;
@@ -91,24 +122,29 @@ NonLocalPatchBaseSearcher <ImageType>
 
         if (movingRegionIsValid && onSearchStepSize && (!isCentralIndex))
         {
-            this->UpdateAdditionalProperties(blockRegionMoving);
-            // Should we compute the weight value of this patch ?
-            if (this->testPatchConformity(dataIndex,dispCurIndex))
+            for (unsigned int k = 0;k < numComparisonImages;++k)
             {
-                blockRegionMoving.SetIndex(movingIndex);
-                blockRegionMoving.SetSize(blockRegion.GetSize());
-
-                double weightValue = this->computeWeightValue(blockRegion, blockRegionMoving);
-                if (weightValue > m_WeightThreshold)
+                this->ComputeComparisonProperties(k,blockRegionMoving);
+                // Should we compute the weight value of this patch ?
+                if (this->TestPatchConformity(k,dataIndex,dispCurIndex))
                 {
-                    m_DatabaseWeights.push_back(weightValue);
-                    // Getting center index value
-                    m_DatabaseSamples.push_back(dispIt.Get());
+                    blockRegionMoving.SetIndex(movingIndex);
+                    blockRegionMoving.SetSize(blockRegion.GetSize());
+
+                    double weightValue = this->ComputeWeightValue(k,blockRegion,blockRegionMoving);
+                    if (weightValue > m_WeightThreshold)
+                    {
+                        m_DatabaseWeights.push_back(weightValue);
+                        // Getting center index value
+                        m_DatabaseSamples.push_back(comparisonIt[k].Get());
+                    }
                 }
             }
         }
 
         ++dispIt;
+        for (unsigned int k = 0;k < numComparisonImages;++k)
+            ++comparisonIt[k];
     }
 }
 

@@ -18,7 +18,7 @@ NonLocalMeansPatchSearcher <ImageType, DataImageType>
 template <class ImageType, class DataImageType>
 bool
 NonLocalMeansPatchSearcher <ImageType, DataImageType>
-::testPatchConformity(const IndexType &refIndex, const IndexType &movingIndex)
+::TestPatchConformity(unsigned int index, const IndexType &refIndex, const IndexType &movingIndex)
 {
     double refMeanValue = m_MeanImage->GetPixel(refIndex);
     double floMeanValue = m_MeanImage->GetPixel(movingIndex);
@@ -40,12 +40,12 @@ NonLocalMeansPatchSearcher <ImageType, DataImageType>
 template <class ImageType, class DataImageType>
 double
 NonLocalMeansPatchSearcher <ImageType, DataImageType>
-::computeWeightValue(ImageRegionType &refPatch, ImageRegionType &movingPatch)
+::ComputeWeightValue(unsigned int index, ImageRegionType &refPatch, ImageRegionType &movingPatch)
 {
     typedef itk::ImageRegionConstIteratorWithIndex< ImageType > InIteratorType;
 
     InIteratorType tmpIt (this->GetInputImage(), refPatch);
-    InIteratorType tmpMovingIt (this->GetInputImage(), movingPatch);
+    InIteratorType tmpMovingIt (this->GetComparisonImage(index), movingPatch);
 
     double tmpDiffValue;
 

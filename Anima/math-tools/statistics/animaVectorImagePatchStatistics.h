@@ -12,7 +12,7 @@ unsigned int computePatchMeanAndCovariance(const itk::VectorImage <T1, Dimension
 
 //! Noise estimation for a patch of a vector image
 template <class T1, class T2, unsigned int Dimension>
-void computeAverageLocalCovariance(vnl_matrix <T2> &resVariance, const itk::VectorImage <T1, Dimension> *inputImage,
+void computeAverageLocalCovariance(vnl_matrix <T2> &resVariance, itk::VectorImage <T1, Dimension> *inputImage,
                                    itk::Image<unsigned char, Dimension> *maskImage, const itk::ImageRegion<Dimension> &averagingRegion,
                                    int localNeighborhood);
 

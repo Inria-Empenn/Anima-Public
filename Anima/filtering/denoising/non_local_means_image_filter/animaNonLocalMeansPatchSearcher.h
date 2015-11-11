@@ -5,6 +5,10 @@
 namespace anima
 {
 
+/**
+ * Non local means patch searcher: computes actual patch matches weights and conformity.
+ * Supports only one comparison image that is the same as the input
+ */
 template <class ImageType, class DataImageType>
 class NonLocalMeansPatchSearcher : public anima::NonLocalPatchBaseSearcher <ImageType>
 {
@@ -26,8 +30,8 @@ public:
     void SetVarImage(DataImageType *arg) {m_VarImage = arg;}
 
 protected:
-    virtual double computeWeightValue(ImageRegionType &refPatch, ImageRegionType &movingPatch);
-    virtual bool testPatchConformity(const IndexType &refIndex, const IndexType &movingIndex);
+    virtual double ComputeWeightValue(unsigned int index, ImageRegionType &refPatch, ImageRegionType &movingPatch);
+    virtual bool TestPatchConformity(unsigned int index, const IndexType &refIndex, const IndexType &movingIndex);
 
 private:
     DataImagePointer m_MeanImage;

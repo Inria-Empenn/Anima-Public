@@ -109,13 +109,11 @@ NonLocalMeansImageFilter < TInputImage >
     typename OutputImageType::Pointer output = this->GetOutput();
     typename InputImageType::Pointer input = const_cast<InputImageType *> (this->GetInput());
 
-    typedef itk::ImageRegionConstIteratorWithIndex< InputImageType > InIteratorType;
+    typedef itk::ImageRegionConstIterator< InputImageType > InIteratorType;
     typedef itk::ImageRegionIteratorWithIndex< OutputImageType > OutRegionIteratorType;
 
     InIteratorType inputIterator(input, outputRegionForThread);
     OutRegionIteratorType outputIterator(output, outputRegionForThread);
-    OutRegionIteratorType meanIterator(m_meanImage, outputRegionForThread);
-    OutRegionIteratorType varIterator(m_varImage, outputRegionForThread);
 
     std::vector <InputPixelType> databaseSamples;
     std::vector <double> databaseWeights;
@@ -191,8 +189,6 @@ NonLocalMeansImageFilter < TInputImage >
 
         ++outputIterator;
         ++inputIterator;
-        ++meanIterator;
-        ++varIterator;
         progress.CompletedPixel();
     }
 }
