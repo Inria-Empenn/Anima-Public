@@ -27,22 +27,17 @@ public:
     typedef typename InputImageType::RegionType InputImageRegionType;
     typedef typename InputImageType::IndexType InputImageIndexType;
 
-
     typedef InputImageType OutputImageType;
     typedef typename OutputImageType::Pointer OutputImagePointer;
     typedef typename OutputImageType::RegionType OutputImageRegionType;
-
 
     /** Standard "Self" & Superclass typedef. */
     typedef NonLocalMeansImageFilter Self;
     typedef itk::ImageToImageFilter< InputImageType, OutputImageType> Superclass;
 
-
     /** SmartPointer typedef support  */
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self> ConstPointer;
-
-
 
     /** Method for creation through the object factory.  */
     itkNewMacro(Self);
@@ -90,9 +85,6 @@ protected:
 
     virtual ~NonLocalMeansImageFilter() {}
 
-
-    //void PrintSelf(std::ostream& os, Indent indent) const;
-
     /**
     * NonLocalMeansImageFilter can be implemented as a multithreaded filter.
     * Therefore,this implementation provides a ThreadedGenerateData() routine which
@@ -116,9 +108,7 @@ protected:
 private:
 
     void computeAverageLocalVariance();
-    void computeMeanAndVarImages() ;
-    double computeWeightValue(const  OutputImageRegionType &inputRegion,
-                              const OutputImageRegionType &movingRegion);
+    void computeMeanAndVarImages();
 
     double m_MeanMinThreshold;
     double m_VarMinThreshold;
@@ -137,10 +127,7 @@ private:
     int m_localNeighborhood;
 
     int m_maxAbsDisp;
-
 };
-
-
 
 }//end of namespace anima
 
