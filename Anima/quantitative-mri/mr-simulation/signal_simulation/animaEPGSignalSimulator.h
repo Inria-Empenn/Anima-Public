@@ -1,6 +1,5 @@
 #pragma once
 
-#include <complex>
 #include <vector>
 
 #include "AnimaSignalSimulationExport.h"
@@ -15,8 +14,6 @@ public:
     virtual ~EPGSignalSimulator() {}
 
     typedef std::vector <double> RealVectorType;
-    typedef std::vector < std::complex <double> > ComplexVectorType;
-    typedef std::vector <ComplexVectorType> MatrixType;
 
     RealVectorType GetValue(double t1Value, double t2Value,
                             double b1Value, double m0Value);
@@ -30,7 +27,7 @@ public:
     void SetB1OnExcitationAngle(bool val) {m_B1OnExcitationAngle = val;}
 
 protected:
-    void ComputeT2SignalMatrices(double t1Value, double t2Value, double b1Value);
+    void ComputeT2SignalMatrixElements(double t1Value, double t2Value, double b1Value);
 
 private:
     double m_EchoSpacing;
@@ -40,9 +37,10 @@ private:
 
     bool m_B1OnExcitationAngle;
 
-    std::vector <MatrixType> m_DiagonalT2SignalMatrices;
-    MatrixType m_LowerDiagonalT2SignalMatrices;
-    MatrixType m_UpperDiagonalT2SignalMatrices;
+    RealVectorType m_FirstLineElements, m_FirstColumnElements;
+    RealVectorType m_FirstDiagonalElements, m_DiagonalElements, m_LastDiagonalElements;
+    RealVectorType m_FirstLeftElements, m_FirstRightElements;
+    double m_SecondLeftElement, m_SecondRightElement;
 };
     
 } // end namespace of anima
