@@ -45,7 +45,6 @@ AnatomicalBlockMatcher<TInputImageType>
 
             typename LocalMetricType::Pointer tmpMetric = LocalMetricType::New();
             tmpMetric->SetSquaredCorrelation(m_SimilarityType == SquaredCorrelation);
-            tmpMetric->SetVarianceThreshold(this->GetBlockVarianceThreshold());
 
             metric = tmpMetric;
             break;

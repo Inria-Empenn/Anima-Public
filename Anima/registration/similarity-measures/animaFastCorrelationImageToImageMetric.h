@@ -59,7 +59,6 @@ public:
     void PreComputeFixedValues();
     itkSetMacro(SquaredCorrelation, bool);
     itkSetMacro(ScaleIntensities, bool);
-    itkSetMacro(VarianceThreshold, double);
 
 protected:
     FastCorrelationImageToImageMetric();
@@ -75,7 +74,6 @@ private:
 
     bool m_SquaredCorrelation;
     bool m_ScaleIntensities;
-    double m_VarianceThreshold;
 
     std::vector <InputPointType> m_FixedImagePoints;
     std::vector <RealType> m_FixedImageValues;

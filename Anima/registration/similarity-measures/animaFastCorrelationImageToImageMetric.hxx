@@ -78,7 +78,7 @@ FastCorrelationImageToImageMetric<TFixedImage,TMovingImage>
     }
 
     RealType movingVariance = smm - sm * sm / this->m_NumberOfPixelsCounted;
-    if (movingVariance <= m_VarianceThreshold)
+    if (movingVariance <= 0)
         return 0;
 
     RealType covData = sfm - m_SumFixed * sm / this->m_NumberOfPixelsCounted;

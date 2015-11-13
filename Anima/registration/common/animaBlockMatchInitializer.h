@@ -39,31 +39,29 @@ public:
     itkSetMacro(NumberOfThreads, unsigned int);
     itkGetMacro(NumberOfThreads, unsigned int);
 
-    itkSetMacro(PercentageKept, double);
+    void SetPercentageKept(double val);
     itkGetMacro(PercentageKept, double);
 
-    itkSetMacro(ScalarVarianceThreshold, double);
+    void SetScalarVarianceThreshold(double val);
     itkGetMacro(ScalarVarianceThreshold, double);
 
-    itkSetMacro(TensorVarianceThreshold, double);
+    void SetTensorVarianceThreshold(double val);
     itkGetMacro(TensorVarianceThreshold, double);
 
-    itkSetMacro(RequestedRegion, ImageRegionType);
+    void SetRequestedRegion(const ImageRegionType &val);
     itkGetMacro(RequestedRegion, ImageRegionType);
 
-    itkSetMacro(BlockSpacing, unsigned int);
-    itkSetMacro(BlockSize, unsigned int);
+    void SetBlockSpacing(unsigned int val);
+    void SetBlockSize(unsigned int val);
 
     itkGetMacro(BlockSpacing, unsigned int);
     itkGetMacro(BlockSize, unsigned int);
 
-    itkSetMacro(ComputeOuterDam, bool);
+    void SetComputeOuterDam(bool val);
     itkGetMacro(ComputeOuterDam, bool);
 
-    itkSetMacro(DamDistance, double);
+    void SetDamDistance(double val);
     itkGetMacro(DamDistance, double);
-
-    std::vector <IndexType> &GetDamIndexes() {return m_DamIndexes;}
 
     void AddReferenceImage(itk::ImageBase <NDimensions> *refImage);
     itk::ImageBase <NDimensions> *GetFirstReferenceImage();
@@ -80,6 +78,7 @@ public:
 
     std::vector <ImageRegionType> &GetOutput();
     std::vector <PointType> &GetOutputPositions();
+    std::vector <IndexType> &GetDamIndexes();
 
 protected:
     BlockMatchingInitializer() : Superclass()
@@ -96,6 +95,8 @@ protected:
         m_ComputeOuterDam = false;
         m_DamDistance = 4;
         m_DamIndexes.clear();
+
+        m_UpToDate = false;
     }
 
     virtual ~BlockMatchingInitializer() {}
@@ -150,6 +151,8 @@ private:
 
     std::vector <ImageRegionType> m_Output;
     std::vector <PointType> m_OutputPositions;
+
+    bool m_UpToDate;
 };
 
 } // end of namespace anima

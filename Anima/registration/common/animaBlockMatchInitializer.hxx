@@ -30,6 +30,16 @@ BlockMatchingInitializer<PixelType,NDimensions>
 }
 
 template <class PixelType, unsigned int NDimensions>
+std::vector < typename BlockMatchingInitializer<PixelType,NDimensions>::IndexType > &
+BlockMatchingInitializer<PixelType,NDimensions>
+::GetDamIndexes()
+{
+    this->Update();
+
+    return m_DamIndexes;
+}
+
+template <class PixelType, unsigned int NDimensions>
 void
 BlockMatchingInitializer<PixelType,NDimensions>
 ::AddReferenceImage(itk::ImageBase <NDimensions> *refImage)
@@ -64,8 +74,99 @@ BlockMatchingInitializer<PixelType,NDimensions>
 
 template <class PixelType, unsigned int NDimensions>
 void BlockMatchingInitializer<PixelType,NDimensions>
+::SetPercentageKept(double val)
+{
+    if (val != m_PercentageKept)
+    {
+        m_PercentageKept = val;
+        m_UpToDate = false;
+    }
+}
+
+template <class PixelType, unsigned int NDimensions>
+void BlockMatchingInitializer<PixelType,NDimensions>
+::SetScalarVarianceThreshold(double val)
+{
+    if (val != m_ScalarVarianceThreshold)
+    {
+        m_ScalarVarianceThreshold = val;
+        m_UpToDate = false;
+    }
+}
+
+template <class PixelType, unsigned int NDimensions>
+void BlockMatchingInitializer<PixelType,NDimensions>
+::SetTensorVarianceThreshold(double val)
+{
+    if (val != m_TensorVarianceThreshold)
+    {
+        m_TensorVarianceThreshold = val;
+        m_UpToDate = false;
+    }
+}
+
+template <class PixelType, unsigned int NDimensions>
+void BlockMatchingInitializer<PixelType,NDimensions>
+::SetRequestedRegion(const ImageRegionType &val)
+{
+    if (val != m_RequestedRegion)
+    {
+        m_RequestedRegion = val;
+        m_UpToDate = false;
+    }
+}
+
+template <class PixelType, unsigned int NDimensions>
+void BlockMatchingInitializer<PixelType,NDimensions>
+::SetBlockSpacing(unsigned int val)
+{
+    if (val != m_BlockSpacing)
+    {
+        m_BlockSpacing = val;
+        m_UpToDate = false;
+    }
+}
+
+template <class PixelType, unsigned int NDimensions>
+void BlockMatchingInitializer<PixelType,NDimensions>
+::SetBlockSize(unsigned int val)
+{
+    if (val != m_BlockSize)
+    {
+        m_BlockSize = val;
+        m_UpToDate = false;
+    }
+}
+
+template <class PixelType, unsigned int NDimensions>
+void BlockMatchingInitializer<PixelType,NDimensions>
+::SetComputeOuterDam(bool val)
+{
+    if (val != m_ComputeOuterDam)
+    {
+        m_ComputeOuterDam = val;
+        m_UpToDate = false;
+    }
+}
+
+template <class PixelType, unsigned int NDimensions>
+void BlockMatchingInitializer<PixelType,NDimensions>
+::SetDamDistance(double val)
+{
+    if (val != m_DamDistance)
+    {
+        m_DamDistance = val;
+        m_UpToDate = false;
+    }
+}
+
+template <class PixelType, unsigned int NDimensions>
+void BlockMatchingInitializer<PixelType,NDimensions>
 ::Update()
 {
+    if (m_UpToDate)
+        return;
+
     itk::MultiThreader::Pointer threaderBlockGenerator = itk::MultiThreader::New();
 
     BlockGeneratorThreadStruct *tmpStr = new BlockGeneratorThreadStruct;
@@ -132,6 +233,7 @@ void BlockMatchingInitializer<PixelType,NDimensions>
     threaderBlockGenerator->SingleMethodExecute();
 
     m_Output.clear();
+    m_OutputPositions.clear();
     unsigned int totalNumberOfBlocks = 0;
     unsigned int realNumberOfBlocks = 0;
 

@@ -67,7 +67,6 @@ DistortionCorrectionBlockMatcher<TInputImageType>
 
             typename LocalMetricType::Pointer tmpMetric = LocalMetricType::New();
             tmpMetric->SetSquaredCorrelation(m_SimilarityType == SquaredCorrelation);
-            tmpMetric->SetVarianceThreshold(this->GetBlockVarianceThreshold());
             tmpMetric->SetScaleIntensities(true);
 
             metric = tmpMetric;

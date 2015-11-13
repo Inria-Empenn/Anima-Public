@@ -280,7 +280,7 @@ BaseBMRegistrationMethod <TInputImageType>
         // Compute the distance between consecutive solutions, until a certain threshold
         double err = 0;
         for (unsigned int i = 0; i < newPars.Size(); ++i)
-            err += pow(newPars[i] - oldPars[i], 2.);
+            err += std::pow(newPars[i] - oldPars[i], 2.);
 
         if (err < m_MinimalTransformError)
             return false;
