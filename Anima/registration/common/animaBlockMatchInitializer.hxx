@@ -278,6 +278,8 @@ void BlockMatchingInitializer<PixelType,NDimensions>
 
     if (m_ComputeOuterDam)
         this->ComputeOuterDamFromBlocks();
+
+    m_UpToDate = true;
 }
 
 template <class PixelType, unsigned int NDimensions>
