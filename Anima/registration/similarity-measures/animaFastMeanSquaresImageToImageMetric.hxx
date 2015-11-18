@@ -131,7 +131,7 @@ FastMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
 
         m_FixedImagePoints[pos] = inputPoint;
         fixedValue = ti.Value();
-        m_FixedImageValues[pos] = ti.Value();
+        m_FixedImageValues[pos] = fixedValue;
 
         ++ti;
         ++pos;

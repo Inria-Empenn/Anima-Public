@@ -3,7 +3,7 @@
 
 /* Similarity measures */
 #include <animaFastCorrelationImageToImageMetric.h>
-#include <itkMeanSquaresImageToImageMetric.h>
+#include <animaFastMeanSquaresImageToImageMetric.h>
 #include <itkImageToImageMetric.h>
 
 #include <animaFasterLinearInterpolateImageFunction.h>
@@ -53,7 +53,7 @@ AnatomicalBlockMatcher<TInputImageType>
         case MeanSquares:
         default:
         {
-            typedef itk::MeanSquaresImageToImageMetric <InputImageType,InputImageType> LocalMetricType;
+            typedef anima::FastMeanSquaresImageToImageMetric <InputImageType,InputImageType> LocalMetricType;
 
             metric = LocalMetricType::New();
             break;
@@ -111,6 +111,8 @@ AnatomicalBlockMatcher<TInputImageType>
     tmpMetric->Initialize();
     if (m_SimilarityType != MeanSquares)
         ((anima::FastCorrelationImageToImageMetric<InputImageType, InputImageType> *)metric.GetPointer())->PreComputeFixedValues();
+    else
+        ((anima::FastMeanSquaresImageToImageMetric<InputImageType, InputImageType> *)metric.GetPointer())->PreComputeFixedValues();
 }
 
 } // end namespace anima
