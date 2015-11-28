@@ -45,7 +45,7 @@ AnisotropyMeasure(SpacingType &sp, std::vector <bool> &changeableSizes)
             resVal += (sp[i] - meanVals) * (sp[i] - meanVals);
     }
 
-    resVal = sqrt(0.5 * resVal) / sumVals;
+    resVal = std::sqrt(0.5 * resVal) / sumVals;
 
     return resVal;
 }

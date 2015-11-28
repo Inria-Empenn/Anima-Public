@@ -86,7 +86,7 @@ OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorP
     InputIndexType tmpInd;
     PointType tmpPoint;
     unsigned int vectorSize = this->GetOutputVectorLength();
-    InputPixelType tmpDisp(ImageDimension), tmpRes(vectorSize), resRotated(vectorSize);
+    InputPixelType tmpRes(vectorSize), resRotated(vectorSize);
     ContinuousIndexType index;
 
     vnl_matrix <double> rotMatrix = this->ComputeLinearRotationMatrix();
@@ -115,7 +115,7 @@ OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorP
 
         if (!isZero(tmpRes))
         {
-            this->RotateInterpolatedModel(tmpRes,parametersRotationMatrix,resRotated);
+            this->RotateInterpolatedModel(tmpRes,parametersRotationMatrix,resRotated,threadId);
             outputItr.Set(resRotated);
         }
         else
@@ -162,7 +162,7 @@ OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorP
         {
             this->ComputeLocalRotationMatrix(tmpInd,rotMatrix);
             this->ComputeRotationParametersFromRotationMatrix(rotMatrix,parametersRotationMatrix);
-            this->RotateInterpolatedModel(tmpRes,parametersRotationMatrix,resRotated);
+            this->RotateInterpolatedModel(tmpRes,parametersRotationMatrix,resRotated,threadId);
             outputItr.Set(resRotated);
         }
         else

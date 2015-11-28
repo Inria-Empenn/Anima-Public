@@ -36,8 +36,9 @@ protected:
 
     virtual ~FiniteStrainTensorResampleImageFilter() {}
 
+    virtual void BeforeThreadedGenerateData();
     virtual void RotateInterpolatedModel(const InputPixelType &interpolatedModel, vnl_matrix <double> &modelRotationMatrix,
-                                         InputPixelType &rotatedModel);
+                                         InputPixelType &rotatedModel, itk::ThreadIdType threadId);
 
 private:
     FiniteStrainTensorResampleImageFilter(const Self&); //purposely not implemented
@@ -45,6 +46,10 @@ private:
 
     unsigned int m_VectorSize;
     unsigned int m_TensorDimension;
+
+    // Work variables
+    std::vector < vnl_matrix <double> > m_WorkMats;
+    std::vector < vnl_matrix <double> > m_TmpTensors;
 };
 
 } // end namespace anima

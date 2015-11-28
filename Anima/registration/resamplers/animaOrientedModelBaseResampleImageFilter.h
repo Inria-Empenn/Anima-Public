@@ -99,7 +99,7 @@ protected:
 
     virtual ~OrientedModelBaseResampleImageFilter() {}
 
-    virtual void BeforeThreadedGenerateData(void);
+    virtual void BeforeThreadedGenerateData();
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId);
 
     virtual unsigned int GetOutputVectorLength();
@@ -138,7 +138,8 @@ protected:
     }
 
     //! Needs to be implemented in sub-classes, does the actual rotation of the model
-    virtual void RotateInterpolatedModel(const InputPixelType &interpolatedModel, vnl_matrix <double> &modelRotationMatrix, InputPixelType &rotatedModel) = 0;
+    virtual void RotateInterpolatedModel(const InputPixelType &interpolatedModel, vnl_matrix <double> &modelRotationMatrix,
+                                         InputPixelType &rotatedModel, itk::ThreadIdType threadId) = 0;
 
 private:
     OrientedModelBaseResampleImageFilter(const Self&); //purposely not implemented
