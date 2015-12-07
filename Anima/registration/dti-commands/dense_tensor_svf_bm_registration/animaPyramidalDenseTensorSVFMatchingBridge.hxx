@@ -216,8 +216,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
 
         m_bmreg->SetSVFElasticRegSigma(m_ElasticSigma * meanSpacing);
 
-        typedef typename anima::FiniteStrainTensorResampleImageFilter<InputInternalPixelType, ImageDimension,
-                                                                      typename BaseAgregatorType::ScalarType> ResampleFilterType;
+        typedef typename anima::FiniteStrainTensorResampleImageFilter<InputImageType,typename BaseAgregatorType::ScalarType> ResampleFilterType;
 
         typename ResampleFilterType::Pointer refResampler = ResampleFilterType::New();
         refResampler->SetOutputLargestPossibleRegion(floImage->GetLargestPossibleRegion());
@@ -388,8 +387,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
     DisplacementFieldTransformPointer outputDispTrsf = DisplacementFieldTransformType::New();
     anima::GetSVFExponential(m_OutputTransform.GetPointer(), outputDispTrsf.GetPointer(), false);
 
-    typedef typename anima::FiniteStrainTensorResampleImageFilter<InputInternalPixelType, ImageDimension,
-                                                                  typename BaseAgregatorType::ScalarType> ResampleFilterType;
+    typedef typename anima::FiniteStrainTensorResampleImageFilter<InputImageType,typename BaseAgregatorType::ScalarType> ResampleFilterType;
     typename ResampleFilterType::Pointer tmpResample = ResampleFilterType::New();
 
     typedef itk::Transform<typename BaseAgregatorType::ScalarType,ImageDimension,ImageDimension> BaseTransformType;
@@ -452,8 +450,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::SetupPyramids()
     if (this->GetNumberOfThreads() != 0)
         m_ReferencePyramid->SetNumberOfThreads(this->GetNumberOfThreads());
 
-    typedef typename anima::FiniteStrainTensorResampleImageFilter<InputInternalPixelType, ImageDimension,
-                                                                  typename BaseAgregatorType::ScalarType> ResampleFilterType;
+    typedef typename anima::FiniteStrainTensorResampleImageFilter<InputImageType,typename BaseAgregatorType::ScalarType> ResampleFilterType;
 
     typename ResampleFilterType::Pointer refResampler = ResampleFilterType::New();
     m_ReferencePyramid->SetImageResampler(refResampler);

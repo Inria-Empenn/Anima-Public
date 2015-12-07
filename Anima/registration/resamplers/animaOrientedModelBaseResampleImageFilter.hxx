@@ -9,9 +9,9 @@
 namespace anima
 {
 
-template <typename TInputScalarType, unsigned int Dimension, typename TInterpolatorPrecisionType>
+template <typename TImageType, typename TInterpolatorPrecisionType>
 void
-OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorPrecisionType>
+OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 ::InitializeInterpolator()
 {
     typedef anima::VectorModelLinearInterpolateImageFunction <InputImageType,TInterpolatorPrecisionType> InterpolatorType;
@@ -20,9 +20,9 @@ OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorP
     this->SetInterpolator(tmpInterpolator.GetPointer());
 }
 
-template <typename TInputScalarType, unsigned int Dimension, typename TInterpolatorPrecisionType>
+template <typename TImageType, typename TInterpolatorPrecisionType>
 unsigned int
-OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorPrecisionType>
+OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 ::GetOutputVectorLength()
 {
     if (this->GetNumberOfIndexedInputs() > 0)
@@ -31,9 +31,9 @@ OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorP
         return 0;
 }
 
-template <typename TInputScalarType, unsigned int Dimension, typename TInterpolatorPrecisionType>
+template <typename TImageType, typename TInterpolatorPrecisionType>
 void
-OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorPrecisionType>
+OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 ::BeforeThreadedGenerateData()
 {
     m_StartIndex = this->GetInput(0)->GetLargestPossibleRegion().GetIndex();
@@ -63,9 +63,9 @@ OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorP
     }
 }
 
-template <typename TInputScalarType, unsigned int Dimension, typename TInterpolatorPrecisionType>
+template <typename TImageType, typename TInterpolatorPrecisionType>
 void
-OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorPrecisionType>
+OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 ::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
 {
     if (m_LinearTransform)
@@ -74,9 +74,9 @@ OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorP
         this->NonLinearThreadedGenerateData(outputRegionForThread,threadId);
 }
 
-template <typename TInputScalarType, unsigned int Dimension, typename TInterpolatorPrecisionType>
+template <typename TImageType, typename TInterpolatorPrecisionType>
 void
-OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorPrecisionType>
+OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 ::LinearThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
 {
     typedef itk::ImageRegionIteratorWithIndex <InputImageType> IteratorType;
@@ -126,9 +126,9 @@ OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorP
 }
 
 
-template <typename TInputScalarType, unsigned int Dimension, typename TInterpolatorPrecisionType>
+template <typename TImageType, typename TInterpolatorPrecisionType>
 void
-OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorPrecisionType>
+OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 ::NonLinearThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
 {
     typedef itk::ImageRegionIteratorWithIndex <InputImageType> IteratorType;
@@ -172,9 +172,9 @@ OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorP
     }
 }
 
-template <typename TInputScalarType, unsigned int Dimension, typename TInterpolatorPrecisionType>
+template <typename TImageType, typename TInterpolatorPrecisionType>
 vnl_matrix <double>
-OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorPrecisionType>
+OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 ::ComputeLinearRotationMatrix()
 {
     vnl_matrix <double> rotMatrix(ImageDimension,ImageDimension);
@@ -186,9 +186,9 @@ OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorP
     return rotMatrix;
 }
 
-template <typename TInputScalarType, unsigned int Dimension, typename TInterpolatorPrecisionType>
+template <typename TImageType, typename TInterpolatorPrecisionType>
 void
-OrientedModelBaseResampleImageFilter<TInputScalarType, Dimension, TInterpolatorPrecisionType>
+OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 ::ComputeLocalRotationMatrix(InputIndexType &index, vnl_matrix <double> &rotMatrix)
 {
     vnl_matrix <double> jacMatrix(ImageDimension,ImageDimension);

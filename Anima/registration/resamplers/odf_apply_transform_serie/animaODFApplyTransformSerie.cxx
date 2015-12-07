@@ -87,7 +87,7 @@ int main(int ac, const char** av)
     else
         interpolator = anima::VectorModelLinearInterpolateImageFunction<ImageType>::New();
     
-    typedef anima::FiniteStrainODFResampleImageFilter< PixelType, Dimension, double > ResampleFilterType;
+    typedef anima::FiniteStrainODFResampleImageFilter<ImageType, double> ResampleFilterType;
 
     ResampleFilterType::Pointer resample = ResampleFilterType::New();
         

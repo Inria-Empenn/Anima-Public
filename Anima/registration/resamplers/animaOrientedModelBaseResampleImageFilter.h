@@ -10,23 +10,22 @@
 namespace anima
 {
 
-template <typename TInputScalarType, unsigned int Dimension, typename TInterpolatorPrecisionType=float>
+template <typename TImageType, typename TInterpolatorPrecisionType=float>
 class OrientedModelBaseResampleImageFilter :
-        public itk::ImageToImageFilter< itk::VectorImage <TInputScalarType, Dimension> , itk::VectorImage <TInputScalarType, Dimension> >
+        public itk::ImageToImageFilter< TImageType , TImageType >
 {
 public:
     /** Standard class typedefs. */
     typedef OrientedModelBaseResampleImageFilter Self;
-    typedef itk::VectorImage <TInputScalarType, Dimension> InputImageType;
+    typedef TImageType InputImageType;
     itkStaticConstMacro(ImageDimension, unsigned int,InputImageType::ImageDimension);
 
-    typedef itk::VectorImage <TInputScalarType, itkGetStaticConstMacro(ImageDimension)> TInputImage;
-    typedef itk::VectorImage <TInputScalarType, itkGetStaticConstMacro(ImageDimension)> TOutputImage;
+    typedef TImageType OutputImageType;
 
     typedef itk::Image <unsigned char, itkGetStaticConstMacro(ImageDimension)> GeometryImageType;
     typedef typename GeometryImageType::Pointer GeometryImagePointer;
 
-    typedef itk::ImageToImageFilter< TInputImage, TOutputImage > Superclass;
+    typedef itk::ImageToImageFilter< InputImageType, OutputImageType > Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
@@ -44,8 +43,8 @@ public:
 
     /** Image typedef support */
     typedef typename InputImageType::Pointer InputImagePointer;
-    typedef typename TOutputImage::Pointer OutputImagePointer;
-    typedef typename TOutputImage::RegionType OutputImageRegionType;
+    typedef typename OutputImageType::Pointer OutputImagePointer;
+    typedef typename OutputImageType::RegionType OutputImageRegionType;
 
     typedef itk::Transform <TInterpolatorPrecisionType,
     itkGetStaticConstMacro(ImageDimension),
@@ -71,10 +70,10 @@ public:
     itkSetMacro(Interpolator,InterpolatorPointer);
     itkGetMacro(Interpolator,InterpolatorType *);
 
-    typedef typename TOutputImage::SpacingType   SpacingType;
-    typedef typename TOutputImage::PointType     OriginPointType;
-    typedef typename TOutputImage::DirectionType DirectionType;
-    typedef typename TOutputImage::RegionType RegionType;
+    typedef typename OutputImageType::SpacingType   SpacingType;
+    typedef typename OutputImageType::PointType     OriginPointType;
+    typedef typename OutputImageType::DirectionType DirectionType;
+    typedef typename OutputImageType::RegionType RegionType;
 
     itkSetMacro( OutputSpacing, SpacingType );
     itkGetConstReferenceMacro( OutputSpacing, SpacingType );

@@ -209,13 +209,13 @@ void
 PyramidImageFilter<TInputImage,TOutputImage>::
 CreateLevelVectorImage(unsigned int level)
 {
-    const VectorInputImageType *previousLevelImage = NULL;
+    const TInputImage *previousLevelImage = NULL;
     if (level == (unsigned int)(m_NumberOfLevels - 1))
-        previousLevelImage = dynamic_cast<const VectorInputImageType *> (this->GetInput());
+        previousLevelImage = this->GetInput();
     else
-        previousLevelImage = dynamic_cast<const VectorInputImageType *> (this->GetOutput(level+1));
+        previousLevelImage = this->GetOutput(level+1);
 
-    VectorOutputImagePointer levelImage;
+    typename TOutputImage::Pointer levelImage;
 
     typedef itk::MatrixOffsetTransformBase <double,InputImageType::ImageDimension> MatrixTrsfType;
     typedef itk::Transform <double,InputImageType::ImageDimension,InputImageType::ImageDimension> BaseTrsfType;
@@ -224,8 +224,7 @@ CreateLevelVectorImage(unsigned int level)
 
     typename BaseTrsfType::Pointer baseTrsf = idTrsf.GetPointer();
 
-    typedef anima::OrientedModelBaseResampleImageFilter <InputInternalScalarType, InputImageType::ImageDimension,
-                                                         double> ResamplerType;
+    typedef anima::OrientedModelBaseResampleImageFilter <TInputImage, double> ResamplerType;
 
     typename ResamplerType::Pointer resample = dynamic_cast <ResamplerType *> (m_ImageResampler->Clone().GetPointer());
     resample->SetNumberOfThreads(this->GetNumberOfThreads());
@@ -256,7 +255,10 @@ CreateLevelVectorImage(unsigned int level)
     resample->SetOutputSpacing(m_LevelSpacings[level]);
     resample->SetOutputDirection(this->GetInput()->GetDirection());
 
-    resample->SetInput(previousLevelImage);
+     if (level == (unsigned int)(m_NumberOfLevels - 1))
+        resample->SetInput(this->GetInput());
+     else
+         resample->SetInput(this->GetOutput(level+1));
 
     resample->SetTransform(baseTrsf);
 

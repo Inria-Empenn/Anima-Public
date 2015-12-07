@@ -6,9 +6,9 @@
 namespace anima
 {
 
-template <typename TInputScalarType, unsigned int Dimension, typename TInterpolatorPrecisionType>
+template <typename TImageType, typename TInterpolatorPrecisionType>
 void
-FiniteStrainTensorResampleImageFilter<TInputScalarType, Dimension, TInterpolatorPrecisionType>
+FiniteStrainTensorResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 ::BeforeThreadedGenerateData()
 {
     this->Superclass::BeforeThreadedGenerateData();
@@ -23,9 +23,9 @@ FiniteStrainTensorResampleImageFilter<TInputScalarType, Dimension, TInterpolator
     }
 }
 
-template <typename TInputScalarType, unsigned int Dimension, typename TInterpolatorPrecisionType>
+template <typename TImageType, typename TInterpolatorPrecisionType>
 void
-FiniteStrainTensorResampleImageFilter<TInputScalarType, Dimension, TInterpolatorPrecisionType>
+FiniteStrainTensorResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 ::RotateInterpolatedModel(const InputPixelType &interpolatedModel, vnl_matrix <double> &modelRotationMatrix,
                           InputPixelType &rotatedModel, itk::ThreadIdType threadId)
 {
