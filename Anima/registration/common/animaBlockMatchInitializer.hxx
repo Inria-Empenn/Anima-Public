@@ -184,7 +184,10 @@ void BlockMatchingInitializer<PixelType,NDimensions>
 
     unsigned int nb_blocks_per_thread = (unsigned int) floor((float)(totalNbBlocks[NDimensions-1] / this->GetNumberOfThreads()));
     if (nb_blocks_per_thread < 1)
+    {
         nb_blocks_per_thread = 1;
+        this->SetNumberOfThreads(totalNbBlocks[NDimensions-1]);
+    }
 
     tmpStr->startBlocks.resize(this->GetNumberOfThreads());
     tmpStr->nb_blocks.resize(this->GetNumberOfThreads());
