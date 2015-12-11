@@ -160,7 +160,7 @@ BaseBMRegistrationMethod <TInputImageType>
     {
         // Model resampling
         typedef itk::VectorImage <ImageScalarType, TInputImageType::ImageDimension> InternalVectorImageType;
-        typedef anima::OrientedModelBaseResampleImageFilter <ImageScalarType,TInputImageType::ImageDimension,AgregatorScalarType> InternalFilterType;
+        typedef anima::OrientedModelBaseResampleImageFilter <InternalVectorImageType,AgregatorScalarType> InternalFilterType;
         InternalFilterType *resampleFilter = dynamic_cast <InternalFilterType *> (m_MovingImageResampler.GetPointer());
 
         if (m_Agregator->GetOutputTransformType() == AgregatorType::SVF)
@@ -209,7 +209,7 @@ BaseBMRegistrationMethod <TInputImageType>
     {
         // Model resampling
         typedef itk::VectorImage <ImageScalarType, TInputImageType::ImageDimension> InternalVectorImageType;
-        typedef anima::OrientedModelBaseResampleImageFilter <ImageScalarType,TInputImageType::ImageDimension,AgregatorScalarType> InternalFilterType;
+        typedef anima::OrientedModelBaseResampleImageFilter <InternalVectorImageType,AgregatorScalarType> InternalFilterType;
         InternalFilterType *resampleFilter = dynamic_cast <InternalFilterType *> (m_ReferenceImageResampler.GetPointer());
 
         if (m_Agregator->GetOutputTransformType() == AgregatorType::SVF)

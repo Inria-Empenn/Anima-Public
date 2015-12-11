@@ -7,15 +7,15 @@
 
 namespace anima
 {
-template <typename TInputScalarType, unsigned int Dimension, typename TInterpolatorPrecisionType=float>
+template <typename TImageType, typename TInterpolatorPrecisionType=float>
 class FiniteStrainODFResampleImageFilter :
-        public OrientedModelBaseResampleImageFilter <TInputScalarType,Dimension,TInterpolatorPrecisionType>
+        public OrientedModelBaseResampleImageFilter <TImageType,TInterpolatorPrecisionType>
 {
 public:
     /** Standard class typedefs. */
     typedef FiniteStrainODFResampleImageFilter Self;
 
-    typedef OrientedModelBaseResampleImageFilter <TInputScalarType,Dimension,TInterpolatorPrecisionType> Superclass;
+    typedef OrientedModelBaseResampleImageFilter <TImageType,TInterpolatorPrecisionType> Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self>  ConstPointer;
 

@@ -10,23 +10,21 @@
 namespace anima
 {
 
-template <typename TInputScalarType, unsigned int Dimension, typename TInterpolatorPrecisionType=float>
+template <typename TImageType, typename TInterpolatorPrecisionType=float>
 class OrientedModelBaseResampleImageFilter :
-        public itk::ImageToImageFilter< itk::VectorImage <TInputScalarType, Dimension> , itk::VectorImage <TInputScalarType, Dimension> >
+        public itk::ImageToImageFilter <TImageType, TImageType>
 {
 public:
     /** Standard class typedefs. */
     typedef OrientedModelBaseResampleImageFilter Self;
-    typedef itk::VectorImage <TInputScalarType, Dimension> InputImageType;
+    typedef TImageType InputImageType;
+    typedef TImageType TOutputImage;
     itkStaticConstMacro(ImageDimension, unsigned int,InputImageType::ImageDimension);
-
-    typedef itk::VectorImage <TInputScalarType, itkGetStaticConstMacro(ImageDimension)> TInputImage;
-    typedef itk::VectorImage <TInputScalarType, itkGetStaticConstMacro(ImageDimension)> TOutputImage;
 
     typedef itk::Image <unsigned char, itkGetStaticConstMacro(ImageDimension)> GeometryImageType;
     typedef typename GeometryImageType::Pointer GeometryImagePointer;
 
-    typedef itk::ImageToImageFilter< TInputImage, TOutputImage > Superclass;
+    typedef itk::ImageToImageFilter<TImageType, TImageType> Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
@@ -104,7 +102,8 @@ protected:
 
     virtual unsigned int GetOutputVectorLength();
 
-    bool isZero(const InputPixelType &dataVec)
+    template <class T>
+    bool isZero(itk::VariableLengthVector <T> &dataVec)
     {
         unsigned int vectorSize = dataVec.GetNumberOfElements();
 
@@ -116,6 +115,26 @@ protected:
 
         return true;
     }
+
+    // Fake method for compilation purposes, should never go in there
+    template <class T> bool isZero(T &data)
+    {
+        itkExceptionMacro("Access to unauthorized method");
+        return true;
+    }
+
+    //! Utility function to initialize output images pixel to zero for vector images
+    template <class T> void InitializeZeroPixel(itk::VariableLengthVector <T> &zeroPixel)
+    {
+        zeroPixel.Fill(0.0);
+    }
+
+    //! Utility function to initialize output images pixel to zero for all images except vector images
+    template <class T> void InitializeZeroPixel(T &zeroPixel)
+    {
+        zeroPixel = itk::NumericTraits <T>::ZeroValue();
+    }
+
 
     void PrintSelf(std::ostream& os, itk::Indent indent) const
     {
