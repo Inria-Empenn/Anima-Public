@@ -74,7 +74,7 @@ VectorModelLinearInterpolateImageFunction< TInputImage, TCoordRep >
 
     unsigned int vectorDim = this->GetInputImage()->GetNumberOfComponentsPerPixel();
     OutputType output(vectorDim);
-    output.Fill( 0.0 );
+    this->InitializeZeroPixel(output);
 
     double totalOverlap = 0;
 
@@ -106,7 +106,7 @@ VectorModelLinearInterpolateImageFunction< TInputImage, TCoordRep >
         // get neighbor value only if overlap is not zero
         if( overlap )
         {
-            const PixelType input = this->GetInputImage()->GetPixel( neighIndex );
+            VectorPixelType input = static_cast <VectorPixelType> (this->GetInputImage()->GetPixel(neighIndex));
 
             if (!isZero(input))
             {
@@ -122,9 +122,9 @@ VectorModelLinearInterpolateImageFunction< TInputImage, TCoordRep >
     if (totalOverlap > 0.5)
         output /= totalOverlap;
     else
-        output.Fill(0.0);
+        this->InitializeZeroPixel(output);
 
-    return ( output );
+    return output;
 }
 
 } // end namespace itk

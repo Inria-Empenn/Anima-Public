@@ -26,7 +26,7 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 ::GetOutputVectorLength()
 {
     if (this->GetNumberOfIndexedInputs() > 0)
-        return this->GetInput(0)->GetVectorLength();
+        return this->GetInput(0)->GetNumberOfComponentsPerPixel();
     else
         return 0;
 }
@@ -111,7 +111,7 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
         if (m_Interpolator->IsInsideBuffer(index))
             tmpRes = m_Interpolator->EvaluateAtContinuousIndex(index);
         else
-            tmpRes.Fill(0.0);
+            this->InitializeZeroPixel(tmpRes);
 
         if (!isZero(tmpRes))
         {
@@ -156,7 +156,7 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
         if (m_Interpolator->IsInsideBuffer(index))
             tmpRes = m_Interpolator->EvaluateAtContinuousIndex(index);
         else
-            tmpRes.Fill(0.0);
+            this->InitializeZeroPixel(tmpRes);
 
         if (!isZero(tmpRes))
         {

@@ -102,7 +102,8 @@ protected:
 
     virtual unsigned int GetOutputVectorLength();
 
-    bool isZero(const InputPixelType &dataVec)
+    template <class T>
+    bool isZero(itk::VariableLengthVector <T> &dataVec)
     {
         unsigned int vectorSize = dataVec.GetNumberOfElements();
 
@@ -114,6 +115,26 @@ protected:
 
         return true;
     }
+
+    // Fake method for compilation purposes, should never go in there
+    template <class T> bool isZero(T &data)
+    {
+        itkExceptionMacro("Access to unauthorized method");
+        return true;
+    }
+
+    //! Utility function to initialize output images pixel to zero for vector images
+    template <class T> void InitializeZeroPixel(itk::VariableLengthVector <T> &zeroPixel)
+    {
+        zeroPixel.Fill(0.0);
+    }
+
+    //! Utility function to initialize output images pixel to zero for all images except vector images
+    template <class T> void InitializeZeroPixel(T &zeroPixel)
+    {
+        zeroPixel = itk::NumericTraits <T>::ZeroValue();
+    }
+
 
     void PrintSelf(std::ostream& os, itk::Indent indent) const
     {
