@@ -110,9 +110,7 @@ VectorModelLinearInterpolateImageFunction< TInputImage, TCoordRep >
 
             if (!isZero(input))
             {
-                for (unsigned int j = 0;j < vectorDim;++j)
-                    output[j] += overlap * input[j];
-
+                this->AddValue(input,overlap,output);
                 totalOverlap += overlap;
             }
         }

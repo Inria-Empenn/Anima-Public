@@ -101,6 +101,22 @@ protected:
         zeroPixel = itk::NumericTraits <T>::ZeroValue();
     }
 
+    //! Utility function to initialize output images pixel to zero for vector images
+    template <class T1, class T2>
+    void AddValue(itk::VariableLengthVector <T1> &input, double weight,
+                  itk::VariableLengthVector <T2> &output) const
+    {
+        unsigned int vecDim = input.GetNumberOfElements();
+        for (unsigned int i = 0;i < vecDim;++i)
+            output[i] += weight * input[i];
+    }
+
+    //! Utility function to initialize output images pixel to zero for all images except vector images
+    template <class T1, class T2> void AddValue(T1 &input, double weight, T2 &output) const
+    {
+        itkExceptionMacro("Acces to unauthorized method, check your implementation");
+    }
+
 private:
     VectorModelLinearInterpolateImageFunction(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
