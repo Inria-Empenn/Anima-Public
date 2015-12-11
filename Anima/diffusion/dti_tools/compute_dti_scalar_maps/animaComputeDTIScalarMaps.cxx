@@ -20,7 +20,7 @@ void eventCallback (itk::Object* caller, const itk::EventObject& event, void* cl
 int main(int ac, const char** av)
 {
 
-    TCLAP::CmdLine cmd("Compute an ADC and a FA image from a DTI volume.\nINRIA / IRISA - VisAGeS Team",' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("Compute an ADC, FA, axial Diffusivity, radial diffuisivity image from a DTI volume.\nINRIA / IRISA - VisAGeS Team",' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> tensorArg("i",
                                            "input",
@@ -32,19 +32,35 @@ int main(int ac, const char** av)
 
     TCLAP::ValueArg<std::string> adcArg("a",
                                         "adcImage",
-                                        "Adc computed image",
-                                        true,
+                                        "ADC image",
+                                        false,
                                         "",
-                                        "Adc computed image",
+                                        "ADC image",
                                         cmd);
 
     TCLAP::ValueArg<std::string> faArg("f",
                                        "faImage",
-                                       "Fa computed image",
+                                       "Fa image",
                                        false,
                                        "",
-                                       "Fa computed image",
+                                       "Fa image",
                                        cmd);
+
+    TCLAP::ValueArg<std::string> axArg("x",
+                                       "axialImage",
+                                       "Axial diffusivity image",
+                                       false,
+                                       "",
+                                       "Axial diffusivity image",
+                                       cmd);
+
+    TCLAP::ValueArg<std::string> radArg("r",
+                                        "radialImage",
+                                        "Radial diffusivity image",
+                                        false,
+                                        "",
+                                        "Radial diffusivity image",
+                                        cmd);
 
     TCLAP::ValueArg<unsigned int> nbpArg("p",
                                          "pThread",
@@ -78,94 +94,44 @@ int main(int ac, const char** av)
     imageIO->SetFileName(tensorArg.getValue());
     imageIO->ReadImageInformation();
 
-    unsigned int const nbDimension = imageIO->GetNumberOfDimensions ();
-    std::cout<<"Image has "<<nbDimension<<" dimension.\n";
 
     itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
     callback->SetCallback(eventCallback);
 
-    switch(nbDimension)
+
+    std::cout<<"preparing filter...\n";
+
+    typedef itk::VectorImage<float, 3> TensorImageType;
+    typedef itk::Image<float, 3> OutputsImageType;
+
+    typedef anima::DTIScalarMapsImageFilter<3> FilterType;
+
+    FilterType::Pointer filter = FilterType::New();
+    filter->SetInput(anima::readImage<TensorImageType>(tensorArg.getValue()));
+
+    if(nbpArg.getValue())
+        filter->SetNumberOfThreads(nbpArg.getValue());
+
+    filter->AddObserver(itk::ProgressEvent(), callback );
+    filter->Update();
+
+    try
     {
-        case 2:
-        {
-            std::cout<<"preparing filter...\n";
-
-            typedef itk::VectorImage<float, 2> TensorImageType;
-            typedef itk::Image<float, 2> OutputsImageType;
-
-            typedef anima::DTIScalarMapsImageFilter<2> FilterType;
-
-            FilterType::Pointer filter = FilterType::New();
-            filter->SetInput(anima::readImage<TensorImageType>(tensorArg.getValue()));
-
-            if (faArg.getValue() == "")
-                filter->SetComputeFAImage(false);
-
-            if(nbpArg.getValue())
-                filter->SetNumberOfThreads(nbpArg.getValue());
-
-            filter->AddObserver(itk::ProgressEvent(), callback );
-            filter->Update();
-
-            try
-            {
-                if(adcArg.getValue() != "")
-                    anima::writeImage<OutputsImageType>(adcArg.getValue(), filter->GetADCImage());
-                if(faArg.getValue() != "")
-                    anima::writeImage<OutputsImageType>(faArg.getValue(), filter->GetFAImage());
-            }
-            catch( itk::ExceptionObject & err )
-            {
-                std::cerr << "Itk cannot write output, be sure to use a valid extension..." << std::endl;
-                std::cerr << err << std::endl;
-                return EXIT_FAILURE;
-            }
-            break;
-        }
-
-        case 3:
-        {
-            std::cout<<"preparing filter...\n";
-
-            typedef itk::VectorImage<float, 3> TensorImageType;
-            typedef itk::Image<float, 3> OutputsImageType;
-
-            typedef anima::DTIScalarMapsImageFilter<3> FilterType;
-
-            FilterType::Pointer filter = FilterType::New();
-            filter->SetInput(anima::readImage<TensorImageType>(tensorArg.getValue()));
-
-            if (faArg.getValue() == "")
-                filter->SetComputeFAImage(false);
-
-            if(nbpArg.getValue())
-                filter->SetNumberOfThreads(nbpArg.getValue());
-
-            filter->AddObserver(itk::ProgressEvent(), callback );
-            filter->Update();
-
-            try
-            {
-                if(adcArg.getValue() != "")
-                    anima::writeImage<OutputsImageType>(adcArg.getValue(), filter->GetADCImage());
-                if(faArg.getValue() != "")
-                    anima::writeImage<OutputsImageType>(faArg.getValue(), filter->GetFAImage());
-            }
-            catch( itk::ExceptionObject & err )
-            {
-                std::cerr << "Itk cannot write output, be sure to use a valid extension..." << std::endl;
-                std::cerr << err << std::endl;
-                return EXIT_FAILURE;
-            }
-            break;
-        }
-        default:
-        {
-            itk::ExceptionObject excp(__FILE__, __LINE__, "Number of dimension not supported", ITK_LOCATION);
-            throw excp;
-        }
+        if(adcArg.getValue() != "")
+            anima::writeImage<OutputsImageType>(adcArg.getValue(), filter->GetADCImage());
+        if(faArg.getValue() != "")
+            anima::writeImage<OutputsImageType>(faArg.getValue(), filter->GetFAImage());
+        if(axArg.getValue() != "")
+            anima::writeImage<OutputsImageType>(axArg.getValue(), filter->GetAxialDiffusivityImage());
+        if(radArg.getValue() != "")
+            anima::writeImage<OutputsImageType>(radArg.getValue(), filter->GetRadialDiffusivityImage());
+    }
+    catch( itk::ExceptionObject & err )
+    {
+        std::cerr << "Itk cannot write output, be sure to use a valid extension..." << std::endl;
+        std::cerr << err << std::endl;
+        return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;
-
 }// end of main
