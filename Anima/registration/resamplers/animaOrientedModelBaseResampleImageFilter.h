@@ -10,23 +10,21 @@
 namespace anima
 {
 
-template <typename TInputScalarType, unsigned int Dimension, typename TInterpolatorPrecisionType=float>
+template <typename TImageType, typename TInterpolatorPrecisionType=float>
 class OrientedModelBaseResampleImageFilter :
-        public itk::ImageToImageFilter< itk::VectorImage <TInputScalarType, Dimension> , itk::VectorImage <TInputScalarType, Dimension> >
+        public itk::ImageToImageFilter <TImageType, TImageType>
 {
 public:
     /** Standard class typedefs. */
     typedef OrientedModelBaseResampleImageFilter Self;
-    typedef itk::VectorImage <TInputScalarType, Dimension> InputImageType;
+    typedef TImageType InputImageType;
+    typedef TImageType TOutputImage;
     itkStaticConstMacro(ImageDimension, unsigned int,InputImageType::ImageDimension);
-
-    typedef itk::VectorImage <TInputScalarType, itkGetStaticConstMacro(ImageDimension)> TInputImage;
-    typedef itk::VectorImage <TInputScalarType, itkGetStaticConstMacro(ImageDimension)> TOutputImage;
 
     typedef itk::Image <unsigned char, itkGetStaticConstMacro(ImageDimension)> GeometryImageType;
     typedef typename GeometryImageType::Pointer GeometryImagePointer;
 
-    typedef itk::ImageToImageFilter< TInputImage, TOutputImage > Superclass;
+    typedef itk::ImageToImageFilter<TImageType, TImageType> Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
