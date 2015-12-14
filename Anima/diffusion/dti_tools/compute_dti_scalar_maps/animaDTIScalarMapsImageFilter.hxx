@@ -100,7 +100,7 @@ DTIScalarMapsImageFilter< ImageDimension >::ThreadedGenerateData(const OutputIma
 
         eigenAnalysis.ComputeEigenValues(tensorSymMatrix, eigenValue);
 
-        double l1(eigenValue[0]), l2(eigenValue[1]), l3(eigenValue[2]), fa(1);
+        double l1(eigenValue[2]), l2(eigenValue[1]), l3(eigenValue[0]), fa(1);
         double num = sqrt ( (l1 -l2)*(l1 -l2) + (l2 -l3)*(l2 -l3) + (l3 - l1)*(l3 - l1) );
         double den = sqrt (l1*l1 + l2*l2 + l3*l3);
         if(den == 0)
@@ -120,18 +120,6 @@ DTIScalarMapsImageFilter< ImageDimension >::ThreadedGenerateData(const OutputIma
         ++radialIterator;
         progress.CompletedPixel();
     }
-}
-
-/**
- * Standard "PrintSelf" method
- */
-template < unsigned int ImageDimension>
-void
-DTIScalarMapsImageFilter< ImageDimension >::PrintSelf(
-  std::ostream& os,
-  itk::Indent indent) const
-{
-  Superclass::PrintSelf( os, indent );
 }
 
 } // end of namespace anima
