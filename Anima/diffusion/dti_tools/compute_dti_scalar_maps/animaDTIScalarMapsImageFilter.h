@@ -71,7 +71,6 @@ public:
 protected:
     DTIScalarMapsImageFilter();
     virtual ~DTIScalarMapsImageFilter() {}
-    void PrintSelf(std::ostream& os, itk::Indent indent) const;
 
     /** DTIScalarMapsImageFilter can be implemented as a multithreaded filter.
      * Therefore, this implementation provides a ThreadedGenerateData()
