@@ -69,11 +69,6 @@ protected:
     void BeforeThreadedGenerateData();
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId);
 
-    void PrintSelf(std::ostream& os, itk::Indent indent) const
-    {
-        Superclass::PrintSelf(os,indent);
-    }
-
 private:
     DTIEstimationImageFilter(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented

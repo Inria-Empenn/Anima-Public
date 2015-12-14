@@ -1,5 +1,7 @@
 #pragma once
 
+#include <animaDTIScalarMapsImageFilter.h>
+
 #include <itkImageRegionConstIterator.h>
 #include <itkNeighborhoodInnerProduct.h>
 #include <itkImageRegionIterator.h>
@@ -19,10 +21,11 @@ template < unsigned int ImageDimension>
 DTIScalarMapsImageFilter < ImageDimension >::DTIScalarMapsImageFilter() :
     Superclass()
 {
-    m_ComputeFAImage = true;
     this->SetNumberOfRequiredOutputs(2);
     this->SetNthOutput(0, this->MakeOutput(0));
     this->SetNthOutput(1, this->MakeOutput(1));
+    this->SetNthOutput(2, this->MakeOutput(2));
+    this->SetNthOutput(3, this->MakeOutput(3));
 }
 
 
@@ -33,17 +36,7 @@ template < unsigned int ImageDimension>
 itk::DataObject::Pointer
 DTIScalarMapsImageFilter< ImageDimension >::MakeOutput(itk::ProcessObject::DataObjectPointerArraySizeType idx)
 {
-    itk::DataObject::Pointer output;
-    switch( idx )
-    {
-    case 0:
-        output = (OutputImageType::New()).GetPointer();
-        break;
-    case 1:
-        output = (OutputImageType::New()).GetPointer();
-        break;
-    }
-    return output.GetPointer();
+    return (OutputImageType::New()).GetPointer();
 }
 
 template < unsigned int ImageDimension>
@@ -75,6 +68,16 @@ DTIScalarMapsImageFilter< ImageDimension >::ThreadedGenerateData(const OutputIma
     faIterator = itk::ImageRegionIterator<OutputImageType>(faImage, outputRegionForThread);
     faIterator.GoToBegin();
 
+    itk::ImageRegionIterator<OutputImageType> axialIterator;
+    typename FAImageType::Pointer axialImage = this->GetOutput(2);
+    axialIterator = itk::ImageRegionIterator<OutputImageType>(axialImage, outputRegionForThread);
+    axialIterator.GoToBegin();
+
+    itk::ImageRegionIterator<OutputImageType> radialIterator;
+    typename FAImageType::Pointer radialImage = this->GetOutput(3);
+    radialIterator = itk::ImageRegionIterator<OutputImageType>(radialImage, outputRegionForThread);
+    radialIterator.GoToBegin();
+
     typedef vnl_matrix<double> TensorSymMatrixType;
     typedef itk::Vector<double, 3> EigenVectorType;
 
@@ -92,41 +95,31 @@ DTIScalarMapsImageFilter< ImageDimension >::ThreadedGenerateData(const OutputIma
 
         adcIterator.Set(ADC);
 
-        if(m_ComputeFAImage)
-        {
-            anima::GetTensorFromVectorRepresentation(tensor, tensorSymMatrix,3,false);
 
-            eigenAnalysis.ComputeEigenValues(tensorSymMatrix, eigenValue);
+        anima::GetTensorFromVectorRepresentation(tensor, tensorSymMatrix,3,false);
 
-            double l1(eigenValue[0]), l2(eigenValue[1]), l3(eigenValue[2]), fa(1);
-            double num = sqrt ( (l1 -l2)*(l1 -l2) + (l2 -l3)*(l2 -l3) + (l3 - l1)*(l3 - l1) );
-            double den = sqrt (l1*l1 + l2*l2 + l3*l3);
-            if(den == 0)
-                fa = 0;
-            else
-                fa = sqrt(0.5) * (num / den);
+        eigenAnalysis.ComputeEigenValues(tensorSymMatrix, eigenValue);
 
-            faIterator.Set(fa);
-        }
+        double l1(eigenValue[2]), l2(eigenValue[1]), l3(eigenValue[0]), fa(1);
+        double num = sqrt ( (l1 -l2)*(l1 -l2) + (l2 -l3)*(l2 -l3) + (l3 - l1)*(l3 - l1) );
+        double den = sqrt (l1*l1 + l2*l2 + l3*l3);
+        if(den == 0)
+            fa = 0;
+        else
+            fa = sqrt(0.5) * (num / den);
+
+        faIterator.Set(fa);
+
+        axialIterator.Set(l1);
+        radialIterator.Set((l2+l3)/2);
 
         ++tensorIterator;
         ++adcIterator;
         ++faIterator;
+        ++axialIterator;
+        ++radialIterator;
         progress.CompletedPixel();
     }
-}
-
-/**
- * Standard "PrintSelf" method
- */
-template < unsigned int ImageDimension>
-void
-DTIScalarMapsImageFilter< ImageDimension >::PrintSelf(
-  std::ostream& os,
-  itk::Indent indent) const
-{
-  Superclass::PrintSelf( os, indent );
-  os << indent << "Compute FA Image: " << m_ComputeFAImage << std::endl;
 }
 
 } // end of namespace anima
