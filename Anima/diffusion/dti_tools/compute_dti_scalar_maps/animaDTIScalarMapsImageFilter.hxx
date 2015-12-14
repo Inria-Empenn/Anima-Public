@@ -36,7 +36,7 @@ template < unsigned int ImageDimension>
 itk::DataObject::Pointer
 DTIScalarMapsImageFilter< ImageDimension >::MakeOutput(itk::ProcessObject::DataObjectPointerArraySizeType idx)
 {
-    return OutputImageType::New()).GetPointer();
+    return (OutputImageType::New()).GetPointer();
 }
 
 template < unsigned int ImageDimension>
