@@ -1,7 +1,6 @@
 #include <tclap/CmdLine.h>
 
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
+#include <animaReadWriteFunctions.h>
 #include <itkImage.h>
 #include <itkVectorImage.h>
 #include <itkImageRegionIterator.h>
@@ -10,26 +9,21 @@
 #include <itkSubtractImageFilter.h>
 #include <itkDivideImageFilter.h>
 #include <itkMultiplyImageFilter.h>
+#include <itkPowImageFilter.h>
 
 template <class ImageType>
 void computeArithmetic (std::string &inStr, std::string &outStr, std::string &multImStr, std::string &divImStr, std::string &addImStr,
-                        std::string &subImStr, double multConstant, double divideConstant, double addConstant,
+                        std::string &subImStr, double multConstant, double divideConstant, double addConstant, double powConstant,
                         unsigned int nThreads)
 {
-    typedef itk::ImageFileReader <ImageType> ReaderType;
-    typedef itk::ImageFileWriter <ImageType> WriterType;
     typedef itk::AddImageFilter <ImageType,ImageType,ImageType> AddFilterType;
     typedef itk::AddImageFilter <ImageType,itk::Image <double, ImageType::ImageDimension>,ImageType> AddConstantFilterType;
     typedef itk::SubtractImageFilter <ImageType,ImageType,ImageType> SubtractFilterType;
     
     typedef itk::MultiplyImageFilter <ImageType,itk::Image <double, ImageType::ImageDimension>,ImageType> MultiplyFilterType;
     typedef itk::DivideImageFilter <ImageType,itk::Image <double, ImageType::ImageDimension>,ImageType> DivideFilterType;
-    
-    typename ReaderType::Pointer inputReader = ReaderType::New();
-    inputReader->SetFileName(inStr);
-    inputReader->Update();
-    
-    typename ImageType::Pointer currentImage = inputReader->GetOutput();
+        
+    typename ImageType::Pointer currentImage = anima::readImage <ImageType> (inStr);
     currentImage->DisconnectPipeline();
     
     if (multImStr != "")
@@ -108,13 +102,11 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
     
     if (addImStr != "")
     {
-        typename ReaderType::Pointer addImReader = ReaderType::New();
-        addImReader->SetFileName(addImStr);
-        addImReader->Update();
+        typename ImageType::Pointer addedImage = anima::readImage <ImageType> (addImStr);
         
         typename AddFilterType::Pointer addFilter = AddFilterType::New();
         addFilter->SetInput1(currentImage);
-        addFilter->SetInput2(addImReader->GetOutput());
+        addFilter->SetInput2(addedImage);
         addFilter->SetNumberOfThreads(nThreads);
         addFilter->InPlaceOn();
         
@@ -125,13 +117,11 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
     
     if (subImStr != "")
     {
-        typename ReaderType::Pointer subImReader = ReaderType::New();
-        subImReader->SetFileName(subImStr);
-        subImReader->Update();
+        typename ImageType::Pointer subtractedImage = anima::readImage <ImageType> (subImStr);
         
         typename SubtractFilterType::Pointer subFilter = SubtractFilterType::New();
         subFilter->SetInput1(currentImage);
-        subFilter->SetInput2(subImReader->GetOutput());
+        subFilter->SetInput2(subtractedImage);
         subFilter->SetNumberOfThreads(nThreads);
         subFilter->InPlaceOn();
         
@@ -153,17 +143,34 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
         currentImage->DisconnectPipeline();
     }
     
+    if (powConstant != 1.0)
+    {
+        typedef itk::Image <typename ImageType::IOPixelType, ImageType::ImageDimension> ScalarImageType;
+        typedef itk::PowImageFilter <ScalarImageType, itk::Image <double, ImageType::ImageDimension>, ScalarImageType> PowConstantFilterType;
+
+        ScalarImageType *castImage = dynamic_cast <ScalarImageType *> (currentImage.GetPointer());
+        if (castImage)
+        {
+            typename PowConstantFilterType::Pointer powFilter = PowConstantFilterType::New();
+            powFilter->SetInput1(castImage);
+            powFilter->SetConstant(powConstant);
+            powFilter->SetNumberOfThreads(nThreads);
+            powFilter->InPlaceOn();
+
+            powFilter->Update();
+
+            currentImage = dynamic_cast <ImageType *> (powFilter->GetOutput());
+            currentImage->DisconnectPipeline();
+        }
+    }
+
     // Finally write the result
-    typename WriterType::Pointer writer = WriterType::New();
-    writer->SetInput(currentImage);
-    writer->SetFileName(outStr);
-    writer->SetUseCompression(true);
-    writer->Update();
+    anima::writeImage <ImageType> (outStr,currentImage);
 }
 
 int main(int argc, char **argv)
 {
-    std::string descriptionMessage = "Performs very basic mathematical operations on images: performs (I * m * M) / (D * d) + A + a - s\n";
+    std::string descriptionMessage = "Performs very basic mathematical operations on images: performs ( (I * m * M) / (D * d) + A + a - s )^P \n";
     descriptionMessage += "This software has known limitations: you might have to use it several times in a row to perform the operation you want,\n";
     descriptionMessage += "it requires the divide and multiply images to be scalar, and the add and subtract images to be of the same format as the input (although this is not verified).\n";
     descriptionMessage += "INRIA / IRISA - VisAGeS Team";
@@ -181,7 +188,8 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> multiplyConstantArg("M","multiply-constant","multiply constant value",false,1.0,"multiply constant value",cmd);
     TCLAP::ValueArg<double> divideConstantArg("D","divide-constant","divide constant value",false,1.0,"divide constant value",cmd);
     TCLAP::ValueArg<double> addConstantArg("A","add-constant","add constant value",false,0.0,"add constant value",cmd);
-	
+    TCLAP::ValueArg<double> powArg("P","pow-constant","power constant value (only for scalar images)",false,1.0,"power constant value",cmd);
+
     TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
     
     try
@@ -196,28 +204,35 @@ int main(int argc, char **argv)
 	
     typedef itk::Image <float,3> ImageType;
     typedef itk::Image <float,4> Image4DType;
-    typedef itk::ImageFileReader <ImageType> ImageReaderType;
 	typedef itk::VectorImage <float,3> VectorImageType;
 
-    ImageReaderType::Pointer reader = ImageReaderType::New();
-    reader->SetFileName(inArg.getValue());
-    reader->GenerateOutputInformation();
+    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(inArg.getValue().c_str(),
+                                                                           itk::ImageIOFactory::ReadMode);
+
+    if (!imageIO)
+    {
+        std::cerr << "Unable to read input image " << inArg.getValue() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    imageIO->SetFileName(inArg.getValue());
+    imageIO->ReadImageInformation();
     
-    bool vectorImage = (reader->GetImageIO()->GetNumberOfComponents() > 1);
-    bool fourDimensionalImage = (reader->GetImageIO()->GetNumberOfDimensions() == 4);
+    bool vectorImage = (imageIO->GetNumberOfComponents() > 1);
+    bool fourDimensionalImage = (imageIO->GetNumberOfDimensions() == 4);
 
     if (vectorImage)
         computeArithmetic<VectorImageType>(inArg.getValue(),outArg.getValue(),multImArg.getValue(),divImArg.getValue(),addImArg.getValue(),
                                            subtractImArg.getValue(),multiplyConstantArg.getValue(),divideConstantArg.getValue(),
-                                           addConstantArg.getValue(),nbpArg.getValue());
+                                           addConstantArg.getValue(),powArg.getValue(),nbpArg.getValue());
     else if (fourDimensionalImage)
         computeArithmetic<Image4DType>(inArg.getValue(),outArg.getValue(),multImArg.getValue(),divImArg.getValue(),addImArg.getValue(),
                                        subtractImArg.getValue(),multiplyConstantArg.getValue(),divideConstantArg.getValue(),
-                                       addConstantArg.getValue(),nbpArg.getValue());
+                                       addConstantArg.getValue(),powArg.getValue(),nbpArg.getValue());
     else
         computeArithmetic<ImageType>(inArg.getValue(),outArg.getValue(),multImArg.getValue(),divImArg.getValue(),addImArg.getValue(),
                                      subtractImArg.getValue(),multiplyConstantArg.getValue(),divideConstantArg.getValue(),
-                                     addConstantArg.getValue(),nbpArg.getValue());
+                                     addConstantArg.getValue(),powArg.getValue(),nbpArg.getValue());
     
     return 0;
 }
