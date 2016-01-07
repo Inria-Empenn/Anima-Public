@@ -136,10 +136,9 @@ concatenate(const arguments &args)
     }
 
     //fill with the inputs:
-    for(unsigned int i = input; i < args.inputs.size();)
+    for(unsigned int i = input; i < args.inputs.size();++i)
     {
         typename InputImageType::Pointer inputImg = anima::readImage<InputImageType>(args.inputs[i]);
-        ++i;
 
         typedef itk::ImageRegionConstIterator<InputImageType> InputIteratorType;
         InputIteratorType inputItr(inputImg, inputImg->GetLargestPossibleRegion());
@@ -149,7 +148,7 @@ concatenate(const arguments &args)
             ++fillItr; ++inputItr;
         }
 
-        std::cout << "input " << i << " / " << args.inputs.size() << " concatenated..." << std::endl;
+        std::cout << "input " << i+1 << " / " << args.inputs.size() << " concatenated..." << std::endl;
     }
 
     // write res
@@ -290,25 +289,55 @@ INRIA / IRISA - VisAGeS Team",
         return EXIT_FAILURE;
     }
 
+    arguments args;
+    args.inputs = inputArg.getValue();
+
     // Find out the type of the image in file
-    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(inputArg.getValue()[0].c_str(),
+    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(args.inputs[0].c_str(),
                                                                            itk::ImageIOFactory::ReadMode);
 
     if( !imageIO )
     {
-        std::cerr << "Itk could not find suitable IO factory for the input" << std::endl;
-        return EXIT_FAILURE;
+        std::ifstream fileIn(args.inputs[0]);
+        std::vector <std::string> listInputNames;
+
+        if (!fileIn.is_open())
+        {
+            std::cerr << "Unable to read file: " << args.inputs[0] << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        while (!fileIn.eof())
+        {
+            char tmpStr[2048];
+            fileIn.getline(tmpStr,2048);
+
+            if (strcmp(tmpStr,"") == 0)
+                continue;
+
+            listInputNames.push_back(tmpStr);
+        }
+
+        fileIn.close();
+
+        if (listInputNames.size() > 0)
+            imageIO = itk::ImageIOFactory::CreateImageIO(listInputNames[0].c_str(),itk::ImageIOFactory::ReadMode);
+
+        if( !imageIO )
+        {
+            std::cerr << "Itk could not find suitable IO factory for the input" << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        args.inputs = listInputNames;
     }
 
     // Now that we found the appropriate ImageIO class, ask it to read the meta data from the image file.
-    imageIO->SetFileName(inputArg.getValue()[0]);
+    imageIO->SetFileName(args.inputs[0]);
     imageIO->ReadImageInformation();
 
     std::cout<<"\npreparing filter...\n";
 
-    arguments args;
-
-    args.inputs = inputArg.getValue();
     args.output = outputArg.getValue();
     args.base = baseArg.getValue();
     args.origin = originArg.getValue();
