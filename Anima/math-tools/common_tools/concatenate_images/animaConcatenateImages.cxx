@@ -298,7 +298,7 @@ INRIA / IRISA - VisAGeS Team",
 
     if( !imageIO )
     {
-        std::ifstream fileIn(args.inputs[0]);
+        std::ifstream fileIn(args.inputs[0].c_str());
         std::vector <std::string> listInputNames;
 
         if (!fileIn.is_open())
