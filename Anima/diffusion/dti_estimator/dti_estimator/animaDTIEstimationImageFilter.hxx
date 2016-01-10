@@ -39,7 +39,7 @@ DTIEstimationImageFilter<PixelScalarType>
     typedef itk::ImageRegionIterator <MaskImageType> MaskIteratorType;
 
     unsigned int firstB0Index = 0;
-    while (m_BValuesList[firstB0Index] != 0)
+    while (m_BValuesList[firstB0Index] > 10)
         ++firstB0Index;
 
     B0IteratorType b0Itr(this->GetInput(firstB0Index),this->GetOutput()->GetLargestPossibleRegion());
@@ -222,7 +222,7 @@ DTIEstimationImageFilter<PixelScalarType>
         unsigned int numberOfB0Images = 0;
         for (unsigned int j = 0;j < m_NonColinearDirectionIndexes.size();++j)
         {
-            if (m_BValuesList[m_NonColinearDirectionIndexes[j]] == 0)
+            if (m_BValuesList[m_NonColinearDirectionIndexes[j]] <= 10)
             {
                 b0Value += inIterators[j].Get();
                 ++numberOfB0Images;
@@ -262,7 +262,7 @@ DTIEstimationImageFilter<PixelScalarType>
         for (unsigned int j = 0;j < numInputs;++j)
             outB0Value += m_SolveMatrix(0,j) * dwi[j];
 
-        outB0Value = exp(outB0Value);
+        outB0Value = std::exp(outB0Value);
 
         anima::GetTensorFromVectorRepresentation(resVec,tmpTensor,3);
         vnl_symmetric_eigensystem <double> tmpEigs(tmpTensor);

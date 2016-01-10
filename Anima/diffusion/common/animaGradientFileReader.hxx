@@ -22,7 +22,7 @@ namespace anima
         m_GradientFileName = "";
         m_BValueBaseString = "";
 
-        m_B0ValueThreshold = 10;
+        m_B0ValueThreshold = 0;
         m_TotalNumberOfDirections = 0;
 
         m_GradientIndependentNormalization = true;
