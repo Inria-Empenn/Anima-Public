@@ -1,4 +1,4 @@
-if(BUILD_TOOLS)
+if(BUILD_TOOLS AND USE_NLOPT AND NLOPT_FOUND)
 
 project(animaDTIEstimator)
 
@@ -25,6 +25,7 @@ add_executable(${PROJECT_NAME}
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME}
+  ${NLOPT_LIBRARY}
   ${ITKIO_LIBRARIES}
   )
 

@@ -38,10 +38,16 @@ public:
     typedef typename Superclass::InputImageRegionType InputImageRegionType;
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
-    void SetBValuesList(std::vector <double> bValuesList ){m_BValuesList = bValuesList;}
+    struct OptimizationDataStructure
+    {
+        Self *filter;
+        std::vector <double> dwi, predictedValues;
+    };
 
-    itkSetMacro(B0Threshold, float);
-    itkGetMacro(B0Threshold, float);
+    void SetBValuesList(std::vector <double> bValuesList ) {m_BValuesList = bValuesList;}
+
+    itkSetMacro(B0Threshold, double);
+    itkGetMacro(B0Threshold, double);
 
     itkSetMacro(RemoveDegeneratedTensors, bool);
 
@@ -56,7 +62,6 @@ protected:
         m_BValuesList.clear();
 
         m_B0Threshold = 0;
-        m_AverageBValue = 1;
         m_RemoveDegeneratedTensors = true;
         m_EstimatedB0Image = NULL;
     }
@@ -69,21 +74,21 @@ protected:
     void BeforeThreadedGenerateData();
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId);
 
+    static double OptimizationFunction(const std::vector<double> &x, std::vector<double> &grad, void *func_data);
+    double ComputeCostAtPosition(const std::vector<double> &x, const std::vector <double> &observedData,
+                                 std::vector <double> &predictedValues);
+
 private:
     DTIEstimationImageFilter(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
 
     std::vector <double> m_BValuesList;
     std::vector< vnl_vector_fixed<double,3> > m_GradientDirections;
-    std::vector <unsigned int> m_NonColinearDirectionIndexes;
 
-    float m_B0Threshold;
+    double m_B0Threshold;
     typename OutputB0ImageType::Pointer m_EstimatedB0Image;
 
     static const unsigned int m_NumberOfComponents = 6;
-    double m_AverageBValue;
-
-    vnl_matrix <double> m_DesignMatrix, m_SolveMatrix;
     bool m_RemoveDegeneratedTensors;
 };
 

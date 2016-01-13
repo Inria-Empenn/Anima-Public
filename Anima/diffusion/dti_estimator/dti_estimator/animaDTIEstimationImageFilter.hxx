@@ -9,6 +9,8 @@
 #include <vnl/algo/vnl_matrix_inverse.h>
 #include <vnl/algo/vnl_symmetric_eigensystem.h>
 
+#include <nlopt.hpp>
+
 #include <animaVectorOperations.h>
 #include <animaBaseTensorTools.h>
 
@@ -43,7 +45,6 @@ DTIEstimationImageFilter<PixelScalarType>
         ++firstB0Index;
 
     B0IteratorType b0Itr(this->GetInput(firstB0Index),this->GetOutput()->GetLargestPossibleRegion());
-    b0Itr.GoToBegin();
 
     typename MaskImageType::Pointer maskImage = MaskImageType::New();
     maskImage->Initialize();
@@ -117,74 +118,6 @@ DTIEstimationImageFilter<PixelScalarType>
     m_EstimatedB0Image->Allocate();
     m_EstimatedB0Image->FillBuffer(0.0);
 
-    m_NonColinearDirectionIndexes.clear();
-    for (unsigned int i = 0;i < m_BValuesList.size();++i)
-    {
-        if (anima::ComputeNorm(m_GradientDirections[i]) == 0)
-        {
-            m_NonColinearDirectionIndexes.push_back(i);
-            continue;
-        }
-
-        bool colinearDataFound = false;
-        for (unsigned int j = 0;j < m_NonColinearDirectionIndexes.size();++j)
-        {
-            if (m_BValuesList[m_NonColinearDirectionIndexes[j]] == 0)
-                continue;
-
-            if (std::abs(anima::ComputeScalarProduct(m_GradientDirections[m_NonColinearDirectionIndexes[j]],m_GradientDirections[i])) > std::cos(M_PI/180))
-            {
-                if (m_BValuesList[i] <= m_BValuesList[m_NonColinearDirectionIndexes[j]])
-                    m_NonColinearDirectionIndexes[j] = i;
-
-                colinearDataFound = true;
-                break;
-            }
-        }
-
-        if (!colinearDataFound)
-            m_NonColinearDirectionIndexes.push_back(i);
-    }
-
-    m_AverageBValue = 0;
-    unsigned int numBValues = 0;
-    for (unsigned int i = 0;i < m_NonColinearDirectionIndexes.size();++i)
-    {
-        m_AverageBValue += m_BValuesList[m_NonColinearDirectionIndexes[i]];
-        if (m_BValuesList[m_NonColinearDirectionIndexes[i]] != 0)
-            ++numBValues;
-    }
-
-    m_AverageBValue /= numBValues;
-
-    for (unsigned int i = 0;i < m_NonColinearDirectionIndexes.size();++i)
-        m_BValuesList[m_NonColinearDirectionIndexes[i]] /= m_AverageBValue;
-
-    // Design matrix computation
-
-    m_DesignMatrix.set_size(m_NonColinearDirectionIndexes.size(),m_NumberOfComponents+1);
-
-    for (unsigned int i = 0;i < m_NonColinearDirectionIndexes.size();++i)
-    {
-        m_DesignMatrix(i,0) = 1;
-        unsigned int iIndex = m_NonColinearDirectionIndexes[i];
-
-        unsigned int pos = 1;
-        for (unsigned int j = 0;j < 3;++j)
-            for (unsigned int k = 0;k <= j;++k)
-            {
-                if (j != k)
-                    m_DesignMatrix(i,pos) = - 2 * m_BValuesList[iIndex] * m_GradientDirections[iIndex][j] * m_GradientDirections[iIndex][k];
-                else
-                    m_DesignMatrix(i,pos) = - m_BValuesList[iIndex] * m_GradientDirections[iIndex][j] * m_GradientDirections[iIndex][j];
-
-                ++pos;
-            }
-    }
-
-    m_SolveMatrix = vnl_matrix_inverse<double> (m_DesignMatrix.transpose() * m_DesignMatrix);
-    m_SolveMatrix = m_SolveMatrix * m_DesignMatrix.transpose();
-
     Superclass::BeforeThreadedGenerateData();
 }
 
@@ -195,10 +128,10 @@ DTIEstimationImageFilter<PixelScalarType>
 {
     typedef itk::ImageRegionConstIterator <InputImageType> ImageIteratorType;
 
-    unsigned int numInputs = m_NonColinearDirectionIndexes.size();
+    unsigned int numInputs = this->GetNumberOfIndexedInputs();
     std::vector <ImageIteratorType> inIterators;
     for (unsigned int i = 0;i < numInputs;++i)
-        inIterators.push_back(ImageIteratorType(this->GetInput(m_NonColinearDirectionIndexes[i]),outputRegionForThread));
+        inIterators.push_back(ImageIteratorType(this->GetInput(i),outputRegionForThread));
 
     typedef itk::ImageRegionIterator <OutputImageType> OutImageIteratorType;
     OutImageIteratorType outIterator(this->GetOutput(),outputRegionForThread);
@@ -207,62 +140,93 @@ DTIEstimationImageFilter<PixelScalarType>
     OutB0ImageIteratorType outB0Iterator(m_EstimatedB0Image,outputRegionForThread);
 
     typedef typename OutputImageType::PixelType OutputPixelType;
-    std::vector <double> dwi(this->GetNumberOfIndexedInputs(),0);
+    std::vector <double> dwi (numInputs,0);
     OutputPixelType resVec(m_NumberOfComponents);
 
     vnl_matrix <double> tmpTensor(3,3);
 
+    std::vector <double> predictedValues(numInputs,0);
+    OptimizationDataStructure data;
+
     while (!outIterator.IsAtEnd())
     {
-        for (unsigned int i = 0;i < m_NumberOfComponents;++i)
-            resVec[i] = 0;
+        resVec.Fill(0.0);
 
-        // Compute mean B0 value and discard voxels under B0 threshold
-        double b0Value = 0;
-        unsigned int numberOfB0Images = 0;
-        for (unsigned int j = 0;j < m_NonColinearDirectionIndexes.size();++j)
+        for (unsigned int i = 0;i < numInputs;++i)
+            dwi[i] = inIterators[i].Get();
+
+        // NLOPT optimization
+        nlopt::opt opt(nlopt::LN_BOBYQA, m_NumberOfComponents);
+
+        std::vector <double> lowerBounds(m_NumberOfComponents, 0);
+        for (unsigned int i = 0;i < 3;++i)
+            lowerBounds[i + 3] = -1.0e-3;
+
+        opt.set_lower_bounds(lowerBounds);
+
+        std::vector <double> upperBounds(m_NumberOfComponents, 5.0e-3);
+        for (unsigned int i = 0;i < 3;++i)
+            upperBounds[i + 3] = 1.0e-3;
+
+        opt.set_upper_bounds(upperBounds);
+        opt.set_xtol_rel(1e-4);
+
+        std::vector <double> optimizedValue(m_NumberOfComponents, 1.0e-3);
+        for (unsigned int i = 0;i < 3;++i)
+            upperBounds[i + 3] = 0.0;
+
+        double minf;
+
+        data.filter = this;
+        data.dwi = dwi;
+        data.predictedValues = predictedValues;
+
+        opt.set_min_objective(OptimizationFunction, &data);
+
+        try
         {
-            if (m_BValuesList[m_NonColinearDirectionIndexes[j]] <= 10)
-            {
-                b0Value += inIterators[j].Get();
-                ++numberOfB0Images;
-            }
+            opt.optimize(optimizedValue, minf);
+        }
+        catch(nlopt::roundoff_limited& e)
+        {
+            itkExceptionMacro("NLOPT optimization error");
         }
 
-        b0Value /= numberOfB0Images;
+        // Tensor is column first
+        resVec[0] = optimizedValue[0];
+        resVec[2] = optimizedValue[1];
+        resVec[5] = optimizedValue[2];
+        resVec[1] = optimizedValue[3];
+        resVec[3] = optimizedValue[4];
+        resVec[4] = optimizedValue[5];
 
-        if (b0Value <= m_B0Threshold)
-        {
-            for (unsigned int i = 0;i < numInputs;++i)
-                ++inIterators[i];
-
-            outIterator.Set(resVec);
-
-            ++outIterator;
-            ++outB0Iterator;
-            continue;
-        }
+        double outB0Value = 0;
+        double normConstant = 0;
 
         for (unsigned int i = 0;i < numInputs;++i)
         {
-            if (inIterators[i].Get() > 0)
-                dwi[i] = log(inIterators[i].Get());
+            double predictedValue = 0;
+            double bValue = m_BValuesList[i];
+
+            if (bValue == 0)
+                predictedValue = 1;
             else
-                dwi[i] = log(1.0e-16);
+            {
+                for (unsigned int j = 0;j < 3;++j)
+                    predictedValue += optimizedValue[j] * m_GradientDirections[i][j] * m_GradientDirections[i][j];
+
+                predictedValue += 2 * optimizedValue[3] * m_GradientDirections[i][0] * m_GradientDirections[i][1];
+                predictedValue += 2 * optimizedValue[4] * m_GradientDirections[i][0] * m_GradientDirections[i][2];
+                predictedValue += 2 * optimizedValue[5] * m_GradientDirections[i][1] * m_GradientDirections[i][2];
+
+                predictedValue = std::exp(- bValue * predictedValue);
+            }
+
+            outB0Value += predictedValue * dwi[i];
+            normConstant += predictedValue * predictedValue;
         }
 
-        // We don't care about the B0 log-value
-        for (unsigned int i = 1;i < m_NumberOfComponents+1;++i)
-        {
-            for (unsigned int j = 0;j < numInputs;++j)
-                resVec[i-1] += m_SolveMatrix(i,j) * dwi[j];
-        }
-
-        double outB0Value = 0;
-        for (unsigned int j = 0;j < numInputs;++j)
-            outB0Value += m_SolveMatrix(0,j) * dwi[j];
-
-        outB0Value = std::exp(outB0Value);
+        outB0Value /= normConstant;
 
         anima::GetTensorFromVectorRepresentation(resVec,tmpTensor,3);
         vnl_symmetric_eigensystem <double> tmpEigs(tmpTensor);
@@ -283,8 +247,6 @@ DTIEstimationImageFilter<PixelScalarType>
 
         if (isTensorOk)
         {
-            resVec /= m_AverageBValue;
-
             outIterator.Set(resVec);
             outB0Iterator.Set(outB0Value);
         }
@@ -295,6 +257,63 @@ DTIEstimationImageFilter<PixelScalarType>
         ++outIterator;
         ++outB0Iterator;
     }
+}
+
+template <class PixelScalarType>
+double
+DTIEstimationImageFilter<PixelScalarType>
+::OptimizationFunction(const std::vector<double> &x, std::vector<double> &grad, void *func_data)
+{
+    OptimizationDataStructure *data = static_cast <OptimizationDataStructure *> (func_data);
+
+    return data->filter->ComputeCostAtPosition(x,data->dwi,data->predictedValues);
+}
+
+template <class PixelScalarType>
+double
+DTIEstimationImageFilter<PixelScalarType>
+::ComputeCostAtPosition(const std::vector<double> &x, const std::vector <double> &observedData,
+                        std::vector <double> &predictedValues)
+{
+    for (unsigned int i = 0;i < this->GetNumberOfIndexedInputs();++i)
+    {
+        predictedValues[i] = 0;
+        double bValue = m_BValuesList[i];
+        if (bValue == 0)
+        {
+            predictedValues[i] = 1;
+            continue;
+        }
+
+        for (unsigned int j = 0;j < 3;++j)
+            predictedValues[i] += x[j] * m_GradientDirections[i][j] * m_GradientDirections[i][j];
+
+        predictedValues[i] += 2 * x[3] * m_GradientDirections[i][0] * m_GradientDirections[i][1];
+        predictedValues[i] += 2 * x[4] * m_GradientDirections[i][0] * m_GradientDirections[i][2];
+        predictedValues[i] += 2 * x[5] * m_GradientDirections[i][1] * m_GradientDirections[i][2];
+
+        predictedValues[i] = std::exp(- bValue * predictedValues[i]);
+    }
+
+    double b0Val = 0;
+    double normConstant = 0;
+
+    for (unsigned int i = 0;i < this->GetNumberOfIndexedInputs();++i)
+    {
+        b0Val += predictedValues[i] * observedData[i];
+        normConstant += predictedValues[i] * predictedValues[i];
+    }
+
+    b0Val /= normConstant;
+
+    double costValue = 0;
+    for (unsigned int i = 0;i < this->GetNumberOfIndexedInputs();++i)
+    {
+        double predVal = b0Val * predictedValues[i];
+        costValue += (predVal - observedData[i]) * (predVal - observedData[i]);
+    }
+
+    return costValue;
 }
 
 } // end of namespace anima
