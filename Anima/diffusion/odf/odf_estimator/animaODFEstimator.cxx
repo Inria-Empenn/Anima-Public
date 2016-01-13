@@ -61,9 +61,7 @@ int main(int argc, char **argv)
     if (normalizeArg.isSet())
         mainFilter->SetFileNameSphereTesselation(normSphereArg.getValue());
     
-    typedef itk::Image<float,4> Image4DType;
-
-    anima::setMultipleImageFilterInputsFromFileName<InputImageType,Image4DType,MainFilterType>(inArg.getValue(), mainFilter);
+    anima::setMultipleImageFilterInputsFromFileName<InputImageType,MainFilterType>(inArg.getValue(), mainFilter);
     
     typedef anima::GradientFileReader < std::vector < double >, double > GFReaderType;
     GFReaderType gfReader;

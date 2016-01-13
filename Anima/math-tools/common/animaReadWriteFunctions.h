@@ -74,11 +74,12 @@ getImagesFromHigherDimensionImage(InputImageType *inputImage)
 }
 
 //! Set inputs of an image to image filter from a file name containing either a list of files or a higher dimensional image
-template <class InputImageType, class HigherDimImageType, class ImageFilterType>
+template <class InputImageType, class ImageFilterType>
 unsigned int
 setMultipleImageFilterInputsFromFileName(std::string &fileName,
                                          ImageFilterType *filter)
 {
+    typedef itk::Image <typename InputImageType::PixelType, InputImageType::ImageDimension + 1> HigherDimImageType;
     typedef itk::ImageFileReader <HigherDimImageType> HigherDimImageReaderType;
     typedef itk::ImageFileReader < InputImageType > ImageReaderType;
 

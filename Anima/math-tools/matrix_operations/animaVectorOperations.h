@@ -103,11 +103,8 @@ template <class ScalarType, unsigned int NDimension> void Normalize(const vnl_ve
 template <class ScalarType> void Normalize(const std::vector <ScalarType> &v, std::vector <ScalarType> &resVec);
 /**********************************/
 
-template <class T1, class T2> double ComputeAngle(const std::vector <T1> &v1, const std::vector <T2> &v2);
-template <class T1, class T2> double ComputeOrientationAngle(const std::vector <T1> &v1, const std::vector <T2> &v2);
-template <class ScalarType, unsigned int NDimension>
-double
-ComputeOrientationAngle(const itk::Vector <ScalarType,NDimension> &v1, const itk::Vector <ScalarType,NDimension> &v2);
+template <class VectorType> double ComputeAngle(const VectorType &v1, const VectorType &v2);
+template <class VectorType> double ComputeOrientationAngle(const VectorType &v1, const VectorType &v2);
 
 template <class VectorType> void Revert(const VectorType &v, const unsigned int vSize, VectorType &resVec);
 template <class ScalarType> void Revert(const std::vector <ScalarType> &v, std::vector<ScalarType> &resVec);

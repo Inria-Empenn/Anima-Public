@@ -18,7 +18,6 @@ vectorize(const arguments &args)
 {
     unsigned int nbComponents = args.inputs.size();
     typedef itk::VectorImage<typename InputImageType::PixelType, InputImageType::ImageDimension> OutputImageType;
-    typedef itk::Image<typename InputImageType::PixelType, InputImageType::ImageDimension + 1> Image4DType;
 
     typedef itk::ComposeImageFilter<InputImageType, OutputImageType> ComposeImageFilterType;
     typename ComposeImageFilterType::Pointer composeImageFilter = ComposeImageFilterType::New();
@@ -31,7 +30,7 @@ vectorize(const arguments &args)
     else
     {
         std::string inputName = args.inputs[0];
-        anima::setMultipleImageFilterInputsFromFileName<InputImageType,Image4DType,ComposeImageFilterType>(inputName,composeImageFilter);
+        anima::setMultipleImageFilterInputsFromFileName<InputImageType,ComposeImageFilterType>(inputName,composeImageFilter);
     }
 
     composeImageFilter->Update();

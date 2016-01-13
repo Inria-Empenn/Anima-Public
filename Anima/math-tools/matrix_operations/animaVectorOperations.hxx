@@ -370,7 +370,7 @@ template <class ScalarType> void Normalize(const std::vector <ScalarType> &v, st
 }
 /**********************************/
 
-template <class T1, class T2> double ComputeAngle(const std::vector <T1> &v1, const std::vector <T2> &v2)
+template <class VectorType> double ComputeAngle(const VectorType &v1, const VectorType &v2)
 {
     double normV1 = ComputeNorm(v1);
     double normV2 = ComputeNorm(v2);
@@ -382,10 +382,10 @@ template <class T1, class T2> double ComputeAngle(const std::vector <T1> &v1, co
     if (t > 1.0)
         t = 1.0;
 
-    return std::acos(t) * 180.0 / M_PI;
+    return std::acos(t) * 180.0 / itk::Math::pi;
 }
 
-template <class T1, class T2> double ComputeOrientationAngle(const std::vector <T1> &v1, const std::vector <T2> &v2)
+template <class VectorType> double ComputeOrientationAngle(const VectorType &v1, const VectorType &v2)
 {
     double normV1 = ComputeNorm(v1);
     double normV2 = ComputeNorm(v2);
@@ -395,20 +395,7 @@ template <class T1, class T2> double ComputeOrientationAngle(const std::vector <
     if (t > 1.0)
         t = 1.0;
 
-    return std::acos(t) * 180.0 / M_PI;
-}
-
-template <class ScalarType, unsigned int NDimension> double ComputeOrientationAngle(const itk::Vector <ScalarType,NDimension> &v1, const itk::Vector <ScalarType,NDimension> &v2)
-{
-    double normV1 = ComputeNorm(v1);
-    double normV2 = ComputeNorm(v2);
-
-    double t = std::abs(ComputeScalarProduct(v1, v2)) / (normV1 * normV2);
-
-    if (t > 1.0)
-        t = 1.0;
-
-    return std::acos(t) * 180.0 / M_PI;
+    return std::acos(t) * 180.0 / itk::Math::pi;
 }
 
 template <class VectorType> void Revert(const VectorType &v, const unsigned int vSize, VectorType &resVec)
@@ -544,8 +531,6 @@ template <class T1, class T2, class T3, class T4> void RotateAroundAxis(const st
 
 template <class Vector3DType, class ScalarType> void RotateAroundAxis(const Vector3DType &v, const ScalarType &phi, const Vector3DType &normalVec, Vector3DType &resVec)
 {
-    resVec.fill(0.0);
-
     vnl_matrix_fixed <ScalarType,3,3> A;
     A.fill(0.0);
     A(0,1) = -normalVec[2];
@@ -562,9 +547,14 @@ template <class Vector3DType, class ScalarType> void RotateAroundAxis(const Vect
     R.fill(0.0);
     R.fill_diagonal(std::cos(phi));
 
-    R += N * (1.0 - cos(phi)) + A * sin(phi);
+    R += N * (1.0 - std::cos(phi)) + A * std::sin(phi);
 
-    resVec = R * v;
+    for (unsigned int i = 0;i < 3;++i)
+    {
+        resVec[i] = 0;
+        for (unsigned int j = 0;j < 3;++j)
+            resVec[i] += R(i, j) * v[j];
+    }
 }
 
 } // end of namespace anima

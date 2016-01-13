@@ -42,7 +42,6 @@ int main(int argc, char **argv)
     }
     
     typedef itk::Image <double,3> InputImageType;
-    typedef itk::Image <double,4> Image4DType;
     typedef InputImageType OutputImageType;
     typedef anima::T2RelaxometryEstimationImageFilter <InputImageType,OutputImageType> FilterType;
     typedef itk::ImageFileReader <InputImageType> InputImageReaderType;
@@ -51,7 +50,7 @@ int main(int argc, char **argv)
     FilterType::Pointer mainFilter = FilterType::New();
 	
     // Read and set T2 relaxometry images
-    anima::setMultipleImageFilterInputsFromFileName<InputImageType,Image4DType,FilterType>(t2Arg.getValue(),mainFilter);
+    anima::setMultipleImageFilterInputsFromFileName<InputImageType,FilterType>(t2Arg.getValue(),mainFilter);
    
     mainFilter->SetTRValue(trArg.getValue());
 
