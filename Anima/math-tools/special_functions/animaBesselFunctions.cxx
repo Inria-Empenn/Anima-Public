@@ -10,18 +10,18 @@
 namespace anima
 {
 
-double log_bessel_i(unsigned int order, const double &x)
+double log_bessel_i(unsigned int N, double x)
 {
-    if (x < sqrt((double)order+1) / 100)
+    if (x < std::sqrt((double)N+1) / 100)
     {
-        if (order == 0)
-            return -std::log(boost::math::factorial<double>(order));
+        if (N == 0)
+            return -std::log(boost::math::factorial<double>(N));
         else
-            return -std::log(boost::math::factorial<double>(order)) + order * log(x / 2.0);
+            return -std::log(boost::math::factorial<double>(N)) + N * std::log(x / 2.0);
     }
 
-    if (x <= std::max(9.23 * order + 15.934, 11.26 * order - 236.21)) // before was 600; now garantees an absolute error of maximum 1e-4 between true function and approximation
-        return std::log(boost::math::cyl_bessel_i(order,x));
+    if (x <= std::max(9.23 * N + 15.934, 11.26 * N - 236.21)) // before was 600; now garantees an absolute error of maximum 1e-4 between true function and approximation
+        return std::log(boost::math::cyl_bessel_i(N,x));
 
 //        // Too big value, switching to approximation
 //        // Works less and less when orders go up but above that barrier we get non valid values
@@ -41,13 +41,39 @@ double log_bessel_i(unsigned int order, const double &x)
 
     resVal += std::log(1.0  + secTermSerie + thirdTermSerie);
     // Then compute log(I_L) as log(I_0) + sum_{i=1}^L log(bessel_ratio_i(x,L))
-    for (unsigned int i = 1;i <= order;++i)
+    for (unsigned int i = 1;i <= N;++i)
         resVal += std::log(anima::bessel_ratio_i(x, i));
 
     return resVal;
 }
 
-double bessel_ratio_i(const double &x, unsigned int N, unsigned int approx_order)
+double bessel_i_lower_bound(unsigned int N, double x)
+{
+    if (x < 1e-2)
+        return std::pow(x / 2.0, N) / boost::math::tgamma(N+1);
+    
+    double C = x / (N + 0.5 + std::sqrt(x * x + (N + 1.5) * (N + 1.5)));
+    double D = x / (N + 1.5 + std::sqrt(x * x + (N + 1.5) * (N + 1.5)));
+    
+    double res = std::sqrt(2/x) * std::pow(N + 1,N + 0.5) / boost::math::tgamma(N+1) * std::exp(x*D) * std::pow(C, N+0.5);
+    
+    return res;
+}
+
+double log_bessel_i_lower_bound(unsigned int N, double x)
+{
+    if (x < 1e-2)
+        return N * std::log(x / 2.0) - std::log(boost::math::tgamma(N+1));
+    
+    double C = x / (N + 0.5 + std::sqrt(x * x + (N + 1.5) * (N + 1.5)));
+    double D = x / (N + 1.5 + std::sqrt(x * x + (N + 1.5) * (N + 1.5)));
+    
+    double res = 0.5 * std::log(2/x) + (N + 0.5) * std::log((N + 1) * C) - std::log(boost::math::tgamma(N+1)) + x * D;
+    
+    return res;
+}
+
+double bessel_ratio_i(double x, unsigned int N, unsigned int approx_order)
 {
     if (N == 0)
         return 0;
@@ -74,7 +100,14 @@ double bessel_ratio_i(const double &x, unsigned int N, unsigned int approx_order
     return anima::a0r_support(x,N) * resVal;
 }
 
-double log_bessel_orderDerivative_i(const double &x, unsigned int order, double emc, unsigned int approx_order)
+double bessel_ratio_i_lower_bound(double x, unsigned int N)
+{
+    double res = x / (N - 0.5 + std::sqrt(x * x + (N + 0.5) * (N + 0.5)));
+
+    return res;
+}
+
+double log_bessel_order_derivative_i(double x, unsigned int order, double emc, unsigned int approx_order)
 {
     double y = x;
     if (y > 2795.0)
@@ -99,12 +132,12 @@ double log_bessel_orderDerivative_i(const double &x, unsigned int order, double 
     return resVal;
 }
 
-double a0r_support(const double &x, unsigned int N)
+double a0r_support(double x, unsigned int N)
 {
     return x / (x + 2.0 * N);
 }
 
-double ak_support(const double &x, unsigned int N, unsigned int k)
+double ak_support(double x, unsigned int N, unsigned int k)
 {
     if (k == 1)
         return - x * (N+0.5) / (2.0 * (N + x * 0.5) * (N + x + 0.5));
