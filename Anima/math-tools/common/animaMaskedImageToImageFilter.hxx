@@ -82,7 +82,16 @@ MaskedImageToImageFilter < TInputImage, TOutputImage >
     if (m_ComputationRegion.GetSize(0) == 0)
         this->InitializeComputationRegionFromMask();
 
-    m_RegionSplitter->InitializeFromMask(m_ComputationMask,m_ComputationRegion,this->GetNumberOfThreads());
+    unsigned int maxNumSlices = m_ComputationRegion.GetSize()[0];
+    m_ProcessedDimension = 0;
+    for (unsigned int i = 1;i < InputImageRegionType::ImageDimension;++i)
+    {
+        if (maxNumSlices <= m_ComputationRegion.GetSize()[i])
+        {
+            maxNumSlices = m_ComputationRegion.GetSize()[i];
+            m_ProcessedDimension = i;
+        }
+    }
 
     // Since image requested region may now be smaller than the image, fill the outputs with zeros
     typedef typename TOutputImage::PixelType OutputPixelType;
@@ -92,6 +101,93 @@ MaskedImageToImageFilter < TInputImage, TOutputImage >
         OutputPixelType zeroPixel;
         this->InitializeZeroPixel(this->GetOutput(i),zeroPixel);
         this->GetOutput(i)->FillBuffer(zeroPixel);
+    }
+}
+
+template< typename TInputImage, typename TOutputImage >
+void
+MaskedImageToImageFilter < TInputImage, TOutputImage >
+::GenerateData()
+{
+    this->AllocateOutputs();
+    this->BeforeThreadedGenerateData();
+
+    if (m_VerboseProgression)
+    {
+        if (m_ProgressReport)
+            delete m_ProgressReport;
+
+        m_ProgressReport = new itk::ProgressReporter(this,0,m_ComputationRegion.GetSize()[m_ProcessedDimension]);
+    }
+
+    ThreadStruct str;
+    str.Filter = this;
+
+    this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
+    this->GetMultiThreader()->SetSingleMethod(this->ThreaderMultiSplitCallback, &str);
+
+    this->GetMultiThreader()->SingleMethodExecute();
+
+    if (m_ProgressReport)
+    {
+        delete m_ProgressReport;
+        m_ProgressReport = 0;
+    }
+
+    this->AfterThreadedGenerateData();
+}
+
+template< typename TInputImage, typename TOutputImage >
+ITK_THREAD_RETURN_TYPE
+MaskedImageToImageFilter < TInputImage, TOutputImage >
+::ThreaderMultiSplitCallback(void *arg)
+{
+    ThreadStruct *str;
+    itk::ThreadIdType threadId;
+
+    threadId = ( (itk::MultiThreader::ThreadInfoStruct *)( arg ) )->ThreadID;
+    str = (ThreadStruct *)( ( (itk::MultiThreader::ThreadInfoStruct *)( arg ) )->UserData );
+
+    Self *filterPtr = dynamic_cast <Self *> (str->Filter.GetPointer());
+    filterPtr->ThreadProcessSlices(threadId);
+
+    return ITK_THREAD_RETURN_VALUE;
+}
+
+template< typename TInputImage, typename TOutputImage >
+void
+MaskedImageToImageFilter < TInputImage, TOutputImage >
+::ThreadProcessSlices(itk::ThreadIdType threadId)
+{
+    InputImageRegionType processedRegion = m_ComputationRegion;
+    processedRegion.SetSize(m_ProcessedDimension,1);
+    unsigned int highestToleratedSliceValue = m_ComputationRegion.GetIndex()[m_ProcessedDimension] + m_ComputationRegion.GetSize()[m_ProcessedDimension];
+
+    bool continueLoop = true;
+    while (continueLoop)
+    {
+        m_LockHighestProcessedSlice.Lock();
+
+        if (m_HighestProcessedSlice >= highestToleratedSliceValue)
+        {
+            m_LockHighestProcessedSlice.Unlock();
+            continueLoop = false;
+            continue;
+        }
+
+        processedRegion.SetIndex(m_ProcessedDimension, m_ComputationRegion.GetIndex()[m_ProcessedDimension] + m_HighestProcessedSlice);
+        m_HighestProcessedSlice++;
+
+        m_LockHighestProcessedSlice.Unlock();
+
+        this->ThreadedGenerateData(processedRegion,threadId);
+
+        if (m_VerboseProgression)
+        {
+            m_LockHighestProcessedSlice.Lock();
+            m_ProgressReport->CompletedPixel();
+            m_LockHighestProcessedSlice.Unlock();
+        }
     }
 }
 

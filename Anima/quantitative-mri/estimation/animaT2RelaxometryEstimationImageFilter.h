@@ -4,8 +4,6 @@
 #include <itkVectorImage.h>
 #include <itkImage.h>
 
-#include <animaImageRegionSplitterMask.h>
-
 namespace anima
 {
 template <typename TInputImage, typename TOutputImage>
@@ -90,9 +88,10 @@ private:
     double m_M0UpperBoundValue;
     double m_T2UpperBoundValue;
 
-    static  double myfunc(const std::vector<double> &x, std::vector<double> &grad, void *my_func_data);
+    static double myfunc(const std::vector<double> &x, std::vector<double> &grad, void *my_func_data);
     
 };
+
 }// end namespace anima
 
 #include "animaT2RelaxometryEstimationImageFilter.hxx"

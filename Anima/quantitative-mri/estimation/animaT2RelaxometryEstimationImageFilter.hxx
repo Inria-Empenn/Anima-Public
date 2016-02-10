@@ -5,8 +5,6 @@
 #include <itkImageRegionConstIterator.h>
 #include <nlopt.hpp>
 
-#include <itkProgressReporter.h>
-
 namespace anima
 {
 
@@ -81,10 +79,6 @@ T2RelaxometryEstimationImageFilter <TInputImage,TOutputImage>
     if (m_T1Map)
         t1MapItr = OutImageIteratorType(m_T1Map,outputRegionForThread);
 
-
-    // support progress methods/callbacks
-    itk::ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
-
     while (!maskItr.IsAtEnd())
     {
         if (maskItr.Get() == 0)
@@ -102,7 +96,6 @@ T2RelaxometryEstimationImageFilter <TInputImage,TOutputImage>
             if (m_T1Map)
                 ++t1MapItr;
 
-            progress.CompletedPixel();
             continue;
         }
 
@@ -160,7 +153,6 @@ T2RelaxometryEstimationImageFilter <TInputImage,TOutputImage>
             if (m_T1Map)
                 ++t1MapItr;
 
-            progress.CompletedPixel();
             continue;
         }
 
@@ -179,14 +171,8 @@ T2RelaxometryEstimationImageFilter <TInputImage,TOutputImage>
 
         if (m_T1Map)
             ++t1MapItr;
-
-        progress.CompletedPixel();
     }
-
-
-
 }
-
 
 template <typename TInputImage, typename TOutputImage>
 double
@@ -213,6 +199,5 @@ T2RelaxometryEstimationImageFilter <TInputImage,TOutputImage>::myfunc(const std:
     //std::cout<<res<<std::endl;
     return res;
 }
-
 
 } // end namespace anima

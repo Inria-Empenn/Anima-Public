@@ -4,8 +4,6 @@
 #include <itkVectorImage.h>
 #include <itkImage.h>
 
-#include <animaImageRegionSplitterMask.h>
-
 namespace anima
 {
 template <typename TInputImage, typename TOutputImage>

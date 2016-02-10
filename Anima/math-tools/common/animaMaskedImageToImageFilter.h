@@ -2,9 +2,10 @@
 
 #include <iostream>
 #include <itkImageToImageFilter.h>
-#include <animaImageRegionSplitterMask.h>
 #include <itkNumericTraits.h>
 #include <itkVariableLengthVector.h>
+#include <itkFastMutexLock.h>
+#include <itkProgressReporter.h>
 
 namespace anima
 {
@@ -21,60 +22,56 @@ public:
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(MaskedImageToImageFilter, itk::ImageToImageFilter);
+    itkTypeMacro(MaskedImageToImageFilter, itk::ImageToImageFilter)
 
     /** Superclass typedefs. */
     typedef typename Superclass::InputImageRegionType InputImageRegionType;
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
+    typedef typename itk::ImageSource<TOutputImage>::ThreadStruct ThreadStruct;
 
     /** Mask typedefs */
     typedef itk::Image <unsigned char, 3> MaskImageType;
     typedef MaskImageType::RegionType MaskRegionType;
     typedef MaskImageType::Pointer MaskImagePointer;
 
-    typedef anima::ImageRegionSplitterMask <MaskImageType> RegionSplitterType;
-    typedef typename RegionSplitterType::Pointer RegionSplitterPointer;
+    /** Set/Get the mask on which to compute estimates. */
+    itkSetMacro(ComputationMask, MaskImagePointer)
+    itkGetMacro(ComputationMask, MaskImageType *)
+    itkSetMacro(ComputationRegion, MaskRegionType)
+    itkGetMacro(ComputationRegion, MaskRegionType)
 
-    /** Set/Get the mask on which to compute STAPLE estimate. */
-    itkSetMacro(ComputationMask, MaskImagePointer);
-    itkGetMacro(ComputationMask, MaskImageType *);
-    itkSetMacro(ComputationRegion, MaskRegionType);
-    itkGetMacro(ComputationRegion, MaskRegionType);
-
-    unsigned int GetActualNumberOfThreads()
-    {
-        return m_RegionSplitter->GetNumberOfThreads();
-    }
+    itkSetMacro(VerboseProgression, bool)
 
 protected:
     MaskedImageToImageFilter()
     {
         m_ComputationMask = NULL;
-
         m_ComputationRegion.SetSize(0,0);
-        m_RegionSplitter = RegionSplitterType::New();
+        m_HighestProcessedSlice = 0;
+        m_ProcessedDimension = 0;
+        m_VerboseProgression = true;
+        m_ProgressReport = 0;
     }
 
-    virtual ~MaskedImageToImageFilter() {}
+    virtual ~MaskedImageToImageFilter()
+    {
+        if (m_ProgressReport)
+            delete m_ProgressReport;
+    }
 
     virtual void CheckComputationMask();
 
     void InitializeComputationRegionFromMask();
 
-    virtual const itk::ImageRegionSplitterBase* GetImageRegionSplitter(void) const
-    {
-        return m_RegionSplitter;
-    }
+    virtual void GenerateData();
 
-    virtual void BeforeThreadedGenerateData(void);
+    static ITK_THREAD_RETURN_TYPE ThreaderMultiSplitCallback(void *arg);
+    virtual void ThreadProcessSlices(itk::ThreadIdType threadId);
 
-    virtual void PrintSelf(std::ostream& os, itk::Indent indent) const
-    {
-        Superclass::PrintSelf(os,indent);
-    }
+    virtual void BeforeThreadedGenerateData();
 
     //! Utility function to initialize output images pixel to zero for vector images
     template <typename ScalarRealType>
@@ -98,8 +95,12 @@ private:
     MaskedImageToImageFilter(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
 
-    //For overriding the split image region with something more intelligent taking into account the mask
-    RegionSplitterPointer m_RegionSplitter;
+    itk::SimpleFastMutexLock m_LockHighestProcessedSlice;
+    int m_HighestProcessedSlice;
+    unsigned int m_ProcessedDimension;
+
+    itk::ProgressReporter *m_ProgressReport;
+    bool m_VerboseProgression;
 
     MaskImagePointer m_ComputationMask;
     // Optimization of multithread code, compute only on region defined from mask... Uninitialized in constructor.
