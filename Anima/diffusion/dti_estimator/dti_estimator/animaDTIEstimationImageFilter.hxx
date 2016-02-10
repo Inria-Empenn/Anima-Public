@@ -37,13 +37,16 @@ void
 DTIEstimationImageFilter<PixelScalarType>
 ::CheckComputationMask()
 {
+    if (this->GetComputationMask())
+        return;
+    
     typedef itk::ImageRegionConstIterator <InputImageType> B0IteratorType;
     typedef itk::ImageRegionIterator <MaskImageType> MaskIteratorType;
 
     unsigned int firstB0Index = 0;
     while (m_BValuesList[firstB0Index] > 10)
         ++firstB0Index;
-
+    
     B0IteratorType b0Itr(this->GetInput(firstB0Index),this->GetOutput()->GetLargestPossibleRegion());
 
     typename MaskImageType::Pointer maskImage = MaskImageType::New();
@@ -133,6 +136,9 @@ DTIEstimationImageFilter<PixelScalarType>
     for (unsigned int i = 0;i < numInputs;++i)
         inIterators.push_back(ImageIteratorType(this->GetInput(i),outputRegionForThread));
 
+    typedef itk::ImageRegionConstIterator <MaskImageType> MaskIteratorType;
+    MaskIteratorType maskIterator(this->GetComputationMask(),outputRegionForThread);
+    
     typedef itk::ImageRegionIterator <OutputImageType> OutImageIteratorType;
     OutImageIteratorType outIterator(this->GetOutput(),outputRegionForThread);
 
@@ -151,6 +157,21 @@ DTIEstimationImageFilter<PixelScalarType>
     while (!outIterator.IsAtEnd())
     {
         resVec.Fill(0.0);
+        
+        if (maskIterator.Get() == 0)
+        {
+            outIterator.Set(resVec);
+            outB0Iterator.Set(0);
+            
+            for (unsigned int i = 0;i < numInputs;++i)
+                ++inIterators[i];
+            
+            ++maskIterator;
+            ++outIterator;
+            ++outB0Iterator;
+            
+            continue;
+        }
 
         for (unsigned int i = 0;i < numInputs;++i)
             dwi[i] = inIterators[i].Get();
@@ -254,6 +275,7 @@ DTIEstimationImageFilter<PixelScalarType>
         for (unsigned int i = 0;i < numInputs;++i)
             ++inIterators[i];
 
+        ++maskIterator;
         ++outIterator;
         ++outB0Iterator;
     }
