@@ -162,18 +162,10 @@ TransformSeriesReader<TScalarType,NDimensions>
     reader->SetFileName(fileName);
     reader->Update();
 
-    itk::TransformFileReader::TransformListType trsfList = *(reader->GetTransformList());
-    itk::TransformFileReader::TransformListType::iterator tr_it = trsfList.begin();
+    const itk::TransformFileReader::TransformListType *trsfList = reader->GetTransformList();
+    itk::TransformFileReader::TransformListType::const_iterator tr_it = trsfList->begin();
 
-    MatrixTransformPointer trsf = dynamic_cast <MatrixTransformType *> ((*tr_it).GetPointer());
-
-    if (trsf.IsNull())
-    {
-        std::string error("Unable to read linear transform file: ");
-        error += fileName;
-        error += "... This may be because it has the wrong type...";
-        throw itk::ExceptionObject(__FILE__, __LINE__,error,ITK_LOCATION);
-    }
+    MatrixTransformPointer trsf = static_cast <MatrixTransformType *> ((*tr_it).GetPointer());
 
     if (invert)
     {

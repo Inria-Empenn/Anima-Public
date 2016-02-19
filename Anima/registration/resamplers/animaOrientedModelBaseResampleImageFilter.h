@@ -35,7 +35,7 @@ public:
     typedef typename InterpolatorType::PointType PointType;
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(OrientedModelBaseResampleImageFilter, ImageToImageFilter);
+    itkTypeMacro(OrientedModelBaseResampleImageFilter, ImageToImageFilter)
 
     typedef typename InputImageType::PixelType InputPixelType;
     typedef typename InputImageType::IndexType InputIndexType;
@@ -64,27 +64,27 @@ public:
             m_LinearTransform = false;
     }
 
-    itkGetMacro(Transform,TransformType *);
+    itkGetMacro(Transform,TransformType *)
 
-    itkSetMacro(Interpolator,InterpolatorPointer);
-    itkGetMacro(Interpolator,InterpolatorType *);
+    itkSetMacro(Interpolator,InterpolatorPointer)
+    itkGetMacro(Interpolator,InterpolatorType *)
 
     typedef typename TOutputImage::SpacingType   SpacingType;
     typedef typename TOutputImage::PointType     OriginPointType;
     typedef typename TOutputImage::DirectionType DirectionType;
     typedef typename TOutputImage::RegionType RegionType;
 
-    itkSetMacro( OutputSpacing, SpacingType );
-    itkGetConstReferenceMacro( OutputSpacing, SpacingType );
+    itkSetMacro( OutputSpacing, SpacingType )
+    itkGetConstReferenceMacro( OutputSpacing, SpacingType )
 
-    itkSetMacro( OutputOrigin, OriginPointType );
-    itkGetConstReferenceMacro( OutputOrigin, OriginPointType );
+    itkSetMacro( OutputOrigin, OriginPointType )
+    itkGetConstReferenceMacro( OutputOrigin, OriginPointType )
 
-    itkSetMacro( OutputDirection, DirectionType );
-    itkGetConstReferenceMacro( OutputDirection, DirectionType );
+    itkSetMacro( OutputDirection, DirectionType )
+    itkGetConstReferenceMacro( OutputDirection, DirectionType )
 
-    itkSetMacro( OutputLargestPossibleRegion, RegionType );
-    itkGetConstReferenceMacro( OutputLargestPossibleRegion, RegionType );
+    itkSetMacro( OutputLargestPossibleRegion, RegionType )
+    itkGetConstReferenceMacro( OutputLargestPossibleRegion, RegionType )
 
 protected:
     OrientedModelBaseResampleImageFilter()
