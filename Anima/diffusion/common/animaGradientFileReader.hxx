@@ -142,7 +142,10 @@ namespace anima
         for (unsigned int i = 0;i < 3;++i)
         {
             if (gradFile.eof())
+            {
+                gradFile.close();
                 throw itk::ExceptionObject(__FILE__, __LINE__,"BVec file is missing data",ITK_LOCATION);
+            }
 
             std::string workStr;
             do {
@@ -170,6 +173,8 @@ namespace anima
             for (unsigned int j = 0;j < 3;++j)
                 m_Gradients[i][j] = trVecs[j][i];
         }
+
+        gradFile.close();
     }
 
     template <class GradientType, class BValueScalarType>
