@@ -94,7 +94,7 @@ int main(int argc, char **argv)
     {
         double score = 0;
         
-        for (unsigned int i = 1;i <= numLabels;++i)
+        for (unsigned int i = 1;i < numLabels;++i)
             score += cardInter[i] / cardRef[i];
         
         score /= numLabels;
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
     }
     else
     {
-        for (unsigned int i = 1;i <= numLabels;++i)
+        for (unsigned int i = 1;i < numLabels;++i)
         {
             if (cardRef[i] == 0)
                 continue;
