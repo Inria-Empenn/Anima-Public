@@ -6,9 +6,10 @@ int main(int argc, char **argv)
 {
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
     
-    TCLAP::ValueArg<std::string> refArg("r","reffile","Reference segmentations",true,"","reference image",cmd);
-    TCLAP::ValueArg<std::string> testArg("t","testfile","Test segmentations",true,"","test image",cmd);
-	
+    TCLAP::ValueArg <std::string> refArg("r","reffile","Reference segmentations",true,"","reference image",cmd);
+    TCLAP::ValueArg <std::string> testArg("t","testfile","Test segmentations",true,"","test image",cmd);
+
+    TCLAP::ValueArg <unsigned int> minNumPixelsRefArg("m","min-card","Minimal number of pixels in each reference label area",false,0,"minimal label size",cmd);
     TCLAP::SwitchArg totalOverlapArg("T","total-overlap","Compute total overlap measure as in Klein et al 2009",cmd,false);
     TCLAP::SwitchArg jacArg("J","jaccard","Compute Jaccard similarity instead of Dice",cmd,false);
     TCLAP::SwitchArg xlsArg("X","xlsmode","Output formatted to be include in a Excel readable text file",cmd,false);
@@ -94,10 +95,18 @@ int main(int argc, char **argv)
     {
         double score = 0;
         
+        unsigned int numUsedLabels = 0;
         for (unsigned int i = 1;i < numLabels;++i)
-            score += cardInter[i] / cardRef[i];
-        
-        score /= numLabels;
+        {
+            if (cardRef[i] > minNumPixelsRefArg.getValue())
+            {
+                score += cardInter[i] / cardRef[i];
+                ++numUsedLabels;
+            }
+        }
+
+        if (numUsedLabels > 0)
+            score /= numUsedLabels;
         
         if (xlsArg.isSet())
             std::cout << score << " " << std::flush;
@@ -108,7 +117,7 @@ int main(int argc, char **argv)
     {
         for (unsigned int i = 1;i < numLabels;++i)
         {
-            if (cardRef[i] == 0)
+            if (cardRef[i] <= minNumPixelsRefArg.getValue())
                 continue;
             
             double score = 2*cardInter[i]/(cardRef[i] + cardTest[i]);
@@ -119,7 +128,7 @@ int main(int argc, char **argv)
             if (xlsArg.isSet())
                 std::cout << score << " " << std::flush;
             else
-                std::cout << "Label " << i << ": " << score << std::endl;
+                std::cout << "Label " << usefulLabels[i] << ": " << score << std::endl;
         }
     }
     
