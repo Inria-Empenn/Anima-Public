@@ -168,7 +168,7 @@ MaskedImageToImageFilter < TInputImage, TOutputImage >
     {
         m_LockHighestProcessedSlice.Lock();
 
-        if (m_HighestProcessedSlice >= highestToleratedSliceValue)
+        if (m_HighestProcessedSlice > highestToleratedSliceValue)
         {
             m_LockHighestProcessedSlice.Unlock();
             continueLoop = false;
