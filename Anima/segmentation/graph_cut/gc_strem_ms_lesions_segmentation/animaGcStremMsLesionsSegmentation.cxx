@@ -12,7 +12,7 @@ int main(int argc, const char** argv)
     typedef anima::GcStremMsLesionsSegmentationFilter<InputImageTypeD>  FilterTypeSeg;
 
     // Parsing arguments
-    TCLAP::CmdLine  cmd("INRIA / IRISA - VisAGeS Team", ' ',"1.0");
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
 
     // Setting up parameters
 

@@ -8,7 +8,7 @@ int main(int argc, const char** argv)
 {
 
     // Parsing arguments
-    TCLAP::CmdLine  cmd("INRIA / IRISA - VisAGeS Team", ' ',"1.0");
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
 
     TCLAP::MultiArg<std::string> inputArg("i","input","Input images to segment (up to 5, e.g. T1, T2, DP, FLAIR, T1-Gd)",
                                           true,"input images",cmd);
