@@ -13,7 +13,7 @@ int main(int argc, char **argv)
     TCLAP::SwitchArg totalOverlapArg("T","total-overlap","Compute total overlap measure as in Klein et al 2009",cmd,false);
     TCLAP::SwitchArg jacArg("J","jaccard","Compute Jaccard similarity instead of Dice",cmd,false);
     TCLAP::SwitchArg xlsArg("X","xlsmode","Output formatted to be include in a Excel readable text file",cmd,false);
-	
+
     try
     {
         cmd.parse(argc,argv);
@@ -23,22 +23,22 @@ int main(int argc, char **argv)
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
         return(1);
     }
-	
-	typedef itk::Image <unsigned short,3> ImageType;
-	typedef itk::ImageFileReader <ImageType> ImageReaderType;
-	typedef itk::ImageRegionConstIterator <ImageType> ImageIteratorType;
+
+    typedef itk::Image <unsigned short,3> ImageType;
+    typedef itk::ImageFileReader <ImageType> ImageReaderType;
+    typedef itk::ImageRegionConstIterator <ImageType> ImageIteratorType;
     
-	ImageReaderType::Pointer refRead = ImageReaderType::New();
-	refRead->SetFileName(refArg.getValue());
-	refRead->Update();
-	
-	ImageIteratorType refIt (refRead->GetOutput(),refRead->GetOutput()->GetLargestPossibleRegion());
+    ImageReaderType::Pointer refRead = ImageReaderType::New();
+    refRead->SetFileName(refArg.getValue());
+    refRead->Update();
+
+    ImageIteratorType refIt (refRead->GetOutput(),refRead->GetOutput()->GetLargestPossibleRegion());
     
     std::vector <unsigned int> usefulLabels;
     
-	while (!refIt.IsAtEnd())
-	{
-		if (refIt.Get() != 0)
+    while (!refIt.IsAtEnd())
+    {
+        if (refIt.Get() != 0)
         {
             bool isAlreadyIn = false;
             for (unsigned int i = 0;i < usefulLabels.size();++i)
@@ -53,9 +53,9 @@ int main(int argc, char **argv)
             if (!isAlreadyIn)
                 usefulLabels.push_back(refIt.Get());
         }
-		
-		++refIt;
-	}
+
+        ++refIt;
+    }
     
     std::sort(usefulLabels.begin(),usefulLabels.end());
     
@@ -64,39 +64,39 @@ int main(int argc, char **argv)
     labelBackMap[0] = 0;
     for (unsigned int i = 0;i < usefulLabels.size();++i)
         labelBackMap[usefulLabels[i]] = i+1;
-	
-	refIt.GoToBegin();
-	
-	ImageReaderType::Pointer testRead = ImageReaderType::New();
-	testRead->SetFileName(testArg.getValue());
-	testRead->Update();
-	
-	ImageIteratorType testIt (testRead->GetOutput(),testRead->GetOutput()->GetLargestPossibleRegion());
-	
+
+    refIt.GoToBegin();
+
+    ImageReaderType::Pointer testRead = ImageReaderType::New();
+    testRead->SetFileName(testArg.getValue());
+    testRead->Update();
+
+    ImageIteratorType testIt (testRead->GetOutput(),testRead->GetOutput()->GetLargestPossibleRegion());
+
     unsigned int numLabels = usefulLabels.size();
-	std::vector <double> cardRef(numLabels+1,0), cardTest(numLabels+1,0), cardInter(numLabels+1,0);
-	
-	while(!testIt.IsAtEnd())
-	{
-		unsigned int testVal = testIt.Get();
-		unsigned int refVal = refIt.Get();
-		
-		cardTest[labelBackMap[testVal]]++;
-		cardRef[labelBackMap[refVal]]++;
-		
-		if (testVal == refVal)
-			cardInter[labelBackMap[testVal]]++;
-		
-		++testIt;
-		++refIt;
-	}
-	
+    std::vector <double> cardRef(numLabels+1,0), cardTest(numLabels+1,0), cardInter(numLabels+1,0);
+
+    while(!testIt.IsAtEnd())
+    {
+        unsigned int testVal = testIt.Get();
+        unsigned int refVal = refIt.Get();
+
+        cardTest[labelBackMap[testVal]]++;
+        cardRef[labelBackMap[refVal]]++;
+
+        if (testVal == refVal)
+            cardInter[labelBackMap[testVal]]++;
+
+        ++testIt;
+        ++refIt;
+    }
+
     if (totalOverlapArg.isSet())
     {
         double score = 0;
         
         unsigned int numUsedLabels = 0;
-        for (unsigned int i = 1;i < numLabels;++i)
+        for (unsigned int i = 1;i <= numLabels;++i)
         {
             if (cardRef[i] > minNumPixelsRefArg.getValue())
             {
@@ -111,11 +111,11 @@ int main(int argc, char **argv)
         if (xlsArg.isSet())
             std::cout << score << " " << std::flush;
         else
-            std::cout << "Total overlap score: " << score << std::endl;        
+            std::cout << "Total overlap score: " << score << std::endl;
     }
     else
     {
-        for (unsigned int i = 1;i < numLabels;++i)
+        for (unsigned int i = 1;i <= numLabels;++i)
         {
             if (cardRef[i] <= minNumPixelsRefArg.getValue())
                 continue;
