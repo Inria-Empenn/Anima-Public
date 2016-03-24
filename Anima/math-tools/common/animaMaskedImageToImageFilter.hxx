@@ -112,13 +112,7 @@ MaskedImageToImageFilter < TInputImage, TOutputImage >
     this->AllocateOutputs();
     this->BeforeThreadedGenerateData();
 
-    if (m_VerboseProgression)
-    {
-        if (m_ProgressReport)
-            delete m_ProgressReport;
-
-        m_ProgressReport = new itk::ProgressReporter(this,0,m_ComputationRegion.GetSize()[m_ProcessedDimension]);
-    }
+    this->InitializeSplitParameters();
 
     ThreadStruct str;
     str.Filter = this;
@@ -128,13 +122,36 @@ MaskedImageToImageFilter < TInputImage, TOutputImage >
 
     this->GetMultiThreader()->SingleMethodExecute();
 
+    this->DeleteProgressReporter();
+
+    this->AfterThreadedGenerateData();
+}
+
+template< typename TInputImage, typename TOutputImage >
+void
+MaskedImageToImageFilter < TInputImage, TOutputImage >
+::InitializeSplitParameters()
+{
+    m_HighestProcessedSlice = 0;
+    if (m_VerboseProgression)
+    {
+        if (m_ProgressReport)
+            delete m_ProgressReport;
+
+        m_ProgressReport = new itk::ProgressReporter(this,0,m_ComputationRegion.GetSize()[m_ProcessedDimension]);
+    }
+}
+
+template< typename TInputImage, typename TOutputImage >
+void
+MaskedImageToImageFilter < TInputImage, TOutputImage >
+::DeleteProgressReporter()
+{
     if (m_ProgressReport)
     {
         delete m_ProgressReport;
         m_ProgressReport = 0;
     }
-
-    this->AfterThreadedGenerateData();
 }
 
 template< typename TInputImage, typename TOutputImage >
@@ -161,7 +178,7 @@ MaskedImageToImageFilter < TInputImage, TOutputImage >
 {
     InputImageRegionType processedRegion = m_ComputationRegion;
     processedRegion.SetSize(m_ProcessedDimension,1);
-    unsigned int highestToleratedSliceValue = m_ComputationRegion.GetIndex()[m_ProcessedDimension] + m_ComputationRegion.GetSize()[m_ProcessedDimension] - 1;
+    unsigned int highestToleratedSliceValue = m_ComputationRegion.GetSize()[m_ProcessedDimension];
 
     bool continueLoop = true;
     while (continueLoop)

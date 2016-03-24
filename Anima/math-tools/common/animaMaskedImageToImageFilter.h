@@ -68,6 +68,9 @@ protected:
 
     virtual void GenerateData();
 
+    virtual void InitializeSplitParameters();
+    virtual void DeleteProgressReporter();
+
     static ITK_THREAD_RETURN_TYPE ThreaderMultiSplitCallback(void *arg);
     virtual void ThreadProcessSlices(itk::ThreadIdType threadId);
 
