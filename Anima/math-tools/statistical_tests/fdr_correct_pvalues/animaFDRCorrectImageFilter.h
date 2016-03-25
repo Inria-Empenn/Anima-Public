@@ -19,10 +19,10 @@ public:
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(FDRCorrectImageFilter, ImageToImageFilter);
+    itkTypeMacro(FDRCorrectImageFilter, ImageToImageFilter)
 
     typedef typename TInputImage::Pointer InputImagePointer;
     typedef typename TInputImage::PixelType InputImagePixel;
@@ -34,14 +34,16 @@ public:
     /** Superclass typedefs. */
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
-    itkSetMacro(MaskImage, MaskImagePointer);
-    itkSetMacro(QValue, double);
+    itkSetMacro(MaskImage, MaskImagePointer)
+    itkSetMacro(QValue, double)
+    itkSetMacro(BYCorrection, bool)
 
 protected:
     FDRCorrectImageFilter()
     {
         m_MaskImage = NULL;
         m_QValue = 0.05;
+        m_BYCorrection = false;
     }
 
     virtual ~FDRCorrectImageFilter() {}
@@ -61,6 +63,7 @@ private:
 
     MaskImagePointer m_MaskImage;
     double m_QValue;
+    bool m_BYCorrection;
 };
 
 } // end of namespace anima

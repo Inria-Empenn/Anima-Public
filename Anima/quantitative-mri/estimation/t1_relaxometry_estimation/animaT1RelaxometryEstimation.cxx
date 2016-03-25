@@ -43,7 +43,6 @@ int main(int argc, char **argv)
     }
     
     typedef itk::Image <double,3> InputImageType;
-    typedef itk::Image <double,4> Image4DType;
     typedef InputImageType OutputImageType;
     typedef anima::T1RelaxometryEstimationImageFilter <InputImageType,OutputImageType> FilterType;
     typedef itk::ImageFileReader <InputImageType> InputImageReaderType;
@@ -52,7 +51,7 @@ int main(int argc, char **argv)
     FilterType::Pointer mainFilter = FilterType::New();
 	
     // Read and set T1 relaxometry images    
-    anima::setMultipleImageFilterInputsFromFileName<InputImageType,Image4DType,FilterType>(t1Arg.getValue(),mainFilter);
+    anima::setMultipleImageFilterInputsFromFileName<InputImageType,FilterType>(t1Arg.getValue(),mainFilter);
     
     std::ifstream inputFlip(flipAnglesArg.getValue().c_str());
     if (!inputFlip.is_open())

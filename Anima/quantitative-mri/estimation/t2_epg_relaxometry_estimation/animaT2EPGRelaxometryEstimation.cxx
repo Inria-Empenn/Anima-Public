@@ -52,7 +52,6 @@ int main(int argc, char **argv)
     }
     
     typedef itk::Image <double,3> InputImageType;
-    typedef itk::Image <double,4> Image4DType;
     typedef InputImageType OutputImageType;
     typedef anima::T2EPGRelaxometryEstimationImageFilter <InputImageType,OutputImageType> FilterType;
     typedef itk::ImageFileReader <InputImageType> InputImageReaderType;
@@ -61,7 +60,7 @@ int main(int argc, char **argv)
     FilterType::Pointer mainFilter = FilterType::New();
 	
     // Read and set T2 relaxometry images
-    unsigned int numInputs = anima::setMultipleImageFilterInputsFromFileName<InputImageType,Image4DType,FilterType>(t2Arg.getValue(),mainFilter);
+    unsigned int numInputs = anima::setMultipleImageFilterInputsFromFileName<InputImageType,FilterType>(t2Arg.getValue(),mainFilter);
    
     mainFilter->SetEchoSpacing(echoSpacingArg.getValue());
     mainFilter->SetT2FlipAngles(t2FlipAngleArg.getValue() * M_PI / 180.0,numInputs);
