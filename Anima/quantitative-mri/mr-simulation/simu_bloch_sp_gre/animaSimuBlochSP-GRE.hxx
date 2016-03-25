@@ -120,8 +120,8 @@ void SimuBlochSPGRE< TImage>
         double t2sValue = inputIteratorT2s.Get();
         double m0Value = inputIteratorM0.Get();
 
-        double sinFA = sin(itk::Math::pi * b1Value * m_FA / 180);
-        double cosFA = cos(itk::Math::pi * b1Value * m_FA / 180);
+        double sinFA = std::sin(M_PI * b1Value * m_FA / 180);
+        double cosFA = std::cos(M_PI * b1Value * m_FA / 180);
 
         outputIterator.Set(m0Value * (1- exp(- m_TR / t1Value)) * sinFA / (1 - exp(- m_TR / t1Value) * cosFA ) * exp(- m_TE / t2sValue));
 

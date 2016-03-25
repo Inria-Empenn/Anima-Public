@@ -382,7 +382,7 @@ template <class VectorType> double ComputeAngle(const VectorType &v1, const Vect
     if (t > 1.0)
         t = 1.0;
 
-    return std::acos(t) * 180.0 / itk::Math::pi;
+    return std::acos(t) * 180.0 / M_PI;
 }
 
 template <class VectorType> double ComputeOrientationAngle(const VectorType &v1, const VectorType &v2)
@@ -395,7 +395,7 @@ template <class VectorType> double ComputeOrientationAngle(const VectorType &v1,
     if (t > 1.0)
         t = 1.0;
 
-    return std::acos(t) * 180.0 / itk::Math::pi;
+    return std::acos(t) * 180.0 / M_PI;
 }
 
 template <class VectorType> void Revert(const VectorType &v, const unsigned int vSize, VectorType &resVec)

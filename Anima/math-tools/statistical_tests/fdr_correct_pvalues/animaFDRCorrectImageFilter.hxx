@@ -47,7 +47,10 @@ FDRCorrectImageFilter <PixelScalarType>
         ++maskItr;
     }
 
-    anima::BYCorrection(pvalues, m_QValue);
+    if (m_BYCorrection)
+        anima::BYCorrection(pvalues, m_QValue);
+    else
+        anima::BHCorrection(pvalues, m_QValue);
 
     maskItr.GoToBegin();
 
