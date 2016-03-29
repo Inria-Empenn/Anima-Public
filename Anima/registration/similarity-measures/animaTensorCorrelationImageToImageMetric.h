@@ -48,14 +48,14 @@ public:
     typedef typename Superclass::MovingImageConstPointer  MovingImageConstPointer;
 
     /**  Get the value for single valued optimizers. */
-    MeasureType GetValue( const TransformParametersType & parameters ) const;
+    MeasureType GetValue(const TransformParametersType & parameters) const ITK_OVERRIDE;
 
     void PreComputeFixedValues();
 
 protected:
     TensorCorrelationImageToImageMetric();
     virtual ~TensorCorrelationImageToImageMetric() {}
-    void PrintSelf(std::ostream& os, itk::Indent indent) const;
+    void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
 
 private:
     TensorCorrelationImageToImageMetric(const Self&); //purposely not implemented

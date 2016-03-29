@@ -10,8 +10,6 @@
 #include <itkImageRegionConstIteratorWithIndex.h>
 #include <itkTimeProbe.h>
 
-#include <boost/math/special_functions/fpclassify.hpp>
-
 namespace anima
 {
 
@@ -103,10 +101,10 @@ NonCentralChiNoiseGeneratorImageFilter<Dimension>
 
     m_Generators.clear();
 
-    boost::mt19937 motherGenerator(time(0));
+    std::mt19937 motherGenerator(time(0));
 
     for (int i = 0;i < this->GetNumberOfThreads();++i)
-        m_Generators.push_back(boost::mt19937(motherGenerator()));
+        m_Generators.push_back(std::mt19937(motherGenerator()));
 }
 
 template <unsigned int Dimension>
@@ -162,7 +160,7 @@ NonCentralChiNoiseGeneratorImageFilter<Dimension>
         double gaussNoise = anima::SampleFromGaussianDistribution(mean, v, m_Generators[threadId]);
         double dataReal = refData + gaussNoise;
 
-        if ((boost::math::isnan(dataReal))||(!boost::math::isfinite(dataReal)))
+        if ((std::isnan(dataReal))||(!std::isfinite(dataReal)))
             dataReal = refData;
 
         double sumVals = dataReal * dataReal;
@@ -171,7 +169,7 @@ NonCentralChiNoiseGeneratorImageFilter<Dimension>
         {
             double dataIm = anima::SampleFromGaussianDistribution(mean, v, m_Generators[threadId]);
 
-            if ((boost::math::isnan(dataIm))||(!boost::math::isfinite(dataIm)))
+            if ((std::isnan(dataIm))||(!std::isfinite(dataIm)))
                 dataIm = 0;
 
             sumVals += dataIm * dataIm;

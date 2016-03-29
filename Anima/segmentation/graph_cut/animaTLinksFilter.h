@@ -135,18 +135,13 @@ protected:
     TSeedProba::ConstPointer GetInputSeedSourcesProba();
     TSeedProba::ConstPointer GetInputSeedSinksProba();
 
-    void GenerateData();
+    void GenerateData() ITK_OVERRIDE;
     void computeSingleGaussian();
     void computeSingleGaussianSeeds(TSeedMask::ConstPointer seedMask, OutputImagePointer output, float multiVar, TSeedMask::ConstPointer seedMaskOpp = NULL);
     void computeStrem();
 
     /**  Create the Output */
     itk::DataObject::Pointer MakeOutput(unsigned int idx);
-
-    void PrintSelf(std::ostream& os, itk::Indent indent) const
-    {
-        Superclass::PrintSelf(os,indent);
-    }
 
 private:
     TLinksFilter(const Self&); //purposely not implemented

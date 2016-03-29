@@ -92,7 +92,7 @@ protected:
 
     //void PrintSelf(std::ostream& os, Indent indent) const;
     //DataObject::Pointer MakeOutput(unsigned int idx);
-    void GenerateData();
+    void GenerateData() ITK_OVERRIDE;
 
 private:
 

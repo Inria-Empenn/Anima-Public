@@ -132,7 +132,7 @@ public:
     typedef itk::ConnectedComponentImageFilter <ImageTypeUC,ImageTypeInt> ConnectedComponentType;
     typedef itk::RelabelComponentImageFilter< ImageTypeInt, ImageTypeInt > RelabelComponentType;
 
-    void GenerateData();
+    void GenerateData() ITK_OVERRIDE;
     void WriteOutputs();
 
     void CheckInputImages();

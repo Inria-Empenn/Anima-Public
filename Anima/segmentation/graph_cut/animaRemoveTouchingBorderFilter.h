@@ -118,12 +118,7 @@ protected:
     typename TMask::ConstPointer GetMask();
 
     /** Does the real work. */
-    virtual void GenerateData();
-
-    void PrintSelf(std::ostream& os, itk::Indent indent) const
-    {
-        Superclass::PrintSelf(os,indent);
-    }
+    virtual void GenerateData() ITK_OVERRIDE;
 
 private:
     RemoveTouchingBorderFilter(const Self&); //purposely not implemented

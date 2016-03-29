@@ -36,9 +36,9 @@ protected:
 
     virtual ~FiniteStrainTensorResampleImageFilter() {}
 
-    virtual void BeforeThreadedGenerateData();
+    virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
     virtual void RotateInterpolatedModel(const InputPixelType &interpolatedModel, vnl_matrix <double> &modelRotationMatrix,
-                                         InputPixelType &rotatedModel, itk::ThreadIdType threadId);
+                                         InputPixelType &rotatedModel, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
     FiniteStrainTensorResampleImageFilter(const Self&); //purposely not implemented

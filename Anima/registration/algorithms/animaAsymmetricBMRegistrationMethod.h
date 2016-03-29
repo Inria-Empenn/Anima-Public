@@ -27,7 +27,7 @@ protected:
     AsymmetricBMRegistrationMethod() {}
     virtual ~AsymmetricBMRegistrationMethod() {}
 
-    virtual void PerformOneIteration(InputImageType *refImage, InputImageType *movingImage, TransformPointer &addOn);
+    virtual void PerformOneIteration(InputImageType *refImage, InputImageType *movingImage, TransformPointer &addOn) ITK_OVERRIDE;
 
 private:
     AsymmetricBMRegistrationMethod(const Self&); //purposely not implemented

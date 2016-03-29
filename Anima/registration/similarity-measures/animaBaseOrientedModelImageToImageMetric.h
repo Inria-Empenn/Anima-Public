@@ -135,7 +135,7 @@ public:
     void SetTransformParameters( const ParametersType & parameters ) const;
 
     /** Return the number of parameters required by the Transform */
-    unsigned int GetNumberOfParameters(void) const
+    unsigned int GetNumberOfParameters(void) const ITK_OVERRIDE
     { return m_Transform->GetNumberOfParameters(); }
 
     /** Initialize the Metric by making sure that all the components
@@ -144,13 +144,13 @@ public:
 
     //! Should not be used
     void GetDerivative( const ParametersType & parameters,
-                        DerivativeType & derivative ) const
+                        DerivativeType & derivative ) const ITK_OVERRIDE
     {
         itkExceptionMacro("No derivatives implemented for tensor metrics...");
     }
 
     void GetValueAndDerivative(const TransformParametersType & parameters,
-                               MeasureType & value, DerivativeType  & derivative) const
+                               MeasureType & value, DerivativeType  & derivative) const ITK_OVERRIDE
     {
         itkExceptionMacro("No derivatives implemented for tensor metrics...");
     }
@@ -161,7 +161,7 @@ public:
 protected:
     BaseOrientedModelImageToImageMetric();
     virtual ~BaseOrientedModelImageToImageMetric();
-    void PrintSelf(std::ostream& os, itk::Indent indent) const;
+    void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
 
     mutable unsigned long       m_NumberOfPixelsCounted;
 

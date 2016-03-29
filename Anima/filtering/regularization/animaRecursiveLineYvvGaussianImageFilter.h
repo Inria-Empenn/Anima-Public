@@ -20,10 +20,10 @@ public:
     typedef itk::SmartPointer<const Self>                       ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Type macro that defines a name for this class. */
-    itkTypeMacro(RecursiveLineYvvGaussianImageFilter, InPlaceImageFilter);
+    itkTypeMacro(RecursiveLineYvvGaussianImageFilter, InPlaceImageFilter)
 
     /** Smart pointer typedef support.  */
     typedef typename TInputImage::Pointer       InputImagePointer;
@@ -47,10 +47,10 @@ public:
     typedef TOutputImage      OutputImageType;
 
     /** Get the direction in which the filter is to be applied. */
-    itkGetConstMacro(Direction, unsigned int);
+    itkGetConstMacro(Direction, unsigned int)
 
     /** Set the direction in which the filter is to be applied. */
-    itkSetMacro(Direction, unsigned int);
+    itkSetMacro(Direction, unsigned int)
 
     /** Set Input Image. */
     void SetInputImage( const TInputImage * );
@@ -73,24 +73,24 @@ public:
      \f]
      For analyzing an image across Scale Space you want to enable
      this flag.  It is disabled by default.  */
-    itkSetMacro( NormalizeAcrossScale, bool );
-    itkGetConstMacro( NormalizeAcrossScale, bool );
+    itkSetMacro(NormalizeAcrossScale, bool)
+    itkGetConstMacro(NormalizeAcrossScale, bool)
 
     /** Set/Get the Sigma, measured in world coordinates, of the Gaussian
      * kernel.  The default is 1.0.  */
-    itkGetConstMacro( Sigma, ScalarRealType );
-    itkSetMacro( Sigma, ScalarRealType );
+    itkGetConstMacro(Sigma, ScalarRealType)
+    itkSetMacro(Sigma, ScalarRealType)
 
 protected:
     RecursiveLineYvvGaussianImageFilter();
-    virtual ~RecursiveLineYvvGaussianImageFilter() {};
-    void PrintSelf(std::ostream& os, itk::Indent indent) const;
+    virtual ~RecursiveLineYvvGaussianImageFilter() {}
+    void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
 
     /** GenerateData (apply) the filter. */
-    void BeforeThreadedGenerateData();
-    void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, itk::ThreadIdType threadId );
+    void BeforeThreadedGenerateData() ITK_OVERRIDE;
+    void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
-    virtual const itk::ImageRegionSplitterBase* GetImageRegionSplitter(void) const;
+    virtual const itk::ImageRegionSplitterBase* GetImageRegionSplitter(void) const ITK_OVERRIDE;
 
     /** RecursiveLineYvvGaussianImageFilter needs all of the input only in the
      *  "Direction" dimension. Therefore we enlarge the output's
@@ -100,7 +100,7 @@ protected:
      *
      * \sa ImageToImageFilter::GenerateInputRequestedRegion()
      */
-    void EnlargeOutputRequestedRegion(itk::DataObject *output);
+    void EnlargeOutputRequestedRegion(itk::DataObject *output) ITK_OVERRIDE;
 
     /** Set up the coefficients of the filter to approximate a specific kernel.
      * Typically it can be used to approximate a Gaussian or one of its

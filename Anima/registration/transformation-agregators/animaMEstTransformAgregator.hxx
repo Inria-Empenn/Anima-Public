@@ -204,7 +204,7 @@ mestEstimateAnyToAffine()
             }
 
             logTransformations[i] = anima::GetLogarithm(tmpMatrix);
-            if (!boost::math::isfinite(logTransformations[i](0,0)))
+            if (!std::isfinite(logTransformations[i](0,0)))
             {
                 logTransformations[i].fill(0);
                 this->SetInputWeight(i,0);

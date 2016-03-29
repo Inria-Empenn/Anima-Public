@@ -37,10 +37,10 @@ protected:
 
     virtual ~FiniteStrainODFResampleImageFilter() {}
 
-    virtual void BeforeThreadedGenerateData();
+    virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
 
     virtual void RotateInterpolatedModel(const InputPixelType &interpolatedModel, vnl_matrix <double> &modelRotationMatrix,
-                                         InputPixelType &rotatedModel, itk::ThreadIdType threadId);
+                                         InputPixelType &rotatedModel, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
     FiniteStrainODFResampleImageFilter(const Self&); //purposely not implemented

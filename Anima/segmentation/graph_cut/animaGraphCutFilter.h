@@ -157,12 +157,7 @@ protected:
     FloatVariableSizeMatrixType GetMatrix(void){return m_Matrix;}
     std::string GetMatrixGradFilename(void){return m_MatrixGradFilename;}
 
-    void GenerateData();
-
-    void PrintSelf(std::ostream& os, itk::Indent indent) const
-    {
-        Superclass::PrintSelf(os,indent);
-    }
+    void GenerateData() ITK_OVERRIDE;
 
 private:
     GraphCutFilter(const Self&); //purposely not implemented

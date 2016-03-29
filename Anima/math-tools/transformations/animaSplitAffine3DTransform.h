@@ -66,32 +66,32 @@ public:
      *   6-8   Scale
      *   9-11  Skew
      **  */
-    virtual void SetParameters( const ParametersType & parameters );
-    virtual const ParametersType& GetParameters(void) const;
+    virtual void SetParameters(const ParametersType & parameters) ITK_OVERRIDE;
+    virtual const ParametersType& GetParameters() const ITK_OVERRIDE;
 
-    void SetAngle( const AngleVectorType & angle );
-    itkGetConstReferenceMacro( Angle, AngleVectorType );
+    void SetAngle(const AngleVectorType & angle);
+    itkGetConstReferenceMacro(Angle, AngleVectorType)
 
-    void SetLogScale( const ScaleVectorType & scale );
-    itkGetConstReferenceMacro( LogScale, ScaleVectorType );
+    void SetLogScale(const ScaleVectorType & scale);
+    itkGetConstReferenceMacro(LogScale, ScaleVectorType)
 
-    void SetSkew( const SkewVectorType & skew );
-    itkGetConstReferenceMacro( Skew, SkewVectorType );
+    void SetSkew(const SkewVectorType & skew);
+    itkGetConstReferenceMacro(Skew, SkewVectorType)
 
-    void SetIdentity();
+    void SetIdentity() ITK_OVERRIDE;
 
 protected:
     SplitAffine3DTransform();
     virtual ~SplitAffine3DTransform(){}
 
-    void PrintSelf(std::ostream &os, itk::Indent indent) const;
+    void PrintSelf(std::ostream &os, itk::Indent indent) const ITK_OVERRIDE;
 
     MatrixType ComputeRotationMatrix();
     MatrixType ComputeSkewMatrix();
 
     /** Compute the components of the rotation matrix in the superclass. */
-    void ComputeMatrix(void);
-    void ComputeMatrixParameters(void);
+    void ComputeMatrix() ITK_OVERRIDE;
+    void ComputeMatrixParameters() ITK_OVERRIDE;
 
 private:
     SplitAffine3DTransform(const Self&); //purposely not implemented

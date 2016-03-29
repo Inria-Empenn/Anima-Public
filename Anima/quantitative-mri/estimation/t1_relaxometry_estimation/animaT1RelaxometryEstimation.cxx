@@ -9,9 +9,6 @@
 #include <animaReadWriteFunctions.h>
 #include <itkTimeProbe.h>
 
-#include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string.hpp>
-
 int main(int argc, char **argv)
 {
     TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);
@@ -69,11 +66,11 @@ int main(int argc, char **argv)
         if (workStr == "")
             continue;
         
-        boost::algorithm::trim_right(workStr);
+        workStr.erase(workStr.find_last_not_of(" \n\r\t")+1);
         std::istringstream iss(workStr);
         std::string shortStr;
         iss >> shortStr;
-        flipAngles.push_back(boost::lexical_cast<double> (shortStr) * M_PI / 180.0);
+        flipAngles.push_back(std::stod(shortStr) * M_PI / 180.0);
     }
     
     mainFilter->SetFlipAngles(flipAngles);

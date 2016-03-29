@@ -1,8 +1,7 @@
 #pragma once
 
 #include <animaBaseProbabilisticTractographyImageFilter.h>
-#include <boost/random/mersenne_twister.hpp>
-
+#include <random>
 
 #include "AnimaTractographyExport.h"
 
@@ -38,7 +37,7 @@ protected:
     virtual ~DTIProbabilisticTractographyImageFilter();
 
     //! Generate seed points
-    void PrepareTractography();
+    void PrepareTractography() ITK_OVERRIDE;
 
     double GetKappaFromFA(double FA);
     void GetDTIPrincipalDirection(const VectorType &modelValue, Vector3DType &resVec, bool is2d);
@@ -46,18 +45,20 @@ protected:
 
     virtual Vector3DType ProposeNewDirection(Vector3DType &oldDirection, VectorType &modelValue,
                                              Vector3DType &sampling_direction, double &log_prior,
-                                             double &log_proposal, boost::mt19937 &random_generator,
-                                             unsigned int threadId);
+                                             double &log_proposal, std::mt19937 &random_generator,
+                                             unsigned int threadId) ITK_OVERRIDE;
 
     virtual double ComputeLogWeightUpdate(double b0Value, double noiseValue, Vector3DType &newDirection, Vector3DType &sampling_direction,
                                           VectorType &modelValue, VectorType &dwiValue,
-                                          double &log_prior, double &log_proposal, unsigned int threadId);
+                                          double &log_prior, double &log_proposal, unsigned int threadId) ITK_OVERRIDE;
 
     virtual double ComputeModelEstimation(DWIInterpolatorPointerVectorType &dwiInterpolators, ContinuousIndexType &index,
-                                          VectorType &dwiValue, double &noiseValue, VectorType &modelValue);
+                                          VectorType &dwiValue, double &noiseValue, VectorType &modelValue) ITK_OVERRIDE;
 
-    virtual Vector3DType InitializeFirstIterationFromModel(Vector3DType &colinearDir, VectorType &modelValue, unsigned int threadId);
-    virtual bool CheckModelProperties(double estimatedB0Value, double estimatedNoiseValue, VectorType &modelValue, unsigned int threadId);
+    virtual Vector3DType InitializeFirstIterationFromModel(Vector3DType &colinearDir,
+                                                           VectorType &modelValue, unsigned int threadId) ITK_OVERRIDE;
+    virtual bool CheckModelProperties(double estimatedB0Value, double estimatedNoiseValue,
+                                      VectorType &modelValue, unsigned int threadId) ITK_OVERRIDE;
 
     double GetLinearCoefficient(VectorType &modelValue);
     double GetFractionalAnisotropy(VectorType &modelValue);

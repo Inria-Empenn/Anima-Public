@@ -5,9 +5,6 @@
 #include <animaVectorOperations.h>
 #include <animaLogarithmFunctions.h>
 
-#include <boost/math/distributions/beta.hpp>
-#include <boost/random/uniform_real.hpp>
-#include <boost/random/variate_generator.hpp>
 #include <vnl/vnl_matrix.h>
 
 #include <itkExceptionObject.h>

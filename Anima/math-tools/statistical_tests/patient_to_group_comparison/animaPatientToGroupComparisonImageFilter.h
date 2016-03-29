@@ -84,13 +84,8 @@ protected:
 
     virtual ~PatientToGroupComparisonImageFilter() {}
 
-    virtual void BeforeThreadedGenerateData(void);
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId);
-
-    void PrintSelf(std::ostream& os, itk::Indent indent) const
-    {
-        Superclass::PrintSelf(os,indent);
-    }
+    virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
+    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
     virtual unsigned int SampleFromDiffusionModels(std::vector <VectorType> &databaseValues, VectorType &patientVectorValue)
     {

@@ -21,15 +21,15 @@ public:
     typedef itk::SmartPointer <const Self> ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(RandomInitializer, itk::ProcessObject);
+    itkTypeMacro(RandomInitializer, itk::ProcessObject)
 
     typedef itk::VariableLengthVector<double> MeasurementVectorType;
     typedef itk::Statistics::GaussianMembershipFunction< MeasurementVectorType > GaussianFunctionType;
 
-    void Update();
+    void Update() ITK_OVERRIDE;
 
     /** @brief Set min values of random means
        */
@@ -39,14 +39,13 @@ public:
        */
     void SetMaxValues(std::vector<double> &max){this->maxValues=max;}
 
-    itkSetMacro(NbGaussian, unsigned int);
-    itkGetMacro(NbGaussian, unsigned int);
+    itkSetMacro(NbGaussian, unsigned int)
+    itkGetMacro(NbGaussian, unsigned int)
 
-    itkSetMacro(DimensionGaussian, unsigned int);
-    itkGetMacro(DimensionGaussian, unsigned int);
+    itkSetMacro(DimensionGaussian, unsigned int)
+    itkGetMacro(DimensionGaussian, unsigned int)
 
 protected:
-
     RandomInitializer(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
 

@@ -5,7 +5,7 @@
 #include <itkVectorImage.h>
 #include <itkImage.h>
 
-#include <boost/random/mersenne_twister.hpp>
+#include <random>
 #include <time.h>
 
 namespace anima
@@ -75,14 +75,9 @@ protected:
     {
     }
 
-    void BeforeThreadedGenerateData(void);
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId);
+    void BeforeThreadedGenerateData() ITK_OVERRIDE;
+    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
     void TreatRegionWithNoiseVariance(const OutputImageRegionType &region, double &variance, itk::ThreadIdType threadId);
-
-    void PrintSelf(std::ostream& os, itk::Indent indent) const
-    {
-        Superclass::PrintSelf(os,indent);
-    }
 
 private:
     NonCentralChiNoiseGeneratorImageFilter(const Self&); //purposely not implemented
@@ -100,7 +95,7 @@ private:
     //! Number of coils parameter, 1 = Rician noise
     unsigned int m_NumberOfCoils;
 
-    std::vector <boost::mt19937> m_Generators;
+    std::vector <std::mt19937> m_Generators;
 };
 } // end of namespace anima
 

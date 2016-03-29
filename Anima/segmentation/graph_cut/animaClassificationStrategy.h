@@ -43,7 +43,7 @@ public:
     /** @brief executes the strategy
        * @return false if error
        */
-    void Update();
+    void Update() ITK_OVERRIDE;
 
     /** @brief set the estimation algorithm to use
        * The algorithm must be already configured with the joint histogram

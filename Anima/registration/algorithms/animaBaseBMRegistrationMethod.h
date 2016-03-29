@@ -106,15 +106,15 @@ public:
      * output. */
     typedef itk::ProcessObject::DataObjectPointerArraySizeType DataObjectPointerArraySizeType;
     using Superclass::MakeOutput;
-    virtual DataObjectPointer MakeOutput(DataObjectPointerArraySizeType idx);
+    virtual DataObjectPointer MakeOutput(DataObjectPointerArraySizeType idx) ITK_OVERRIDE;
 
 protected:
     BaseBMRegistrationMethod();
     virtual ~BaseBMRegistrationMethod() {}
 
-    virtual void PrintSelf(std::ostream& os, itk::Indent indent) const;
+    virtual void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
 
-    void GenerateData();
+    void GenerateData() ITK_OVERRIDE;
     void StartOptimization();
 
     virtual void SetupTransform(TransformPointer &optimizedTransform);

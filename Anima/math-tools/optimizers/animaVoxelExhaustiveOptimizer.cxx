@@ -39,7 +39,7 @@ const VoxelExhaustiveOptimizer::MeasureType& VoxelExhaustiveOptimizer
  * Start walking
  */
 
-void VoxelExhaustiveOptimizer::StartOptimization( void )
+void VoxelExhaustiveOptimizer::StartOptimization()
 {
     this->StartWalking();
 

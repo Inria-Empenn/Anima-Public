@@ -63,9 +63,9 @@ protected:
 
     /** Does the real work. */
     virtual void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread,
-                                      itk::ThreadIdType threadId);
+                                      itk::ThreadIdType threadId) ITK_OVERRIDE;
 
-    void GenerateOutputInformation();
+    void GenerateOutputInformation() ITK_OVERRIDE;
 
 private:
     StimulatedSpinEchoImageFilter(const Self &); //purposely not implemented

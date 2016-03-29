@@ -32,7 +32,7 @@ protected:
     SymmetricBMRegistrationMethod() {}
     virtual ~SymmetricBMRegistrationMethod() {}
 
-    virtual void PerformOneIteration(InputImageType *refImage, InputImageType *movingImage, TransformPointer &addOn);
+    virtual void PerformOneIteration(InputImageType *refImage, InputImageType *movingImage, TransformPointer &addOn) ITK_OVERRIDE;
 
 private:
     SymmetricBMRegistrationMethod(const Self&); //purposely not implemented

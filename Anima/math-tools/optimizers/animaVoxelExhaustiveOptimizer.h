@@ -20,48 +20,47 @@ public:
 
     typedef itk::Array< unsigned long > StepsType;
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro( VoxelExhaustiveOptimizer, SingleValuedNonLinearOptimizer );
+    itkTypeMacro(VoxelExhaustiveOptimizer, SingleValuedNonLinearOptimizer)
 
-    virtual void    StartOptimization( void );
+    virtual void StartOptimization() ITK_OVERRIDE;
 
     void StartWalking( void );
     void ResumeWalking( void );
     void StopWalking(void);
 
-    itkSetMacro( NumberOfSteps, StepsType );
+    itkSetMacro(NumberOfSteps, StepsType)
 
     // Geometry information
-    itkSetMacro(Geometry, GeometryType);
+    itkSetMacro(Geometry, GeometryType)
 
-    itkGetConstReferenceMacro( NumberOfSteps, StepsType );
-    itkGetConstReferenceMacro( CurrentValue, MeasureType );
-    itkGetConstReferenceMacro( MaximumMetricValue, MeasureType );
-    itkGetConstReferenceMacro( MinimumMetricValue, MeasureType );
-    itkGetConstReferenceMacro( MinimumMetricValuePosition, ParametersType );
-    itkGetConstReferenceMacro( MaximumMetricValuePosition, ParametersType );
-    itkGetConstReferenceMacro( CurrentIndex, ParametersType );
-    itkGetConstReferenceMacro( MaximumNumberOfIterations, unsigned long );
+    itkGetConstReferenceMacro(NumberOfSteps, StepsType)
+    itkGetConstReferenceMacro(CurrentValue, MeasureType)
+    itkGetConstReferenceMacro(MaximumMetricValue, MeasureType)
+    itkGetConstReferenceMacro(MinimumMetricValue, MeasureType)
+    itkGetConstReferenceMacro(MinimumMetricValuePosition, ParametersType)
+    itkGetConstReferenceMacro(MaximumMetricValuePosition, ParametersType)
+    itkGetConstReferenceMacro(CurrentIndex, ParametersType)
+    itkGetConstReferenceMacro(MaximumNumberOfIterations, unsigned long)
 
     /** Get the reason for termination */
-    const std::string GetStopConditionDescription() const;
+    const std::string GetStopConditionDescription() const ITK_OVERRIDE;
 
     /** Set if the Optimizer should Maximize the metric */
-    itkSetMacro( Maximize, bool );
-    itkBooleanMacro( Maximize);
-    itkGetConstReferenceMacro( Maximize, bool );
+    itkSetMacro(Maximize, bool)
+    itkBooleanMacro(Maximize)
+    itkGetConstReferenceMacro(Maximize, bool)
 
     /** Return Current Value */
 
-    const MeasureType& GetCurrentCost() const ;
-    //MeasureType GetValue() const { return this->GetCurrentCost(); }
+    const MeasureType& GetCurrentCost() const;
 
 protected:
     VoxelExhaustiveOptimizer();
-    virtual ~VoxelExhaustiveOptimizer() {};
-    void PrintSelf(std::ostream& os, itk::Indent indent) const;
+    virtual ~VoxelExhaustiveOptimizer() {}
+    void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
 
     /** Advance to the next grid position. */
     void IncrementIndex(ParametersType &newPosition);

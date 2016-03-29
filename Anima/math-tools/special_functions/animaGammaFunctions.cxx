@@ -1,7 +1,6 @@
 #include <cmath>
 
 #include "animaGammaFunctions.h"
-#include <boost/math/special_functions/factorials.hpp>
 #include <iostream>
 
 #include <itkMacro.h>
@@ -23,10 +22,10 @@ double psi_function(unsigned int n, double emc)
 
 double gammaHalfPlusN(unsigned int n)
 {
-    double resVal = boost::math::factorial<double>(2*n);
+    double resVal = std::tgamma(2*n + 1);
     resVal *= sqrt(M_PI);
     resVal /= std::pow(4.0,(double)n);
-    resVal /= boost::math::factorial<double>(n);
+    resVal /= std::tgamma(n+1);
 
     return resVal;
 }
@@ -34,11 +33,11 @@ double gammaHalfPlusN(unsigned int n)
 double gammaHalfMinusN(unsigned int n)
 {
     double resVal = std::pow(-4.0,(double)n);
-    resVal *= boost::math::factorial<double>(n);
+    resVal *= std::tgamma(n+1);
     resVal *= sqrt(M_PI);
-    resVal /= boost::math::factorial<double>(2*n);
+    resVal /= std::tgamma(2*n + 1);
 
     return resVal;
-    }
+}
 
 } // end of namespace anima

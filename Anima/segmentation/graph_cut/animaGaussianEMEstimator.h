@@ -58,7 +58,7 @@ public:
        */
     Histogram GetJointHistogram(){return m_JointHistogramInitial;}
 
-    virtual void Update();
+    virtual void Update() ITK_OVERRIDE;
 
     virtual bool maximization(std::vector<GaussianFunctionType::Pointer> &newModel, std::vector<double> &newAlphas);
     virtual double expectation();

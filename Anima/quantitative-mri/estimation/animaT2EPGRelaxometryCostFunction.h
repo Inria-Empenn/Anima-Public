@@ -16,10 +16,10 @@ public:
     typedef itk::SmartPointer<Self>         Pointer;
     typedef itk::SmartPointer<const Self>   ConstPointer;
 
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(T2EPGRelaxometryCostFunction, Superclass);
+    itkTypeMacro(T2EPGRelaxometryCostFunction, Superclass)
 
     typedef Superclass::MeasureType MeasureType;
     typedef Superclass::DerivativeType DerivativeType;
@@ -27,23 +27,23 @@ public:
     typedef std::vector < std::complex <double> > ComplexVectorType;
     typedef std::vector <ComplexVectorType> MatrixType;
 
-    virtual MeasureType GetValue(const ParametersType & parameters) const;
-    virtual void GetDerivative(const ParametersType & parameters, DerivativeType & derivative) const {} // No derivative
+    virtual MeasureType GetValue(const ParametersType & parameters) const ITK_OVERRIDE;
+    virtual void GetDerivative(const ParametersType & parameters, DerivativeType & derivative) const ITK_OVERRIDE {} // No derivative
 
-    itkSetMacro(T2EchoSpacing, double);
-    itkSetMacro(T2ExcitationFlipAngle, double);
+    itkSetMacro(T2EchoSpacing, double)
+    itkSetMacro(T2ExcitationFlipAngle, double)
 
     void SetT2RelaxometrySignals(std::vector <double> & relaxoSignals) {m_T2RelaxometrySignals = relaxoSignals;}
     void SetT2FlipAngles(std::vector <double> & flipAngles) {m_T2FlipAngles = flipAngles;}
 
-    itkSetMacro(T1Value, double);
-    itkSetMacro(T2Value, double);
-    itkSetMacro(B1Value, double);
-    itkSetMacro(M0Value, double);
+    itkSetMacro(T1Value, double)
+    itkSetMacro(T2Value, double)
+    itkSetMacro(B1Value, double)
+    itkSetMacro(M0Value, double)
 
-    itkSetMacro(B1OnExcitationAngle, bool);
+    itkSetMacro(B1OnExcitationAngle, bool)
 
-    unsigned int GetNumberOfParameters() const
+    unsigned int GetNumberOfParameters() const ITK_OVERRIDE
     {
         return 2;
     }

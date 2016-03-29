@@ -95,7 +95,7 @@ public:
 
     double regionMedianValue(itk::Image< double, 3 >::Pointer image, typename TInputImage::Pointer mask );
 
-    void Update();
+    void Update() ITK_OVERRIDE;
 
     /**
      * First, we perform a NABT estimation on the T1-w only, applying the following initialization scheme using
@@ -159,11 +159,7 @@ public:
     itkSetMacro(Robust, float);
     itkGetMacro(Robust, float);
 
-    itkSetMacro(Verbose, bool);
-    itkGetMacro(Verbose, bool);
-
 protected:
-
     HierarchicalInitializer(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
 
@@ -179,8 +175,6 @@ protected:
     }
     virtual ~HierarchicalInitializer(){}
 
-
-    bool m_Verbose;
     std::vector<InputImageConstPointer> m_ImagesVector; //Order must be "T1","T2","FLAIR or PD"
     bool m_ThirdIsFLAIR;
     double m_Robust;
@@ -197,7 +191,6 @@ protected:
     std::vector< std::vector<double> > m_SelectedMax;
 
     double m_Tol;
-
 };
 
 }

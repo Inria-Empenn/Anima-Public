@@ -86,11 +86,12 @@ namespace anima
         if (!m_Modified)
             return;
 
-        std::string::iterator strItr = m_GradientFileName.begin();
-        for (unsigned int i = 0;i < 5;++i)
-            strItr--;
+        int startIndex = m_GradientFileName.size() - 6;
+        if (startIndex < 0)
+            startIndex = 0;
 
-        if (std::find(strItr,m_GradientFileName.end(),"bvec") != m_GradientFileName.end())
+        std::string testExt = m_GradientFileName.substr(startIndex);
+        if (testExt.find("bvec") != testExt.size())
             this->ReadGradientsFromBVecFile();
         else
             this->ReadGradientsFromTextFile();
@@ -229,16 +230,17 @@ namespace anima
         if (!bvalFile.is_open())
         {
             for (unsigned int i = 0;i < m_TotalNumberOfDirections;++i)
-                m_BValues[i] = std::strtod(m_BValueBaseString);
+                m_BValues[i] = std::stod(m_BValueBaseString);
 
             return;
         }
 
-        std::string::iterator strItr = m_BValueBaseString.begin();
-        for (unsigned int i = 0;i < 5;++i)
-            strItr--;
+        int startIndex = m_BValueBaseString.size() - 6;
+        if (startIndex < 0)
+            startIndex = 0;
 
-        if (std::find(strItr,m_BValueBaseString.end(),"bval") != m_BValueBaseString.end())
+        std::string testExt = m_BValueBaseString.substr(startIndex);
+        if (testExt.find("bval") != testExt.size())
         {
             std::string workStr;
             do {

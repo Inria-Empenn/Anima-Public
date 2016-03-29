@@ -28,20 +28,20 @@ public:
     typedef typename Superclass::DisplacementFieldTransformPointer DisplacementFieldTransformPointer;
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(DistortionCorrectionBMRegistrationMethod, BaseBMRegistrationMethod);
+    itkTypeMacro(DistortionCorrectionBMRegistrationMethod, BaseBMRegistrationMethod)
 
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
-    itkSetMacro(CurrentTransform, TransformPointer);
+    itkSetMacro(CurrentTransform, TransformPointer)
 
 protected:
     DistortionCorrectionBMRegistrationMethod() {}
     virtual ~DistortionCorrectionBMRegistrationMethod() {}
 
-    virtual void SetupTransform(TransformPointer &optimizedTransform);
-    virtual void PerformOneIteration(InputImageType *refImage, InputImageType *movingImage, TransformPointer &addOn);
-    virtual void ResampleImages(TransformType *currentTransform, InputImagePointer &refImage, InputImagePointer &movingImage);
-    virtual bool ComposeAddOnWithTransform(TransformPointer &computedTransform, TransformType *addOn);
+    virtual void SetupTransform(TransformPointer &optimizedTransform) ITK_OVERRIDE;
+    virtual void PerformOneIteration(InputImageType *refImage, InputImageType *movingImage, TransformPointer &addOn) ITK_OVERRIDE;
+    virtual void ResampleImages(TransformType *currentTransform, InputImagePointer &refImage, InputImagePointer &movingImage) ITK_OVERRIDE;
+    virtual bool ComposeAddOnWithTransform(TransformPointer &computedTransform, TransformType *addOn) ITK_OVERRIDE;
 
 private:
     DistortionCorrectionBMRegistrationMethod(const Self&); //purposely not implemented

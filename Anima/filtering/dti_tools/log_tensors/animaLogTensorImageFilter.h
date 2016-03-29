@@ -52,9 +52,9 @@ protected:
 
     virtual ~LogTensorImageFilter() {}
 
-    void GenerateOutputInformation(void);
-    void BeforeThreadedGenerateData(void);
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId);
+    void GenerateOutputInformation() ITK_OVERRIDE;
+    void BeforeThreadedGenerateData() ITK_OVERRIDE;
+    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
     LogTensorImageFilter(const Self&); //purposely not implemented

@@ -15,8 +15,7 @@ namespace anima
 dtiTractographyImageFilter::dtiTractographyImageFilter()
 {
     m_PointsToProcess.clear();
-    
-    m_NumberOfThreads = 1;
+
     m_NumberOfFibersPerPixel = 1;
     
     m_StepProgression = 1;
@@ -40,14 +39,14 @@ void dtiTractographyImageFilter::Update()
     itk::MultiThreader::Pointer threadWorker = itk::MultiThreader::New();
     trackerArguments *tmpStr = new trackerArguments;
     tmpStr->trackerPtr = this;
-    for (unsigned int i = 0;i < m_NumberOfThreads;++i)
+    for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
         tmpStr->resultFibersFromThreads.push_back(resultFibers);
     
-    threadWorker->SetNumberOfThreads(m_NumberOfThreads);
+    threadWorker->SetNumberOfThreads(this->GetNumberOfThreads());
     threadWorker->SetSingleMethod(this->ThreadTracker,tmpStr);
     threadWorker->SingleMethodExecute();
     
-    for (unsigned int j = 0;j < m_NumberOfThreads;++j)
+    for (unsigned int j = 0;j < this->GetNumberOfThreads();++j)
     {
         resultFibers.insert(resultFibers.end(),tmpStr->resultFibersFromThreads[j].begin(),
                             tmpStr->resultFibersFromThreads[j].end());
@@ -156,12 +155,12 @@ ITK_THREAD_RETURN_TYPE dtiTractographyImageFilter::ThreadTracker(void *arg)
 void dtiTractographyImageFilter::ThreadTrack(unsigned int numThread, std::vector <FiberType> &resultFibers)
 {
     unsigned int dataSize = m_PointsToProcess.size();
-    unsigned int numPoints = floor((double) dataSize / m_NumberOfThreads);
+    unsigned int numPoints = floor((double) dataSize / this->GetNumberOfThreads());
     
     unsigned int startPoint = numPoints * numThread;
     unsigned int endPoint = startPoint + numPoints;
     
-    if (numThread+1 == m_NumberOfThreads)
+    if (numThread+1 == this->GetNumberOfThreads())
         endPoint = dataSize;
     
     DTIInterpolatorPointer dtiInterpolator = DTIInterpolatorType::New();

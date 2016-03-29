@@ -87,7 +87,7 @@ public:
 
     itkTypeMacro(PyramidalDenseTensorSVFMatchingBridge,itk::ProcessObject);
 
-    void Update();
+    void Update() ITK_OVERRIDE;
 
     void WriteOutputs();
 

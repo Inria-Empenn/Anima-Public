@@ -97,8 +97,8 @@ protected:
 
     virtual ~OrientedModelBaseResampleImageFilter() {}
 
-    virtual void BeforeThreadedGenerateData();
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId);
+    virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
+    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
     virtual unsigned int GetOutputVectorLength();
 
@@ -133,12 +133,6 @@ protected:
     template <class T> void InitializeZeroPixel(T &zeroPixel)
     {
         zeroPixel = itk::NumericTraits <T>::ZeroValue();
-    }
-
-
-    void PrintSelf(std::ostream& os, itk::Indent indent) const
-    {
-        Superclass::PrintSelf(os,indent);
     }
 
     void LinearThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId);

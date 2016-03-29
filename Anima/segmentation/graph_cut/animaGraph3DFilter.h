@@ -167,17 +167,12 @@ protected:
     FloatVariableSizeMatrixType GetMatrix(void){return m_Matrix;}
     std::string GetMatFilename(void){return m_MatFilename;}
 
-    void GenerateData();
+    void GenerateData() ITK_OVERRIDE;
     bool CheckMemory();
     void ProcessGraphCut();
     void FindDownsampleFactor();
     void InitResampleFilters();
     void ProcessDownsampledGraphCut(int current_count);
-
-    void PrintSelf(std::ostream& os, itk::Indent indent) const
-    {
-        Superclass::PrintSelf(os,indent);
-    }
 
 private:
     Graph3DFilter(const Self&); //purposely not implemented

@@ -48,12 +48,7 @@ protected:
 
     virtual ~FDRCorrectImageFilter() {}
 
-    void GenerateData();
-
-    void PrintSelf(std::ostream& os, itk::Indent indent) const
-    {
-        Superclass::PrintSelf(os,indent);
-    }
+    void GenerateData() ITK_OVERRIDE;
 
 private:
     FDRCorrectImageFilter(const Self&); //purposely not implemented

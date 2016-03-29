@@ -68,11 +68,11 @@ protected:
 
     virtual ~DTIEstimationImageFilter() {}
 
-    void CheckComputationMask();
+    void CheckComputationMask() ITK_OVERRIDE;
 
-    void GenerateOutputInformation(void);
-    void BeforeThreadedGenerateData();
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId);
+    void GenerateOutputInformation() ITK_OVERRIDE;
+    void BeforeThreadedGenerateData() ITK_OVERRIDE;
+    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
     static double OptimizationFunction(const std::vector<double> &x, std::vector<double> &grad, void *func_data);
     double ComputeCostAtPosition(const std::vector<double> &x, const std::vector <double> &observedData,

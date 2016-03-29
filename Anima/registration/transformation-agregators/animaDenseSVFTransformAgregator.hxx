@@ -8,7 +8,6 @@
 #include <itkMultiThreader.h>
 #include <itkTimeProbe.h>
 #include <itkImageFileWriter.h>
-#include <boost/math/special_functions/factorials.hpp>
 
 namespace anima
 {
@@ -366,7 +365,7 @@ estimateSVFFromAffineTransforms()
         double tmpWeight = this->GetInputWeight(i);
         weights->TransformPhysicalPointToIndex(this->GetInputOrigin(i),posIndex);
 
-        if (boost::math::isnan(logVectors[i][0]))
+        if (std::isnan(logVectors[i][0]))
         {
             tmpWeight = 0;
             logVectors[i].Fill(0);

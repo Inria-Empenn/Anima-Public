@@ -26,13 +26,13 @@ public:
     typedef Superclass::DerivativeType DerivativeType;
     typedef Superclass::ParametersType ParametersType;
 
-    virtual MeasureType GetValue(const ParametersType & parameters) const;
-    virtual void GetDerivative(const ParametersType & parameters, DerivativeType & derivative) const;
+    virtual MeasureType GetValue(const ParametersType & parameters) const ITK_OVERRIDE;
+    virtual void GetDerivative(const ParametersType & parameters, DerivativeType & derivative) const ITK_OVERRIDE;
 
     void SetBasisParameters(const std::vector <double> &basisPars) {m_BasisParameters = basisPars;}
     void SetODFSHOrder(unsigned int num) {m_ODFSHOrder = num;}
 
-    virtual unsigned int GetNumberOfParameters() const
+    virtual unsigned int GetNumberOfParameters() const ITK_OVERRIDE
     {
         return 2;
     }

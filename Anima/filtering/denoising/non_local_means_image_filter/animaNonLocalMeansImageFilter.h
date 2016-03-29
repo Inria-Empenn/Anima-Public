@@ -97,13 +97,13 @@ protected:
     *     ImageToImageFilter::GenerateData()
     */
     void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                              itk::ThreadIdType threadId);
+                              itk::ThreadIdType threadId) ITK_OVERRIDE;
     /**
     * We need to compute mean and variance images before threads are spawned.
     * It is also a good time to check the consistency of
     * the data and parameters.
     */
-    void BeforeThreadedGenerateData(void);
+    void BeforeThreadedGenerateData() ITK_OVERRIDE;
 
 private:
 

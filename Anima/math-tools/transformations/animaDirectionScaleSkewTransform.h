@@ -50,10 +50,10 @@ namespace anima
         typedef typename Superclass::OffsetType             OffsetType;
         typedef typename Superclass::TranslationType        TranslationType;
         
-        virtual void SetParameters(const ParametersType & parameters);
-        virtual const ParametersType& GetParameters(void) const;
+        virtual void SetParameters(const ParametersType & parameters) ITK_OVERRIDE;
+        virtual const ParametersType& GetParameters() const ITK_OVERRIDE;
         
-        virtual void SetIdentity(void);
+        virtual void SetIdentity() ITK_OVERRIDE;
         
         virtual void SetGeometry(HomogeneousMatrixType &matrix);
         
@@ -90,9 +90,9 @@ namespace anima
         
         ~DirectionScaleSkewTransform() {}
         
-        void PrintSelf(std::ostream &os, itk::Indent indent) const;
+        void PrintSelf(std::ostream &os, itk::Indent indent) const ITK_OVERRIDE;
         
-        virtual void ComputeMatrix();
+        virtual void ComputeMatrix() ITK_OVERRIDE;
         virtual void ComputeLogRepresentations();
         
     private:
@@ -150,8 +150,8 @@ namespace anima
         /** Dimension of the space. */
         itkStaticConstMacro(ParametersDimension, unsigned int, 2);
 
-        virtual void SetParameters(const ParametersType & parameters);
-        virtual const ParametersType& GetParameters(void) const;
+        virtual void SetParameters(const ParametersType & parameters) ITK_OVERRIDE;
+        virtual const ParametersType& GetParameters() const ITK_OVERRIDE;
 
     protected:
         DirectionScaleTransform()
@@ -173,16 +173,16 @@ namespace anima
         typedef typename Superclass::ParametersType ParametersType;
 
         /** New macro for creation of through a Smart Pointer. */
-        itkNewMacro(Self);
+        itkNewMacro(Self)
 
         /** Run-time type information (and related methods). */
-        itkTypeMacro(DirectionTransform, DirectionScaleSkewTransform);
+        itkTypeMacro(DirectionTransform, DirectionScaleSkewTransform)
 
         /** Dimension of the space. */
         itkStaticConstMacro(ParametersDimension, unsigned int, 1);
 
-        virtual void SetParameters(const ParametersType & parameters);
-        virtual const ParametersType& GetParameters(void) const;
+        virtual void SetParameters(const ParametersType & parameters) ITK_OVERRIDE;
+        virtual const ParametersType& GetParameters() const ITK_OVERRIDE;
 
     protected:
         DirectionTransform()
