@@ -79,7 +79,7 @@ void SampleFromMultivariateGaussianDistribution(const VectorType &mean, const vn
 
     VectorType tmpVec (resVec);
     for (unsigned int i = 0;i < vectorSize;++i)
-        tmpVec[i] = SampleFromGaussianDistribution(0,1,generator);
+        tmpVec[i] = SampleFromGaussianDistribution(0.0,1.0,generator);
 
     for (unsigned int i = 0;i < vectorSize;++i)
     {
