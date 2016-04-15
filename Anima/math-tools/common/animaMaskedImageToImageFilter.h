@@ -66,7 +66,7 @@ protected:
 
     void InitializeComputationRegionFromMask();
 
-    virtual void GenerateData();
+    virtual void GenerateData() ITK_OVERRIDE;
 
     virtual void InitializeSplitParameters();
     virtual void DeleteProgressReporter();
@@ -74,7 +74,7 @@ protected:
     static ITK_THREAD_RETURN_TYPE ThreaderMultiSplitCallback(void *arg);
     virtual void ThreadProcessSlices(itk::ThreadIdType threadId);
 
-    virtual void BeforeThreadedGenerateData();
+    virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
 
     //! Utility function to initialize output images pixel to zero for vector images
     template <typename ScalarRealType>

@@ -9,8 +9,6 @@
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionConstIteratorWithIndex.h>
 
-#include <boost/math/special_functions/fpclassify.hpp>
-
 namespace anima
 {
 
@@ -100,10 +98,10 @@ GaussianNoiseGeneratorImageFilter<Dimension>
 
     m_Generators.clear();
 
-    boost::mt19937 motherGenerator(time(0));
+    std::mt19937 motherGenerator(time(0));
 
     for (int i = 0;i < this->GetNumberOfThreads();++i)
-        m_Generators.push_back(boost::mt19937(motherGenerator()));
+        m_Generators.push_back(std::mt19937(motherGenerator()));
 }
 
 template <unsigned int Dimension>
@@ -152,7 +150,7 @@ GaussianNoiseGeneratorImageFilter<Dimension>
         double gaussNoise = anima::SampleFromGaussianDistribution(mean, variance, m_Generators[threadId]);
         double data = refData + gaussNoise;
 
-        if ((boost::math::isnan(data))||(!boost::math::isfinite(data)))
+        if ((std::isnan(data))||(!std::isfinite(data)))
             data = refData;
 
         outIterator.Set(data);

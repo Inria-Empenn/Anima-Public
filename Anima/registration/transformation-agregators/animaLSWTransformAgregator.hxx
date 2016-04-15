@@ -4,7 +4,6 @@
 #include <animaLogRigid3DTransform.h>
 #include <animaLinearTransformEstimationTools.h>
 #include <animaMatrixLogExp.h>
-#include <boost/math/special_functions/factorials.hpp>
 
 namespace anima
 {
@@ -196,7 +195,7 @@ lswEstimateAnyToAffine()
             }
 
             logTransformations[i] = anima::GetLogarithm(tmpMatrix);
-            if (boost::math::isnan(logTransformations[i](0,0)))
+            if (std::isnan(logTransformations[i](0,0)))
             {
                 logTransformations[i].fill(0);
                 this->SetInputWeight(i,0);

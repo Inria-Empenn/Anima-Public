@@ -36,8 +36,8 @@ public:
     std::vector<GaussianFunctionType::Pointer> GetInitialization(){return this->m_GaussianModel;}
     std::vector<double> GetAlphas(){return this->m_Alphas;}
 
-    itkSetMacro(Verbose, bool);
-    itkGetMacro(Verbose, bool);
+    itkSetMacro(Verbose, bool)
+    itkGetMacro(Verbose, bool)
 
 protected:
 

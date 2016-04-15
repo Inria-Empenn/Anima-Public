@@ -119,12 +119,7 @@ protected:
     typename TInput::ConstPointer GetInputClassification();
     typename TMask::ConstPointer GetInputMap();
 
-    void GenerateData();
-
-    void PrintSelf(std::ostream& os, itk::Indent indent) const
-    {
-        Superclass::PrintSelf(os,indent);
-    }
+    void GenerateData() ITK_OVERRIDE;
 
 private:
     CheckStructureNeighborFilter(const Self&); //purposely not implemented

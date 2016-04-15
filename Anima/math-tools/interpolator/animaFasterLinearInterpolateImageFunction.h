@@ -53,9 +53,9 @@ namespace anima
          *
          * ImageFunction::IsInsideBuffer() can be used to check bounds before
          * calling the method. */
-        virtual OutputType EvaluateAtContinuousIndex(const ContinuousIndexType & index ) const;
+        virtual OutputType EvaluateAtContinuousIndex(const ContinuousIndexType & index) const ITK_OVERRIDE;
 
-        virtual bool IsInsideBuffer(const ContinuousIndexType & index) const
+        virtual bool IsInsideBuffer(const ContinuousIndexType & index) const ITK_OVERRIDE
         {
             for ( unsigned int j = 0; j < ImageDimension; j++ )
             {
@@ -72,7 +72,7 @@ namespace anima
     protected:
         FasterLinearInterpolateImageFunction();
         virtual ~FasterLinearInterpolateImageFunction(){}
-        void PrintSelf(std::ostream& os, itk::Indent indent) const;
+        void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
 
     private:
         FasterLinearInterpolateImageFunction( const Self& ); //purposely not implemented

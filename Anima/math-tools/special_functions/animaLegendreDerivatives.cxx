@@ -1,8 +1,6 @@
 #include "animaLegendreDerivatives.h"
 
 #include <itkMacro.h>
-
-#include <boost/math/special_functions/factorials.hpp>
 #include <boost/math/special_functions/legendre.hpp>
 
 namespace anima
@@ -21,7 +19,7 @@ double legendre_first_derivative(int L, int M, double value)
     if (M < 0)
     {
         M = abs(M);
-        factor = boost::math::factorial<double> (L - M) / boost::math::factorial<double> (L + M);
+        factor = std::tgamma(L - M + 1) / std::tgamma (L + M + 1);
         if (M%2 != 0)
             factor *= -1;
     }
@@ -57,7 +55,7 @@ double legendre_second_derivative(int L, int M, double value)
     if (M < 0)
     {
         M = abs(M);
-        factor = boost::math::factorial<double> (L - M) / boost::math::factorial<double> (L + M);
+        factor = std::tgamma (L - M + 1) / std::tgamma (L + M + 1);
         if (M%2 != 0)
             factor *= -1;
     }

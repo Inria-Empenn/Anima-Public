@@ -25,46 +25,43 @@ public:
     typedef itk::SingleValuedNonLinearOptimizer::ScalesType ScalesType;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(BobyqaOptimizer, SingleValuedNonLinearOptimizer);
-
+    itkTypeMacro(BobyqaOptimizer, SingleValuedNonLinearOptimizer)
 
     /** Type of the Cost Function   */
     typedef  itk::SingleValuedCostFunction         CostFunctionType;
     typedef  CostFunctionType::Pointer        CostFunctionPointer;
 
     /** Set if the Optimizer should Maximize the metric */
-    itkSetMacro( Maximize, bool );
-    itkBooleanMacro( Maximize);
-    itkGetConstReferenceMacro( Maximize, bool );
+    itkSetMacro(Maximize, bool)
+    itkBooleanMacro(Maximize)
+    itkGetConstReferenceMacro(Maximize, bool)
 
     /** Set/Get maximum iteration limit. */
-    itkSetMacro( MaximumIteration, unsigned int );
-    itkGetConstReferenceMacro( MaximumIteration, unsigned int );
+    itkSetMacro(MaximumIteration, unsigned int)
+    itkGetConstReferenceMacro(MaximumIteration, unsigned int)
 
-
-    itkSetMacro(SpaceDimension, unsigned int);
-    itkGetConstReferenceMacro(SpaceDimension, unsigned int);
+    itkSetMacro(SpaceDimension, unsigned int)
+    itkGetConstReferenceMacro(SpaceDimension, unsigned int)
 
     /** Set/Get Number of Sampling points   (between Parameters+2 and (Parameters+1)(Parameters+2)/2)*/
-    itkSetMacro( NumberSamplingPoints, unsigned int );
-    itkGetConstReferenceMacro( NumberSamplingPoints, unsigned int );
-
+    itkSetMacro(NumberSamplingPoints, unsigned int)
+    itkGetConstReferenceMacro(NumberSamplingPoints, unsigned int)
 
     /** Set/Get RhoBegin set the initial sampling of
      * parameter space */
-    itkSetMacro( RhoBegin, double );
-    itkGetConstReferenceMacro( RhoBegin, double );
+    itkSetMacro(RhoBegin, double)
+    itkGetConstReferenceMacro(RhoBegin, double)
 
     /** Set/Get RhoEnd set the final sampling distance of
      * parameter space */
-    itkSetMacro( RhoEnd, double );
-    itkGetConstReferenceMacro( RhoEnd, double );
+    itkSetMacro(RhoEnd, double)
+    itkGetConstReferenceMacro(RhoEnd, double)
 
     /** Return Current Value */
-    itkGetConstReferenceMacro( CurrentCost, MeasureType );
+    itkGetConstReferenceMacro(CurrentCost, MeasureType)
     MeasureType GetValue() const
     {
         if (this->GetMaximize())
@@ -74,33 +71,32 @@ public:
     }
 
     /** Return Current Iteration */
-    itkGetConstReferenceMacro( CurrentIteration, unsigned int);
+    itkGetConstReferenceMacro( CurrentIteration, unsigned int)
 
     /** Start optimization. */
-    void StartOptimization();
+    void StartOptimization() ITK_OVERRIDE;
 
     /** When users call StartOptimization, this value will be set false.
      * By calling StopOptimization, this flag will be set true, and
      * optimization will stop at the next iteration. */
-    void StopOptimization()
-    { m_Stop = true; }
+    void StopOptimization() {m_Stop = true;}
 
-    itkGetConstReferenceMacro(CatchGetValueException, bool);
-    itkSetMacro(CatchGetValueException, bool);
+    itkGetConstReferenceMacro(CatchGetValueException, bool)
+    itkSetMacro(CatchGetValueException, bool)
 
-    itkGetConstReferenceMacro(MetricWorstPossibleValue, double);
-    itkSetMacro(MetricWorstPossibleValue, double);
+    itkGetConstReferenceMacro(MetricWorstPossibleValue, double)
+    itkSetMacro(MetricWorstPossibleValue, double)
 
-    itkSetMacro(LowerBounds, ScalesType);
-    itkSetMacro(UpperBounds, ScalesType);
+    itkSetMacro(LowerBounds, ScalesType)
+    itkSetMacro(UpperBounds, ScalesType)
 
-    const std::string GetStopConditionDescription() const;
+    const std::string GetStopConditionDescription() const ITK_OVERRIDE;
 
 protected:
     BobyqaOptimizer();
     BobyqaOptimizer(const BobyqaOptimizer&);
     virtual ~BobyqaOptimizer();
-    void PrintSelf(std::ostream& os, itk::Indent indent) const;
+    void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
 
     /** Set if the Metric should be maximized: Default = False */
     bool               m_Maximize;

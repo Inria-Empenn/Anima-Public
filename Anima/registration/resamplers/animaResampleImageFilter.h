@@ -160,34 +160,34 @@ namespace anima
         void SetReferenceImage ( const TOutputImage *image );
         const TOutputImage * GetReferenceImage( void ) const;
         
-        itkSetMacro( UseReferenceImage, bool );
-        itkBooleanMacro( UseReferenceImage );
-        itkGetConstMacro( UseReferenceImage, bool );
+        itkSetMacro(UseReferenceImage, bool)
+        itkBooleanMacro(UseReferenceImage)
+        itkGetConstMacro(UseReferenceImage, bool)
         
         /** ResampleImageFilter produces an image which is a different size
          * than its input.  As such, it needs to provide an implementation
          * for GenerateOutputInformation() in order to inform the pipeline
          * execution model.  The original documentation of this method is
          * below. \sa ProcessObject::GenerateOutputInformaton() */
-        virtual void GenerateOutputInformation( void );
+        virtual void GenerateOutputInformation() ITK_OVERRIDE;
         
         /** ResampleImageFilter needs a different input requested region than
          * the output requested region.  As such, ResampleImageFilter needs
          * to provide an implementation for GenerateInputRequestedRegion()
          * in order to inform the pipeline execution model.
          * \sa ProcessObject::GenerateInputRequestedRegion() */
-        virtual void GenerateInputRequestedRegion( void );
+        virtual void GenerateInputRequestedRegion() ITK_OVERRIDE;
         
         /** This method is used to set the state of the filter before
          * multi-threading. */
-        virtual void BeforeThreadedGenerateData( void );
+        virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
         
         /** This method is used to set the state of the filter after
          * multi-threading. */
-        virtual void AfterThreadedGenerateData( void );
+        virtual void AfterThreadedGenerateData() ITK_OVERRIDE;
         
         /** Method Compute the Modified Time based on changed to the components. */
-        unsigned long GetMTime( void ) const;
+        unsigned long GetMTime() const ITK_OVERRIDE;
         
         void SetScaleIntensitiesWithJacobian(bool scale) {m_ScaleIntensitiesWithJacobian = scale;}
 
@@ -195,15 +195,15 @@ namespace anima
         ResampleImageFilter();
         virtual ~ResampleImageFilter() {}
         
-        void PrintSelf( std::ostream& os, itk::Indent indent ) const;
+        void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
         
         void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                                  itk::ThreadIdType threadId);
+                                  itk::ThreadIdType threadId) ITK_OVERRIDE;
         
         double ComputeLinearJacobianValue();
         double ComputeLocalJacobianValue(const InputIndexType &index);
 
-        virtual itk::LightObject::Pointer InternalClone() const;
+        virtual itk::LightObject::Pointer InternalClone() const ITK_OVERRIDE;
         
     private:
         ResampleImageFilter( const Self& ); //purposely not implemented

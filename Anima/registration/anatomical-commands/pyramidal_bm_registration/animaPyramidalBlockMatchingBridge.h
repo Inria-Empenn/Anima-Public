@@ -81,11 +81,10 @@ public:
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self> ConstPointer;
 
-    itkNewMacro(Self);
+    itkNewMacro(Self)
+    itkTypeMacro(PyramidalBlockMatchingBridge,itk::ProcessObject)
 
-    itkTypeMacro(PyramidalBlockMatchingBridge,itk::ProcessObject);
-
-    void Update();
+    void Update() ITK_OVERRIDE;
 
     void Abort();
 

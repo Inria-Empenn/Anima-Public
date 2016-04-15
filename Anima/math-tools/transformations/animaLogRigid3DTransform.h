@@ -55,8 +55,8 @@ public:
      *   0-3  angles
      *   3-5  translation
      **  */
-    virtual void SetParameters( const ParametersType & parameters );
-    virtual const ParametersType& GetParameters() const;
+    virtual void SetParameters(const ParametersType & parameters) ITK_OVERRIDE;
+    virtual const ParametersType& GetParameters() const ITK_OVERRIDE;
 
     virtual const itk::Vector <TScalarType,6>& GetLogVector() const {return m_LogVector;}
     virtual const vnl_matrix <TScalarType>& GetLogTransform() const {return m_LogTransform;}
@@ -64,17 +64,17 @@ public:
     typedef itk::Vector<TScalarType, 3> AngleVectorType;
 
     void SetAngles (const AngleVectorType & logAngle);
-    itkGetConstReferenceMacro (Angles, AngleVectorType);
+    itkGetConstReferenceMacro (Angles, AngleVectorType)
 
-    virtual void SetIdentity();
+    virtual void SetIdentity() ITK_OVERRIDE;
 
 protected:
     LogRigid3DTransform();
     virtual ~LogRigid3DTransform(){}
 
-    void PrintSelf(std::ostream &os, itk::Indent indent) const;
+    void PrintSelf(std::ostream &os, itk::Indent indent) const ITK_OVERRIDE;
 
-    void ComputeMatrix();
+    void ComputeMatrix() ITK_OVERRIDE;
     void ComputeLogRepresentations();
 
 private:

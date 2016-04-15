@@ -50,12 +50,10 @@ public:
     typedef typename Superclass::OffsetType                 OffsetType;
     typedef typename Superclass::ScalarType                 AngleType;
 
-    void SetParameters( const ParametersType & parameters );
-    const ParametersType& GetParameters(void) const;
+    void SetParameters(const ParametersType & parameters) ITK_OVERRIDE;
+    const ParametersType& GetParameters() const ITK_OVERRIDE;
 
-    //const JacobianType & GetJacobian(const InputPointType  &point ) const;
-
-    virtual void SetIdentity(void);
+    virtual void SetIdentity() ITK_OVERRIDE;
 
     void SetReferenceSymmetryPlanes(Superclass *refSymmetryPlane, Superclass *floSymmetryPlane);
 
@@ -68,9 +66,9 @@ protected:
 
     virtual ~SymmetryConstrainedTransform(){}
 
-    void PrintSelf(std::ostream &os, itk::Indent indent) const;
+    void PrintSelf(std::ostream &os, itk::Indent indent) const ITK_OVERRIDE;
 
-    void ComputeMatrix(void);
+    void ComputeMatrix() ITK_OVERRIDE;
 
 private:
     SymmetryConstrainedTransform(const Self&); //purposely not implemented
@@ -84,7 +82,6 @@ private:
 
     HomogeneousMatrixType m_CenterTransform, m_CenterTransformInv;
 }; //class SymmetryConstrainedTransform
-
 
 }  // end of namespace anima
 

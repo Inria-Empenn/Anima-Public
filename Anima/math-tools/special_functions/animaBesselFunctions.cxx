@@ -2,10 +2,9 @@
 
 #include "animaBesselFunctions.h"
 #include <animaGammaFunctions.h>
+#include <algorithm>
 
-#include <boost/math/special_functions/factorials.hpp>
 #include <boost/math/special_functions/bessel.hpp>
-
 
 namespace anima
 {
@@ -14,10 +13,11 @@ double log_bessel_i(unsigned int N, double x)
 {
     if (x < std::sqrt((double)N+1) / 100)
     {
+        // tgamma(N) = factorial(N-1)
         if (N == 0)
-            return -std::log(boost::math::factorial<double>(N));
+            return -std::log(std::tgamma(N+1));
         else
-            return -std::log(boost::math::factorial<double>(N)) + N * std::log(x / 2.0);
+            return -std::log(std::tgamma(N+1)) + N * std::log(x / 2.0);
     }
 
     if (x <= std::max(9.23 * N + 15.934, 11.26 * N - 236.21)) // before was 600; now garantees an absolute error of maximum 1e-4 between true function and approximation
@@ -50,12 +50,12 @@ double log_bessel_i(unsigned int N, double x)
 double bessel_i_lower_bound(unsigned int N, double x)
 {
     if (x < 1e-2)
-        return std::pow(x / 2.0, N) / boost::math::tgamma(N+1);
+        return std::pow(x / 2.0, N) / std::tgamma(N+1);
     
     double C = x / (N + 0.5 + std::sqrt(x * x + (N + 1.5) * (N + 1.5)));
     double D = x / (N + 1.5 + std::sqrt(x * x + (N + 1.5) * (N + 1.5)));
     
-    double res = std::sqrt(2/x) * std::pow(N + 1,N + 0.5) / boost::math::tgamma(N+1) * std::exp(x*D) * std::pow(C, N+0.5);
+    double res = std::sqrt(2/x) * std::pow(N + 1,N + 0.5) / std::tgamma(N+1) * std::exp(x*D) * std::pow(C, N+0.5);
     
     return res;
 }
@@ -63,12 +63,12 @@ double bessel_i_lower_bound(unsigned int N, double x)
 double log_bessel_i_lower_bound(unsigned int N, double x)
 {
     if (x < 1e-2)
-        return N * std::log(x / 2.0) - std::log(boost::math::tgamma(N+1));
+        return N * std::log(x / 2.0) - std::log(std::tgamma(N+1));
     
     double C = x / (N + 0.5 + std::sqrt(x * x + (N + 1.5) * (N + 1.5)));
     double D = x / (N + 1.5 + std::sqrt(x * x + (N + 1.5) * (N + 1.5)));
     
-    double res = 0.5 * std::log(2/x) + (N + 0.5) * std::log((N + 1) * C) - std::log(boost::math::tgamma(N+1)) + x * D;
+    double res = 0.5 * std::log(2/x) + (N + 0.5) * std::log((N + 1) * C) - std::log(std::tgamma(N+1)) + x * D;
     
     return res;
 }
@@ -120,8 +120,8 @@ double log_bessel_order_derivative_i(double x, unsigned int order, double emc, u
     for (unsigned int i = 0;i < approx_order;++i)
     {
         double tmpVal = pow(y * y / 4.0, (double)i);
-        tmpVal /= boost::math::factorial<double>(i);
-        tmpVal /= boost::math::factorial<double>(order+i);
+        tmpVal /= std::tgamma(i+1);
+        tmpVal /= std::tgamma(order+i+1);
         denom += tmpVal;
         tmpVal *= anima::psi_function(order+i+1, emc);
         num += tmpVal;

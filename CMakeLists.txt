@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.1)
+cmake_minimum_required(VERSION 3.1.0)
 project(ANIMA_SUPERBUILD)
 
 set(${PROJECT_NAME}_CMAKE_DIRS
@@ -10,6 +10,8 @@ set(CMAKE_MODULE_PATH
   ${${PROJECT_NAME}_CMAKE_DIRS}
   ${CMAKE_MODULE_PATH}
   )
+
+set (CMAKE_CXX_STANDARD 11)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(USE_VTK "Build VTK dependencies" ON)

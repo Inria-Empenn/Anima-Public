@@ -387,7 +387,7 @@ ResampleImageFilter<TInputImage,TOutputImage,TInterpolatorPrecisionType>
 template <class TInputImage, class TOutputImage, class TInterpolatorPrecisionType>
 unsigned long
 ResampleImageFilter<TInputImage,TOutputImage,TInterpolatorPrecisionType>
-::GetMTime( void ) const
+::GetMTime() const
 {
     unsigned long latestTime = itk::Object::GetMTime();
 

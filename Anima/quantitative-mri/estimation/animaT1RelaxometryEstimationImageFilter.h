@@ -62,15 +62,10 @@ protected:
 
     virtual ~T1RelaxometryEstimationImageFilter() {}
 
-    void CheckComputationMask();
-    void PrintSelf(std::ostream& os, itk::Indent indent) const
-    {
-        Superclass::PrintSelf(os,indent);
-    }
+    void CheckComputationMask() ITK_OVERRIDE;
 
-    void BeforeThreadedGenerateData();
-
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId);
+    void BeforeThreadedGenerateData() ITK_OVERRIDE;
+    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
     T1RelaxometryEstimationImageFilter(const Self&); //purposely not implemented

@@ -47,7 +47,7 @@ namespace anima
         
         /** Does the real work. */
         virtual void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread,
-                                          itk::ThreadIdType threadId);
+                                          itk::ThreadIdType threadId) ITK_OVERRIDE;
         
     private:
         SimuBlochIRGRE(const Self &); //purposely not implemented

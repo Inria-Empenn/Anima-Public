@@ -59,8 +59,7 @@ public:
     void SetTrackingMask(MaskImageType *mask) {m_MaskImage = mask;}
     void SetForbiddenMask(MaskImageType *mask) {m_ForbiddenMaskImage = mask;}
     void SetCutMask(MaskImageType *mask) {m_CutMaskImage = mask;}
-    
-    void SetNumberOfThreads(unsigned int numThr) {m_NumberOfThreads = numThr;}
+
     void SetNumberOfFibersPerPixel(unsigned int num) {m_NumberOfFibersPerPixel = num;}
     
     void SetStepProgression(double num) {m_StepProgression = num;}
@@ -70,7 +69,7 @@ public:
     void SetMinLengthFiber(double num) {m_MinLengthFiber = num;}
     void SetMaxLengthFiber(double num) {m_MaxLengthFiber = num;}
     
-    void Update();
+    void Update() ITK_OVERRIDE;
     
     void SetComputeLocalColors(bool flag) {m_ComputeLocalColors = flag;}
     void createVTKOutput(std::vector < std::vector <PointType> > &filteredFibers);
@@ -93,7 +92,6 @@ protected:
     std::vector <double> GetDTIPrincipalDirection(VectorType &dtiLogValue, bool is2d);
     
 private:
-    unsigned int m_NumberOfThreads;
     unsigned int m_NumberOfFibersPerPixel;
     
     double m_StepProgression;

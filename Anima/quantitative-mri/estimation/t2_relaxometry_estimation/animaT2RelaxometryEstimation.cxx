@@ -7,13 +7,10 @@
 #include <animaReadWriteFunctions.h>
 #include <itkTimeProbe.h>
 
-#include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string.hpp>
-
 int main(int argc, char **argv)
 {
     TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);
-	
+
     TCLAP::ValueArg<std::string> t2Arg("l","t2","List of T2 relaxometry images",true,"","T2 relaxometry images",cmd);
     TCLAP::ValueArg<std::string> maskArg("m","maskname","Computation mask",false,"","computation mask",cmd);
 
@@ -21,7 +18,7 @@ int main(int argc, char **argv)
 
     TCLAP::ValueArg<std::string> resT2Arg("o","out-t2","Result T2 image",true,"","result T2 image",cmd);
     TCLAP::ValueArg<std::string> resM0Arg("O","out-m0","Result M0 image",false,"","result M0 image",cmd);
-	
+
     TCLAP::ValueArg<double> trArg("","tr","Repetition time for T2 relaxometry (default: 5000)",false,5000,"repetition time",cmd);
     TCLAP::ValueArg<double> upperBoundT2Arg("u","upper-bound-t2","T2 value upper bound (default: 1000)",false,1000,"T2 value upper bound",cmd);
     TCLAP::ValueArg<double> upperBoundM0Arg("","upper-bound-m0","M0 value upper bound (default: 5000)",false,5000,"M0 value upper bound",cmd);
@@ -30,7 +27,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> backgroundSignalThresholdArg("t","signal-thr","Background signal threshold (default: 10)",false,10,"Background signal threshold",cmd);
     
     TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
-	
+
     try
     {
         cmd.parse(argc,argv);
@@ -48,10 +45,10 @@ int main(int argc, char **argv)
     typedef itk::ImageFileWriter <OutputImageType> OutputImageWriterType;
     
     FilterType::Pointer mainFilter = FilterType::New();
-	
+
     // Read and set T2 relaxometry images
     anima::setMultipleImageFilterInputsFromFileName<InputImageType,FilterType>(t2Arg.getValue(),mainFilter);
-   
+
     mainFilter->SetTRValue(trArg.getValue());
 
 
@@ -60,11 +57,11 @@ int main(int argc, char **argv)
     std::vector<double> echoTime(numInputs);
     try
     {
-    const double echoSpacing=boost::lexical_cast<double>(echoSpacingArg.getValue());
-    for(unsigned int index=0;index<echoTime.size();++index)
-        echoTime[index]=(index+1)*(echoSpacing);
+        const double echoSpacing = std::stod(echoSpacingArg.getValue());
+        for(unsigned int index=0;index<echoTime.size();++index)
+            echoTime[index]=(index+1)*(echoSpacing);
     }
-    catch(const boost::bad_lexical_cast &)  // then try to read file
+    catch(std::invalid_argument &)  // then try to read file
     {
         std::ifstream inputFile(echoSpacingArg.getValue().c_str());
         if (!inputFile.is_open())
@@ -76,8 +73,8 @@ int main(int argc, char **argv)
         unsigned int index = 0;
         while (!inputFile.eof())
         {
-           inputFile>>echoTime[index];
-           ++index;
+            inputFile>>echoTime[index];
+            ++index;
         }
         if(index!=numInputs)
         {

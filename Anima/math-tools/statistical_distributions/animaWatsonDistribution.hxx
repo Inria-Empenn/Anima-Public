@@ -8,8 +8,6 @@
 #include <itkExceptionObject.h>
 #include <itkObjectFactory.h>
 
-#include <boost/math/special_functions/erf.hpp>
-
 namespace anima
 {
 
@@ -45,7 +43,7 @@ double EvaluateWatsonPDF(const VectorType &v, const VectorType &meanAxis, const 
     }
     else
     {
-        double Ck = std::sqrt(-kappa / M_PI) / (2.0 * M_PI * boost::math::erf(std::sqrt(-kappa)));
+        double Ck = std::sqrt(-kappa / M_PI) / (2.0 * M_PI * std::erf(std::sqrt(-kappa)));
         double c = anima::ComputeScalarProduct(v, meanAxis);
         double inExp = kappa * c * c;
         return Ck * std::exp(inExp);

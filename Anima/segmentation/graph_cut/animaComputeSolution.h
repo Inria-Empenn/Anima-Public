@@ -14,9 +14,9 @@
 #include "animaAtlasInitializer.h"
 #include "animaHierarchicalInitializer.h"
 
-
 namespace anima
 {
+
 /**
  * @brief Class computing the 3-class GMM respresenting the NABT, where each Gaussian represents one of the brain tissues WM, GM and CSF.
  * First a model initializer is launched, then the REM algorithm is performed using this initialization.
@@ -94,7 +94,7 @@ public:
     std::vector<double> GetAlphas() {return m_Alphas;}
     void SetAlphas(std::vector<double> alpha) {m_Alphas = alpha;}
 
-    virtual void Update();
+    virtual void Update() ITK_OVERRIDE;
     int ReadSolution(std::string filename);
     int WriteSolution(std::string filename);
     int PrintSolution(std::vector<double> alphas, std::vector<GaussianFunctionType::Pointer> model);
@@ -143,14 +143,9 @@ public:
     itkSetMacro(Tol, double);
     itkGetMacro(Tol, double);
 
-
-
 protected:
-
-
     ComputeSolution()
     {
-
         this->SetNumberOfRequiredInputs(4);
 
         m_InitMethodType = 2;
@@ -172,7 +167,6 @@ protected:
         m_NbModalities = 3; // use of 3 images.
 
         this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
-
     }
 
     virtual ~ComputeSolution()
@@ -225,9 +219,8 @@ private:
     ImagePointerUC m_InputImage_DP_FLAIR_UC;
 
     double m_Tol;
-
-
 };
+
 } // end of namespace anima
 
 #include "animaComputeSolution.hxx"

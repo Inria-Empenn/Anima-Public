@@ -7,9 +7,6 @@
 #include <animaReadWriteFunctions.h>
 #include <itkTimeProbe.h>
 
-#include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string.hpp>
-
 int main(int argc, char **argv)
 {
     TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);

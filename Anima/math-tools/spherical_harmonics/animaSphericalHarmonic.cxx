@@ -3,8 +3,6 @@
 #include "animaSphericalHarmonic.h"
 
 #include <boost/math/special_functions/legendre.hpp>
-#include <boost/math/special_functions/factorials.hpp>
-
 #include <animaLegendreDerivatives.h>
 
 namespace anima
@@ -28,7 +26,7 @@ std::complex <double> SphericalHarmonic::Value(const double &theta, const double
     std::complex <double> resVal(0, absm * phi);
     resVal = std::exp(resVal);
 
-    double sqrtFactor = sqrt((2*m_L + 1) * boost::math::factorial<double>(m_L - absm) / (4 * M_PI * boost::math::factorial<double>(m_L + absm)));
+    double sqrtFactor = sqrt((2*m_L + 1) * std::tgamma(m_L - absm + 1) / (4 * M_PI * std::tgamma(m_L + absm + 1)));
     resVal *= sqrtFactor * boost::math::legendre_p(m_L,absm,cos(theta));
 
     if (m_M < 0)
@@ -51,7 +49,7 @@ std::complex <double> SphericalHarmonic::getThetaFirstDerivative(const double& t
     std::complex<double> retval(0.0,(double)(absm*phi));
     retval = std::exp(retval);
 
-    double factor = sqrt(((double)(2*m_L+1) / (4.0*M_PI)) * (boost::math::factorial<double>(m_L - absm) / boost::math::factorial<double>(m_L + absm)));
+    double factor = sqrt(((double)(2*m_L+1) / (4.0*M_PI)) * (std::tgamma(m_L - absm + 1) / std::tgamma(m_L + absm + 1)));
     if ((absm%2 != 0)&&(m_M < 0))
         factor *= -1;
 
@@ -67,8 +65,8 @@ std::complex <double> SphericalHarmonic::getPhiFirstDerivative(const double& the
     retval = std::exp(retval);
     retval *= std::complex<double> (0.0,absm);
 
-    double factor = sqrt(((double)(2*m_L+1) / (4.0*M_PI)) * (boost::math::factorial<double>(m_L - absm) / boost::math::factorial<double>(m_L + absm))) *
-    boost::math::legendre_p (m_L,absm,cos(theta));
+    double factor = std::sqrt(((double)(2*m_L+1) / (4.0*M_PI)) * (std::tgamma(m_L - absm + 1) / std::tgamma(m_L + absm + 1))) *
+            boost::math::legendre_p (m_L,absm,cos(theta));
 
     if ((absm%2 != 0)&&(m_M < 0))
         factor *= -1;
@@ -85,7 +83,7 @@ std::complex <double> SphericalHarmonic::getThetaSecondDerivative(const double& 
     std::complex<double> retval(0.0,(double)(absm*phi));
     retval = std::exp(retval);
 
-    double factor = sqrt(((double)(2*m_L+1) / (4.0*M_PI)) * (boost::math::factorial<double>(m_L - absm) / boost::math::factorial<double>(m_L + absm)));
+    double factor = std::sqrt(((double)(2*m_L+1) / (4.0*M_PI)) * (std::tgamma(m_L - absm + 1) / std::tgamma(m_L + absm + 1)));
     if ((absm%2 != 0)&&(m_M < 0))
         factor *= -1;
 
@@ -112,7 +110,7 @@ std::complex <double> SphericalHarmonic::getThetaPhiDerivative(const double& the
     retval = std::exp(retval);
     retval *= std::complex<double> (0.0,absm);
 
-    double factor = sqrt(((double)(2*m_L+1) / (4.0*M_PI)) * (boost::math::factorial<double>(m_L - absm) / boost::math::factorial<double>(m_L + absm)));
+    double factor = sqrt(((double)(2*m_L+1) / (4.0*M_PI)) * (std::tgamma(m_L - absm + 1) / std::tgamma(m_L + absm + 1)));
     if ((absm%2 != 0)&&(m_M < 0))
         factor *= -1;
 

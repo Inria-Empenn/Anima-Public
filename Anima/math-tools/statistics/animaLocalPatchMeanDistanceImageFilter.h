@@ -58,13 +58,8 @@ protected:
 
     virtual ~LocalPatchMeanDistanceImageFilter() {}
 
-    void BeforeThreadedGenerateData(void);
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId);
-
-    void PrintSelf(std::ostream& os, itk::Indent indent) const
-    {
-        Superclass::PrintSelf(os,indent);
-    }
+    void BeforeThreadedGenerateData() ITK_OVERRIDE;
+    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
     LocalPatchMeanDistanceImageFilter(const Self&); //purposely not implemented

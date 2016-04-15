@@ -14,8 +14,6 @@
 #include <animaVectorOperations.h>
 #include <animaBaseTensorTools.h>
 
-#include <boost/lexical_cast.hpp>
-
 namespace anima
 {
 
@@ -94,9 +92,9 @@ DTIEstimationImageFilter<PixelScalarType>
     if (m_BValuesList.size() != this->GetNumberOfIndexedInputs())
     {
         std::string error("There should be the same number of input images and input b-values... ");
-        error += boost::lexical_cast <std::string> (m_BValuesList.size());
+        error += std::to_string (m_BValuesList.size());
         error += " ";
-        error += boost::lexical_cast <std::string> (this->GetNumberOfIndexedInputs());
+        error += std::to_string (this->GetNumberOfIndexedInputs());
 
         throw itk::ExceptionObject(__FILE__, __LINE__,error,ITK_LOCATION);
     }

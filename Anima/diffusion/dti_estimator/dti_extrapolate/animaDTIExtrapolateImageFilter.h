@@ -50,14 +50,9 @@ protected:
 
     virtual ~DTIExtrapolateImageFilter() {}
 
-    void GenerateOutputInformation(void);
-    void BeforeThreadedGenerateData();
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId);
-
-    void PrintSelf(std::ostream& os, itk::Indent indent) const
-    {
-        Superclass::PrintSelf(os,indent);
-    }
+    void GenerateOutputInformation() ITK_OVERRIDE;
+    void BeforeThreadedGenerateData() ITK_OVERRIDE;
+    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
     DTIExtrapolateImageFilter(const Self&); //purposely not implemented

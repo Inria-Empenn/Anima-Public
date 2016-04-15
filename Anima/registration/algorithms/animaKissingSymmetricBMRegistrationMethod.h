@@ -30,7 +30,7 @@ protected:
     KissingSymmetricBMRegistrationMethod() {}
     virtual ~KissingSymmetricBMRegistrationMethod() {}
 
-    virtual void PerformOneIteration(InputImageType *refImage, InputImageType *movingImage, TransformPointer &addOn);
+    virtual void PerformOneIteration(InputImageType *refImage, InputImageType *movingImage, TransformPointer &addOn) ITK_OVERRIDE;
 
 private:
     KissingSymmetricBMRegistrationMethod(const Self&); //purposely not implemented

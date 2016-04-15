@@ -81,14 +81,9 @@ protected:
 
     virtual ~T2EPGRelaxometryEstimationImageFilter() {}
 
-    void CheckComputationMask();
+    void CheckComputationMask() ITK_OVERRIDE;
 
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId);
-
-    void PrintSelf(std::ostream& os, itk::Indent indent) const
-    {
-        Superclass::PrintSelf(os,indent);
-    }
+    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
     T2EPGRelaxometryEstimationImageFilter(const Self&); //purposely not implemented

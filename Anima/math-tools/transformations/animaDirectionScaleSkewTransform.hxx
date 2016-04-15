@@ -251,7 +251,7 @@ DirectionTransform<TScalarType>
 template <class TScalarType>
 const typename DirectionTransform<TScalarType>::ParametersType &
 DirectionTransform<TScalarType>
-::GetParameters( void ) const
+::GetParameters() const
 {
     this->m_Parameters[0] = this->GetUniqueTranslation();
     return this->m_Parameters;

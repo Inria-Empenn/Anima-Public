@@ -42,13 +42,13 @@ protected:
 
     virtual ~DistortionCorrectionImageFilter() {}
 
-    void GenerateOutputInformation(void);
+    void GenerateOutputInformation() ITK_OVERRIDE;
 
-    void BeforeThreadedGenerateData();
-    void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, itk::ThreadIdType threadId);
-    void AfterThreadedGenerateData();
+    void BeforeThreadedGenerateData() ITK_OVERRIDE;
+    void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
+    void AfterThreadedGenerateData() ITK_OVERRIDE;
 
-    virtual const itk::ImageRegionSplitterBase* GetImageRegionSplitter(void) const;
+    virtual const itk::ImageRegionSplitterBase* GetImageRegionSplitter() const ITK_OVERRIDE;
 
 private:
     unsigned int m_Direction;

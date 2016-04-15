@@ -150,18 +150,11 @@ protected:
 
     typename TMaskImage::ConstPointer GetMask();
 
-
     /**  Create the Output */
     itk::DataObject::Pointer MakeOutput(unsigned int idx);
 
-    void BeforeThreadedGenerateData(void);
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId);
-
-
-    void PrintSelf(std::ostream& os, itk::Indent indent) const
-    {
-        Superclass::PrintSelf(os,indent);
-    }
+    void BeforeThreadedGenerateData() ITK_OVERRIDE;
+    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
     ComputeMahalanobisImagesFilter(const Self&); //purposely not implemented

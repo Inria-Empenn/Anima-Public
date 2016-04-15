@@ -9,8 +9,6 @@
 #include <animaBaseTensorTools.h>
 #include <itkSymmetricEigenAnalysis.h>
 
-#include <boost/math/special_functions/factorials.hpp>
-
 namespace anima
 {
 
@@ -102,8 +100,8 @@ double GetDValue(unsigned int l, int m, int mp, double angle)
     if ((m - mp) % 2 == 1)
         globalSign = -1;
 
-    long double factor = sqrt(boost::math::factorial<double>(l+m) * boost::math::factorial<double>(l-m) *
-                              boost::math::factorial<double>(l+mp) * boost::math::factorial<double>(l-mp));
+    long double factor = std::sqrt(std::tgamma(l+m+1) * std::tgamma(l-m+1) *
+                                   std::tgamma(l+mp+1) * std::tgamma(l-mp+1));
 
     int lowBoundK = 0;
     if (lowBoundK < mp - m)
@@ -119,8 +117,8 @@ double GetDValue(unsigned int l, int m, int mp, double angle)
     {
         long double cosVal = 1, sinVal = 1;
 
-        long double factDenom = boost::math::factorial<double>(k) * boost::math::factorial<double>(l - m - k) *
-        boost::math::factorial<double>(l + mp - k) * boost::math::factorial<double>(m - mp + k);
+        long double factDenom = std::tgamma(k+1) * std::tgamma(l - m - k + 1) *
+                std::tgamma(l + mp - k + 1) * std::tgamma(m - mp + k + 1);
 
         int powNum = 2*(l-k) - m + mp;
 

@@ -5,8 +5,6 @@
 #include <animaGradientFileReader.h>
 #include <itkExtractImageFilter.h>
 
-#include <boost/lexical_cast.hpp>
-
 namespace anima
 {
 template <class ImageType>
@@ -131,7 +129,7 @@ reorientImage(typename itk::SmartPointer<ImageType> input,
     {
         unsigned int dimension = ImageType::ImageDimension;
         std::string msg  = "Reorient an image of dimension "
-                + boost::lexical_cast<std::string>(dimension)
+                + std::to_string(dimension)
                 + "is not supported yet.";
         throw itk::ExceptionObject(__FILE__, __LINE__, msg , ITK_LOCATION);
     }

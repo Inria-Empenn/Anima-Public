@@ -7,8 +7,6 @@
 #include <vnl/algo/vnl_matrix_inverse.h>
 #include <vnl/vnl_inverse.h>
 
-#include <boost/math/special_functions/fpclassify.hpp>
-
 namespace anima
 {
 template <class T> vnl_matrix <T> GetSquareRoot(const vnl_matrix <T> & m, const double precision, vnl_matrix <T> & resultM)
@@ -169,7 +167,7 @@ template <class T> vnl_matrix <T> GetLogarithm(const vnl_matrix <T> & m, const d
 
         Yi1=GetSquareRoot(Yi,precision,resultM);
 
-        if ((!boost::math::isfinite(resultM(0,0))) || (!boost::math::isfinite(Yi(0,0))))
+        if ((!std::isfinite(resultM(0,0))) || (!std::isfinite(Yi(0,0))))
         {
             log.fill(0);
             return log;
@@ -186,7 +184,7 @@ template <class T> vnl_matrix <T> GetLogarithm(const vnl_matrix <T> & m, const d
     }
 
     log=GetPadeLogarithm(Yi,numApprox);
-    if (!boost::math::isfinite(log(0,0)))
+    if (!std::isfinite(log(0,0)))
     {
         log.fill(0);
         return log;

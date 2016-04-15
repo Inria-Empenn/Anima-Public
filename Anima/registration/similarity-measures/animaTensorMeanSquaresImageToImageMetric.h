@@ -47,7 +47,7 @@ public:
     typedef typename Superclass::CoordinateRepresentationType CoordinateRepresentationType;
 
     /**  Get the value for single valued optimizers. */
-    MeasureType GetValue( const TransformParametersType & parameters ) const;
+    MeasureType GetValue(const TransformParametersType & parameters) const ITK_OVERRIDE;
 
 protected:
     TensorMeanSquaresImageToImageMetric();

@@ -45,7 +45,7 @@ public:
     typedef itk::VariableLengthVector<double> MeasurementVectorType;
     typedef itk::Statistics::GaussianMembershipFunction< MeasurementVectorType > GaussianFunctionType;
 
-    virtual void Update();
+    virtual void Update() ITK_OVERRIDE;
 
     virtual bool concentration();
 

@@ -9,10 +9,8 @@
 #include <itkLinearInterpolateImageFunction.h>
 #include <animaFasterLinearInterpolateImageFunction.h>
 
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/discrete_distribution.hpp>
-
 #include <vector>
+#include <random>
 
 #include "AnimaTractographyExport.h"
 
@@ -139,40 +137,39 @@ public:
     void SetBValuesList(ListType bValuesList) {m_BValuesList = bValuesList;}
     MathScalarType GetBValueItem(unsigned int i) {return m_BValuesList[i];}
 
-    itkSetObjectMacro(SeedMask,MaskImageType);
-    itkSetObjectMacro(FilterMask,MaskImageType);
-    itkSetObjectMacro(CutMask,MaskImageType);
-    itkSetObjectMacro(ForbiddenMask,MaskImageType);
+    itkSetObjectMacro(SeedMask,MaskImageType)
+    itkSetObjectMacro(FilterMask,MaskImageType)
+    itkSetObjectMacro(CutMask,MaskImageType)
+    itkSetObjectMacro(ForbiddenMask,MaskImageType)
 
-    itkSetMacro(NumberOfParticles,unsigned int);
-    void SetNumberOfThreads(unsigned int numThr);
-    itkSetMacro(NumberOfFibersPerPixel,unsigned int);
-    itkSetMacro(ResamplingThreshold,double);
+    itkSetMacro(NumberOfParticles,unsigned int)
+    itkSetMacro(NumberOfFibersPerPixel,unsigned int)
+    itkSetMacro(ResamplingThreshold,double)
 
-    itkSetMacro(StepProgression,double);
+    itkSetMacro(StepProgression,double)
 
-    itkSetMacro(MinLengthFiber,double);
-    itkSetMacro(MaxLengthFiber,double);
+    itkSetMacro(MinLengthFiber,double)
+    itkSetMacro(MaxLengthFiber,double)
 
-    itkSetMacro(FiberTrashThreshold,double);
+    itkSetMacro(FiberTrashThreshold,double)
 
-    itkSetMacro(KappaOfPriorDistribution,double);
-    itkGetMacro(KappaOfPriorDistribution,double);
+    itkSetMacro(KappaOfPriorDistribution,double)
+    itkGetMacro(KappaOfPriorDistribution,double)
 
-    itkSetMacro(PositionDistanceFuseThreshold,double);
-    itkSetMacro(KappaSplitThreshold,double);
+    itkSetMacro(PositionDistanceFuseThreshold,double)
+    itkSetMacro(KappaSplitThreshold,double)
 
-    itkSetMacro(ClusterDistance,unsigned int);
+    itkSetMacro(ClusterDistance,unsigned int)
 
-    itkSetMacro(ComputeLocalColors,bool);
-    itkSetMacro(MAPMergeFibers,bool);
+    itkSetMacro(ComputeLocalColors,bool)
+    itkSetMacro(MAPMergeFibers,bool)
 
-    itkSetMacro(MinimalNumberOfParticlesPerClass,unsigned int);
+    itkSetMacro(MinimalNumberOfParticlesPerClass,unsigned int)
 
-    itkSetMacro(ModelDimension, unsigned int);
-    itkGetMacro(ModelDimension, unsigned int);
+    itkSetMacro(ModelDimension, unsigned int)
+    itkGetMacro(ModelDimension, unsigned int)
 
-    void Update();
+    void Update() ITK_OVERRIDE;
 
     void createVTKOutput(FiberProcessVectorType &filteredFibers, ListType &filteredWeights);
     vtkPolyData *GetOutput() {return m_Output;}
@@ -208,7 +205,7 @@ protected:
     //! Propose new direction for a particle, given the old direction, and a model (model dependent, not implemented here)
     virtual Vector3DType ProposeNewDirection(Vector3DType &oldDirection, VectorType &modelValue,
                                              Vector3DType &sampling_direction, double &log_prior, double &log_proposal,
-                                             boost::mt19937 &random_generator, unsigned int threadId) = 0;
+                                             std::mt19937 &random_generator, unsigned int threadId) = 0;
 
     //! Update particle weight based on an underlying model and the chosen direction (model dependent, not implemented here)
     virtual double ComputeLogWeightUpdate(double b0Value, double noiseValue, Vector3DType &newDirection, Vector3DType &sampling_direction,
@@ -230,7 +227,6 @@ private:
     unsigned int m_ModelDimension;
 
     unsigned int m_NumberOfParticles;
-    unsigned int m_NumberOfThreads;
     unsigned int m_NumberOfFibersPerPixel;
     unsigned int m_MinimalNumberOfParticlesPerClass;
 
@@ -252,7 +248,7 @@ private:
     MaskImagePointer m_CutMask;
     MaskImagePointer m_ForbiddenMask;
 
-    std::vector <boost::mt19937> m_Generators;
+    std::vector <std::mt19937> m_Generators;
 
     DirectionVectorType m_DiffusionGradients;
     ListType m_BValuesList;

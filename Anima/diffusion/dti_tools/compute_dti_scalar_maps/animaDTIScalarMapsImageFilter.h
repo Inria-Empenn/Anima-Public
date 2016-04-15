@@ -47,10 +47,10 @@ public:
     typedef itk::SmartPointer<const Self>                             ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(DTIScalarMapsImageFilter, ImageToImageFilter);
+    itkTypeMacro(DTIScalarMapsImageFilter, ImageToImageFilter)
 
     /** Image typedef support. */
     typedef typename TensorImageType::PixelType               TensorVectorType;
@@ -60,13 +60,12 @@ public:
     typedef typename TensorImageType::SizeType    TensorImageSizeType;
 
     /**  Create the Output */
-    itk::DataObject::Pointer MakeOutput(itk::ProcessObject::DataObjectPointerArraySizeType idx);
+    itk::DataObject::Pointer MakeOutput(itk::ProcessObject::DataObjectPointerArraySizeType idx) ITK_OVERRIDE;
 
     typename OutputImageType::Pointer GetADCImage() {return this->GetOutput(0);}
     typename OutputImageType::Pointer GetFAImage() {return this->GetOutput(1);}
     typename OutputImageType::Pointer GetAxialDiffusivityImage() {return this->GetOutput(2);}
     typename OutputImageType::Pointer GetRadialDiffusivityImage() {return this->GetOutput(3);}
-
 
 protected:
     DTIScalarMapsImageFilter();
@@ -83,7 +82,7 @@ protected:
      * \sa ImageToImageFilter::ThreadedGenerateData(),
      *     ImageToImageFilter::GenerateData() */
     void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                              itk::ThreadIdType threadId );
+                              itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
     DTIScalarMapsImageFilter(const Self&); //purposely not implemented

@@ -61,7 +61,7 @@ protected:
     PyramidImageFilter();
     virtual ~PyramidImageFilter() {}
 
-    void GenerateData();
+    void GenerateData() ITK_OVERRIDE;
 
     void CheckNumberOfLevels();
     double AnisotropyMeasure(SpacingType &sp, std::vector <bool> &changeableSizes);

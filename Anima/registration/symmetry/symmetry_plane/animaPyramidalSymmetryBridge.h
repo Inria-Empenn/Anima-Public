@@ -62,7 +62,7 @@ public:
 
     void ParseParameters(int argc, const char **argv);
 
-    void Update();
+    void Update() ITK_OVERRIDE;
 
     void WriteOutputs();
 

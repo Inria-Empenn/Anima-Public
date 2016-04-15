@@ -51,7 +51,7 @@ public:
     /** @brief calculate parameters of gaussians from images
      *  with the probability of the different classes [csf] [gm] [wm]
       */
-    void Update();
+    void Update() ITK_OVERRIDE;
 
     /** The mri images.*/
     void SetInputImage1(const TInputImage* image);

@@ -79,7 +79,7 @@ public:
 protected:
     MeanAndVarianceImagesFilter();
     virtual ~MeanAndVarianceImagesFilter() {}
-    void PrintSelf(std::ostream& os, itk::Indent indent) const;
+    void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
 
     /** MeanAndVarianceImagesFilter can be implemented as a multithreaded filter.
      * Therefore, this implementation provides a ThreadedGenerateData()
@@ -92,7 +92,7 @@ protected:
      * \sa ImageToImageFilter::ThreadedGenerateData(),
      *     ImageToImageFilter::GenerateData() */
     void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                              itk::ThreadIdType threadId );
+                              itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
     MeanAndVarianceImagesFilter(const Self&); //purposely not implemented

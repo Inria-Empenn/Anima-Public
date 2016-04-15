@@ -23,7 +23,6 @@ public:
     typedef itk::SmartPointer<Self>                                Pointer;
     typedef itk::SmartPointer<const Self>                          ConstPointer;
 
-
     /** Pixel Type of the input image */
     typedef TInputImage                                       InputImageType;
     typedef TOutputImage                                      OutputImageType;
@@ -31,10 +30,9 @@ public:
     typedef typename itk::NumericTraits<PixelType>::RealType       RealType;
     typedef typename itk::NumericTraits<PixelType>::ScalarRealType ScalarRealType;
 
-
     /** Runtime information support. */
     itkTypeMacro(SmoothingRecursiveYvvGaussianImageFilter,
-                 InPlaceImageFilter);
+                 InPlaceImageFilter)
 
     /** Image dimension. */
     itkStaticConstMacro(ImageDimension, unsigned int,
@@ -43,7 +41,6 @@ public:
     /** Define the type for the sigma array */
     typedef itk::FixedArray< ScalarRealType,
     itkGetStaticConstMacro(ImageDimension) > SigmaArrayType;
-
 
     /** Define the image type for internal computations
      RealType is usually 'double' in NumericTraits.
@@ -70,7 +67,6 @@ public:
     OutputImageType
     >    CastingFilterType;
 
-
     /**  Pointer to a gaussian filter.  */
     typedef typename InternalGaussianFilterType::Pointer    InternalGaussianFilterPointer;
 
@@ -84,45 +80,45 @@ public:
     typedef typename OutputImageType::Pointer                  OutputImagePointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Set Sigma value. Sigma is measured in the units of image spacing. You
      may use the method SetSigma to set the same value across each axis or
      use the method SetSigmaArray if you need different values along each
      axis. */
-    void SetSigmaArray( const SigmaArrayType & sigmas );
+    void SetSigmaArray(const SigmaArrayType & sigmas);
     void SetSigma( ScalarRealType sigma );
 
     SigmaArrayType GetSigmaArray() const;
     ScalarRealType GetSigma() const;
 
     /** Define which normalization factor will be used for the Gaussian */
-    void SetNormalizeAcrossScale( bool normalizeInScaleSpace );
-    itkGetConstMacro( NormalizeAcrossScale, bool );
+    void SetNormalizeAcrossScale(bool normalizeInScaleSpace);
+    itkGetConstMacro(NormalizeAcrossScale, bool)
 
-    void SetNumberOfThreads( itk::ThreadIdType nb );
+    void SetNumberOfThreads(itk::ThreadIdType nb) ITK_OVERRIDE;
 
     // See super class for doxygen documentation
     //
-    virtual bool CanRunInPlace( void ) const;
+    virtual bool CanRunInPlace() const ITK_OVERRIDE;
 
 protected:
     SmoothingRecursiveYvvGaussianImageFilter();
-    virtual ~SmoothingRecursiveYvvGaussianImageFilter() {};
-    void PrintSelf(std::ostream& os, itk::Indent indent) const;
+    virtual ~SmoothingRecursiveYvvGaussianImageFilter() {}
+    void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
 
     /** Generate Data */
-    void GenerateData( void );
+    void GenerateData() ITK_OVERRIDE;
 
     /** SmoothingRecursiveYvvGaussianImageFilter needs all of the input to produce an
      * output. Therefore, SmoothingRecursiveYvvGaussianImageFilter needs to provide
      * an implementation for GenerateInputRequestedRegion in order to inform
      * the pipeline execution model.
      * \sa ImageToImageFilter::GenerateInputRequestedRegion() */
-    virtual void GenerateInputRequestedRegion() throw(itk::InvalidRequestedRegionError);
+    virtual void GenerateInputRequestedRegion() throw(itk::InvalidRequestedRegionError) ITK_OVERRIDE;
 
     // Override since the filter produces the entire dataset
-    void EnlargeOutputRequestedRegion(itk::DataObject *output);
+    void EnlargeOutputRequestedRegion(itk::DataObject *output) ITK_OVERRIDE;
 
 private:
     SmoothingRecursiveYvvGaussianImageFilter(const Self&); //purposely not implemented
@@ -140,6 +136,5 @@ private:
 };
 
 } // end of namespace anima
-
 
 #include "animaSmoothingRecursiveYvvGaussianImageFilter.hxx"

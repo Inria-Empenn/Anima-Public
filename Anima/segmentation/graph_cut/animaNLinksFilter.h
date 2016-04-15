@@ -160,16 +160,11 @@ protected:
     bool readMatrixFile();
 
     void CheckSpectralGradient(void);
-    void GenerateData();
+    void GenerateData() ITK_OVERRIDE;
     void SetGraph();
     bool isInside (unsigned int x,unsigned int y,unsigned int z ) const;
     void CreateGraph();
     double computeNLink(int i1, int j1, int k1, int i2, int j2, int k2);
-
-    void PrintSelf(std::ostream& os, itk::Indent indent) const
-    {
-        Superclass::PrintSelf(os,indent);
-    }
 
 private:
     NLinksFilter(const Self&); //purposely not implemented

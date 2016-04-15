@@ -106,13 +106,8 @@ protected:
 
     typename TMask::ConstPointer GetMask();
 
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId);
+    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
     double probability(DoubleVariableSizeMatrixType &point, GaussianFunctionType::Pointer model);
-
-    void PrintSelf(std::ostream& os, itk::Indent indent) const
-    {
-        Superclass::PrintSelf(os,indent);
-    }
 
 private:
     ImageClassifierFilter(const Self&); //purposely not implemented

@@ -62,8 +62,8 @@ protected:
 
     virtual ~MEstimateSVFImageFilter() {}
 
-    void BeforeThreadedGenerateData(void);
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId);
+    void BeforeThreadedGenerateData() ITK_OVERRIDE;
+    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
     MEstimateSVFImageFilter(const Self&); //purposely not implemented

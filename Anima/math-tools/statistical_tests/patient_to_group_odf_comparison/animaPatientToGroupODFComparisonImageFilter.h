@@ -41,8 +41,8 @@ protected:
             delete m_ShData;
     }
 
-    virtual void BeforeThreadedGenerateData();
-    unsigned int SampleFromDiffusionModels(std::vector <VectorType> &databaseValues, VectorType &patientVectorValue);
+    virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
+    unsigned int SampleFromDiffusionModels(std::vector <VectorType> &databaseValues, VectorType &patientVectorValue) ITK_OVERRIDE;
 
 private:
     PatientToGroupODFComparisonImageFilter(const Self&); //purposely not implemented

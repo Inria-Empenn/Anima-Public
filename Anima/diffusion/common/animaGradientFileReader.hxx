@@ -4,13 +4,10 @@
 
 #include <fstream>
 #include <sstream>
+#include <cstdlib>
 #include <itkExceptionObject.h>
 
 #include <animaVectorOperations.h>
-
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string.hpp>
 
 namespace anima
 {
@@ -89,7 +86,12 @@ namespace anima
         if (!m_Modified)
             return;
 
-        if (boost::algorithm::ends_with(m_GradientFileName, "bvecs") || boost::algorithm::ends_with(m_GradientFileName, "bvec"))
+        int startIndex = m_GradientFileName.size() - 6;
+        if (startIndex < 0)
+            startIndex = 0;
+
+        std::string testExt = m_GradientFileName.substr(startIndex);
+        if (testExt.find("bvec") != testExt.size())
             this->ReadGradientsFromBVecFile();
         else
             this->ReadGradientsFromTextFile();
@@ -152,14 +154,14 @@ namespace anima
                 std::getline(gradFile,workStr);
             } while((workStr == "")&&(!gradFile.eof()));
 
-            boost::algorithm::trim_right(workStr);
+            workStr.erase(workStr.find_last_not_of(" \n\r\t")+1);
 
             std::istringstream iss(workStr);
             std::string shortStr;
             do
             {
                 iss >> shortStr;
-                trVecs[i].push_back(boost::lexical_cast<BValueScalarType> (shortStr));
+                trVecs[i].push_back(std::stod(shortStr));
             }
             while (!iss.eof());
         }
@@ -228,19 +230,24 @@ namespace anima
         if (!bvalFile.is_open())
         {
             for (unsigned int i = 0;i < m_TotalNumberOfDirections;++i)
-                m_BValues[i] = boost::lexical_cast<BValueScalarType>(m_BValueBaseString);
+                m_BValues[i] = std::stod(m_BValueBaseString);
 
             return;
         }
 
-        if (boost::algorithm::ends_with(m_BValueBaseString, "bvals") || boost::algorithm::ends_with(m_BValueBaseString, "bval")) // bval file
+        int startIndex = m_BValueBaseString.size() - 6;
+        if (startIndex < 0)
+            startIndex = 0;
+
+        std::string testExt = m_BValueBaseString.substr(startIndex);
+        if (testExt.find("bval") != testExt.size())
         {
             std::string workStr;
             do {
                 std::getline(bvalFile,workStr);
             } while((workStr == "")&&(!bvalFile.eof()));
 
-            boost::algorithm::trim_right(workStr);
+            workStr.erase(workStr.find_last_not_of(" \n\r\t")+1);
 
             std::istringstream iss(workStr);
             std::string shortStr;
@@ -248,7 +255,7 @@ namespace anima
             do
             {
                 iss >> shortStr;
-                m_BValues[i] = boost::lexical_cast<BValueScalarType> (shortStr);
+                m_BValues[i] = std::stod(shortStr);
                 ++i;
             }
             while (!iss.eof());
@@ -264,7 +271,7 @@ namespace anima
                 if (strcmp(tmpStr,"") == 0)
                     continue;
 
-                m_BValues[i] = boost::lexical_cast<BValueScalarType> (tmpStr);
+                m_BValues[i] = std::stod(tmpStr);
                 ++i;
             }
         }

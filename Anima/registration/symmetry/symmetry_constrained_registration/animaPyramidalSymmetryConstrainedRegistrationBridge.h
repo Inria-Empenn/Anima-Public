@@ -44,11 +44,11 @@ public:
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self> ConstPointer;
 
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
-    itkTypeMacro(PyramidalSymmetryConstrainedRegistrationBridge,itk::ProcessObject);
+    itkTypeMacro(PyramidalSymmetryConstrainedRegistrationBridge,itk::ProcessObject)
 
-    void Update();
+    void Update() ITK_OVERRIDE;
 
     void WriteOutputs();
 

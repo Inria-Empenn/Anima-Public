@@ -4,7 +4,6 @@
 #include <vtkPolyDataWriter.h>
 #include <vtkXMLPolyDataWriter.h>
 #include <vtksys/SystemTools.hxx>
-#include <boost/algorithm/string/replace.hpp>
 
 #include <fstream>
 
@@ -48,7 +47,7 @@ void FibersWriter::WriteFileAsVTKXML()
 
 void FibersWriter::WriteFileAsMedinriaFibers()
 {
-    boost::algorithm::replace_all(m_FileName,"\\","/");
+    std::replace(m_FileName.begin(),m_FileName.end(),'\\','/');
 
     std::string baseName;
     std::size_t lastDotPos = m_FileName.find_last_of('.');

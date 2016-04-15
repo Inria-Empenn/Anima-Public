@@ -9,7 +9,6 @@
 #include <itkImageFileWriter.h>
 #include <itkImageMomentsCalculator.h>
 
-#include <boost/math/special_functions/fpclassify.hpp>
 #include <animaVectorOperations.h>
 #include <animaLogarithmFunctions.h>
 
@@ -39,7 +38,6 @@ BaseProbabilisticTractographyImageFilter::BaseProbabilisticTractographyImageFilt
 {
     m_PointsToProcess.clear();
 
-    m_NumberOfThreads = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
     m_NumberOfFibersPerPixel = 1;
     m_NumberOfParticles = 1000;
     m_MinimalNumberOfParticlesPerClass = 10;
@@ -82,20 +80,20 @@ void BaseProbabilisticTractographyImageFilter::Update()
     itk::MultiThreader::Pointer threadWorker = itk::MultiThreader::New();
     trackerArguments *tmpStr = new trackerArguments;
     tmpStr->trackerPtr = this;
-    tmpStr->resultFibersFromThreads.resize(m_NumberOfThreads);
-    tmpStr->resultWeightsFromThreads.resize(m_NumberOfThreads);
+    tmpStr->resultFibersFromThreads.resize(this->GetNumberOfThreads());
+    tmpStr->resultWeightsFromThreads.resize(this->GetNumberOfThreads());
 
-    for (unsigned int i = 0;i < m_NumberOfThreads;++i)
+    for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
     {
         tmpStr->resultFibersFromThreads[i] = resultFibers;
         tmpStr->resultWeightsFromThreads[i] = resultWeights;
     }
 
-    threadWorker->SetNumberOfThreads(m_NumberOfThreads);
+    threadWorker->SetNumberOfThreads(this->GetNumberOfThreads());
     threadWorker->SetSingleMethod(this->ThreadTracker,tmpStr);
     threadWorker->SingleMethodExecute();
 
-    for (unsigned int j = 0;j < m_NumberOfThreads;++j)
+    for (unsigned int j = 0;j < this->GetNumberOfThreads();++j)
     {
         resultFibers.insert(resultFibers.end(),tmpStr->resultFibersFromThreads[j].begin(),tmpStr->resultFibersFromThreads[j].end());
         resultWeights.insert(resultWeights.end(),tmpStr->resultWeightsFromThreads[j].begin(),tmpStr->resultWeightsFromThreads[j].end());
@@ -107,21 +105,17 @@ void BaseProbabilisticTractographyImageFilter::Update()
     this->createVTKOutput(resultFibers, resultWeights);
 }
 
-void BaseProbabilisticTractographyImageFilter::SetNumberOfThreads(unsigned int numThr)
-{
-    m_NumberOfThreads = numThr;
-    m_Generators.resize(numThr);
-
-    boost::mt19937 motherGenerator(time(0));
-
-    for (unsigned int i = 0;i < numThr;++i)
-        m_Generators[i] = boost::mt19937(motherGenerator());
-}
-
 void BaseProbabilisticTractographyImageFilter::PrepareTractography()
 {
     // Initialize random generator
     srand(time(0));
+
+    m_Generators.resize(this->GetNumberOfThreads());
+
+    std::mt19937 motherGenerator(time(0));
+
+    for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
+        m_Generators[i] = std::mt19937(motherGenerator());
 
     // If needed, compute DWI gravity center
     bool is2d = m_InputImages[0]->GetLargestPossibleRegion().GetSize()[2] == 1;
@@ -245,9 +239,9 @@ ITK_THREAD_RETURN_TYPE BaseProbabilisticTractographyImageFilter::ThreadTracker(v
 void BaseProbabilisticTractographyImageFilter::ThreadTrack(unsigned int numThread, FiberProcessVectorType &resultFibers, ListType &resultWeights)
 {
     unsigned int dataSize = m_PointsToProcess.size();
-    unsigned int numPoints = floor((double) dataSize / m_NumberOfThreads);
+    unsigned int numPoints = floor((double) dataSize / this->GetNumberOfThreads());
 
-    unsigned int numPointsOverflow = dataSize - numPoints * m_NumberOfThreads;
+    unsigned int numPointsOverflow = dataSize - numPoints * this->GetNumberOfThreads();
 
     unsigned int startPoint;
 
@@ -260,7 +254,7 @@ void BaseProbabilisticTractographyImageFilter::ThreadTrack(unsigned int numThrea
     if (numThread < numPointsOverflow)
         endPoint++;
 
-    if (numThread+1 == m_NumberOfThreads)
+    if (numThread+1 == this->GetNumberOfThreads())
         endPoint = dataSize;
 
     // support progress methods/callbacks
@@ -709,7 +703,7 @@ BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInte
 
             double tmpWeight = logWeightSums[fiberComputationData.classMemberships[i]];
 
-            if (boost::math::isfinite(tmpWeight))
+            if (std::isfinite(tmpWeight))
                 logWeightVals[i] -= tmpWeight;
 
             fiberComputationData.particleWeights[i] = std::exp(logWeightVals[i]);
@@ -746,7 +740,7 @@ BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInte
                     fiberParticlesCopy[i] = fiberComputationData.fiberParticles[fiberComputationData.reverseClassMemberships[m][i]];
                 }
 
-                boost::random::discrete_distribution<> dist(weightSpecificClassValues.begin(),weightSpecificClassValues.end());
+                std::discrete_distribution<> dist(weightSpecificClassValues.begin(),weightSpecificClassValues.end());
                 usedFibers.resize(fiberComputationData.classSizes[m]);
                 std::fill(usedFibers.begin(),usedFibers.end(),false);
 
@@ -798,7 +792,7 @@ BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInte
 
         for (unsigned int i = 0;i < fiberComputationData.particleWeights.size();++i)
         {
-            if (!boost::math::isfinite(fiberComputationData.particleWeights[i]))
+            if (!std::isfinite(fiberComputationData.particleWeights[i]))
                 itkExceptionMacro("Nan weights after update class membership");
         }
     }

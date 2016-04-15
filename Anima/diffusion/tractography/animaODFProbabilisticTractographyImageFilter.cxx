@@ -1,5 +1,6 @@
 #include "animaODFProbabilisticTractographyImageFilter.h"
 #include <cmath>
+#include <random>
 
 #include <animaODFMaximaCostFunction.h>
 #include <animaNewuoaOptimizer.h>
@@ -9,8 +10,6 @@
 #include <animaDistributionSampling.h>
 #include <animaVMFDistribution.h>
 #include <animaWatsonDistribution.h>
-
-#include <boost/math/special_functions/fpclassify.hpp>
 
 namespace anima
 {
@@ -128,7 +127,7 @@ void ODFProbabilisticTractographyImageFilter::PrepareTractography()
 ODFProbabilisticTractographyImageFilter::Vector3DType
 ODFProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDirection, VectorType &modelValue,
                                                              Vector3DType &sampling_direction, double &log_prior,
-                                                             double &log_proposal, boost::mt19937 &random_generator,
+                                                             double &log_proposal, std::mt19937 &random_generator,
                                                              unsigned int threadId)
 {
     Vector3DType resVec(0.0);
@@ -156,7 +155,7 @@ ODFProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDi
         // 0.5 is for Watson kappa
         kappaValues[i] = 0.5 * m_CurvatureScale * m_ODFSHBasis->getCurvatureAtPosition(modelValue,sphDirection[0],sphDirection[1]);
 
-        if ((boost::math::isnan(kappaValues[i]))||(kappaValues[i] <= 0)||(kappaValues[i] >= 1000))
+        if ((std::isnan(kappaValues[i]))||(kappaValues[i] <= 0)||(kappaValues[i] >= 1000))
             mixtureWeights[i] = 0;
 
         sumWeights += mixtureWeights[i];
@@ -173,7 +172,7 @@ ODFProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDi
         for (unsigned int i = 0;i < numDirs;++i)
             mixtureWeights[i] /= sumWeights;
 
-        boost::random::discrete_distribution<> dist(mixtureWeights.begin(),mixtureWeights.end());
+        std::discrete_distribution<> dist(mixtureWeights.begin(),mixtureWeights.end());
         unsigned int chosenDirection = dist(random_generator);
 
         sampling_direction = maximaODF[chosenDirection];

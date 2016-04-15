@@ -33,7 +33,7 @@ class ANIMAOPTIMIZERS_EXPORT NewuoaOptimizer : public itk::SingleValuedNonLinear
 {
 public:
     /** Standard class typedefs. */
-    typedef NewuoaOptimizer                 Self;
+    typedef NewuoaOptimizer                Self;
     typedef itk::Object                    Superclass;
     typedef itk::SmartPointer<Self>        Pointer;
     typedef itk::SmartPointer<const Self>  ConstPointer;
@@ -42,10 +42,10 @@ public:
     ParametersType;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(NewuoaOptimizer, SingleValuedNonLinearOptimizer);
+    itkTypeMacro(NewuoaOptimizer, SingleValuedNonLinearOptimizer)
 
 
     /** Type of the Cost Function   */
@@ -53,35 +53,34 @@ public:
     typedef  CostFunctionType::Pointer        CostFunctionPointer;
 
     /** Set if the Optimizer should Maximize the metric */
-    itkSetMacro( Maximize, bool );
-    itkBooleanMacro( Maximize);
-    itkGetConstReferenceMacro( Maximize, bool );
+    itkSetMacro(Maximize, bool)
+    itkBooleanMacro(Maximize)
+    itkGetConstReferenceMacro(Maximize, bool)
 
     /** Set/Get maximum iteration limit. */
-    itkSetMacro( MaximumIteration, unsigned int );
-    itkGetConstReferenceMacro( MaximumIteration, unsigned int );
+    itkSetMacro(MaximumIteration, unsigned int)
+    itkGetConstReferenceMacro(MaximumIteration, unsigned int)
 
 
-    itkSetMacro(SpaceDimension, unsigned int);
-    itkGetConstReferenceMacro(SpaceDimension, unsigned int);
+    itkSetMacro(SpaceDimension, unsigned int)
+    itkGetConstReferenceMacro(SpaceDimension, unsigned int)
 
     /** Set/Get Number of Sampling points   (between Parameters+2 and (Parameters+1)(Parameters+2)/2)*/
-    itkSetMacro( NumberSamplingPoints, unsigned int );
-    itkGetConstReferenceMacro( NumberSamplingPoints, unsigned int );
-
+    itkSetMacro(NumberSamplingPoints, unsigned int)
+    itkGetConstReferenceMacro(NumberSamplingPoints, unsigned int)
 
     /** Set/Get RhoBegin set the initial sampling of
      * parameter space */
-    itkSetMacro( RhoBegin, double );
-    itkGetConstReferenceMacro( RhoBegin, double );
+    itkSetMacro(RhoBegin, double)
+    itkGetConstReferenceMacro(RhoBegin, double)
 
     /** Set/Get RhoEnd set the final sampling distance of
      * parameter space */
-    itkSetMacro( RhoEnd, double );
-    itkGetConstReferenceMacro( RhoEnd, double );
+    itkSetMacro(RhoEnd, double)
+    itkGetConstReferenceMacro(RhoEnd, double)
 
     /** Return Current Value */
-    itkGetConstReferenceMacro( CurrentCost, MeasureType );
+    itkGetConstReferenceMacro(CurrentCost, MeasureType)
     MeasureType GetValue() const
     {
         if (this->GetMaximize())
@@ -94,27 +93,26 @@ public:
     itkGetConstReferenceMacro( CurrentIteration, unsigned int);
 
     /** Start optimization. */
-    void StartOptimization();
+    void StartOptimization() ITK_OVERRIDE;
 
     /** When users call StartOptimization, this value will be set false.
      * By calling StopOptimization, this flag will be set true, and
      * optimization will stop at the next iteration. */
-    void StopOptimization()
-    { m_Stop = true; }
+    void StopOptimization() {m_Stop = true;}
 
-    itkGetConstReferenceMacro(CatchGetValueException, bool);
-    itkSetMacro(CatchGetValueException, bool);
+    itkGetConstReferenceMacro(CatchGetValueException, bool)
+    itkSetMacro(CatchGetValueException, bool)
 
-    itkGetConstReferenceMacro(MetricWorstPossibleValue, double);
-    itkSetMacro(MetricWorstPossibleValue, double);
+    itkGetConstReferenceMacro(MetricWorstPossibleValue, double)
+    itkSetMacro(MetricWorstPossibleValue, double)
 
-    const std::string GetStopConditionDescription() const;
+    const std::string GetStopConditionDescription() const ITK_OVERRIDE;
 
 protected:
     NewuoaOptimizer();
     NewuoaOptimizer(const NewuoaOptimizer&);
     virtual ~NewuoaOptimizer();
-    void PrintSelf(std::ostream& os, itk::Indent indent) const;
+    void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
 
     /** Set if the Metric should be maximized: Default = False */
     bool               m_Maximize;
@@ -133,7 +131,7 @@ protected:
     //        int  Parameters;
     NewuoaOptimizer::ParametersType px;
 
-    itkSetMacro(CurrentCost, double);
+    itkSetMacro(CurrentCost, double)
 
     /** Internal storage for the value type / used as a cache  */
     MeasureType        m_CurrentCost;
@@ -156,6 +154,3 @@ protected: // From f2c...
 };
 
 } // end of namespace anima
-
-
-

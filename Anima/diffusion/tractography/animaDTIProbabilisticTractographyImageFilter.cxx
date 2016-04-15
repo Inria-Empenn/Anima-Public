@@ -39,7 +39,7 @@ void DTIProbabilisticTractographyImageFilter::PrepareTractography()
 DTIProbabilisticTractographyImageFilter::Vector3DType
 DTIProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDirection, VectorType &modelValue,
                                                              Vector3DType &sampling_direction, double &log_prior,
-                                                             double &log_proposal, boost::mt19937 &random_generator,
+                                                             double &log_proposal, std::mt19937 &random_generator,
                                                              unsigned int threadId)
 {
     Vector3DType resVec(0.0);

@@ -46,15 +46,15 @@ public:
 
 
     /** Get the derivatives of the match measure. */
-    void GetDerivative( const TransformParametersType & parameters,
-                       DerivativeType & Derivative ) const;
+    void GetDerivative(const TransformParametersType & parameters,
+                       DerivativeType & Derivative) const ITK_OVERRIDE;
 
     /**  Get the value for single valued optimizers. */
-    MeasureType GetValue( const TransformParametersType & parameters ) const;
+    MeasureType GetValue(const TransformParametersType & parameters) const ITK_OVERRIDE;
 
     /**  Get value and derivatives for multiple valued optimizers. */
-    void GetValueAndDerivative( const TransformParametersType & parameters,
-                               MeasureType& Value, DerivativeType& Derivative ) const;
+    void GetValueAndDerivative(const TransformParametersType & parameters,
+                               MeasureType& Value, DerivativeType& Derivative) const ITK_OVERRIDE;
 
     void PreComputeFixedValues();
     itkSetMacro(SquaredCorrelation, bool);
@@ -63,7 +63,7 @@ public:
 protected:
     FastCorrelationImageToImageMetric();
     virtual ~FastCorrelationImageToImageMetric() {}
-    void PrintSelf(std::ostream& os, itk::Indent indent) const;
+    void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
 
 private:
     FastCorrelationImageToImageMetric(const Self&); //purposely not implemented
