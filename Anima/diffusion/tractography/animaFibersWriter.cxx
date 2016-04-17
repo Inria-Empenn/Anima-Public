@@ -6,6 +6,7 @@
 #include <vtksys/SystemTools.hxx>
 
 #include <fstream>
+#include <algorithm>
 
 namespace anima {
 
