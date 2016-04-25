@@ -71,7 +71,7 @@ protected:
         return true;
     }
 
-    template <class T> bool isZero(const itk::VariableLengthVector <T> &value) const
+    template <class T> inline bool isZero(itk::VariableLengthVector <T> &value) const
     {
         for (unsigned int i = 0;i < value.GetNumberOfElements();++i)
         {
@@ -83,21 +83,22 @@ protected:
     }
 
     // Fake method for compilation purposes, should never go in there
-    template <class T> bool isZero(T &data) const
+    template <class T> inline bool isZero(T &data) const
     {
-        itkExceptionMacro("Access to unauthorized method");
+        itkExceptionMacro("Access to unauthorized zero test method");
         return true;
     }
 
     //! Utility function to initialize output images pixel to zero for vector images
-    template <class T> void InitializeZeroPixel(itk::VariableLengthVector <T> &zeroPixel) const
+    template <class T> inline void InitializeZeroPixel(itk::VariableLengthVector <T> &zeroPixel) const
     {
         zeroPixel.Fill(0.0);
     }
 
     //! Utility function to initialize output images pixel to zero for all images except vector images
-    template <class T> void InitializeZeroPixel(T &zeroPixel) const
+    template <class T> inline void InitializeZeroPixel(T &zeroPixel) const
     {
+        itkExceptionMacro("Access to unauthorized zero pixel method");
         zeroPixel = itk::NumericTraits <T>::ZeroValue();
     }
 
