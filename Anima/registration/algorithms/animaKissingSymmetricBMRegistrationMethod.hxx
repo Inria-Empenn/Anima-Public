@@ -114,7 +114,7 @@ KissingSymmetricBMRegistrationMethod <TInputImageType>
 
         multiplyFilter->Update();
 
-        VelocityFieldType *addonSVF = multiplyFilter->GetOutput();
+        typename VelocityFieldType::Pointer addonSVF = multiplyFilter->GetOutput();
         addonSVF->DisconnectPipeline();
 
         usualAddOnCast->SetParametersAsVectorField(addonSVF);
