@@ -6,7 +6,7 @@
 #include <animaTransformSeriesReader.h>
 #include <itkNearestNeighborInterpolateImageFunction.h>
 
-#include <animaFiniteStrainODFResampleImageFilter.h>
+#include <animaODFResampleImageFilter.h>
 
 int main(int ac, const char** av)
 {
@@ -87,11 +87,12 @@ int main(int ac, const char** av)
     else
         interpolator = anima::VectorModelLinearInterpolateImageFunction<ImageType>::New();
     
-    typedef anima::FiniteStrainODFResampleImageFilter <ImageType, double> ResampleFilterType;
+    typedef anima::ODFResampleImageFilter <ImageType, double> ResampleFilterType;
 
     ResampleFilterType::Pointer resample = ResampleFilterType::New();
         
     resample->SetTransform(trsf);
+    resample->SetFiniteStrainReorientation(true);
     resample->SetInterpolator(interpolator.GetPointer());
     resample->SetNumberOfThreads(nbpArg.getValue());
     

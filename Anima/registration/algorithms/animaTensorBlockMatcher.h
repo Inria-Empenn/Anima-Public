@@ -19,6 +19,13 @@ public:
         TensorOrientedGeneralizedCorrelation
     };
 
+    enum ModelRotationType
+    {
+        None = 0,
+        FiniteStrain,
+        PPD
+    };
+
     typedef BaseAffineBlockMatcher <TInputImageType> Superclass;
     typedef typename Superclass::InputImageType InputImageType;
     typedef typename Superclass::PointType PointType;
@@ -30,6 +37,8 @@ public:
     bool GetMaximizedMetric();
     void SetSimilarityType(SimilarityDefinition val) {m_SimilarityType = val;}
 
+    void SetModelRotationType(ModelRotationType val) {m_ModelRotationType = val;}
+
 protected:
     virtual MetricPointer SetupMetric();
     virtual double ComputeBlockWeight(double val, unsigned int block);
@@ -38,6 +47,7 @@ protected:
 
 private:
     SimilarityDefinition m_SimilarityType;
+    ModelRotationType m_ModelRotationType;
 };
 
 } // end namespace anima

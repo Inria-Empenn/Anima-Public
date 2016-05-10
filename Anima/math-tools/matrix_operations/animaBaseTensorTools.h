@@ -21,9 +21,13 @@ template <class T1, class T2> void GetTensorFromVectorRepresentation(const itk::
                                                                      vnl_matrix <T2> &tensor, unsigned int tensDim = 0,
                                                                      bool scale = false);
 
-template <typename PixelRawType, unsigned int ImageDimension>
-void ExtractRotationFromMatrixTransform(itk::MatrixOffsetTransformBase <PixelRawType,ImageDimension,ImageDimension> *trsf,
-                                        vnl_matrix <double> &rotationMatrix, vnl_matrix <double> &tmpMat);
+template <typename RealType>
+void ExtractRotationFromJacobianMatrix(vnl_matrix <RealType> &jacobianMatrix, vnl_matrix <RealType> &rotationMatrix,
+                                       vnl_matrix <RealType> &tmpMat);
+
+template <typename RealType, typename MatrixType>
+void ExtractPPDRotationFromJacobianMatrix(vnl_matrix <RealType> &jacobianMatrix, vnl_matrix <RealType> &rotationMatrix,
+                                          MatrixType &eigenVectors);
 
 //! Recompose tensor from values extracted using SymmetricEigenAnalysis (vnl_symmetric_eigensystem transposes all this)
 template <class T1, class T2>

@@ -1,5 +1,5 @@
 #pragma once
-#include <animaFiniteStrainODFResampleImageFilter.h>
+#include <animaODFResampleImageFilter.h>
 
 #include <animaODFFunctions.h>
 
@@ -8,9 +8,12 @@ namespace anima
 
 template <typename TImageType, typename TInterpolatorPrecisionType>
 void
-FiniteStrainODFResampleImageFilter<TImageType, TInterpolatorPrecisionType>
+ODFResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 ::BeforeThreadedGenerateData()
 {
+    if (!this->GetFiniteStrainReorientation())
+        itkExceptionMacro("ODF resampling only supports finite strain re-orientation");
+
     this->Superclass::BeforeThreadedGenerateData();
 
     unsigned int vectorSize = this->GetInput(0)->GetNumberOfComponentsPerPixel();
@@ -25,11 +28,11 @@ FiniteStrainODFResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 
 template <typename TImageType, typename TInterpolatorPrecisionType>
 void
-FiniteStrainODFResampleImageFilter<TImageType, TInterpolatorPrecisionType>
-::RotateInterpolatedModel(const InputPixelType &interpolatedModel, vnl_matrix <double> &modelRotationMatrix,
+ODFResampleImageFilter<TImageType, TInterpolatorPrecisionType>
+::ReorientInterpolatedModel(const InputPixelType &interpolatedModel, vnl_matrix <double> &modelOrientationMatrix,
                           InputPixelType &rotatedModel, itk::ThreadIdType threadId)
 {
-    anima::GetEulerAnglesFromRotationMatrix(modelRotationMatrix,m_EulerAngles[threadId]);
+    anima::GetEulerAnglesFromRotationMatrix(modelOrientationMatrix,m_EulerAngles[threadId]);
     rotatedModel = interpolatedModel;
 
     for (unsigned int l = 2;l <= m_LOrder;l += 2)

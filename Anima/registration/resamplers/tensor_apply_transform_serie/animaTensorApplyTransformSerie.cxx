@@ -7,7 +7,7 @@
 #include <itkNearestNeighborInterpolateImageFunction.h>
 #include <animaVectorModelLinearInterpolateImageFunction.h>
 
-#include <animaFiniteStrainTensorResampleImageFilter.h>
+#include <animaTensorResampleImageFilter.h>
 #include <animaLogTensorImageFilter.h>
 #include <animaExpTensorImageFilter.h>
 
@@ -34,6 +34,7 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<std::string> outArg("o","output","Output resampled image",true,"","output image",cmd);
     TCLAP::ValueArg<std::string> geomArg("g","geometry","Geometry image",true,"","geometry image",cmd);
 
+    TCLAP::SwitchArg ppdArg("P","ppd","Use PPD re-orientation scheme (default: no)",cmd,false);
     TCLAP::SwitchArg invertArg("I","invert","Invert the transformation series",cmd,false);
     TCLAP::SwitchArg nearestArg("N","nearest","Use nearest neighbor interpolation",cmd,false);
 
@@ -90,11 +91,12 @@ int main(int ac, const char** av)
     else
         interpolator = anima::VectorModelLinearInterpolateImageFunction<ImageType>::New();
 
-    typedef anima::FiniteStrainTensorResampleImageFilter <ImageType, double> ResampleFilterType;
+    typedef anima::TensorResampleImageFilter <ImageType, double> ResampleFilterType;
 
     ResampleFilterType::Pointer resample = ResampleFilterType::New();
 
     resample->SetTransform(trsf);
+    resample->SetFiniteStrainReorientation(!ppdArg.isSet());
     resample->SetInterpolator(interpolator.GetPointer());
     resample->SetNumberOfThreads(nbpArg.getValue());
 

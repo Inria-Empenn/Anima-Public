@@ -7,7 +7,7 @@
 #include <animaKissingSymmetricBMRegistrationMethod.h>
 
 #include <itkVectorResampleImageFilter.h>
-#include <animaFiniteStrainTensorResampleImageFilter.h>
+#include <animaTensorResampleImageFilter.h>
 
 #include <animaLogTensorImageFilter.h>
 #include <animaExpTensorImageFilter.h>
@@ -36,6 +36,8 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::PyramidalDenseTensorSVFMa
     m_StDevThreshold = 5;
 
     m_SymmetryType = Asymmetric;
+    m_MetricOrientation = FiniteStrain;
+    m_FiniteStrainImageReorientation = true;
     m_Transform = Translation;
     m_Metric = TensorOrientedGeneralizedCorrelation;
     m_Optimizer = Bobyqa;
@@ -216,7 +218,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
 
         m_bmreg->SetSVFElasticRegSigma(m_ElasticSigma * meanSpacing);
 
-        typedef typename anima::FiniteStrainTensorResampleImageFilter <InputImageType,typename BaseAgregatorType::ScalarType> ResampleFilterType;
+        typedef typename anima::TensorResampleImageFilter <InputImageType,typename BaseAgregatorType::ScalarType> ResampleFilterType;
 
         typename ResampleFilterType::Pointer refResampler = ResampleFilterType::New();
         refResampler->SetOutputLargestPossibleRegion(floImage->GetLargestPossibleRegion());
@@ -224,6 +226,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
         refResampler->SetOutputSpacing(floImage->GetSpacing());
         refResampler->SetOutputDirection(floImage->GetDirection());
         refResampler->SetNumberOfThreads(GetNumberOfThreads());
+        refResampler->SetFiniteStrainReorientation(this->GetFiniteStrainImageReorientation());
         m_bmreg->SetReferenceImageResampler(refResampler);
 
         typename ResampleFilterType::Pointer movingResampler = ResampleFilterType::New();
@@ -232,6 +235,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
         movingResampler->SetOutputSpacing(refImage->GetSpacing());
         movingResampler->SetOutputDirection(refImage->GetDirection());
         movingResampler->SetNumberOfThreads(GetNumberOfThreads());
+        movingResampler->SetFiniteStrainReorientation(this->GetFiniteStrainImageReorientation());
         m_bmreg->SetMovingImageResampler(movingResampler);
 
         switch (GetTransform())
@@ -292,6 +296,26 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
                 mainMatcher->SetSimilarityType(BlockMatcherType::TensorMeanSquares);
                 if (reverseMatcher)
                     reverseMatcher->SetSimilarityType(BlockMatcherType::TensorMeanSquares);
+                break;
+        }
+
+        switch (m_MetricOrientation)
+        {
+            case None:
+                mainMatcher->SetModelRotationType(BlockMatcherType::None);
+                if (reverseMatcher)
+                    reverseMatcher->SetModelRotationType(BlockMatcherType::None);
+                break;
+            case PPD:
+                mainMatcher->SetModelRotationType(BlockMatcherType::PPD);
+                if (reverseMatcher)
+                    reverseMatcher->SetModelRotationType(BlockMatcherType::PPD);
+                break;
+            case FiniteStrain:
+            default:
+                mainMatcher->SetModelRotationType(BlockMatcherType::FiniteStrain);
+                if (reverseMatcher)
+                    reverseMatcher->SetModelRotationType(BlockMatcherType::FiniteStrain);
                 break;
         }
 
@@ -387,7 +411,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
     DisplacementFieldTransformPointer outputDispTrsf = DisplacementFieldTransformType::New();
     anima::GetSVFExponential(m_OutputTransform.GetPointer(), outputDispTrsf.GetPointer(), false);
 
-    typedef typename anima::FiniteStrainTensorResampleImageFilter <InputImageType, typename BaseAgregatorType::ScalarType> ResampleFilterType;
+    typedef typename anima::TensorResampleImageFilter <InputImageType, typename BaseAgregatorType::ScalarType> ResampleFilterType;
     typename ResampleFilterType::Pointer tmpResample = ResampleFilterType::New();
 
     typedef itk::Transform<typename BaseAgregatorType::ScalarType,ImageDimension,ImageDimension> BaseTransformType;
@@ -450,7 +474,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::SetupPyramids()
     if (this->GetNumberOfThreads() != 0)
         m_ReferencePyramid->SetNumberOfThreads(this->GetNumberOfThreads());
 
-    typedef typename anima::FiniteStrainTensorResampleImageFilter <InputImageType,typename BaseAgregatorType::ScalarType> ResampleFilterType;
+    typedef typename anima::TensorResampleImageFilter <InputImageType,typename BaseAgregatorType::ScalarType> ResampleFilterType;
 
     typename ResampleFilterType::Pointer refResampler = ResampleFilterType::New();
     m_ReferencePyramid->SetImageResampler(refResampler);

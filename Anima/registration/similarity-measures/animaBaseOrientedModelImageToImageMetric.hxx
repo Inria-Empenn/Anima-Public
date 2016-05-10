@@ -17,7 +17,8 @@ BaseOrientedModelImageToImageMetric<TFixedImage,TMovingImage>
     m_Interpolator  = 0; // has to be provided by the user.
     m_NumberOfPixelsCounted = 0; // initialize to zero
 
-    m_RotateModel = true;
+    m_ModelRotation = FINITE_STRAIN;
+    m_OrientationMatrix.set_size(FixedImageDimension,FixedImageDimension);
 }
 
 /**
@@ -44,6 +45,21 @@ BaseOrientedModelImageToImageMetric<TFixedImage,TMovingImage>
         itkExceptionMacro(<<"Transform has not been assigned");
     }
     m_Transform->SetParameters( parameters );
+
+    if (m_ModelRotation != NONE)
+    {
+        typedef itk::MatrixOffsetTransformBase <CoordinateRepresentationType, FixedImageDimension, FixedImageDimension> BaseTransformType;
+        BaseTransformType *currentTrsf = dynamic_cast<BaseTransformType *> (this->m_Transform.GetPointer());
+        vnl_matrix <double> jacMatrix = currentTrsf->GetMatrix().GetVnlMatrix().as_matrix();
+
+        if (m_ModelRotation == FINITE_STRAIN)
+        {
+            vnl_matrix <double> tmpMat(FixedImageDimension, FixedImageDimension);
+            anima::ExtractRotationFromJacobianMatrix(jacMatrix,m_OrientationMatrix,tmpMat);
+        }
+        else
+            m_OrientationMatrix = jacMatrix;
+    }
 }
 
 

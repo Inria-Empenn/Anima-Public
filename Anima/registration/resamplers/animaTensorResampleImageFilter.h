@@ -6,12 +6,12 @@ namespace anima
 {
 
 template <typename TImageType, typename TInterpolatorPrecisionType=float>
-class FiniteStrainTensorResampleImageFilter :
+class TensorResampleImageFilter :
         public OrientedModelBaseResampleImageFilter <TImageType,TInterpolatorPrecisionType>
 {
 public:
     /** Standard class typedefs. */
-    typedef FiniteStrainTensorResampleImageFilter Self;
+    typedef TensorResampleImageFilter Self;
 
     typedef OrientedModelBaseResampleImageFilter <TImageType,TInterpolatorPrecisionType> Superclass;
     typedef itk::SmartPointer<Self> Pointer;
@@ -22,26 +22,26 @@ public:
     itkStaticConstMacro(ImageDimension, unsigned int,InputImageType::ImageDimension);
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(FiniteStrainTensorResampleImageFilter, OrientedModelBaseResampleImageFilter);
+    itkTypeMacro(TensorResampleImageFilter, OrientedModelBaseResampleImageFilter)
 
 protected:
-    FiniteStrainTensorResampleImageFilter()
+    TensorResampleImageFilter()
     {
         m_VectorSize = ImageDimension * (ImageDimension + 1) / 2;
         m_TensorDimension = ImageDimension;
     }
 
-    virtual ~FiniteStrainTensorResampleImageFilter() {}
+    virtual ~TensorResampleImageFilter() {}
 
     virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
-    virtual void RotateInterpolatedModel(const InputPixelType &interpolatedModel, vnl_matrix <double> &modelRotationMatrix,
-                                         InputPixelType &rotatedModel, itk::ThreadIdType threadId) ITK_OVERRIDE;
+    virtual void ReorientInterpolatedModel(const InputPixelType &interpolatedModel, vnl_matrix <double> &modelOrientationMatrix,
+                                           InputPixelType &rotatedModel, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
-    FiniteStrainTensorResampleImageFilter(const Self&); //purposely not implemented
+    TensorResampleImageFilter(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
 
     unsigned int m_VectorSize;
@@ -50,8 +50,13 @@ private:
     // Work variables
     std::vector < vnl_matrix <double> > m_WorkMats;
     std::vector < vnl_matrix <double> > m_TmpTensors;
+
+    // Work vars for PPD
+    std::vector < vnl_vector_fixed <double, 3> > m_WorkEigenValues;
+    std::vector < itk::Matrix <double, 3, 3> > m_WorkEigenVectors;
+    std::vector < vnl_matrix <double> > m_WorkPPDOrientationMatrices;
 };
 
 } // end namespace anima
 
-#include "animaFiniteStrainTensorResampleImageFilter.hxx"
+#include "animaTensorResampleImageFilter.hxx"

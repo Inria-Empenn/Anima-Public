@@ -6,7 +6,7 @@
 
 int main(int ac, const char** av)
 {
-    const    unsigned int    Dimension = 3;
+    const unsigned int Dimension = 3;
     typedef anima::PyramidalDenseTensorSVFMatchingBridge <Dimension> PyramidBMType;
     typedef PyramidBMType::InputImageType InputImageType;
     typedef InputImageType::InternalPixelType InputInternalPixelType;
@@ -20,6 +20,7 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<std::string> movingArg("m","movingimage","Moving image",true,"","moving image",cmd);
     TCLAP::ValueArg<std::string> outArg("o","outputimage","Output (registered) image",true,"","output image",cmd);
     TCLAP::ValueArg<std::string> outputTransformArg("O","outtransform","Output transformation",false,"","output transform",cmd);
+    TCLAP::SwitchArg ppdImageArg("P","ppd", "Re-orientation strategy set to preservation of principal direction (default: finite strain)", cmd, false);
 
     TCLAP::ValueArg<unsigned int> blockSizeArg("","bs","Block size (default: 5)",false,5,"block size",cmd);
     TCLAP::ValueArg<unsigned int> blockSpacingArg("","sp","Block spacing (default: 2)",false,2,"block spacing",cmd);
@@ -28,6 +29,7 @@ int main(int ac, const char** av)
 
     TCLAP::ValueArg<unsigned int> blockTransfoArg("t","in-transform","Transformation computed between blocks (0: translation, 1: rigid, 2: affine, default: 0)",false,0,"transformation between blocks",cmd);
     TCLAP::ValueArg<unsigned int> blockMetricArg("","metric","Similarity metric between blocks (0: mean squares, 1: tensor correlation, 2: tensor generalized correlation, 3: tensor oriented generalized correlation, default: 3)",false,3,"similarity metric",cmd);
+    TCLAP::ValueArg<unsigned int> blockOrientationArg("","bor","Re-orientation strategy when matching blocks (0: none, 1: finite strain, 2: PPD, default: 1)",false,1,"block re-orientation",cmd);
     TCLAP::ValueArg<unsigned int> optimizerArg("","opt","Optimizer for optimal block search (0: Exhaustive, 1: Bobyqa, default: 1)",false,1,"optimizer",cmd);
 
     TCLAP::ValueArg<unsigned int> maxIterationsArg("","mi","Maximum block match iterations (default: 10)",false,10,"maximum iterations",cmd);
@@ -115,6 +117,8 @@ int main(int ac, const char** av)
     matcher->SetStDevThreshold( stdevThresholdArg.getValue() );
     matcher->SetTransform( (Transform) blockTransfoArg.getValue() );
     matcher->SetMetric( (Metric) blockMetricArg.getValue() );
+    matcher->SetMetricOrientation( (MetricOrientationType) blockOrientationArg.getValue() );
+    matcher->SetFiniteStrainImageReorientation(!ppdImageArg.isSet());
     matcher->SetOptimizer( (Optimizer) optimizerArg.getValue() );
     matcher->SetMaximumIterations( maxIterationsArg.getValue() );
     matcher->SetMinimalTransformError( minErrorArg.getValue() );
