@@ -1,6 +1,8 @@
 #pragma once
 #include "animaBaseOrientedModelImageToImageMetric.h"
 
+#include <animaBaseTensorTools.h>
+
 namespace anima
 {
 

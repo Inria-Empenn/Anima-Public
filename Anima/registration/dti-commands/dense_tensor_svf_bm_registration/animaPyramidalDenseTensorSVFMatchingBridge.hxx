@@ -417,6 +417,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
     typedef itk::Transform<typename BaseAgregatorType::ScalarType,ImageDimension,ImageDimension> BaseTransformType;
     typename BaseTransformType::Pointer baseTrsf = outputDispTrsf.GetPointer();
     tmpResample->SetTransform(baseTrsf);
+    tmpResample->SetFiniteStrainReorientation(this->GetFiniteStrainImageReorientation());
     tmpResample->SetInput(m_FloatingImage);
 
     if (this->GetNumberOfThreads() != 0)
@@ -477,6 +478,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::SetupPyramids()
     typedef typename anima::TensorResampleImageFilter <InputImageType,typename BaseAgregatorType::ScalarType> ResampleFilterType;
 
     typename ResampleFilterType::Pointer refResampler = ResampleFilterType::New();
+    refResampler->SetFiniteStrainReorientation(this->GetFiniteStrainImageReorientation());
     m_ReferencePyramid->SetImageResampler(refResampler);
 
     m_ReferencePyramid->Update();
@@ -491,6 +493,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::SetupPyramids()
         m_FloatingPyramid->SetNumberOfThreads(this->GetNumberOfThreads());
 
     typename ResampleFilterType::Pointer floResampler = ResampleFilterType::New();
+    floResampler->SetFiniteStrainReorientation(this->GetFiniteStrainImageReorientation());
     m_FloatingPyramid->SetImageResampler(floResampler);
 
     m_FloatingPyramid->Update();
