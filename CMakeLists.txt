@@ -20,7 +20,7 @@ option(USE_NLOPT "Build NLOPT dependencies" ON)
 option(BUILD_ANIMA_TOOLS "Build ANIMA tools" ON)
 option(BUILD_ANIMA_TESTING "Build ANIMA testing executables" OFF)
 option(BUILD_ANIMA_DOCUMENTATION "Build ANIMA doxygen" OFF)
-option(USE_ANIMA_PRIVATE "Use ANIMA private part, requires authorized access" OFF)
+option(USE_ANIMA_PRIVATE "Use ANIMA private part, requires authorized access" ON)
 
 # Use github SSH connection or https ?
 

@@ -61,6 +61,8 @@ public:
     typedef typename BinaryImageToLabelMapFilterType::OutputImageType TOutputMap;
     typedef itk::LabelMapToLabelImageFilter<TOutputMap, ImageTypeInt> LabelMapToLabelImageFilterType;
 
+    typedef itk::LabelMapToLabelImageFilter<TOutputMap, OutputImageType> LabelMapToLabelTOutImageFilterType;
+
     /** The mri images.*/
     void SetInputImageSeg(const TInput* image);
 

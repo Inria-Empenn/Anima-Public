@@ -26,7 +26,6 @@ target_link_libraries(${PROJECT_NAME}
   ITKIOCSV
   )
 
-
 ################################################################################
 # Auto generate the export file for the libs
 ################################################################################
@@ -49,3 +48,47 @@ set_lib_install_rules(${PROJECT_NAME})
 
 add_subdirectory(graph_cut)
 add_subdirectory(gc_strem_ms_lesions_segmentation)
+
+
+
+
+if(BUILD_TOOLS)
+
+project(animaRemoveTouchingBorder)
+
+## #############################################################################
+## List Sources
+## #############################################################################
+
+list_source_files(${PROJECT_NAME}
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  )
+
+## #############################################################################
+## add executable
+## #############################################################################
+
+add_executable(${PROJECT_NAME}
+  ${${PROJECT_NAME}_CFILES}
+  )
+
+
+## #############################################################################
+## Link
+## #############################################################################
+
+target_link_libraries(${PROJECT_NAME}
+  ${ITKIO_LIBRARIES}
+  ${ITK_TRANSFORM_LIBRARIES}
+  AnimaGraphCutSegmentation
+  AnimaOptimizers
+  ITKOptimizers
+  )
+
+## #############################################################################
+## install
+## #############################################################################
+
+set_exe_install_rules(${PROJECT_NAME})
+
+endif()
