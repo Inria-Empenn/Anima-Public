@@ -38,7 +38,7 @@ namespace anima
 	itk::DataObject::Pointer output;
 
 	switch ( idx )
-	    {
+	{
 	    case 0:
 		output = ( TOutput::New() ).GetPointer();
 		break;
@@ -49,7 +49,7 @@ namespace anima
 		std::cerr << "No output " << idx << std::endl;
 		output = NULL;
 		break;
-	    }
+	}
 	return output.GetPointer();
     }
 
@@ -71,16 +71,16 @@ namespace anima
     WriteOutputs()
     {
 	if( m_OutputNonTouchingBorderFilename != "" )
-	    {
-		std::cout << "Writing output non touching border image to: " << m_OutputNonTouchingBorderFilename << std::endl;
-		anima::writeImage<TOutput>(m_OutputNonTouchingBorderFilename, this->GetOutputNonTouchingBorder());
-	    }
+	{
+	    std::cout << "Writing output non touching border image to: " << m_OutputNonTouchingBorderFilename << std::endl;
+	    anima::writeImage<TOutput>(m_OutputNonTouchingBorderFilename, this->GetOutputNonTouchingBorder());
+	}
 
 	if( m_OutputTouchingBorderFilename != "" )
-	    {
-		std::cout << "Writing output touching border image to: " << m_OutputTouchingBorderFilename << std::endl;
-		anima::writeImage<TOutput>(m_OutputTouchingBorderFilename, this->GetOutputTouchingBorder());
-	    }
+	{
+	    std::cout << "Writing output touching border image to: " << m_OutputTouchingBorderFilename << std::endl;
+	    anima::writeImage<TOutput>(m_OutputTouchingBorderFilename, this->GetOutputTouchingBorder());
+	}
     }
 
     template<typename TInput, typename TMask, typename TOutput>
@@ -99,14 +99,14 @@ namespace anima
 	InputConstIteratorType maskSegIt(this->GetInputImageSeg(), this->GetInputImageSeg()->GetLargestPossibleRegion() );
 
 	while(!maskSegIt.IsAtEnd())
+	{
+	    if( maskSegIt.Get()!=0 )
 	    {
-		if( maskSegIt.Get()!=0 )
-		    {
-			InputImageSegIt.Set(255);
-		    }
-		++maskSegIt;
-		++InputImageSegIt;
+		InputImageSegIt.Set(255);
 	    }
+	    ++maskSegIt;
+	    ++InputImageSegIt;
+	}
 
 	// --------------------------- Lesions
 	// Create the labeled image of the input segmentation
@@ -154,26 +154,26 @@ namespace anima
 	std::vector<int> labelsToRemove;
 	std::vector<int>::iterator it;
 	while(!maskContourIt.IsAtEnd())
+	{
+	    if( maskContourIt.Get()!=0 && segLabelIt.Get()!=0)
 	    {
-		if( maskContourIt.Get()!=0 && segLabelIt.Get()!=0)
-		    {
-			it = find (labelsToRemove.begin(), labelsToRemove.end(), segLabelIt.Get());
-			if (it == labelsToRemove.end())
-			    {
-				labelsToRemove.push_back( segLabelIt.Get() );
-				m_labelsToRemove.push_back( segLabelIt.Get() );
-			    }
-		    }
-		++maskContourIt;
-		++segLabelIt;
+		it = find (labelsToRemove.begin(), labelsToRemove.end(), segLabelIt.Get());
+		if (it == labelsToRemove.end())
+		{
+		    labelsToRemove.push_back( segLabelIt.Get() );
+		    m_labelsToRemove.push_back( segLabelIt.Get() );
+		}
 	    }
+	    ++maskContourIt;
+	    ++segLabelIt;
+	}
 
 
 	// Remove all regions that were marked for removal.
 	for(unsigned int i = 0; i < labelsToRemove.size(); ++i)
-	    {
-		binaryImageToLabelMapFilter->GetOutput()->RemoveLabel(labelsToRemove[i]);
-	    }
+	{
+	    binaryImageToLabelMapFilter->GetOutput()->RemoveLabel(labelsToRemove[i]);
+	}
 
 	// Convert a LabelMap to a normal image with different values representing each region
 	typename LabelMapToLabelImageFilterType::Pointer labelMapToLabelImageFilter2 = LabelMapToLabelImageFilterType::New();
@@ -203,209 +203,30 @@ namespace anima
 	OutputIteratorType out2It (output2, output2->GetLargestPossibleRegion() );
 
 	while(!maskIt.IsAtEnd())
+	{
+	    if( segIt.Get()!=0)
 	    {
-		if( segIt.Get()!=0)
-		    {
-			outIt.Set(1);
-		    }
-		if( (segIt.Get()==0) && (maskSegIt.Get()!=0))
-		    {
-			out2It.Set(1);
-		    }
-		++maskIt;
-		++segIt;
-		++outIt;
-		++out2It;
-		++maskSegIt;
+		outIt.Set(1);
 	    }
+	    if( (segIt.Get()==0) && (maskSegIt.Get()!=0))
+	    {
+		out2It.Set(1);
+	    }
+	    ++maskIt;
+	    ++segIt;
+	    ++outIt;
+	    ++out2It;
+	    ++maskSegIt;
+	}
 
 	if ( m_Verbose )
-	    {
-		std::cout << " -- Rule to erase objects touching mask border: " << std::endl;
-		std::cout << "    * Intial number of objects: " << originalNumberOfObject << std::endl;
-		std::cout << "    * Number of rejected objects: " << labelsToRemove.size()  << std::endl;
-		std::cout << "    * Number of objects after clean: " << binaryImageToLabelMapFilter->GetOutput()->GetNumberOfLabelObjects() << std::endl;
-		std::cout << std::endl;
-	    }
+	{
+	    std::cout << " -- Rule to erase objects touching mask border: " << std::endl;
+	    std::cout << "    * Intial number of objects: " << originalNumberOfObject << std::endl;
+	    std::cout << "    * Number of rejected objects: " << labelsToRemove.size()  << std::endl;
+	    std::cout << "    * Number of objects after clean: " << binaryImageToLabelMapFilter->GetOutput()->GetNumberOfLabelObjects() << std::endl;
+	    std::cout << std::endl;
+	}
 
     }
-  
-// template<typename TInput, typename TMask, typename TOutput>
-// void
-// RemoveTouchingBorderFilter< TInput, TMask, TOutput >::
-// GenerateData()
-// {
-//     InputImagePointer InputImageSeg = InputImageType::New();
-//     InputImageSeg->SetRegions(this->GetInputImageSeg()->GetLargestPossibleRegion());
-//     InputImageSeg->CopyInformation(this->GetInputImageSeg());
-//     InputImageSeg->Allocate();
-//     InputImageSeg->FillBuffer(0);
-
-//     // Find labels overlaping mask border
-//     InputIteratorType InputImageSegIt(InputImageSeg, InputImageSeg->GetLargestPossibleRegion() );
-//     InputConstIteratorType maskSegIt(this->GetInputImageSeg(), this->GetInputImageSeg()->GetLargestPossibleRegion() );
-
-//     while(!maskSegIt.IsAtEnd())
-//     {
-//         if( maskSegIt.Get()!=0 )
-//         {
-//             InputImageSegIt.Set(255);
-//         }
-//         ++maskSegIt;
-//         ++InputImageSegIt;
-//     }
-    
-//     // --------------------------- Lesions
-//     // Create the labeled images of the input segmentation
-//     typename BinaryImageToLabelMapFilterType::Pointer binaryImageToLabelTouchingMapFilter = BinaryImageToLabelMapFilterType::New();
-//     binaryImageToLabelTouchingMapFilter->SetInput( InputImageSeg );
-//     binaryImageToLabelTouchingMapFilter->SetNumberOfThreads(this->GetNumberOfThreads());
-//     binaryImageToLabelTouchingMapFilter->SetCoordinateTolerance(m_Tol);
-//     binaryImageToLabelTouchingMapFilter->SetDirectionTolerance(m_Tol);
-//     binaryImageToLabelTouchingMapFilter->Update(); // The output of this filter is an itk::LabelMap, which contains itk::LabelObject's
-//     int originalNumberOfObject = binaryImageToLabelTouchingMapFilter->GetOutput()->GetNumberOfLabelObjects() ;
-
-    
-//     typename BinaryImageToLabelMapFilterType::Pointer binaryImageToLabelNonTouchingMapFilter = BinaryImageToLabelMapFilterType::New(); 
-//     binaryImageToLabelNonTouchingMapFilter->SetInput( InputImageSeg );
-//     binaryImageToLabelNonTouchingMapFilter->SetNumberOfThreads(this->GetNumberOfThreads());
-//     binaryImageToLabelNonTouchingMapFilter->SetCoordinateTolerance(m_Tol);
-//     binaryImageToLabelNonTouchingMapFilter->SetDirectionTolerance(m_Tol);
-//     binaryImageToLabelNonTouchingMapFilter->Update(); // The output of this filter is an itk::LabelMap, which contains itk::LabelObject's
-
-
-//     // Convert a LabelMap to a normal image with different values representing each region
-//     typename LabelMapToLabelImageFilterType::Pointer labelMapToLabelImageFilter = LabelMapToLabelImageFilterType::New();
-//     labelMapToLabelImageFilter->SetInput( binaryImageToLabelTouchingMapFilter->GetOutput() );
-//     labelMapToLabelImageFilter->SetNumberOfThreads(this->GetNumberOfThreads());
-//     labelMapToLabelImageFilter->SetCoordinateTolerance(m_Tol);
-//     labelMapToLabelImageFilter->SetDirectionTolerance(m_Tol);
-//     labelMapToLabelImageFilter->Update();
-
-//     // ------------------------------------- Mask bordure
-//     // Get envelop of the mask
-//     // Generate connected components
-//     typedef itk::ConnectedComponentImageFilter <TMask, ImageTypeInt > ConnectedComponentImageFilterType;
-//     typename ConnectedComponentImageFilterType::Pointer connectedComponentImageFilter  = ConnectedComponentImageFilterType::New();
-//     connectedComponentImageFilter->SetInput( this->GetMask() );
-//     connectedComponentImageFilter->SetNumberOfThreads(this->GetNumberOfThreads());
-//     connectedComponentImageFilter->SetCoordinateTolerance(m_Tol);
-//     connectedComponentImageFilter->SetDirectionTolerance(m_Tol);
-
-//     // Generate contours for each component
-//     typedef itk::LabelContourImageFilter<ImageTypeInt, ImageTypeInt> LabelContourImageFilterType;
-//     LabelContourImageFilterType::Pointer labelContourImageFilter = LabelContourImageFilterType::New();
-//     labelContourImageFilter->SetInput( connectedComponentImageFilter->GetOutput() );
-//     labelContourImageFilter->SetFullyConnected(true);
-//     labelContourImageFilter->SetNumberOfThreads(this->GetNumberOfThreads());
-//     labelContourImageFilter->SetCoordinateTolerance(m_Tol);
-//     labelContourImageFilter->SetDirectionTolerance(m_Tol);
-//     labelContourImageFilter->Update();
-
-//     // Find labels overlaping mask border
-//     ImageIteratorTypeInt maskContourIt (labelContourImageFilter->GetOutput(), labelContourImageFilter->GetOutput()->GetLargestPossibleRegion() );
-//     ImageIteratorTypeInt segLabelIt (labelMapToLabelImageFilter->GetOutput(), labelMapToLabelImageFilter->GetOutput()->GetLargestPossibleRegion() );
-
-//     std::vector<int> labelsTouching;
-//     std::vector<int> labelsNonTouching;
-//     std::vector<int>::iterator it;
-//     while(!maskContourIt.IsAtEnd())
-//     {
-//         if( maskContourIt.Get()!=0 && segLabelIt.Get()!=0)
-//         {
-//             it = find (labelsTouching.begin(), labelsTouching.end(), segLabelIt.Get());
-//             if (it == labelsTouching.end())
-//             {
-//                 labelsTouching.push_back( segLabelIt.Get() );
-//             }
-//         }
-// 	else if( segLabelIt.Get()!=0)
-//         {
-//             it = find (labelsNonTouching.begin(), labelsNonTouching.end(), segLabelIt.Get());
-//             if (it == labelsNonTouching.end())
-//             {
-//                 labelsNonTouching.push_back( segLabelIt.Get() );
-//             }
-//         }
-//         ++maskContourIt;
-//         ++segLabelIt;
-//     }
-
-
-//     // Remove all regions that were marked for removal.
-//     for(unsigned int i = 0; i < labelsTouching.size(); i++)
-//     {
-//       binaryImageToLabelNonTouchingMapFilter->GetOutput()->RemoveLabel(labelsTouching[i]);
-//     }
-    
-//     for(unsigned int i = 0; i < labelsNonTouching.size(); i++)
-//     {
-//       binaryImageToLabelTouchingMapFilter->GetOutput()->RemoveLabel(labelsNonTouching[i]);
-//     }
-    
-//     // Convert a LabelMap to an output image 
-//     typename LabelMapToLabelTOutImageFilterType::Pointer labelMapToLabelTOutTouchingImageFilter = LabelMapToLabelTOutImageFilterType::New();
-//     labelMapToLabelTOutTouchingImageFilter->SetInput( binaryImageToLabelTouchingMapFilter->GetOutput() );
-//     labelMapToLabelTOutTouchingImageFilter->SetNumberOfThreads(this->GetNumberOfThreads());
-//     labelMapToLabelTOutTouchingImageFilter->SetCoordinateTolerance(m_Tol);
-//     labelMapToLabelTOutTouchingImageFilter->SetDirectionTolerance(m_Tol);
-//     labelMapToLabelTOutTouchingImageFilter->Update();
-    
-//     typename LabelMapToLabelTOutImageFilterType::Pointer labelMapToLabelTOutNonTouchingImageFilter = LabelMapToLabelTOutImageFilterType::New();
-//     labelMapToLabelTOutNonTouchingImageFilter->SetInput( binaryImageToLabelNonTouchingMapFilter->GetOutput() );
-//     labelMapToLabelTOutNonTouchingImageFilter->SetNumberOfThreads(this->GetNumberOfThreads());
-//     labelMapToLabelTOutNonTouchingImageFilter->SetCoordinateTolerance(m_Tol);
-//     labelMapToLabelTOutNonTouchingImageFilter->SetDirectionTolerance(m_Tol);
-//     labelMapToLabelTOutNonTouchingImageFilter->Update();
-    
-//     OutputImagePointer output = this->GetOutputTouchingBorder();
-//     output->SetRegions(labelMapToLabelTOutTouchingImageFilter->GetOutput()->GetLargestPossibleRegion());
-//     output->CopyInformation(labelMapToLabelTOutTouchingImageFilter->GetOutput());
-//     output->Allocate();
-//     output->FillBuffer(0);
-
-//     InputIteratorType outputTouchingBorderIt(output, output->GetLargestPossibleRegion() );
-//     InputConstIteratorType maskOutputTouchingBorderIt(labelMapToLabelTOutTouchingImageFilter->GetOutput(),labelMapToLabelTOutTouchingImageFilter->GetOutput()->GetLargestPossibleRegion());
-
-//     while(!maskOutputTouchingBorderIt.IsAtEnd())
-//     {
-//         if( maskOutputTouchingBorderIt.Get()!=0 )
-//         {
-//             outputTouchingBorderIt.Set(1);
-//         }
-//         ++maskOutputTouchingBorderIt;
-//         ++outputTouchingBorderIt;
-//     }
-
-//     OutputImagePointer output2 = this->GetOutputNonTouchingBorder();
-//     output2->SetRegions(labelMapToLabelTOutNonTouchingImageFilter->GetOutput()->GetLargestPossibleRegion());
-//     output2->CopyInformation(labelMapToLabelTOutNonTouchingImageFilter->GetOutput());
-//     output2->Allocate();
-//     output2->FillBuffer(0);
-
-//     InputIteratorType outputNonTouchingBorderIt(output2, output2->GetLargestPossibleRegion() );
-//     InputConstIteratorType maskOutputNonTouchingBorderIt(labelMapToLabelTOutNonTouchingImageFilter->GetOutput(),labelMapToLabelTOutNonTouchingImageFilter->GetOutput()->GetLargestPossibleRegion());
-
-//     while(!maskOutputNonTouchingBorderIt.IsAtEnd())
-//     {
-//         if( maskOutputNonTouchingBorderIt.Get()!=0 )
-//         {
-//             outputNonTouchingBorderIt.Set(1);
-//         }
-//         ++maskOutputNonTouchingBorderIt;
-//         ++outputNonTouchingBorderIt;
-//     }
-    
-//     if ( m_Verbose )
-//     {
-//         std::cout << " -- Rule to erase objects touching mask border: " << std::endl;
-//         std::cout << "    * Intial number of objects: " << originalNumberOfObject << std::endl;
-//         std::cout << "    * Number of rejected objects: " << labelsTouching.size()  << std::endl;
-//         std::cout << "    * Number of objects after clean: " << binaryImageToLabelNonTouchingMapFilter->GetOutput()->GetNumberOfLabelObjects() << std::endl;
-//         std::cout << std::endl;
-//     }
-
-// }
-
-
 } //end of namespace anima

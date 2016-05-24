@@ -28,30 +28,30 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<double> tolArg("","tol","Filter tolerance (default: 0.0001)",false,0.0001,"filter tolerance",cmd);
 
     try
-	{
-	    cmd.parse(argc,argv);
-	}
+    {
+	cmd.parse(argc,argv);
+    }
     catch (TCLAP::ArgException& e)
-	{
-	    std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-	    return(1);
-	}
+    {
+	std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
+	return(1);
+    }
 
     FilterTypeSeg::Pointer segFilter = FilterTypeSeg::New();
 
     if( inArg.getValue()!="" )
-	{
-	    segFilter->SetInputImageSeg( anima::readImage<InputImageTypeUC>( inArg.getValue() ) );
-	}
+    {
+	segFilter->SetInputImageSeg( anima::readImage<InputImageTypeUC>( inArg.getValue() ) );
+    }
 
     if( outArg.getValue()!="" )
-	{
-	    segFilter->SetOutputNonTouchingBorderFilename(outArg.getValue());
-	}
+    {
+	segFilter->SetOutputNonTouchingBorderFilename(outArg.getValue());
+    }
     if( maskFileArg.getValue()!="" )
-	{
-	    segFilter->SetMask( anima::readImage<InputImageTypeUC>( maskFileArg.getValue() ) );
-	}
+    {
+	segFilter->SetMask( anima::readImage<InputImageTypeUC>( maskFileArg.getValue() ) );
+    }
 
     // Set parameters
 
@@ -67,15 +67,15 @@ int main(int argc, const char** argv)
     timer.Start();
 
     try
-	{
-	    segFilter->Update();
-	    segFilter->WriteOutputs();
-	}
+    {
+	segFilter->Update();
+	segFilter->WriteOutputs();
+    }
     catch (itk::ExceptionObject &e)
-	{
-	    std::cerr << e << std::endl;
-	    return(1);
-	}
+    {
+	std::cerr << e << std::endl;
+	return(1);
+    }
 
     timer.Stop();
 
