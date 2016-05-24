@@ -7,7 +7,7 @@
 #include <itkNearestNeighborInterpolateImageFunction.h>
 #include <animaVectorModelLinearInterpolateImageFunction.h>
 
-#include <animaFiniteStrainTensorResampleImageFilter.h>
+#include <animaTensorResampleImageFilter.h>
 #include <animaLogTensorImageFilter.h>
 #include <animaExpTensorImageFilter.h>
 
@@ -34,6 +34,7 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<std::string> outArg("o","output","Output resampled image",true,"","output image",cmd);
     TCLAP::ValueArg<std::string> geomArg("g","geometry","Geometry image",true,"","geometry image",cmd);
 
+    TCLAP::SwitchArg ppdArg("P","ppd","Use PPD re-orientation scheme (default: no)",cmd,false);
     TCLAP::SwitchArg invertArg("I","invert","Invert the transformation series",cmd,false);
     TCLAP::SwitchArg nearestArg("N","nearest","Use nearest neighbor interpolation",cmd,false);
 
@@ -63,9 +64,18 @@ int main(int ac, const char** av)
     reader->SetFileName(inArg.getValue());
     reader->Update();
 
-    ReaderType::Pointer readerGeometry = ReaderType::New();
-    readerGeometry->SetFileName(geomArg.getValue());
-    readerGeometry->GenerateOutputInformation();
+    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(geomArg.getValue().c_str(),
+                                                                           itk::ImageIOFactory::ReadMode);
+
+    if( !imageIO )
+    {
+        std::cerr << "Itk could not find suitable IO factory for the input" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    // Now that we found the appropriate ImageIO class, ask it to read the meta data from the image file.
+    imageIO->SetFileName(geomArg.getValue());
+    imageIO->ReadImageInformation();
 
     TransformSeriesReaderType *trReader = new TransformSeriesReaderType;
     trReader->SetInput(trArg.getValue());
@@ -90,18 +100,35 @@ int main(int ac, const char** av)
     else
         interpolator = anima::VectorModelLinearInterpolateImageFunction<ImageType>::New();
 
-    typedef anima::FiniteStrainTensorResampleImageFilter <ImageType, double> ResampleFilterType;
+    typedef anima::TensorResampleImageFilter <ImageType, double> ResampleFilterType;
 
     ResampleFilterType::Pointer resample = ResampleFilterType::New();
 
     resample->SetTransform(trsf);
+    resample->SetFiniteStrainReorientation(!ppdArg.isSet());
     resample->SetInterpolator(interpolator.GetPointer());
     resample->SetNumberOfThreads(nbpArg.getValue());
 
-    resample->SetOutputLargestPossibleRegion(readerGeometry->GetOutput()->GetLargestPossibleRegion());
-    resample->SetOutputOrigin(readerGeometry->GetOutput()->GetOrigin());
-    resample->SetOutputSpacing(readerGeometry->GetOutput()->GetSpacing());
-    resample->SetOutputDirection(readerGeometry->GetOutput()->GetDirection());
+    ImageType::DirectionType directionMatrix;
+    ImageType::PointType origin;
+    ImageType::SpacingType spacing;
+    ImageType::RegionType largestRegion;
+
+    for (unsigned int i = 0;i < Dimension;++i)
+    {
+        origin[i] = imageIO->GetOrigin(i);
+        spacing[i] = imageIO->GetSpacing(i);
+        largestRegion.SetIndex(i,0);
+        largestRegion.SetSize(i,imageIO->GetDimensions(i));
+
+        for (unsigned int j = 0;j < Dimension;++j)
+            directionMatrix(i,j) = imageIO->GetDirection(j)[i];
+    }
+
+    resample->SetOutputLargestPossibleRegion(largestRegion);
+    resample->SetOutputOrigin(origin);
+    resample->SetOutputSpacing(spacing);
+    resample->SetOutputDirection(directionMatrix);
 
     typedef anima::LogTensorImageFilter <PixelType,Dimension> LogTensorFilterType;
     LogTensorFilterType::Pointer tensorLogger = LogTensorFilterType::New();

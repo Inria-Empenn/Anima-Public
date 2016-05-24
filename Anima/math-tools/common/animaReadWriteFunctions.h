@@ -83,22 +83,11 @@ setMultipleImageFilterInputsFromFileName(std::string &fileName,
     typedef itk::ImageFileReader <HigherDimImageType> HigherDimImageReaderType;
     typedef itk::ImageFileReader < InputImageType > ImageReaderType;
 
-    typename HigherDimImageReaderType::Pointer testingReader = HigherDimImageReaderType::New();
-    testingReader->SetFileName(fileName);
-
-    bool readingFail = false;
     unsigned int nbPats = 0;
 
-    try
-    {
-        testingReader->GenerateOutputInformation();
-    }
-    catch (...)
-    {
-        readingFail = true;
-    }
+    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(fileName.c_str(), itk::ImageIOFactory::ReadMode);
 
-    if (readingFail)
+    if( !imageIO ) // file list
     {
         std::ifstream fileIn(fileName.c_str());
         if (!fileIn.is_open())
@@ -131,10 +120,14 @@ setMultipleImageFilterInputsFromFileName(std::string &fileName,
 
         fileIn.close();
     }
-    else
+    else // N+1D image tentative
     {
+        // Now that we found the appropriate ImageIO class, ask it to read the meta data from the image file.
+        imageIO->SetFileName(fileName.c_str());
+        imageIO->ReadImageInformation();
+
         // Do we have a (N+1)D image ? If not, exiting, otherwise considering the last dimension as each input
-        unsigned int ndim = testingReader->GetImageIO()->GetNumberOfDimensions();
+        unsigned int ndim = imageIO->GetNumberOfDimensions();
 
         if (ndim != (InputImageType::ImageDimension + 1))
         {
@@ -144,10 +137,12 @@ setMultipleImageFilterInputsFromFileName(std::string &fileName,
             throw itk::ExceptionObject(__FILE__, __LINE__,errStr,ITK_LOCATION);
         }
 
-        testingReader->Update();
+        typename HigherDimImageReaderType::Pointer imageReader = HigherDimImageReaderType::New();
+        imageReader->SetImageIO(imageIO);
+        imageReader->Update();
 
         std::vector <typename InputImageType::Pointer> inputData;
-        inputData = anima::getImagesFromHigherDimensionImage<HigherDimImageType,InputImageType>(testingReader->GetOutput());
+        inputData = anima::getImagesFromHigherDimensionImage<HigherDimImageType,InputImageType>(imageReader->GetOutput());
 
         for (unsigned int i = 0;i < inputData.size();++i)
             filter->SetInput(i,inputData[i]);

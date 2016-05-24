@@ -128,7 +128,7 @@ int main(int argc, char **argv)
             if (xlsArg.isSet())
                 std::cout << score << " " << std::flush;
             else
-                std::cout << "Label " << usefulLabels[i] << ": " << score << std::endl;
+                std::cout << "Label " << usefulLabels[i-1] << ": " << score << std::endl;
         }
     }
     

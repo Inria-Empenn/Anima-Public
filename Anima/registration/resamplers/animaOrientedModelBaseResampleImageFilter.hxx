@@ -89,9 +89,9 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
     InputPixelType tmpRes(vectorSize), resRotated(vectorSize);
     ContinuousIndexType index;
 
-    vnl_matrix <double> rotMatrix = this->ComputeLinearRotationMatrix();
+    vnl_matrix <double> orientationMatrix = this->ComputeLinearJacobianMatrix();
     vnl_matrix <double> parametersRotationMatrix;
-    this->ComputeRotationParametersFromRotationMatrix(rotMatrix,parametersRotationMatrix);
+    this->ComputeRotationParametersFromReorientationMatrix(orientationMatrix,parametersRotationMatrix);
 
     bool lastDimensionUseless = (this->GetInput(0)->GetLargestPossibleRegion().GetSize()[ImageDimension - 1] <= 1);
 
@@ -115,7 +115,7 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 
         if (!isZero(tmpRes))
         {
-            this->RotateInterpolatedModel(tmpRes,parametersRotationMatrix,resRotated,threadId);
+            this->ReorientInterpolatedModel(tmpRes,parametersRotationMatrix,resRotated,threadId);
             outputItr.Set(resRotated);
         }
         else
@@ -141,7 +141,7 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
     InputPixelType tmpRes(vectorSize), resRotated(vectorSize);
     ContinuousIndexType index;
 
-    vnl_matrix <double> rotMatrix(ImageDimension,ImageDimension);
+    vnl_matrix <double> orientationMatrix(ImageDimension,ImageDimension);
     vnl_matrix <double> parametersRotationMatrix;
 
     while (!outputItr.IsAtEnd())
@@ -160,9 +160,9 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 
         if (!isZero(tmpRes))
         {
-            this->ComputeLocalRotationMatrix(tmpInd,rotMatrix);
-            this->ComputeRotationParametersFromRotationMatrix(rotMatrix,parametersRotationMatrix);
-            this->RotateInterpolatedModel(tmpRes,parametersRotationMatrix,resRotated,threadId);
+            this->ComputeLocalJacobianMatrix(tmpInd,orientationMatrix);
+            this->ComputeRotationParametersFromReorientationMatrix(orientationMatrix,parametersRotationMatrix);
+            this->ReorientInterpolatedModel(tmpRes,parametersRotationMatrix,resRotated,threadId);
             outputItr.Set(resRotated);
         }
         else
@@ -175,21 +175,20 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 template <typename TImageType, typename TInterpolatorPrecisionType>
 vnl_matrix <double>
 OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
-::ComputeLinearRotationMatrix()
+::ComputeLinearJacobianMatrix()
 {
-    vnl_matrix <double> rotMatrix(ImageDimension,ImageDimension);
-    vnl_matrix <double> tmpMat(ImageDimension,ImageDimension);
+    vnl_matrix <double> reorientationMatrix(ImageDimension,ImageDimension);
     MatrixTransformType *matrixTrsf = dynamic_cast <MatrixTransformType *> (m_Transform.GetPointer());
 
-    anima::ExtractRotationFromMatrixTransform(matrixTrsf,rotMatrix,tmpMat);
+    reorientationMatrix = matrixTrsf->GetMatrix().GetVnlMatrix().as_matrix();
 
-    return rotMatrix;
+    return reorientationMatrix;
 }
 
 template <typename TImageType, typename TInterpolatorPrecisionType>
 void
 OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
-::ComputeLocalRotationMatrix(InputIndexType &index, vnl_matrix <double> &rotMatrix)
+::ComputeLocalJacobianMatrix(InputIndexType &index, vnl_matrix <double> &reorientationMatrix)
 {
     vnl_matrix <double> jacMatrix(ImageDimension,ImageDimension);
 
@@ -253,30 +252,22 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
     if (m_StartIndDef[2] == (m_EndIndDef[2]-1))
         jacMatrix(2,2) = 1;
 
-    vnl_matrix <double> tmpMat(ImageDimension,ImageDimension);
+    reorientationMatrix = jacMatrix;
+}
 
-    for (unsigned int l = 0;l < ImageDimension;++l)
-        for (unsigned int m = l;m < ImageDimension;++m)
-        {
-            tmpMat(l,m) = 0;
-            for (unsigned int n = 0;n < ImageDimension;++n)
-                tmpMat(l,m) += jacMatrix(l,n)*jacMatrix(m,n);
-
-            tmpMat(m,l) = tmpMat(l,m);
-        }
-
-    itk::SymmetricEigenAnalysis < vnl_matrix <double>, vnl_diag_matrix<double>, vnl_matrix <double> > eigenComputer(ImageDimension);
-    vnl_matrix <double> eVec(ImageDimension,ImageDimension);
-    vnl_diag_matrix <double> eVals(ImageDimension);
-
-    eigenComputer.ComputeEigenValuesAndVectors(tmpMat, eVals, eVec);
-
-    for (unsigned int i = 0;i < ImageDimension;++i)
-        eVals[i] = pow(eVals[i], -0.5);
-
-    anima::RecomposeTensor(eVals,eVec,rotMatrix);
-
-    rotMatrix *= jacMatrix;
+template <typename TImageType, typename TInterpolatorPrecisionType>
+void
+OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
+::ComputeRotationParametersFromReorientationMatrix(vnl_matrix <double> &reorientationMatrix,
+                                                   vnl_matrix <double> &modelOrientationMatrix)
+{
+    if (m_FiniteStrainReorientation)
+    {
+        vnl_matrix <double> tmpMat(ImageDimension,ImageDimension);
+        anima::ExtractRotationFromJacobianMatrix(reorientationMatrix,modelOrientationMatrix,tmpMat);
+    }
+    else
+        modelOrientationMatrix = reorientationMatrix;
 }
 
 } // end of namespace anima

@@ -58,17 +58,14 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
     PixelType movingValue(vectorSize);
 
     unsigned int tensorDimension = 3;
-    vnl_matrix <double> rotationMatrix(tensorDimension, tensorDimension);
     vnl_matrix <double> tmpMat(tensorDimension, tensorDimension);
     vnl_matrix <double> currentTensor(tensorDimension, tensorDimension);
-
-    if (this->GetRotateModel())
-    {
-        typedef itk::MatrixOffsetTransformBase <CoordinateRepresentationType, ImageDimension, ImageDimension> BaseTransformType;
-        BaseTransformType *currentTrsf = dynamic_cast<BaseTransformType *> (this->m_Transform.GetPointer());
-
-        anima::ExtractRotationFromMatrixTransform(currentTrsf,rotationMatrix,tmpMat);
-    }
+    vnl_matrix <double> ppdOrientationMatrix(tensorDimension, tensorDimension);
+    typedef itk::Matrix <double, 3, 3> EigVecMatrixType;
+    typedef vnl_vector_fixed <double,3> EigValVectorType;
+    itk::SymmetricEigenAnalysis < EigVecMatrixType, EigValVectorType, EigVecMatrixType> eigenComputer(3);
+    EigVecMatrixType eigVecs;
+    EigValVectorType eigVals;
 
     for (unsigned int i = 0;i < this->m_NumberOfPixelsCounted;++i)
     {
@@ -79,12 +76,19 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
         {
             movingValue = this->m_Interpolator->EvaluateAtContinuousIndex( transformedIndex );
 
-            if (this->GetRotateModel())
+            if (this->GetModelRotation() != Superclass::NONE)
             {
                 // Rotating tensor
                 anima::GetTensorFromVectorRepresentation(movingValue,tmpMat,tensorDimension,true);
 
-                anima::RotateSymmetricMatrix(tmpMat,rotationMatrix,currentTensor);
+                if (this->GetModelRotation() == Superclass::FINITE_STRAIN)
+                    anima::RotateSymmetricMatrix(tmpMat,this->m_OrientationMatrix,currentTensor);
+                else
+                {
+                    eigenComputer.ComputeEigenValuesAndVectors(tmpMat,eigVals,eigVecs);
+                    anima::ExtractPPDRotationFromJacobianMatrix(this->m_OrientationMatrix,ppdOrientationMatrix,eigVecs);
+                    anima::RotateSymmetricMatrix(tmpMat,ppdOrientationMatrix,currentTensor);
+                }
 
                 anima::GetVectorRepresentation(currentTensor,movingValue,vectorSize,true);
             }

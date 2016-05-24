@@ -30,6 +30,13 @@ enum Metric
     TensorOrientedGeneralizedCorrelation
 };
 
+enum MetricOrientationType
+{
+    None = 0,
+    FiniteStrain,
+    PPD
+};
+
 enum Optimizer
 {
     Exhaustive = 0,
@@ -83,9 +90,9 @@ public:
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self> ConstPointer;
 
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
-    itkTypeMacro(PyramidalDenseTensorSVFMatchingBridge,itk::ProcessObject);
+    itkTypeMacro(PyramidalDenseTensorSVFMatchingBridge,itk::ProcessObject)
 
     void Update() ITK_OVERRIDE;
 
@@ -134,6 +141,12 @@ public:
 
     Metric GetMetric() {return m_Metric;}
     void SetMetric(Metric metric) {m_Metric=metric;}
+
+    MetricOrientationType GetMetricOrientation() {return m_MetricOrientation;}
+    void SetMetricOrientation(MetricOrientationType metricOr) {m_MetricOrientation = metricOr;}
+
+    bool GetFiniteStrainImageReorientation() {return m_FiniteStrainImageReorientation;}
+    void SetFiniteStrainImageReorientation(bool reor) {m_FiniteStrainImageReorientation = reor;}
 
     Optimizer GetOptimizer() {return m_Optimizer;}
     void SetOptimizer(Optimizer optimizer) {m_Optimizer=optimizer;}
@@ -233,6 +246,8 @@ private:
     SymmetryType m_SymmetryType;
     Transform m_Transform;
     Metric m_Metric;
+    MetricOrientationType m_MetricOrientation;
+    bool m_FiniteStrainImageReorientation;
     Optimizer m_Optimizer;
 
     unsigned int m_MaximumIterations;

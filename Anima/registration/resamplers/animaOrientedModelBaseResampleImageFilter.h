@@ -69,22 +69,25 @@ public:
     itkSetMacro(Interpolator,InterpolatorPointer)
     itkGetMacro(Interpolator,InterpolatorType *)
 
-    typedef typename TOutputImage::SpacingType   SpacingType;
-    typedef typename TOutputImage::PointType     OriginPointType;
+    itkGetMacro(FiniteStrainReorientation, bool)
+    itkSetMacro(FiniteStrainReorientation, bool)
+
+    typedef typename TOutputImage::SpacingType SpacingType;
+    typedef typename TOutputImage::PointType OriginPointType;
     typedef typename TOutputImage::DirectionType DirectionType;
     typedef typename TOutputImage::RegionType RegionType;
 
-    itkSetMacro( OutputSpacing, SpacingType )
-    itkGetConstReferenceMacro( OutputSpacing, SpacingType )
+    itkSetMacro(OutputSpacing, SpacingType)
+    itkGetConstReferenceMacro(OutputSpacing, SpacingType)
 
-    itkSetMacro( OutputOrigin, OriginPointType )
-    itkGetConstReferenceMacro( OutputOrigin, OriginPointType )
+    itkSetMacro(OutputOrigin, OriginPointType)
+    itkGetConstReferenceMacro(OutputOrigin, OriginPointType)
 
-    itkSetMacro( OutputDirection, DirectionType )
-    itkGetConstReferenceMacro( OutputDirection, DirectionType )
+    itkSetMacro(OutputDirection, DirectionType)
+    itkGetConstReferenceMacro(OutputDirection, DirectionType)
 
-    itkSetMacro( OutputLargestPossibleRegion, RegionType )
-    itkGetConstReferenceMacro( OutputLargestPossibleRegion, RegionType )
+    itkSetMacro(OutputLargestPossibleRegion, RegionType)
+    itkGetConstReferenceMacro(OutputLargestPossibleRegion, RegionType)
 
 protected:
     OrientedModelBaseResampleImageFilter()
@@ -93,6 +96,8 @@ protected:
 
         m_Transform = 0;
         m_Interpolator = 0;
+
+        m_FiniteStrainReorientation = true;
     }
 
     virtual ~OrientedModelBaseResampleImageFilter() {}
@@ -103,7 +108,7 @@ protected:
     virtual unsigned int GetOutputVectorLength();
 
     template <class T>
-    bool isZero(itk::VariableLengthVector <T> &dataVec)
+    inline bool isZero(itk::VariableLengthVector <T> &dataVec)
     {
         unsigned int vectorSize = dataVec.GetNumberOfElements();
 
@@ -117,20 +122,20 @@ protected:
     }
 
     // Fake method for compilation purposes, should never go in there
-    template <class T> bool isZero(T &data)
+    template <class T> inline bool isZero(T &data)
     {
         itkExceptionMacro("Access to unauthorized method");
         return true;
     }
 
     //! Utility function to initialize output images pixel to zero for vector images
-    template <class T> void InitializeZeroPixel(itk::VariableLengthVector <T> &zeroPixel)
+    template <class T> inline void InitializeZeroPixel(itk::VariableLengthVector <T> &zeroPixel)
     {
         zeroPixel.Fill(0.0);
     }
 
     //! Utility function to initialize output images pixel to zero for all images except vector images
-    template <class T> void InitializeZeroPixel(T &zeroPixel)
+    template <class T> inline void InitializeZeroPixel(T &zeroPixel)
     {
         zeroPixel = itk::NumericTraits <T>::ZeroValue();
     }
@@ -138,21 +143,31 @@ protected:
     void LinearThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId);
     void NonLinearThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId);
 
-    vnl_matrix <double> ComputeLinearRotationMatrix();
-    void ComputeLocalRotationMatrix(InputIndexType &index, vnl_matrix <double> &rotMatrix);
+    /**
+     * Compute local re-orientation transformation matrix from linear transform
+     * (rotation if finite strain, Jacobian otherwise)
+     */
+    vnl_matrix <double> ComputeLinearJacobianMatrix();
+
+    /**
+     * Compute local re-orientation transformation matrix from non linear transform
+     * (rotation if finite strain, Jacobian otherwise)
+     */
+    void ComputeLocalJacobianMatrix(InputIndexType &index, vnl_matrix <double> &reorientationMatrix);
 
     //! Initializes the default interpolator, might change in derived classes
     virtual void InitializeInterpolator();
 
-    //! For some models, the transform induced rotation matrix is not enough and needs to be used to get rotation parameters, default is just a copy of the current matrix
-    virtual void ComputeRotationParametersFromRotationMatrix(const vnl_matrix <double> &transformRotationMatrix, vnl_matrix <double> &modelRotationMatrix)
-    {
-        modelRotationMatrix = transformRotationMatrix;
-    }
+    /**
+     * For some models / re-orientation schemes, the transform induced Jacobiam matrix needs to be used to get rotation parameters
+     * if needed, this method should be overloaded
+     */
+    virtual void ComputeRotationParametersFromReorientationMatrix(vnl_matrix <double> &reorientationMatrix,
+                                                                  vnl_matrix <double> &modelOrientationMatrix);
 
-    //! Needs to be implemented in sub-classes, does the actual rotation of the model
-    virtual void RotateInterpolatedModel(const InputPixelType &interpolatedModel, vnl_matrix <double> &modelRotationMatrix,
-                                         InputPixelType &rotatedModel, itk::ThreadIdType threadId) = 0;
+    //! Needs to be implemented in sub-classes, does the actual re-orientation of the model
+    virtual void ReorientInterpolatedModel(const InputPixelType &interpolatedModel, vnl_matrix <double> &modelOrientationMatrix,
+                                           InputPixelType &orientedModel, itk::ThreadIdType threadId) = 0;
 
 private:
     OrientedModelBaseResampleImageFilter(const Self&); //purposely not implemented
@@ -161,12 +176,14 @@ private:
     TransformPointer m_Transform;
     bool m_LinearTransform;
 
+    bool m_FiniteStrainReorientation;
+
     InterpolatorPointer m_Interpolator;
 
-    SpacingType             m_OutputSpacing;
-    OriginPointType         m_OutputOrigin;
-    DirectionType           m_OutputDirection;
-    RegionType              m_OutputLargestPossibleRegion;
+    SpacingType m_OutputSpacing;
+    OriginPointType m_OutputOrigin;
+    DirectionType m_OutputDirection;
+    RegionType m_OutputLargestPossibleRegion;
 
     InputIndexType m_StartIndex, m_EndIndex;
     InputIndexType m_StartIndDef, m_EndIndDef;

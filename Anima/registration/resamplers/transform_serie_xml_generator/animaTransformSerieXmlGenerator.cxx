@@ -70,17 +70,10 @@ int main(int ac, const char **av)
         
         // Then try non linear transform
         bool nonLinearSuccess = true;
-        try
-        {
-            typedef itk::ImageFileReader < itk::VectorImage <float,3> > FieldReaderType;
-            FieldReaderType::Pointer trReader = FieldReaderType::New();
-            trReader->SetFileName(inputNames[i]);
-            trReader->GenerateOutputInformation();
-        }
-        catch (itk::ExceptionObject &e)
-        {
+        itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(inputNames[i].c_str(), itk::ImageIOFactory::ReadMode);
+
+        if (!imageIO)
             nonLinearSuccess = false;
-        }
         
         if (nonLinearSuccess)
         {

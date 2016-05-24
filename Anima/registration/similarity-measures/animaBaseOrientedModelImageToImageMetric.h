@@ -23,7 +23,7 @@ public:
     typedef typename Superclass::ParametersValueType CoordinateRepresentationType;
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(BaseOrientedModelImageToImageMetric, SingleValuedCostFunction);
+    itkTypeMacro(BaseOrientedModelImageToImageMetric, SingleValuedCostFunction)
 
     /**  Type of the moving Image. */
     typedef TMovingImage                               MovingImageType;
@@ -36,12 +36,8 @@ public:
     typedef typename FixedImageType::RegionType        FixedImageRegionType;
 
     /** Constants for the image dimensions */
-    itkStaticConstMacro(MovingImageDimension,
-                        unsigned int,
-                        TMovingImage::ImageDimension);
-    itkStaticConstMacro(FixedImageDimension,
-                        unsigned int,
-                        TFixedImage::ImageDimension);
+    itkStaticConstMacro(MovingImageDimension, unsigned int, TMovingImage::ImageDimension);
+    itkStaticConstMacro(FixedImageDimension, unsigned int, TFixedImage::ImageDimension);
 
     /**  Type of the Transform Base class */
     typedef itk::Transform<CoordinateRepresentationType,
@@ -89,47 +85,47 @@ public:
     typedef typename Superclass::ParametersType                 ParametersType;
 
     /** Connect the Fixed Image.  */
-    itkSetConstObjectMacro( FixedImage, FixedImageType );
+    itkSetConstObjectMacro( FixedImage, FixedImageType )
 
     /** Get the Fixed Image. */
-    itkGetConstObjectMacro( FixedImage, FixedImageType );
+    itkGetConstObjectMacro( FixedImage, FixedImageType )
 
     /** Connect the Moving Image.  */
-    itkSetConstObjectMacro( MovingImage, MovingImageType );
+    itkSetConstObjectMacro( MovingImage, MovingImageType )
 
     /** Get the Moving Image. */
-    itkGetConstObjectMacro( MovingImage, MovingImageType );
+    itkGetConstObjectMacro( MovingImage, MovingImageType )
 
     /** Connect the Transform. */
-    itkSetObjectMacro( Transform, TransformType );
+    itkSetObjectMacro( Transform, TransformType )
 
     /** Get a pointer to the Transform.  */
-    itkGetConstObjectMacro( Transform, TransformType );
+    itkGetConstObjectMacro( Transform, TransformType )
 
     /** Connect the Interpolator. */
-    itkSetObjectMacro( Interpolator, InterpolatorType );
+    itkSetObjectMacro( Interpolator, InterpolatorType )
 
     /** Get a pointer to the Interpolator.  */
-    itkGetConstObjectMacro( Interpolator, InterpolatorType );
+    itkGetConstObjectMacro( Interpolator, InterpolatorType )
 
     /** Get the number of pixels considered in the computation. */
-    itkGetConstReferenceMacro( NumberOfPixelsCounted, unsigned long );
+    itkGetConstReferenceMacro( NumberOfPixelsCounted, unsigned long )
 
     /** Set the region over which the metric will be computed */
-    itkSetMacro( FixedImageRegion, FixedImageRegionType );
+    itkSetMacro( FixedImageRegion, FixedImageRegionType )
 
     /** Get the region over which the metric will be computed */
-    itkGetConstReferenceMacro( FixedImageRegion, FixedImageRegionType );
+    itkGetConstReferenceMacro( FixedImageRegion, FixedImageRegionType )
 
     /** Set/Get the moving image mask. */
-    itkSetObjectMacro( MovingImageMask, MovingImageMaskType );
-    itkSetConstObjectMacro( MovingImageMask, MovingImageMaskType );
-    itkGetConstObjectMacro( MovingImageMask, MovingImageMaskType );
+    itkSetObjectMacro( MovingImageMask, MovingImageMaskType )
+    itkSetConstObjectMacro( MovingImageMask, MovingImageMaskType )
+    itkGetConstObjectMacro( MovingImageMask, MovingImageMaskType )
 
     /** Set/Get the fixed image mask. */
-    itkSetObjectMacro( FixedImageMask, FixedImageMaskType );
-    itkSetConstObjectMacro( FixedImageMask, FixedImageMaskType );
-    itkGetConstObjectMacro( FixedImageMask, FixedImageMaskType );
+    itkSetObjectMacro( FixedImageMask, FixedImageMaskType )
+    itkSetConstObjectMacro( FixedImageMask, FixedImageMaskType )
+    itkGetConstObjectMacro( FixedImageMask, FixedImageMaskType )
 
     /** Set the parameters defining the Transform. */
     void SetTransformParameters( const ParametersType & parameters ) const;
@@ -140,7 +136,7 @@ public:
 
     /** Initialize the Metric by making sure that all the components
      *  are present and plugged together correctly     */
-    virtual void Initialize(void) throw ( itk::ExceptionObject );
+    virtual void Initialize() throw ( itk::ExceptionObject );
 
     //! Should not be used
     void GetDerivative( const ParametersType & parameters,
@@ -155,8 +151,15 @@ public:
         itkExceptionMacro("No derivatives implemented for tensor metrics...");
     }
 
-    itkSetMacro(RotateModel, bool);
-    itkGetConstMacro(RotateModel, bool);
+    enum ModelReorientationType
+    {
+        NONE = 0,
+        FINITE_STRAIN,
+        PPD
+    };
+
+    itkSetMacro(ModelRotation, ModelReorientationType)
+    itkGetConstMacro(ModelRotation, ModelReorientationType)
 
 protected:
     BaseOrientedModelImageToImageMetric();
@@ -169,6 +172,7 @@ protected:
     MovingImageConstPointer     m_MovingImage;
 
     mutable TransformPointer    m_Transform;
+    mutable vnl_matrix <double> m_OrientationMatrix;
     InterpolatorPointer         m_Interpolator;
 
     FixedImageMaskConstPointer  m_FixedImageMask;
@@ -180,7 +184,7 @@ private:
 
     FixedImageRegionType        m_FixedImageRegion;
 
-    bool m_RotateModel;
+    ModelReorientationType m_ModelRotation;
 };
 
 } // end of namespace anima

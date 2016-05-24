@@ -25,10 +25,10 @@ public:
     typedef itk::SmartPointer<const Self> ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(PyramidImageFilter, ImageToImageFilter);
+    itkTypeMacro(PyramidImageFilter, ImageToImageFilter)
 
     typedef TInputImage InputImageType;
     typedef typename InputImageType::IOPixelType InputInternalScalarType;
@@ -52,10 +52,10 @@ public:
     typedef typename BaseResamplerType::Pointer BaseResamplerPointer;
 
     /** Set/Get the number of multi-resolution levels. */
-    itkSetMacro(NumberOfLevels, unsigned int);
-    itkGetConstMacro(NumberOfLevels, unsigned int);
+    itkSetMacro(NumberOfLevels, unsigned int)
+    itkGetConstMacro(NumberOfLevels, unsigned int)
 
-    itkSetObjectMacro(ImageResampler, BaseResamplerType);
+    itkSetObjectMacro(ImageResampler, BaseResamplerType)
 
 protected:
     PyramidImageFilter();

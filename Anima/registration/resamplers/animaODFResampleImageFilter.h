@@ -8,12 +8,12 @@
 namespace anima
 {
 template <typename TImageType, typename TInterpolatorPrecisionType=float>
-class FiniteStrainODFResampleImageFilter :
+class ODFResampleImageFilter :
         public OrientedModelBaseResampleImageFilter <TImageType,TInterpolatorPrecisionType>
 {
 public:
     /** Standard class typedefs. */
-    typedef FiniteStrainODFResampleImageFilter Self;
+    typedef ODFResampleImageFilter Self;
 
     typedef OrientedModelBaseResampleImageFilter <TImageType,TInterpolatorPrecisionType> Superclass;
     typedef itk::SmartPointer<Self> Pointer;
@@ -24,26 +24,26 @@ public:
     itkStaticConstMacro(ImageDimension, unsigned int,InputImageType::ImageDimension);
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(FiniteStrainODFResampleImageFilter, OrientedModelBaseResampleImageFilter);
+    itkTypeMacro(ODFResampleImageFilter, OrientedModelBaseResampleImageFilter)
 
 protected:
-    FiniteStrainODFResampleImageFilter()
+    ODFResampleImageFilter()
     {
         m_LOrder = 4;
     }
 
-    virtual ~FiniteStrainODFResampleImageFilter() {}
+    virtual ~ODFResampleImageFilter() {}
 
     virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
 
-    virtual void RotateInterpolatedModel(const InputPixelType &interpolatedModel, vnl_matrix <double> &modelRotationMatrix,
-                                         InputPixelType &rotatedModel, itk::ThreadIdType threadId) ITK_OVERRIDE;
+    virtual void ReorientInterpolatedModel(const InputPixelType &interpolatedModel, vnl_matrix <double> &modelOrientationMatrix,
+                                           InputPixelType &rotatedModel, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
-    FiniteStrainODFResampleImageFilter(const Self&); //purposely not implemented
+    ODFResampleImageFilter(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
 
     unsigned int m_LOrder;
@@ -54,4 +54,4 @@ private:
 
 } // end namespace anima
 
-#include "animaFiniteStrainODFResampleImageFilter.hxx"
+#include "animaODFResampleImageFilter.hxx"

@@ -3,6 +3,9 @@
 #include "animaBaseTensorTools.h"
 #include <itkSymmetricEigenAnalysis.h>
 
+#include <animaVectorOperations.h>
+#include <animaMatrixOperations.h>
+
 namespace anima
 {
 template <class T>
@@ -121,34 +124,28 @@ GetTensorFromVectorRepresentation(const itk::VariableLengthVector <T1> &vector,
         }
 }
 
-template <typename PixelRawType, unsigned int ImageDimension>
+template <typename RealType>
 void
-ExtractRotationFromMatrixTransform(itk::MatrixOffsetTransformBase <PixelRawType,ImageDimension,ImageDimension> *trsf,
-                                   vnl_matrix <double> &rotationMatrix, vnl_matrix <double> &tmpMat)
+ExtractRotationFromJacobianMatrix(vnl_matrix <RealType> &jacobianMatrix, vnl_matrix <RealType> &rotationMatrix,
+                                  vnl_matrix <RealType> &tmpMat)
 {
     unsigned int tensorDimension = 3;
-
-    vnl_matrix <double> jacMatrix(tensorDimension, tensorDimension);
     tmpMat.set_size(tensorDimension, tensorDimension);
-
-    for (unsigned int i = 0;i < tensorDimension;++i)
-        for (unsigned int j = 0;j < tensorDimension;++j)
-            jacMatrix(i,j) = trsf->GetMatrix()(i,j);
 
     for (unsigned int l = 0;l < tensorDimension;++l)
         for (unsigned int m = l;m < tensorDimension;++m)
         {
             tmpMat(l,m) = 0;
             for (unsigned int n = 0;n < tensorDimension;++n)
-                tmpMat(l,m) += jacMatrix(l,n)*jacMatrix(m,n);
+                tmpMat(l,m) += jacobianMatrix(l,n)*jacobianMatrix(m,n);
 
             if (m != l)
                 tmpMat(m,l) = tmpMat(l,m);
         }
 
-    itk::SymmetricEigenAnalysis < vnl_matrix <double>, vnl_diag_matrix<double>, vnl_matrix <double> > eigenComputer(tensorDimension);
-    vnl_matrix <double> eVec(tensorDimension,tensorDimension);
-    vnl_diag_matrix <double> eVals(tensorDimension);
+    itk::SymmetricEigenAnalysis < vnl_matrix <RealType>, vnl_diag_matrix<RealType>, vnl_matrix <RealType> > eigenComputer(tensorDimension);
+    vnl_matrix <RealType> eVec(tensorDimension,tensorDimension);
+    vnl_diag_matrix <RealType> eVals(tensorDimension);
 
     eigenComputer.ComputeEigenValuesAndVectors(tmpMat, eVals, eVec);
 
@@ -157,7 +154,65 @@ ExtractRotationFromMatrixTransform(itk::MatrixOffsetTransformBase <PixelRawType,
 
     RecomposeTensor(eVals,eVec,rotationMatrix);
 
-    rotationMatrix *= jacMatrix;
+    rotationMatrix *= jacobianMatrix;
+}
+
+template <typename RealType, typename MatrixType>
+void
+ExtractPPDRotationFromJacobianMatrix(vnl_matrix <RealType> &jacobianMatrix, vnl_matrix <RealType> &rotationMatrix,
+                                     MatrixType &eigenVectors)
+{
+    const unsigned int tensorDimension = 3;
+
+    typedef vnl_vector_fixed <RealType,tensorDimension> VectorType;
+    VectorType transformedPrincipal;
+    VectorType transformedSecondary;
+    for (unsigned int i = 0;i < tensorDimension;++i)
+    {
+        transformedPrincipal[i] = 0;
+        transformedSecondary[i] = 0;
+        for (unsigned int j = 0;j < tensorDimension;++j)
+        {
+            transformedPrincipal[i] += jacobianMatrix(i,j) * eigenVectors(2,j);
+            transformedSecondary[i] += jacobianMatrix(i,j) * eigenVectors(1,j);
+        }
+    }
+
+    anima::Normalize(transformedPrincipal,transformedPrincipal);
+    anima::Normalize(transformedSecondary,transformedSecondary);
+
+    VectorType principalEigenVector;
+    for (unsigned int i = 0;i < tensorDimension;++i)
+        principalEigenVector[i] = eigenVectors(2,i);
+    MatrixType firstRotation = anima::GetRotationMatrixFromVectors(principalEigenVector,transformedPrincipal);
+
+    VectorType rotatedSecondary;
+    double dotProductTransformed = 0;
+    for (unsigned int i = 0;i < tensorDimension;++i)
+    {
+        dotProductTransformed += transformedPrincipal[i] * transformedSecondary[i];
+        rotatedSecondary[i] = 0;
+        for (unsigned int j = 0;j < tensorDimension;++j)
+            rotatedSecondary[i] += firstRotation(i,j) * eigenVectors(1,j);
+    }
+
+    VectorType projectedSecondary;
+    for (unsigned int i = 0;i < tensorDimension;++i)
+        projectedSecondary[i] = transformedSecondary[i] - dotProductTransformed * transformedPrincipal[i];
+
+    anima::Normalize(projectedSecondary,projectedSecondary);
+
+    MatrixType secondRotation = anima::GetRotationMatrixFromVectors(rotatedSecondary,projectedSecondary);
+    rotationMatrix.set_size(tensorDimension,tensorDimension);
+    rotationMatrix.fill(0.0);
+    for (unsigned int i = 0;i < tensorDimension;++i)
+    {
+        for (unsigned int j = 0;j < tensorDimension;++j)
+        {
+            for (unsigned int k = 0;k < tensorDimension;++k)
+                rotationMatrix(i,j) += secondRotation(i,k) * firstRotation(k,j);
+        }
+    }
 }
 
 template <class T1, class T2>

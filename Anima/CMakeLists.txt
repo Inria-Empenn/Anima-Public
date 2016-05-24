@@ -84,16 +84,6 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/${PROJECT_NAME}Exports.cmake.in
 include(${PROJECT_NAME}Exports)
 include(AnimaModulesSetup)
 
-
-################################################################################
-# Dashboard
-################################################################################
-
-enable_testing()
-include(CTest)
-include(CTestConfig)
-
-
 ################################################################################
 # Find dependencies
 ################################################################################

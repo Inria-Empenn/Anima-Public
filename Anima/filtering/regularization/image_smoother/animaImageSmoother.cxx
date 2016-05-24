@@ -67,14 +67,22 @@ int main(int argc, char **argv)
     }
 
     typedef itk::Image <float,3> ImageType;
-    typedef itk::ImageFileReader <ImageType> ImageReaderType;
     typedef itk::VectorImage <float,3> VectorImageType;
 
-    ImageReaderType::Pointer reader = ImageReaderType::New();
-    reader->SetFileName(inArg.getValue());
-    reader->GenerateOutputInformation();
+    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(inArg.getValue().c_str(),
+                                                                           itk::ImageIOFactory::ReadMode);
 
-    bool vectorImage = (reader->GetImageIO()->GetNumberOfComponents() > 1);
+    if(!imageIO)
+    {
+        std::cerr << "Itk could not find suitable IO factory for the input" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    // Now that we found the appropriate ImageIO class, ask it to read the meta data from the image file.
+    imageIO->SetFileName(inArg.getValue());
+    imageIO->ReadImageInformation();
+
+    bool vectorImage = (imageIO->GetNumberOfComponents() > 1);
 
     if (vectorImage)
         performSmoothing<VectorImageType>(inArg.getValue(),outArg.getValue(),sigmaArg.getValue(),nbpArg.getValue());

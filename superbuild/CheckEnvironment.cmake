@@ -9,16 +9,6 @@ set(HOME_PATH $ENV{HOME})
 ## #############################################################################
 
 if (WIN32)
-  # Check for DirectX SDK (for VTK)
-  file(GLOB DIRECTX_SDK "C:/Program Files*/Microsoft DirectX SDK*")
-  if (NOT DIRECTX_SDK)
-    message(SEND_ERROR 
-      "You need to install Microsoft DirectX SDK." 
-      )
-  else()
-      mark_as_advanced(DIRECTX_SDK)
-  endif()
-
   # GitBash
   find_program(BASH_BIN NAMES bash)
   if (NOT BASH_BIN)

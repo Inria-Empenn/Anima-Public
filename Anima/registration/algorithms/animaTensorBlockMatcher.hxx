@@ -17,6 +17,7 @@ TensorBlockMatcher<TInputImageType>
 ::TensorBlockMatcher()
 {
     m_SimilarityType = TensorOrientedGeneralizedCorrelation;
+    m_ModelRotationType = FiniteStrain;
 }
 
 template <typename TInputImageType>
@@ -76,7 +77,11 @@ TensorBlockMatcher<TInputImageType>
 
     typedef anima::BaseOrientedModelImageToImageMetric <InputImageType,InputImageType> BaseMetricType;
     BaseMetricType *baseMetric = dynamic_cast <BaseMetricType *> (metric.GetPointer());
-    baseMetric->SetRotateModel(this->GetBlockTransformType() != Superclass::Translation);
+
+    if (this->GetBlockTransformType() == Superclass::Translation)
+        baseMetric->SetModelRotation(BaseMetricType::NONE);
+    else
+        baseMetric->SetModelRotation((typename BaseMetricType::ModelReorientationType)m_ModelRotationType);
 
     typedef anima::VectorModelLinearInterpolateImageFunction<InputImageType,double> LocalInterpolatorType;
     typename LocalInterpolatorType::Pointer interpolator = LocalInterpolatorType::New();
