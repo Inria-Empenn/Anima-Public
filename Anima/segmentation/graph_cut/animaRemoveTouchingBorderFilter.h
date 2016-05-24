@@ -88,6 +88,9 @@ namespace anima
 	  /** Superclass typedefs. */
 	  typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
+	  itkSetMacro(NoContour, bool);
+	  itkGetMacro(NoContour, bool);
+	  
 	  itkSetMacro(Verbose, bool);
 	  itkGetMacro(Verbose, bool);
 
@@ -103,6 +106,7 @@ namespace anima
 	      this->SetNthOutput( 0, this->MakeOutput(0) );
 	      this->SetNthOutput( 1, this->MakeOutput(1) );
 
+	      m_NoContour=false;
 	      m_Verbose=false;
 	      m_Tol = 0.0001;
 	      this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
@@ -126,6 +130,7 @@ namespace anima
 	  RemoveTouchingBorderFilter(const Self&); //purposely not implemented
 	  void operator=(const Self&); //purposely not implemented
 
+	  bool m_NoContour;
 	  bool m_Verbose;
 
 	  std::string m_OutputNonTouchingBorderFilename;

@@ -65,6 +65,8 @@ int main(int argc, char **argv)
 
     unsigned int totalSize = tmpRegionInputImage.GetSize()[0]*tmpRegionInputImage.GetSize()[1]*tmpRegionInputImage.GetSize()[2];
     std::vector <double> tmpVec (totalSize);
+
+    unsigned int idx=0;
     
     if(maskArg.getValue()!="")
     {
@@ -90,7 +92,6 @@ int main(int argc, char **argv)
 	    return -1;
 	}
 
-	unsigned int idx=0;
 	for (unsigned int i = 0;i < totalSize;++i)
 	{
 	    if(ucIt.Get()==1)
@@ -106,7 +107,7 @@ int main(int argc, char **argv)
     }
     else
     {
-	unsigned int idx=totalSize;
+	idx=totalSize;
 	for (unsigned int i = 0;i < totalSize;++i)
 	{
 	    tmpVec[i] = doubleIt.Get();

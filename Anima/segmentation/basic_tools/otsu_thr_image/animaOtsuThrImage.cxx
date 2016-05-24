@@ -2,6 +2,7 @@
 
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
+#include <itkOtsuThresholdImageFilter.h>
 
 #include <iostream>
 #include <fstream>
@@ -31,6 +32,7 @@ int main(int argc, char **argv)
     typedef itk::ImageFileReader <DoubleImageType> DoubleReaderType;
     typedef itk::ImageFileReader <UCImageType> UCReaderType;
     typedef itk::ImageFileWriter <UCImageType> UCWriterType;
+    typedef itk::ImageRegionIterator <UCImageType> UCImageIterator;
         
     typedef itk::OtsuThresholdImageFilter <DoubleImageType, UCImageType, UCImageType> OtsuThresholdImageFilterType;
 	

@@ -136,7 +136,7 @@ namespace anima
 	connectedComponentImageFilter->SetNumberOfThreads(this->GetNumberOfThreads());
 	connectedComponentImageFilter->SetCoordinateTolerance(m_Tol);
 	connectedComponentImageFilter->SetDirectionTolerance(m_Tol);
-
+        
 	// Generate contours for each component
 	typedef itk::LabelContourImageFilter<ImageTypeInt, ImageTypeInt> LabelContourImageFilterType;
 	LabelContourImageFilterType::Pointer labelContourImageFilter = LabelContourImageFilterType::New();
@@ -149,6 +149,13 @@ namespace anima
 
 	// Find labels overlaping mask border
 	ImageIteratorTypeInt maskContourIt (labelContourImageFilter->GetOutput(), labelContourImageFilter->GetOutput()->GetLargestPossibleRegion() );
+	    
+	if( m_NoContour )
+	{
+	    // Find labels overlaping mask border
+	    maskContourIt = ImageIteratorTypeInt (connectedComponentImageFilter->GetOutput(), connectedComponentImageFilter->GetOutput()->GetLargestPossibleRegion() );
+	}
+	
 	ImageIteratorTypeInt segLabelIt (labelMapToLabelImageFilter->GetOutput(), labelMapToLabelImageFilter->GetOutput()->GetLargestPossibleRegion() );
 
 	std::vector<int> labelsToRemove;

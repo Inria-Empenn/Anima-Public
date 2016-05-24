@@ -22,6 +22,9 @@ int main(int argc, const char** argv)
     
     TCLAP::ValueArg<std::string> maskFileArg("m","mask","Brain mask",true,"","brain mask",cmd);
 
+    TCLAP::SwitchArg noContourDetectionArg("c","nocontour","Avoid contour detection (default: false)",cmd,false);
+    TCLAP::SwitchArg rmNonTouchingArg("","rmNonTouching","Remove non touching components instead of touching components (default: false)",cmd,false);
+
     // global
     TCLAP::ValueArg<unsigned int> numThreadsArg("T","threads","Number of execution threads (default: 0 = all cores)",false,0,"number of threads",cmd);
     TCLAP::SwitchArg verboseArg("v","verbose","verbose mode (default: false)",cmd,false);
@@ -46,7 +49,10 @@ int main(int argc, const char** argv)
 
     if( outArg.getValue()!="" )
     {
-	segFilter->SetOutputNonTouchingBorderFilename(outArg.getValue());
+	if( rmNonTouchingArg.getValue() )
+	    segFilter->SetOutputTouchingBorderFilename(outArg.getValue());
+	else
+	    segFilter->SetOutputNonTouchingBorderFilename(outArg.getValue());
     }
     if( maskFileArg.getValue()!="" )
     {
@@ -55,6 +61,7 @@ int main(int argc, const char** argv)
 
     // Set parameters
 
+    segFilter->SetNoContour( noContourDetectionArg.getValue() );
     segFilter->SetVerbose( verboseArg.getValue() );
     segFilter->SetNumberOfThreads( numThreadsArg.getValue() );
     segFilter->SetTol( tolArg.getValue() );
