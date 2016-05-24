@@ -88,7 +88,7 @@ int main(int argc, char **argv)
   DoubleImageIterator doubleIt(inputImageReader->GetOutput(),tmpRegionInputImage);
   UCImageIterator ucIt(maskImageReader->GetOutput(),tmpRegionMaskImage);
 
-  int idx=0;
+  unsigned int idx=0;
   for (unsigned int i = 0;i < totalSize;++i)
     {
       if(ucIt.Get()==1)
@@ -102,9 +102,9 @@ int main(int argc, char **argv)
 
   tmpVec.resize(idx);
   
-  unsigned int partialElt = (unsigned int)floor(adaptThrArg.getValue()*totalSize);
-  if (partialElt == totalSize)
-    partialElt = totalSize - 1;
+  unsigned int partialElt = (unsigned int)floor(adaptThrArg.getValue()*idx);
+  if (partialElt == idx)
+    partialElt = idx - 1;
 	
   if (partialElt != 0)
     std::partial_sort(tmpVec.begin(),tmpVec.begin() + partialElt + 1,tmpVec.end());
