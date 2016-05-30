@@ -1,10 +1,9 @@
 #include <tclap/CmdLine.h>
 
 #include <itkImage.h>
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
 #include <itkCommand.h>
 #include <itkExtractImageFilter.h>
+#include <itkImageRegionIteratorWithIndex.h>
 
 #include <animaReadWriteFunctions.h>
 #include <animaRetrieveImageTypeMacros.h>
@@ -22,7 +21,6 @@ struct arguments
     int xindex, xsize, yindex, ysize, zindex, zsize, tindex, tsize;
     std::string input, output;
 };
-
 
 template <class InputImageType, unsigned int OutputDimension>
 void
@@ -233,6 +231,14 @@ int main(int ac, const char** av)
             "Output cropped image",
             cmd);
 
+    TCLAP::ValueArg<std::string> maskArg("m",
+            "mask",
+            "A mask used instead of other arguments to determine a bounding box",
+            false,
+            "",
+            "Bounding box mask",
+            cmd);
+
     TCLAP::ValueArg<unsigned int> xArg("x",
             "xindex",
             "The resulting croped image will go from xindex to xsize along the xindex axis.",
@@ -326,6 +332,53 @@ int main(int ac, const char** av)
     args.yindex = yArg.getValue(); args.ysize = YArg.getValue();
     args.zindex = zArg.getValue(); args.zsize = ZArg.getValue();
     args.tindex = tArg.getValue(); args.tsize = TArg.getValue();
+
+    if (maskArg.getValue() != "")
+    {
+        typedef itk::Image <unsigned char, 3> MaskImageType;
+        MaskImageType::Pointer maskIm = anima::readImage<MaskImageType>(maskArg.getValue());
+        unsigned int xMax = maskIm->GetLargestPossibleRegion().GetIndex()[0];
+        unsigned int yMax = maskIm->GetLargestPossibleRegion().GetIndex()[1];
+        unsigned int zMax = maskIm->GetLargestPossibleRegion().GetIndex()[2];
+        unsigned int xMin = maskIm->GetLargestPossibleRegion().GetIndex()[0] + maskIm->GetLargestPossibleRegion().GetSize()[0];
+        unsigned int yMin = maskIm->GetLargestPossibleRegion().GetIndex()[1] + maskIm->GetLargestPossibleRegion().GetSize()[1];
+        unsigned int zMin = maskIm->GetLargestPossibleRegion().GetIndex()[2] + maskIm->GetLargestPossibleRegion().GetSize()[2];
+
+        typedef itk::ImageRegionIteratorWithIndex <MaskImageType> MaskIteratorType;
+        typedef MaskImageType::IndexType IndexType;
+        MaskIteratorType maskIt(maskIm,maskIm->GetLargestPossibleRegion());
+        while (!maskIt.IsAtEnd())
+        {
+            if (maskIt.Get() != 0)
+            {
+                IndexType tmpIndex = maskIt.GetIndex();
+                if (xMax < tmpIndex[0])
+                    xMax = tmpIndex[0];
+                if (yMax < tmpIndex[1])
+                    yMax = tmpIndex[1];
+                if (zMax < tmpIndex[2])
+                    zMax = tmpIndex[2];
+
+                if (xMin > tmpIndex[0])
+                    xMin = tmpIndex[0];
+                if (yMin > tmpIndex[1])
+                    yMin = tmpIndex[1];
+                if (zMin > tmpIndex[2])
+                    zMin = tmpIndex[2];
+            }
+
+            ++maskIt;
+        }
+
+        args.xindex = xMin;
+        args.yindex = yMin;
+        args.zindex = zMin;
+
+        args.xsize = xMax - xMin + 1;
+        args.ysize = yMax - yMin + 1;
+        args.zsize = zMax - zMin + 1;
+    }
+
     args.input = inputArg.getValue(); args.output = outputArg.getValue();
 
     try
