@@ -1,7 +1,5 @@
 #include <tclap/CmdLine.h>
 
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
 #include <itkResampleImageFilter.h>
 
 #include <itkNearestNeighborInterpolateImageFunction.h>
@@ -15,7 +13,6 @@
 #include <animaTransformSeriesReader.h>
 #include <animaReadWriteFunctions.h>
 #include <animaRetrieveImageTypeMacros.h>
-
 
 struct arguments
 {
@@ -174,7 +171,7 @@ retrieveNbDimensions(itk::ImageIOBase::Pointer inputImageIO, itk::ImageIOBase::P
 
 int main(int ac, const char** av)
 {
-    std::string descriptionMessage = "Resampler tool to apply args series of transformations to an image.\n"
+    std::string descriptionMessage = "Resampler tool to apply a series of transformations to an image.\n"
                                      "Input transform is an XML file describing all transforms to apply.\n"
                                      "Such args file should look like this:\n"
                                      "<TransformationList>\n"
@@ -186,7 +183,7 @@ int main(int ac, const char** av)
                                      "...\n"
                                      "</TransformationList>\n"
                                      "Note that only geometries and input with the same number of dimensions are supported for now.\n"
-                                     "The default interpolation methode is linear, it can be [nearest, linear, bspline, sinc]."
+                                     "The default interpolation method is linear, it can be [nearest, linear, bspline, sinc]."
                                      "INRIA / IRISA - VisAGeS Team";
 
     TCLAP::CmdLine cmd(descriptionMessage, ' ',ANIMA_VERSION);

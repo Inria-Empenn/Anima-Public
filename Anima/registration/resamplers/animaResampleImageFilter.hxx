@@ -3,7 +3,7 @@
 #include "animaResampleImageFilter.h"
 #include <itkObjectFactory.h>
 #include <itkIdentityTransform.h>
-#include <itkLinearInterpolateImageFunction.h>
+#include <animaFasterLinearInterpolateImageFunction.h>
 #include <itkProgressReporter.h>
 #include <itkImageRegionIteratorWithIndex.h>
 #include <itkImageLinearIteratorWithIndex.h>
@@ -31,7 +31,7 @@ ResampleImageFilter<TInputImage, TOutputImage,TInterpolatorPrecisionType>
     m_OutputStartIndex.Fill( 0 );
 
     m_Transform = itk::IdentityTransform<TInterpolatorPrecisionType, ImageDimension>::New();
-    m_Interpolator = itk::LinearInterpolateImageFunction<InputImageType, TInterpolatorPrecisionType>::New();
+    m_Interpolator = anima::FasterLinearInterpolateImageFunction<InputImageType, TInterpolatorPrecisionType>::New();
     m_DefaultPixelValue = 0;
 
     m_ScaleIntensitiesWithJacobian = false;
@@ -195,8 +195,8 @@ ResampleImageFilter<TInputImage,TOutputImage,TInterpolatorPrecisionType>
 
     // Min/max values of the output pixel type AND these values
     // represented as the output type of the interpolator
-    const PixelType minValue =  itk::NumericTraits<PixelType >::NonpositiveMin();
-    const PixelType maxValue =  itk::NumericTraits<PixelType >::max();
+    const PixelType minValue = itk::NumericTraits<PixelType >::NonpositiveMin();
+    const PixelType maxValue = itk::NumericTraits<PixelType >::max();
 
     const OutputType minOutputValue = static_cast<OutputType>(minValue);
     const OutputType maxOutputValue = static_cast<OutputType>(maxValue);
