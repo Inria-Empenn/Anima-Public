@@ -13,10 +13,10 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("Given a mask creates and a list of volume data, populates a csv file where each colmuns represents one of the volume data and each line a given voxel. The voxel for which the mask is 0 are not set into the csv file. \\ Note: the voxel location are lost into the csv file.", ' ',"1.0"); 
-    TCLAP::ValueArg<std::string> dataListArg("i","database","Image List",true,"","image list",cmd);   
-	TCLAP::ValueArg<std::string> maskArg("m","maskname","Mask",true,"","mask",cmd);
-    TCLAP::ValueArg<std::string> resNameArg("o","outputname","CSV file name",true,"","file name for the output csv file",cmd);  
+    TCLAP::CmdLine cmd("Given a mask creates and a list of volume data, populates a csv file where each colmuns represents one of the volume data and each line a given voxel. The voxel for which the mask is 0 are not set into the csv file. \\ Note: the voxel location are lost into the csv file.", ' ',"1.0");
+    TCLAP::ValueArg<std::string> dataListArg("i","database","Image List",true,"","image list",cmd);
+    TCLAP::ValueArg<std::string> maskArg("m","maskname","Mask",true,"","mask",cmd);
+    TCLAP::ValueArg<std::string> resNameArg("o","outputname","CSV file name",true,"","file name for the output csv file",cmd);
     try
     {
         cmd.parse(argc,argv);
@@ -30,7 +30,7 @@ int main(int argc, char **argv)
     std::string dataLTName = dataListArg.getValue();
     std::string maskName = maskArg.getValue();
     
-   
+
     // load mask file
     typedef itk::Image <unsigned char, 3> MaskType;
     typedef itk::ImageFileReader < MaskType > itkMaskReader;
@@ -47,8 +47,7 @@ int main(int argc, char **argv)
 
     // load filenames file
     ifstream fileIn(dataLTName.c_str());
-   // typedef itk::ImageFileReader <ImageType > itkInputReader;
-    //itkInputReader::Pointer ltReader;
+
 
     std::vector< std::vector<double> > allSamples;
     std::string oneLine;
@@ -59,7 +58,7 @@ int main(int argc, char **argv)
     while (std::getline(fileIn, oneLine))
     {
         std::cout<<nbImg<<std::endl;
-        std::size_t pos = oneLine.find(":");      // position of ":" in str
+        std::size_t pos = oneLine.find(":");               // position of ":" in str
         std::string imgeName = oneLine.substr (pos+1);     // get from ":" to the end
         labels.push_back(oneLine.substr(0,pos));
 
@@ -67,17 +66,17 @@ int main(int argc, char **argv)
         itk::SmartPointer<ImageType> ltReader;
         try
         {
-        ltReader=anima::readImage<ImageType>(imgeName);
+            ltReader=anima::readImage<ImageType>(imgeName);
         }
         catch(exception& e)
         {
-           std::cout<<"file for field "<<labels.back()<<" is missing"<<std::endl;
-           labels.pop_back();
-           continue;
+            std::cout<<"file for field "<<labels.back()<<" is missing"<<std::endl;
+            labels.pop_back();
+            continue;
         }
         ImageIterator iterCurrentImage( ltReader, ltReader->GetRequestedRegion() );
 
-        iterMaskImage.GoToBegin();  
+        iterMaskImage.GoToBegin();
         iterCurrentImage.GoToBegin();
         std::vector<double> oneSample;
         while(!iterCurrentImage.IsAtEnd())
@@ -97,7 +96,7 @@ int main(int argc, char **argv)
             }
 
             ++iterMaskImage;
-        ++iterCurrentImage;
+            ++iterCurrentImage;
         }
         allSamples.push_back(oneSample);
         ++nbImg;
@@ -105,14 +104,14 @@ int main(int argc, char **argv)
 
     if (resNameArg.getValue() != "")
     {
-     // save csv   
+        // save csv
         std::ofstream file(resNameArg.getValue().c_str());
 
         for(unsigned int indexI=0;indexI<allSamples.size();++indexI)
         {
-        file<<labels[indexI];
-        if(indexI<(allSamples.size()-1))
-                    file<<",";
+            file<<labels[indexI];
+            if(indexI<(allSamples.size()-1))
+                file<<",";
         }
         file<<",indexX,indexY,indexZ";
         file<<std::endl;
@@ -130,9 +129,9 @@ int main(int argc, char **argv)
             file<<std::endl;
         }
 
-
+        file.close();
     }
-    
-    return 0;
+
+    return EXIT_SUCCESS;
 }
 
