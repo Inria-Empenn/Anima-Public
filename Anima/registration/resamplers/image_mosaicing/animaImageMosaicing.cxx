@@ -97,7 +97,7 @@ int main(int ac, const char** av)
 
             ImageType::PointType tmpPoint;
             input->TransformIndexToPhysicalPoint(corner,tmpPoint);
-            trsf->TransformPoint(tmpPoint);
+            tmpPoint = trsf->TransformPoint(tmpPoint);
 
             itk::ContinuousIndex <double,3> tmpRes;
             geometryImage->TransformPhysicalPointToContinuousIndex(tmpPoint,tmpRes);
