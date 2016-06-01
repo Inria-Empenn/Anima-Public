@@ -44,8 +44,7 @@ int main(int argc, char **argv)
     typedef itk::ImageRegionConstIterator<ImageType>  ImageIterator;
 
     // load filenames file
-    ifstream fileIn(dataLTName.c_str());
-
+    std::ifstream fileIn(dataLTName.c_str());
 
     std::vector< std::vector<double> > allSamples;
     std::string oneLine;
@@ -60,13 +59,12 @@ int main(int argc, char **argv)
         std::string imgeName = oneLine.substr (pos+1);     // get from ":" to the end
         labels.push_back(oneLine.substr(0,pos));
 
-
         itk::SmartPointer<ImageType> ltReader;
         try
         {
             ltReader=anima::readImage<ImageType>(imgeName);
         }
-        catch(exception& e)
+        catch(std::exception& e)
         {
             std::cout<<"file for field "<<labels.back()<<" is missing"<<std::endl;
             labels.pop_back();
