@@ -11,7 +11,8 @@
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("Given a mask creates and a list of volume data, populates a csv file where each colmuns represents one of the volume data and each line a given voxel. The voxel for which the mask is 0 are not set into the csv file. \\ Note: the voxel location are lost into the csv file.", ' ',"1.0");
+    TCLAP::CmdLine cmd("Given a mask creates and a list of volume data, populates a csv file where each colmuns represents one of the volume data and each line a given voxel. The voxel for which the mask is 0 are not set into the csv file. "
+                       "\\ Note: the voxel location are lost into the csv file. INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);
     TCLAP::ValueArg<std::string> dataListArg("i","database","Image List",true,"","image list",cmd);
     TCLAP::ValueArg<std::string> maskArg("m","maskname","Mask",true,"","mask",cmd);
     TCLAP::ValueArg<std::string> resNameArg("o","outputname","CSV file name",true,"","file name for the output csv file",cmd);

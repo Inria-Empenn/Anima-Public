@@ -1,1 +1,3 @@
+add_subdirectory(average_images)
 add_subdirectory(image_arithmetic)
+add_subdirectory(linear_transform_arithmetic)

@@ -1,4 +1,5 @@
 add_subdirectory(concatenate_images)
+add_subdirectory(create_image)
 add_subdirectory(crop_image)
 add_subdirectory(collapse_image)
 add_subdirectory(convert_image)
