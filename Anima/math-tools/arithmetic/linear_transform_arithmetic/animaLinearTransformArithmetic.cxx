@@ -54,7 +54,7 @@ int main(int argc, char **argv)
     itk::TransformFileReader::TransformListType trsfList = *(trReader->GetTransformList());
     itk::TransformFileReader::TransformListType::iterator tr_it = trsfList.begin();
 
-    MatrixTransformType *trsf = dynamic_cast <MatrixTransformType *> ((*tr_it).GetPointer());
+    MatrixTransformType *trsf = static_cast <MatrixTransformType *> ((*tr_it).GetPointer());
 
     if (trsf == NULL)
     {
@@ -97,7 +97,7 @@ int main(int argc, char **argv)
         itk::TransformFileReader::TransformListType composeTrsfList = *(reader->GetTransformList());
         itk::TransformFileReader::TransformListType::iterator composeTr_it = composeTrsfList.begin();
 
-        MatrixTransformType *composeTrsf = dynamic_cast <MatrixTransformType *> ((*composeTr_it).GetPointer());
+        MatrixTransformType *composeTrsf = static_cast <MatrixTransformType *> ((*composeTr_it).GetPointer());
 
         MatrixType composeMatrix(Dimension+1,Dimension+1);
         composeMatrix.set_identity();
@@ -131,7 +131,7 @@ int main(int argc, char **argv)
         itk::TransformFileReader::TransformListType addTrsfList = *(reader->GetTransformList());
         itk::TransformFileReader::TransformListType::iterator addTr_it = addTrsfList.begin();
 
-        MatrixTransformType *addTrsf = dynamic_cast <MatrixTransformType *> ((*addTr_it).GetPointer());
+        MatrixTransformType *addTrsf = static_cast <MatrixTransformType *> ((*addTr_it).GetPointer());
 
         if (addTrsf == NULL)
         {
@@ -170,7 +170,7 @@ int main(int argc, char **argv)
         itk::TransformFileReader::TransformListType subTrsfList = *(reader->GetTransformList());
         itk::TransformFileReader::TransformListType::iterator subTr_it = subTrsfList.begin();
 
-        MatrixTransformType *subTrsf = dynamic_cast <MatrixTransformType *> ((*subTr_it).GetPointer());
+        MatrixTransformType *subTrsf = static_cast <MatrixTransformType *> ((*subTr_it).GetPointer());
 
         if (subTrsf == NULL)
         {
