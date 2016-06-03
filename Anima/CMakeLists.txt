@@ -67,6 +67,11 @@ option(BUILD_SHARED_LIBS
   ON
   )
 
+option(BUILD_TESTING
+  "Build testing tools.”
+  OFF
+  )
+
 set(${PROJECT_NAME}_LIBRARY_DIRS
   ${LIBRARY_OUTPUT_PATH}
   )
