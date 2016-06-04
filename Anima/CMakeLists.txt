@@ -68,7 +68,7 @@ option(BUILD_SHARED_LIBS
   )
 
 option(BUILD_TESTING
-  "Build testing tools.”
+  "Build testing tools."
   OFF
   )
 
