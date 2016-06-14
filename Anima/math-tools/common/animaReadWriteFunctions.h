@@ -123,13 +123,19 @@ setMultipleImageFilterInputsFromFileName(std::string &fileName,
     else // N+1D image tentative
     {
         // Now that we found the appropriate ImageIO class, ask it to read the meta data from the image file.
-        imageIO->SetFileName(fileName.c_str());
+        imageIO->SetFileName(fileName);
         imageIO->ReadImageInformation();
 
         // Do we have a (N+1)D image ? If not, exiting, otherwise considering the last dimension as each input
         unsigned int ndim = imageIO->GetNumberOfDimensions();
 
-        if (ndim != (InputImageType::ImageDimension + 1))
+        if (ndim == InputImageType::ImageDimension)
+        {
+            filter->SetInput(anima::readImage <InputImageType> (fileName));
+            return 1;
+        }
+
+        if (ndim != InputImageType::ImageDimension + 1)
         {
             std::string errStr = "Unable to read file: ";
             errStr += fileName;
