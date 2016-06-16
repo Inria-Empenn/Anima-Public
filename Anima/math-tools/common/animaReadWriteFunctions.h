@@ -145,6 +145,7 @@ setMultipleImageFilterInputsFromFileName(std::string &fileName,
 
         typename HigherDimImageReaderType::Pointer imageReader = HigherDimImageReaderType::New();
         imageReader->SetImageIO(imageIO);
+        imageReader->SetFileName(fileName);
         imageReader->Update();
 
         std::vector <typename InputImageType::Pointer> inputData;
