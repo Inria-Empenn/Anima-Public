@@ -16,19 +16,20 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
                         std::string &subImStr, double multConstant, double divideConstant, double addConstant, double powConstant,
                         unsigned int nThreads)
 {
+    typedef itk::Image <double, ImageType::ImageDimension> WorkImageType;
     typedef itk::AddImageFilter <ImageType,ImageType,ImageType> AddFilterType;
-    typedef itk::AddImageFilter <ImageType,itk::Image <double, ImageType::ImageDimension>,ImageType> AddConstantFilterType;
+    typedef itk::AddImageFilter <ImageType,WorkImageType,ImageType> AddConstantFilterType;
     typedef itk::SubtractImageFilter <ImageType,ImageType,ImageType> SubtractFilterType;
     
-    typedef itk::MultiplyImageFilter <ImageType,itk::Image <double, ImageType::ImageDimension>,ImageType> MultiplyFilterType;
-    typedef itk::DivideImageFilter <ImageType,itk::Image <double, ImageType::ImageDimension>,ImageType> DivideFilterType;
+    typedef itk::MultiplyImageFilter <ImageType,WorkImageType,ImageType> MultiplyFilterType;
+    typedef itk::DivideImageFilter <ImageType,WorkImageType,ImageType> DivideFilterType;
         
     typename ImageType::Pointer currentImage = anima::readImage <ImageType> (inStr);
     currentImage->DisconnectPipeline();
     
     if (multImStr != "")
     {
-        typedef itk::ImageFileReader < itk::Image <double, ImageType::ImageDimension> > MultiplyReaderType;
+        typedef itk::ImageFileReader <WorkImageType> MultiplyReaderType;
         typename MultiplyReaderType::Pointer multImReader = MultiplyReaderType::New();
         multImReader->SetFileName(multImStr);
         multImReader->Update();
@@ -72,7 +73,7 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
     
     if (divImStr != "")
     {
-        typedef itk::ImageFileReader < itk::Image <double, ImageType::ImageDimension> > DivideReaderType;
+        typedef itk::ImageFileReader <WorkImageType> DivideReaderType;
         typename DivideReaderType::Pointer divImReader = DivideReaderType::New();
         divImReader->SetFileName(divImStr);
         divImReader->Update();
@@ -87,13 +88,14 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
         currentImage = divFilter->GetOutput();
         currentImage->DisconnectPipeline();
         
-        itk::ImageRegionIterator < itk::Image <double, ImageType::ImageDimension> > divImItr (divImReader->GetOutput(),divImReader->GetOutput()->GetLargestPossibleRegion());
+        itk::ImageRegionIterator <WorkImageType> divImItr (divImReader->GetOutput(),divImReader->GetOutput()->GetLargestPossibleRegion());
         itk::ImageRegionIterator <ImageType> currentImageItr (currentImage,currentImage->GetLargestPossibleRegion());
         
         while (!currentImageItr.IsAtEnd())
         {
-            if (divImItr.Get() == 0)
-                currentImageItr.Set(divImItr.Get() * currentImageItr.Get());
+            // Multiplication by 0.0 since current image may be a vector
+            if (itk::Math::AlmostEquals(divImItr.Get(), itk::NumericTraits<typename WorkImageType::PixelType>::ZeroValue()))
+                currentImageItr.Set(currentImageItr.Get() * 0.0);
             
             ++currentImageItr;
             ++divImItr;
@@ -146,7 +148,7 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
     if (powConstant != 1.0)
     {
         typedef itk::Image <typename ImageType::IOPixelType, ImageType::ImageDimension> ScalarImageType;
-        typedef itk::PowImageFilter <ScalarImageType, itk::Image <double, ImageType::ImageDimension>, ScalarImageType> PowConstantFilterType;
+        typedef itk::PowImageFilter <ScalarImageType, WorkImageType, ScalarImageType> PowConstantFilterType;
 
         ScalarImageType *castImage = dynamic_cast <ScalarImageType *> (currentImage.GetPointer());
         if (castImage)
