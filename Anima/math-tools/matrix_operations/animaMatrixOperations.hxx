@@ -22,6 +22,18 @@ GetRotationMatrixFromVectors(const VectorType &first_direction, const VectorType
     tmpVec[1] = first_direction[2] * second_direction[0] - first_direction[0] * second_direction[2];
     tmpVec[2] = first_direction[0] * second_direction[1] - first_direction[1] * second_direction[0];
 
+    double normTmpVec = 0;
+    for (unsigned int i = 0;i < dimension;++i)
+        normTmpVec += tmpVec[i] * tmpVec[i];
+
+    normTmpVec = std::sqrt(normTmpVec);
+    if (normTmpVec < 1.0e-8)
+    {
+        tmpVec[0] = 0;
+        tmpVec[1] = 0;
+        tmpVec[2] = 1;
+    }
+
     anima::pairingToQuaternion(tmpVec,tmpVec,tmpMatrix);
     AMatrix += tmpMatrix.transpose()*tmpMatrix;
 
