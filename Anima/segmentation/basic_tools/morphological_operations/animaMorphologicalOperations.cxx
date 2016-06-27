@@ -52,17 +52,17 @@ int main(int argc, char **argv)
     double radiusInVoxelD1 = radiusArg.getValue() / spacing1;
     double radiusInVoxelD2 = radiusArg.getValue() / spacing2;
 
-    double radiusInVoxelD0_floor = floor(radiusInVoxelD0);
-    double radiusInVoxelD1_floor = floor(radiusInVoxelD1);
-    double radiusInVoxelD2_floor = floor(radiusInVoxelD2);
+    double radiusInVoxelD0_round = std::round(radiusInVoxelD0);
+    double radiusInVoxelD1_round = std::round(radiusInVoxelD1);
+    double radiusInVoxelD2_round = std::round(radiusInVoxelD2);
 
-    unsigned int radiusInVoxel0 = static_cast<unsigned int>(radiusInVoxelD0_floor);
-    unsigned int radiusInVoxel1 = static_cast<unsigned int>(radiusInVoxelD1_floor);
-    unsigned int radiusInVoxel2 = static_cast<unsigned int>(radiusInVoxelD2_floor);
+    unsigned int radiusInVoxel0 = static_cast<unsigned int>(radiusInVoxelD0_round);
+    unsigned int radiusInVoxel1 = static_cast<unsigned int>(radiusInVoxelD1_round);
+    unsigned int radiusInVoxel2 = static_cast<unsigned int>(radiusInVoxelD2_round);
 
-    double diff0 = radiusInVoxelD0-radiusInVoxelD0_floor;
-    double diff1 = radiusInVoxelD1-radiusInVoxelD1_floor;
-    double diff2 = radiusInVoxelD2-radiusInVoxelD2_floor;
+    double diff0 = std::abs(radiusInVoxelD0-radiusInVoxelD0_round);
+    double diff1 = std::abs(radiusInVoxelD1-radiusInVoxelD1_round);
+    double diff2 = std::abs(radiusInVoxelD2-radiusInVoxelD2_round);
 
     BallElementType::SizeType ballSize;
     ballSize[0] = radiusInVoxel0;
