@@ -80,6 +80,8 @@ int main(int argc,  char **argv)
                     outGrads << directions[j][i] << " ";
                 outGrads << std::endl;
             }
+
+            outGrads.close();
         }
 
         inputFile = reorientGradArg.getValue();

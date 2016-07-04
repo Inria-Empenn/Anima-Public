@@ -10,6 +10,7 @@
 struct arguments
 {
     std::string input, output, reorient, space;
+    std::string gradientFileName;
     bool displayInfo;
 };
 
@@ -26,15 +27,53 @@ convert(const arguments &args)
         input->CopyInformation(spaceImage);
     }
 
+    std::vector < vnl_vector_fixed <double,3> > gradients;
+
+    if (args.gradientFileName != "")
+    {
+        typedef anima::GradientFileReader < vnl_vector_fixed<double,3>, double > GFReaderType;
+        GFReaderType gfReader;
+        gfReader.SetGradientFileName(args.gradientFileName);
+        gfReader.SetGradientIndependentNormalization(false);
+
+        gfReader.Update();
+
+        gradients = gfReader.GetGradients();
+    }
+
     if(args.reorient == "AXIAL")
-        input = anima::reorientImage<ImageType>(input,
-                                                itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI);
+        input = anima::reorientImageAndGradient(input,itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI,
+                                                gradients);
     else if(args.reorient == "CORONAL")
-        input = anima::reorientImage<ImageType>(input,
-                                                itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSA);
+        input = anima::reorientImageAndGradient(input,itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSA,
+                                                gradients);
     else if(args.reorient == "SAGITTAL")
-        input = anima::reorientImage<ImageType>(input,
-                                                itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_ASL);
+        input = anima::reorientImageAndGradient(input,itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_ASL,
+                                                gradients);
+
+    if (args.gradientFileName != "")
+    {
+        std::string outGradFileName = args.output;
+        std::size_t pointLocation = outGradFileName.find_last_of('.');
+        outGradFileName = outGradFileName.substr(0,pointLocation);
+        std::string tmpStr = outGradFileName.substr(pointLocation + 1);
+
+        if (tmpStr == "gz")
+        {
+            pointLocation = outGradFileName.find_last_of('.');
+            outGradFileName = outGradFileName.substr(0,pointLocation);
+        }
+
+        outGradFileName += ".bvec";
+        std::ofstream outGrads(outGradFileName);
+        for (unsigned int i = 0;i < 3;++i)
+        {
+            for (unsigned int j = 0;j < gradients.size();++j)
+                outGrads << gradients[j][i] << " ";
+            outGrads << std::endl;
+        }
+        outGrads.close();
+    }
 
     input->SetMetaDataDictionary(itk::MetaDataDictionary());
     anima::writeImage<ImageType>(args.output, input);
@@ -93,6 +132,9 @@ int main(int ac, const char** av)
             "",
             "Reorient the image in 'AXIAL' or 'CORONAL' or 'SAGITTAL' direction. [defalut: No reorientation]",
             cmd);
+
+    TCLAP::ValueArg<std::string> gradsArg("g","grad","input gradients (used in re-orientation mode)",false,"","Input gradients",cmd);
+
     TCLAP::ValueArg<std::string> spaceArg("s",
             "space",
             "space_filename",
@@ -128,6 +170,7 @@ int main(int ac, const char** av)
     arguments args;
     args.input = inputArg.getValue(); args.output = outputArg.getValue(); args.displayInfo = infoArg.getValue();
     args.reorient = reorientArg.getValue(); args.space = spaceArg.getValue();
+    args.gradientFileName = gradsArg.getValue();
 
     int numDimensions = imageIO->GetNumberOfDimensions() - 1;
     if(args.displayInfo)
