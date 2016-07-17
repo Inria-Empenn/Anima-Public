@@ -3,7 +3,7 @@
 #include "animaResampleImageFilter.h"
 #include <itkObjectFactory.h>
 #include <itkIdentityTransform.h>
-#include <animaFasterLinearInterpolateImageFunction.h>
+#include <itkLinearInterpolateImageFunction.h>
 #include <itkProgressReporter.h>
 #include <itkImageRegionIteratorWithIndex.h>
 #include <itkImageLinearIteratorWithIndex.h>
@@ -31,7 +31,7 @@ ResampleImageFilter<TInputImage, TOutputImage,TInterpolatorPrecisionType>
     m_OutputStartIndex.Fill( 0 );
 
     m_Transform = itk::IdentityTransform<TInterpolatorPrecisionType, ImageDimension>::New();
-    m_Interpolator = anima::FasterLinearInterpolateImageFunction<InputImageType, TInterpolatorPrecisionType>::New();
+    m_Interpolator = itk::LinearInterpolateImageFunction<InputImageType, TInterpolatorPrecisionType>::New();
     m_DefaultPixelValue = 0;
 
     m_ScaleIntensitiesWithJacobian = false;

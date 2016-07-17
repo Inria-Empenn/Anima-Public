@@ -8,7 +8,7 @@
 #include <itkWindowedSincInterpolateImageFunction.h>
 #include <itkConstantBoundaryCondition.h>
 
-#include <animaFasterLinearInterpolateImageFunction.h>
+#include <itkLinearInterpolateImageFunction.h>
 #include <animaResampleImageFilter.h>
 #include <animaTransformSeriesReader.h>
 #include <animaReadWriteFunctions.h>
@@ -105,7 +105,7 @@ applyScalarTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
     if(args.interpolation == "nearest")
         interpolator = itk::NearestNeighborInterpolateImageFunction<ImageType>::New();
     else if(args.interpolation == "linear")
-        interpolator = anima::FasterLinearInterpolateImageFunction<ImageType>::New();
+        interpolator = itk::LinearInterpolateImageFunction<ImageType>::New();
     else if(args.interpolation == "bspline")
         interpolator = itk::BSplineInterpolateImageFunction<ImageType>::New();
     else if(args.interpolation == "sinc")

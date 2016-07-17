@@ -1,6 +1,5 @@
 #include <tclap/CmdLine.h>
 
-#include <animaFasterLinearInterpolateImageFunction.h>
 #include <animaResampleImageFilter.h>
 #include <itkTransformFileReader.h>
 #include <itkAddImageFilter.h>

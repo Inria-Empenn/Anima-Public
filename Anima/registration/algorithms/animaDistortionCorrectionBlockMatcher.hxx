@@ -8,7 +8,7 @@
 /* Transforms */
 #include <animaDirectionScaleSkewTransform.h>
 
-#include <animaFasterLinearInterpolateImageFunction.h>
+#include <itkLinearInterpolateImageFunction.h>
 
 #include <itkImageRegionConstIterator.h>
 
@@ -89,7 +89,7 @@ DistortionCorrectionBlockMatcher<TInputImageType>
     typedef itk::ImageToImageMetric <InputImageType,InputImageType> BaseMetricType;
     BaseMetricType *baseMetric = dynamic_cast <BaseMetricType *> (metric.GetPointer());
 
-    typedef anima::FasterLinearInterpolateImageFunction<InputImageType,double> LocalInterpolatorType;
+    typedef itk::LinearInterpolateImageFunction<InputImageType,double> LocalInterpolatorType;
     typename LocalInterpolatorType::Pointer interpolator = LocalInterpolatorType::New();
 
     baseMetric->SetInterpolator(interpolator);
