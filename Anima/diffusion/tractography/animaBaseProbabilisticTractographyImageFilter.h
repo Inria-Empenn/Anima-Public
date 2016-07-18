@@ -7,7 +7,6 @@
 #include <vtkSmartPointer.h>
 #include <itkProcessObject.h>
 #include <itkLinearInterpolateImageFunction.h>
-#include <animaFasterLinearInterpolateImageFunction.h>
 
 #include <vector>
 #include <random>
@@ -53,7 +52,7 @@ public:
     typedef std::vector <Vector3DType> DirectionVectorType;
 
     // Typedefs for DWI interpolator
-    typedef anima::FasterLinearInterpolateImageFunction <InputImageType> InterpolatorType;
+    typedef itk::LinearInterpolateImageFunction <InputImageType> InterpolatorType;
     typedef InterpolatorType::Pointer InterpolatorPointerType;
     typedef std::vector < InterpolatorPointerType > DWIInterpolatorPointerVectorType;
     typedef InterpolatorType::ContinuousIndexType ContinuousIndexType;
