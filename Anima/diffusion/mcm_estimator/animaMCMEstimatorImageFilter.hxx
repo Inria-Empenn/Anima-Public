@@ -39,6 +39,14 @@ MCMEstimatorImageFilter<PixelType>
 }
 
 template <class PixelType>
+typename MCMEstimatorImageFilter<PixelType>::MCMCreatorType *
+MCMEstimatorImageFilter<PixelType>
+::GetNewMCMCreatorInstance()
+{
+    return new MCMCreatorType;
+}
+
+template <class PixelType>
 void
 MCMEstimatorImageFilter<PixelType>
 ::GenerateOutputInformation()
@@ -51,7 +59,7 @@ MCMEstimatorImageFilter<PixelType>
     OutputImageType *output = this->GetOutput();
 
     // Create fake MCM output to get its length
-    MCMCreatorType *tmpMCMCreator = new MCMCreatorType;
+    MCMCreatorType *tmpMCMCreator = this->GetNewMCMCreatorInstance();
     tmpMCMCreator->SetModelWithFreeWaterComponent(m_ModelWithFreeWaterComponent);
     tmpMCMCreator->SetModelWithStationaryWaterComponent(m_ModelWithStationaryWaterComponent);
     tmpMCMCreator->SetModelWithRestrictedWaterComponent(m_ModelWithRestrictedWaterComponent);
@@ -190,7 +198,7 @@ MCMEstimatorImageFilter<PixelType>
 
     m_MCMCreators.resize(this->GetNumberOfThreads());
     for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
-        m_MCMCreators[i] = new MCMCreatorType;
+        m_MCMCreators[i] = this->GetNewMCMCreatorInstance();
 
     typedef anima::DTIEstimationImageFilter <PixelType> DTIEstimationFilterType;
     typename DTIEstimationFilterType::Pointer dtiEstimator = DTIEstimationFilterType::New();

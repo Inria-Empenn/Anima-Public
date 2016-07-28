@@ -228,6 +228,7 @@ public:
     std::vector< GradientType > &GetGradientDirections() {return m_GradientDirections;}
 
     MCMCreatorType *GetMCMCreator(unsigned int i) {return m_MCMCreators[i];}
+    virtual MCMCreatorType *GetNewMCMCreatorInstance();
 
     // Output options
     InputImageType *GetAICcVolume () {return m_AICcVolume;}
