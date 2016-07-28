@@ -182,7 +182,7 @@ T2RelaxometryEstimationImageFilter <TInputImage,TOutputImage>::myfunc(const std:
     grad.resize(0);
     if (grad.size()==2) {
         grad[0] = 0.0;
-        grad[1] = 0.5 / sqrt(x[1]);
+        grad[1] = 0.5 / std::sqrt(x[1]);
     }
     unsigned int nbOfEchos=my_func_data[0];//
     double res=0;

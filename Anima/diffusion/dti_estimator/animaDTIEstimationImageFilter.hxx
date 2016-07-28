@@ -147,10 +147,10 @@ DTIEstimationImageFilter<PixelScalarType>
     std::vector <double> dwi (numInputs,0);
     OutputPixelType resVec(m_NumberOfComponents);
 
-    vnl_matrix <double> tmpTensor(3,3);
-
     std::vector <double> predictedValues(numInputs,0);
     OptimizationDataStructure data;
+    data.filter = this;
+    data.tensorCompartment = anima::TensorCompartment::New();
 
     while (!outIterator.IsAtEnd())
     {
@@ -175,32 +175,37 @@ DTIEstimationImageFilter<PixelScalarType>
             dwi[i] = inIterators[i].Get();
 
         // NLOPT optimization
-        nlopt::opt opt(nlopt::LN_BOBYQA, m_NumberOfComponents);
-
-        std::vector <double> lowerBounds(m_NumberOfComponents, 0);
-        for (unsigned int i = 0;i < 3;++i)
-            lowerBounds[i + 3] = -1.0e-3;
-
-        opt.set_lower_bounds(lowerBounds);
-
-        std::vector <double> upperBounds(m_NumberOfComponents, 5.0e-3);
-        for (unsigned int i = 0;i < 3;++i)
-            upperBounds[i + 3] = 1.0e-3;
-
-        opt.set_upper_bounds(upperBounds);
+        nlopt::opt opt(nlopt::LD_CCSAQ, m_NumberOfComponents);
         opt.set_xtol_rel(1e-4);
-
-        std::vector <double> optimizedValue(m_NumberOfComponents, 1.0e-3);
-        for (unsigned int i = 0;i < 3;++i)
-            upperBounds[i + 3] = 0.0;
+        opt.set_ftol_rel(1.0e-4);
 
         double minf;
 
-        data.filter = this;
         data.dwi = dwi;
         data.predictedValues = predictedValues;
 
+        std::vector <double> lowerBounds = data.tensorCompartment->GetParameterLowerBounds();
+        lowerBounds[5] = 1.0e-6;
+
+        opt.set_lower_bounds(lowerBounds);
+
+        std::vector <double> upperBounds = data.tensorCompartment->GetParameterUpperBounds();
+        upperBounds[3] = 6.0e-3;
+        upperBounds[4] = 6.0e-3;
+        upperBounds[5] = 6.0e-3;
+
+        opt.set_upper_bounds(upperBounds);
+
+        std::vector <double> optimizedValue(m_NumberOfComponents, 0);
+        for (unsigned int i = 0;i < 3;++i)
+            optimizedValue[i] = (lowerBounds[i] + upperBounds[i]) / 2.0;
+
+        optimizedValue[3] = 1.0e-3;
+        optimizedValue[4] = 1.5e-4;
+        optimizedValue[5] = 1.5e-4;
+
         opt.set_min_objective(OptimizationFunction, &data);
+        bool optimizationFine = true;
 
         try
         {
@@ -209,66 +214,39 @@ DTIEstimationImageFilter<PixelScalarType>
         catch(nlopt::roundoff_limited& e)
         {
             itkExceptionMacro("NLOPT optimization error");
+            optimizationFine = false;
         }
 
-        // Tensor is column first
-        resVec[0] = optimizedValue[0];
-        resVec[2] = optimizedValue[1];
-        resVec[5] = optimizedValue[2];
-        resVec[1] = optimizedValue[3];
-        resVec[3] = optimizedValue[4];
-        resVec[4] = optimizedValue[5];
-
+        resVec.Fill(0.0);
         double outB0Value = 0;
-        double normConstant = 0;
 
-        for (unsigned int i = 0;i < numInputs;++i)
+        if (optimizationFine)
         {
-            double predictedValue = 0;
-            double bValue = m_BValuesList[i];
+            data.tensorCompartment->SetParametersFromVector(optimizedValue);
+            anima::GetVectorRepresentation(data.tensorCompartment->GetDiffusionTensor().GetVnlMatrix().as_matrix(),
+                                           resVec,m_NumberOfComponents,false);
 
-            if (bValue == 0)
-                predictedValue = 1;
-            else
+            double normConstant = 0;
+
+            for (unsigned int i = 0;i < numInputs;++i)
             {
-                for (unsigned int j = 0;j < 3;++j)
-                    predictedValue += optimizedValue[j] * m_GradientDirections[i][j] * m_GradientDirections[i][j];
+                double predictedValue = 0;
+                double bValue = m_BValuesList[i];
 
-                predictedValue += 2 * optimizedValue[3] * m_GradientDirections[i][0] * m_GradientDirections[i][1];
-                predictedValue += 2 * optimizedValue[4] * m_GradientDirections[i][0] * m_GradientDirections[i][2];
-                predictedValue += 2 * optimizedValue[5] * m_GradientDirections[i][1] * m_GradientDirections[i][2];
+                if (bValue == 0)
+                    predictedValue = 1;
+                else
+                    predictedValue = data.tensorCompartment->GetFourierTransformedDiffusionProfile(bValue,m_GradientDirections[i]);
 
-                predictedValue = std::exp(- bValue * predictedValue);
+                outB0Value += predictedValue * dwi[i];
+                normConstant += predictedValue * predictedValue;
             }
 
-            outB0Value += predictedValue * dwi[i];
-            normConstant += predictedValue * predictedValue;
+            outB0Value /= normConstant;
         }
 
-        outB0Value /= normConstant;
-
-        anima::GetTensorFromVectorRepresentation(resVec,tmpTensor,3);
-        vnl_symmetric_eigensystem <double> tmpEigs(tmpTensor);
-
-        bool isTensorOk = true;
-
-        if (m_RemoveDegeneratedTensors)
-        {
-            for (unsigned int i = 0;i < 3;++i)
-            {
-                if (tmpEigs.D[i] <= 0)
-                {
-                    isTensorOk = false;
-                    break;
-                }
-            }
-        }
-
-        if (isTensorOk)
-        {
-            outIterator.Set(resVec);
-            outB0Iterator.Set(outB0Value);
-        }
+        outIterator.Set(resVec);
+        outB0Iterator.Set(outB0Value);
 
         for (unsigned int i = 0;i < numInputs;++i)
             ++inIterators[i];
@@ -285,16 +263,21 @@ DTIEstimationImageFilter<PixelScalarType>
 ::OptimizationFunction(const std::vector<double> &x, std::vector<double> &grad, void *func_data)
 {
     OptimizationDataStructure *data = static_cast <OptimizationDataStructure *> (func_data);
+    grad.resize(m_NumberOfComponents);
+    std::fill(grad.begin(),grad.end(),0.0);
 
-    return data->filter->ComputeCostAtPosition(x,data->dwi,data->predictedValues);
+    return data->filter->ComputeCostAtPosition(x,grad,data->tensorCompartment,data->dwi,data->predictedValues);
 }
 
 template <class PixelScalarType>
 double
 DTIEstimationImageFilter<PixelScalarType>
-::ComputeCostAtPosition(const std::vector<double> &x, const std::vector <double> &observedData,
-                        std::vector <double> &predictedValues)
+::ComputeCostAtPosition(const std::vector<double> &x, std::vector<double> &funcGradient,
+                        anima::TensorCompartment::Pointer &tensorCompartment,
+                        const std::vector <double> &observedData, std::vector <double> &predictedValues)
 {
+    tensorCompartment->SetParametersFromVector(x);
+
     for (unsigned int i = 0;i < this->GetNumberOfIndexedInputs();++i)
     {
         predictedValues[i] = 0;
@@ -305,14 +288,7 @@ DTIEstimationImageFilter<PixelScalarType>
             continue;
         }
 
-        for (unsigned int j = 0;j < 3;++j)
-            predictedValues[i] += x[j] * m_GradientDirections[i][j] * m_GradientDirections[i][j];
-
-        predictedValues[i] += 2 * x[3] * m_GradientDirections[i][0] * m_GradientDirections[i][1];
-        predictedValues[i] += 2 * x[4] * m_GradientDirections[i][0] * m_GradientDirections[i][2];
-        predictedValues[i] += 2 * x[5] * m_GradientDirections[i][1] * m_GradientDirections[i][2];
-
-        predictedValues[i] = std::exp(- bValue * predictedValues[i]);
+        predictedValues[i] = tensorCompartment->GetFourierTransformedDiffusionProfile(bValue,m_GradientDirections[i]);
     }
 
     double b0Val = 0;
@@ -327,11 +303,24 @@ DTIEstimationImageFilter<PixelScalarType>
     b0Val /= normConstant;
 
     double costValue = 0;
+    std::vector <double> tmpJacobian;
+
     for (unsigned int i = 0;i < this->GetNumberOfIndexedInputs();++i)
     {
         double predVal = b0Val * predictedValues[i];
         costValue += (predVal - observedData[i]) * (predVal - observedData[i]);
+
+        double bValue = m_BValuesList[i];
+        if (bValue == 0)
+            continue;
+
+        tmpJacobian = tensorCompartment->GetSignalAttenuationJacobian(bValue,m_GradientDirections[i]);
+        for (unsigned int j = 0;j < m_NumberOfComponents;++j)
+            funcGradient[j] += (predVal - observedData[i]) * tmpJacobian[j];
     }
+
+    for (unsigned int i = 0;i < m_NumberOfComponents;++i)
+        funcGradient[i] *= 2.0 * b0Val;
 
     return costValue;
 }

@@ -28,7 +28,6 @@ int main(int argc, char **argv)
 
     std::string dataLTName = dataListArg.getValue();
     std::string maskName = maskArg.getValue();
-    
 
     // load mask file
     typedef itk::Image <unsigned char, 3> MaskType;
@@ -39,7 +38,6 @@ int main(int argc, char **argv)
     typedef itk::ImageRegionConstIteratorWithIndex<MaskType>  MaskIterator;
 
     MaskIterator iterMaskImage( maskRead->GetOutput(), maskRead->GetOutput()->GetRequestedRegion() );
-    
 
     typedef itk::Image <double, 3> ImageType;
     typedef itk::ImageRegionConstIterator<ImageType>  ImageIterator;
@@ -55,7 +53,6 @@ int main(int argc, char **argv)
     std::vector<unsigned int> xSample;  std::vector<unsigned int> ySample;  std::vector<unsigned int> zSample;
     while (std::getline(fileIn, oneLine))
     {
-        std::cout<<nbImg<<std::endl;
         std::size_t pos = oneLine.find(":");               // position of ":" in str
         std::string imgeName = oneLine.substr (pos+1);     // get from ":" to the end
         labels.push_back(oneLine.substr(0,pos));

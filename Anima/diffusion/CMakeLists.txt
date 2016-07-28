@@ -6,5 +6,7 @@ project(ANIMA-DIFFUSION)
 
 add_subdirectory(dti_estimator)
 add_subdirectory(dti_tools)
+add_subdirectory(mcm)
+add_subdirectory(mcm_estimator)
 add_subdirectory(tractography)
 add_subdirectory(odf)

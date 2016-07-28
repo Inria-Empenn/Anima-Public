@@ -11,6 +11,13 @@
 #include <animaReadWriteFunctions.h>
 #include <animaReorientation.h>
 
+//Update progression of the process
+void eventCallback (itk::Object* caller, const itk::EventObject& event, void* clientData)
+{
+    itk::ProcessObject * processObject = (itk::ProcessObject*) caller;
+    std::cout<<"\033[K\rProgression: "<<(int)(processObject->GetProgress() * 100)<<"%"<<std::flush;
+}
+
 int main(int argc,  char **argv)
 {
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team",' ',ANIMA_VERSION);
@@ -21,8 +28,8 @@ int main(int argc,  char **argv)
 
     TCLAP::ValueArg<std::string> gradsArg("g","grad","input_gradients",true,"","Input gradients",cmd);
     TCLAP::ValueArg<std::string> bvalArg("b","bval","input_b-values",true,"","Input b-values",cmd);
-
-    TCLAP::SwitchArg keepDegArg("K","keep-degenerated","Keep degenerated values",cmd,false);
+    TCLAP::SwitchArg bvalueScaleArg("B","b-no-scale","Do not scale b-values according to gradient norm",cmd);
+    TCLAP::ValueArg<std::string> computationMaskArg("m","mask","Computation mask", false,"","computation mask",cmd);
 
     TCLAP::ValueArg<unsigned int> b0ThrArg("t","b0thr","bot_treshold",false,0,"B0 threshold (default : 0)",cmd);
     TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","nb_thread",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"Number of threads to run on (default: all cores)",cmd);
@@ -40,6 +47,7 @@ int main(int argc,  char **argv)
     }
 
     typedef anima::DTIEstimationImageFilter <float> FilterType;
+    typedef FilterType::MaskImageType MaskImageType;
     typedef FilterType::InputImageType InputImageType;
     typedef FilterType::Image4DType Image4DType;
     typedef FilterType::OutputImageType VectorImageType;
@@ -47,13 +55,16 @@ int main(int argc,  char **argv)
     typedef itk::ImageFileWriter <InputImageType> OutputB0ImageWriterType;
     typedef itk::ImageFileWriter <VectorImageType> VectorImageWriterType;
 
+    itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
+    callback->SetCallback(eventCallback);
+
     FilterType::Pointer mainFilter = FilterType::New();
 
     typedef anima::GradientFileReader < vnl_vector_fixed<double,3>, double > GFReaderType;
     GFReaderType gfReader;
     gfReader.SetGradientFileName(gradsArg.getValue());
     gfReader.SetBValueBaseString(bvalArg.getValue());
-    gfReader.SetGradientIndependentNormalization(false);
+    gfReader.SetGradientIndependentNormalization(bvalueScaleArg.isSet());
 
     gfReader.Update();
 
@@ -104,9 +115,12 @@ int main(int argc,  char **argv)
     for (unsigned int i = 0;i < inputData.size();++i)
         mainFilter->SetInput(i,inputData[i]);
 
+    if (computationMaskArg.getValue() != "")
+        mainFilter->SetComputationMask(anima::readImage<MaskImageType>(computationMaskArg.getValue()));
+
     mainFilter->SetB0Threshold(b0ThrArg.getValue());
     mainFilter->SetNumberOfThreads(nbpArg.getValue());
-    mainFilter->SetRemoveDegeneratedTensors(!keepDegArg.isSet());
+    mainFilter->AddObserver(itk::ProgressEvent(), callback);
 
     itk::TimeProbe tmpTimer;
 
