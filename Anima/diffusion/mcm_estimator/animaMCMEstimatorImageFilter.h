@@ -314,8 +314,8 @@ protected:
 
     void CheckComputationMask() ITK_OVERRIDE;
 
-    void GenerateOutputInformation(void) ITK_OVERRIDE;
-    void BeforeThreadedGenerateData(void) ITK_OVERRIDE;
+    void GenerateOutputInformation() ITK_OVERRIDE;
+    virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
     //! Create a cost function following the noise type and estimation mode

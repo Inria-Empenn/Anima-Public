@@ -127,6 +127,9 @@ MCMEstimatorImageFilter<PixelType>
     if ((m_Optimizer == "levenberg")&&((m_MLEstimationStrategy != VariableProjection)||(m_NoiseType != Gaussian)))
         itkExceptionMacro("Levenberg Marquardt optimizer only working with Gaussian noise and variable projection");
 
+    if ((m_Optimizer != "bobyqa")&&(m_UseCommonDiffusivities||m_UseCommonWeights))
+        itkExceptionMacro("Derivative based optimizers not supported yet for common parameters, use Bobyqa instead");
+
     if ((m_NoiseType == NCC)&&(m_MLEstimationStrategy != Profile))
         itkExceptionMacro("NCC noise is only compatible with profile estimation strategy");
 
