@@ -50,7 +50,7 @@ int main(int argc,  char **argv)
     TCLAP::SwitchArg fixWeightsArg("", "fix-weights", "Fix compartment weights", cmd, false);
     TCLAP::ValueArg<double> freeWaterWeightArg("f", "fw-weight", "Free water weight, used if free water compartment (default: 0.1)", false, 0.1, "free water weight", cmd);
     TCLAP::ValueArg<double> stationaryWaterWeightArg("s", "sw-weight", "Stationary water weight, used if stationary water compartment (default: 0.05)", false, 0.05, "stationary water weight", cmd);
-    TCLAP::ValueArg<double> restrictedWaterWeightArg("r", "rw-weight", "REstricted water weight, used if restricted water compartment (default: 0.1)", false, 0.1, "restricted water weight", cmd);
+    TCLAP::ValueArg<double> restrictedWaterWeightArg("r", "rw-weight", "Restricted water weight, used if restricted water compartment (default: 0.1)", false, 0.1, "restricted water weight", cmd);
     TCLAP::SwitchArg fixDiffArg("", "fix-diff", "Fix diffusivity value", cmd, false);
     TCLAP::SwitchArg optFWDiffArg("", "opt-free-water-diff", "Optimize free water diffusivity value", cmd, false);
     TCLAP::SwitchArg optIRWDiffArg("", "opt-ir-water-diff", "Optimize isotropic restricted water diffusivity value", cmd, false);
@@ -59,7 +59,7 @@ int main(int argc,  char **argv)
     TCLAP::SwitchArg commonDiffusivitiesArg("", "common-diffusivities", "Share diffusivity values among compartments", cmd, false);
 
     TCLAP::ValueArg<std::string> optimizerArg("", "optimizer", "Optimizer for estimation: bobyqa (default), ccsaq or levenberg (usable only with variable projection)", false, "bobyqa", "optimizer", cmd);
-    TCLAP::ValueArg<unsigned int> nbRandomRestartsArg("", "random-restarts", "Number of random restarts when searching for more than 2 fascicles (default: 20)", false, 20, "nb of random restarts", cmd);
+    TCLAP::ValueArg<unsigned int> nbRandomRestartsArg("", "random-restarts", "Number of random restarts when searching for more than 2 fascicles (default: 6)", false, 6, "number of random restarts", cmd);
     TCLAP::ValueArg<double> absCostChangeArg("", "abs-cost-change", "Cost function change to stop estimation (default: 0.01)", false, 0.01, "cost change threshold", cmd);
     TCLAP::ValueArg <unsigned int> mlModeArg("", "ml-mode", "ML estimation strategy: marginal likelihood (0), profile likelihood (1, default), Variable projection (2)", false, 1, "ML mode", cmd);
     TCLAP::ValueArg<double> xTolArg("x", "x-tol", "Tolerance for position in optimization (default: 0)", false, 0, "position tolerance", cmd);
