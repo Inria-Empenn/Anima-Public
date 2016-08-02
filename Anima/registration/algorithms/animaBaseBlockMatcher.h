@@ -81,6 +81,7 @@ public:
     std::vector <ImageRegionType> &GetBlockRegions() {return m_BlockRegions;}
     ImageRegionType &GetBlockRegion(unsigned int i) {return m_BlockRegions[i];}
     DamWeightsImagePointer &GetBlockDamWeights() {return m_BlockDamWeights;}
+    void SetBlockDamWeights(DamWeightsImagePointer &damWeights) {m_BlockDamWeights = damWeights;}
 
     std::vector <BaseInputTransformPointer> &GetBlockTransformPointers() {return m_BlockTransformPointers;}
     BaseInputTransformPointer &GetBlockTransformPointer(unsigned int i) {return m_BlockTransformPointers[i];}
