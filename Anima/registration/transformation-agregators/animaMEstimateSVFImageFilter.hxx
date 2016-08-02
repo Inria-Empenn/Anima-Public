@@ -1,19 +1,10 @@
 #pragma once
+#include "animaMEstimateSVFImageFilter.h"
 
 #include <itkImageRegionIteratorWithIndex.h>
 #include <itkImageRegionConstIteratorWithIndex.h>
 
-#include <itkTimeProbe.h>
-
 #include <animaSmoothingRecursiveYvvGaussianImageFilter.h>
-
-#ifndef MAX
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-#endif
-
-#ifndef MIN
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#endif
 
 namespace anima
 {
@@ -25,13 +16,10 @@ BeforeThreadedGenerateData ()
 {
     unsigned int nbInputs = this->GetNumberOfIndexedInputs();
     if (nbInputs != 1)
-    {
-        std::cerr << "Error: There should be one input... Exiting..." << std::endl;
-        exit(-1);
-    }
+        itkExceptionMacro("Error: There should be one input...");
 
-    typename WeightImageType::Pointer tmpWeights = WeightImageType::New();
-    typedef itk::ImageRegionIteratorWithIndex < WeightImageType > WeightIteratorType;
+    WeightImagePointer tmpWeights = WeightImageType::New();
+    typedef itk::ImageRegionIterator <WeightImageType> WeightIteratorType;
 
     WeightIteratorType weightOriginalIterator(m_WeightImage,this->GetInput()->GetLargestPossibleRegion());
 
@@ -76,10 +64,10 @@ BeforeThreadedGenerateData ()
 
     fieldSmooth->Update();
 
-    typename TInputImage::Pointer smoothSVFImage = fieldSmooth->GetOutput();
+    InputImagePointer smoothSVFImage = fieldSmooth->GetOutput();
     smoothSVFImage->DisconnectPipeline();
 
-    typename WeightImageType::Pointer smoothWeightImage = weightSmooth->GetOutput();
+    WeightImagePointer smoothWeightImage = weightSmooth->GetOutput();
 
     OutputPixelType curDisp;
     OutputPixelType originDisp;
@@ -87,17 +75,18 @@ BeforeThreadedGenerateData ()
     unsigned int numPairings = 0;
     InputIndexType tmpIndex;
 
-    tmpWeightIterator.GoToBegin();
+    typedef itk::ImageRegionIterator <WeightImageType> WeightIteratorWithIndexType;
+    WeightIteratorWithIndexType tmpWeightIteratorWithIndex(tmpWeights,tmpWeights->GetLargestPossibleRegion());
 
-    while (!tmpWeightIterator.IsAtEnd())
+    while (!tmpWeightIteratorWithIndex.IsAtEnd())
     {
-        if (tmpWeightIterator.Value() <= 0)
+        if (tmpWeightIteratorWithIndex.Value() <= 0)
         {
-            ++tmpWeightIterator;
+            ++tmpWeightIteratorWithIndex;
             continue;
         }
 
-        tmpIndex = tmpWeightIterator.GetIndex();
+        tmpIndex = tmpWeightIteratorWithIndex.GetIndex();
         curDisp = smoothSVFImage->GetPixel(tmpIndex);
         curDisp /= smoothWeightImage->GetPixel(tmpIndex);
 
@@ -110,7 +99,7 @@ BeforeThreadedGenerateData ()
         averageDist += dist;
 
         ++numPairings;
-        ++tmpWeightIterator;
+        ++tmpWeightIteratorWithIndex;
     }
 
     m_AverageResidualValue = averageDist / numPairings;
@@ -136,7 +125,7 @@ BeforeThreadedGenerateData ()
     m_InternalSpatialWeight->SetDirection (this->GetInput()->GetDirection());
     m_InternalSpatialWeight->Allocate();
 
-    WeightIteratorType spatialWeightItr(m_InternalSpatialWeight,tmpRegion);
+    WeightIteratorWithIndexType spatialWeightItr(m_InternalSpatialWeight,tmpRegion);
     m_InternalSpatialWeight->TransformIndexToPhysicalPoint(centerIndex,centerPosition);
 
     while (!spatialWeightItr.IsAtEnd())
@@ -149,7 +138,7 @@ BeforeThreadedGenerateData ()
             centerDist += (centerPosition[i] - curPosition[i]) * (centerPosition[i] - curPosition[i]);
 
         if (centerDist < m_SqrDistanceBoundary)
-            spatialWeightItr.Set(exp(- centerDist / (2.0 * m_FluidSigma * m_FluidSigma)));
+            spatialWeightItr.Set(std::exp(- centerDist / (2.0 * m_FluidSigma * m_FluidSigma)));
         else
             spatialWeightItr.Set(0);
 
@@ -162,8 +151,9 @@ void
 MEstimateSVFImageFilter<TScalarType,NDegreesOfFreedom,NDimensions>::
 ThreadedGenerateData (const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
 {
-    typedef itk::ImageRegionIteratorWithIndex< TOutputImage > OutRegionIteratorType;
-    typedef itk::ImageRegionConstIteratorWithIndex< WeightImageType > WeightIteratorType;
+    typedef itk::ImageRegionIteratorWithIndex <TOutputImage> OutRegionIteratorType;
+    typedef itk::ImageRegionConstIteratorWithIndex <WeightImageType> WeightIteratorWithIndexType;
+    typedef itk::ImageRegionConstIterator <WeightImageType> WeightIteratorType;
 
     OutRegionIteratorType outIterator(this->GetOutput(), outputRegionForThread);
 
@@ -173,7 +163,7 @@ ThreadedGenerateData (const OutputImageRegionType &outputRegionForThread, itk::T
 
     std::vector <double> weightsVector(numMaxEltsRegion);
     std::vector <double> deltaVector(numMaxEltsRegion);
-    std::vector < InputPixelType > logTrsfsVector(numMaxEltsRegion);
+    std::vector <InputPixelType> logTrsfsVector(numMaxEltsRegion);
 
     InputIndexType curIndex, centerIndex, spatialIndex;
     std::vector <int> diffSpatialIndex(NDimensions,0);
@@ -185,20 +175,34 @@ ThreadedGenerateData (const OutputImageRegionType &outputRegionForThread, itk::T
         largestBound[i] = largestRegion.GetIndex()[i] + largestRegion.GetSize()[i] - 1;
 
     OutputPixelType outValue, outValueOld;
+    WeightIteratorType damWeightsItr;
+    if (m_BlockDamWeights)
+        damWeightsItr = WeightIteratorType(m_BlockDamWeights,outputRegionForThread);
 
     while (!outIterator.IsAtEnd())
     {
         outValue.Fill(0);
+        if (m_BlockDamWeights)
+        {
+            if (damWeightsItr.Get() <= 0)
+            {
+                outIterator.Set(outValue);
+                ++outIterator;
+                ++damWeightsItr;
+                continue;
+            }
+        }
+
         centerIndex = outIterator.GetIndex();
 
         for (unsigned int i = 0;i < NDimensions;++i)
         {
             diffSpatialIndex[i] = m_NeighborhoodHalfSize - centerIndex[i];
-            tmpRegion.SetIndex(i,MAX(0,- diffSpatialIndex[i]));
-            tmpRegion.SetSize(i,MIN(largestBound[i], centerIndex[i] + m_NeighborhoodHalfSize) - tmpRegion.GetIndex()[i] + 1);
+            tmpRegion.SetIndex(i,std::max(0,- diffSpatialIndex[i]));
+            tmpRegion.SetSize(i,std::min(largestBound[i], (unsigned int)centerIndex[i] + m_NeighborhoodHalfSize) - tmpRegion.GetIndex()[i] + 1);
         }
 
-        WeightIteratorType weightIterator(m_WeightImage,tmpRegion);
+        WeightIteratorWithIndexType weightIterator(m_WeightImage,tmpRegion);
 
         double sumAbsoluteWeights = 0;
         unsigned int pos = 0;
@@ -239,6 +243,8 @@ ThreadedGenerateData (const OutputImageRegionType &outputRegionForThread, itk::T
         {
             outIterator.Set(outValue);
             ++outIterator;
+            if (m_BlockDamWeights)
+                ++damWeightsItr;
             continue;
         }
 
@@ -278,9 +284,15 @@ ThreadedGenerateData (const OutputImageRegionType &outputRegionForThread, itk::T
                     for (unsigned int j = 0;j < NDegreesOfFreedom;++j)
                         residual += (outValue[j] - logTrsfsVector[i][j]) * (outValue[j] - logTrsfsVector[i][j]);
 
-                    deltaVector[i] = exp(- residual / (m_AverageResidualValue * m_MEstimateFactor));
+                    deltaVector[i] = std::exp(- residual / (m_AverageResidualValue * m_MEstimateFactor));
                 }
             }
+        }
+
+        if (m_BlockDamWeights)
+        {
+            outValue *= damWeightsItr.Get();
+            ++damWeightsItr;
         }
 
         outIterator.Set(outValue);
@@ -295,7 +307,7 @@ checkConvergenceThreshold (OutputPixelType &outValOld, OutputPixelType &outVal)
 {
     for (unsigned int i = 0;i < NDegreesOfFreedom;++i)
     {
-        if (fabs(outVal[i] - outValOld[i]) > m_ConvergenceThreshold)
+        if (std::abs(outVal[i] - outValOld[i]) > m_ConvergenceThreshold)
             return false;
     }
 

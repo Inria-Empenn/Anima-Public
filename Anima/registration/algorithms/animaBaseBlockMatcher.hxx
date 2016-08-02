@@ -61,7 +61,7 @@ BaseBlockMatcher <TInputImageType>
 
     m_BlockRegions = initPtr->GetOutput();
     m_BlockPositions = initPtr->GetOutputPositions();
-    m_DamIndexes = initPtr->GetDamIndexes();
+    m_BlockDamWeights = initPtr->GetBlockDamWeights();
 
     std::cout << "Generated " << m_BlockRegions.size() << " blocks..." << std::endl;
 

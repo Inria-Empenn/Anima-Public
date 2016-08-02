@@ -62,7 +62,7 @@ public:
 
     void Update();
 
-    OutputType GetOutput()
+    OutputType &GetOutput()
     {
         if (m_Modified)
             this->Update();

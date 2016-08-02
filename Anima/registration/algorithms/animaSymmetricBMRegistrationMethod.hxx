@@ -33,13 +33,13 @@ SymmetricBMRegistrationMethod <TInputImageType>
         SVFAgregatorType *tmpAgreg = dynamic_cast <SVFAgregatorType *> (this->GetAgregator());
 
         if (tmpAgreg)
-            tmpAgreg->SetDamIndexes(this->GetBlockMatcher()->GetDamIndexes());
+            tmpAgreg->SetBlockDamWeights(this->GetBlockMatcher()->GetBlockDamWeights());
         else
         {
             typedef anima::DenseSVFTransformAgregator<InputImageType::ImageDimension> SVFAgregatorType;
             SVFAgregatorType *tmpDenseAgreg = dynamic_cast <SVFAgregatorType *> (this->GetAgregator());
 
-            tmpDenseAgreg->SetDamIndexes(this->GetBlockMatcher()->GetDamIndexes());
+            tmpDenseAgreg->SetBlockDamWeights(this->GetBlockMatcher()->GetBlockDamWeights());
         }
     }
 
@@ -69,13 +69,13 @@ SymmetricBMRegistrationMethod <TInputImageType>
         SVFAgregatorType *tmpAgreg = dynamic_cast <SVFAgregatorType *> (this->GetAgregator());
 
         if (tmpAgreg)
-            tmpAgreg->SetDamIndexes(m_ReverseBlockMatcher->GetDamIndexes());
+            tmpAgreg->SetBlockDamWeights(m_ReverseBlockMatcher->GetBlockDamWeights());
         else
         {
             typedef anima::DenseSVFTransformAgregator<InputImageType::ImageDimension> SVFAgregatorType;
             SVFAgregatorType *tmpDenseAgreg = dynamic_cast <SVFAgregatorType *> (this->GetAgregator());
 
-            tmpDenseAgreg->SetDamIndexes(m_ReverseBlockMatcher->GetDamIndexes());
+            tmpDenseAgreg->SetBlockDamWeights(m_ReverseBlockMatcher->GetBlockDamWeights());
         }
     }
 

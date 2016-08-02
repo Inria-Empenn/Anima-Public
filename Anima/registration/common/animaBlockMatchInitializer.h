@@ -21,47 +21,49 @@ public:
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
     typedef itk::Image <PixelType, NDimensions> ScalarImageType;
+    typedef itk::Image <double, NDimensions> WeightImageType;
+    typedef typename WeightImageType::Pointer WeightImagePointer;
     typedef typename ScalarImageType::IndexType IndexType;
     typedef typename ScalarImageType::PointType PointType;
     typedef itk::VectorImage <PixelType, NDimensions> VectorImageType;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(BlockMatchingInitializer, Object);
+    itkTypeMacro(BlockMatchingInitializer, itk::Object)
 
     typedef typename ScalarImageType::RegionType ImageRegionType;
 
     typedef typename ScalarImageType::Pointer ScalarImagePointer;
     typedef typename VectorImageType::Pointer VectorImagePointer;
 
-    itkSetMacro(NumberOfThreads, unsigned int);
-    itkGetMacro(NumberOfThreads, unsigned int);
+    itkSetMacro(NumberOfThreads, unsigned int)
+    itkGetMacro(NumberOfThreads, unsigned int)
 
     void SetPercentageKept(double val);
-    itkGetMacro(PercentageKept, double);
+    itkGetMacro(PercentageKept, double)
 
     void SetScalarVarianceThreshold(double val);
-    itkGetMacro(ScalarVarianceThreshold, double);
+    itkGetMacro(ScalarVarianceThreshold, double)
 
     void SetTensorVarianceThreshold(double val);
-    itkGetMacro(TensorVarianceThreshold, double);
+    itkGetMacro(TensorVarianceThreshold, double)
 
     void SetRequestedRegion(const ImageRegionType &val);
-    itkGetMacro(RequestedRegion, ImageRegionType);
+    itkGetMacro(RequestedRegion, ImageRegionType)
 
     void SetBlockSpacing(unsigned int val);
     void SetBlockSize(unsigned int val);
 
-    itkGetMacro(BlockSpacing, unsigned int);
-    itkGetMacro(BlockSize, unsigned int);
+    itkGetMacro(BlockSpacing, unsigned int)
+    itkGetMacro(BlockSize, unsigned int)
 
     void SetComputeOuterDam(bool val);
-    itkGetMacro(ComputeOuterDam, bool);
+    itkGetMacro(ComputeOuterDam, bool)
 
     void SetDamDistance(double val);
-    itkGetMacro(DamDistance, double);
+    itkGetMacro(DamDistance, double)
 
     void AddReferenceImage(itk::ImageBase <NDimensions> *refImage);
     itk::ImageBase <NDimensions> *GetFirstReferenceImage();
@@ -78,7 +80,7 @@ public:
 
     std::vector <ImageRegionType> &GetOutput();
     std::vector <PointType> &GetOutputPositions();
-    std::vector <IndexType> &GetDamIndexes();
+    WeightImagePointer &GetBlockDamWeights();
 
 protected:
     BlockMatchingInitializer() : Superclass()
@@ -94,7 +96,6 @@ protected:
 
         m_ComputeOuterDam = false;
         m_DamDistance = 4;
-        m_DamIndexes.clear();
 
         m_UpToDate = false;
     }
@@ -140,9 +141,9 @@ private:
     double m_PercentageKept;
 
     bool m_ComputeOuterDam;
-    //! Distance from blocks to the dam, is in voxel coordinates !
+    //! Distance from blocks to the dam
     double m_DamDistance;
-    std::vector <IndexType> m_DamIndexes;
+    WeightImagePointer m_BlockDamWeights;
 
     ImageRegionType m_RequestedRegion;
 

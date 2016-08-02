@@ -24,11 +24,12 @@ public:
     typedef TInputImageType InputImageType;
     typedef typename InputImageType::Pointer InputImagePointer;
     typedef typename InputImageType::RegionType ImageRegionType;
-    typedef typename InputImageType::IndexType ImageIndexType;
     typedef typename InputImageType::PointType PointType;
 
     typedef anima::BaseTransformAgregator<TInputImageType::ImageDimension> AgregatorType;
     typedef typename AgregatorType::InternalScalarType InternalScalarType;
+    typedef itk::Image <InternalScalarType,TInputImageType::ImageDimension> DamWeightsImageType;
+    typedef typename DamWeightsImageType::Pointer DamWeightsImagePointer;
     typedef typename AgregatorType::BaseInputTransformType BaseInputTransformType;
     typedef typename BaseInputTransformType::Pointer BaseInputTransformPointer;
 
@@ -79,7 +80,7 @@ public:
     std::vector <PointType> &GetBlockPositions() {return m_BlockPositions;}
     std::vector <ImageRegionType> &GetBlockRegions() {return m_BlockRegions;}
     ImageRegionType &GetBlockRegion(unsigned int i) {return m_BlockRegions[i];}
-    std::vector <ImageIndexType> &GetDamIndexes() {return m_DamIndexes;}
+    DamWeightsImagePointer &GetBlockDamWeights() {return m_BlockDamWeights;}
 
     std::vector <BaseInputTransformPointer> &GetBlockTransformPointers() {return m_BlockTransformPointers;}
     BaseInputTransformPointer &GetBlockTransformPointer(unsigned int i) {return m_BlockTransformPointers[i];}
@@ -120,7 +121,7 @@ protected:
     void SetBlockWeights(std::vector <double> &val) {m_BlockWeights = val;}
     void SetBlockRegions(std::vector <ImageRegionType> &val) {m_BlockRegions = val;}
     void SetBlockPositions(std::vector <PointType> &val) {m_BlockPositions = val;}
-    void SetDamIndexes(std::vector <ImageIndexType> &val) {m_DamIndexes = val;}
+    void SetDBlockDamWeights(DamWeightsImagePointer &val) {m_BlockDamWeights = val;}
 
 private:
     InputImagePointer m_ReferenceImage;
@@ -132,7 +133,7 @@ private:
     // The origins of the blocks
     std::vector <PointType> m_BlockPositions;
     std::vector <ImageRegionType> m_BlockRegions;
-    std::vector <ImageIndexType> m_DamIndexes;
+    DamWeightsImagePointer m_BlockDamWeights;
 
     // The weights associated to blocks
     std::vector <double> m_BlockWeights;

@@ -190,13 +190,14 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
 
     tmpMat = m_FixedHalfInvCovarianceMatrix * Sigma_XY * Sigma_YY;
 
-    MeasureType measure = 0;
+    double measure = 0;
 
     for (unsigned int i = 0;i < vectorSize;++i)
         for (unsigned int j = 0;j < vectorSize;++j)
             measure += tmpMat(i,j)*tmpMat(i,j);
 
-    measure = MIN(1.0,MAX(ovlWeight * measure / vectorSize,0.0));
+    double tentativeMeasure = ovlWeight * measure / vectorSize;
+    measure = std::min(1.0,std::max(tentativeMeasure,0.0));
 
     return measure;
 }

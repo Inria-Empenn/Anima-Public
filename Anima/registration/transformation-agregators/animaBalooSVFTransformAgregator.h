@@ -3,7 +3,6 @@
 #include <animaBaseTransformAgregator.h>
 #include <itkStationaryVelocityFieldTransform.h>
 
-
 namespace anima
 {
 
@@ -20,7 +19,6 @@ public:
     typedef typename Superclass::InternalScalarType InternalScalarType;
 
     typedef itk::Image <ScalarType,NDimensions> WeightImageType;
-    typedef typename WeightImageType::IndexType IndexType;
     typedef typename WeightImageType::Pointer WeightImagePointer;
 
     typedef itk::MatrixOffsetTransformBase <InternalScalarType, NDimensions, NDimensions> BaseMatrixTransformType;
@@ -49,7 +47,8 @@ public:
     void SetNumberOfThreads(unsigned int num) {m_NumberOfThreads = num;}
     unsigned int GetNumberOfThreads() {return m_NumberOfThreads;}
 
-    void SetDamIndexes(std::vector <IndexType> &indexes) {m_DamIndexes = indexes;}
+    void SetBlockDamWeights(WeightImagePointer &damWeights) {m_BlockDamWeights = damWeights;}
+    WeightImagePointer &GetBlockDamWeights() {return m_BlockDamWeights;}
 
     template <class TInputImageType> void SetGeometryInformation(const TInputImageType *geomImage)
     {
@@ -72,7 +71,7 @@ protected:
     VelocityFieldDirectionType m_Direction;
 
     unsigned int m_NumberOfThreads;
-    std::vector <IndexType> m_DamIndexes;
+    WeightImagePointer m_BlockDamWeights;
 
 private:
     void estimateSVFFromTranslations();

@@ -4,7 +4,11 @@
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIteratorWithIndex.h>
 #include <itkImageFileWriter.h>
+
+#include <itkExpNegativeImageFilter.h>
 #include <itkDanielssonDistanceMapImageFilter.h>
+#include <itkGrayscaleDilateImageFilter.h>
+#include <itkBinaryBallStructuringElement.h>
 
 namespace anima
 {
@@ -30,13 +34,13 @@ BlockMatchingInitializer<PixelType,NDimensions>
 }
 
 template <class PixelType, unsigned int NDimensions>
-std::vector < typename BlockMatchingInitializer<PixelType,NDimensions>::IndexType > &
+typename BlockMatchingInitializer<PixelType,NDimensions>::WeightImagePointer &
 BlockMatchingInitializer<PixelType,NDimensions>
-::GetDamIndexes()
+::GetBlockDamWeights()
 {
     this->Update();
 
-    return m_DamIndexes;
+    return m_BlockDamWeights;
 }
 
 template <class PixelType, unsigned int NDimensions>
@@ -166,6 +170,20 @@ void BlockMatchingInitializer<PixelType,NDimensions>
 {
     if (m_UpToDate)
         return;
+
+    if (m_ComputeOuterDam)
+    {
+        m_BlockDamWeights = WeightImageType::New();
+
+        m_BlockDamWeights->Initialize();
+        m_BlockDamWeights->SetRegions (this->GetFirstReferenceImage()->GetLargestPossibleRegion());
+        m_BlockDamWeights->SetSpacing (this->GetFirstReferenceImage()->GetSpacing());
+        m_BlockDamWeights->SetOrigin (this->GetFirstReferenceImage()->GetOrigin());
+        m_BlockDamWeights->SetDirection (this->GetFirstReferenceImage()->GetDirection());
+        m_BlockDamWeights->Allocate();
+
+        m_BlockDamWeights->FillBuffer(0);
+    }
 
     itk::MultiThreader::Pointer threaderBlockGenerator = itk::MultiThreader::New();
 
@@ -365,122 +383,55 @@ template <class PixelType, unsigned int NDimensions>
 void BlockMatchingInitializer<PixelType,NDimensions>
 ::ComputeOuterDamFromBlocks()
 {
-    typedef itk::Image<unsigned char, NDimensions> BlockMaskImageType;
-    typedef typename BlockMaskImageType::Pointer BlockMaskImagePointer;
-
-    typedef itk::Image<float, NDimensions> BlockDistanceImageType;
-
-    typename itk::ImageBase<NDimensions>::Pointer refImage = this->GetFirstReferenceImage();
-
-    BlockMaskImagePointer blocksMap = BlockMaskImageType::New();
-    blocksMap->Initialize();
-    blocksMap->SetRegions (refImage->GetLargestPossibleRegion());
-    blocksMap->SetSpacing (refImage->GetSpacing());
-    blocksMap->SetOrigin (refImage->GetOrigin());
-    blocksMap->SetDirection (refImage->GetDirection());
-    blocksMap->Allocate();
-
-    blocksMap->FillBuffer(0);
-
     IndexType posIndex;
     for (unsigned int i = 0;i < m_Output.size();++i)
     {
         for (unsigned int j = 0;j < NDimensions;++j)
-            posIndex[j] = (unsigned int)floor((m_Output[i].GetIndex()[j] + m_Output[i].GetSize()[j] / 2.0) + 0.5);
+            posIndex[j] = (unsigned int)std::round(m_Output[i].GetIndex()[j] + (m_Output[i].GetSize()[j] - 1) / 2.0);
 
-        blocksMap->SetPixel(posIndex,1);
+        m_BlockDamWeights->SetPixel(posIndex,1);
     }
 
-    typedef itk::DanielssonDistanceMapImageFilter <BlockMaskImageType, BlockDistanceImageType> DistanceMapFilterType;
+    typedef itk::BinaryBallStructuringElement <unsigned short, NDimensions> BallElementType;
+    typedef itk::GrayscaleDilateImageFilter <WeightImageType,WeightImageType,BallElementType> DilateFilterType;
+    typename DilateFilterType::Pointer dilateFilter = DilateFilterType::New();
+
+    dilateFilter->SetInput(m_BlockDamWeights);
+
+    BallElementType dilateBall;
+    // Rule of thumb for dilation of block mask
+    unsigned int radius = std::floor(m_BlockSpacing + (m_BlockSize - 1.0) / 2.0);
+    dilateBall.SetRadius(radius);
+    dilateBall.CreateStructuringElement();
+
+    dilateFilter->SetKernel(dilateBall);
+    dilateFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+
+    dilateFilter->Update();
+
+    typedef itk::DanielssonDistanceMapImageFilter <WeightImageType, WeightImageType> DistanceMapFilterType;
     typedef typename DistanceMapFilterType::Pointer DistanceMapFilterPointer;
 
     DistanceMapFilterPointer distMapFilter = DistanceMapFilterType::New();
-    distMapFilter->SetInput(blocksMap);
+    distMapFilter->SetInput(dilateFilter->GetOutput());
     distMapFilter->SetNumberOfThreads(this->GetNumberOfThreads());
     distMapFilter->InputIsBinaryOn();
+    distMapFilter->SetSquaredDistance(true);
+    distMapFilter->SetUseImageSpacing(true);
 
     distMapFilter->Update();
 
-    BlockMaskImagePointer damMask = BlockMaskImageType::New();
-    damMask->Initialize();
-    damMask->SetRegions (refImage->GetLargestPossibleRegion());
-    damMask->SetSpacing (refImage->GetSpacing());
-    damMask->SetOrigin (refImage->GetOrigin());
-    damMask->SetDirection (refImage->GetDirection());
-    damMask->Allocate();
+    typedef itk::ExpNegativeImageFilter <WeightImageType,WeightImageType> WeightFilterType;
+    typename WeightFilterType::Pointer weightFilter = WeightFilterType::New();
 
-    typedef itk::ImageRegionIteratorWithIndex <BlockMaskImageType> MaskIteratorType;
-    typedef itk::ImageRegionConstIterator <BlockDistanceImageType> DistMapIteratorType;
+    weightFilter->SetInput(distMapFilter->GetOutput());
+    weightFilter->SetFactor(1.0 / (m_DamDistance * m_DamDistance));
+    weightFilter->SetNumberOfThreads(this->GetNumberOfThreads());
 
-    MaskIteratorType damMaskItr(damMask, refImage->GetLargestPossibleRegion());
-    DistMapIteratorType distMapItr(distMapFilter->GetOutput(), refImage->GetLargestPossibleRegion());
+    weightFilter->Update();
 
-    IndexType baseIndex, endIndex = refImage->GetLargestPossibleRegion().GetIndex();
-    for (unsigned int i = 0;i < NDimensions;++i)
-        baseIndex[i] = refImage->GetLargestPossibleRegion().GetSize()[i];
-
-    bool emptyDam = true;
-    while (!distMapItr.IsAtEnd())
-    {
-        double tmpVal = distMapItr.Get();
-
-        // ITK Danielsson distance map is in voxel units
-        if ((tmpVal >= m_DamDistance)&&(tmpVal <= m_DamDistance + 1))
-        {
-            emptyDam = false;
-            damMaskItr.Set(1);
-            posIndex = damMaskItr.GetIndex();
-
-            for (unsigned int i = 0;i < NDimensions;++i)
-            {
-                if (baseIndex[i] > posIndex[i])
-                    baseIndex[i] = posIndex[i];
-
-                if (endIndex[i] < posIndex[i])
-                    endIndex[i] = posIndex[i];
-            }
-        }
-        else
-            damMaskItr.Set(0);
-
-        ++distMapItr;
-        ++damMaskItr;
-    }
-
-    m_DamIndexes.clear();
-    if (!emptyDam)
-    {
-        IndexType tmpIndex;
-        // Now select indexes inside bounding box
-        if (NDimensions == 2)
-        {
-            for (unsigned int j = baseIndex[1];j <= endIndex[1];j += m_BlockSpacing)
-            {
-                tmpIndex[1] = j;
-                for (unsigned int i = baseIndex[0];i <= endIndex[0];i += m_BlockSpacing)
-                {
-                    tmpIndex[0] = i;
-                    m_DamIndexes.push_back(tmpIndex);
-                }
-            }
-        }
-        else if (NDimensions == 3)
-        {
-            for (unsigned int k = baseIndex[2];k <= endIndex[2];k += m_BlockSpacing)
-            {
-                tmpIndex[2] = k;
-                for (unsigned int j = baseIndex[1];j <= endIndex[1];j += m_BlockSpacing)
-                {
-                    tmpIndex[1] = j;
-                    for (unsigned int i = baseIndex[0];i <= endIndex[0];i += m_BlockSpacing)
-                    {
-                        tmpIndex[0] = i;
-                        m_DamIndexes.push_back(tmpIndex);
-                    }
-                }
-            }
-        }
-    }
+    m_BlockDamWeights = weightFilter->GetOutput();
+    m_BlockDamWeights->DisconnectPipeline();
 }
 
 template <class PixelType, unsigned int NDimensions>

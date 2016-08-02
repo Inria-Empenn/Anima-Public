@@ -56,7 +56,7 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<double> neighborhoodApproximationArg("","na","Half size of the neighborhood approximation (multiplied by extrapolation sigma, default: 2.5)",false,2.5,"half size of neighborhood approximation",cmd);
 
     TCLAP::SwitchArg useTransformDamArg("D","use-dam", "Activate transformation dam to force identity far away from any blocks", cmd, false);
-    TCLAP::ValueArg<double> damDistanceArg("","dd","Distance of the deformation dam from the outer blocks (will be multiplied by extrapolation sigma, default: 2.5)",false,2.5,"identity dam distance",cmd);
+    TCLAP::ValueArg<double> damDistanceArg("","dd","Distance of the deformation dam (crushes extrapolated displacements away from anything on a dd pixels distance, default: 3.0)",false,3.0,"identity dam distance",cmd);
 
     TCLAP::ValueArg<unsigned int> numPyramidLevelsArg("p","pyr","Number of pyramid levels (default: 3)",false,3,"number of pyramid levels",cmd);
     TCLAP::ValueArg<unsigned int> lastPyramidLevelArg("l","last-level","Index of the last pyramid level explored (default: 0)",false,0,"last pyramid level",cmd);

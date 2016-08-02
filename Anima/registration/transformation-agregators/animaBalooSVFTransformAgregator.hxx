@@ -8,8 +8,6 @@
 
 #include <animaMatrixLogExp.h>
 #include <itkMultiThreader.h>
-#include <itkTimeProbe.h>
-#include <itkImageFileWriter.h>
 
 namespace anima
 {
@@ -115,9 +113,6 @@ estimateSVFFromTranslations()
         weights->SetPixel(posIndexes[i],tmpWeight);
     }
 
-    for (unsigned int i = 0;i < m_DamIndexes.size();++i)
-        weights->SetPixel(m_DamIndexes[i],1.0);
-
     anima::filterInputs<ScalarType,NDimensions,NDimensions>(weights,velocityField,curDisps,posIndexes,this);
 
     // Create the final transform
@@ -188,9 +183,6 @@ estimateSVFFromRigidTransforms()
         weights->SetPixel(posIndexes[i],tmpWeight);
     }
 
-    for (unsigned int i = 0;i < m_DamIndexes.size();++i)
-        weights->SetPixel(m_DamIndexes[i],1.0);
-
     anima::filterInputs<ScalarType,NDimensions,NDegreesFreedom>(weights,rigidField,logVectors,posIndexes,this);
 
     VelocityFieldPointer velocityField = VelocityFieldType::New();
@@ -249,7 +241,6 @@ estimateSVFFromRigidTransforms()
 
     this->SetOutput(resultTransform);
 }
-
 
 template <unsigned int NDimensions>
 void
@@ -337,9 +328,6 @@ estimateSVFFromAffineTransforms()
         affineField->SetPixel(posIndexes[i],logVectors[i] * tmpWeight);
         weights->SetPixel(posIndexes[i],tmpWeight);
     }
-
-    for (unsigned int i = 0;i < m_DamIndexes.size();++i)
-        weights->SetPixel(m_DamIndexes[i],1.0);
 
     anima::filterInputs<ScalarType,NDimensions,NDegreesFreedom>(weights,affineField,logVectors,posIndexes,this);
 
@@ -506,14 +494,26 @@ filterInputs(itk::Image <ScalarType,NDimensions> *weights,
 
     typename WeightImageType::RegionType largestRegion = weights->GetLargestPossibleRegion();
     itk::ImageRegionIterator < FieldType > svfIterator = itk::ImageRegionIterator < FieldType > (output,largestRegion);
-    itk::ImageRegionConstIterator < WeightImageType > weightItr(smoothedWeights,largestRegion);
+    itk::ImageRegionConstIterator <WeightImageType> weightItr(smoothedWeights,largestRegion);
+    itk::ImageRegionConstIterator <WeightImageType> damWeightsItr;
+
+    typename WeightImageType::Pointer blockDamWeights = filterPtr->GetBlockDamWeights();
+    if (blockDamWeights)
+        damWeightsItr = itk::ImageRegionConstIterator <WeightImageType>(blockDamWeights,largestRegion);
 
     while (!svfIterator.IsAtEnd())
     {
-        if (weightItr.Value() > 0)
+        double damWeight = 1.0;
+        if (blockDamWeights)
+        {
+            damWeight = damWeightsItr.Get();
+            ++damWeightsItr;
+        }
+
+        if ((weightItr.Value() > 0) && (damWeight > 0))
         {
             curTrsf = svfIterator.Get();
-            curTrsf /= weightItr.Value();
+            curTrsf *= damWeight / weightItr.Value();
             svfIterator.Set(curTrsf);
         }
         else

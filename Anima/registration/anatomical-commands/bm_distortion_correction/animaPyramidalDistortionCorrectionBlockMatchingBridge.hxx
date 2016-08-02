@@ -192,7 +192,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
         mainMatcher->SetBlockSpacing(GetBlockSpacing());
         mainMatcher->SetBlockVarianceThreshold(GetStDevThreshold() * GetStDevThreshold());
         mainMatcher->SetUseTransformationDam(m_UseTransformationDam);
-        mainMatcher->SetDamDistance(m_DamDistance * m_ExtrapolationSigma);
+        mainMatcher->SetDamDistance(m_DamDistance * meanSpacing / 2.0);
 
         bmreg->SetBlockMatcher(mainMatcher);
 

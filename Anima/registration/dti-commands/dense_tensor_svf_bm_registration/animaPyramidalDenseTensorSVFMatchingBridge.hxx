@@ -171,7 +171,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
         mainMatcher->SetBlockSpacing(GetBlockSpacing());
         mainMatcher->SetBlockVarianceThreshold(GetStDevThreshold() * GetStDevThreshold());
         mainMatcher->SetUseTransformationDam(m_UseTransformationDam);
-        mainMatcher->SetDamDistance(m_DamDistance * m_ExtrapolationSigma);
+        mainMatcher->SetDamDistance(m_DamDistance * meanSpacing / 2.0);
 
         switch (m_SymmetryType)
         {
@@ -192,7 +192,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
                 reverseMatcher->SetBlockSpacing(GetBlockSpacing());
                 reverseMatcher->SetBlockVarianceThreshold(GetStDevThreshold() * GetStDevThreshold());
                 reverseMatcher->SetUseTransformationDam(m_UseTransformationDam);
-                reverseMatcher->SetDamDistance(m_DamDistance * m_ExtrapolationSigma);
+                reverseMatcher->SetDamDistance(m_DamDistance * meanSpacing / 2.0);
 
                 tmpReg->SetReverseBlockMatcher(reverseMatcher);
                 m_bmreg = tmpReg;

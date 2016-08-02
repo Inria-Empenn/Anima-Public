@@ -1,4 +1,5 @@
 #pragma once
+#include "animaDenseSVFTransformAgregator.h"
 
 #include <animaMEstimateSVFImageFilter.h>
 #include <animaLogRigid3DTransform.h>
@@ -118,9 +119,6 @@ estimateSVFFromTranslations()
         weights->SetPixel(posIndex,tmpWeight);
     }
 
-    for (unsigned int i = 0;i < m_DamIndexes.size();++i)
-        weights->SetPixel(m_DamIndexes[i],1.0);
-
     typedef anima::MEstimateSVFImageFilter <ScalarType,NDegreesFreedom,NDimensions> SVFMEstimateType;
     typename SVFMEstimateType::Pointer fieldSmoother = SVFMEstimateType::New();
 
@@ -130,6 +128,7 @@ estimateSVFFromTranslations()
     fieldSmoother->SetNeighborhoodHalfSize(m_NeighborhoodHalfSize);
     fieldSmoother->SetDistanceBoundary(m_DistanceBoundary);
     fieldSmoother->SetMEstimateFactor(m_OutlierRejectionSigma);
+    fieldSmoother->SetBlockDamWeights(m_BlockDamWeights);
 
     fieldSmoother->SetConvergenceThreshold(m_MEstimateConvergenceThreshold);
     fieldSmoother->SetMaxNumIterations(100);
@@ -148,7 +147,6 @@ estimateSVFFromTranslations()
 
     this->SetOutput(resultTransform);
 }
-
 
 template <unsigned int NDimensions>
 void
@@ -207,9 +205,6 @@ estimateSVFFromRigidTransforms()
         weights->SetPixel(posIndex,tmpWeight);
     }
 
-    for (unsigned int i = 0;i < m_DamIndexes.size();++i)
-        weights->SetPixel(m_DamIndexes[i],1.0);
-
     typedef anima::MEstimateSVFImageFilter <ScalarType,NDegreesFreedom,NDimensions> SVFMEstimateType;
     typename SVFMEstimateType::Pointer fieldSmoother = SVFMEstimateType::New();
 
@@ -219,6 +214,7 @@ estimateSVFFromRigidTransforms()
     fieldSmoother->SetNeighborhoodHalfSize(m_NeighborhoodHalfSize);
     fieldSmoother->SetDistanceBoundary(m_DistanceBoundary);
     fieldSmoother->SetMEstimateFactor(m_OutlierRejectionSigma);
+    fieldSmoother->SetBlockDamWeights(m_BlockDamWeights);
 
     fieldSmoother->SetConvergenceThreshold(m_MEstimateConvergenceThreshold);
     fieldSmoother->SetMaxNumIterations(100);
@@ -287,7 +283,6 @@ estimateSVFFromRigidTransforms()
 
     this->SetOutput(resultTransform);
 }
-
 
 template <unsigned int NDimensions>
 void
@@ -375,9 +370,6 @@ estimateSVFFromAffineTransforms()
         weights->SetPixel(posIndex,tmpWeight);
     }
 
-    for (unsigned int i = 0;i < m_DamIndexes.size();++i)
-        weights->SetPixel(m_DamIndexes[i],1.0);
-
     typedef anima::MEstimateSVFImageFilter <ScalarType,NDegreesFreedom,NDimensions> SVFMEstimateType;
     typename SVFMEstimateType::Pointer fieldSmoother = SVFMEstimateType::New();
 
@@ -387,6 +379,7 @@ estimateSVFFromAffineTransforms()
     fieldSmoother->SetNeighborhoodHalfSize(m_NeighborhoodHalfSize);
     fieldSmoother->SetDistanceBoundary(m_DistanceBoundary);
     fieldSmoother->SetMEstimateFactor(m_OutlierRejectionSigma);
+    fieldSmoother->SetBlockDamWeights(m_BlockDamWeights);
 
     fieldSmoother->SetConvergenceThreshold(m_MEstimateConvergenceThreshold);
     fieldSmoother->SetMaxNumIterations(100);

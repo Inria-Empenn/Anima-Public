@@ -14,19 +14,19 @@ public itk::ImageToImageFilter< itk::Image < itk::Vector <TScalarType,NDegreesOf
 public:
     /** Standard class typedefs. */
     typedef MEstimateSVFImageFilter Self;
-    typedef itk::Image < TScalarType, NDimensions > WeightImageType;
+    typedef itk::Image <TScalarType, NDimensions> WeightImageType;
     typedef typename WeightImageType::Pointer WeightImagePointer;
     typedef itk::Image < itk::Vector <TScalarType,NDegreesOfFreedom>, NDimensions > TInputImage;
     typedef itk::Image < itk::Vector <TScalarType,NDegreesOfFreedom>, NDimensions > TOutputImage;
-    typedef itk::ImageToImageFilter< TInputImage, TOutputImage > Superclass;
-    typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self>  ConstPointer;
+    typedef itk::ImageToImageFilter <TInputImage, TOutputImage> Superclass;
+    typedef itk::SmartPointer <Self> Pointer;
+    typedef itk::SmartPointer <const Self> ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(MEstimateSVFImageFilter, ImageToImageFilter);
+    itkTypeMacro(MEstimateSVFImageFilter, ImageToImageFilter)
 
     typedef typename TOutputImage::PixelType OutputPixelType;
     typedef typename TInputImage::PixelType InputPixelType;
@@ -40,15 +40,16 @@ public:
     /** Superclass typedefs. */
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
-    itkSetMacro(WeightImage, WeightImagePointer);
+    itkSetMacro(WeightImage, WeightImagePointer)
+    itkSetMacro(BlockDamWeights, WeightImagePointer)
 
-    itkSetMacro(FluidSigma, double);
-    itkSetMacro(MEstimateFactor, double);
-    itkSetMacro(NeighborhoodHalfSize, unsigned int);
+    itkSetMacro(FluidSigma, double)
+    itkSetMacro(MEstimateFactor, double)
+    itkSetMacro(NeighborhoodHalfSize, unsigned int)
     void SetDistanceBoundary (double num) {m_SqrDistanceBoundary = num * num;}
 
-    itkSetMacro(ConvergenceThreshold, double);
-    itkSetMacro(MaxNumIterations, unsigned int);
+    itkSetMacro(ConvergenceThreshold, double)
+    itkSetMacro(MaxNumIterations, unsigned int)
 
 protected:
     MEstimateSVFImageFilter()
@@ -56,7 +57,7 @@ protected:
         m_FluidSigma = 4.0;
         m_MEstimateFactor = 1.0;
         m_AverageResidualValue = 1.0;
-        m_NeighborhoodHalfSize = (unsigned int)floor(3.0 * m_FluidSigma);
+        m_NeighborhoodHalfSize = (unsigned int)std::floor(3.0 * m_FluidSigma);
         m_SqrDistanceBoundary = 9.0 * m_FluidSigma * m_FluidSigma;
     }
 
@@ -72,6 +73,7 @@ private:
     bool checkConvergenceThreshold (OutputPixelType &outValOld, OutputPixelType &outVal);
 
     WeightImagePointer m_WeightImage, m_InternalSpatialWeight;
+    WeightImagePointer m_BlockDamWeights;
 
     double m_FluidSigma, m_MEstimateFactor;
     double m_SqrDistanceBoundary;
@@ -84,6 +86,5 @@ private:
 };
 
 } // end namespace anima
-
 
 #include "animaMEstimateSVFImageFilter.hxx"
