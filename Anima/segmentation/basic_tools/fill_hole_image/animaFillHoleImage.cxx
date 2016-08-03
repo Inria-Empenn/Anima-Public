@@ -13,6 +13,9 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> inArg("i","input","Input image",true,"","input image",cmd);
     TCLAP::ValueArg<std::string> outArg("o","output","Output image",true,"","output image",cmd);
 
+    TCLAP::ValueArg<unsigned int> numThreadsArg("T","threads","Number of execution threads (default: 0 = all cores)",false,0,"number of threads",cmd);
+    TCLAP::ValueArg<double> tolArg("","tol","Filter tolerance (default: 0.0001)",false,0.0001,"filter tolerance",cmd);
+
     try
     {
         cmd.parse(argc,argv);
@@ -61,9 +64,9 @@ int main(int argc, char **argv)
     ConnectedComponentType::Pointer ccFilter = ConnectedComponentType::New();
     ccFilter->SetInput( tmpImageUC );
     ccFilter->SetFullyConnected( connectivity );
-    // ccFilter->SetNumberOfThreads( this->GetNumberOfThreads() );
-    // ccFilter->SetCoordinateTolerance( m_Tol );
-    // ccFilter->SetDirectionTolerance( m_Tol );
+    ccFilter->SetNumberOfThreads( numThreadsArg.getValue() );
+    ccFilter->SetCoordinateTolerance( tolArg.getValue() );
+    ccFilter->SetDirectionTolerance( tolArg.getValue() );
     ccFilter->Update();
 
     IteratorTypeInt tmpImageIntIt (ccFilter->GetOutput(), ccFilter->GetOutput()->GetLargestPossibleRegion() );
