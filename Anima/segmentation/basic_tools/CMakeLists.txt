@@ -1,6 +1,14 @@
 add_subdirectory(connected_components)
+add_subdirectory(connected_components_metrics)
 add_subdirectory(dice_measure)
+add_subdirectory(fill_hole_image)
+add_subdirectory(influence_zones)
 add_subdirectory(mask_image)
 add_subdirectory(morphological_operations)
-add_subdirectory(thr_image)
 add_subdirectory(otsu_thr_image)
+add_subdirectory(regional_maxima)
+add_subdirectory(thr_image)
+
+
+
+

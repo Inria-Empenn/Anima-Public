@@ -3,7 +3,7 @@
 #include <itkImageToImageFilter.h>
 #include <itkImageRegionIterator.h>
 #include <itkImageRegionConstIterator.h>
-#include <itkBinaryImageToLabelMapFilter.h>
+#include <itkLabelImageToLabelMapFilter.h>
 #include <itkLabelMapToLabelImageFilter.h>
 #include <itkLabelContourImageFilter.h>
 #include <itkConnectedComponentImageFilter.h>
@@ -17,130 +17,140 @@ namespace anima
  * In order to reduce the number of false positives due to these effects, we remove all candidate lesions
  * that are contiguous to the brain mask border.
  */
-    template<typename TInput, typename TMask, typename TOutput = TInput>
-	class RemoveTouchingBorderFilter :
+template<typename TInput, typename TMask, typename TOutput>
+class RemoveTouchingBorderFilter :
         public itk::ImageToImageFilter< TInput , TOutput >
-	{
-	  public:
-	  /** Standard class typedefs. */
-	  typedef RemoveTouchingBorderFilter Self;
-	  typedef itk::ImageToImageFilter< TInput , TOutput > Superclass;
-	  typedef itk::SmartPointer<Self> Pointer;
-	  typedef itk::SmartPointer<const Self>  ConstPointer;
+{
+public:
+    /** Standard class typedefs. */
+    typedef RemoveTouchingBorderFilter Self;
+    typedef itk::ImageToImageFilter< TInput , TOutput > Superclass;
+    typedef itk::SmartPointer<Self> Pointer;
+    typedef itk::SmartPointer<const Self>  ConstPointer;
 
-	  /** Method for creation through the object factory. */
-	  itkNewMacro(Self);
+    /** Method for creation through the object factory. */
+    itkNewMacro(Self);
 
-	  /** Run-time type information (and related methods) */
-	  itkTypeMacro(RemoveTouchingBorderFilter, ImageToImageFilter);
+    /** Run-time type information (and related methods) */
+    itkTypeMacro(RemoveTouchingBorderFilter, ImageToImageFilter);
 
-	  /** Image typedef support */
+    /** Image typedef support */
 
-	  /**  Type of the input image. */
-	  typedef TInput InputImageType;
-	  typedef typename InputImageType::Pointer InputImagePointer;
-	  typedef typename itk::ImageRegionIterator< InputImageType > InputIteratorType;
-	  typedef typename itk::ImageRegionConstIterator< InputImageType > InputConstIteratorType;
+    /**  Type of the input image. */
+    typedef TInput InputImageType;
+    typedef typename InputImageType::Pointer InputImagePointer;
+    typedef typename itk::ImageRegionIterator< InputImageType > InputIteratorType;
+    typedef typename itk::ImageRegionConstIterator< InputImageType > InputConstIteratorType;
 
-	  /**  Type of the mask image. */
-	  typedef TMask MaskImageType;
-	  typedef typename MaskImageType::Pointer MaskImagePointer;
-	  typedef typename itk::ImageRegionIterator< MaskImageType > MaskIteratorType;
-	  typedef typename itk::ImageRegionConstIterator< MaskImageType > MaskConstIteratorType;
+    /**  Type of the mask image. */
+    typedef TMask MaskImageType;
+    typedef typename MaskImageType::Pointer MaskImagePointer;
+    typedef typename itk::ImageRegionIterator< MaskImageType > MaskIteratorType;
+    typedef typename itk::ImageRegionConstIterator< MaskImageType > MaskConstIteratorType;
 
-	  /**  Type of the output image. */
-	  typedef TOutput OutputImageType;
-	  typedef typename OutputImageType::Pointer OutputImagePointer;
-	  typedef typename itk::ImageRegionIterator< OutputImageType > OutputIteratorType;
+    /**  Type of the output image. */
+    typedef TOutput OutputImageType;
+    typedef typename OutputImageType::Pointer OutputImagePointer;
+    typedef typename itk::ImageRegionIterator< OutputImageType > OutputIteratorType;
 
-	  typedef int 	PixelTypeInt;
-	  typedef itk::Image <PixelTypeInt,3> ImageTypeInt;
-	  typedef itk::ImageRegionIterator< ImageTypeInt > ImageIteratorTypeInt;
+    typedef unsigned int PixelTypeInt;
+    typedef itk::Image <PixelTypeInt,3> ImageTypeInt;
+    typedef itk::ImageRegionIterator< ImageTypeInt > ImageIteratorTypeInt;
 
-	  typedef itk::BinaryImageToLabelMapFilter<TInput> BinaryImageToLabelMapFilterType;
-	  typedef typename BinaryImageToLabelMapFilterType::OutputImageType TOutputMap;
-	  typedef itk::LabelMapToLabelImageFilter<TOutputMap, ImageTypeInt> LabelMapToLabelImageFilterType;
+    typedef itk::LabelImageToLabelMapFilter<ImageTypeInt> LabelImageToLabelMapFilterType;
+    typedef typename LabelImageToLabelMapFilterType::OutputImageType TOutputMap;
+    typedef itk::LabelImageToLabelMapFilter<TInput,TOutputMap> LabelImageToLabelMapFilterType2;
+    
+    typedef itk::LabelMapToLabelImageFilter<TOutputMap, ImageTypeInt> LabelMapToLabelImageFilterType;
 
-	  typedef itk::LabelMapToLabelImageFilter<TOutputMap, OutputImageType> LabelMapToLabelTOutImageFilterType;
+    typedef itk::ConnectedComponentImageFilter <InputImageType,ImageTypeInt> ConnectedComponentImageFilterType;
+    typedef itk::ConnectedComponentImageFilter <TMask, ImageTypeInt > ConnectedComponentImageFilterType2;
 
-	  /** The mri images.*/
-	  void SetInputImageSeg(const TInput* image);
+    typedef itk::LabelContourImageFilter<ImageTypeInt, ImageTypeInt> LabelContourImageFilterType;
+    
+    /** The mri images.*/
+    void SetInputImageSeg(const TInput* image);
 
-	  void SetOutputNonTouchingBorderFilename(std::string fn){m_OutputNonTouchingBorderFilename = fn;}
-	  void SetOutputTouchingBorderFilename(std::string fn){m_OutputTouchingBorderFilename = fn;}
+    void SetOutputNonTouchingBorderFilename(std::string fn){m_OutputNonTouchingBorderFilename = fn;}
+    void SetOutputTouchingBorderFilename(std::string fn){m_OutputTouchingBorderFilename = fn;}
 
-	  /** mask in which the segmentation will be performed
-	   */
-	  void SetMask(const TMask* mask);
+    /** mask in which the segmentation will be performed
+           */
+    void SetMask(const TMask* mask);
 
-	  TOutput* GetOutputTouchingBorder();
-	  TOutput* GetOutputNonTouchingBorder();
+    TOutput* GetOutputTouchingBorder();
+    TOutput* GetOutputNonTouchingBorder();
 
-	  void WriteOutputs();
+    void WriteOutputs();
 
-	  void SetTol(const double tol)
-	  {
-	      this->SetCoordinateTolerance(tol);
-	      this->SetDirectionTolerance(tol);
-	      m_Tol = tol;
-	  }
+    void SetTol(const double tol)
+    {
+        this->SetCoordinateTolerance(tol);
+        this->SetDirectionTolerance(tol);
+        m_Tol = tol;
+    }
 
-	  /** Superclass typedefs. */
-	  typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
+    /** Superclass typedefs. */
+    typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
-	  itkSetMacro(NoContour, bool);
-	  itkGetMacro(NoContour, bool);
-	  
-	  itkSetMacro(Verbose, bool);
-	  itkGetMacro(Verbose, bool);
+    itkSetMacro(NoContour, bool);
+    itkGetMacro(NoContour, bool);
+
+    itkSetMacro(LabeledImage, bool);
+    itkGetMacro(LabeledImage, bool);
+
+    itkSetMacro(Verbose, bool);
+    itkGetMacro(Verbose, bool);
 
 
-	  protected:
+protected:
 
-	  RemoveTouchingBorderFilter()
-	  {
+    RemoveTouchingBorderFilter()
+    {
 
-	      this->SetNumberOfRequiredOutputs(2);
-	      this->SetNumberOfRequiredInputs(2);
+        this->SetNumberOfRequiredOutputs(2);
+        this->SetNumberOfRequiredInputs(2);
 
-	      this->SetNthOutput( 0, this->MakeOutput(0) );
-	      this->SetNthOutput( 1, this->MakeOutput(1) );
+        this->SetNthOutput( 0, this->MakeOutput(0) );
+        this->SetNthOutput( 1, this->MakeOutput(1) );
 
-	      m_NoContour=false;
-	      m_Verbose=false;
-	      m_Tol = 0.0001;
-	      this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
+	m_LabeledImage=false;
+        m_NoContour=false;
+        m_Verbose=false;
+        m_Tol = 0.0001;
+        this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
 
-	  }
+    }
 
-	  virtual ~RemoveTouchingBorderFilter()
-	  {
-	  }
+    virtual ~RemoveTouchingBorderFilter()
+    {
+    }
 
-	  /**  Create the Output */
-	  itk::DataObject::Pointer MakeOutput(unsigned int idx);
+    /**  Create the Output */
+    itk::DataObject::Pointer MakeOutput(unsigned int idx);
 
-	  typename TInput::ConstPointer GetInputImageSeg();
-	  typename TMask::ConstPointer GetMask();
+    typename TInput::ConstPointer GetInputImageSeg();
+    typename TMask::ConstPointer GetMask();
 
-	  /** Does the real work. */
-	  virtual void GenerateData() ITK_OVERRIDE;
+    /** Does the real work. */
+    virtual void GenerateData() ITK_OVERRIDE;
 
-	  private:
-	  RemoveTouchingBorderFilter(const Self&); //purposely not implemented
-	  void operator=(const Self&); //purposely not implemented
+private:
+    RemoveTouchingBorderFilter(const Self&); //purposely not implemented
+    void operator=(const Self&); //purposely not implemented
 
-	  bool m_NoContour;
-	  bool m_Verbose;
+    bool m_LabeledImage;
+    bool m_NoContour;
+    bool m_Verbose;
 
-	  std::string m_OutputNonTouchingBorderFilename;
-	  std::string m_OutputTouchingBorderFilename;
+    std::string m_OutputNonTouchingBorderFilename;
+    std::string m_OutputTouchingBorderFilename;
 
-	  std::vector<int> m_labelsToRemove;
+    std::vector<int> m_labelsToRemove;
 
-	  double m_Tol;
+    double m_Tol;
 
-	};
+};
 } // end of namespace anima
 
 #include "animaRemoveTouchingBorderFilter.hxx"

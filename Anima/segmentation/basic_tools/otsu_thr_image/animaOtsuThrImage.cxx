@@ -2,7 +2,7 @@
 
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
-#include <itkOtsuThresholdImageFilter.h>
+#include <itkOtsuMultipleThresholdsImageFilter.h>
 
 #include <iostream>
 #include <fstream>
@@ -13,10 +13,9 @@ int main(int argc, char **argv)
     
     TCLAP::ValueArg<std::string> inputArg("i","inputimage","Input image",true,"","Input image",cmd);
     TCLAP::ValueArg<std::string> outputArg("o","outputimage","Output image",true,"","Output image",cmd);
-    TCLAP::ValueArg<std::string> maskArg("m","maskfile","mask file",false,"","mask file",cmd);
 
-    TCLAP::SwitchArg invArg("I","inv","Computes 1-res",cmd,false);
-  
+    TCLAP::ValueArg<unsigned long> nbThresholds("n", "nbThresholds", "Number of thresholds (default : 1)",false,1,"Number of thresholds",cmd);
+	
     try
     {
 	cmd.parse(argc,argv);
@@ -28,13 +27,10 @@ int main(int argc, char **argv)
     }
 	
     typedef itk::Image<double,3> DoubleImageType;
-    typedef itk::Image<unsigned char, 3> UCImageType;
     typedef itk::ImageFileReader <DoubleImageType> DoubleReaderType;
-    typedef itk::ImageFileReader <UCImageType> UCReaderType;
-    typedef itk::ImageFileWriter <UCImageType> UCWriterType;
-    typedef itk::ImageRegionIterator <UCImageType> UCImageIterator;
-        
-    typedef itk::OtsuThresholdImageFilter <DoubleImageType, UCImageType, UCImageType> OtsuThresholdImageFilterType;
+    typedef itk::ImageFileWriter <DoubleImageType> WriterType;
+    
+    typedef itk::OtsuMultipleThresholdsImageFilter <DoubleImageType, DoubleImageType> OtsuMultipleThresholdsImageFilterType;
 	
     DoubleReaderType::Pointer inputImageReader = DoubleReaderType::New();
     inputImageReader->SetFileName(inputArg.getValue());
@@ -48,62 +44,37 @@ int main(int argc, char **argv)
 	std::cerr << e << std::endl;
 	return 1;
     }
-
-    UCReaderType::Pointer maskImageReader = UCReaderType::New();
-    maskImageReader->SetFileName(maskArg.getValue());
-
-    try
-    {
-	maskImageReader->Update();
-    }
-    catch (itk::ExceptionObject &e)
-    {
-	std::cerr << e << std::endl;
-	return 1;
-    }
   
     DoubleImageType::RegionType tmpRegionInputImage = inputImageReader->GetOutput()->GetLargestPossibleRegion();
       
-    OtsuThresholdImageFilterType::Pointer otsuThrFilter = OtsuThresholdImageFilterType::New();
-    otsuThrFilter->SetInput(inputImageReader->GetOutput());
-    otsuThrFilter->SetMaskImage(maskImageReader->GetOutput());
+    OtsuMultipleThresholdsImageFilterType::Pointer otsuMultipleThrFilter = OtsuMultipleThresholdsImageFilterType::New();
+    otsuMultipleThrFilter->SetInput(inputImageReader->GetOutput());
+    otsuMultipleThrFilter->SetNumberOfThresholds(nbThresholds.getValue());
 	
     try
     {
-	otsuThrFilter->Update();
+	otsuMultipleThrFilter->Update();
     }
     catch (itk::ExceptionObject &e)
     {
 	std::cerr << e << std::endl;
 	return 1;
     }
-      
-    if (invArg.isSet())
-    {
-	UCImageIterator resIt(otsuThrFilter->GetOutput(),tmpRegionInputImage);
-	unsigned int totalSize = tmpRegionInputImage.GetSize()[0]*tmpRegionInputImage.GetSize()[1]*tmpRegionInputImage.GetSize()[2];
-      
-	for (unsigned int i = 0;i < totalSize;++i)
-	{
-	    resIt.Set(1-resIt.Get());
-	    ++resIt;
-	}
-    }
+
+    WriterType::Pointer tmpWriter = WriterType::New();
 	
-    UCWriterType::Pointer tmpWriter = UCWriterType::New();
-	
-    tmpWriter->SetInput(otsuThrFilter->GetOutput());
+    tmpWriter->SetInput(otsuMultipleThrFilter->GetOutput());
     tmpWriter->SetUseCompression(true);
     tmpWriter->SetFileName(outputArg.getValue());
 
     try
     {
-	tmpWriter->Update();
+    	tmpWriter->Update();
     }
     catch (itk::ExceptionObject &e)
     {
-	std::cerr << e << std::endl;
-	return 1;
+    	std::cerr << e << std::endl;
+    	return 1;
     }
       
     

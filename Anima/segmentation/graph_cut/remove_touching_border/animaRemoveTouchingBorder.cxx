@@ -7,10 +7,10 @@
 int main(int argc, const char** argv)
 {
     const unsigned int Dimension = 3;
-    typedef itk::Image <double,Dimension> InputImageTypeD;
-    typedef itk::Image <unsigned char,Dimension> InputImageTypeUC;
-    typedef anima::RemoveTouchingBorderFilter<InputImageTypeUC,InputImageTypeUC,InputImageTypeUC>  FilterTypeSeg;
-
+    typedef itk::Image <unsigned char,Dimension> MaskImageType;
+    typedef itk::Image <unsigned int,Dimension> InputImageType;
+    typedef anima::RemoveTouchingBorderFilter<InputImageType,MaskImageType,MaskImageType>  FilterTypeSeg;
+    
     // Parsing arguments
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
 
@@ -24,6 +24,7 @@ int main(int argc, const char** argv)
 
     TCLAP::SwitchArg noContourDetectionArg("c","nocontour","Avoid contour detection (default: false)",cmd,false);
     TCLAP::SwitchArg rmNonTouchingArg("","rmNonTouching","Remove non touching components instead of touching components (default: false)",cmd,false);
+    TCLAP::SwitchArg labeledImageArg("l","labeledImage","Input image is a labeled image (default: false)",cmd,false);
 
     // global
     TCLAP::ValueArg<unsigned int> numThreadsArg("T","threads","Number of execution threads (default: 0 = all cores)",false,0,"number of threads",cmd);
@@ -44,23 +45,28 @@ int main(int argc, const char** argv)
 
     if( inArg.getValue()!="" )
     {
-	segFilter->SetInputImageSeg( anima::readImage<InputImageTypeUC>( inArg.getValue() ) );
+	segFilter->SetInputImageSeg( anima::readImage<InputImageType>( inArg.getValue() ) );
     }
 
     if( outArg.getValue()!="" )
     {
 	if( rmNonTouchingArg.getValue() )
+	{
 	    segFilter->SetOutputTouchingBorderFilename(outArg.getValue());
+	}
 	else
+	{
 	    segFilter->SetOutputNonTouchingBorderFilename(outArg.getValue());
+	}
     }
     if( maskFileArg.getValue()!="" )
     {
-	segFilter->SetMask( anima::readImage<InputImageTypeUC>( maskFileArg.getValue() ) );
+	segFilter->SetMask( anima::readImage<MaskImageType>( maskFileArg.getValue() ) );
     }
 
     // Set parameters
 
+    segFilter->SetLabeledImage( labeledImageArg.getValue() );
     segFilter->SetNoContour( noContourDetectionArg.getValue() );
     segFilter->SetVerbose( verboseArg.getValue() );
     segFilter->SetNumberOfThreads( numThreadsArg.getValue() );

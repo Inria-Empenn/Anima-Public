@@ -30,7 +30,7 @@ int main(int argc, const char** argv)
     }
 
     ReaderType::Pointer inputImageReader = ReaderType::New();
-    inputImageReader->SetFileName(inputArg.getValue());
+    inputImageReader->SetFileName(inArg.getValue());
 
     try
     {
@@ -54,7 +54,15 @@ int main(int argc, const char** argv)
 	++inputIt;
     }
 
-    std::cout << cpt << std::endl;
+    InputImageType::SpacingType spacing = inputImageReader->GetOutput()->GetSpacing();
+    InputImageType::SpacingValueType spacingTot = spacing[0];
+    for (unsigned int i = 1; i < 3;++i)
+    {
+        spacingTot *= spacing[i];
+    }
+    
+    // std::cout << cpt << " " << spacingTot << " " << spacing[0] << " " << spacing[1] << " " << spacing[2] << " " << std::endl;
+    std::cout << cpt * spacingTot << std::endl;
     
     return EXIT_SUCCESS;
 
