@@ -97,86 +97,148 @@ GenerateData()
     // Find labels overlaping mask border
     InputIteratorType InputImageSegIt(InputImageSeg, InputImageSeg->GetLargestPossibleRegion() );
     InputConstIteratorType maskSegIt(this->GetInputImageSeg(), this->GetInputImageSeg()->GetLargestPossibleRegion() );
-
+    
     while(!maskSegIt.IsAtEnd())
     {
-        if( maskSegIt.Get()!=0 )
-        {
-            InputImageSegIt.Set(255);
-        }
-        ++maskSegIt;
+	InputImageSegIt.Set(maskSegIt.Get());
+
+	// if( m_LabeledImage && (maskSegIt.Get() > originalNumberOfObject))
+	// {
+	//     originalNumberOfObject = maskSegIt.Get();
+	// }
+
+	++maskSegIt;
         ++InputImageSegIt;
     }
 
     // --------------------------- Lesions
-    // Create the labeled image of the input segmentation
-    typename BinaryImageToLabelMapFilterType::Pointer binaryImageToLabelMapFilter = BinaryImageToLabelMapFilterType::New();
-    binaryImageToLabelMapFilter->SetInput( InputImageSeg );
-    binaryImageToLabelMapFilter->SetNumberOfThreads(this->GetNumberOfThreads());
-    binaryImageToLabelMapFilter->SetCoordinateTolerance(m_Tol);
-    binaryImageToLabelMapFilter->SetDirectionTolerance(m_Tol);
-    binaryImageToLabelMapFilter->Update(); // The output of this filter is an itk::LabelMap, which contains itk::LabelObject's
-    int originalNumberOfObject = binaryImageToLabelMapFilter->GetOutput()->GetNumberOfLabelObjects() ;
+    typename ConnectedComponentImageFilterType::Pointer connectedComponentImageFilter = ConnectedComponentImageFilterType::New();
+    typename LabelImageToLabelMapFilterType::Pointer labelImageToLabelMapFilter = LabelImageToLabelMapFilterType::New();
+    typename LabelImageToLabelMapFilterType2::Pointer labelImageToLabelMapFilter2 = LabelImageToLabelMapFilterType2::New();
+    typename LabelMapToLabelImageFilterType::Pointer labelMapToLabelImageFilter = LabelMapToLabelImageFilterType::New();
+    typename TOutputMap::Pointer labelMap = 0;
+    int originalNumberOfObject = 0;
+    bool connectivity = false;
+    
+    if( !m_LabeledImage )
+    {
+	connectedComponentImageFilter->SetInput( InputImageSeg );
+	connectedComponentImageFilter->SetFullyConnected( connectivity );
+	connectedComponentImageFilter->SetNumberOfThreads( this->GetNumberOfThreads() );
+	connectedComponentImageFilter->SetCoordinateTolerance( m_Tol );
+	connectedComponentImageFilter->SetDirectionTolerance( m_Tol );
+	connectedComponentImageFilter->Update();
+	
+	labelImageToLabelMapFilter->SetInput( connectedComponentImageFilter->GetOutput() );
+	labelImageToLabelMapFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+	labelImageToLabelMapFilter->SetCoordinateTolerance(m_Tol);
+	labelImageToLabelMapFilter->SetDirectionTolerance(m_Tol);
+	labelImageToLabelMapFilter->Update(); // The output of this filter is an itk::LabelMap, which contains itk::LabelObject's
+	originalNumberOfObject = labelImageToLabelMapFilter->GetOutput()->GetNumberOfLabelObjects() ;
+
+	labelMap = labelImageToLabelMapFilter->GetOutput();
+	labelMap->DisconnectPipeline();
+
+
+    }
+    else
+    {
+	// Create the labeled image of the input segmentation
+	labelImageToLabelMapFilter2->SetInput( InputImageSeg );
+	labelImageToLabelMapFilter2->SetNumberOfThreads(this->GetNumberOfThreads());
+	labelImageToLabelMapFilter2->SetCoordinateTolerance(m_Tol);
+	labelImageToLabelMapFilter2->SetDirectionTolerance(m_Tol);
+	labelImageToLabelMapFilter2->Update(); // The output of this filter is an itk::LabelMap, which contains itk::LabelObject's
+	originalNumberOfObject = labelImageToLabelMapFilter2->GetOutput()->GetNumberOfLabelObjects() ;
+
+	labelMap = labelImageToLabelMapFilter2->GetOutput();
+	labelMap->DisconnectPipeline();
+    }
 
     // Convert a LabelMap to a normal image with different values representing each region
-    typename LabelMapToLabelImageFilterType::Pointer labelMapToLabelImageFilter = LabelMapToLabelImageFilterType::New();
-    labelMapToLabelImageFilter->SetInput( binaryImageToLabelMapFilter->GetOutput() );
+    labelMapToLabelImageFilter->SetInput( labelMap );
     labelMapToLabelImageFilter->SetNumberOfThreads(this->GetNumberOfThreads());
     labelMapToLabelImageFilter->SetCoordinateTolerance(m_Tol);
     labelMapToLabelImageFilter->SetDirectionTolerance(m_Tol);
     labelMapToLabelImageFilter->Update();
 
     // ------------------------------------- Mask bordure
-    // Get envelop of the mask
-    // Generate connected components
-    typedef itk::ConnectedComponentImageFilter <TMask, ImageTypeInt > ConnectedComponentImageFilterType;
-    typename ConnectedComponentImageFilterType::Pointer connectedComponentImageFilter  = ConnectedComponentImageFilterType::New();
-    connectedComponentImageFilter->SetInput( this->GetMask() );
-    connectedComponentImageFilter->SetNumberOfThreads(this->GetNumberOfThreads());
-    connectedComponentImageFilter->SetCoordinateTolerance(m_Tol);
-    connectedComponentImageFilter->SetDirectionTolerance(m_Tol);
 
-    // Generate contours for each component
-    typedef itk::LabelContourImageFilter<ImageTypeInt, ImageTypeInt> LabelContourImageFilterType;
-    LabelContourImageFilterType::Pointer labelContourImageFilter = LabelContourImageFilterType::New();
-    labelContourImageFilter->SetInput( connectedComponentImageFilter->GetOutput() );
-    labelContourImageFilter->SetFullyConnected(true);
-    labelContourImageFilter->SetNumberOfThreads(this->GetNumberOfThreads());
-    labelContourImageFilter->SetCoordinateTolerance(m_Tol);
-    labelContourImageFilter->SetDirectionTolerance(m_Tol);
-    labelContourImageFilter->Update();
-
-    // Find labels overlaping mask border
-    ImageIteratorTypeInt maskContourIt (labelContourImageFilter->GetOutput(), labelContourImageFilter->GetOutput()->GetLargestPossibleRegion() );
     ImageIteratorTypeInt segLabelIt (labelMapToLabelImageFilter->GetOutput(), labelMapToLabelImageFilter->GetOutput()->GetLargestPossibleRegion() );
-
+    
     std::vector<int> labelsToRemove;
-    std::vector<int>::iterator it;
-    while(!maskContourIt.IsAtEnd())
+    
+    if(!m_NoContour)
     {
-        if( maskContourIt.Get()!=0 && segLabelIt.Get()!=0)
-        {
-            it = find (labelsToRemove.begin(), labelsToRemove.end(), segLabelIt.Get());
-            if (it == labelsToRemove.end())
-            {
-                labelsToRemove.push_back( segLabelIt.Get() );
-                m_labelsToRemove.push_back( segLabelIt.Get() );
-            }
-        }
-        ++maskContourIt;
-        ++segLabelIt;
+	// Get envelop of the mask
+	// Generate connected components
+	typename ConnectedComponentImageFilterType2::Pointer connectedComponentImageFilter2  = ConnectedComponentImageFilterType2::New();
+	connectedComponentImageFilter2->SetInput( this->GetMask() );
+	connectedComponentImageFilter2->SetNumberOfThreads(this->GetNumberOfThreads());
+	connectedComponentImageFilter2->SetCoordinateTolerance(m_Tol);
+	connectedComponentImageFilter2->SetDirectionTolerance(m_Tol);
+
+	// Generate contours for each component
+	LabelContourImageFilterType::Pointer labelContourImageFilter = LabelContourImageFilterType::New();
+	labelContourImageFilter->SetInput( connectedComponentImageFilter2->GetOutput() );
+	labelContourImageFilter->SetFullyConnected(true);
+	labelContourImageFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+	labelContourImageFilter->SetCoordinateTolerance(m_Tol);
+	labelContourImageFilter->SetDirectionTolerance(m_Tol);
+	labelContourImageFilter->Update();
+    
+    
+	// Find labels overlaping mask border
+	ImageIteratorTypeInt maskContourIt (labelContourImageFilter->GetOutput(), labelContourImageFilter->GetOutput()->GetLargestPossibleRegion() );
+	
+	std::vector<int>::iterator it;
+	while(!maskContourIt.IsAtEnd())
+	{
+	    if( maskContourIt.Get()!=0 && segLabelIt.Get()!=0 )
+	    {
+		it = find (labelsToRemove.begin(), labelsToRemove.end(), segLabelIt.Get());
+		if (it == labelsToRemove.end())
+		{
+		    labelsToRemove.push_back( segLabelIt.Get() );
+		    m_labelsToRemove.push_back( segLabelIt.Get() );
+		}
+	    }
+	    ++maskContourIt;
+	    ++segLabelIt;
+	}
+    }
+    else
+    {
+	// Find labels overlaping mask border
+	MaskConstIteratorType maskContourIt (this->GetMask(), this->GetMask()->GetLargestPossibleRegion() );
+	
+	std::vector<int>::iterator it;
+	while(!maskContourIt.IsAtEnd())
+	{
+	    if( maskContourIt.Get()!=0 && segLabelIt.Get()!=0)
+	    {
+		it = find (labelsToRemove.begin(), labelsToRemove.end(), segLabelIt.Get());
+		if (it == labelsToRemove.end())
+		{
+		    labelsToRemove.push_back( segLabelIt.Get() );
+		    m_labelsToRemove.push_back( segLabelIt.Get() );
+		}
+	    }
+	    ++maskContourIt;
+	    ++segLabelIt;
+	}
     }
 
-
+    
     // Remove all regions that were marked for removal.
     for(unsigned int i = 0; i < labelsToRemove.size(); ++i)
     {
-        binaryImageToLabelMapFilter->GetOutput()->RemoveLabel(labelsToRemove[i]);
+	labelMap->RemoveLabel(labelsToRemove[i]);
     }
 
     // Convert a LabelMap to a normal image with different values representing each region
     typename LabelMapToLabelImageFilterType::Pointer labelMapToLabelImageFilter2 = LabelMapToLabelImageFilterType::New();
-    labelMapToLabelImageFilter2->SetInput( binaryImageToLabelMapFilter->GetOutput() );
+    labelMapToLabelImageFilter2->SetInput( labelMap );
     labelMapToLabelImageFilter2->SetNumberOfThreads(this->GetNumberOfThreads());
     labelMapToLabelImageFilter2->SetCoordinateTolerance(m_Tol);
     labelMapToLabelImageFilter2->SetDirectionTolerance(m_Tol);
@@ -221,9 +283,9 @@ GenerateData()
     if ( m_Verbose )
     {
         std::cout << " -- Rule to erase objects touching mask border: " << std::endl;
-        std::cout << "    * Intial number of objects: " << originalNumberOfObject << std::endl;
+        std::cout << "    * Initial number of objects: " << originalNumberOfObject << std::endl;
         std::cout << "    * Number of rejected objects: " << labelsToRemove.size()  << std::endl;
-        std::cout << "    * Number of objects after clean: " << binaryImageToLabelMapFilter->GetOutput()->GetNumberOfLabelObjects() << std::endl;
+        std::cout << "    * Number of objects after clean: " << labelMap->GetNumberOfLabelObjects() << std::endl;
         std::cout << std::endl;
     }
 
