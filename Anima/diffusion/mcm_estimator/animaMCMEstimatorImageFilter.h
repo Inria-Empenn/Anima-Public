@@ -57,7 +57,7 @@ public:
     itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(MCMEstimatorImageFilter, MaskedImageToImageFilter)
+    itkTypeMacro(MCMWeightsInequalityConstraintFunction, anima::NLOPTParametersConstraintFunction)
 
     itkSetMacro(MCMStructure, MCMPointer)
 
