@@ -86,6 +86,9 @@ private:
     std::vector <double> m_BValuesList;
     std::vector< vnl_vector_fixed<double,3> > m_GradientDirections;
 
+    //! Regular, fast DTI estimation, used to compute starting point for better tensor estimation
+    vnl_matrix <double> m_InitialResolutionMatrix;
+
     double m_B0Threshold;
     typename OutputB0ImageType::Pointer m_EstimatedB0Image;
 

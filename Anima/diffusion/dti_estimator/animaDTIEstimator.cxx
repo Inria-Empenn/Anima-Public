@@ -85,6 +85,7 @@ int main(int argc,  char **argv)
         if (reorientGradVectorsArg.getValue() != "")
         {
             std::ofstream outGrads(reorientGradVectorsArg.getValue().c_str());
+            outGrads.precision(15);
             for (unsigned int i = 0;i < 3;++i)
             {
                 for (unsigned int j = 0;j < directions.size();++j)
@@ -137,7 +138,7 @@ int main(int argc,  char **argv)
 
     tmpTimer.Stop();
 
-    std::cout << "Estimation done in " << tmpTimer.GetTotal() << " s" << std::endl;
+    std::cout << "\nEstimation done in " << tmpTimer.GetTotal() << " s" << std::endl;
 
     std::cout << "Writing result to : " << resArg.getValue() << std::endl;
 

@@ -115,6 +115,8 @@ int main(int ac, const char** av)
     filter->AddObserver(itk::ProgressEvent(), callback );
     filter->Update();
 
+    std::cout << std::endl;
+
     try
     {
         if(adcArg.getValue() != "")

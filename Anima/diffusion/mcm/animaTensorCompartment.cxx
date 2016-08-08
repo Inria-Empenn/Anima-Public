@@ -399,19 +399,19 @@ void TensorCompartment::UpdateParametersFromTensor()
     if (phi < 0)
         phi += 2.0 * M_PI;
 
-    Superclass::SetOrientationTheta(theta);
-    Superclass::SetOrientationPhi(phi);
-    Superclass::SetPerpendicularAngle(alpha);
+    m_UpdatedCompartment = false;
+
+    this->SetOrientationTheta(theta);
+    this->SetOrientationPhi(phi);
+    this->SetPerpendicularAngle(alpha);
 
     double axialDiff = std::max(m_DiffusivityLowerBound,std::min(eVals[2],m_DiffusivityUpperBound));
     double radialDiff1 = std::max(m_DiffusivityLowerBound,std::min(eVals[1],m_DiffusivityUpperBound));
     double radialDiff2 = std::max(m_DiffusivityLowerBound,std::min(eVals[0],m_DiffusivityUpperBound));
 
-    Superclass::SetAxialDiffusivity(axialDiff);
-    Superclass::SetRadialDiffusivity1(radialDiff1);
-    Superclass::SetRadialDiffusivity2(radialDiff2);
-    
-    m_UpdatedCompartment = false;
+    this->SetAxialDiffusivity(axialDiff);
+    this->SetRadialDiffusivity1(radialDiff1);
+    this->SetRadialDiffusivity2(radialDiff2);
 }
 
 unsigned int TensorCompartment::GetCompartmentSize()
