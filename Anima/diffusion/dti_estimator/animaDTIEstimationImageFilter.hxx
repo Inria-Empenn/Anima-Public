@@ -5,8 +5,9 @@
 #include <itkImageRegionIteratorWithIndex.h>
 #include <itkImageRegionConstIterator.h>
 
+#include <vnl/algo/vnl_determinant.h>
 #include <vnl/algo/vnl_matrix_inverse.h>
-#include <itkSymmetricEigenAnalysis.h>
+#include <vnl/algo/vnl_symmetric_eigensystem.h>
 
 #include <nlopt.hpp>
 
@@ -119,32 +120,6 @@ DTIEstimationImageFilter<PixelScalarType>
     m_EstimatedB0Image->FillBuffer(0.0);
 
     Superclass::BeforeThreadedGenerateData();
-
-    unsigned int numDWI = this->GetNumberOfIndexedInputs();
-    m_InitialResolutionMatrix.set_size(numDWI,m_NumberOfComponents + 1);
-    double bValueScale = 1000.0;
-
-    for (unsigned int i = 0;i < numDWI;++i)
-    {
-        m_InitialResolutionMatrix(i,0) = 1.0;
-        unsigned int pos = 1;
-        for (unsigned int j = 0;j < 3;++j)
-        {
-            for (unsigned int k = 0;k <= j;++k)
-            {
-                double baseValue = m_BValuesList[i] * m_GradientDirections[i][j] * m_GradientDirections[i][k] / bValueScale;
-                if (j != k)
-                    baseValue *= 2.0;
-
-                m_InitialResolutionMatrix(i,pos) = - baseValue;
-                ++pos;
-            }
-        }
-    }
-
-    vnl_matrix <double> pseudoInverse = m_InitialResolutionMatrix.transpose() * m_InitialResolutionMatrix;
-    pseudoInverse = vnl_matrix_inverse <double> (pseudoInverse);
-    m_InitialResolutionMatrix = pseudoInverse * m_InitialResolutionMatrix.transpose();
 }
 
 template <class PixelScalarType>
@@ -170,27 +145,17 @@ DTIEstimationImageFilter<PixelScalarType>
 
     typedef typename OutputImageType::PixelType OutputPixelType;
     std::vector <double> dwi (numInputs,0);
-    std::vector <double> logDWI (numInputs,0);
-    std::vector <double> initialResult (m_NumberOfComponents + 1,0);
-    vnl_matrix <double> workTensor(3,3);
-    vnl_diag_matrix <double> eigValTensors(3);
-    vnl_matrix <double> eigVecTensors(3,3);
-    typedef itk::SymmetricEigenAnalysis < vnl_matrix <double>, vnl_diag_matrix <double>, vnl_matrix <double> > EigenAnalysisType;
-    EigenAnalysisType eigenSystem(3);
-    std::vector <double> optimizedValue(m_NumberOfComponents, 0);
-
-    anima::TensorCompartment::ModelOutputVectorType tmpVec(m_NumberOfComponents);
     OutputPixelType resVec(m_NumberOfComponents);
+
+    vnl_matrix <double> tmpTensor(3,3);
 
     std::vector <double> predictedValues(numInputs,0);
     OptimizationDataStructure data;
-    data.filter = this;
-    data.tensorCompartment = anima::TensorCompartment::New();
 
     while (!outIterator.IsAtEnd())
     {
         resVec.Fill(0.0);
-
+        
         if (maskIterator.Get() == 0)
         {
             outIterator.Set(resVec);
@@ -207,69 +172,35 @@ DTIEstimationImageFilter<PixelScalarType>
         }
 
         for (unsigned int i = 0;i < numInputs;++i)
-        {
             dwi[i] = inIterators[i].Get();
-            if (dwi[i] > 0)
-                logDWI[i] = std::log(dwi[i]);
-            else
-                logDWI[i] = 0;
-        }
-
-        // Initial estimation
-        for (unsigned int i = 0;i <= m_NumberOfComponents;++i)
-        {
-            initialResult[i] = 0;
-            for (unsigned int j = 0;j < numInputs;++j)
-                initialResult[i] += m_InitialResolutionMatrix(i,j) * logDWI[j];
-        }
-
-        unsigned int pos = 1;
-        for (unsigned int i = 0;i < 3;++i)
-            for (unsigned int j = 0;j <= i;++j)
-            {
-                workTensor(i,j) = initialResult[pos];
-                if (i != j)
-                    workTensor(j,i) = workTensor(i,j);
-                ++pos;
-            }
-
-        workTensor /= 1000.0;
-        eigenSystem.ComputeEigenValuesAndVectors(workTensor,eigValTensors,eigVecTensors);
-        for (unsigned int i = 0;i < 3;++i)
-        {
-            if (eigValTensors[i] <= 0)
-                eigValTensors[i] = 1.0e-6;
-        }
-
-        anima::RecomposeTensor(eigValTensors,eigVecTensors,workTensor);
-        anima::GetVectorRepresentation(workTensor,tmpVec,m_NumberOfComponents,false);
-        data.tensorCompartment->SetCompartmentVector(tmpVec);
-        optimizedValue = data.tensorCompartment->GetParametersAsVector();
 
         // NLOPT optimization
-        nlopt::opt opt(nlopt::LD_CCSAQ, m_NumberOfComponents);
-        opt.set_xtol_rel(1.0e-4);
-        opt.set_ftol_rel(1.0e-4);
+        nlopt::opt opt(nlopt::LN_BOBYQA, m_NumberOfComponents);
 
-        double minf;
-
-        data.dwi = dwi;
-        data.predictedValues = predictedValues;
-
-        std::vector <double> lowerBounds = data.tensorCompartment->GetParameterLowerBounds();
-        lowerBounds[5] = 1.0e-6;
+        std::vector <double> lowerBounds(m_NumberOfComponents, 0);
+        for (unsigned int i = 0;i < 3;++i)
+            lowerBounds[i + 3] = -1.0e-3;
 
         opt.set_lower_bounds(lowerBounds);
 
-        std::vector <double> upperBounds = data.tensorCompartment->GetParameterUpperBounds();
-        upperBounds[3] = 6.0e-3;
-        upperBounds[4] = 6.0e-3;
-        upperBounds[5] = 6.0e-3;
+        std::vector <double> upperBounds(m_NumberOfComponents, 5.0e-3);
+        for (unsigned int i = 0;i < 3;++i)
+            upperBounds[i + 3] = 1.0e-3;
 
         opt.set_upper_bounds(upperBounds);
+        opt.set_xtol_rel(1e-4);
+
+        std::vector <double> optimizedValue(m_NumberOfComponents, 1.0e-3);
+        for (unsigned int i = 0;i < 3;++i)
+            upperBounds[i + 3] = 0.0;
+
+        double minf;
+
+        data.filter = this;
+        data.dwi = dwi;
+        data.predictedValues = predictedValues;
 
         opt.set_min_objective(OptimizationFunction, &data);
-        bool optimizationFine = true;
 
         try
         {
@@ -278,39 +209,66 @@ DTIEstimationImageFilter<PixelScalarType>
         catch(nlopt::roundoff_limited& e)
         {
             itkExceptionMacro("NLOPT optimization error");
-            optimizationFine = false;
         }
 
-        resVec.Fill(0.0);
+        // Tensor is column first
+        resVec[0] = optimizedValue[0];
+        resVec[2] = optimizedValue[1];
+        resVec[5] = optimizedValue[2];
+        resVec[1] = optimizedValue[3];
+        resVec[3] = optimizedValue[4];
+        resVec[4] = optimizedValue[5];
+
         double outB0Value = 0;
+        double normConstant = 0;
 
-        if (optimizationFine)
+        for (unsigned int i = 0;i < numInputs;++i)
         {
-            data.tensorCompartment->SetParametersFromVector(optimizedValue);
-            anima::GetVectorRepresentation(data.tensorCompartment->GetDiffusionTensor().GetVnlMatrix().as_matrix(),
-                                           resVec,m_NumberOfComponents,false);
+            double predictedValue = 0;
+            double bValue = m_BValuesList[i];
 
-            double normConstant = 0;
-
-            for (unsigned int i = 0;i < numInputs;++i)
+            if (bValue == 0)
+                predictedValue = 1;
+            else
             {
-                double predictedValue = 0;
-                double bValue = m_BValuesList[i];
+                for (unsigned int j = 0;j < 3;++j)
+                    predictedValue += optimizedValue[j] * m_GradientDirections[i][j] * m_GradientDirections[i][j];
 
-                if (bValue == 0)
-                    predictedValue = 1;
-                else
-                    predictedValue = data.tensorCompartment->GetFourierTransformedDiffusionProfile(bValue,m_GradientDirections[i]);
+                predictedValue += 2 * optimizedValue[3] * m_GradientDirections[i][0] * m_GradientDirections[i][1];
+                predictedValue += 2 * optimizedValue[4] * m_GradientDirections[i][0] * m_GradientDirections[i][2];
+                predictedValue += 2 * optimizedValue[5] * m_GradientDirections[i][1] * m_GradientDirections[i][2];
 
-                outB0Value += predictedValue * dwi[i];
-                normConstant += predictedValue * predictedValue;
+                predictedValue = std::exp(- bValue * predictedValue);
             }
 
-            outB0Value /= normConstant;
+            outB0Value += predictedValue * dwi[i];
+            normConstant += predictedValue * predictedValue;
         }
 
-        outIterator.Set(resVec);
-        outB0Iterator.Set(outB0Value);
+        outB0Value /= normConstant;
+
+        anima::GetTensorFromVectorRepresentation(resVec,tmpTensor,3);
+        vnl_symmetric_eigensystem <double> tmpEigs(tmpTensor);
+
+        bool isTensorOk = true;
+
+        if (m_RemoveDegeneratedTensors)
+        {
+            for (unsigned int i = 0;i < 3;++i)
+            {
+                if (tmpEigs.D[i] <= 0)
+                {
+                    isTensorOk = false;
+                    break;
+                }
+            }
+        }
+
+        if (isTensorOk)
+        {
+            outIterator.Set(resVec);
+            outB0Iterator.Set(outB0Value);
+        }
 
         for (unsigned int i = 0;i < numInputs;++i)
             ++inIterators[i];
@@ -327,21 +285,16 @@ DTIEstimationImageFilter<PixelScalarType>
 ::OptimizationFunction(const std::vector<double> &x, std::vector<double> &grad, void *func_data)
 {
     OptimizationDataStructure *data = static_cast <OptimizationDataStructure *> (func_data);
-    grad.resize(m_NumberOfComponents);
-    std::fill(grad.begin(),grad.end(),0.0);
 
-    return data->filter->ComputeCostAtPosition(x,grad,data->tensorCompartment,data->dwi,data->predictedValues);
+    return data->filter->ComputeCostAtPosition(x,data->dwi,data->predictedValues);
 }
 
 template <class PixelScalarType>
 double
 DTIEstimationImageFilter<PixelScalarType>
-::ComputeCostAtPosition(const std::vector<double> &x, std::vector<double> &funcGradient,
-                        anima::TensorCompartment::Pointer &tensorCompartment,
-                        const std::vector <double> &observedData, std::vector <double> &predictedValues)
+::ComputeCostAtPosition(const std::vector<double> &x, const std::vector <double> &observedData,
+                        std::vector <double> &predictedValues)
 {
-    tensorCompartment->SetParametersFromVector(x);
-
     for (unsigned int i = 0;i < this->GetNumberOfIndexedInputs();++i)
     {
         predictedValues[i] = 0;
@@ -352,7 +305,14 @@ DTIEstimationImageFilter<PixelScalarType>
             continue;
         }
 
-        predictedValues[i] = tensorCompartment->GetFourierTransformedDiffusionProfile(bValue,m_GradientDirections[i]);
+        for (unsigned int j = 0;j < 3;++j)
+            predictedValues[i] += x[j] * m_GradientDirections[i][j] * m_GradientDirections[i][j];
+
+        predictedValues[i] += 2 * x[3] * m_GradientDirections[i][0] * m_GradientDirections[i][1];
+        predictedValues[i] += 2 * x[4] * m_GradientDirections[i][0] * m_GradientDirections[i][2];
+        predictedValues[i] += 2 * x[5] * m_GradientDirections[i][1] * m_GradientDirections[i][2];
+
+        predictedValues[i] = std::exp(- bValue * predictedValues[i]);
     }
 
     double b0Val = 0;
@@ -367,27 +327,11 @@ DTIEstimationImageFilter<PixelScalarType>
     b0Val /= normConstant;
 
     double costValue = 0;
-    std::vector <double> tmpJacobian;
-    for (unsigned int j = 0;j < m_NumberOfComponents;++j)
-        funcGradient[j] = 0;
-
     for (unsigned int i = 0;i < this->GetNumberOfIndexedInputs();++i)
     {
         double predVal = b0Val * predictedValues[i];
         costValue += (predVal - observedData[i]) * (predVal - observedData[i]);
-
-        double bValue = m_BValuesList[i];
-        if (bValue == 0)
-            continue;
-
-        tmpJacobian = tensorCompartment->GetSignalAttenuationJacobian(bValue,m_GradientDirections[i]);
-
-        for (unsigned int j = 0;j < m_NumberOfComponents;++j)
-            funcGradient[j] += (predVal - observedData[i]) * tmpJacobian[j];
     }
-
-    for (unsigned int i = 0;i < m_NumberOfComponents;++i)
-        funcGradient[i] *= 2.0 * b0Val;
 
     return costValue;
 }
