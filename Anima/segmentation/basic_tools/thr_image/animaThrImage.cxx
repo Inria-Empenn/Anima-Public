@@ -17,7 +17,8 @@ int main(int argc, char **argv)
     
     TCLAP::ValueArg<std::string> inputArg("i","inputimage","Input image",true,"","Input image",cmd);
     TCLAP::ValueArg<std::string> outputArg("o","outputimage","Output image",true,"","Output image",cmd);
-	
+    TCLAP::ValueArg<std::string> maskArg("m","maskfile","mask file",false,"","mask file",cmd);
+
     TCLAP::ValueArg<double> thrArg("t","thr","Threshold value",false,1.0,"Threshold value",cmd);
     TCLAP::ValueArg<double> upperThrArg("u","uthr","Upper threshold value",false,USHRT_MAX,"Upper threshold value",cmd);
     TCLAP::ValueArg<double> adaptThrArg("a","adaptivethr","Adaptative threshold value (between 0 and 1)",false,0.0,"adaptative threshold value",cmd);
@@ -33,87 +34,138 @@ int main(int argc, char **argv)
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
         return(1);
     }
-	
-	typedef itk::Image<double,3> InputImageType;
-	typedef itk::Image<unsigned char, 3> OutputImageType;
-	typedef itk::ImageFileReader <InputImageType> InputReaderType;
-	typedef itk::ImageFileWriter <OutputImageType> OutputWriterType;
-	typedef itk::ImageRegionConstIterator <InputImageType> InputImageIterator;
-	typedef itk::ImageRegionIterator <OutputImageType> OutputImageIterator;
-	
-	typedef itk::ThresholdImageFilter <InputImageType> ThresholdFilterType;
-	typedef itk::ThresholdLabelerImageFilter <InputImageType,OutputImageType> LabelerFilterType;
-	
-	
-	InputReaderType::Pointer tmpRead = InputReaderType::New();
-	tmpRead->SetFileName(inputArg.getValue());
+
+    typedef itk::Image<double,3> DoubleImageType;
+    typedef itk::Image<unsigned char, 3> UCImageType;
+    typedef itk::ImageFileReader <DoubleImageType> DoubleReaderType;
+    typedef itk::ImageFileReader <UCImageType> UCReaderType;
+    typedef itk::ImageFileWriter <UCImageType> UCWriterType;
+    typedef itk::ImageRegionConstIterator <DoubleImageType> DoubleImageIterator;
+    typedef itk::ImageRegionIterator <UCImageType> UCImageIterator;
+
+    typedef itk::ThresholdImageFilter <DoubleImageType> ThresholdFilterType;
+    typedef itk::ThresholdLabelerImageFilter <DoubleImageType,UCImageType> LabelerFilterType;
+
+
+    DoubleReaderType::Pointer inputImageReader = DoubleReaderType::New();
+    inputImageReader->SetFileName(inputArg.getValue());
 
     try
     {
-        tmpRead->Update();
-	}
+        inputImageReader->Update();
+    }
     catch (itk::ExceptionObject &e)
     {
         std::cerr << e << std::endl;
         return 1;
     }
-	
-	InputImageType::RegionType tmpRegion = tmpRead->GetOutput()->GetLargestPossibleRegion();
-	unsigned int totalSize = tmpRegion.GetSize()[0]*tmpRegion.GetSize()[1]*tmpRegion.GetSize()[2];
-	std::vector <double> tmpVec (totalSize);
-	
-	InputImageIterator tmpIt(tmpRead->GetOutput(),tmpRegion);
-	for (unsigned int i = 0;i < totalSize;++i)
-	{
-		tmpVec[i] = tmpIt.Get();
-		++tmpIt;
-	}
-	
-	unsigned int partialElt = (unsigned int)floor(adaptThrArg.getValue()*totalSize);
-	if (partialElt == totalSize)
-		partialElt = totalSize - 1;
-	
-	if (partialElt != 0)
-		std::partial_sort(tmpVec.begin(),tmpVec.begin() + partialElt + 1,tmpVec.end());
-	
-	double thrV = thrArg.getValue();
-	if (partialElt != 0)
-		thrV = (thrV < tmpVec[partialElt]) ? tmpVec[partialElt] : thrV;
-	
-	ThresholdFilterType::Pointer thrFilter = ThresholdFilterType::New();
-	thrFilter->SetInput(tmpRead->GetOutput());
-	
-	double upperThr = upperThrArg.getValue();
-	if (upperThr < thrV)
-		upperThr = thrV;
-	
-	if (upperThr != USHRT_MAX)
-		thrFilter->ThresholdOutside(thrV,upperThr);
-	else
-		thrFilter->ThresholdBelow(thrV);
+
+    DoubleImageType::RegionType tmpRegionInputImage = inputImageReader->GetOutput()->GetLargestPossibleRegion();
+    DoubleImageIterator doubleIt(inputImageReader->GetOutput(),tmpRegionInputImage);
+
+    unsigned int totalSize = tmpRegionInputImage.GetSize()[0]*tmpRegionInputImage.GetSize()[1]*tmpRegionInputImage.GetSize()[2];
+    std::vector <double> tmpVec (totalSize);
+
+    unsigned int idx=0;
+    
+    if(maskArg.getValue()!="")
+    {
+        UCReaderType::Pointer maskImageReader = UCReaderType::New();
+        maskImageReader->SetFileName(maskArg.getValue());
+
+        try
+        {
+            maskImageReader->Update();
+        }
+        catch (itk::ExceptionObject &e)
+        {
+            std::cerr << e << std::endl;
+            return 1;
+        }
+
+        UCImageType::RegionType tmpRegionMaskImage = maskImageReader->GetOutput()->GetLargestPossibleRegion();
+        UCImageIterator ucIt(maskImageReader->GetOutput(),tmpRegionMaskImage);
+
+        if(tmpRegionInputImage.GetSize()[0]!=tmpRegionMaskImage.GetSize()[0] || tmpRegionInputImage.GetSize()[1]!=tmpRegionMaskImage.GetSize()[1] || tmpRegionInputImage.GetSize()[2]!=tmpRegionMaskImage.GetSize()[2])
+        {
+            std::cerr << "InputImage size != MaskImage size" << std::endl;
+            return -1;
+        }
+
+        for (unsigned int i = 0;i < totalSize;++i)
+        {
+            if(ucIt.Get()==1)
+            {
+                tmpVec[idx] = doubleIt.Get();
+                ++idx;
+            }
+            ++ucIt;
+            ++doubleIt;
+        }
+
+        tmpVec.resize(idx);
+    }
+    else
+    {
+        idx=totalSize;
+        for (unsigned int i = 0;i < totalSize;++i)
+        {
+            tmpVec[i] = doubleIt.Get();
+            ++doubleIt;
+        }
+    }
+
+    if(adaptThrArg.getValue() < 0 || adaptThrArg.getValue() > 1)
+    {
+        std::cerr << "Adaptative threshold value has to be included in the [0,1] interval" << std::endl;
+        return -1;
+    }
+    
+    unsigned int partialElt = (unsigned int)floor(adaptThrArg.getValue()*idx);
+    if (partialElt == idx)
+        partialElt = idx - 1;
+
+    if (partialElt != 0)
+        std::partial_sort(tmpVec.begin(),tmpVec.begin() + partialElt + 1,tmpVec.end());
+
+    double thrV = thrArg.getValue();
+    if (partialElt != 0)
+        thrV = (thrV < tmpVec[partialElt]) ? tmpVec[partialElt] : thrV;
+
+    ThresholdFilterType::Pointer thrFilter = ThresholdFilterType::New();
+    thrFilter->SetInput(inputImageReader->GetOutput());
+
+    double upperThr = upperThrArg.getValue();
+    if (upperThr < thrV)
+        upperThr = thrV;
+
+    if (upperThr != USHRT_MAX)
+        thrFilter->ThresholdOutside(thrV,upperThr);
+    else
+        thrFilter->ThresholdBelow(thrV);
     
     try
     {
         thrFilter->Update();
-	}
+    }
     catch (itk::ExceptionObject &e)
     {
         std::cerr << e << std::endl;
         return 1;
     }
     
-	LabelerFilterType::Pointer mainFilter = LabelerFilterType::New();
-	mainFilter->SetInput(thrFilter->GetOutput());
-	
-	LabelerFilterType::RealThresholdVector thrVals;
-	thrVals.push_back(0);
-	
-	mainFilter->SetRealThresholds(thrVals);
+    LabelerFilterType::Pointer mainFilter = LabelerFilterType::New();
+    mainFilter->SetInput(thrFilter->GetOutput());
+
+    LabelerFilterType::RealThresholdVector thrVals;
+    thrVals.push_back(0);
+
+    mainFilter->SetRealThresholds(thrVals);
 
     try
     {
         mainFilter->Update();
-	}
+    }
     catch (itk::ExceptionObject &e)
     {
         std::cerr << e << std::endl;
@@ -122,7 +174,7 @@ int main(int argc, char **argv)
     
     if (invArg.isSet())
     {
-        OutputImageIterator resIt(mainFilter->GetOutput(),tmpRegion);
+        UCImageIterator resIt(mainFilter->GetOutput(),tmpRegionInputImage);
         
         for (unsigned int i = 0;i < totalSize;++i)
         {
@@ -130,14 +182,14 @@ int main(int argc, char **argv)
             ++resIt;
         }
     }
-	
-	OutputWriterType::Pointer tmpWriter = OutputWriterType::New();
-	
-	tmpWriter->SetInput(mainFilter->GetOutput());
-	tmpWriter->SetUseCompression(true);
-	tmpWriter->SetFileName(outputArg.getValue());
-	
-	tmpWriter->Update();
+
+    UCWriterType::Pointer tmpWriter = UCWriterType::New();
+
+    tmpWriter->SetInput(mainFilter->GetOutput());
+    tmpWriter->SetUseCompression(true);
+    tmpWriter->SetFileName(outputArg.getValue());
+
+    tmpWriter->Update();
     
-	return 0;
+    return 0;
 }
