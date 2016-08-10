@@ -115,7 +115,7 @@ public:
     /**  Define filters. */
     typedef anima::GraphCutFilter< TInputImage, ImageTypeUC > GraphCutFilterType;
     typedef anima::CheckStructureNeighborFilter< ImageTypeUC,ImageTypeUC > CheckStructureNeighborFilterFilterType;
-    typedef anima::RemoveTouchingBorderFilter<ImageTypeInt,ImageTypeUC,ImageTypeUC> RemoveTouchingBorderFilterType;
+    typedef anima::RemoveTouchingBorderFilter<ImageTypeUC,ImageTypeUC,ImageTypeUC> RemoveTouchingBorderFilterType;
     typedef anima::TLinksFilter<TInputImage,ImageTypeD> TLinksFilterType;
     typedef anima::ComputeMahalanobisImagesFilter<ImageTypeUC,ImageTypeUC,ImageTypeD> ComputeMahalanobisImagesFilterType;
     typedef anima::ComputeSolution<ImageTypeUC,ImageTypeUC, ImageTypeD> ComputeSolutionType;

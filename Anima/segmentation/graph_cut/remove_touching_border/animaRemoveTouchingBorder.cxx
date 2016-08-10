@@ -42,12 +42,26 @@ int main(int argc, const char** argv)
     }
 
     FilterTypeSeg::Pointer segFilter = FilterTypeSeg::New();
-
-    if( inArg.getValue()!="" )
+    
+    if(labeledImageArg.getValue())
     {
-        segFilter->SetInputImageSeg( anima::readImage<InputImageType>( inArg.getValue() ) );
-    }
+	typedef anima::RemoveTouchingBorderFilter<MaskImageType,MaskImageType,MaskImageType>  FilterTypeSeg;
 
+	FilterTypeSeg::Pointer segFilter = FilterTypeSeg::New();
+    
+	if( inArg.getValue()!="" )
+	{
+	    segFilter->SetInputImageSeg( anima::readImage<MaskImageType>( inArg.getValue() ) );
+	}
+    }
+    else
+    {
+	if( inArg.getValue()!="" )
+	{
+	    segFilter->SetInputImageSeg( anima::readImage<InputImageType>( inArg.getValue() ) );
+	}
+    }
+	
     if( outArg.getValue()!="" )
     {
         if( rmNonTouchingArg.getValue() )
