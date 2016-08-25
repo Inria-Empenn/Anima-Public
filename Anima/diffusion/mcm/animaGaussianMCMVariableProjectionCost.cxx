@@ -105,10 +105,7 @@ GaussianMCMVariableProjectionCost::CheckBoundaryConditions()
     for (unsigned int i = 0;i < numCompartments;++i)
     {
         if (m_OptimalWeights[i] < 0)
-        {
-            std::cout << i << " " << m_OptimalWeights[i] << std::endl;
             return false;
-        }
     }
 
     return true;
