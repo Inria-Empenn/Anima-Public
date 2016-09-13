@@ -1,8 +1,8 @@
 #include <itkThresholdImageFilter.h>
 #include <itkThresholdLabelerImageFilter.h>
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
 #include <itkImageRegionConstIterator.h>
+
+#include <animaReadWriteFunctions.h>
 
 #include <limits.h>
 #include <iostream>
@@ -37,31 +37,17 @@ int main(int argc, char **argv)
 
     typedef itk::Image<double,3> DoubleImageType;
     typedef itk::Image<unsigned char, 3> UCImageType;
-    typedef itk::ImageFileReader <DoubleImageType> DoubleReaderType;
-    typedef itk::ImageFileReader <UCImageType> UCReaderType;
-    typedef itk::ImageFileWriter <UCImageType> UCWriterType;
+    
     typedef itk::ImageRegionConstIterator <DoubleImageType> DoubleImageIterator;
     typedef itk::ImageRegionIterator <UCImageType> UCImageIterator;
 
     typedef itk::ThresholdImageFilter <DoubleImageType> ThresholdFilterType;
     typedef itk::ThresholdLabelerImageFilter <DoubleImageType,UCImageType> LabelerFilterType;
 
-
-    DoubleReaderType::Pointer inputImageReader = DoubleReaderType::New();
-    inputImageReader->SetFileName(inputArg.getValue());
-
-    try
-    {
-        inputImageReader->Update();
-    }
-    catch (itk::ExceptionObject &e)
-    {
-        std::cerr << e << std::endl;
-        return 1;
-    }
-
-    DoubleImageType::RegionType tmpRegionInputImage = inputImageReader->GetOutput()->GetLargestPossibleRegion();
-    DoubleImageIterator doubleIt(inputImageReader->GetOutput(),tmpRegionInputImage);
+    DoubleImageType::Pointer inputImage = anima::readImage <DoubleImageType> (inArg.getValue());
+    
+    DoubleImageType::RegionType tmpRegionInputImage = inputImage->GetLargestPossibleRegion();
+    DoubleImageIterator doubleIt(inputImage,tmpRegionInputImage);
 
     unsigned int totalSize = tmpRegionInputImage.GetSize()[0]*tmpRegionInputImage.GetSize()[1]*tmpRegionInputImage.GetSize()[2];
     std::vector <double> tmpVec (totalSize);
@@ -70,21 +56,10 @@ int main(int argc, char **argv)
     
     if(maskArg.getValue()!="")
     {
-        UCReaderType::Pointer maskImageReader = UCReaderType::New();
-        maskImageReader->SetFileName(maskArg.getValue());
+	UCImageType::Pointer maskImage = anima::readImage <UCImageType> (maskArg.getValue());
 
-        try
-        {
-            maskImageReader->Update();
-        }
-        catch (itk::ExceptionObject &e)
-        {
-            std::cerr << e << std::endl;
-            return 1;
-        }
-
-        UCImageType::RegionType tmpRegionMaskImage = maskImageReader->GetOutput()->GetLargestPossibleRegion();
-        UCImageIterator ucIt(maskImageReader->GetOutput(),tmpRegionMaskImage);
+        UCImageType::RegionType tmpRegionMaskImage = maskImage->GetLargestPossibleRegion();
+        UCImageIterator ucIt(maskImage,tmpRegionMaskImage);
 
         if(tmpRegionInputImage.GetSize()[0]!=tmpRegionMaskImage.GetSize()[0] || tmpRegionInputImage.GetSize()[1]!=tmpRegionMaskImage.GetSize()[1] || tmpRegionInputImage.GetSize()[2]!=tmpRegionMaskImage.GetSize()[2])
         {
@@ -133,7 +108,7 @@ int main(int argc, char **argv)
         thrV = (thrV < tmpVec[partialElt]) ? tmpVec[partialElt] : thrV;
 
     ThresholdFilterType::Pointer thrFilter = ThresholdFilterType::New();
-    thrFilter->SetInput(inputImageReader->GetOutput());
+    thrFilter->SetInput(inputImage);
 
     double upperThr = upperThrArg.getValue();
     if (upperThr < thrV)
@@ -183,13 +158,7 @@ int main(int argc, char **argv)
         }
     }
 
-    UCWriterType::Pointer tmpWriter = UCWriterType::New();
-
-    tmpWriter->SetInput(mainFilter->GetOutput());
-    tmpWriter->SetUseCompression(true);
-    tmpWriter->SetFileName(outputArg.getValue());
-
-    tmpWriter->Update();
-    
+    anima::writeImage <UCImageType> (outArg.getValue(),mainFilter->GetOutput());
+        
     return 0;
 }

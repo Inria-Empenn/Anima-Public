@@ -22,14 +22,13 @@ int main(int argc, const char** argv)
     
     TCLAP::ValueArg<std::string> maskFileArg("m","mask","Brain mask",true,"","brain mask",cmd);
 
-    TCLAP::SwitchArg noContourDetectionArg("c","noContour","Avoid contour detection (default: false)",cmd,false);
-    TCLAP::SwitchArg rmNonTouchingArg("","rmNonTouching","Remove non touching components instead of touching components (default: false)",cmd,false);
-    TCLAP::SwitchArg labeledImageArg("l","labeledImage","Input image is a labeled image (default: false)",cmd,false);
+    TCLAP::SwitchArg noContourDetectionArg("C","noContour","Avoid contour detection (default: false)",cmd,false);
+    TCLAP::SwitchArg rmNonTouchingArg("R","rmNonTouching","Remove non touching components instead of touching components (default: false)",cmd,false);
+    TCLAP::SwitchArg labeledImageArg("L","labeledImage","Input image is a labeled image (default: false)",cmd,false);
 
     // global
     TCLAP::ValueArg<unsigned int> numThreadsArg("T","threads","Number of execution threads (default: 0 = all cores)",false,0,"number of threads",cmd);
     TCLAP::SwitchArg verboseArg("v","verbose","verbose mode (default: false)",cmd,false);
-    TCLAP::ValueArg<double> tolArg("","tol","Filter tolerance (default: 0.0001)",false,0.0001,"filter tolerance",cmd);
 
     try
     {
@@ -84,7 +83,6 @@ int main(int argc, const char** argv)
     segFilter->SetNoContour( noContourDetectionArg.getValue() );
     segFilter->SetVerbose( verboseArg.getValue() );
     segFilter->SetNumberOfThreads( numThreadsArg.getValue() );
-    segFilter->SetTol( tolArg.getValue() );
 
     // Process
     itk::TimeProbe timer;

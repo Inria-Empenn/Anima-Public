@@ -121,14 +121,10 @@ GenerateData()
         connectedComponentImageFilter->SetInput( InputImageSeg );
         connectedComponentImageFilter->SetFullyConnected( connectivity );
         connectedComponentImageFilter->SetNumberOfThreads( this->GetNumberOfThreads() );
-        connectedComponentImageFilter->SetCoordinateTolerance( m_Tol );
-        connectedComponentImageFilter->SetDirectionTolerance( m_Tol );
         connectedComponentImageFilter->Update();
 
         labelImageToLabelMapFilter->SetInput( connectedComponentImageFilter->GetOutput() );
         labelImageToLabelMapFilter->SetNumberOfThreads(this->GetNumberOfThreads());
-        labelImageToLabelMapFilter->SetCoordinateTolerance(m_Tol);
-        labelImageToLabelMapFilter->SetDirectionTolerance(m_Tol);
         labelImageToLabelMapFilter->Update(); // The output of this filter is an itk::LabelMap, which contains itk::LabelObject's
         originalNumberOfObject = labelImageToLabelMapFilter->GetOutput()->GetNumberOfLabelObjects() ;
 
@@ -139,8 +135,6 @@ GenerateData()
     {
         labelImageToLabelMapFilter2->SetInput( InputImageSeg );
         labelImageToLabelMapFilter2->SetNumberOfThreads(this->GetNumberOfThreads());
-        labelImageToLabelMapFilter2->SetCoordinateTolerance(m_Tol);
-        labelImageToLabelMapFilter2->SetDirectionTolerance(m_Tol);
         labelImageToLabelMapFilter2->Update(); // The output of this filter is an itk::LabelMap, which contains itk::LabelObject's
         originalNumberOfObject = labelImageToLabelMapFilter2->GetOutput()->GetNumberOfLabelObjects() ;
 
@@ -151,8 +145,6 @@ GenerateData()
     // Convert a LabelMap to a normal image with different values representing each region
     labelMapToLabelImageFilter->SetInput( labelMap );
     labelMapToLabelImageFilter->SetNumberOfThreads(this->GetNumberOfThreads());
-    labelMapToLabelImageFilter->SetCoordinateTolerance(m_Tol);
-    labelMapToLabelImageFilter->SetDirectionTolerance(m_Tol);
     labelMapToLabelImageFilter->Update();
 
     // ------------------------------------- Mask bordure
@@ -168,16 +160,12 @@ GenerateData()
         typename ConnectedComponentImageFilterType2::Pointer connectedComponentImageFilter2  = ConnectedComponentImageFilterType2::New();
         connectedComponentImageFilter2->SetInput( this->GetMask() );
         connectedComponentImageFilter2->SetNumberOfThreads(this->GetNumberOfThreads());
-        connectedComponentImageFilter2->SetCoordinateTolerance(m_Tol);
-        connectedComponentImageFilter2->SetDirectionTolerance(m_Tol);
 
         // Generate contours for each component
-        LabelContourImageFilterType::Pointer labelContourImageFilter = LabelContourImageFilterType::New();
+        itk::LabelContourImageFilter<ImageTypeInt, ImageTypeInt>::Pointer labelContourImageFilter = itk::LabelContourImageFilter<ImageTypeInt, ImageTypeInt>::New();
         labelContourImageFilter->SetInput( connectedComponentImageFilter2->GetOutput() );
         labelContourImageFilter->SetFullyConnected(true);
         labelContourImageFilter->SetNumberOfThreads(this->GetNumberOfThreads());
-        labelContourImageFilter->SetCoordinateTolerance(m_Tol);
-        labelContourImageFilter->SetDirectionTolerance(m_Tol);
         labelContourImageFilter->Update();
 
 
@@ -233,8 +221,6 @@ GenerateData()
     typename LabelMapToLabelImageFilterType::Pointer labelMapToLabelImageFilter2 = LabelMapToLabelImageFilterType::New();
     labelMapToLabelImageFilter2->SetInput( labelMap );
     labelMapToLabelImageFilter2->SetNumberOfThreads(this->GetNumberOfThreads());
-    labelMapToLabelImageFilter2->SetCoordinateTolerance(m_Tol);
-    labelMapToLabelImageFilter2->SetDirectionTolerance(m_Tol);
     labelMapToLabelImageFilter2->Update();
 
     MaskConstIteratorType maskIt (this->GetMask(), this->GetMask()->GetLargestPossibleRegion() );

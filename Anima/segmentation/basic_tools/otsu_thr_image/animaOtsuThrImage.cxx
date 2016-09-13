@@ -1,8 +1,8 @@
 #include <tclap/CmdLine.h>
 
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
 #include <itkOtsuMultipleThresholdsImageFilter.h>
+
+#include <animaReadWriteFunctions.h>
 
 #include <iostream>
 #include <fstream>
@@ -27,28 +27,14 @@ int main(int argc, char **argv)
     }
 
     typedef itk::Image<double,3> DoubleImageType;
-    typedef itk::ImageFileReader <DoubleImageType> DoubleReaderType;
-    typedef itk::ImageFileWriter <DoubleImageType> WriterType;
+    typedef itk::Image<unsigned short,3> USImageType
     
-    typedef itk::OtsuMultipleThresholdsImageFilter <DoubleImageType, DoubleImageType> OtsuMultipleThresholdsImageFilterType;
+    typedef itk::OtsuMultipleThresholdsImageFilter <DoubleImageType, USImageType> OtsuMultipleThresholdsImageFilterType;
 
-    DoubleReaderType::Pointer inputImageReader = DoubleReaderType::New();
-    inputImageReader->SetFileName(inputArg.getValue());
-
-    try
-    {
-        inputImageReader->Update();
-    }
-    catch (itk::ExceptionObject &e)
-    {
-        std::cerr << e << std::endl;
-        return 1;
-    }
-
-    DoubleImageType::RegionType tmpRegionInputImage = inputImageReader->GetOutput()->GetLargestPossibleRegion();
+    ImageType::Pointer inputImage = anima::readImage <DoubleImageType> (inArg.getValue());
 
     OtsuMultipleThresholdsImageFilterType::Pointer otsuMultipleThrFilter = OtsuMultipleThresholdsImageFilterType::New();
-    otsuMultipleThrFilter->SetInput(inputImageReader->GetOutput());
+    otsuMultipleThrFilter->SetInput(inputImage);
     otsuMultipleThrFilter->SetNumberOfThresholds(nbThresholds.getValue());
 
     try
@@ -61,22 +47,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    WriterType::Pointer tmpWriter = WriterType::New();
-
-    tmpWriter->SetInput(otsuMultipleThrFilter->GetOutput());
-    tmpWriter->SetUseCompression(true);
-    tmpWriter->SetFileName(outputArg.getValue());
-
-    try
-    {
-        tmpWriter->Update();
-    }
-    catch (itk::ExceptionObject &e)
-    {
-        std::cerr << e << std::endl;
-        return 1;
-    }
-
+    anima::writeImage <USImageType> (outputArg.getValue(),otsuMultipleThrFilter->GetOutput());
     
     return 0;
 }

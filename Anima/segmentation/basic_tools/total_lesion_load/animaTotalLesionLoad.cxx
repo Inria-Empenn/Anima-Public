@@ -7,9 +7,8 @@
 int main(int argc, const char** argv)
 {
     const unsigned int Dimension = 3;
-    typedef itk::Image <unsigned char,Dimension> InputImageType;
-    typedef itk::ImageFileReader <InputImageType> ReaderType;
-    typedef itk::ImageRegionConstIterator <InputImageType> InputImageIterator;
+    typedef itk::Image <unsigned char,Dimension> ImageType;
+    typedef itk::ImageRegionConstIterator <ImageType> ImageIterator;
     
     // Parsing arguments
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
@@ -29,20 +28,9 @@ int main(int argc, const char** argv)
         return(1);
     }
 
-    ReaderType::Pointer inputImageReader = ReaderType::New();
-    inputImageReader->SetFileName(inArg.getValue());
+    ImageType::Pointer inputImage = anima::readImage <ImageType> (inArg.getValue());
 
-    try
-    {
-        inputImageReader->Update();
-    }
-    catch (itk::ExceptionObject &e)
-    {
-        std::cerr << e << std::endl;
-        return 1;
-    }
-    
-    InputImageIterator inputIt(inputImageReader->GetOutput(),inputImageReader->GetOutput()->GetLargestPossibleRegion());
+    ImageIterator inputIt(inputImage,inputImage->GetLargestPossibleRegion());
 
     unsigned int cpt=0;
     while(!inputIt.IsAtEnd())
@@ -54,8 +42,8 @@ int main(int argc, const char** argv)
         ++inputIt;
     }
 
-    InputImageType::SpacingType spacing = inputImageReader->GetOutput()->GetSpacing();
-    InputImageType::SpacingValueType spacingTot = spacing[0];
+    ImageType::SpacingType spacing = inputImage->GetSpacing();
+    ImageType::SpacingValueType spacingTot = spacing[0];
     for (unsigned int i = 1; i < 3;++i)
     {
         spacingTot *= spacing[i];

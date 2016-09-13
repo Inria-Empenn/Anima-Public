@@ -2,7 +2,6 @@
 #include <iostream>
 #include <string>
 
-#include <itkBinaryFillholeImageFilter.h>
 #include <itkConnectedComponentImageFilter.h>
 #include <animaReadWriteFunctions.h>
 
@@ -14,7 +13,6 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> outArg("o","output","Output image",true,"","output image",cmd);
 
     TCLAP::ValueArg<unsigned int> numThreadsArg("T","threads","Number of execution threads (default: 0 = all cores)",false,0,"number of threads",cmd);
-    TCLAP::ValueArg<double> tolArg("","tol","Filter tolerance (default: 0.0001)",false,0.0001,"filter tolerance",cmd);
 
     try
     {
@@ -26,47 +24,45 @@ int main(int argc, char **argv)
         return(1);
     }
 
-    typedef itk::Image <unsigned short,3> ImageTypeUC;
+    typedef itk::Image <unsigned short,3> ImageTypeUS;
     typedef itk::Image <unsigned int,3> ImageTypeInt;
-    typedef typename itk::ImageRegionIterator <ImageTypeUC> IteratorTypeUC;
+    typedef typename itk::ImageRegionIterator <ImageTypeUS> IteratorTypeUS;
     typedef typename itk::ImageRegionIterator <ImageTypeInt> IteratorTypeInt;
-    typedef itk::ConnectedComponentImageFilter <ImageTypeUC,ImageTypeInt> ConnectedComponentType;
+    typedef itk::ConnectedComponentImageFilter <ImageTypeUS,ImageTypeInt> ConnectedComponentType;
     
-    ImageTypeUC::Pointer inputImage = anima::readImage <ImageTypeUC> (inArg.getValue());
+    ImageTypeUS::Pointer inputImage = anima::readImage <ImageTypeUS> (inArg.getValue());
 
-    ImageTypeUC::Pointer tmpImageUC = ImageTypeUC::New();
-    tmpImageUC->SetRegions(inputImage->GetLargestPossibleRegion());
-    tmpImageUC->CopyInformation(inputImage);
-    tmpImageUC->Allocate();
-    tmpImageUC->FillBuffer(0);
+    ImageTypeUS::Pointer tmpImageUS = ImageTypeUS::New();
+    tmpImageUS->SetRegions(inputImage->GetLargestPossibleRegion());
+    tmpImageUS->CopyInformation(inputImage);
+    tmpImageUS->Allocate();
+    tmpImageUS->FillBuffer(0);
     
-    ImageTypeUC::Pointer outputImage = ImageTypeUC::New();
+    ImageTypeUS::Pointer outputImage = ImageTypeUS::New();
     outputImage->SetRegions(inputImage->GetLargestPossibleRegion());
     outputImage->CopyInformation(inputImage);
     outputImage->Allocate();
     outputImage->FillBuffer(0);
 
-    IteratorTypeUC inputImageIt(inputImage, inputImage->GetLargestPossibleRegion());
-    IteratorTypeUC tmpImageUCIt(tmpImageUC, tmpImageUC->GetLargestPossibleRegion());
-    IteratorTypeUC outputImageIt(outputImage, outputImage->GetLargestPossibleRegion());
+    IteratorTypeUS inputImageIt(inputImage, inputImage->GetLargestPossibleRegion());
+    IteratorTypeUS tmpImageUSIt(tmpImageUS, tmpImageUS->GetLargestPossibleRegion());
+    IteratorTypeUS outputImageIt(outputImage, outputImage->GetLargestPossibleRegion());
 
     while(!inputImageIt.IsAtEnd())
     {
-        tmpImageUCIt.Set(1-inputImageIt.Get());
+        tmpImageUSIt.Set(1-inputImageIt.Get());
         outputImageIt.Set(inputImageIt.Get());
 
         ++inputImageIt;
-        ++tmpImageUCIt;
+        ++tmpImageUSIt;
         ++outputImageIt;
     }
     
     bool connectivity = false;
     ConnectedComponentType::Pointer ccFilter = ConnectedComponentType::New();
-    ccFilter->SetInput( tmpImageUC );
+    ccFilter->SetInput( tmpImageUS );
     ccFilter->SetFullyConnected( connectivity );
     ccFilter->SetNumberOfThreads( numThreadsArg.getValue() );
-    ccFilter->SetCoordinateTolerance( tolArg.getValue() );
-    ccFilter->SetDirectionTolerance( tolArg.getValue() );
     ccFilter->Update();
 
     IteratorTypeInt tmpImageIntIt (ccFilter->GetOutput(), ccFilter->GetOutput()->GetLargestPossibleRegion() );
@@ -84,7 +80,7 @@ int main(int argc, char **argv)
         ++outputImageIt;
     }
     
-    anima::writeImage <ImageTypeUC> (outArg.getValue(),outputImage);
+    anima::writeImage <ImageTypeUS> (outArg.getValue(),outputImage);
 
     return 0;
 }
