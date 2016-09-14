@@ -44,7 +44,7 @@ int main(int argc, char **argv)
     typedef itk::ThresholdImageFilter <DoubleImageType> ThresholdFilterType;
     typedef itk::ThresholdLabelerImageFilter <DoubleImageType,UCImageType> LabelerFilterType;
 
-    DoubleImageType::Pointer inputImage = anima::readImage <DoubleImageType> (inArg.getValue());
+    DoubleImageType::Pointer inputImage = anima::readImage <DoubleImageType> (inputArg.getValue());
     
     DoubleImageType::RegionType tmpRegionInputImage = inputImage->GetLargestPossibleRegion();
     DoubleImageIterator doubleIt(inputImage,tmpRegionInputImage);
@@ -158,7 +158,7 @@ int main(int argc, char **argv)
         }
     }
 
-    anima::writeImage <UCImageType> (outArg.getValue(),mainFilter->GetOutput());
+    anima::writeImage <UCImageType> (outputArg.getValue(),mainFilter->GetOutput());
         
     return 0;
 }

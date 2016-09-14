@@ -27,11 +27,11 @@ int main(int argc, char **argv)
     }
 
     typedef itk::Image<double,3> DoubleImageType;
-    typedef itk::Image<unsigned short,3> USImageType
+    typedef itk::Image<unsigned short,3> USImageType;
     
     typedef itk::OtsuMultipleThresholdsImageFilter <DoubleImageType, USImageType> OtsuMultipleThresholdsImageFilterType;
 
-    ImageType::Pointer inputImage = anima::readImage <DoubleImageType> (inArg.getValue());
+    DoubleImageType::Pointer inputImage = anima::readImage <DoubleImageType> (inputArg.getValue());
 
     OtsuMultipleThresholdsImageFilterType::Pointer otsuMultipleThrFilter = OtsuMultipleThresholdsImageFilterType::New();
     otsuMultipleThrFilter->SetInput(inputImage);

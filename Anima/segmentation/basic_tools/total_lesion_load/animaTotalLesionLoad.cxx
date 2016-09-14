@@ -13,8 +13,6 @@ int main(int argc, const char** argv)
     // Parsing arguments
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
 
-    // Setting up parameters
-
     // Input filenames
     TCLAP::ValueArg<std::string> inArg("i","inputfile","Input image",true,"","input image",cmd);
     
