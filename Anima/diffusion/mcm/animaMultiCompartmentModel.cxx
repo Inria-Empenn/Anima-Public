@@ -6,7 +6,6 @@ namespace anima
 MultiCompartmentModel::MultiCompartmentModel()
 {
     m_OptimizeWeights = true;
-    m_CommonCompartmentWeights = false;
     m_CommonDiffusivityParameters = false;
 
     m_NumberOfIsotropicCompartments = 0;
@@ -83,18 +82,10 @@ MultiCompartmentModel::ListType MultiCompartmentModel::GetParametersAsVector()
             ++pos;
         }
 
-        if (m_CommonCompartmentWeights)
+        for (unsigned int i = 0;i < numNonIsotropicCompartments;++i)
         {
-            outputVector[pos] = m_CompartmentWeights[m_NumberOfIsotropicCompartments];
+            outputVector[pos] = m_CompartmentWeights[m_NumberOfIsotropicCompartments + i];
             ++pos;
-        }
-        else
-        {
-            for (unsigned int i = 0;i < numNonIsotropicCompartments;++i)
-            {
-                outputVector[pos] = m_CompartmentWeights[m_NumberOfIsotropicCompartments + i];
-                ++pos;
-            }
         }
     }
 
@@ -148,22 +139,11 @@ void MultiCompartmentModel::SetParametersFromVector(ListType &params)
 
         pos = m_NumberOfIsotropicCompartments - 1;
 
-        if (m_CommonCompartmentWeights)
+        for (unsigned int i = 0;i < numNonIsotropicCompartments;++i)
         {
-            for (unsigned int i = 0;i < numNonIsotropicCompartments;++i)
-                m_CompartmentWeights[i + m_NumberOfIsotropicCompartments] = params[pos];
-
-            sumWeights += params[pos] * numNonIsotropicCompartments;
+            m_CompartmentWeights[i + m_NumberOfIsotropicCompartments] = params[pos];
+            sumWeights += params[pos];
             ++pos;
-        }
-        else
-        {
-            for (unsigned int i = 0;i < numNonIsotropicCompartments;++i)
-            {
-                m_CompartmentWeights[i + m_NumberOfIsotropicCompartments] = params[pos];
-                sumWeights += params[pos];
-                ++pos;
-            }
         }
 
         m_CompartmentWeights[0] = 1.0 - sumWeights;
@@ -310,20 +290,11 @@ MultiCompartmentModel::ListType MultiCompartmentModel::GetSignalJacobian(double 
             jacobian[pos] = m_Compartments[i]->GetFourierTransformedDiffusionProfile(bValue, gradient) - firstCompartmentSignal;
             ++pos;
         }
-        
-        if (m_CommonCompartmentWeights)
+
+        for (unsigned int i = 0;i < numNonIsotropicCompartments;++i)
         {
-            for (unsigned int i = m_NumberOfIsotropicCompartments;i < m_Compartments.size();++i)
-                jacobian[pos] += m_Compartments[i]->GetFourierTransformedDiffusionProfile(bValue, gradient) - firstCompartmentSignal;
+            jacobian[pos] = m_Compartments[m_NumberOfIsotropicCompartments + i]->GetFourierTransformedDiffusionProfile(bValue, gradient) - firstCompartmentSignal;
             ++pos;
-        }
-        else
-        {
-            for (unsigned int i = 0;i < numNonIsotropicCompartments;++i)
-            {
-                jacobian[pos] = m_Compartments[m_NumberOfIsotropicCompartments + i]->GetFourierTransformedDiffusionProfile(bValue, gradient) - firstCompartmentSignal;
-                ++pos;
-            }
         }
     }
     
@@ -401,20 +372,7 @@ MultiCompartmentModel::ListType MultiCompartmentModel::GetParameterUpperBounds()
 
 unsigned int MultiCompartmentModel::GetNumberOfOptimizedWeights()
 {
-    int numWeightsToOptimize = 0;
-    unsigned int numCompartments = m_Compartments.size();
-    unsigned int numNonIsotropicCompartments = numCompartments - m_NumberOfIsotropicCompartments;
-
-    if (m_OptimizeWeights)
-    {
-        numWeightsToOptimize = m_NumberOfIsotropicCompartments - 1;
-        if (m_CommonCompartmentWeights && (numNonIsotropicCompartments > 0))
-            ++numWeightsToOptimize;
-        else
-            numWeightsToOptimize += numNonIsotropicCompartments;
-    }
-
-    return numWeightsToOptimize;
+    return m_Compartments.size() - 1;
 }
 
 unsigned int MultiCompartmentModel::GetNumberOfParameters()

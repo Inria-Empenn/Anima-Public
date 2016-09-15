@@ -92,14 +92,6 @@ protected:
         }
 
         // Note: there is always at least one isotropic compartment when estimating weights
-        unsigned int numNonIsoCompartments = m_MCMStructure->GetNumberOfCompartments() - m_MCMStructure->GetNumberOfIsotropicCompartments();
-        if (m_MCMStructure->GetCommonCompartmentWeights())
-        {
-            sumWeights += dataValue[numWeightsToOptimize-1] * (numNonIsoCompartments - 1);
-            if (gradValue)
-                gradValue[numWeightsToOptimize-1] = numNonIsoCompartments;
-        }
-
         return sumWeights - 1.0;
     }
 
@@ -218,9 +210,7 @@ public:
     itkSetMacro(UseConstrainedFreeWaterDiffusivity, bool)
     itkSetMacro(UseConstrainedIRWDiffusivity, bool)
 
-    itkSetMacro(UseCommonWeights, bool)
     itkSetMacro(UseCommonDiffusivities, bool)
-
     itkSetMacro(UseConcentrationBoundsFromDTI,bool)
 
     std::string GetOptimizer() {return m_Optimizer;}
@@ -288,8 +278,6 @@ protected:
         m_UseConstrainedIRWDiffusivity = true;
         m_UseConcentrationBoundsFromDTI = false;
         m_UseBoundedOptimization = false;
-
-        m_UseCommonWeights = false;
         m_UseCommonDiffusivities = false;
 
         m_AxialDiffusivityFixedValue = 1.7e-3;
@@ -414,8 +402,6 @@ private:
     bool m_UseConstrainedIRWDiffusivity;
     bool m_UseConcentrationBoundsFromDTI;
     bool m_UseBoundedOptimization;
-
-    bool m_UseCommonWeights;
     bool m_UseCommonDiffusivities;
 
     double m_AxialDiffusivityFixedValue;

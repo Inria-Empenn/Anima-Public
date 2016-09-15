@@ -31,7 +31,6 @@ MultiCompartmentModelCreator::MultiCompartmentModelCreator()
     m_UseConstrainedExtraAxonalFraction = false;
     m_UseBoundedOptimization = false;
 
-    m_UseCommonCompartmentWeights = false;
     m_UseCommonDiffusivities = false;
     m_UseCommonConcentrations = false;
     m_UseCommonExtraAxonalFractions = false;
@@ -58,14 +57,8 @@ void MultiCompartmentModelCreator::SetConcentrationBounds(double lowerBound, dou
 
 MultiCompartmentModelCreator::MCMType *MultiCompartmentModelCreator::GetNewMultiCompartmentModel()
 {
-    // Using common weights, and no free water components implies no optimization of weights
-    unsigned int numIsotropicCompartments = m_ModelWithFreeWaterComponent + m_ModelWithStationaryWaterComponent + m_ModelWithRestrictedWaterComponent;
-    if (m_UseCommonCompartmentWeights && (numIsotropicCompartments == 0))
-        m_UseFixedWeights = true;
-
     MCMPointer outputMCM = MCMType::New();
     outputMCM->SetOptimizeWeights(!m_UseFixedWeights);
-    outputMCM->SetCommonCompartmentWeights(m_UseCommonCompartmentWeights);
     outputMCM->SetCommonDiffusivityParameters(m_UseCommonDiffusivities);
     outputMCM->SetCommonConcentrationParameters(m_UseCommonConcentrations);
     outputMCM->SetCommonExtraAxonalFractionParameters(m_UseCommonExtraAxonalFractions);

@@ -45,7 +45,6 @@ public:
     bool GetUseConstrainedOrientationConcentration() {return m_UseConstrainedOrientationConcentration;}
     bool GetUseConstrainedExtraAxonalFraction() {return m_UseConstrainedExtraAxonalFraction;}
 
-    void SetUseCommonCompartmentWeights(bool arg) {m_UseCommonCompartmentWeights = arg;}
     void SetUseCommonDiffusivities(bool arg) {m_UseCommonDiffusivities = arg;}
     void SetUseCommonConcentrations(bool arg) {m_UseCommonConcentrations = arg;}
     void SetUseCommonExtraAxonalFractions(bool arg) {m_UseCommonExtraAxonalFractions = arg;}
@@ -91,7 +90,6 @@ private:
     bool m_UseConstrainedIRWDiffusivity;
     bool m_UseBoundedOptimization;
 
-    bool m_UseCommonCompartmentWeights;
     bool m_UseCommonDiffusivities;
     bool m_UseCommonConcentrations;
     bool m_UseCommonExtraAxonalFractions;

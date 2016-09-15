@@ -128,7 +128,7 @@ MCMEstimatorImageFilter<PixelType>
     if ((m_Optimizer == "levenberg")&&((m_MLEstimationStrategy != VariableProjection)||(m_NoiseType != Gaussian)))
         itkExceptionMacro("Levenberg Marquardt optimizer only working with Gaussian noise and variable projection");
 
-    if ((m_Optimizer != "bobyqa")&&(m_UseCommonDiffusivities||m_UseCommonWeights))
+    if ((m_Optimizer != "bobyqa")&&m_UseCommonDiffusivities)
         itkExceptionMacro("Derivative based optimizers not supported yet for common parameters, use Bobyqa instead");
 
     if ((m_NoiseType == NCC)&&(m_MLEstimationStrategy != Profile))
@@ -326,9 +326,6 @@ MCMEstimatorImageFilter<PixelType>
     std::cout << " - Second radial diffusivity: " << m_RadialDiffusivity2FixedValue << " mm2/s." << std::endl;
 
     // Setting up creators
-    if (m_MLEstimationStrategy == VariableProjection)
-        m_UseCommonWeights = false;
-
     if (m_Optimizer == "levenberg")
         m_UseBoundedOptimization = true;
 
@@ -743,7 +740,6 @@ MCMEstimatorImageFilter<PixelType>
     mcmCreator->SetUseConstrainedDiffusivity(true);
     mcmCreator->SetUseConstrainedFreeWaterDiffusivity(m_UseConstrainedFreeWaterDiffusivity);
     mcmCreator->SetUseConstrainedIRWDiffusivity(m_UseConstrainedIRWDiffusivity);
-    mcmCreator->SetUseCommonCompartmentWeights(m_UseCommonWeights);
     mcmCreator->SetUseCommonDiffusivities(m_UseCommonDiffusivities);
 
     MCMPointer mcmUpdateValue = mcmCreator->GetNewMultiCompartmentModel();

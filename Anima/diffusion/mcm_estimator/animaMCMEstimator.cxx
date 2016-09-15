@@ -55,16 +55,15 @@ int main(int argc,  char **argv)
     TCLAP::SwitchArg optFWDiffArg("", "opt-free-water-diff", "Optimize free water diffusivity value", cmd, false);
     TCLAP::SwitchArg optIRWDiffArg("", "opt-ir-water-diff", "Optimize isotropic restricted water diffusivity value", cmd, false);
 
-    TCLAP::SwitchArg commonCompartmentWeightsArg("", "common-weights", "Share compartment weights", cmd, false);
     TCLAP::SwitchArg commonDiffusivitiesArg("", "common-diffusivities", "Share diffusivity values among compartments", cmd, false);
 
     TCLAP::ValueArg<std::string> optimizerArg("", "optimizer", "Optimizer for estimation: bobyqa (default), ccsaq or levenberg (usable only with variable projection)", false, "bobyqa", "optimizer", cmd);
     TCLAP::ValueArg<unsigned int> nbRandomRestartsArg("", "random-restarts", "Number of random restarts when searching for more than 2 fascicles (default: 6)", false, 6, "number of random restarts", cmd);
     TCLAP::ValueArg<double> absCostChangeArg("", "abs-cost-change", "Cost function change to stop estimation (default: 0.01)", false, 0.01, "cost change threshold", cmd);
     TCLAP::ValueArg <unsigned int> mlModeArg("", "ml-mode", "ML estimation strategy: marginal likelihood (0), profile likelihood (1, default), Variable projection (2)", false, 1, "ML mode", cmd);
-    TCLAP::ValueArg<double> xTolArg("x", "x-tol", "Tolerance for position in optimization (default: 0)", false, 0, "position tolerance", cmd);
-    TCLAP::ValueArg<double> gTolArg("G", "g-tol", "Tolerance for gradient in optimization (default: 0)", false, 0, "gradient tolerance", cmd);
-    TCLAP::ValueArg<unsigned int> maxEvalArg("e", "max-eval", "Maximum evaluations (default: 0)", false, 0, "max evaluations", cmd);
+    TCLAP::ValueArg<double> xTolArg("x", "x-tol", "Tolerance for position in optimization (default: 0 -> 1.0e-4 or 1.0e-7 for bobyqa)", false, 0, "position tolerance", cmd);
+    TCLAP::ValueArg<double> gTolArg("G", "g-tol", "Tolerance for gradient in optimization (default: 0 -> function of position tolerance)", false, 0, "gradient tolerance", cmd);
+    TCLAP::ValueArg<unsigned int> maxEvalArg("e", "max-eval", "Maximum evaluations (default: 0 -> function of number of unknowns)", false, 0, "max evaluations", cmd);
 
     TCLAP::ValueArg<unsigned int> nbThreadsArg("T", "nb-threads", "Number of threads to run on (default: all cores)", false, itk::MultiThreader::GetGlobalDefaultNumberOfThreads(), "number of threads", cmd);
 
@@ -172,8 +171,6 @@ int main(int argc,  char **argv)
         filter->SetUseCommonDiffusivities(commonDiffusivitiesArg.isSet());
     else
         filter->SetUseCommonDiffusivities(false);
-
-    filter->SetUseCommonWeights(commonCompartmentWeightsArg.isSet() && (mlModeArg.getValue() != 2));
 
     filter->SetNumberOfThreads(nbThreadsArg.getValue());
     filter->AddObserver(itk::ProgressEvent(), callback);

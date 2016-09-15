@@ -83,9 +83,6 @@ public:
     void SetOptimizeWeights(bool val) {m_OptimizeWeights = val;}
     itkGetMacro(OptimizeWeights, bool)
 
-    void SetCommonCompartmentWeights(bool val) {m_CommonCompartmentWeights = val;}
-    itkGetMacro(CommonCompartmentWeights, bool)
-
     void SetCommonDiffusivityParameters(bool val) {m_CommonDiffusivityParameters = val;}
     itkGetMacro(CommonDiffusivityParameters, bool)
 
@@ -104,7 +101,6 @@ private:
     ListType m_CompartmentWeights;
 
     bool m_OptimizeWeights;
-    bool m_CommonCompartmentWeights;
     bool m_CommonDiffusivityParameters;
     bool m_CommonConcentrationParameters;
     bool m_CommonExtraAxonalFractionParameters;
