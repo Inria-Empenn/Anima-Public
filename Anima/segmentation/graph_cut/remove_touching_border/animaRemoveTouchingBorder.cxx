@@ -7,9 +7,9 @@
 int main(int argc, const char** argv)
 {
     const unsigned int Dimension = 3;
-    typedef itk::Image <unsigned char,Dimension> MaskImageType;
-    typedef itk::Image <unsigned int,Dimension> InputImageType;
-    typedef anima::RemoveTouchingBorderFilter<InputImageType,MaskImageType,MaskImageType>  FilterTypeSeg;
+    typedef itk::Image <unsigned char,Dimension> UCImageType;
+    typedef itk::Image <unsigned int,Dimension> UIImageType;
+    typedef anima::RemoveTouchingBorderFilter<UIImageType,UCImageType,UCImageType>  FilterTypeSeg;
     
     // Parsing arguments
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
@@ -42,23 +42,9 @@ int main(int argc, const char** argv)
 
     FilterTypeSeg::Pointer segFilter = FilterTypeSeg::New();
     
-    if(labeledImageArg.getValue())
+    if( inArg.getValue()!="" )
     {
-	typedef anima::RemoveTouchingBorderFilter<MaskImageType,MaskImageType,MaskImageType>  FilterTypeSeg;
-
-	FilterTypeSeg::Pointer segFilter = FilterTypeSeg::New();
-    
-	if( inArg.getValue()!="" )
-	{
-	    segFilter->SetInputImageSeg( anima::readImage<MaskImageType>( inArg.getValue() ) );
-	}
-    }
-    else
-    {
-	if( inArg.getValue()!="" )
-	{
-	    segFilter->SetInputImageSeg( anima::readImage<InputImageType>( inArg.getValue() ) );
-	}
+	segFilter->SetInputImageSeg( anima::readImage<UIImageType>( inArg.getValue() ) );
     }
 	
     if( outArg.getValue()!="" )
@@ -74,7 +60,7 @@ int main(int argc, const char** argv)
     }
     if( maskFileArg.getValue()!="" )
     {
-        segFilter->SetMask( anima::readImage<MaskImageType>( maskFileArg.getValue() ) );
+        segFilter->SetMask( anima::readImage<UCImageType>( maskFileArg.getValue() ) );
     }
 
     // Set parameters
