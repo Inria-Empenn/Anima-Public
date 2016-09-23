@@ -372,7 +372,11 @@ MultiCompartmentModel::ListType MultiCompartmentModel::GetParameterUpperBounds()
 
 unsigned int MultiCompartmentModel::GetNumberOfOptimizedWeights()
 {
-    return m_Compartments.size() - 1;
+    int numWeightsToOptimize = 0;
+    if (m_OptimizeWeights)
+        numWeightsToOptimize = m_Compartments.size() - 1;
+
+    return numWeightsToOptimize;
 }
 
 unsigned int MultiCompartmentModel::GetNumberOfParameters()
