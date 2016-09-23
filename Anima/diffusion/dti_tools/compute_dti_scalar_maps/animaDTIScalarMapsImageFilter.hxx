@@ -91,27 +91,27 @@ DTIScalarMapsImageFilter< ImageDimension >::ThreadedGenerateData(const OutputIma
     {
         TensorVectorType tensor = tensorIterator.Get();
         double a(tensor[0]), c(tensor[2]), f(tensor[5]), ADC(0);
-        ADC = (a+c+f)/3;
+        ADC = (a+c+f) / 3.0;
 
         adcIterator.Set(ADC);
-
 
         anima::GetTensorFromVectorRepresentation(tensor, tensorSymMatrix,3,false);
 
         eigenAnalysis.ComputeEigenValues(tensorSymMatrix, eigenValue);
 
         double l1(eigenValue[2]), l2(eigenValue[1]), l3(eigenValue[0]), fa(1);
-        double num = sqrt ( (l1 -l2)*(l1 -l2) + (l2 -l3)*(l2 -l3) + (l3 - l1)*(l3 - l1) );
-        double den = sqrt (l1*l1 + l2*l2 + l3*l3);
-        if(den == 0)
+        double num = std::sqrt ((l1 -l2) * (l1 -l2) + (l2 -l3) * (l2 -l3) + (l3 - l1) * (l3 - l1));
+        double den = std::sqrt (l1*l1 + l2*l2 + l3*l3);
+
+        if (den == 0)
             fa = 0;
         else
-            fa = sqrt(0.5) * (num / den);
+            fa = std::sqrt(0.5) * (num / den);
 
         faIterator.Set(fa);
 
         axialIterator.Set(l1);
-        radialIterator.Set((l2+l3)/2);
+        radialIterator.Set((l2+l3) / 2.0);
 
         ++tensorIterator;
         ++adcIterator;

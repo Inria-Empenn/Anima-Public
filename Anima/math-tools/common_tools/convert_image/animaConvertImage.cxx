@@ -56,7 +56,7 @@ convert(const arguments &args)
         std::string outGradFileName = args.output;
         std::size_t pointLocation = outGradFileName.find_last_of('.');
         outGradFileName = outGradFileName.substr(0,pointLocation);
-        std::string tmpStr = outGradFileName.substr(pointLocation + 1);
+        std::string tmpStr = args.output.substr(pointLocation + 1);
 
         if (tmpStr == "gz")
         {
@@ -66,6 +66,7 @@ convert(const arguments &args)
 
         outGradFileName += ".bvec";
         std::ofstream outGrads(outGradFileName);
+        outGrads.precision(15);
         for (unsigned int i = 0;i < 3;++i)
         {
             for (unsigned int j = 0;j < gradients.size();++j)
@@ -96,11 +97,11 @@ retrieveNbDimensions(itk::ImageIOBase::Pointer imageIO, const arguments &args)
 int main(int ac, const char** av)
 {
     TCLAP::CmdLine cmd("animaConvertImage can be used to rewrite an image in a new compatible format ie: nii to nrrd. "
-                       "It can also be used to display generic information on an image such as size, origin etc. using the --info option."
-                       "If an image file is given to the --space option it will be used to rewrite the input in the same"
-                       "real coordinates repair."
-                       "The --reorient option allow to reorient the image in either the AXIAL, CORONAL or SAGITALL orientation."
-                       "Note that the reorientation is perform after the change of coordinate space if --space and --reorient"
+                       "It can also be used to display generic information on an image such as size, origin etc. using the --info option. "
+                       "If an image file is given to the --space option it will be used to rewrite the input in the same "
+                       "real coordinates repair. "
+                       "The --reorient option allow to reorient the image in either the AXIAL, CORONAL or SAGITALL orientation. "
+                       "Note that the reorientation is performed after the change of coordinate space if --space and --reorient "
                        "are given together.\n"
                        "INRIA / IRISA - VisAGeS Team",' ',ANIMA_VERSION);
 

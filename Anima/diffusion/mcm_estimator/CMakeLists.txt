@@ -1,6 +1,6 @@
-if(BUILD_TOOLS AND USE_NLOPT AND NLOPT_FOUND)
+if(BUILD_TOOLS AND USE_NLOPT)
 
-project(animaDTIEstimator)
+project(animaMCMEstimator)
 
 ## #############################################################################
 ## List Sources
@@ -9,7 +9,7 @@ project(animaDTIEstimator)
 list_source_files(${PROJECT_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}
   )
-   
+
 
 ## #############################################################################
 ## add executable
@@ -25,9 +25,12 @@ add_executable(${PROJECT_NAME}
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME}
-  ${NLOPT_LIBRARY}
-  AnimaMCM
   ${ITKIO_LIBRARIES}
+  AnimaMCM
+  AnimaRandom
+  AnimaSpecialFunctions
+  AnimaOptimizers
+  ITKOptimizers
   )
 
 ## #############################################################################

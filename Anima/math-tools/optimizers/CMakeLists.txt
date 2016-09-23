@@ -8,6 +8,10 @@ list_source_files(${PROJECT_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}
   )
 
+if(USE_NLOPT)
+  list_source_files(${PROJECT_NAME} nlopt_optimizers)
+endif()
+
 ## #############################################################################
 ## add lib
 ## #############################################################################
@@ -22,6 +26,7 @@ add_library(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   ITKOptimizers
+  ${NLOPT_LIBRARY}
   )
 
 
