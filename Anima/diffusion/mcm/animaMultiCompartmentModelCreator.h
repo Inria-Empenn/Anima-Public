@@ -13,7 +13,7 @@ class ANIMAMCM_EXPORT MultiCompartmentModelCreator
 {
 public:
     MultiCompartmentModelCreator();
-    ~MultiCompartmentModelCreator() {}
+    virtual ~MultiCompartmentModelCreator() {}
 
     typedef anima::MultiCompartmentModel MCMType;
     typedef MCMType::Pointer MCMPointer;
