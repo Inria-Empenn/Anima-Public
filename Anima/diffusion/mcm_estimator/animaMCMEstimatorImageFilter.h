@@ -102,17 +102,19 @@ private:
     MCMPointer m_MCMStructure;
 };
 
-template <class PixelType>
+template <class InputPixelType, class OutputPixelType>
 class MCMEstimatorImageFilter :
-        public anima::MaskedImageToImageFilter< itk::Image<PixelType,3>, anima::MCMImage<PixelType,3> >
+        public anima::MaskedImageToImageFilter< itk::Image<InputPixelType,3>, anima::MCMImage<OutputPixelType,3> >
 {
 public:
     /** Standard class typedefs. */
-    typedef MCMEstimatorImageFilter<PixelType> Self;
-    typedef itk::Image<PixelType,3> TInputImage;
-    typedef anima::MCMImage<PixelType,3> ModelImageType;
-    typedef itk::Image<PixelType,4> Image4DType;
-    typedef anima::MCMImage<PixelType,3> TOutputImage;
+    typedef MCMEstimatorImageFilter<InputPixelType, OutputPixelType> Self;
+    typedef itk::Image<InputPixelType,3> TInputImage;
+    typedef anima::MCMImage<OutputPixelType,3> ModelImageType;
+    typedef itk::Image<InputPixelType,4> Image4DType;
+    typedef anima::MCMImage<OutputPixelType,3> TOutputImage;
+    typedef itk::Image<OutputPixelType,3> OutputScalarImageType;
+    typedef typename OutputScalarImageType::Pointer OutputScalarImagePointer;
     typedef anima::MaskedImageToImageFilter< TInputImage, TOutputImage > Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self> ConstPointer;
@@ -120,7 +122,7 @@ public:
     typedef itk::Image<unsigned char,3> MoseImageType;
     typedef typename MoseImageType::Pointer MoseImagePointer;
 
-    typedef itk::VectorImage<PixelType,3> VectorImageType;
+    typedef itk::VectorImage<OutputPixelType,3> VectorImageType;
     typedef typename VectorImageType::Pointer VectorImagePointer;
 
     typedef anima::MultiCompartmentModelCreator MCMCreatorType;
@@ -221,9 +223,9 @@ public:
     virtual MCMCreatorType *GetNewMCMCreatorInstance();
 
     // Output options
-    InputImageType *GetAICcVolume () {return m_AICcVolume;}
-    InputImageType *GetB0Volume () {return m_B0Volume;}
-    InputImageType *GetSigmaSquareVolume () {return m_SigmaSquareVolume;}
+    OutputScalarImageType *GetAICcVolume () {return m_AICcVolume;}
+    OutputScalarImageType *GetB0Volume () {return m_B0Volume;}
+    OutputScalarImageType *GetSigmaSquareVolume () {return m_SigmaSquareVolume;}
 
     void SetMoseVolume (MoseImageType *img) {m_MoseVolume = img; m_ExternalMoseVolume = true;}
     MoseImageType *GetMoseVolume () {return m_MoseVolume;}
@@ -367,9 +369,9 @@ private:
     std::vector <double> m_BValuesList;
     std::vector< GradientType > m_GradientDirections;
 
-    InputImagePointer m_B0Volume;
-    InputImagePointer m_SigmaSquareVolume;
-    InputImagePointer m_AICcVolume;
+    OutputScalarImagePointer m_B0Volume;
+    OutputScalarImagePointer m_SigmaSquareVolume;
+    OutputScalarImagePointer m_AICcVolume;
     MoseImagePointer m_MoseVolume;
 
     VectorImagePointer m_InitialDTImage;

@@ -77,7 +77,7 @@ int main(int argc,  char **argv)
         return(1);
     }
 
-    typedef anima::MCMEstimatorImageFilter <double> FilterType;
+    typedef anima::MCMEstimatorImageFilter <float, double> FilterType;
     typedef FilterType::InputImageType InputImageType;
     typedef FilterType::MaskImageType MaskImageType;
     typedef FilterType::CompartmentType CompartmentType;

@@ -26,9 +26,9 @@
 namespace anima
 {
 
-template <class PixelType>
+template <class InputPixelType, class OutputPixelType>
 void
-MCMEstimatorImageFilter<PixelType>
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::AddGradientDirection(unsigned int i, GradientType &grad)
 {
     if (i == m_GradientDirections.size())
@@ -39,17 +39,17 @@ MCMEstimatorImageFilter<PixelType>
         m_GradientDirections[i] = grad;
 }
 
-template <class PixelType>
-typename MCMEstimatorImageFilter<PixelType>::MCMCreatorType *
-MCMEstimatorImageFilter<PixelType>
+template <class InputPixelType, class OutputPixelType>
+typename MCMEstimatorImageFilter<InputPixelType, OutputPixelType>::MCMCreatorType *
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::GetNewMCMCreatorInstance()
 {
     return new MCMCreatorType;
 }
 
-template <class PixelType>
+template <class InputPixelType, class OutputPixelType>
 void
-MCMEstimatorImageFilter<PixelType>
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::GenerateOutputInformation()
 {
     // Override the method in itkImageSource, so we can set the vector length of
@@ -75,14 +75,14 @@ MCMEstimatorImageFilter<PixelType>
     delete tmpMCMCreator;
 }
 
-template <class PixelType>
+template <class InputPixelType, class OutputPixelType>
 void
-MCMEstimatorImageFilter<PixelType>
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::WriteMCMOutput(std::string fileName)
 {
     MCMPointer tmpMCM = m_MCMCreators[0]->GetNewMultiCompartmentModel();
 
-    typedef anima::MCMFileWriter <PixelType, InputImageType::ImageDimension> MCMFileWriterType;
+    typedef anima::MCMFileWriter <OutputPixelType, InputImageType::ImageDimension> MCMFileWriterType;
     MCMFileWriterType writer;
 
     writer.SetInputImage(this->GetOutput());
@@ -91,9 +91,9 @@ MCMEstimatorImageFilter<PixelType>
     writer.Update();
 }
 
-template <class PixelType>
+template <class InputPixelType, class OutputPixelType>
 void
-MCMEstimatorImageFilter<PixelType>
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::CheckComputationMask()
 {
     typedef itk::ImageRegionConstIterator <InputImageType> B0IteratorType;
@@ -120,9 +120,9 @@ MCMEstimatorImageFilter<PixelType>
     }
 }
 
-template <class PixelType>
+template <class InputPixelType, class OutputPixelType>
 void
-MCMEstimatorImageFilter<PixelType>
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::BeforeThreadedGenerateData()
 {
     if ((m_Optimizer == "levenberg")&&((m_MLEstimationStrategy != VariableProjection)||(m_NoiseType != Gaussian)))
@@ -153,7 +153,7 @@ MCMEstimatorImageFilter<PixelType>
     }
 
     // Create AICc volume
-    m_AICcVolume = InputImageType::New();
+    m_AICcVolume = OutputScalarImageType::New();
     m_AICcVolume->Initialize();
     m_AICcVolume->SetRegions(this->GetInput(0)->GetLargestPossibleRegion());
     m_AICcVolume->SetSpacing (this->GetInput(0)->GetSpacing());
@@ -163,7 +163,7 @@ MCMEstimatorImageFilter<PixelType>
     m_AICcVolume->FillBuffer(0);
 
     // Create B0 volume
-    m_B0Volume = InputImageType::New();
+    m_B0Volume = OutputScalarImageType::New();
     m_B0Volume->Initialize();
     m_B0Volume->SetRegions(this->GetInput(0)->GetLargestPossibleRegion());
     m_B0Volume->SetSpacing (this->GetInput(0)->GetSpacing());
@@ -173,7 +173,7 @@ MCMEstimatorImageFilter<PixelType>
     m_B0Volume->FillBuffer(0);
 
     // Create sigma volume
-    m_SigmaSquareVolume = InputImageType::New();
+    m_SigmaSquareVolume = OutputScalarImageType::New();
     m_SigmaSquareVolume->Initialize();
     m_SigmaSquareVolume->SetRegions(this->GetInput(0)->GetLargestPossibleRegion());
     m_SigmaSquareVolume->SetSpacing (this->GetInput(0)->GetSpacing());
@@ -204,7 +204,7 @@ MCMEstimatorImageFilter<PixelType>
     for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
         m_MCMCreators[i] = this->GetNewMCMCreatorInstance();
 
-    typedef anima::DTIEstimationImageFilter <PixelType> DTIEstimationFilterType;
+    typedef anima::DTIEstimationImageFilter <InputPixelType, OutputPixelType> DTIEstimationFilterType;
     typename DTIEstimationFilterType::Pointer dtiEstimator = DTIEstimationFilterType::New();
 
     dtiEstimator->SetBValuesList(m_BValuesList);
@@ -221,7 +221,7 @@ MCMEstimatorImageFilter<PixelType>
 
     dtiEstimator->Update();
 
-    typedef anima::DTIExtrapolateImageFilter <PixelType> DTIExtrapolateFilterType;
+    typedef anima::DTIExtrapolateImageFilter <OutputPixelType> DTIExtrapolateFilterType;
     typename DTIExtrapolateFilterType::Pointer dtiExtrapolator = DTIExtrapolateFilterType::New();
 
     dtiExtrapolator->SetInput(dtiEstimator->GetOutput());
@@ -358,9 +358,9 @@ MCMEstimatorImageFilter<PixelType>
     }
 }
 
-template <class PixelType>
+template <class InputPixelType, class OutputPixelType>
 void
-MCMEstimatorImageFilter<PixelType>
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
 {
     typedef itk::ImageRegionConstIterator <InputImageType> ConstImageIteratorType;
@@ -377,10 +377,8 @@ MCMEstimatorImageFilter<PixelType>
     typedef itk::ImageRegionIterator <MaskImageType> MaskIteratorType;
     MaskIteratorType maskItr(this->GetComputationMask(),outputRegionForThread);
 
-    typedef itk::ImageRegionIterator <InputImageType> ImageIteratorType;
+    typedef itk::ImageRegionIterator <OutputScalarImageType> ImageIteratorType;
     ImageIteratorType aiccIterator(m_AICcVolume, outputRegionForThread);
-
-    typedef itk::ImageRegionIterator <InputImageType> ImageIteratorType;
     ImageIteratorType b0Iterator(m_B0Volume, outputRegionForThread);
     ImageIteratorType sigmaIterator(m_SigmaSquareVolume, outputRegionForThread);
 
@@ -389,8 +387,7 @@ MCMEstimatorImageFilter<PixelType>
 
     std::vector <double> observedSignals(m_NumberOfImages,0);
 
-    typedef typename OutputImageType::PixelType OutputPixelType;
-    OutputPixelType resVec(this->GetOutput()->GetNumberOfComponentsPerPixel());
+    typename OutputImageType::PixelType resVec(this->GetOutput()->GetNumberOfComponentsPerPixel());
 
     MCMPointer mcmData = 0, mcmValue = 0;
     MCMPointer outputMCMData = this->GetOutput()->GetDescriptionModel()->Clone();
@@ -517,9 +514,9 @@ MCMEstimatorImageFilter<PixelType>
     }
 }
 
-template <class PixelType>
+template <class InputPixelType, class OutputPixelType>
 void
-MCMEstimatorImageFilter<PixelType>
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::OptimizeNonIsotropicCompartments(MCMPointer &mcmValue, unsigned int currentNumberOfCompartments,
                                    BaseCompartment::ModelOutputVectorType &initialDTI,
                                    std::vector <double> &observedSignals, itk::ThreadIdType threadId,
@@ -578,9 +575,9 @@ MCMEstimatorImageFilter<PixelType>
     b0Value = optimalB0Value;
 }
 
-template <class PixelType>
+template <class InputPixelType, class OutputPixelType>
 void
-MCMEstimatorImageFilter<PixelType>
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::EstimateFreeWaterModel(MCMPointer &mcmValue, std::vector <double> &observedSignals, itk::ThreadIdType threadId,
                          double &aiccValue, double &b0Value, double &sigmaSqValue)
 {
@@ -644,9 +641,9 @@ MCMEstimatorImageFilter<PixelType>
     }
 }
 
-template <class PixelType>
-typename MCMEstimatorImageFilter<PixelType>::CostFunctionBasePointer
-MCMEstimatorImageFilter<PixelType>::CreateCostFunction(std::vector <double> &observedSignals, MCMPointer &mcmModel)
+template <class InputPixelType, class OutputPixelType>
+typename MCMEstimatorImageFilter<InputPixelType, OutputPixelType>::CostFunctionBasePointer
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>::CreateCostFunction(std::vector <double> &observedSignals, MCMPointer &mcmModel)
 {
     CostFunctionBasePointer returnCost;
 
@@ -699,9 +696,9 @@ MCMEstimatorImageFilter<PixelType>::CreateCostFunction(std::vector <double> &obs
     return returnCost;
 }
 
-template <class PixelType>
+template <class InputPixelType, class OutputPixelType>
 void
-MCMEstimatorImageFilter<PixelType>
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::InitialOrientationsEstimation(MCMPointer &mcmValue, unsigned int currentNumberOfCompartments,
                                 BaseCompartment::ModelOutputVectorType &initialDTI,
                                 std::vector <double> &observedSignals, SequenceGeneratorType &generator,
@@ -781,9 +778,9 @@ MCMEstimatorImageFilter<PixelType>
     mcmValue = mcmUpdateValue;
 }
 
-template <class PixelType>
+template <class InputPixelType, class OutputPixelType>
 void
-MCMEstimatorImageFilter<PixelType>
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::TrunkModelEstimation(MCMPointer &mcmValue, std::vector <double> &observedSignals, itk::ThreadIdType threadId,
                        double &aiccValue, double &b0Value, double &sigmaSqValue)
 {
@@ -876,9 +873,9 @@ MCMEstimatorImageFilter<PixelType>
     aiccValue = this->ComputeAICcValue(mcmValue,costValue);
 }
 
-template <class PixelType>
+template <class InputPixelType, class OutputPixelType>
 void
-MCMEstimatorImageFilter<PixelType>
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::SpecificModelEstimation(MCMPointer &mcmValue, std::vector <double> &observedSignals, itk::ThreadIdType threadId,
                           double &aiccValue, double &b0Value, double &sigmaSqValue)
 {
@@ -978,9 +975,9 @@ MCMEstimatorImageFilter<PixelType>
     sigmaSqValue = optimalSigmaSqValue;
 }
 
-template <class PixelType>
-typename MCMEstimatorImageFilter<PixelType>::OptimizerPointer
-MCMEstimatorImageFilter<PixelType>
+template <class InputPixelType, class OutputPixelType>
+typename MCMEstimatorImageFilter<InputPixelType, OutputPixelType>::OptimizerPointer
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::CreateOptimizer(CostFunctionBasePointer &cost, itk::Array<double> &lowerBounds, itk::Array<double> &upperBounds)
 {
     OptimizerPointer returnOpt;
@@ -1084,9 +1081,9 @@ MCMEstimatorImageFilter<PixelType>
     return returnOpt;
 }
 
-template <class PixelType>
+template <class InputPixelType, class OutputPixelType>
 double
-MCMEstimatorImageFilter<PixelType>
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::PerformSingleOptimization(ParametersType &p, CostFunctionBasePointer &cost, itk::Array<double> &lowerBounds, itk::Array<double> &upperBounds)
 {
     double costValue = this->GetCostValue(cost,p);
@@ -1117,9 +1114,9 @@ MCMEstimatorImageFilter<PixelType>
     return costValue;
 }
 
-template <class PixelType>
+template <class InputPixelType, class OutputPixelType>
 double
-MCMEstimatorImageFilter<PixelType>
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::GetCostValue(CostFunctionBasePointer &cost, ParametersType &p)
 {
     if (m_MLEstimationStrategy == VariableProjection)
@@ -1143,9 +1140,9 @@ MCMEstimatorImageFilter<PixelType>
     return costCast->GetValue(p);
 }
 
-template <class PixelType>
+template <class InputPixelType, class OutputPixelType>
 void
-MCMEstimatorImageFilter<PixelType>
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::GetProfiledInformation(CostFunctionBasePointer &cost, MCMPointer &mcm, double &b0Value, double &sigmaSqValue)
 {
     if (m_MLEstimationStrategy == VariableProjection)
@@ -1177,9 +1174,9 @@ MCMEstimatorImageFilter<PixelType>
     sigmaSqValue = costCast->GetSigmaSquare();
 }
 
-template <class PixelType>
+template <class InputPixelType, class OutputPixelType>
 double
-MCMEstimatorImageFilter<PixelType>
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::ComputeAICcValue(MCMPointer &mcmValue, double costValue)
 {
     // Compute AICu (improvement over AICc)
@@ -1193,9 +1190,9 @@ MCMEstimatorImageFilter<PixelType>
     return AICc;
 }
 
-template <class PixelType>
+template <class InputPixelType, class OutputPixelType>
 void
-MCMEstimatorImageFilter<PixelType>
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::InitializeStickModelFromDTI(MCMPointer &dtiModel, MCMPointer &complexModel, SequenceGeneratorType &generator)
 {
     BaseCompartmentType *tensorCompartment = dtiModel->GetCompartment(0);
@@ -1211,9 +1208,9 @@ MCMEstimatorImageFilter<PixelType>
     }
 }
 
-template <class PixelType>
+template <class InputPixelType, class OutputPixelType>
 void
-MCMEstimatorImageFilter<PixelType>
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::InitializeModelFromSimplifiedOne(MCMPointer &simplifiedModel, MCMPointer &complexModel)
 {
     // copy everything
@@ -1228,9 +1225,9 @@ MCMEstimatorImageFilter<PixelType>
     complexModel->SetCompartmentWeights(simplifiedModel->GetCompartmentWeights());
 }
 
-template <class PixelType>
+template <class InputPixelType, class OutputPixelType>
 void
-MCMEstimatorImageFilter<PixelType>
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::SampleStickModelCompartmentsFromDTI(BaseCompartmentType *tensorCompartment, MCMPointer &complexModel,
                                       SequenceGeneratorType &generator)
 {

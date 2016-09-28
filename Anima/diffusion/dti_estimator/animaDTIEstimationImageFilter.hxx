@@ -17,9 +17,9 @@
 namespace anima
 {
 
-template <class PixelScalarType>
+template <class InputPixelScalarType, class OutputPixelScalarType>
 void
-DTIEstimationImageFilter<PixelScalarType>
+DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
 ::AddGradientDirection(unsigned int i, vnl_vector_fixed<double,3> &grad)
 {
     if (i == m_GradientDirections.size())
@@ -30,9 +30,9 @@ DTIEstimationImageFilter<PixelScalarType>
         m_GradientDirections[i] = grad;
 }
 
-template <class PixelScalarType>
+template <class InputPixelScalarType, class OutputPixelScalarType>
 void
-DTIEstimationImageFilter<PixelScalarType>
+DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
 ::CheckComputationMask()
 {
     if (this->GetComputationMask())
@@ -70,9 +70,9 @@ DTIEstimationImageFilter<PixelScalarType>
     this->SetComputationMask(maskImage);
 }
 
-template <class PixelScalarType>
+template <class InputPixelScalarType, class OutputPixelScalarType>
 void
-DTIEstimationImageFilter<PixelScalarType>
+DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
 ::GenerateOutputInformation()
 {
     // Override the method in itkImageSource, so we can set the vector length of
@@ -84,9 +84,9 @@ DTIEstimationImageFilter<PixelScalarType>
     output->SetVectorLength(m_NumberOfComponents);
 }
 
-template <class PixelScalarType>
+template <class InputPixelScalarType, class OutputPixelScalarType>
 void
-DTIEstimationImageFilter<PixelScalarType>
+DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
 ::BeforeThreadedGenerateData()
 {
     if (m_BValuesList.size() != this->GetNumberOfIndexedInputs())
@@ -122,9 +122,9 @@ DTIEstimationImageFilter<PixelScalarType>
     Superclass::BeforeThreadedGenerateData();
 }
 
-template <class PixelScalarType>
+template <class InputPixelScalarType, class OutputPixelScalarType>
 void
-DTIEstimationImageFilter<PixelScalarType>
+DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
 ::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
 {
     typedef itk::ImageRegionConstIterator <InputImageType> ImageIteratorType;
@@ -279,9 +279,9 @@ DTIEstimationImageFilter<PixelScalarType>
     }
 }
 
-template <class PixelScalarType>
+template <class InputPixelScalarType, class OutputPixelScalarType>
 double
-DTIEstimationImageFilter<PixelScalarType>
+DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
 ::OptimizationFunction(const std::vector<double> &x, std::vector<double> &grad, void *func_data)
 {
     OptimizationDataStructure *data = static_cast <OptimizationDataStructure *> (func_data);
@@ -289,9 +289,9 @@ DTIEstimationImageFilter<PixelScalarType>
     return data->filter->ComputeCostAtPosition(x,data->dwi,data->predictedValues);
 }
 
-template <class PixelScalarType>
+template <class InputPixelScalarType, class OutputPixelScalarType>
 double
-DTIEstimationImageFilter<PixelScalarType>
+DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
 ::ComputeCostAtPosition(const std::vector<double> &x, const std::vector <double> &observedData,
                         std::vector <double> &predictedValues)
 {

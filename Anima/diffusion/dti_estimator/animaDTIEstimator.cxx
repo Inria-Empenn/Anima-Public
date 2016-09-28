@@ -48,7 +48,7 @@ int main(int argc,  char **argv)
         return(1);
     }
 
-    typedef anima::DTIEstimationImageFilter <float> FilterType;
+    typedef anima::DTIEstimationImageFilter <float, float> FilterType;
     typedef FilterType::MaskImageType MaskImageType;
     typedef FilterType::InputImageType InputImageType;
     typedef FilterType::Image4DType Image4DType;

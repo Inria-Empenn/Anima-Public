@@ -7,27 +7,27 @@
 namespace anima
 {
 
-template <class PixelScalarType>
+template <class InputPixelScalarType, class OutputPixelScalarType>
 class DTIEstimationImageFilter :
-public anima::MaskedImageToImageFilter < itk::Image<PixelScalarType,3>, itk::VectorImage<PixelScalarType,3> >
+public anima::MaskedImageToImageFilter < itk::Image<InputPixelScalarType,3>, itk::VectorImage<OutputPixelScalarType,3> >
 {
 public:
     /** Standard class typedefs. */
-    typedef DTIEstimationImageFilter<PixelScalarType> Self;
-    typedef itk::Image<PixelScalarType,3> InputImageType;
-    typedef itk::VectorImage<PixelScalarType,3> OutputImageType;
-    typedef InputImageType OutputB0ImageType;
+    typedef DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType> Self;
+    typedef itk::Image<InputPixelScalarType,3> InputImageType;
+    typedef itk::VectorImage<OutputPixelScalarType,3> OutputImageType;
+    typedef itk::Image<OutputPixelScalarType,3> OutputB0ImageType;
     typedef OutputImageType DTIImageType;
-    typedef itk::Image<PixelScalarType,4> Image4DType;
+    typedef itk::Image<InputPixelScalarType,4> Image4DType;
     typedef anima::MaskedImageToImageFilter< InputImageType, OutputImageType > Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(DTIEstimationImageFilter, MaskedImageToImageFilter);
+    itkTypeMacro(DTIEstimationImageFilter, MaskedImageToImageFilter)
 
     /** Image typedef support */
     typedef typename InputImageType::Pointer InputImagePointer;
@@ -46,12 +46,12 @@ public:
 
     void SetBValuesList(std::vector <double> bValuesList ) {m_BValuesList = bValuesList;}
 
-    itkSetMacro(B0Threshold, double);
-    itkGetMacro(B0Threshold, double);
+    itkSetMacro(B0Threshold, double)
+    itkGetMacro(B0Threshold, double)
 
-    itkSetMacro(RemoveDegeneratedTensors, bool);
+    itkSetMacro(RemoveDegeneratedTensors, bool)
 
-    itkGetMacro(EstimatedB0Image, OutputB0ImageType *);
+    itkGetMacro(EstimatedB0Image, OutputB0ImageType *)
 
     void AddGradientDirection(unsigned int i, vnl_vector_fixed<double,3> &grad);
 
