@@ -17,7 +17,14 @@ MCMImage <TPixel,VImageDimension>::SetDescriptionModel(MCMPointer &mcm)
     if (!mcm)
         return;
 
+    unsigned int imageVectorSize = this->GetVectorLength();
     m_DescriptionModel = mcm->Clone();
+
+    if (imageVectorSize != m_DescriptionModel->GetSize())
+    {
+        this->SetNumberOfComponentsPerPixel(m_DescriptionModel->GetSize());
+        this->Allocate();
+    }
 }
 
 template <typename TPixel, unsigned int VImageDimension>
