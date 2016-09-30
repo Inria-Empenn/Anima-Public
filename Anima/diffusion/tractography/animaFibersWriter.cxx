@@ -55,12 +55,12 @@ void FibersWriter::WriteFileAsMedinriaFibers()
     baseName.append(m_FileName.begin(),m_FileName.begin() + lastDotPos);
 
     std::string noPathName = baseName;
-    std::size_t lastSlashPos = m_FileName.find_last_of("/");
+    std::size_t lastSlashPos = baseName.find_last_of("/");
 
     if (lastSlashPos != std::string::npos)
     {
         noPathName.clear();
-        noPathName.append(m_FileName.begin() + lastSlashPos + 1,m_FileName.end());
+        noPathName.append(baseName.begin() + lastSlashPos + 1,baseName.end());
     }
 
     vtksys::SystemTools::MakeDirectory(baseName.c_str());
