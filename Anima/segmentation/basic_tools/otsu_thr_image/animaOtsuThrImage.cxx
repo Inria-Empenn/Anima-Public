@@ -23,7 +23,7 @@ int main(int argc, char **argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
 
     typedef itk::Image<double,3> DoubleImageType;
@@ -44,10 +44,10 @@ int main(int argc, char **argv)
     catch (itk::ExceptionObject &e)
     {
         std::cerr << e << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
 
     anima::writeImage <USImageType> (outputArg.getValue(),otsuMultipleThrFilter->GetOutput());
     
-    return 0;
+    return EXIT_SUCCESS;
 }

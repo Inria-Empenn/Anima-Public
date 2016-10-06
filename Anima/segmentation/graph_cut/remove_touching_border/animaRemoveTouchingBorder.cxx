@@ -37,34 +37,26 @@ int main(int argc, const char** argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
 
     FilterTypeSeg::Pointer segFilter = FilterTypeSeg::New();
     
-    if( inArg.getValue()!="" )
+    if(inArg.getValue() != "")
+        segFilter->SetInputImageSeg(anima::readImage<UIImageType> (inArg.getValue()));
+
+    if(outArg.getValue() != "")
     {
-	segFilter->SetInputImageSeg( anima::readImage<UIImageType>( inArg.getValue() ) );
-    }
-	
-    if( outArg.getValue()!="" )
-    {
-        if( rmNonTouchingArg.getValue() )
-        {
+        if(rmNonTouchingArg.isSet())
             segFilter->SetOutputTouchingBorderFilename(outArg.getValue());
-        }
         else
-        {
             segFilter->SetOutputNonTouchingBorderFilename(outArg.getValue());
-        }
     }
-    if( maskFileArg.getValue()!="" )
-    {
-        segFilter->SetMask( anima::readImage<UCImageType>( maskFileArg.getValue() ) );
-    }
+
+    if(maskFileArg.getValue() != "")
+        segFilter->SetMask(anima::readImage<UCImageType> (maskFileArg.getValue()));
 
     // Set parameters
-
     segFilter->SetLabeledImage( labeledImageArg.getValue() );
     segFilter->SetNoContour( noContourDetectionArg.getValue() );
     segFilter->SetVerbose( verboseArg.getValue() );
@@ -85,7 +77,7 @@ int main(int argc, const char** argv)
     catch (itk::ExceptionObject &e)
     {
         std::cerr << e << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
 
     timer.Stop();
@@ -93,5 +85,4 @@ int main(int argc, const char** argv)
     std::cout << "Elapsed Time: " << timer.GetTotal()  << timer.GetUnit() << std::endl;
 
     return EXIT_SUCCESS;
-
 }

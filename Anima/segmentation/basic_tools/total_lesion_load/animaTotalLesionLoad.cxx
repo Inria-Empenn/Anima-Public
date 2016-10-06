@@ -23,7 +23,7 @@ int main(int argc, const char** argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
 
     ImageType::Pointer inputImage = anima::readImage <ImageType> (inArg.getValue());
@@ -33,19 +33,16 @@ int main(int argc, const char** argv)
     unsigned int cpt=0;
     while(!inputIt.IsAtEnd())
     {
-        if( inputIt.Get()!=0 )
-        {
+        if(inputIt.Get() != 0)
             ++cpt;
-        }
+
         ++inputIt;
     }
 
     ImageType::SpacingType spacing = inputImage->GetSpacing();
     ImageType::SpacingValueType spacingTot = spacing[0];
     for (unsigned int i = 1; i < 3;++i)
-    {
         spacingTot *= spacing[i];
-    }
     
     std::cout << cpt * spacingTot << std::endl;
     

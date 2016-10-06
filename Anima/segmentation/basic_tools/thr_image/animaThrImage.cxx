@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
 
     typedef itk::Image<double,3> DoubleImageType;
@@ -54,26 +54,29 @@ int main(int argc, char **argv)
 
     unsigned int idx=0;
     
-    if(maskArg.getValue()!="")
+    if (maskArg.getValue() != "")
     {
-	UCImageType::Pointer maskImage = anima::readImage <UCImageType> (maskArg.getValue());
+        UCImageType::Pointer maskImage = anima::readImage <UCImageType> (maskArg.getValue());
 
         UCImageType::RegionType tmpRegionMaskImage = maskImage->GetLargestPossibleRegion();
         UCImageIterator ucIt(maskImage,tmpRegionMaskImage);
 
-        if(tmpRegionInputImage.GetSize()[0]!=tmpRegionMaskImage.GetSize()[0] || tmpRegionInputImage.GetSize()[1]!=tmpRegionMaskImage.GetSize()[1] || tmpRegionInputImage.GetSize()[2]!=tmpRegionMaskImage.GetSize()[2])
+        if ((tmpRegionInputImage.GetSize()[0]!=tmpRegionMaskImage.GetSize()[0]) ||
+                (tmpRegionInputImage.GetSize()[1]!=tmpRegionMaskImage.GetSize()[1]) ||
+                (tmpRegionInputImage.GetSize()[2]!=tmpRegionMaskImage.GetSize()[2]))
         {
             std::cerr << "InputImage size != MaskImage size" << std::endl;
-            return -1;
+            return EXIT_FAILURE;
         }
 
         for (unsigned int i = 0;i < totalSize;++i)
         {
-            if(ucIt.Get()==1)
+            if(ucIt.Get() == 1)
             {
                 tmpVec[idx] = doubleIt.Get();
                 ++idx;
             }
+
             ++ucIt;
             ++doubleIt;
         }
@@ -82,7 +85,7 @@ int main(int argc, char **argv)
     }
     else
     {
-        idx=totalSize;
+        idx = totalSize;
         for (unsigned int i = 0;i < totalSize;++i)
         {
             tmpVec[i] = doubleIt.Get();
@@ -90,10 +93,10 @@ int main(int argc, char **argv)
         }
     }
 
-    if(adaptThrArg.getValue() < 0 || adaptThrArg.getValue() > 1)
+    if ((adaptThrArg.getValue() < 0) || (adaptThrArg.getValue() > 1))
     {
         std::cerr << "Adaptative threshold value has to be included in the [0,1] interval" << std::endl;
-        return -1;
+        return EXIT_FAILURE;
     }
     
     unsigned int partialElt = (unsigned int)floor(adaptThrArg.getValue()*idx);
@@ -126,7 +129,7 @@ int main(int argc, char **argv)
     catch (itk::ExceptionObject &e)
     {
         std::cerr << e << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
     
     LabelerFilterType::Pointer mainFilter = LabelerFilterType::New();
@@ -144,7 +147,7 @@ int main(int argc, char **argv)
     catch (itk::ExceptionObject &e)
     {
         std::cerr << e << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
     
     if (invArg.isSet())
@@ -159,6 +162,6 @@ int main(int argc, char **argv)
     }
 
     anima::writeImage <UCImageType> (outputArg.getValue(),mainFilter->GetOutput());
-        
-    return 0;
+
+    return EXIT_SUCCESS;
 }

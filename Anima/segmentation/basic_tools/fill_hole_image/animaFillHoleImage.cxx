@@ -12,7 +12,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> inArg("i","input","Input image",true,"","input image",cmd);
     TCLAP::ValueArg<std::string> outArg("o","output","Output image",true,"","output image",cmd);
 
-    TCLAP::ValueArg<unsigned int> numThreadsArg("T","threads","Number of execution threads (default: 0 = all cores)",false,0,"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> numThreadsArg("T","threads","Number of execution threads (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     try
     {
@@ -21,7 +21,7 @@ int main(int argc, char **argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
 
     typedef itk::Image <unsigned short,3> ImageTypeUS;
@@ -72,9 +72,7 @@ int main(int argc, char **argv)
     while(!tmpImageIntIt.IsAtEnd())
     {
         if(tmpImageIntIt.Get() > 1)
-        {
             outputImageIt.Set(1);
-        }
 
         ++tmpImageIntIt;
         ++outputImageIt;
@@ -82,5 +80,5 @@ int main(int argc, char **argv)
     
     anima::writeImage <ImageTypeUS> (outArg.getValue(),outputImage);
 
-    return 0;
+    return EXIT_SUCCESS;
 }
