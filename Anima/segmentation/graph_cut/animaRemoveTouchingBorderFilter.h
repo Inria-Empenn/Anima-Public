@@ -3,7 +3,7 @@
 #include <itkImageToImageFilter.h>
 #include <itkImageRegionIterator.h>
 #include <itkImageRegionConstIterator.h>
-#include <itkBinaryImageToLabelMapFilter.h>
+#include <itkLabelImageToLabelMapFilter.h>
 #include <itkLabelMapToLabelImageFilter.h>
 #include <itkLabelContourImageFilter.h>
 #include <itkConnectedComponentImageFilter.h>
@@ -17,7 +17,7 @@ namespace anima
  * In order to reduce the number of false positives due to these effects, we remove all candidate lesions
  * that are contiguous to the brain mask border.
  */
-template<typename TInput, typename TMask, typename TOutput = TInput>
+template<typename TInput, typename TMask, typename TOutput>
 class RemoveTouchingBorderFilter :
         public itk::ImageToImageFilter< TInput , TOutput >
 {
@@ -53,22 +53,28 @@ public:
     typedef typename OutputImageType::Pointer OutputImagePointer;
     typedef typename itk::ImageRegionIterator< OutputImageType > OutputIteratorType;
 
-    typedef int 	PixelTypeInt;
+    typedef unsigned int PixelTypeInt;
     typedef itk::Image <PixelTypeInt,3> ImageTypeInt;
     typedef itk::ImageRegionIterator< ImageTypeInt > ImageIteratorTypeInt;
 
-    typedef itk::BinaryImageToLabelMapFilter<TInput> BinaryImageToLabelMapFilterType;
-    typedef typename BinaryImageToLabelMapFilterType::OutputImageType TOutputMap;
+    typedef itk::LabelImageToLabelMapFilter<ImageTypeInt> LabelImageToLabelMapFilterType;
+    typedef typename LabelImageToLabelMapFilterType::OutputImageType TOutputMap;
+    typedef itk::LabelImageToLabelMapFilter<TInput,TOutputMap> LabelImageToLabelMapFilterType2;
+    
     typedef itk::LabelMapToLabelImageFilter<TOutputMap, ImageTypeInt> LabelMapToLabelImageFilterType;
 
+    typedef itk::ConnectedComponentImageFilter <InputImageType,ImageTypeInt> ConnectedComponentImageFilterType;
+    typedef itk::ConnectedComponentImageFilter <TMask, ImageTypeInt > ConnectedComponentImageFilterType2;
+
+    typedef itk::LabelContourImageFilter<ImageTypeInt, ImageTypeInt> LabelContourImageFilterType;
+    
     /** The mri images.*/
     void SetInputImageSeg(const TInput* image);
 
     void SetOutputNonTouchingBorderFilename(std::string fn){m_OutputNonTouchingBorderFilename = fn;}
     void SetOutputTouchingBorderFilename(std::string fn){m_OutputTouchingBorderFilename = fn;}
 
-    /** mask in which the segmentation will be performed
-     */
+    /** mask in which the segmentation will be performed */
     void SetMask(const TMask* mask);
 
     TOutput* GetOutputTouchingBorder();
@@ -86,6 +92,12 @@ public:
     /** Superclass typedefs. */
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
+    itkSetMacro(NoContour, bool);
+    itkGetMacro(NoContour, bool);
+
+    itkSetMacro(LabeledImage, bool);
+    itkGetMacro(LabeledImage, bool);
+
     itkSetMacro(Verbose, bool);
     itkGetMacro(Verbose, bool);
 
@@ -101,6 +113,8 @@ protected:
         this->SetNthOutput( 0, this->MakeOutput(0) );
         this->SetNthOutput( 1, this->MakeOutput(1) );
 
+        m_LabeledImage=false;
+        m_NoContour=false;
         m_Verbose=false;
         m_Tol = 0.0001;
         this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
@@ -124,6 +138,8 @@ private:
     RemoveTouchingBorderFilter(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
 
+    bool m_LabeledImage;
+    bool m_NoContour;
     bool m_Verbose;
 
     std::string m_OutputNonTouchingBorderFilename;
