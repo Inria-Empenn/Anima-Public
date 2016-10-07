@@ -108,7 +108,7 @@ int main(int argc, char **argv)
 
     double thrV = thrArg.getValue();
     if (partialElt != 0)
-        thrV = (thrV < tmpVec[partialElt]) ? tmpVec[partialElt] : thrV;
+        thrV = tmpVec[partialElt];
 
     ThresholdFilterType::Pointer thrFilter = ThresholdFilterType::New();
     thrFilter->SetInput(inputImage);
