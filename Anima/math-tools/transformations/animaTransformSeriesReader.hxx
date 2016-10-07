@@ -165,7 +165,7 @@ TransformSeriesReader<TScalarType,NDimensions>
     const itk::TransformFileReader::TransformListType *trsfList = reader->GetTransformList();
     itk::TransformFileReader::TransformListType::const_iterator tr_it = trsfList->begin();
 
-    MatrixTransformPointer trsf = static_cast <MatrixTransformType *> ((*tr_it).GetPointer());
+    MatrixTransformPointer trsf = dynamic_cast <MatrixTransformType *> ((*tr_it).GetPointer());
 
     if (invert)
     {

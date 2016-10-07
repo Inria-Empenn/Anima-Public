@@ -48,18 +48,18 @@ int main(int argc, char **argv)
     catch (itk::ExceptionObject &e)
     {
         std::cerr << "Problem reading transform file " << inArg.getValue() << ", exiting" << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
 
     itk::TransformFileReader::TransformListType trsfList = *(trReader->GetTransformList());
     itk::TransformFileReader::TransformListType::iterator tr_it = trsfList.begin();
 
-    MatrixTransformType *trsf = static_cast <MatrixTransformType *> ((*tr_it).GetPointer());
+    MatrixTransformType *trsf = dynamic_cast <MatrixTransformType *> ((*tr_it).GetPointer());
 
     if (trsf == NULL)
     {
         std::cerr << "Problem converting transform file to linear file " << inArg.getValue() << ", exiting" << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
 
     MatrixType workMatrix(Dimension+1,Dimension+1), logWorkMatrix(Dimension+1,Dimension+1);
@@ -91,13 +91,13 @@ int main(int argc, char **argv)
         catch (itk::ExceptionObject &e)
         {
             std::cerr << "Problem reading transform file " << composeTrsfArg.getValue() << ", exiting" << std::endl;
-            return 1;
+            return EXIT_FAILURE;
         }
 
         itk::TransformFileReader::TransformListType composeTrsfList = *(reader->GetTransformList());
         itk::TransformFileReader::TransformListType::iterator composeTr_it = composeTrsfList.begin();
 
-        MatrixTransformType *composeTrsf = static_cast <MatrixTransformType *> ((*composeTr_it).GetPointer());
+        MatrixTransformType *composeTrsf = dynamic_cast <MatrixTransformType *> ((*composeTr_it).GetPointer());
 
         MatrixType composeMatrix(Dimension+1,Dimension+1);
         composeMatrix.set_identity();
@@ -125,18 +125,18 @@ int main(int argc, char **argv)
         catch (itk::ExceptionObject &e)
         {
             std::cerr << "Problem reading transform file " << addTrsfArg.getValue() << ", exiting" << std::endl;
-            return 1;
+            return EXIT_FAILURE;
         }
 
         itk::TransformFileReader::TransformListType addTrsfList = *(reader->GetTransformList());
         itk::TransformFileReader::TransformListType::iterator addTr_it = addTrsfList.begin();
 
-        MatrixTransformType *addTrsf = static_cast <MatrixTransformType *> ((*addTr_it).GetPointer());
+        MatrixTransformType *addTrsf = dynamic_cast <MatrixTransformType *> ((*addTr_it).GetPointer());
 
         if (addTrsf == NULL)
         {
             std::cerr << "Problem converting transform file to linear file " << addTrsfArg.getValue() << ", exiting" << std::endl;
-            return 1;
+            return EXIT_FAILURE;
         }
 
         MatrixType addMatrix(Dimension+1,Dimension+1), logAddMatrix(Dimension+1,Dimension+1);
@@ -164,18 +164,18 @@ int main(int argc, char **argv)
         catch (itk::ExceptionObject &e)
         {
             std::cerr << "Problem reading transform file " << subtractTrsfArg.getValue() << ", exiting" << std::endl;
-            return 1;
+            return EXIT_FAILURE;
         }
 
         itk::TransformFileReader::TransformListType subTrsfList = *(reader->GetTransformList());
         itk::TransformFileReader::TransformListType::iterator subTr_it = subTrsfList.begin();
 
-        MatrixTransformType *subTrsf = static_cast <MatrixTransformType *> ((*subTr_it).GetPointer());
+        MatrixTransformType *subTrsf = dynamic_cast <MatrixTransformType *> ((*subTr_it).GetPointer());
 
         if (subTrsf == NULL)
         {
             std::cerr << "Problem converting transform file to linear file " << subtractTrsfArg.getValue() << ", exiting" << std::endl;
-            return 1;
+            return EXIT_FAILURE;
         }
 
         MatrixType subMatrix(Dimension+1,Dimension+1), logSubMatrix(Dimension+1,Dimension+1);
@@ -215,5 +215,5 @@ int main(int argc, char **argv)
 
     trWriter->Update();
 
-    return 0;
+    return EXIT_SUCCESS;
 }

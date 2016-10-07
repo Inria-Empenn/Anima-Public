@@ -72,7 +72,7 @@ int main(int ac, const char** av)
             const itk::TransformFileReader::TransformListType *trsfList = reader->GetTransformList();
             itk::TransformFileReader::TransformListType::const_iterator tr_it = trsfList->begin();
 
-            trsf = static_cast <MatrixTransformType *> ((*tr_it).GetPointer());
+            trsf = dynamic_cast <MatrixTransformType *> ((*tr_it).GetPointer());
             MatrixTransformPointer tmpInvert = MatrixTransformType::New();
             trsf->GetInverse(tmpInvert);
             trsf = tmpInvert;
@@ -184,7 +184,7 @@ int main(int ac, const char** av)
             const itk::TransformFileReader::TransformListType *trsfList = reader->GetTransformList();
             itk::TransformFileReader::TransformListType::const_iterator tr_it = trsfList->begin();
 
-            trsf = static_cast <MatrixTransformType *> ((*tr_it).GetPointer());
+            trsf = dynamic_cast <MatrixTransformType *> ((*tr_it).GetPointer());
         }
 
         ResampleFilterType::Pointer imageResampler = ResampleFilterType::New();
