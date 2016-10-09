@@ -26,8 +26,8 @@ int main(int argc, char **argv)
 
     typedef itk::Image <unsigned short,3> ImageTypeUS;
     typedef itk::Image <unsigned int,3> ImageTypeInt;
-    typedef typename itk::ImageRegionIterator <ImageTypeUS> IteratorTypeUS;
-    typedef typename itk::ImageRegionIterator <ImageTypeInt> IteratorTypeInt;
+    typedef itk::ImageRegionIterator <ImageTypeUS> IteratorTypeUS;
+    typedef itk::ImageRegionIterator <ImageTypeInt> IteratorTypeInt;
     typedef itk::ConnectedComponentImageFilter <ImageTypeUS,ImageTypeInt> ConnectedComponentType;
     
     ImageTypeUS::Pointer inputImage = anima::readImage <ImageTypeUS> (inArg.getValue());
