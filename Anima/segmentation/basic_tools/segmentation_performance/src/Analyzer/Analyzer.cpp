@@ -10,6 +10,7 @@
 #include <vector>
 #include <algorithm>
 #include <numeric>
+#include <exception>
 #include <itkConnectedComponentImageFilter.h>
 #include <itkRelabelComponentImageFilter.h>
 #include <itkImageIterator.h>
@@ -79,7 +80,7 @@ CAnalyzer::CAnalyzer(char *pi_pchImageTestName, char *pi_pchImageRefName, bool b
 
    if (!checkImagesMatixAndVolumes())
    {
-      throw std::exception("Images are incompatible");
+      throw std::runtime_error("Images are incompatible");
    }
 
    this->formatLabels();
