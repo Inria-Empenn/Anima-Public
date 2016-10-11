@@ -102,15 +102,15 @@ int main(int argc, char * *argv)
     // Select and open output
     std::fstream oStremFileOut;
     std::ostream *poOutStreamForResults = &std::cout;
-    bool bFileResFaild = false;
+    bool bFileResFailed = false;
 
     if (fileArg.getValue() != "")
     {
         oStremFileOut.open(fileArg.getValue().c_str(), std::ios::out | std::ios::trunc);
         if(!oStremFileOut.is_open())
         {
-            std::cerr << "Can not open file: " << fileArg.getValue() << "to store score" << std::flush;
-            bFileResFaild = true;
+            std::cerr << "Can not open file: " << fileArg.getValue() << "to store score" << std::endl;
+            bFileResFailed = true;
         }
         else
         {
@@ -171,7 +171,7 @@ int main(int argc, char * *argv)
         oStremFileOut.close();
     }
 
-    if (bFileResFaild)
+    if (bFileResFailed)
     {
         exit(EXIT_FAILURE);
     }
