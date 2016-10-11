@@ -75,19 +75,18 @@ set(BINARY_TOOLS_LIST
   )
 
 set(TMP_PACKAGING_DIR "@CMAKE_BINARY_DIR@/Anima-Binaries-@ANIMA_SUPERBUILD_VERSION@")
+file(MAKE_DIRECTORY ${TMP_PACKAGING_DIR})
 
 if (NOT WIN32)
-  execute_process(COMMAND mkdir -p ${TMP_PACKAGING_DIR})
   foreach(binary_file ${BINARY_TOOLS_LIST})
-    execute_process(COMMAND cp "@CMAKE_BINARY_DIR@/bin/${binary_file}" "${TMP_PACKAGING_DIR}")
+    file(COPY "@CMAKE_BINARY_DIR@/bin/${binary_file}" "${TMP_PACKAGING_DIR}")
   endforeach()
 
   execute_process(
     WORKING_DIRECTORY @CMAKE_BINARY_DIR@
     COMMAND zip -r Anima-Binaries-@ANIMA_SUPERBUILD_VERSION@.zip Anima-Binaries-@ANIMA_SUPERBUILD_VERSION@)
 else()
-execute_process(COMMAND mkdir ${TMP_PACKAGING_DIR})
   foreach(binary_file ${BINARY_TOOLS_LIST})
-    execute_process(COMMAND cp "@CMAKE_BINARY_DIR@/bin/${binary_file}.exe" "${TMP_PACKAGING_DIR}")
+    file(COPY "@CMAKE_BINARY_DIR@/bin/${binary_file}.exe" "${TMP_PACKAGING_DIR}")
   endforeach()
 endif()
