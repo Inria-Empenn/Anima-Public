@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.1.0)
-project(ANIMA_SUPERBUILD)
+
+cmake_policy(SET CMP0048 NEW)
+project(ANIMA_SUPERBUILD VERSION 2.0)
 
 set(${PROJECT_NAME}_CMAKE_DIRS
   ${CMAKE_SOURCE_DIR}/Anima/cmake
@@ -127,3 +129,13 @@ if (USE_ANIMA_PRIVATE)
   set(USE_GITHUB_SSH ON CACHE BOOL "Use by default Git SSH addresses, requires public key set on github" FORCE)
   include(Anima_Private)
 endif()
+
+configure_file(${CMAKE_SOURCE_DIR}/superbuild/BinariesPackaging.cmake.in
+  ${CMAKE_BINARY_DIR}/BinariesPackaging.cmake
+  @ONLY IMMEDIATE)
+
+add_custom_target(pack-binaries ALL
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -P ${CMAKE_BINARY_DIR}/BinariesPackaging.cmake
+  COMMENT "-- Generating binary packages"
+  )

@@ -1,0 +1,92 @@
+set(BINARY_TOOLS_LIST 
+  animaApplyDistortionCorrection
+  animaApplyTransformSerie
+  animaBMDistortionCorrection
+  animaCollapseImage
+  animaComputeDTIScalarMaps
+  animaConcatenateImages
+  animaConnectedComponents
+  animaConvertImage
+  animaCropImage
+  animaDTIEstimator
+  animaDTIExtrapolate
+  animaDTIProbabilisticTractography
+  animaDTITractography
+  animaDenseSVFBMRegistration
+  animaDenseTensorSVFBMRegistration
+  animaDiceMeasure
+  animaDistortionCorrection
+  animaExpTensors
+  animaFDRCorrectPValues
+  animaFillHoleImage
+  animaGaussianNoiseGenerator
+  animaGcStremMsLesionsSegmentation
+  animaGeneralizedFA
+  animaGraphCut
+  animaImageArithmetic
+  animaImageSmoother
+  animaInfluenceZones
+  animaKMeansClustering
+  animaLinearTransformArithmetic
+  animaLocalPatchCovarianceDistance
+  animaLocalPatchMeanDistance
+  animaLogTensors
+  animaLowMemLocalPatchCovarianceDistance
+  animaLowMemLocalPatchMeanDistance
+  animaLowMemNLMeansPatientToGroupComparison
+  animaLowMemPatientToGroupComparison
+  animaLowMemPatientToGroupODFComparison
+  animaMaskImage
+  animaMCMApplyTransformSerie
+  animaMCMAveraging
+  animaMCMEstimator
+  animaMergeBlockImages
+  animaMorphologicalOperations
+  animaN4BiasCorrection
+  animaNLMeans
+  animaNLMeansPatientToGroupComparison
+  animaNLMeansTemporal
+  animaNonCentralChiNoiseGenerator
+  animaODFApplyTransformSerie
+  animaODFEstimator
+  animaODFProbabilisticTractography
+  animaOtsuThrImage
+  animaPatientToGroupComparison
+  animaPatientToGroupODFComparison
+  animaPyramidalBMRegistration
+  animaRemoveTouchingBorder
+  animaSimuBlochCoherentGRE
+  animaSimuBlochGRE
+  animaSimuBlochIR-GRE
+  animaSimuBlochIR-SE
+  animaSimuBlochSE
+  animaSimuBlochSP-GRE
+  animaStimulatedSpinEchoSimulator
+  animaSymmetryConstrainedRegistration
+  animaSymmetryPlane
+  animaT1RelaxometryEstimation
+  animaT2EPGRelaxometryEstimation
+  animaT2RelaxometryEstimation
+  animaTensorApplyTransformSerie
+  animaThrImage
+  animaTotalLesionLoad
+  animaTransformSerieXmlGenerator
+  animaVectorizeImages
+  )
+
+set(TMP_PACKAGING_DIR "@CMAKE_BINARY_DIR@/Anima-Binaries-@ANIMA_SUPERBUILD_VERSION@")
+execute_process(COMMAND mkdir -p ${TMP_PACKAGING_DIR})
+
+if (NOT WIN32)
+  foreach(binary_file ${BINARY_TOOLS_LIST})
+    execute_process(COMMAND cp "@CMAKE_BINARY_DIR@/bin/${binary_file}" "${TMP_PACKAGING_DIR}")
+  endforeach()
+
+  execute_process(
+    WORKING_DIRECTORY @CMAKE_BINARY_DIR@
+    COMMAND zip -r Anima-Binaries-@ANIMA_SUPERBUILD_VERSION@.zip Anima-Binaries-@ANIMA_SUPERBUILD_VERSION@)
+else()
+  foreach(binary_file ${BINARY_TOOLS_LIST})
+    execute_process(COMMAND cp "@CMAKE_BINARY_DIR@\bin\${binary_file}.exe" "${TMP_PACKAGING_DIR}")
+  endforeach()
+endif()
