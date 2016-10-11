@@ -76,8 +76,10 @@ public:
    //////////////////////////////////////////////////////////////////////////
    //  Les methodes
 public:
-   CAnalyzer(char* pi_pchImageTestName, char* pi_pchImageRefName, bool advancedEvaluation);
+   CAnalyzer(char *pi_pchImageTestName, char *pi_pchImageRefName, bool advancedEvaluation);
    ~CAnalyzer();
+
+   bool checkImagesMatixAndVolumes();
 
    void setNbThreads(int pi_iNbThreads);
    void selectCluster(unsigned int);
@@ -128,14 +130,14 @@ protected:
    void contourDectection();
    void checkNumberOfLabels(int, int);
 
-   int getTruePositiveLesions(int pi_iNbLabelsRef, int pi_iNbLabelsTest, int** pi_ppiOverlapTab);
-   bool falsePositiveRatioTester(int pi_iLessionReference, int pi_iNbLabelsTest, int pi_iNbLabelsRef, int** pi_ppiOverlapTab, int* pi_piTPRowSumTab, int* pi_piColumnSumTab, double pi_dfBeta, double pi_dfGamma);
-   void getOverlapTab(int&po_iNbLabelsRef, int&po_iNbLabelsTest, int**&po_ppiOverlapTab);
+   int getTruePositiveLesions(int pi_iNbLabelsRef, int pi_iNbLabelsTest, int * *pi_ppiOverlapTab);
+   bool falsePositiveRatioTester(int pi_iLessionReference, int pi_iNbLabelsTest, int pi_iNbLabelsRef, int * *pi_ppiOverlapTab, int *pi_piTPRowSumTab, int *pi_piColumnSumTab, double pi_dfBeta, double pi_dfGamma);
+   void getOverlapTab(int&po_iNbLabelsRef, int&po_iNbLabelsTest, int* *&po_ppiOverlapTab);
 
 private:
    CAnalyzer();
-   void transposer(int pi_iNbLabelsRef, int pi_iNbLabelsTest, int** pi_ppiOverlapTab, int**&po_rppiOverlapTabTransposed);
-   void removeOverlapTab(int** pi_ppiOverlapTab, int pi_iNbLabelsRef);
+   void transposer(int pi_iNbLabelsRef, int pi_iNbLabelsTest, int * *pi_ppiOverlapTab, int* *&po_rppiOverlapTabTransposed);
+   void removeOverlapTab(int * *pi_ppiOverlapTab, int pi_iNbLabelsRef);
 };
 
 

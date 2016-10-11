@@ -55,7 +55,6 @@ CAnalyzer::CAnalyzer(char *pi_pchImageTestName, char *pi_pchImageRefName, bool b
       return;
    }
 
-   m_imageTest = ImageType::New();
    m_imageTest = imageTestReader->GetOutput();
 
    ImageReaderType::Pointer imageRefReader = ImageReaderType::New();
@@ -76,12 +75,12 @@ CAnalyzer::CAnalyzer(char *pi_pchImageTestName, char *pi_pchImageRefName, bool b
 
 
 
-
-   m_imageRef = ImageType::New();
    m_imageRef = imageRefReader->GetOutput();
 
-   m_imageTest->SetDirection(m_imageRef->GetDirection());
-   m_imageTest->SetOrigin(m_imageRef->GetOrigin());
+   if (!checkImagesMatixAndVolumes())
+   {
+      throw std::exception("Images are incompatible");
+   }
 
    this->formatLabels();
 
@@ -102,6 +101,73 @@ CAnalyzer::CAnalyzer(char *pi_pchImageTestName, char *pi_pchImageRefName, bool b
 
    m_bValuesComputed = false;
    m_bContourDetected = false;
+}
+
+/**
+@brief   Check if the 2 inputs images are compatible.
+@return	true if image are compatible else false.
+*/
+bool CAnalyzer::checkImagesMatixAndVolumes()
+{
+   bool bRes = true;
+
+   unsigned int uiTestedImageDimension = m_imageTest->GetImageDimension();
+   const itk::Vector<ImageType::SpacingValueType, ImageType::ImageDimension> oVectSpacingTested = m_imageTest->GetSpacing();
+   const itk::Size<ImageType::ImageDimension> oSizeTested = m_imageTest->GetLargestPossibleRegion().GetSize();
+   const itk::Point<ImageType::IndexValueType, ImageType::ImageDimension> oPointOriginTested = m_imageTest->GetOrigin();
+
+   unsigned int uiRefImageDimension = m_imageRef->GetImageDimension();
+   const itk::Vector<ImageType::SpacingValueType, ImageType::ImageDimension> oVectSpacingRef = m_imageRef->GetSpacing();
+   const itk::Size<ImageType::ImageDimension> oSizeRef = m_imageRef->GetLargestPossibleRegion().GetSize();
+   const itk::Point<ImageType::IndexValueType, ImageType::ImageDimension> oPointOriginRef = m_imageRef->GetOrigin();
+
+   bRes = uiTestedImageDimension == uiRefImageDimension;
+
+   if (bRes)
+   {
+      //Check dimensions
+      for (int i = 0; i < uiTestedImageDimension; ++i)
+      {
+         if (oSizeTested[i] != oSizeRef[i])
+         {
+            bRes = false;
+            std::cerr << "Different image dimensions " << i << " Tested size : " << oSizeTested[i] << " Reference size : " << oSizeRef[i] << std::endl;
+         }
+      }
+
+      //Check origin
+      for (int i = 0; i < uiTestedImageDimension; ++i)
+      {
+         if (oPointOriginTested[i] != oPointOriginRef[i])
+         {
+            bRes = false;
+            std::cerr << "Different image origin " << i << " Tested origin : " << oPointOriginTested[i] << " Reference origin : " << oPointOriginRef[i] << std::endl;
+         }
+      }
+
+      //Check direction
+      for (int i = 0; i < uiTestedImageDimension; ++i)
+      {
+         for (int j = 0; j < uiTestedImageDimension; ++j)
+         {
+            double dDiff = m_imageTest->GetDirection().GetVnlMatrix().get(i, j) - m_imageRef->GetDirection().GetVnlMatrix().get(i, j);
+
+
+            if ((dDiff > 0.000001) || (dDiff < -0.000001))
+            {
+               bRes = false;
+               std::cerr << "Different image direction " << i << " - " << j << std::endl;
+               std::cerr << "Diff = " << dDiff << " Tested direction : " << m_imageTest->GetDirection().GetVnlMatrix().get(i, j) << " Reference direction : " << m_imageRef->GetDirection().GetVnlMatrix().get(i, j) << std::endl;
+            }
+         }
+      }
+   }
+   else
+   {
+      std::cerr << "Different image dimensions." << std::endl << "Tested is in  : " << uiTestedImageDimension << "D and Ref is in :" << uiRefImageDimension << "D" << std::endl;
+   }
+
+   return bRes;
 }
 
 CAnalyzer::~CAnalyzer()
@@ -723,33 +789,33 @@ bool CAnalyzer::getDetectionMarks(float&po_fPPVL, float&po_fSensL, float&po_fF1)
 
    /*if (m_uiNbLabels>1)
    {*/
-      int iNbLabelsRef = 0;
-      int iNbLabelsTest = 0;
-      int * *ppiOverlapTab = NULL;
-      int * *ppiOverlapTabTransposed = NULL;
-      int iTPLgt = 0;
-      int iTPLd = 0;
+   int iNbLabelsRef = 0;
+   int iNbLabelsTest = 0;
+   int * *ppiOverlapTab = NULL;
+   int * *ppiOverlapTabTransposed = NULL;
+   int iTPLgt = 0;
+   int iTPLd = 0;
 
-      getOverlapTab(iNbLabelsRef, iNbLabelsTest, ppiOverlapTab);
-      transposer(iNbLabelsRef, iNbLabelsTest, ppiOverlapTab, ppiOverlapTabTransposed);
-      if (iNbLabelsRef>1 && iNbLabelsTest>1)
-      {
-         iTPLgt = getTruePositiveLesions(iNbLabelsRef, iNbLabelsTest, ppiOverlapTab);
-         iTPLd  = getTruePositiveLesions(iNbLabelsTest, iNbLabelsRef, ppiOverlapTabTransposed);
+   getOverlapTab(iNbLabelsRef, iNbLabelsTest, ppiOverlapTab);
+   transposer(iNbLabelsRef, iNbLabelsTest, ppiOverlapTab, ppiOverlapTabTransposed);
+   if (iNbLabelsRef>1 && iNbLabelsTest>1)
+   {
+      iTPLgt = getTruePositiveLesions(iNbLabelsRef, iNbLabelsTest, ppiOverlapTab);
+      iTPLd  = getTruePositiveLesions(iNbLabelsTest, iNbLabelsRef, ppiOverlapTabTransposed);
 
-         //Deallocates tables allocated by getOverlapTab and transposer
-         removeOverlapTab(ppiOverlapTab, iNbLabelsRef);
-         removeOverlapTab(ppiOverlapTabTransposed, iNbLabelsTest);
-      }
+      //Deallocates tables allocated by getOverlapTab and transposer
+      removeOverlapTab(ppiOverlapTab, iNbLabelsRef);
+      removeOverlapTab(ppiOverlapTabTransposed, iNbLabelsTest);
+   }
 
-      po_fPPVL = (float)((double)iTPLd / (double)(iNbLabelsTest-1));  //po_fTPLd  = (float)((double)iTPLd  / (double)(iNbLabelsTest-1));// The "-1" is to reject background label
-      po_fSensL = (float)((double)iTPLgt / (double)(iNbLabelsRef-1)); //po_fTPLgt = (float)((double)iTPLgt / (double)(iNbLabelsRef-1 ));// The "-1" is to reject background label
+   po_fPPVL = (float)((double)iTPLd / (double)(iNbLabelsTest-1));     //po_fTPLd  = (float)((double)iTPLd  / (double)(iNbLabelsTest-1));// The "-1" is to reject background label
+   po_fSensL = (float)((double)iTPLgt / (double)(iNbLabelsRef-1));    //po_fTPLgt = (float)((double)iTPLgt / (double)(iNbLabelsRef-1 ));// The "-1" is to reject background label
    /*}
    else
    {
       if (m_)
       {
-      } 
+      }
       else
       {
       }

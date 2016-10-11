@@ -335,49 +335,60 @@ void CSegPerfApp::preparOutput()
 long CSegPerfApp::play()
 {
    long lRes = 0;
-
-   CAnalyzer oAnalyzer((char*)m_oStrInImage.c_str(), (char*)m_oStrRefImage.c_str(), m_bAdvancedEvaluation);
-
-   if (m_iNbThreads>0)
+   try
    {
-      oAnalyzer.setNbThreads(m_iNbThreads);
+      CAnalyzer oAnalyzer((char*)m_oStrInImage.c_str(), (char*)m_oStrRefImage.c_str(), m_bAdvancedEvaluation);
+
+      if(!oAnalyzer.checkImagesMatixAndVolumes())
+      {
+         exit(EXIT_FAILURE);
+      }
+
+      if (m_iNbThreads>0)
+      {
+         oAnalyzer.setNbThreads(m_iNbThreads);
+      }
+
+
+      int nbLabels = oAnalyzer.getNumberOfClusters();
+
+      string sOutBase = m_pchOutBase;
+      string sOut = sOutBase;
+
+      int i = 0;
+
+
+      //////////////////////////////////////////////////////////////////////////
+      // First step of loop is for global, if next steps exist it's for each layer
+      do
+      {
+         sOut = sOutBase;
+         std::stringstream outBaseTemp;
+
+         if(i == 0)
+            outBaseTemp << sOut<<"_global";
+         else
+            outBaseTemp << sOut << "_cluster" << i;
+
+         sOut = outBaseTemp.str();
+         m_pchOutBase = new char[sOut.length()+1];
+         strncpy(m_pchOutBase, sOut.c_str(), sOut.length()+1);
+
+         CResults oRes(m_pchOutBase);
+
+
+         processAnalyze(oAnalyzer, i);
+         storeMetricsAndMarks(oRes);
+         lRes = writeStoredMetricsAndMarks(oRes);
+
+         i++;
+      } while (i < nbLabels && m_bAdvancedEvaluation);
    }
-
-
-   int nbLabels = oAnalyzer.getNumberOfClusters();
-
-   string sOutBase = m_pchOutBase;
-   string sOut = sOutBase;
-
-   int i = 0;
-
-
-   //////////////////////////////////////////////////////////////////////////
-   // First step of loop is for global, if next steps exist it's for each layer
-   do
+   catch (exception &e)
    {
-      sOut = sOutBase;
-      std::stringstream outBaseTemp;
-
-      if(i == 0)
-         outBaseTemp << sOut<<"_global";
-      else
-         outBaseTemp << sOut << "_cluster" << i;
-
-      sOut = outBaseTemp.str();
-      m_pchOutBase = new char[sOut.length()+1];
-      strncpy(m_pchOutBase, sOut.c_str(), sOut.length()+1);
-
-      CResults oRes(m_pchOutBase);
-
-
-      processAnalyze(oAnalyzer, i);
-      storeMetricsAndMarks(oRes);
-      lRes = writeStoredMetricsAndMarks(oRes);
-
-      i++;
-   } while (i < nbLabels && m_bAdvancedEvaluation);
-
+      std::cerr << e.what() << std::endl;
+      exit(EXIT_FAILURE);
+   }
 
    MDEL(m_pchOutBase);
 
