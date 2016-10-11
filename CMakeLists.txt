@@ -134,8 +134,9 @@ configure_file(${CMAKE_SOURCE_DIR}/superbuild/BinariesPackaging.cmake.in
   ${CMAKE_BINARY_DIR}/BinariesPackaging.cmake
   @ONLY IMMEDIATE)
 
-add_custom_target(pack-binaries ALL
+add_custom_target(pack-binaries
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -P ${CMAKE_BINARY_DIR}/BinariesPackaging.cmake
+  DEPENDS Anima_Private
   COMMENT "-- Generating binary packages"
   )
