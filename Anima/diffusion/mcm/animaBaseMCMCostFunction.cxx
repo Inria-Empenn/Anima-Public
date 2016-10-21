@@ -7,6 +7,7 @@ BaseMCMCostFunction::BaseMCMCostFunction()
 {
     m_B0Value = 1;
     m_SigmaSquare = 1;
+    m_UpdatedInputs = true;
 }
 
 void BaseMCMCostFunction::GetDerivative( const ParametersType & parameters, DerivativeType & derivative ) const
