@@ -877,7 +877,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     // - First create model
     MCMCreatorType *mcmCreator = m_MCMCreators[threadId];
     // Other params are supposed to be already initialized from trunk estimation
-    mcmCreator->SetCompartmentType(Tensor);
+    mcmCreator->SetCompartmentType(m_CompartmentType);
 
     MCMPointer mcmUpdateValue = mcmCreator->GetNewMultiCompartmentModel();
     MCMPointer mcmOptimalModel = mcmCreator->GetNewMultiCompartmentModel();
@@ -906,18 +906,33 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     unsigned int numCompartments = mcmUpdateValue->GetNumberOfCompartments();
 
     unsigned int numNonIsoCompartments = numCompartments - numIsoCompartments;
-    SequenceGeneratorType ldsAngles(3 * numNonIsoCompartments);
-    MCMType::ListType lowerBoundsAngleSampling(3 * numNonIsoCompartments,0.0);
-    MCMType::ListType upperBoundsAngleSampling(3 * numNonIsoCompartments,2.0 * M_PI);
+    SequenceGeneratorType ldsSequence(numNonIsoCompartments);
     
-    for (unsigned int i = 0;i < numNonIsoCompartments;++i)
+    if (m_CompartmentType == NODDI)
     {
-        upperBoundsAngleSampling[numNonIsoCompartments + i] = 1.0;
-        upperBoundsAngleSampling[2 * numNonIsoCompartments + i] = 1.0;
+        ldsSequence = SequenceGeneratorType(numNonIsoCompartments);
+        MCMType::ListType lowerBoundsSequenceSampling(numNonIsoCompartments,0.0);
+        MCMType::ListType upperBoundsSequenceSampling(numNonIsoCompartments,1000.0);
+        
+        ldsSequence.SetLowerBounds(lowerBoundsSequenceSampling);
+        ldsSequence.SetUpperBounds(upperBoundsSequenceSampling);
+    }
+    else
+    {
+        ldsSequence = SequenceGeneratorType(3 * numNonIsoCompartments);
+        MCMType::ListType lowerBoundsSequenceSampling(3 * numNonIsoCompartments,0.0);
+        MCMType::ListType upperBoundsSequenceSampling(3 * numNonIsoCompartments,2.0 * M_PI);
+        
+        for (unsigned int i = 0;i < numNonIsoCompartments;++i)
+        {
+            upperBoundsSequenceSampling[numNonIsoCompartments + i] = 1.0;
+            upperBoundsSequenceSampling[2 * numNonIsoCompartments + i] = 1.0;
+        }
+        
+        ldsSequence.SetLowerBounds(lowerBoundsSequenceSampling);
+        ldsSequence.SetUpperBounds(upperBoundsSequenceSampling);
     }
     
-    ldsAngles.SetLowerBounds(lowerBoundsAngleSampling);
-    ldsAngles.SetUpperBounds(upperBoundsAngleSampling);
     std::vector <double> sampledData;
     
     for (unsigned int restartNum = 0;restartNum < 3 * m_NumberOfRandomRestarts;++restartNum)
@@ -925,24 +940,39 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         // - Now the tricky part: initialize from previous model, handled somewhere else
         this->InitializeModelFromSimplifiedOne(mcmValue,mcmUpdateValue);
         
-        sampledData = ldsAngles.GetNextSequenceValue();
+        sampledData = ldsSequence.GetNextSequenceValue();
         
         for (unsigned int i = numIsoCompartments;i < numCompartments;++i)
         {
             unsigned int index = i - numIsoCompartments;
-            // Random alpha initialization
-            mcmUpdateValue->GetCompartment(i)->SetPerpendicularAngle(sampledData[index]);
             
-            // Takes care of initializing d2=l2-l3 (which is 0 in Zeppelin) to a positive realistic value
-            // 5.0e-4 is here to ensure the axial diff is above its lower bound
-            double zeppelinAxDiff = mcmUpdateValue->GetCompartment(i)->GetAxialDiffusivity() - 5.0e-4;
-            double zeppelinRadDiff = mcmUpdateValue->GetCompartment(i)->GetRadialDiffusivity1();
-            
-            double w1 = sampledData[numNonIsoCompartments + index];
-            mcmUpdateValue->GetCompartment(i)->SetRadialDiffusivity1(w1 * zeppelinRadDiff + (1 - w1) *  zeppelinAxDiff);
-            
-            double w2 = sampledData[2 * numNonIsoCompartments + index];
-            mcmUpdateValue->GetCompartment(i)->SetRadialDiffusivity2(w2 * zeppelinRadDiff + (1 - w2) *  1e-5);
+            if (m_CompartmentType == NODDI)
+            {
+                // Random kappa initialization
+                mcmUpdateValue->GetCompartment(i)->SetOrientationConcentration(sampledData[index]);
+                
+                // Following assumed tortuosity model in NODDI, the extra-axonal fraction can be initialized as the ratio d_perp_zep / d_para_zep
+                double zeppelinAxDiff = mcmUpdateValue->GetCompartment(i)->GetAxialDiffusivity();
+                double zeppelinRadDiff = mcmUpdateValue->GetCompartment(i)->GetRadialDiffusivity1();
+                
+                mcmUpdateValue->GetCompartment(i)->SetExtraAxonalFraction(zeppelinRadDiff / zeppelinAxDiff);
+            }
+            else
+            {
+                // Random alpha initialization
+                mcmUpdateValue->GetCompartment(i)->SetPerpendicularAngle(sampledData[index]);
+                
+                // Takes care of initializing d2=l2-l3 (which is 0 in Zeppelin) to a positive realistic value
+                // 5.0e-4 is here to ensure the axial diff is above its lower bound
+                double zeppelinAxDiff = mcmUpdateValue->GetCompartment(i)->GetAxialDiffusivity() - 5.0e-4;
+                double zeppelinRadDiff = mcmUpdateValue->GetCompartment(i)->GetRadialDiffusivity1();
+                
+                double w1 = sampledData[numNonIsoCompartments + index];
+                mcmUpdateValue->GetCompartment(i)->SetRadialDiffusivity1(w1 * zeppelinRadDiff + (1 - w1) * zeppelinAxDiff);
+                
+                double w2 = sampledData[2 * numNonIsoCompartments + index];
+                mcmUpdateValue->GetCompartment(i)->SetRadialDiffusivity2(w2 * zeppelinRadDiff + (1 - w2) * 1e-5);
+            }
         }
 
         workVec = mcmUpdateValue->GetParametersAsVector();

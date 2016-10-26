@@ -38,7 +38,7 @@ int main(int argc,  char **argv)
     TCLAP::ValueArg<double> b0thrArg("", "b0-thr", "Background threshold on B0 value (default: 10)", false, 10.0, "B0 theshold", cmd);
 
     TCLAP::ValueArg<unsigned int> nbFasciclesArg("n", "nb-fascicles", "Number of computed fascicles (default: 2)", false, 2, "number of fascicles", cmd);
-    TCLAP::ValueArg<unsigned int> compartmentTypeArg("c", "comp-type", "Compartment type for fascicles: 1: stick, 2: zeppelin, 3: tensor (default: 3)", false, 3, "fascicles type", cmd);
+    TCLAP::ValueArg<unsigned int> compartmentTypeArg("c", "comp-type", "Compartment type for fascicles: 1: stick, 2: zeppelin, 3: tensor, 4: noddi (default: 3)", false, 3, "fascicles type", cmd);
     TCLAP::SwitchArg aicSelectNbCompartmentsArg("M", "opt-nb-comp", "Activate AICC-based number of compartments selection", cmd, false);
 
     TCLAP::SwitchArg vnlDerivArg("D", "vnl-deriv", "Compute derivative by forward difference (used only with levenberg-marquardt algorithm)", cmd, false);
@@ -137,6 +137,10 @@ int main(int argc,  char **argv)
 
         case 3:
             filter->SetCompartmentType(anima::Tensor);
+            break;
+            
+        case 4:
+            filter->SetCompartmentType(anima::NODDI);
             break;
 
         default:

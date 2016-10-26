@@ -21,6 +21,7 @@ enum DiffusionModelCompartmentType
     Stick,
     Zeppelin,
     Tensor,
+    NODDI,
     DDI
 };
 
@@ -142,6 +143,7 @@ protected:
     static const double m_DiffusivityUpperBound;
     static const double m_RadialDiffusivityUpperBound;
     static const double m_DefaultConcentrationUpperBound;
+    static const double m_OrientationConcentrationUpperBound;
 
     //! Matrix to hold working value of diffusion tensor approximation to the model
     Matrix3DType m_DiffusionTensor;

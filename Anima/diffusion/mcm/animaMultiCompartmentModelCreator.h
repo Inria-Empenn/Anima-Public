@@ -75,6 +75,7 @@ private:
     void CreateStickCompartment(BaseCompartmentPointer &compartmentPointer, bool applyConstraints);
     void CreateZeppelinCompartment(BaseCompartmentPointer &compartmentPointer, bool applyConstraints);
     void CreateTensorCompartment(BaseCompartmentPointer &compartmentPointer, bool applyConstraints);
+    void CreateNODDICompartment(BaseCompartmentPointer &compartmentPointer, bool applyConstraints);
     virtual void CreateDDICompartment(BaseCompartmentPointer &compartmentPointer, bool applyConstraints);
 
     CompartmentType m_CompartmentType;

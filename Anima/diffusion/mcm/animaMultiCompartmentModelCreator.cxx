@@ -2,6 +2,7 @@
 
 #include <animaFreeWaterCompartment.h>
 #include <animaIsotropicRestrictedWaterCompartment.h>
+#include <animaNODDICompartment.h>
 #include <animaStationaryWaterCompartment.h>
 #include <animaStickCompartment.h>
 #include <animaTensorCompartment.h>
@@ -132,6 +133,10 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
             case Tensor:
                 this->CreateTensorCompartment(tmpPointer,applyCommonConstraints);
                 break;
+                
+            case NODDI:
+                this->CreateNODDICompartment(tmpPointer,applyCommonConstraints);
+                break;
 
             case DDI:
                 this->CreateDDICompartment(tmpPointer,applyCommonConstraints);
@@ -209,6 +214,19 @@ void MultiCompartmentModelCreator::CreateTensorCompartment(BaseCompartmentPointe
     }
 
     compartmentPointer = tensComp;
+}
+
+void MultiCompartmentModelCreator::CreateNODDICompartment(BaseCompartmentPointer &compartmentPointer, bool applyConstraints)
+{
+    typedef anima::NODDICompartment NODDIType;
+    
+    NODDIType::Pointer noddiComp = NODDIType::New();
+    
+    noddiComp->SetAxialDiffusivity(m_AxialDiffusivity);
+    noddiComp->SetOrientationConcentration(m_OrientationConcentration);
+    noddiComp->SetExtraAxonalFraction(m_ExtraAxonalFraction);
+    
+    compartmentPointer = noddiComp;
 }
 
 void MultiCompartmentModelCreator::CreateDDICompartment(BaseCompartmentPointer &compartmentPointer, bool applyConstraints)
