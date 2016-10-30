@@ -13,6 +13,7 @@
 #include <animaGaussianMCMVariableProjectionCost.h>
 
 #include <animaVectorOperations.h>
+#include <animaDistributionSampling.h>
 
 #include <animaDTIEstimationImageFilter.h>
 #include <animaBaseTensorTools.h>
@@ -71,7 +72,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     output->SetVectorLength(tmpMCM->GetSize());
     output->SetDescriptionModel(tmpMCM);
-
+    
     delete tmpMCMCreator;
 }
 
@@ -348,6 +349,34 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
         for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
             m_MCMCreators[i]->SetConcentrationBounds(kappaLowerBound,kappaUpperBound);
+    }
+    
+    if (m_CompartmentType == anima::NODDI)
+    {
+        unsigned int numberOfSamples = 1000;
+        unsigned int numberOfTabulatedKappas = 100;
+        
+        GradientType northPole(0.0);
+        northPole[2] = 1.0;
+        
+        m_WatsonSamples.resize(numberOfSamples);
+        std::mt19937 generator(time(0));
+        double step = 0.98 / (numberOfTabulatedKappas - 1.0);
+        
+        for (unsigned int i = 0;i < numberOfSamples;++i)
+        {
+            m_WatsonSamples[i].resize(numberOfTabulatedKappas);
+            double od = 0.01;
+            unsigned int pos = 0;
+            
+            while (od < 0.99)
+            {
+                double kappa = 1.0 / std::tan(M_PI / 2.0 * od);
+                anima::SampleFromWatsonDistribution(kappa, northPole, m_WatsonSamples[i][pos], 3, generator);
+                od += step;
+                ++pos;
+            }
+        }
     }
 }
 
@@ -878,10 +907,13 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     MCMCreatorType *mcmCreator = m_MCMCreators[threadId];
     // Other params are supposed to be already initialized from trunk estimation
     mcmCreator->SetCompartmentType(m_CompartmentType);
+    
+    if (m_CompartmentType == NODDI)
+        mcmCreator->SetWatsonSamples(m_WatsonSamples);
 
     MCMPointer mcmUpdateValue = mcmCreator->GetNewMultiCompartmentModel();
     MCMPointer mcmOptimalModel = mcmCreator->GetNewMultiCompartmentModel();
-
+    
     CostFunctionBasePointer cost = this->CreateCostFunction(observedSignals,mcmUpdateValue);
 
     // - Update multi-tensor model against observed signals

@@ -125,7 +125,10 @@ protected:
         m_UseBoundedOptimization = false;
     }
 
-    virtual ~BaseCompartment() {}
+    virtual ~BaseCompartment()
+    {
+        std::cout << "Base Destructor." << std::endl;
+    }
 
     //! From input vector, fills m_BoundedVector with bounded values
     virtual void BoundParameters(const ListType &params) = 0;

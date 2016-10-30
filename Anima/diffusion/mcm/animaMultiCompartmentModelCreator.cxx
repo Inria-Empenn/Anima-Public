@@ -221,8 +221,18 @@ void MultiCompartmentModelCreator::CreateNODDICompartment(BaseCompartmentPointer
     typedef anima::NODDICompartment NODDIType;
     
     NODDIType::Pointer noddiComp = NODDIType::New();
+    noddiComp->SetEstimateAxialDiffusivity(!m_UseConstrainedDiffusivity);
     
     noddiComp->SetAxialDiffusivity(m_AxialDiffusivity);
+    noddiComp->SetRadialDiffusivity1((m_RadialDiffusivity1 + m_RadialDiffusivity2) / 2.0);
+    noddiComp->SetWatsonSamples(m_WatsonSamples);
+    
+    if (applyConstraints)
+    {
+        if (m_UseCommonDiffusivities)
+            noddiComp->SetEstimateAxialDiffusivity(false);
+    }
+    
     noddiComp->SetOrientationConcentration(m_OrientationConcentration);
     noddiComp->SetExtraAxonalFraction(m_ExtraAxonalFraction);
     

@@ -17,6 +17,7 @@ public:
     typedef itk::SmartPointer<const Self> ConstPointer;
     typedef Superclass::ModelOutputVectorType ModelOutputVectorType;
     typedef Superclass::Vector3DType Vector3DType;
+    typedef Superclass::Matrix3DType Matrix3DType;
 
     // New macro
     itkNewMacro(Self)
@@ -36,24 +37,52 @@ public:
     virtual ListType GetParameterLowerBounds() ITK_OVERRIDE;
     virtual ListType GetParameterUpperBounds() ITK_OVERRIDE;
     
+    // Set constraints
+    void SetEstimateAxialDiffusivity(bool arg);
     void SetCompartmentVector(ModelOutputVectorType &compartmentVector) ITK_OVERRIDE;
+    
+    void SetWatsonSamples(std::vector<Vector3DType> *samples) {m_WatsonSamples = samples;};
 
     unsigned int GetCompartmentSize() ITK_OVERRIDE;
     unsigned int GetNumberOfParameters() ITK_OVERRIDE;
     ModelOutputVectorType &GetCompartmentVector() ITK_OVERRIDE;
+    
+    //Reimplement for handling modification flags
+    void SetOrientationConcentration(double num) ITK_OVERRIDE;
+    
+    const Matrix3DType &GetDiffusionTensor() ITK_OVERRIDE;
 
 protected:
     NODDICompartment() : Superclass()
     {
+        m_EstimateAxialDiffusivity = true;
+        m_ChangedConstraints = true;
+        m_ModifiedConcentration = true;
+        m_OptimalIndex = 0;
+        
+        m_NorthPole.fill(0.0);
+        m_NorthPole[2] = 1.0;
     }
-
-    virtual ~NODDICompartment() {}
+    
+    virtual ~NODDICompartment()
+    {
+        std::cout << "NODDI Destructor." << std::endl;
+    }
 
     virtual ListType BoundParameters(const ListType &params) ITK_OVERRIDE;
     virtual void UnboundParameters(ListType &params) ITK_OVERRIDE;
 
 private:
+    bool m_EstimateAxialDiffusivity;
+    bool m_ChangedConstraints;
+    bool m_ModifiedConcentration;
     unsigned int m_NumberOfParameters;
+    std::vector<Vector3DType> *m_WatsonSamples;
+    Vector3DType m_NorthPole;
+    unsigned int m_OptimalIndex;
+    
+    static const unsigned int m_NumberOfSamples = 1000;
+    static const unsigned int m_NumberOfTabulatedKappas = 100;
 };
 
 } //end namespace anima

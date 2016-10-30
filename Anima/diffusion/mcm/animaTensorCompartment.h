@@ -79,7 +79,10 @@ protected:
         m_TensorDeterminant = 0;
     }
 
-    virtual ~TensorCompartment() {}
+    virtual ~TensorCompartment()
+    {
+        std::cout << "Tensor Destructor." << std::endl;
+    }
 
     //! Update diffusion tensor value from parameters
     void UpdateDiffusionTensor();
