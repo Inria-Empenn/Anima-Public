@@ -107,6 +107,26 @@ double bessel_ratio_i_lower_bound(double x, unsigned int N)
     return res;
 }
 
+double bessel_ratio_i_derivative(double x, unsigned int N, unsigned int approx_order)
+{
+    double tmpVal = bessel_ratio_i(x, N, approx_order);
+    double firstTerm = tmpVal * bessel_ratio_i(x, N + 1, approx_order);
+    double secondTerm = tmpVal * tmpVal;
+    double thirdTerm = tmpVal / x;
+    
+    return firstTerm - secondTerm + thirdTerm;
+}
+
+double bessel_ratio_i_derivative_approx(double x, unsigned int N)
+{
+    double tmpVal = bessel_ratio_i_lower_bound(x, N);
+    double firstTerm = tmpVal * bessel_ratio_i_lower_bound(x, N + 1);
+    double secondTerm = tmpVal * tmpVal;
+    double thirdTerm = tmpVal / x;
+    
+    return firstTerm - secondTerm + thirdTerm;
+}
+
 double log_bessel_order_derivative_i(double x, unsigned int order, double emc, unsigned int approx_order)
 {
     double y = x;
