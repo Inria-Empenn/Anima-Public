@@ -69,7 +69,7 @@ public:
     double GetConcentrationLowerBound() {return m_ConcentrationLowerBound;}
     double GetConcentrationUpperBound() {return m_ConcentrationUpperBound;}
 
-    MCMType *GetNewMultiCompartmentModel();
+    MCMPointer GetNewMultiCompartmentModel();
 
 private:
     void CreateStickCompartment(BaseCompartmentPointer &compartmentPointer, bool applyConstraints);
