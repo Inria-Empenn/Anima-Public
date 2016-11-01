@@ -14,8 +14,10 @@ const double BaseCompartment::m_AzimuthAngleUpperBound = 2.0 * M_PI;
 const double BaseCompartment::m_DiffusivityUpperBound = 3e-3;
 const double BaseCompartment::m_RadialDiffusivityUpperBound = 1e-3;
 const double BaseCompartment::m_DefaultConcentrationUpperBound = 20;
-const double BaseCompartment::m_OrientationConcentrationUpperBound = 1000.0;
+const double BaseCompartment::m_WatsonKappaUpperBound = 128.0;
 const double BaseCompartment::m_Epsilon = 1.0e-2;
+const double BaseCompartment::m_EAFLowerBound = 1.0 / 129.0;
+const double BaseCompartment::m_EAFUpperBound = 128.0 / 129.0;
 
 double BaseCompartment::GetPredictedSignal(double bValue, const Vector3DType &gradient)
 {

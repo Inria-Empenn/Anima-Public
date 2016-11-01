@@ -125,10 +125,7 @@ protected:
         m_UseBoundedOptimization = false;
     }
 
-    virtual ~BaseCompartment()
-    {
-        std::cout << "Base Destructor." << std::endl;
-    }
+    virtual ~BaseCompartment() {}
 
     //! From input vector, fills m_BoundedVector with bounded values
     virtual void BoundParameters(const ListType &params) = 0;
@@ -146,7 +143,9 @@ protected:
     static const double m_DiffusivityUpperBound;
     static const double m_RadialDiffusivityUpperBound;
     static const double m_DefaultConcentrationUpperBound;
-    static const double m_OrientationConcentrationUpperBound;
+    static const double m_WatsonKappaUpperBound;
+    static const double m_EAFLowerBound;
+    static const double m_EAFUpperBound;
 
     //! Matrix to hold working value of diffusion tensor approximation to the model
     Matrix3DType m_DiffusionTensor;
