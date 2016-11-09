@@ -13,10 +13,7 @@ class ANIMAMCM_EXPORT MultiCompartmentModelCreator
 {
 public:
     MultiCompartmentModelCreator();
-    virtual ~MultiCompartmentModelCreator()
-    {
-        std::cout << "MultiCompartmentModelCreator Destructor." << std::endl;
-    }
+    virtual ~MultiCompartmentModelCreator() {}
 
     typedef anima::MultiCompartmentModel MCMType;
     typedef MCMType::Pointer MCMPointer;

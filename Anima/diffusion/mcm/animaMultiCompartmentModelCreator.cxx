@@ -185,7 +185,7 @@ void MultiCompartmentModelCreator::CreateZeppelinCompartment(BaseCompartmentPoin
 
     zepComp->SetAxialDiffusivity(m_AxialDiffusivity);
     zepComp->SetRadialDiffusivity1((m_RadialDiffusivity1 + m_RadialDiffusivity2) / 2.0);
-    zepComp->SetRadialDiffusivity2(m_RadialDiffusivity2);
+    zepComp->SetRadialDiffusivity2(m_RadialDiffusivity2); // TO DO (Aymeric): I think it should be removed
 
     if (applyConstraints)
     {
@@ -221,8 +221,10 @@ void MultiCompartmentModelCreator::CreateNODDICompartment(BaseCompartmentPointer
     typedef anima::NODDICompartment NODDIType;
     
     NODDIType::Pointer noddiComp = NODDIType::New();
-    noddiComp->SetEstimateAxialDiffusivity(!m_UseConstrainedDiffusivity);
+    noddiComp->SetEstimateAxialDiffusivity(false); // As in Zhang et al. 2012, Neuroimage.
     
+    noddiComp->SetOrientationConcentration(m_OrientationConcentration);
+    noddiComp->SetExtraAxonalFraction(m_ExtraAxonalFraction);
     noddiComp->SetAxialDiffusivity(m_AxialDiffusivity);
     noddiComp->SetRadialDiffusivity1((m_RadialDiffusivity1 + m_RadialDiffusivity2) / 2.0);
     noddiComp->SetWatsonSamples(m_WatsonSamples);
@@ -232,9 +234,6 @@ void MultiCompartmentModelCreator::CreateNODDICompartment(BaseCompartmentPointer
         if (m_UseCommonDiffusivities)
             noddiComp->SetEstimateAxialDiffusivity(false);
     }
-    
-    noddiComp->SetOrientationConcentration(m_OrientationConcentration);
-    noddiComp->SetExtraAxonalFraction(m_ExtraAxonalFraction);
     
     compartmentPointer = noddiComp;
 }

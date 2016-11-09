@@ -49,6 +49,7 @@ public:
     
     //Reimplement for handling modification flags
     void SetOrientationConcentration(double num) ITK_OVERRIDE;
+    void SetRadialDiffusivity1(double num) ITK_OVERRIDE;
     
     const Matrix3DType &GetDiffusionTensor() ITK_OVERRIDE;
 
@@ -59,15 +60,17 @@ protected:
         m_ChangedConstraints = true;
         m_ModifiedConcentration = true;
         m_OptimalIndex = 0;
+        m_Tau1 = 2.0 / 3.0;
+        m_WS.clear();
         
         m_NorthPole.fill(0.0);
         m_NorthPole[2] = 1.0;
     }
     
-    virtual ~NODDICompartment()
-    {
-        std::cout << "NODDI Destructor." << std::endl;
-    }
+    virtual ~NODDICompartment() {}
+    
+    //! Update Watson samples from parameters
+    void UpdateWatsonSamples();
 
     virtual ListType BoundParameters(const ListType &params) ITK_OVERRIDE;
     virtual void UnboundParameters(ListType &params) ITK_OVERRIDE;
@@ -78,11 +81,13 @@ private:
     bool m_ModifiedConcentration;
     unsigned int m_NumberOfParameters;
     std::vector<Vector3DType> *m_WatsonSamples;
+    std::vector<Vector3DType> m_WS;
     Vector3DType m_NorthPole;
     unsigned int m_OptimalIndex;
+    double m_Tau1;
     
     static const unsigned int m_NumberOfSamples = 1000;
-    static const unsigned int m_NumberOfTabulatedKappas = 100;
+    static const unsigned int m_NumberOfTabulatedKappas = 1000;
 };
 
 } //end namespace anima
