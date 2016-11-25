@@ -146,7 +146,14 @@ void MultiCompartmentModel::SetParametersFromVector(ListType &params)
             ++pos;
         }
 
-        m_CompartmentWeights[0] = 1.0 - sumWeights;
+        if (sumWeights <= 1.0)
+            m_CompartmentWeights[0] = 1.0 - sumWeights;
+        else
+        {
+            m_CompartmentWeights[0] = 0;
+            for (unsigned int i = 1;i < numCompartments;++i)
+                m_CompartmentWeights[i] /= sumWeights;
+        }
     }
 
     for (unsigned int i = 0;i < numCompartments;++i)
