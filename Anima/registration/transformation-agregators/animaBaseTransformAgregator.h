@@ -28,6 +28,7 @@ public:
         TRANSLATION,
         RIGID,
         AFFINE,
+        DIRECTIONAL_AFFINE,
         SVF
     };
 

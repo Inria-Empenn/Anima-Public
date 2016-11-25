@@ -27,9 +27,10 @@ Update()
     switch (this->GetInputTransformType())
     {
         case Superclass::TRANSLATION:
+        case Superclass::DIRECTIONAL_AFFINE:
         {
             if ((this->GetInputWeights().size() != this->GetInputOrigins().size())||
-                (this->GetInputTransforms().size() != this->GetInputOrigins().size()))
+                    (this->GetInputTransforms().size() != this->GetInputOrigins().size()))
                 return false;
 
             switch (this->GetOutputTransformType())
@@ -139,12 +140,6 @@ LSWTransformAgregator <NDimensions>::
 lswEstimateTranslationsToAffine()
 {
     unsigned int nbPts = this->GetInputOrigins().size();
-
-    if (NDimensions > 3)
-    {
-        std::cerr << "Dimension not supported for quaternions" << std::endl;
-        return;
-    }
 
     std::vector <PointType> originPoints(nbPts);
     std::vector <PointType> transformedPoints(nbPts);

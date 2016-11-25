@@ -31,7 +31,7 @@ SetInputTransformType(TRANSFORM_TYPE name)
 {
     if (name == SVF)
     {
-        std::cerr << "SVF input type is not yet supported, check your code ;)" << std::endl;
+        std::cerr << "SVF input type is not yet supported, check your code" << std::endl;
         exit(-1);
     }
 
@@ -46,6 +46,12 @@ void
 BaseTransformAgregator <NDimensions>::
 SetOutputTransformType(TRANSFORM_TYPE name)
 {
+    if (name == DIRECTIONAL_AFFINE)
+    {
+        std::cerr << "Directional affine output type is not yet supported, check your code" << std::endl;
+        exit(-1);
+    }
+
     if (name != m_OutputTransformType)
         m_UpToDate = false;
 

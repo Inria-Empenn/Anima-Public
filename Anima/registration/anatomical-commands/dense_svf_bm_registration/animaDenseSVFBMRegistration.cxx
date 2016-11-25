@@ -25,7 +25,8 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<float> stdevThresholdArg("s","stdev","Threshold block standard deviation (default: 5)",false,5,"block minimal standard deviation",cmd);
     TCLAP::ValueArg<double> percentageKeptArg("k","per-kept","Percentage of blocks with the highest variance kept (default: 0.8)",false,0.8,"percentage of blocks kept",cmd);
 
-    TCLAP::ValueArg<unsigned int> blockTransfoArg("t","in-transform","Transformation computed between blocks (0: translation, 1: rigid, 2: affine, default: 0)",false,0,"transformation between blocks",cmd);
+    TCLAP::ValueArg<unsigned int> blockTransfoArg("t","in-transform","Transformation computed between blocks (0: translation, 1: rigid, 2: affine, 3: directional affine, default: 0)",false,0,"transformation between blocks",cmd);
+    TCLAP::ValueArg<unsigned int> directionArg("d","dir","Affine direction for directional transform output (default: 1 = Y axis)",false,1,"direction of directional affine",cmd);
     TCLAP::ValueArg<unsigned int> blockMetricArg("","metric","Similarity metric between blocks (0: squared correlation coefficient, 1: correlation coefficient, 2: mean squares, default: 0)",false,0,"similarity metric",cmd);
     TCLAP::ValueArg<unsigned int> optimizerArg("","opt","Optimizer for optimal block search (0: Exhaustive, 1: Bobyqa, default: 1)",false,1,"optimizer",cmd);
 
@@ -90,9 +91,10 @@ int main(int argc, const char** argv)
     matcher->SetBlockSize( blockSizeArg.getValue() );
     matcher->SetBlockSpacing( blockSpacingArg.getValue() );
     matcher->SetStDevThreshold( stdevThresholdArg.getValue() );
-    matcher->SetTransform( (Transform) blockTransfoArg.getValue() );
-    matcher->SetMetric( (Metric) blockMetricArg.getValue() );
-    matcher->SetOptimizer( (Optimizer) optimizerArg.getValue() );
+    matcher->SetTransform( (PyramidBMType::Transform) blockTransfoArg.getValue() );
+    matcher->SetAffineDirection(directionArg.getValue());
+    matcher->SetMetric( (PyramidBMType::Metric) blockMetricArg.getValue() );
+    matcher->SetOptimizer( (PyramidBMType::Optimizer) optimizerArg.getValue() );
     matcher->SetMaximumIterations( maxIterationsArg.getValue() );
     matcher->SetMinimalTransformError( minErrorArg.getValue() );
     matcher->SetFinalRadius(finalRadiusArg.getValue());
@@ -106,8 +108,8 @@ int main(int argc, const char** argv)
     matcher->SetAngleUpperBound( angleUpperBoundArg.getValue() );
     matcher->SetSkewUpperBound( skewUpperBoundArg.getValue() );
     matcher->SetScaleUpperBound( scaleUpperBoundArg.getValue() );
-    matcher->SetSymmetryType( (SymmetryType) symmetryArg.getValue() );
-    matcher->SetAgregator( (Agregator) agregatorArg.getValue() );
+    matcher->SetSymmetryType( (PyramidBMType::SymmetryType) symmetryArg.getValue() );
+    matcher->SetAgregator( (PyramidBMType::Agregator) agregatorArg.getValue() );
     matcher->SetExtrapolationSigma(extrapolationSigmaArg.getValue());
     matcher->SetElasticSigma(elasticSigmaArg.getValue());
     matcher->SetOutlierSigma(outlierSigmaArg.getValue());

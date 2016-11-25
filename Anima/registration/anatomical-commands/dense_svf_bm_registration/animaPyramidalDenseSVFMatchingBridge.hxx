@@ -35,6 +35,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::PyramidalDenseSVFMatchingBridge
 
     m_SymmetryType = Asymmetric;
     m_Transform = Translation;
+    m_AffineDirection = 1;
     m_Metric = SquaredCorrelation;
     m_Optimizer = Bobyqa;
 
@@ -276,11 +277,23 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
                 if (reverseMatcher)
                     reverseMatcher->SetBlockTransformType(BlockMatcherType::Superclass::Translation);
                 break;
+
             case Rigid:
                 mainMatcher->SetBlockTransformType(BlockMatcherType::Superclass::Rigid);
                 if (reverseMatcher)
                     reverseMatcher->SetBlockTransformType(BlockMatcherType::Superclass::Rigid);
                 break;
+
+            case Directional_Affine:
+                mainMatcher->SetBlockTransformType(BlockMatcherType::Superclass::Directional_Affine);
+                mainMatcher->SetAffineDirection(m_AffineDirection);
+                if (reverseMatcher)
+                {
+                    reverseMatcher->SetBlockTransformType(BlockMatcherType::Superclass::Directional_Affine);
+                    reverseMatcher->SetAffineDirection(m_AffineDirection);
+                }
+                break;
+
             case Affine:
             default:
                 mainMatcher->SetBlockTransformType(BlockMatcherType::Superclass::Affine);

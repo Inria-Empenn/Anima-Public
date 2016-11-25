@@ -64,12 +64,12 @@ public:
     typedef anima::BaseBlockMatcher <TInputImageType> BlockMatcherType;
 
     /** Set/Get the Fixed image. */
-    itkSetObjectMacro (FixedImage, InputImageType);
-    itkGetMacro (FixedImage, InputImageType *);
+    itkSetObjectMacro (FixedImage, InputImageType)
+    itkGetMacro (FixedImage, InputImageType *)
 
     /** Set/Get the Moving image. */
-    itkSetObjectMacro (MovingImage, InputImageType);
-    itkGetMacro (MovingImage, InputImageType *);
+    itkSetObjectMacro (MovingImage, InputImageType)
+    itkGetMacro (MovingImage, InputImageType *)
 
     void SetReferenceImageResampler(ResamplerFilterType *filter) {m_ReferenceImageResampler = filter;}
     void SetMovingImageResampler(ResamplerFilterType *filter) {m_MovingImageResampler = filter;}
@@ -77,23 +77,23 @@ public:
     ResamplerFilterPointer &GetMovingImageResampler() {return m_MovingImageResampler;}
 
     /** Set/Get Method for the Agregator */
-    itkSetObjectMacro(Agregator, AgregatorType);
-    itkGetMacro(Agregator, AgregatorType *);
+    itkSetObjectMacro(Agregator, AgregatorType)
+    itkGetMacro(Agregator, AgregatorType *)
 
     /** Set/Get the maximum number of iterations */
-    itkSetMacro (MaximumIterations, unsigned int);
-    itkGetConstReferenceMacro (MaximumIterations, unsigned int);
+    itkSetMacro (MaximumIterations, unsigned int)
+    itkGetConstReferenceMacro (MaximumIterations, unsigned int)
 
     /** Set/Get the minimal error over consecutive transformations */
-    itkSetMacro(MinimalTransformError, double);
-    itkGetConstReferenceMacro(MinimalTransformError, double);
+    itkSetMacro(MinimalTransformError, double)
+    itkGetConstReferenceMacro(MinimalTransformError, double)
 
-    itkSetMacro (SVFElasticRegSigma, double);
-    itkGetConstReferenceMacro (SVFElasticRegSigma, double);
+    itkSetMacro (SVFElasticRegSigma, double)
+    itkGetConstReferenceMacro (SVFElasticRegSigma, double)
 
     void Abort() {m_Abort = true;}
 
-    itkSetMacro(InitialTransform, TransformPointer);
+    itkSetMacro(InitialTransform, TransformPointer)
     TransformPointer &GetInitialTransform() {return m_InitialTransform;}
 
     void SetBlockMatcher(BlockMatcherType *matcher) {m_BlockMatcher = matcher;}
