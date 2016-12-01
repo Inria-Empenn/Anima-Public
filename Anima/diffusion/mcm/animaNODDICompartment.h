@@ -40,8 +40,6 @@ public:
     // Set constraints
     void SetEstimateAxialDiffusivity(bool arg);
     void SetCompartmentVector(ModelOutputVectorType &compartmentVector) ITK_OVERRIDE;
-    
-    void SetWatsonSamples(std::vector<Vector3DType> *samples) {m_WatsonSamples = samples;};
 
     unsigned int GetCompartmentSize() ITK_OVERRIDE;
     unsigned int GetNumberOfParameters() ITK_OVERRIDE;
@@ -59,9 +57,8 @@ protected:
         m_EstimateAxialDiffusivity = true;
         m_ChangedConstraints = true;
         m_ModifiedConcentration = true;
-        m_OptimalIndex = 0;
         m_Tau1 = 2.0 / 3.0;
-        m_WS.clear();
+        m_WatsonSamples.clear();
         
         m_NorthPole.fill(0.0);
         m_NorthPole[2] = 1.0;
@@ -80,10 +77,8 @@ private:
     bool m_ChangedConstraints;
     bool m_ModifiedConcentration;
     unsigned int m_NumberOfParameters;
-    std::vector<Vector3DType> *m_WatsonSamples;
-    std::vector<Vector3DType> m_WS;
+    std::vector<Vector3DType> m_WatsonSamples;
     Vector3DType m_NorthPole;
-    unsigned int m_OptimalIndex;
     double m_Tau1;
     
     static const unsigned int m_NumberOfSamples = 1000;

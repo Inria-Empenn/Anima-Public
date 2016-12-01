@@ -166,7 +166,7 @@ void MultiCompartmentModelCreator::CreateStickCompartment(BaseCompartmentPointer
 
     stickComp->SetAxialDiffusivity(m_AxialDiffusivity);
     stickComp->SetRadialDiffusivity1((m_RadialDiffusivity1 + m_RadialDiffusivity2) / 2.0);
-
+    
     if (applyConstraints)
     {
         if (m_UseCommonDiffusivities)
@@ -227,7 +227,6 @@ void MultiCompartmentModelCreator::CreateNODDICompartment(BaseCompartmentPointer
     noddiComp->SetExtraAxonalFraction(m_ExtraAxonalFraction);
     noddiComp->SetAxialDiffusivity(m_AxialDiffusivity);
     noddiComp->SetRadialDiffusivity1((m_RadialDiffusivity1 + m_RadialDiffusivity2) / 2.0);
-    noddiComp->SetWatsonSamples(m_WatsonSamples);
     
     if (applyConstraints)
     {

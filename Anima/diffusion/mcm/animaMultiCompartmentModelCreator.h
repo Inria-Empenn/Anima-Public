@@ -57,8 +57,6 @@ public:
     void SetAxialDiffusivityValue(double arg) {m_AxialDiffusivity = arg;}
     void SetRadialDiffusivity1Value(double arg) {m_RadialDiffusivity1 = arg;}
     void SetRadialDiffusivity2Value(double arg) {m_RadialDiffusivity2 = arg;}
-    
-    void SetWatsonSamples(std::vector < std::vector<BaseCompartmentType::Vector3DType> > &samples) {m_WatsonSamples = samples.data();};
 
     void SetConcentrationBounds(double lowerBound, double upperBound);
     bool GetUserDefinedConcentrationBounds() {return m_UserDefinedConcentrationBounds;}
@@ -97,8 +95,6 @@ private:
     bool m_UseCommonConcentrations;
     bool m_UseCommonExtraAxonalFractions;
     
-    std::vector<BaseCompartmentType::Vector3DType> *m_WatsonSamples;
-
     bool m_UserDefinedConcentrationBounds;
     double m_ConcentrationLowerBound;
     double m_ConcentrationUpperBound;

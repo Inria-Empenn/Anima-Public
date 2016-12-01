@@ -28,8 +28,7 @@ double NODDICompartment::GetFourierTransformedDiffusionProfile(double bValue, co
     
     for (unsigned int i = 0;i < m_NumberOfSamples;++i)
     {
-//        double innerProd = anima::ComputeScalarProduct(m_WatsonSamples[i][m_OptimalIndex], tmpVec);
-        double innerProd = anima::ComputeScalarProduct(m_WS[i], tmpVec);
+        double innerProd = anima::ComputeScalarProduct(m_WatsonSamples[i], tmpVec);
         intraSignal += std::exp(-bValue * axialDiff * innerProd * innerProd);
     }
     
@@ -297,39 +296,11 @@ void NODDICompartment::UpdateWatsonSamples()
     double fVal = anima::EvaluateDawsonFunction(std::sqrt(kappa));
     m_Tau1 = -1.0 / (2.0 * kappa) + 1.0 / (2.0 * fVal * std::sqrt(kappa));
     
-//    m_OptimalIndex = 0;
-    
-//    double odi = m_EAFLowerBound;
-//    double step = (m_EAFUpperBound - m_EAFLowerBound) / (m_NumberOfTabulatedKappas - 1.0);
-//    
-//    while (odi < m_EAFUpperBound)
-//    {
-//        double kappaTab = 1.0 / std::tan(M_PI / 2.0 * odi);
-//        
-//        if (kappaTab < kappa)
-//            break;
-//        
-//        odi += step;
-//        ++m_OptimalIndex;
-//    }
-    
-//    double kappaTab = m_ZeroLowerBound;
-//    double step = (m_WatsonKappaUpperBound - m_ZeroLowerBound) / (m_NumberOfTabulatedKappas - 1.0);
-//    
-//    while (kappaTab < m_WatsonKappaUpperBound)
-//    {
-//        if (kappaTab > kappa)
-//            break;
-//        
-//        kappaTab += step;
-//        ++m_OptimalIndex;
-//    }
-    
-    m_WS.resize(m_NumberOfSamples);
+    m_WatsonSamples.resize(m_NumberOfSamples);
     std::mt19937 generator(time(0));
     
     for (unsigned int i = 0;i < m_NumberOfSamples;++i)
-        anima::SampleFromWatsonDistribution(kappa, m_NorthPole, m_WS[i], 3, generator);
+        anima::SampleFromWatsonDistribution(kappa, m_NorthPole, m_WatsonSamples[i], 3, generator);
     
     m_ModifiedConcentration = false;
 }
