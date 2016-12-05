@@ -194,7 +194,10 @@ void BlockMatchingInitializer<PixelType,NDimensions>
 
     for (unsigned int i = 0;i < NDimensions;++i)
     {
-        totalNbBlocks[i] = 1 + std::floor((float)(this->GetRequestedRegion().GetSize()[i] / this->GetBlockSpacing()));
+        totalNbBlocks[i] = std::floor((float)(this->GetRequestedRegion().GetSize()[i] / this->GetBlockSpacing()) + 0.5);
+        if (totalNbBlocks[i] < 1)
+            totalNbBlocks[i] = 1;
+
         unsigned int spaceRequired = this->GetRequestedRegion().GetSize()[i] - (totalNbBlocks[i] - 1) * this->GetBlockSpacing() - 1;
 
         tmpStr->blockStartOffsets[i] = std::floor(spaceRequired / 2.0);
