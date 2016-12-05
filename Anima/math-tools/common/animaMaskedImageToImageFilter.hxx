@@ -15,10 +15,10 @@ MaskedImageToImageFilter < TInputImage, TOutputImage >
         m_ComputationMask = MaskImageType::New();
         m_ComputationMask->Initialize();
 
-        m_ComputationMask->SetRegions (this->GetInput(0)->GetLargestPossibleRegion());
-        m_ComputationMask->SetSpacing (this->GetInput(0)->GetSpacing());
-        m_ComputationMask->SetOrigin (this->GetInput(0)->GetOrigin());
-        m_ComputationMask->SetDirection (this->GetInput(0)->GetDirection());
+        m_ComputationMask->SetRegions (this->GetOutput(0)->GetLargestPossibleRegion());
+        m_ComputationMask->SetSpacing (this->GetOutput(0)->GetSpacing());
+        m_ComputationMask->SetOrigin (this->GetOutput(0)->GetOrigin());
+        m_ComputationMask->SetDirection (this->GetOutput(0)->GetDirection());
 
         m_ComputationMask->Allocate();
 
