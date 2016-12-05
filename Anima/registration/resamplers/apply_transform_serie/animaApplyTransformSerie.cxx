@@ -61,15 +61,26 @@ applyVectorTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
     typename ImageType::PointType origin;
     typename ImageType::SpacingType spacing;
     typename ImageType::DirectionType direction;
-    for(unsigned int i = 0; i < ImageType::ImageDimension; ++i)
+    direction.SetIdentity();
+    unsigned int imageIODimension = geometryImageIO->GetNumberOfDimensions();
+
+    for (unsigned int i = 0;i < imageIODimension;++i)
     {
         size[i] = geometryImageIO->GetDimensions(i);
         origin[i] = geometryImageIO->GetOrigin(i);
         spacing[i] = geometryImageIO->GetSpacing(i);
-        for(unsigned int j = 0; j < ImageType::ImageDimension; ++j)
-            // watch out transposition.
+        for(unsigned int j = 0; j < imageIODimension; ++j)
             direction[i][j] = geometryImageIO->GetDirection(j)[i];
     }
+
+    for (unsigned int i = imageIODimension;i < ImageType::ImageDimension;++i)
+    {
+        size[i] = 1;
+        origin[i] = 0;
+        spacing[i] = 1;
+        direction[i][i] = 1;
+    }
+
     vectorResampler->SetSize(size);
     vectorResampler->SetOutputOrigin(origin);
     vectorResampler->SetOutputSpacing(spacing);
@@ -124,14 +135,26 @@ applyScalarTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
     typename ImageType::PointType origin;
     typename ImageType::SpacingType spacing;
     typename ImageType::DirectionType direction;
-    for(unsigned int i = 0; i < ImageType::ImageDimension; ++i)
+    direction.SetIdentity();
+    unsigned int imageIODimension = geometryImageIO->GetNumberOfDimensions();
+
+    for (unsigned int i = 0;i < imageIODimension;++i)
     {
         size[i] = geometryImageIO->GetDimensions(i);
         origin[i] = geometryImageIO->GetOrigin(i);
         spacing[i] = geometryImageIO->GetSpacing(i);
-        for(unsigned int j = 0; j < ImageType::ImageDimension; ++j)
+        for(unsigned int j = 0; j < imageIODimension; ++j)
             direction[i][j] = geometryImageIO->GetDirection(j)[i];
     }
+
+    for (unsigned int i = imageIODimension;i < ImageType::ImageDimension;++i)
+    {
+        size[i] = 1;
+        origin[i] = 0;
+        spacing[i] = 1;
+        direction[i][i] = 1;
+    }
+
     scalarResampler->SetSize(size);
     scalarResampler->SetOutputOrigin(origin);
     scalarResampler->SetOutputSpacing(spacing);
@@ -159,7 +182,7 @@ template <class ComponentType>
 void
 retrieveNbDimensions(itk::ImageIOBase::Pointer inputImageIO, itk::ImageIOBase::Pointer geometryImageIO,  const arguments &args)
 {
-    if(inputImageIO->GetNumberOfDimensions() != 3)
+    if(inputImageIO->GetNumberOfDimensions() > 3)
     {
         itk::ExceptionObject excp(__FILE__, __LINE__, "Number of type not supported.", ITK_LOCATION);
         throw excp;
