@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include <itkImageToImageFilter.h>
+#include <animaMaskedImageToImageFilter.h>
 #include <itkVectorImage.h>
 #include <itkInterpolateImageFunction.h>
 
@@ -12,7 +12,7 @@ namespace anima
 
 template <typename TImageType, typename TInterpolatorPrecisionType=float>
 class OrientedModelBaseResampleImageFilter :
-        public itk::ImageToImageFilter <TImageType, TImageType>
+        public anima::MaskedImageToImageFilter <TImageType, TImageType>
 {
 public:
     /** Standard class typedefs. */
@@ -24,7 +24,7 @@ public:
     typedef itk::Image <unsigned char, itkGetStaticConstMacro(ImageDimension)> GeometryImageType;
     typedef typename GeometryImageType::Pointer GeometryImagePointer;
 
-    typedef itk::ImageToImageFilter<TImageType, TImageType> Superclass;
+    typedef anima::MaskedImageToImageFilter<TImageType, TImageType> Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
@@ -35,9 +35,10 @@ public:
     typedef typename InterpolatorType::PointType PointType;
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(OrientedModelBaseResampleImageFilter, ImageToImageFilter)
+    itkTypeMacro(OrientedModelBaseResampleImageFilter, anima::MaskedImageToImageFilter)
 
     typedef typename InputImageType::PixelType InputPixelType;
+    typedef typename InputImageType::PointType InputPointType;
     typedef typename InputImageType::IndexType InputIndexType;
 
     /** Image typedef support */
@@ -49,22 +50,10 @@ public:
     itkGetStaticConstMacro(ImageDimension),
     itkGetStaticConstMacro(ImageDimension)> TransformType;
 
-    typedef itk::MatrixOffsetTransformBase <TInterpolatorPrecisionType,
-    itkGetStaticConstMacro(ImageDimension),
-    itkGetStaticConstMacro(ImageDimension)> MatrixTransformType;
-
     typedef typename TransformType::Pointer TransformPointer;
 
-    void SetTransform (TransformType *trsf)
-    {
-        m_Transform = trsf;
-        if (dynamic_cast <MatrixTransformType *> (m_Transform.GetPointer()) != 0)
-            m_LinearTransform = true;
-        else
-            m_LinearTransform = false;
-    }
-
-    itkGetMacro(Transform,TransformType *)
+    itkSetObjectMacro(Transform,TransformType)
+    itkGetObjectMacro(Transform,TransformType)
 
     itkSetMacro(Interpolator,InterpolatorPointer)
     itkGetMacro(Interpolator,InterpolatorType *)
@@ -92,8 +81,6 @@ public:
 protected:
     OrientedModelBaseResampleImageFilter()
     {
-        m_LinearTransform = false;
-
         m_Transform = 0;
         m_Interpolator = 0;
 
@@ -101,6 +88,9 @@ protected:
     }
 
     virtual ~OrientedModelBaseResampleImageFilter() {}
+
+    virtual void GenerateInputRequestedRegion() ITK_OVERRIDE;
+    virtual void GenerateOutputInformation() ITK_OVERRIDE;
 
     virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
@@ -174,10 +164,7 @@ private:
     void operator=(const Self&); //purposely not implemented
 
     TransformPointer m_Transform;
-    bool m_LinearTransform;
-
     bool m_FiniteStrainReorientation;
-
     InterpolatorPointer m_Interpolator;
 
     SpacingType m_OutputSpacing;

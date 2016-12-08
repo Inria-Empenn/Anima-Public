@@ -55,7 +55,7 @@ void MultiCompartmentModelCreator::SetConcentrationBounds(double lowerBound, dou
     m_OrientationConcentration = (lowerBound + upperBound) / 2.0;
 }
 
-MultiCompartmentModelCreator::MCMType *MultiCompartmentModelCreator::GetNewMultiCompartmentModel()
+MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMultiCompartmentModel()
 {
     MCMPointer outputMCM = MCMType::New();
     outputMCM->SetOptimizeWeights(!m_UseFixedWeights);
@@ -148,7 +148,6 @@ MultiCompartmentModelCreator::MCMType *MultiCompartmentModelCreator::GetNewMulti
         outputMCM->AddCompartment(compartmentWeight,tmpPointer);
     }
 
-    outputMCM->Register();
     return outputMCM;
 }
 

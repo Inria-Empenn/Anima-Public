@@ -194,13 +194,16 @@ void BlockMatchingInitializer<PixelType,NDimensions>
 
     for (unsigned int i = 0;i < NDimensions;++i)
     {
-        totalNbBlocks[i] = floor((float)(this->GetRequestedRegion().GetSize()[i] / this->GetBlockSpacing()) + 0.5);
+        totalNbBlocks[i] = std::floor((float)(this->GetRequestedRegion().GetSize()[i] / this->GetBlockSpacing()) + 0.5);
+        if (totalNbBlocks[i] < 1)
+            totalNbBlocks[i] = 1;
+
         unsigned int spaceRequired = this->GetRequestedRegion().GetSize()[i] - (totalNbBlocks[i] - 1) * this->GetBlockSpacing() - 1;
 
-        tmpStr->blockStartOffsets[i] = floor(spaceRequired / 2.0);
+        tmpStr->blockStartOffsets[i] = std::floor(spaceRequired / 2.0);
     }
 
-    unsigned int nb_blocks_per_thread = (unsigned int) floor((float)(totalNbBlocks[NDimensions-1] / this->GetNumberOfThreads()));
+    unsigned int nb_blocks_per_thread = (unsigned int) std::floor((float)(totalNbBlocks[NDimensions-1] / this->GetNumberOfThreads()));
     if (nb_blocks_per_thread < 1)
     {
         nb_blocks_per_thread = 1;
@@ -340,7 +343,7 @@ void BlockMatchingInitializer<PixelType,NDimensions>
     block_variances.clear();
     block_origins.clear();
 
-    unsigned int block_half_size = floor ((this->GetBlockSize() - 1) / 2.0);
+    unsigned int block_half_size = std::floor ((this->GetBlockSize() - 1) / 2.0);
 
     bool continueLoop = true;
     std::vector <unsigned int> positionCounter(NDimensions,0);

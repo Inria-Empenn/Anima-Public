@@ -80,21 +80,6 @@ int main(int ac, const char** av)
         return EXIT_FAILURE;
     }
 
-    // Find out the type of the image in file
-    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(tensorArg.getValue().c_str(),
-                                                                           itk::ImageIOFactory::ReadMode);
-
-    if(!imageIO)
-    {
-        std::cerr << "Itk could not find a suitable IO factory for the input" << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    // Now that we found the appropriate ImageIO class, ask it to read the meta data from the image file.
-    imageIO->SetFileName(tensorArg.getValue());
-    imageIO->ReadImageInformation();
-
-
     itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
     callback->SetCallback(eventCallback);
 

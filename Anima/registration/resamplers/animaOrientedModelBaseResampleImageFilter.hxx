@@ -5,6 +5,7 @@
 #include <animaVectorModelLinearInterpolateImageFunction.h>
 
 #include <animaBaseTensorTools.h>
+#include <animaLinearTransformEstimationTools.h>
 
 namespace anima
 {
@@ -18,6 +19,34 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 
     typename InterpolatorType::Pointer tmpInterpolator = InterpolatorType::New();
     this->SetInterpolator(tmpInterpolator.GetPointer());
+}
+
+
+template <typename TImageType, typename TInterpolatorPrecisionType>
+void
+OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
+::GenerateInputRequestedRegion()
+{
+    Superclass::GenerateInputRequestedRegion();
+    if (!this->GetInput())
+        return;
+
+    InputImagePointer inputPtr = const_cast <TImageType *> (this->GetInput());
+    inputPtr->SetRequestedRegionToLargestPossibleRegion();
+}
+
+template <typename TImageType, typename TInterpolatorPrecisionType>
+void
+OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
+::GenerateOutputInformation()
+{
+    Superclass::GenerateOutputInformation();
+
+    this->GetOutput()->SetSpacing(m_OutputSpacing);
+    this->GetOutput()->SetOrigin(m_OutputOrigin);
+    this->GetOutput()->SetDirection(m_OutputDirection);
+    this->GetOutput()->SetRegions(m_OutputLargestPossibleRegion);
+    this->GetOutput()->SetNumberOfComponentsPerPixel(this->GetOutputVectorLength());
 }
 
 template <typename TImageType, typename TInterpolatorPrecisionType>
@@ -36,6 +65,8 @@ void
 OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 ::BeforeThreadedGenerateData()
 {
+    Superclass::BeforeThreadedGenerateData();
+
     m_StartIndex = this->GetInput(0)->GetLargestPossibleRegion().GetIndex();
     m_EndIndex = m_StartIndex + this->GetInput(0)->GetLargestPossibleRegion().GetSize();
 
@@ -47,16 +78,7 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 
     m_Interpolator->SetInputImage(this->GetInput(0));
 
-    this->GetOutput()->SetSpacing(m_OutputSpacing);
-    this->GetOutput()->SetOrigin(m_OutputOrigin);
-    this->GetOutput()->SetDirection(m_OutputDirection);
-    this->GetOutput()->SetRegions(m_OutputLargestPossibleRegion);
-    this->GetOutput()->SetNumberOfComponentsPerPixel(this->GetOutputVectorLength());
-
-    this->GetOutput()->Allocate();
-    this->GetOutput()->SetRequestedRegion(this->GetOutput()->GetLargestPossibleRegion());
-
-    if (!m_LinearTransform)
+    if (!m_Transform->IsLinear())
     {
         m_StartIndDef = m_OutputLargestPossibleRegion.GetIndex();
         m_EndIndDef = m_StartIndDef + m_OutputLargestPossibleRegion.GetSize();
@@ -68,7 +90,7 @@ void
 OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 ::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
 {
-    if (m_LinearTransform)
+    if (m_Transform->IsLinear())
         this->LinearThreadedGenerateData(outputRegionForThread,threadId);
     else
         this->NonLinearThreadedGenerateData(outputRegionForThread,threadId);
@@ -178,9 +200,42 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 ::ComputeLinearJacobianMatrix()
 {
     vnl_matrix <double> reorientationMatrix(ImageDimension,ImageDimension);
-    MatrixTransformType *matrixTrsf = dynamic_cast <MatrixTransformType *> (m_Transform.GetPointer());
 
-    reorientationMatrix = matrixTrsf->GetMatrix().GetVnlMatrix().as_matrix();
+    unsigned int neighbors = 1 << ImageDimension;
+    std::vector <InputPointType> inputPoints(neighbors);
+    std::vector <InputPointType> transformedPoints(neighbors);
+    std::vector <double> dataWeights(neighbors, 1.0);
+
+    InputIndexType refIndex;
+    for (unsigned int i = 0;i < ImageDimension;++i)
+        refIndex[i] = std::floor((this->GetOutput()->GetLargestPossibleRegion().GetIndex()[i] + this->GetOutput()->GetLargestPossibleRegion().GetSize()[i]) / 2.0);
+
+    ContinuousIndexType index;
+    unsigned int pos = 0;
+    for (unsigned int counter = 0;counter < neighbors;++counter)
+    {
+        unsigned int upper = counter;
+        for (unsigned int dim = 0;dim < ImageDimension;++dim)
+        {
+            if (upper & 1)
+                index[dim] = refIndex[dim] + 0.5;
+            else
+                index[dim] = refIndex[dim] - 0.5;
+
+            upper >>= 1;
+        }
+
+        this->GetOutput()->TransformContinuousIndexToPhysicalPoint(index,inputPoints[pos]);
+        transformedPoints[pos] = m_Transform->TransformPoint(inputPoints[pos]);
+
+        ++pos;
+    }
+
+    typedef itk::AffineTransform <TInterpolatorPrecisionType, ImageDimension> AffineTransformType;
+    typename AffineTransformType::Pointer affineTransform = AffineTransformType::New();
+    anima::computeAffineLSWFromTranslations <double,TInterpolatorPrecisionType,ImageDimension> (inputPoints,transformedPoints,dataWeights,affineTransform);
+
+    reorientationMatrix = affineTransform->GetMatrix().GetVnlMatrix().as_matrix();
 
     return reorientationMatrix;
 }

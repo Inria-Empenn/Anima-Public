@@ -14,6 +14,8 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> outArg("o","outputfile","output image",true,"","output image",cmd);
     TCLAP::ValueArg<double> relStdArg("v","variance","relative noise variance (percentage of average non-background signal value, default: 0.05)",false,0.05,"noise variance",cmd);
 
+    TCLAP::ValueArg<double> backThrArg("b","background-thr","Background threshold (default: 10)",false,10,"background variance",cmd);
+
     TCLAP::ValueArg<double> refValArg("r","ref-val","Reference value on which relative noise is applied (default: computed from image)",false,0,"reference value",cmd);
     TCLAP::SwitchArg avg4dMeanValArg("A","average-4d-mean","Automatically computed mean value of tissue is over all 4D volume",cmd,false);
 
@@ -70,6 +72,7 @@ int main(int argc, char **argv)
             mainFilter->SetInput(imageReader->GetOutput());
             mainFilter->SetRefVal(refValArg.getValue());
             mainFilter->SetRelStdDevGaussianNoise(relStd);
+            mainFilter->SetBackgroundThreshold(backThrArg.getValue());
 
             // If a reference value is specified, ignore average flag
             if (refValArg.getValue() == 0)
@@ -109,6 +112,7 @@ int main(int argc, char **argv)
             mainFilter->SetRefVal(refValArg.getValue());
             mainFilter->SetRelStdDevGaussianNoise(relStd);
             mainFilter->SetAverageMeanValOnAllVolumes(true);
+            mainFilter->SetBackgroundThreshold(backThrArg.getValue());
 
             mainFilter->Update();
 

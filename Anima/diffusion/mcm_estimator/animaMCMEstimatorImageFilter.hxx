@@ -583,7 +583,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 {
     // Declarations for optimization
     MCMCreatorType *mcmCreator = m_MCMCreators[threadId];
-    mcmCreator->SetModelWithFreeWaterComponent(true);
+    mcmCreator->SetModelWithFreeWaterComponent(m_ModelWithFreeWaterComponent);
     mcmCreator->SetModelWithStationaryWaterComponent(m_ModelWithStationaryWaterComponent);
     mcmCreator->SetModelWithRestrictedWaterComponent(m_ModelWithRestrictedWaterComponent);
     mcmCreator->SetNumberOfCompartments(0);
