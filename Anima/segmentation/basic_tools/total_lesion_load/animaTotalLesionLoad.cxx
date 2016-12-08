@@ -14,7 +14,9 @@ int main(int argc, const char** argv)
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
 
     // Input filenames
-    TCLAP::ValueArg<std::string> inArg("i","inputfile","Input image",true,"","input image",cmd);
+    TCLAP::ValueArg<std::string> inArg("i", "inputfile", "Input image", true, "", "input image", cmd);
+    // Output filenames
+    TCLAP::ValueArg<std::string> outArg("o", "outputfile", "Output image", false, "", "output image", cmd);
     
     try
     {
@@ -43,9 +45,27 @@ int main(int argc, const char** argv)
     ImageType::SpacingValueType spacingTot = spacing[0];
     for (unsigned int i = 1; i < 3;++i)
         spacingTot *= spacing[i];
+
+    std::ofstream oFileOut;
+    if (outArg.getValue() != "")
+    {
+       oFileOut.open(outArg.getValue(), std::ios::out | std::ios::trunc);
+       if (!oFileOut.is_open())
+       {
+          std::cerr << "Can not open file: " << outArg.getValue() << "to store TLL value" << std::endl;
+       }
+    }
+
+    if (oFileOut.is_open())
+    {
+       oFileOut << cpt * spacingTot;
+    } 
+    else
+    {
+      std::cout << cpt * spacingTot << std::endl;
+    }
     
-    std::cout << cpt * spacingTot << std::endl;
+    oFileOut.close();
     
     return EXIT_SUCCESS;
-
 }
