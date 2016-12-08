@@ -25,10 +25,10 @@ public:
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(GaussianNoiseGeneratorImageFilter, ImageToImageFilter);
+    itkTypeMacro(GaussianNoiseGeneratorImageFilter, ImageToImageFilter)
 
     typedef typename TOutputImage::PixelType OutputPixelType;
     typedef typename TInputImage::PixelType InputPixelType;
@@ -49,10 +49,12 @@ public:
             m_AverageMeanValOnAllVolumes = true;
     }
 
-    itkSetMacro(AverageMeanValOnAllVolumes, bool);
+    itkSetMacro(AverageMeanValOnAllVolumes, bool)
 
-    itkSetMacro(RelStdDevGaussianNoise, double);
-    itkGetMacro(RelStdDevGaussianNoise, double);
+    itkSetMacro(RelStdDevGaussianNoise, double)
+    itkGetMacro(RelStdDevGaussianNoise, double)
+
+    itkSetMacro(BackgroundThreshold, double)
 
 protected:
     GaussianNoiseGeneratorImageFilter()

@@ -45,7 +45,7 @@ GaussianNoiseGeneratorImageFilter<Dimension>
             unsigned int nbPts = 0;
             while (!inputIterator.IsAtEnd())
             {
-                if (inputIterator.Get() < m_BackgroundThreshold)
+                if (inputIterator.Get() <= m_BackgroundThreshold)
                 {
                     ++inputIterator;
                     continue;
@@ -75,7 +75,7 @@ GaussianNoiseGeneratorImageFilter<Dimension>
                 unsigned int nbPts = 0;
                 while (!inputIterator.IsAtEnd())
                 {
-                    if (inputIterator.Get() < m_BackgroundThreshold)
+                    if (inputIterator.Get() <= m_BackgroundThreshold)
                     {
                         ++inputIterator;
                         continue;
