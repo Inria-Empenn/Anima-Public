@@ -217,6 +217,8 @@ public:
     double GetPercentageKept() {return m_PercentageKept;}
     void SetPercentageKept(double PercentageKept) {m_PercentageKept=PercentageKept;}
 
+    void SetVerbose(bool value) {m_Verbose = value;}
+
 protected:
     PyramidalDenseSVFMatchingBridge();
     virtual ~PyramidalDenseSVFMatchingBridge();
@@ -274,6 +276,7 @@ private:
     double m_PercentageKept;
 
     bool m_Abort;
+    bool m_Verbose;
 
     itk::ProgressReporter *m_progressReporter;
     itk::CStyleCommand::Pointer m_progressCallback;

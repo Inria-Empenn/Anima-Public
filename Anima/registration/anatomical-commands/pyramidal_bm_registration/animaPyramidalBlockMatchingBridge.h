@@ -205,6 +205,8 @@ public:
     bool GetInitializeOnCenterOfGravity() {return m_InitializeOnCenterOfGravity;}
     void SetInitializeOnCenterOfGravity(bool initOnCenterOfGravity) {m_InitializeOnCenterOfGravity=initOnCenterOfGravity;}
 
+   void SetVerbose(bool value) {m_Verbose = value;}
+
 protected:
     PyramidalBlockMatchingBridge();
     virtual ~PyramidalBlockMatchingBridge();
@@ -258,6 +260,7 @@ private:
     bool m_InitializeOnCenterOfGravity;
 
     bool m_Abort;
+    bool m_Verbose;
 
     itk::ProgressReporter *m_progressReporter;
     itk::CStyleCommand::Pointer m_progressCallback;

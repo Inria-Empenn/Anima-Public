@@ -58,7 +58,8 @@ Update()
     }
 
     tmpTime.Stop();
-    std::cout << "Agregation performed in " << tmpTime.GetTotal() << std::endl;
+    if (this->GetVerboseAgregation())
+        std::cout << "Agregation performed in " << tmpTime.GetTotal() << std::endl;
 
     return true;
 }

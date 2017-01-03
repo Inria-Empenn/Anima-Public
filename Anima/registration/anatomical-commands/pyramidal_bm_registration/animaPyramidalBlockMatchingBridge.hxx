@@ -67,6 +67,7 @@ PyramidalBlockMatchingBridge<ImageDimension>::PyramidalBlockMatchingBridge()
     this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
 
     m_Abort = false;
+    m_Verbose = true;
 
     m_callback = itk::CStyleCommand::New();
     m_callback->SetClientData ((void *) this);
@@ -148,8 +149,11 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
         mainMatcher->SetBlockSpacing(GetBlockSpacing());
         mainMatcher->SetBlockVarianceThreshold(GetStDevThreshold() * GetStDevThreshold());
 
-        std::cout << "Processing pyramid level " << i << std::endl;
-        std::cout << "Image size: " << refImage->GetLargestPossibleRegion().GetSize() << std::endl;
+        if (m_Verbose)
+        {
+            std::cout << "Processing pyramid level " << i << std::endl;
+            std::cout << "Image size: " << refImage->GetLargestPossibleRegion().GetSize() << std::endl;
+        }
 
         // Init bm registration method
         switch (m_SymmetryType)
@@ -171,6 +175,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
                 reverseMatcher->SetBlockSize(GetBlockSize());
                 reverseMatcher->SetBlockSpacing(GetBlockSpacing());
                 reverseMatcher->SetBlockVarianceThreshold(GetStDevThreshold() * GetStDevThreshold());
+                reverseMatcher->SetVerbose(m_Verbose);
 
                 tmpReg->SetReverseBlockMatcher(reverseMatcher);
                 m_bmreg = tmpReg;
@@ -186,6 +191,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
             }
         }
 
+        mainMatcher->SetVerbose(m_Verbose);
         m_bmreg->SetBlockMatcher(mainMatcher);
 
         if (m_progressCallback)
@@ -273,6 +279,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
                 break;
         }
 
+        agreg->SetVerboseAgregation(m_Verbose);
         m_bmreg->SetAgregator(agreg);
 
         switch (GetTransform())
@@ -394,6 +401,8 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
             reverseMatcher->SetSkewMax(skub);
             reverseMatcher->SetScaleMax(scub);
         }
+
+        m_bmreg->SetVerboseProgression(m_Verbose);
 
         try
         {

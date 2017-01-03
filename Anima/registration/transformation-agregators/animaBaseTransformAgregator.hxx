@@ -12,6 +12,7 @@ BaseTransformAgregator()
     m_OutputTransformType = TRANSLATION;
     m_Output = NULL;
     m_UpToDate = false;
+    m_VerboseAgregation = true;
 
     m_InputTransforms.clear();
     m_InputOrigins.clear();

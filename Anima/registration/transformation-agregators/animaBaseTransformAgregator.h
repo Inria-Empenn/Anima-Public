@@ -75,6 +75,9 @@ public:
 
     void SetUpToDate(bool value) {m_UpToDate = value;}
 
+    void SetVerboseAgregation(bool value) {m_VerboseAgregation = value;}
+    bool GetVerboseAgregation() {return m_VerboseAgregation;}
+
     TRANSFORM_TYPE GetInputTransformType() {return m_InputTransformType;}
     TRANSFORM_TYPE GetOutputTransformType() {return m_OutputTransformType;}
 
@@ -91,6 +94,7 @@ private:
     std::vector <InternalScalarType> m_Weights;
 
     bool m_UpToDate;
+    bool m_VerboseAgregation;
 
     typename BaseOutputTransformType::Pointer m_Output;
 

@@ -96,6 +96,9 @@ public:
 
     virtual bool GetMaximizedMetric() = 0;
 
+    void SetVerbose(bool value) {m_Verbose = value;}
+    bool GetVerbose() {return m_Verbose;}
+
 protected:
     struct ThreadedMatchData
     {
@@ -146,6 +149,8 @@ private:
     unsigned int m_BlockSpacing;
     bool m_UseTransformationDam;
     double m_DamDistance;
+
+    bool m_Verbose;
 
     // The matched transform for each of the BlockRegions
     std::vector <BaseInputTransformPointer> m_BlockTransformPointers;

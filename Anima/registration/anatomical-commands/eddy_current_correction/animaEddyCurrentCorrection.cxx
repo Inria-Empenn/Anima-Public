@@ -89,7 +89,7 @@ int main(int argc, const char** argv)
         if (i == b0Arg.getValue())
             continue;
 
-        std::cout << "Processing " << i+1 << "-th image out of " << numberOfImages << std::endl;
+        std::cout << "Processing image " << i+1 << " out of " << numberOfImages << std::endl;
 
         ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
         extractFilter->SetInput(inputImage);
@@ -123,6 +123,7 @@ int main(int argc, const char** argv)
         matcher->SetSeStoppingThreshold(seStoppingThresholdArg.getValue());
         matcher->SetNumberOfPyramidLevels(numPyramidLevelsArg.getValue());
         matcher->SetLastPyramidLevel(lastPyramidLevelArg.getValue());
+        matcher->SetVerbose(false);
 
         if (numThreadsArg.getValue() != 0)
             matcher->SetNumberOfThreads( numThreadsArg.getValue() );
@@ -198,6 +199,7 @@ int main(int argc, const char** argv)
         nonLinearMatcher->SetUseTransformationDam(false);
         nonLinearMatcher->SetNumberOfPyramidLevels(numPyramidLevelsArg.getValue());
         nonLinearMatcher->SetLastPyramidLevel(lastPyramidLevelArg.getValue());
+        nonLinearMatcher->SetVerbose(false);
 
         if (numThreadsArg.getValue() != 0)
             nonLinearMatcher->SetNumberOfThreads(numThreadsArg.getValue());

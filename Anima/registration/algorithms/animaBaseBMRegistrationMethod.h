@@ -91,6 +91,9 @@ public:
     itkSetMacro (SVFElasticRegSigma, double)
     itkGetConstReferenceMacro (SVFElasticRegSigma, double)
 
+    itkSetMacro(VerboseProgression, bool)
+    itkGetMacro(VerboseProgression, bool)
+
     void Abort() {m_Abort = true;}
 
     itkSetMacro(InitialTransform, TransformPointer)
@@ -143,6 +146,7 @@ private:
     double m_SVFElasticRegSigma;
 
     bool m_Abort;
+    bool m_VerboseProgression;
 
     TransformPointer m_InitialTransform;
     BlockMatcherType * m_BlockMatcher;
