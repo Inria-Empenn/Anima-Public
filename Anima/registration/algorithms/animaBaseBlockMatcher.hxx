@@ -30,6 +30,7 @@ BaseBlockMatcher <TInputImageType>
     m_StepSize = 1.0;
 
     m_OptimizerType = Bobyqa;
+    m_Verbose = true;
 }
 
 template <typename TInputImageType>
@@ -63,7 +64,8 @@ BaseBlockMatcher <TInputImageType>
     m_BlockPositions = initPtr->GetOutputPositions();
     m_BlockDamWeights = initPtr->GetBlockDamWeights();
 
-    std::cout << "Generated " << m_BlockRegions.size() << " blocks..." << std::endl;
+    if (m_Verbose)
+        std::cout << "Generated " << m_BlockRegions.size() << " blocks..." << std::endl;
 
     m_BlockTransformPointers.resize(m_BlockRegions.size());
     m_BlockWeights.resize(m_BlockRegions.size());

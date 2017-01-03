@@ -38,6 +38,7 @@ PyramidalBlockMatchingBridge<ImageDimension>::PyramidalBlockMatchingBridge()
 
     m_SymmetryType = Asymmetric;
     m_Transform = Translation;
+    m_AffineDirection = 1;
     m_Metric = SquaredCorrelation;
     m_Optimizer = Bobyqa;
 
@@ -66,6 +67,7 @@ PyramidalBlockMatchingBridge<ImageDimension>::PyramidalBlockMatchingBridge()
     this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
 
     m_Abort = false;
+    m_Verbose = true;
 
     m_callback = itk::CStyleCommand::New();
     m_callback->SetClientData ((void *) this);
@@ -147,8 +149,11 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
         mainMatcher->SetBlockSpacing(GetBlockSpacing());
         mainMatcher->SetBlockVarianceThreshold(GetStDevThreshold() * GetStDevThreshold());
 
-        std::cout << "Processing pyramid level " << i << std::endl;
-        std::cout << "Image size: " << refImage->GetLargestPossibleRegion().GetSize() << std::endl;
+        if (m_Verbose)
+        {
+            std::cout << "Processing pyramid level " << i << std::endl;
+            std::cout << "Image size: " << refImage->GetLargestPossibleRegion().GetSize() << std::endl;
+        }
 
         // Init bm registration method
         switch (m_SymmetryType)
@@ -170,6 +175,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
                 reverseMatcher->SetBlockSize(GetBlockSize());
                 reverseMatcher->SetBlockSpacing(GetBlockSpacing());
                 reverseMatcher->SetBlockVarianceThreshold(GetStDevThreshold() * GetStDevThreshold());
+                reverseMatcher->SetVerbose(m_Verbose);
 
                 tmpReg->SetReverseBlockMatcher(reverseMatcher);
                 m_bmreg = tmpReg;
@@ -185,6 +191,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
             }
         }
 
+        mainMatcher->SetVerbose(m_Verbose);
         m_bmreg->SetBlockMatcher(mainMatcher);
 
         if (m_progressCallback)
@@ -202,7 +209,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
         m_bmreg->SetMovingImage(floImage);
 
         typedef anima::ResampleImageFilter<InputImageType, InputImageType,
-                                         typename AgregatorType::ScalarType> ResampleFilterType;
+                typename AgregatorType::ScalarType> ResampleFilterType;
 
         typename ResampleFilterType::Pointer refResampler = ResampleFilterType::New();
         refResampler->SetSize(floImage->GetLargestPossibleRegion().GetSize());
@@ -272,6 +279,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
                 break;
         }
 
+        agreg->SetVerboseAgregation(m_Verbose);
         m_bmreg->SetAgregator(agreg);
 
         switch (GetTransform())
@@ -285,6 +293,15 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
                 mainMatcher->SetBlockTransformType(BlockMatcherType::Superclass::Rigid);
                 if (reverseMatcher)
                     reverseMatcher->SetBlockTransformType(BlockMatcherType::Superclass::Rigid);
+                break;
+            case Directional_Affine:
+                mainMatcher->SetBlockTransformType(BlockMatcherType::Superclass::Directional_Affine);
+                mainMatcher->SetAffineDirection(m_AffineDirection);
+                if (reverseMatcher)
+                {
+                    reverseMatcher->SetBlockTransformType(BlockMatcherType::Superclass::Directional_Affine);
+                    reverseMatcher->SetAffineDirection(m_AffineDirection);
+                }
                 break;
             case Affine:
             default:
@@ -385,6 +402,8 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
             reverseMatcher->SetScaleMax(scub);
         }
 
+        m_bmreg->SetVerboseProgression(m_Verbose);
+
         try
         {
             m_bmreg->Update();
@@ -408,6 +427,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
         std::cout << "Process aborted" << std::endl;
 
     this->InvokeEvent(itk::EndEvent());
+    this->RemoveAllObservers();
 
     AffineTransformType *tmpTrsf = dynamic_cast<AffineTransformType *>(m_OutputTransform.GetPointer());
     
@@ -424,7 +444,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
         tmpTrsf->Compose(m_InitialTransform, false);
 
     typedef typename anima::ResampleImageFilter<InputImageType, InputImageType,
-                                                typename AgregatorType::ScalarType> ResampleFilterType;
+            typename AgregatorType::ScalarType> ResampleFilterType;
     typename ResampleFilterType::Pointer tmpResample = ResampleFilterType::New();
     tmpResample->SetTransform(m_OutputTransform);
     tmpResample->SetInput(m_FloatingImage);
@@ -442,8 +462,8 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
 template <unsigned int ImageDimension>
 void PyramidalBlockMatchingBridge<ImageDimension>::EmitProgress(int prog)
 {
-   if (m_progressReporter)
-       m_progressReporter->CompletedPixel();
+    if (m_progressReporter)
+        m_progressReporter->CompletedPixel();
 }
 
 template <unsigned int ImageDimension>
@@ -473,11 +493,11 @@ void PyramidalBlockMatchingBridge<ImageDimension>::WriteOutputs()
 }
 
 template <unsigned int ImageDimension>
-        void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
+void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
 {
     // Create pyramid here, check images actually are of the same size.
     typedef anima::ResampleImageFilter<InputImageType, InputImageType,
-                                     typename AgregatorType::ScalarType> ResampleFilterType;
+            typename AgregatorType::ScalarType> ResampleFilterType;
     typedef typename itk::CenteredTransformInitializer<AffineTransformType, InputImageType, InputImageType> TransformInitializerType;
 
     m_ReferencePyramid = PyramidType::New();

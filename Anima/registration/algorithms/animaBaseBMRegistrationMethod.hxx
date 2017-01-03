@@ -26,6 +26,8 @@ BaseBMRegistrationMethod <TInputImageType>
     m_ReferenceImageResampler = 0;
     m_MovingImageResampler = 0;
 
+    m_VerboseProgression = true;
+
     this->SetNumberOfThreads(this->GetMultiThreader()->GetNumberOfThreads());
 
     m_InitialTransform = 0;
@@ -103,7 +105,8 @@ BaseBMRegistrationMethod <TInputImageType>
 
         bool continueLoop = this->ComposeAddOnWithTransform(computedTransform,addOn);
 
-        std::cout << "Iteration " << iterations << " done..." << std::endl;
+        if (m_VerboseProgression)
+            std::cout << "Iteration " << iterations << " done..." << std::endl;
 
         if (iterations != m_MaximumIterations - 1)
             progress.CompletedPixel();

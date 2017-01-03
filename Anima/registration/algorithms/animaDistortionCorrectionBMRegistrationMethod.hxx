@@ -196,7 +196,9 @@ DistortionCorrectionBMRegistrationMethod <TInputImageType>
     this->GetBlockMatcher()->Update();
 
     tmpTime.Stop();
-    std::cout << "Forward matching performed in " << tmpTime.GetTotal() << std::endl;
+
+    if (this->GetVerboseProgression())
+        std::cout << "Forward matching performed in " << tmpTime.GetTotal() << std::endl;
 
     this->GetAgregator()->SetInputRegions(this->GetBlockMatcher()->GetBlockRegions());
     this->GetAgregator()->SetInputOrigins(this->GetBlockMatcher()->GetBlockPositions());
@@ -232,7 +234,9 @@ DistortionCorrectionBMRegistrationMethod <TInputImageType>
     this->GetBlockMatcher()->Update();
 
     tmpTimeReverse.Stop();
-    std::cout << "Backward matching performed in " << tmpTimeReverse.GetTotal() << std::endl;
+
+    if (this->GetVerboseProgression())
+        std::cout << "Backward matching performed in " << tmpTimeReverse.GetTotal() << std::endl;
 
     this->GetAgregator()->SetInputRegions(this->GetBlockMatcher()->GetBlockRegions());
     this->GetAgregator()->SetInputOrigins(this->GetBlockMatcher()->GetBlockPositions());

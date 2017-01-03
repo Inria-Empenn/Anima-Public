@@ -40,6 +40,7 @@ Update()
     switch (this->GetInputTransformType())
     {
         case Superclass::TRANSLATION:
+        case Superclass::DIRECTIONAL_AFFINE:
             this->estimateSVFFromTranslations();
             this->SetUpToDate(true);
             break;
@@ -57,7 +58,8 @@ Update()
     }
 
     tmpTime.Stop();
-    std::cout << "Agregation performed in " << tmpTime.GetTotal() << std::endl;
+    if (this->GetVerboseAgregation())
+        std::cout << "Agregation performed in " << tmpTime.GetTotal() << std::endl;
 
     return true;
 }
@@ -96,13 +98,21 @@ estimateSVFFromTranslations()
     weights->Allocate();
     weights->FillBuffer(anima::zeroWeight);
 
-    ParametersType tmpParams;
+    ParametersType tmpParams(NDimensions);
     std::vector <VelocityFieldPixelType> curDisps(nbPts);
     std::vector <VelocityFieldIndexType> posIndexes(nbPts);
 
     for (unsigned int i = 0;i < nbPts;++i)
     {
-        tmpParams = this->GetInputTransform(i)->GetParameters();
+        if (this->GetInputTransformType() == Superclass::TRANSLATION)
+            tmpParams = this->GetInputTransform(i)->GetParameters();
+        else
+        {
+            BaseMatrixTransformType *tmpTr = dynamic_cast <BaseMatrixTransformType *> (this->GetInputTransform(i));
+            for (unsigned int j = 0;j < NDimensions;++j)
+                tmpParams[j] = tmpTr->GetOffset()[j];
+        }
+
         double tmpWeight = this->GetInputWeight(i);
         weights->TransformPhysicalPointToIndex(this->GetInputOrigin(i),posIndexes[i]);
 

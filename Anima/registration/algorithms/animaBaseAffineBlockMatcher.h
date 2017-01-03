@@ -15,7 +15,8 @@ public:
     {
         Translation = 0,
         Rigid,
-        Affine
+        Affine,
+        Directional_Affine
     };
 
     typedef BaseBlockMatcher <TInputImageType> Superclass;
@@ -39,6 +40,8 @@ public:
     void SetSkewMax(double val) {m_SkewMax = val;}
     void SetScaleMax(double val) {m_ScaleMax = val;}
 
+    void SetAffineDirection(unsigned int val) {m_AffineDirection = val;}
+
 protected:
     virtual BaseInputTransformPointer GetNewBlockTransform(PointType &blockCenter);
 
@@ -47,6 +50,8 @@ protected:
 
 private:
     TransformDefinition m_BlockTransformType;
+
+    unsigned int m_AffineDirection;
 
     // Bobyqa radiuses
     double m_SearchAngleRadius;

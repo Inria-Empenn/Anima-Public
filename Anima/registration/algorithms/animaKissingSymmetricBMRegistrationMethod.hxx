@@ -25,7 +25,9 @@ KissingSymmetricBMRegistrationMethod <TInputImageType>
     this->GetBlockMatcher()->Update();
 
     tmpTime.Stop();
-    std::cout << "Matching performed in " << tmpTime.GetTotal() << std::endl;
+
+    if (this->GetVerboseProgression())
+        std::cout << "Matching performed in " << tmpTime.GetTotal() << std::endl;
 
     this->GetAgregator()->SetInputRegions(this->GetBlockMatcher()->GetBlockRegions());
     this->GetAgregator()->SetInputOrigins(this->GetBlockMatcher()->GetBlockPositions());
@@ -59,7 +61,9 @@ KissingSymmetricBMRegistrationMethod <TInputImageType>
     this->GetBlockMatcher()->Update();
 
     tmpTimeReverse.Stop();
-    std::cout << "Matching performed in " << tmpTimeReverse.GetTotal() << std::endl;
+
+    if (this->GetVerboseProgression())
+        std::cout << "Matching performed in " << tmpTimeReverse.GetTotal() << std::endl;
 
     this->GetAgregator()->SetInputRegions(this->GetBlockMatcher()->GetBlockRegions());
     this->GetAgregator()->SetInputOrigins(this->GetBlockMatcher()->GetBlockPositions());

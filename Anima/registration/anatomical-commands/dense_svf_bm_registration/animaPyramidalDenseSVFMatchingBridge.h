@@ -8,39 +8,6 @@
 #include <animaPyramidImageFilter.h>
 #include <rpiDisplacementFieldTransform.h>
 
-enum SymmetryType
-{
-    Asymmetric = 0,
-    Symmetric,
-    Kissing
-};
-
-enum Transform
-{
-    Translation = 0,
-    Rigid,
-    Affine
-};
-
-enum Metric
-{
-    SquaredCorrelation = 0,
-    Correlation,
-    MeanSquares
-};
-
-enum Optimizer
-{
-    Exhaustive = 0,
-    Bobyqa
-};
-
-enum Agregator
-{
-    Baloo = 0,
-    MSmoother
-};
-
 namespace anima
 {
 
@@ -81,9 +48,42 @@ public:
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self> ConstPointer;
 
-    itkNewMacro(Self);
+    itkNewMacro(Self)
+    itkTypeMacro(PyramidalDenseSVFMatchingBridge,itk::ProcessObject)
 
-    itkTypeMacro(PyramidalDenseSVFMatchingBridge,itk::ProcessObject);
+    enum SymmetryType
+    {
+        Asymmetric = 0,
+        Symmetric,
+        Kissing
+    };
+
+    enum Transform
+    {
+        Translation = 0,
+        Rigid,
+        Affine,
+        Directional_Affine
+    };
+
+    enum Metric
+    {
+        SquaredCorrelation = 0,
+        Correlation,
+        MeanSquares
+    };
+
+    enum Optimizer
+    {
+        Exhaustive = 0,
+        Bobyqa
+    };
+
+    enum Agregator
+    {
+        Baloo = 0,
+        MSmoother
+    };
 
     void Update() ITK_OVERRIDE;
 
@@ -135,6 +135,9 @@ public:
 
     Transform GetTransform() {return m_Transform;}
     void SetTransform(Transform transform) {m_Transform=transform;}
+
+    unsigned int GetAffineDirection() {return m_AffineDirection;}
+    void SetAffineDirection(unsigned int val) {m_AffineDirection = val;}
 
     Metric GetMetric() {return m_Metric;}
     void SetMetric(Metric metric) {m_Metric=metric;}
@@ -214,6 +217,8 @@ public:
     double GetPercentageKept() {return m_PercentageKept;}
     void SetPercentageKept(double PercentageKept) {m_PercentageKept=PercentageKept;}
 
+    void SetVerbose(bool value) {m_Verbose = value;}
+
 protected:
     PyramidalDenseSVFMatchingBridge();
     virtual ~PyramidalDenseSVFMatchingBridge();
@@ -239,6 +244,7 @@ private:
 
     SymmetryType m_SymmetryType;
     Transform m_Transform;
+    unsigned int m_AffineDirection;
     Metric m_Metric;
     Optimizer m_Optimizer;
 
@@ -270,6 +276,7 @@ private:
     double m_PercentageKept;
 
     bool m_Abort;
+    bool m_Verbose;
 
     itk::ProgressReporter *m_progressReporter;
     itk::CStyleCommand::Pointer m_progressCallback;

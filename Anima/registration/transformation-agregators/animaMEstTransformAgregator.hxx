@@ -29,23 +29,24 @@ Update()
 
     switch (this->GetInputTransformType())
     {
-    case Superclass::TRANSLATION:
-        if ((this->GetInputWeights().size() != this->GetInputOrigins().size())||
-            (this->GetInputTransforms().size() != this->GetInputOrigins().size()))
+        case Superclass::TRANSLATION:
+        case Superclass::DIRECTIONAL_AFFINE:
+            if ((this->GetInputWeights().size() != this->GetInputOrigins().size())||
+                    (this->GetInputTransforms().size() != this->GetInputOrigins().size()))
+                return false;
+
+            returnValue = this->mestEstimateTranslationsToAny();
+            this->SetUpToDate(returnValue);
+            return returnValue;
+
+        case Superclass::RIGID:
+        case Superclass::AFFINE:
+            returnValue = this->mestEstimateAnyToAffine();
+            return returnValue;
+
+        default:
+            std::cerr << "Specific M-estimation agregation not handled yet..." << std::endl;
             return false;
-
-        returnValue = this->mestEstimateTranslationsToAny();
-        this->SetUpToDate(returnValue);
-        return returnValue;
-
-    case Superclass::RIGID:
-    case Superclass::AFFINE:
-        returnValue = this->mestEstimateAnyToAffine();
-        return returnValue;
-
-    default:
-        std::cerr << "Specific M-estimation agregation not handled yet..." << std::endl;
-        return false;
     }
 }
 
@@ -98,17 +99,17 @@ mestEstimateTranslationsToAny()
         {
             case Superclass::TRANSLATION:
                 anima::computeTranslationLSWFromTranslations<InternalScalarType,ScalarType,NDimensions>
-                (originPoints,transformedPoints,weightsFiltered,resultTransform);
+                        (originPoints,transformedPoints,weightsFiltered,resultTransform);
                 break;
 
             case Superclass::RIGID:
                 anima::computeRigidLSWFromTranslations<InternalScalarType,ScalarType,NDimensions>
-                (originPoints,transformedPoints,weightsFiltered,resultTransform);
+                        (originPoints,transformedPoints,weightsFiltered,resultTransform);
                 break;
 
             case Superclass::AFFINE:
                 anima::computeAffineLSWFromTranslations<InternalScalarType,ScalarType,NDimensions>
-                (originPoints,transformedPoints,weightsFiltered,resultTransform);
+                        (originPoints,transformedPoints,weightsFiltered,resultTransform);
                 break;
 
             default:
