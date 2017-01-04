@@ -6,6 +6,11 @@
 #include <itkExtractImageFilter.h>
 
 #include <itkImageRegionIterator.h>
+#include <itkGeneralTransform.h>
+#include <itkStationaryVelocityFieldTransform.h>
+#include <rpiDisplacementFieldTransform.h>
+#include <animaVelocityUtils.h>
+#include <animaResampleImageFilter.h>
 
 int main(int argc, const char** argv)
 {
@@ -33,6 +38,7 @@ int main(int argc, const char** argv)
 
     TCLAP::ValueArg<unsigned int> blockSizeArg("","bs","Block size (default: 5)",false,5,"block size",cmd);
     TCLAP::ValueArg<unsigned int> blockSpacingArg("","sp","Block spacing (default: 5)",false,5,"block spacing",cmd);
+    TCLAP::ValueArg<unsigned int> nlBlockSpacingArg("","nsp","Block spacing (default: 3)",false,3,"non linear matching block spacing",cmd);
     TCLAP::ValueArg<float> stdevThresholdArg("s","stdev","Threshold block standard deviation (default: 5)",false,5,"block minimal standard deviation",cmd);
     TCLAP::ValueArg<double> percentageKeptArg("k","per-kept","Percentage of blocks with the highest variance kept (default: 0.8)",false,0.8,"percentage of blocks kept",cmd);
 
@@ -178,7 +184,7 @@ int main(int argc, const char** argv)
 
         // Setting matcher arguments
         nonLinearMatcher->SetBlockSize(blockSizeArg.getValue());
-        nonLinearMatcher->SetBlockSpacing(blockSpacingArg.getValue());
+        nonLinearMatcher->SetBlockSpacing(nlBlockSpacingArg.getValue());
         nonLinearMatcher->SetStDevThreshold(stdevThresholdArg.getValue());
         nonLinearMatcher->SetTransform(NonLinearPyramidBMType::Directional_Affine);
         nonLinearMatcher->SetAffineDirection(directionArg.getValue());
@@ -216,13 +222,50 @@ int main(int argc, const char** argv)
             return EXIT_FAILURE;
         }
 
-        InputSubImageType::RegionType regionSubImage = nonLinearMatcher->GetOutputImage()->GetLargestPossibleRegion();
+        // Finally, apply transform serie to image
+        typedef itk::GeneralTransform <AgregatorType::ScalarType,Dimension> GeneralTransformType;
+        GeneralTransformType::Pointer transformSerie = GeneralTransformType::New();
+        transformSerie->InsertTransform(matcher->GetOutputTransform().GetPointer());
+
+        typedef itk::StationaryVelocityFieldTransform <AgregatorType::ScalarType,Dimension> SVFTransformType;
+        typedef typename SVFTransformType::Pointer SVFTransformPointer;
+
+        typedef rpi::DisplacementFieldTransform <AgregatorType::ScalarType,Dimension> DenseTransformType;
+        typedef typename DenseTransformType::Pointer DenseTransformPointer;
+
+        SVFTransformPointer svfPointer = nonLinearMatcher->GetOutputTransform();
+
+        DenseTransformPointer dispTrsf = DenseTransformType::New();
+        anima::GetSVFExponential(svfPointer.GetPointer(),dispTrsf.GetPointer(),false);
+
+        transformSerie->InsertTransform(dispTrsf.GetPointer());
+
+        typedef anima::ResampleImageFilter<InputSubImageType, InputSubImageType> ResampleFilterType;
+        ResampleFilterType::Pointer scalarResampler = ResampleFilterType::New();
+
+        InputSubImageType::SizeType size = referenceExtractFilter->GetOutput()->GetLargestPossibleRegion().GetSize();
+        InputSubImageType::PointType origin = referenceExtractFilter->GetOutput()->GetOrigin();
+        InputSubImageType::SpacingType spacing = referenceExtractFilter->GetOutput()->GetSpacing();
+        InputSubImageType::DirectionType direction = referenceExtractFilter->GetOutput()->GetDirection();
+
+        scalarResampler->SetTransform(transformSerie);
+        scalarResampler->SetSize(size);
+        scalarResampler->SetOutputOrigin(origin);
+        scalarResampler->SetOutputSpacing(spacing);
+        scalarResampler->SetOutputDirection(direction);
+
+        scalarResampler->SetInput(extractFilter->GetOutput());
+        if (numThreadsArg.getValue() != 0)
+            scalarResampler->SetNumberOfThreads(numThreadsArg.getValue());
+        scalarResampler->Update();
+
+        InputSubImageType::RegionType regionSubImage = scalarResampler->GetOutput()->GetLargestPossibleRegion();
         InputImageType::RegionType regionImage = inputImage->GetLargestPossibleRegion();
         regionImage.SetIndex(Dimension,i);
         regionImage.SetSize(Dimension,1);
 
         InputImageIteratorType outIterator(inputImage,regionImage);
-        InputSubImageIteratorType inIterator(nonLinearMatcher->GetOutputImage(),regionSubImage);
+        InputSubImageIteratorType inIterator(scalarResampler->GetOutput(),regionSubImage);
 
         while (!inIterator.IsAtEnd())
         {
