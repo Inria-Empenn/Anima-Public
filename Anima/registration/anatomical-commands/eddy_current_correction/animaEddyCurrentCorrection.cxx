@@ -228,10 +228,10 @@ int main(int argc, const char** argv)
         transformSerie->InsertTransform(matcher->GetOutputTransform().GetPointer());
 
         typedef itk::StationaryVelocityFieldTransform <AgregatorType::ScalarType,Dimension> SVFTransformType;
-        typedef typename SVFTransformType::Pointer SVFTransformPointer;
+        typedef SVFTransformType::Pointer SVFTransformPointer;
 
         typedef rpi::DisplacementFieldTransform <AgregatorType::ScalarType,Dimension> DenseTransformType;
-        typedef typename DenseTransformType::Pointer DenseTransformPointer;
+        typedef DenseTransformType::Pointer DenseTransformPointer;
 
         SVFTransformPointer svfPointer = nonLinearMatcher->GetOutputTransform();
 
