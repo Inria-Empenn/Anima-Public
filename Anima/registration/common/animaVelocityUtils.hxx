@@ -73,11 +73,17 @@ void composeDistortionCorrections(typename rpi::DisplacementFieldTransform <Scal
     typedef typename itk::ImageRegionIterator <VectorFieldType> VectorFieldIterator;
     typedef typename VectorFieldType::PixelType VectorType;
 
+    typedef itk::VectorLinearInterpolateNearestNeighborExtrapolateImageFunction <VectorFieldType,
+            typename VectorType::ValueType> VectorInterpolateFunctionType;
+
     typename ComposeFilterType::Pointer composePositiveFilter = ComposeFilterType::New();
     composePositiveFilter->SetWarpingField(positiveAddOn->GetParametersAsVectorField());
     composePositiveFilter->SetDisplacementField(baseTrsf->GetParametersAsVectorField());
     composePositiveFilter->SetNumberOfThreads(numThreads);
 
+    typename VectorInterpolateFunctionType::Pointer interpolator = VectorInterpolateFunctionType::New();
+
+    composePositiveFilter->SetInterpolator(interpolator);
     composePositiveFilter->Update();
     positiveAddOn->SetParametersAsVectorField(composePositiveFilter->GetOutput());
 
@@ -99,6 +105,9 @@ void composeDistortionCorrections(typename rpi::DisplacementFieldTransform <Scal
     if (numThreads > 0)
         composeNegativeFilter->SetNumberOfThreads(numThreads);
 
+    interpolator = VectorInterpolateFunctionType::New();
+
+    composeNegativeFilter->SetInterpolator(interpolator);
     composeNegativeFilter->Update();
     negativeAddOn->SetParametersAsVectorField(composeNegativeFilter->GetOutput());
 

@@ -7,6 +7,8 @@
 #include <animaSmoothingRecursiveYvvGaussianImageFilter.h>
 
 #include <itkComposeDisplacementFieldsImageFilter.h>
+#include <itkVectorLinearInterpolateNearestNeighborExtrapolateImageFunction.h>
+
 #include <itkSubtractImageFilter.h>
 #include <itkMultiplyImageFilter.h>
 
@@ -42,6 +44,9 @@ DistortionCorrectionBMRegistrationMethod <TInputImageType>
     typedef typename itk::ImageRegionIterator <VectorFieldType> VectorFieldIterator;
     typedef typename VectorFieldType::PixelType VectorType;
 
+    typedef itk::VectorLinearInterpolateNearestNeighborExtrapolateImageFunction <VectorFieldType,
+            typename TransformType::ParametersValueType> VectorInterpolateFunctionType;
+
     if (this->GetInitialTransform())
     {
         // Here compose and make things straight again
@@ -55,6 +60,9 @@ DistortionCorrectionBMRegistrationMethod <TInputImageType>
         composePositiveFilter->SetDisplacementField(initTrsf->GetParametersAsVectorField());
         composePositiveFilter->SetNumberOfThreads(this->GetNumberOfThreads());
 
+        typename VectorInterpolateFunctionType::Pointer interpolator = VectorInterpolateFunctionType::New();
+
+        composePositiveFilter->SetInterpolator(interpolator);
         composePositiveFilter->Update();
         positiveTrsf->SetParametersAsVectorField(composePositiveFilter->GetOutput());
 
@@ -77,6 +85,9 @@ DistortionCorrectionBMRegistrationMethod <TInputImageType>
         composeNegativeFilter->SetDisplacementField(multiplyInitFilter->GetOutput());
         composeNegativeFilter->SetNumberOfThreads(this->GetNumberOfThreads());
 
+        interpolator = VectorInterpolateFunctionType::New();
+
+        composeNegativeFilter->SetInterpolator(interpolator);
         composeNegativeFilter->Update();
         negativeTrsf = DisplacementFieldTransformType::New();
         negativeTrsf->SetParametersAsVectorField(composeNegativeFilter->GetOutput());
