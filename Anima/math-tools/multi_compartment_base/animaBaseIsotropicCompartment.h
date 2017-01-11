@@ -1,12 +1,12 @@
 #pragma once
 
 #include <animaBaseCompartment.h>
-#include <AnimaMCMExport.h>
+#include <AnimaMCMBaseExport.h>
 
 namespace anima
 {
 
-class ANIMAMCM_EXPORT BaseIsotropicCompartment : public BaseCompartment
+class ANIMAMCMBASE_EXPORT BaseIsotropicCompartment : public BaseCompartment
 {
 public:
     // Useful typedefs

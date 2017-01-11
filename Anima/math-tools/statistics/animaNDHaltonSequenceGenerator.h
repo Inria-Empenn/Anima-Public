@@ -1,12 +1,12 @@
 #pragma once
 #include <vector>
 
-#include <AnimaRandomExport.h>
+#include <AnimaStatisticsExport.h>
 
 namespace anima
 {
 
-class ANIMARANDOM_EXPORT NDHaltonSequenceGenerator
+class ANIMASTATISTICS_EXPORT NDHaltonSequenceGenerator
 {
 public:
     NDHaltonSequenceGenerator(unsigned int numDimensions);

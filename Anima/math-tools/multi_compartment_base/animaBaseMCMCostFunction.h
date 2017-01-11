@@ -2,7 +2,7 @@
 
 #include <itkSingleValuedCostFunction.h>
 #include <animaMultiCompartmentModel.h>
-#include <AnimaMCMExport.h>
+#include <AnimaMCMBaseExport.h>
 
 namespace anima
 {    
@@ -11,7 +11,7 @@ namespace anima
  * @brief Base cost function class to handle maximum likelihood estimation with either marginal or profile
  * estimation. Variable projection is too different and handled as a separate structure
  */
-class ANIMAMCM_EXPORT BaseMCMCostFunction : public itk::SingleValuedCostFunction
+class ANIMAMCMBASE_EXPORT BaseMCMCostFunction : public itk::SingleValuedCostFunction
 {
 public:
     /** Standard class typedefs. */

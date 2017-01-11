@@ -1,4 +1,4 @@
-project(AnimaRandom)
+project(AnimaMCMBase)
 
 ## #############################################################################
 ## List Sources
@@ -22,6 +22,10 @@ add_library(${PROJECT_NAME}
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME}
+  ITKOptimizers
+  ITKCommon
+  ${TinyXML2_LIBRARY}
+  ${ITKIO_LIBRARIES}
   )
 
 
