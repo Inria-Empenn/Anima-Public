@@ -90,6 +90,7 @@ int main(int argc,  char*  argv[])
     tmpTime.Start();
 
     dtiTracker->Update();
+    dtiTracker->RemoveAllObservers();
 
     tmpTime.Stop();
     std::cout << "Tracking time: " << tmpTime.GetTotal() << "s" << std::endl;
