@@ -177,15 +177,15 @@ void BaseTractographyImageFilter::ThreadTrack(unsigned int numThread, std::vecto
     {
         m_LockHighestProcessedSeed.Lock();
 
-        if (m_HighestProcessedSeed > highestToleratedSeedIndex)
+        if (m_HighestProcessedSeed >= highestToleratedSeedIndex)
         {
             m_LockHighestProcessedSeed.Unlock();
             continueLoop = false;
             continue;
         }
 
-        unsigned int startPoint = m_HighestProcessedSeed;
-        unsigned int endPoint = m_HighestProcessedSeed + stepData;
+        unsigned int startPoint = m_HighestProcessedSeed + 1;
+        unsigned int endPoint = m_HighestProcessedSeed + stepData - 1;
         if (endPoint > highestToleratedSeedIndex)
             endPoint = highestToleratedSeedIndex;
 

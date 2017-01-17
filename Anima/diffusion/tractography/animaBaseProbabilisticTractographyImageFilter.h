@@ -7,6 +7,8 @@
 #include <vtkSmartPointer.h>
 #include <itkProcessObject.h>
 #include <itkLinearInterpolateImageFunction.h>
+#include <itkFastMutexLock.h>
+#include <itkProgressReporter.h>
 
 #include <vector>
 #include <random>
@@ -118,7 +120,7 @@ public:
 
     void SetInitialColinearityDirection(const ColinearityDirectionType &colDir) {m_InitialColinearityDirection = colDir;}
     void SetInitialDirectionMode(const InitialDirectionModeType &dir) {m_InitialDirectionMode = dir;}
-    itkGetMacro(InitialDirectionMode,InitialDirectionModeType);
+    itkGetMacro(InitialDirectionMode,InitialDirectionModeType)
 
     void SetInputImagesFrom4DImage(Input4DImageType *in4DImage);
     InputImageType *GetInputImage(unsigned int i)
@@ -180,8 +182,13 @@ protected:
     //! Multithread util function
     static ITK_THREAD_RETURN_TYPE ThreadTracker(void *arg);
 
-    //! Doing the real tracking by calling ComputeFiber and merging its results
+    //! Doing the thread work dispatch
     void ThreadTrack(unsigned int numThread, FiberProcessVectorType &resultFibers, ListType &resultWeights);
+
+    //! Doing the real tracking by calling ComputeFiber and merging its results
+    void ThreadedTrackComputer(unsigned int numThread, FiberProcessVectorType &resultFibers,
+                               ListType &resultWeights, unsigned int startSeedIndex,
+                               unsigned int endSeedIndex);
 
     //! This little guy is the one handling probabilistic tracking
     FiberProcessVectorType ComputeFiber(FiberType &fiber, DWIInterpolatorPointerVectorType &dwiInterpolators,
@@ -269,6 +276,10 @@ private:
     bool m_ComputeLocalColors;
 
     vtkSmartPointer<vtkPolyData> m_Output;
+
+    itk::SimpleFastMutexLock m_LockHighestProcessedSeed;
+    int m_HighestProcessedSeed;
+    itk::ProgressReporter *m_ProgressReport;
 };
 
 }//end of namesapce

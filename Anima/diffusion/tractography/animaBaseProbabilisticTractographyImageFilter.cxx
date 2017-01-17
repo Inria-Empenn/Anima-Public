@@ -63,10 +63,15 @@ BaseProbabilisticTractographyImageFilter::BaseProbabilisticTractographyImageFilt
     m_InitialDirectionMode = Weight;
 
     m_Generators.clear();
+
+    m_HighestProcessedSeed = 0;
+    m_ProgressReport = 0;
 }
 
 BaseProbabilisticTractographyImageFilter::~BaseProbabilisticTractographyImageFilter()
 {
+    if (m_ProgressReport)
+        delete m_ProgressReport;
 }
 
 void BaseProbabilisticTractographyImageFilter::Update()
@@ -74,32 +79,42 @@ void BaseProbabilisticTractographyImageFilter::Update()
     this->PrepareTractography();
     m_Output = vtkPolyData::New();
 
+    if (m_ProgressReport)
+        delete m_ProgressReport;
+
+    unsigned int stepData = std::min((int)m_PointsToProcess.size(),100);
+    if (stepData == 0)
+        stepData = 1;
+
+    unsigned int numSteps = std::floor(m_PointsToProcess.size() / (float)stepData);
+    if (m_PointsToProcess.size() % stepData != 0)
+        numSteps++;
+
+    m_ProgressReport = new itk::ProgressReporter(this,0,numSteps);
+
     FiberProcessVectorType resultFibers;
     ListType resultWeights;
 
-    itk::MultiThreader::Pointer threadWorker = itk::MultiThreader::New();
-    trackerArguments *tmpStr = new trackerArguments;
-    tmpStr->trackerPtr = this;
-    tmpStr->resultFibersFromThreads.resize(this->GetNumberOfThreads());
-    tmpStr->resultWeightsFromThreads.resize(this->GetNumberOfThreads());
+    trackerArguments tmpStr;
+    tmpStr.trackerPtr = this;
+    tmpStr.resultFibersFromThreads.resize(this->GetNumberOfThreads());
+    tmpStr.resultWeightsFromThreads.resize(this->GetNumberOfThreads());
 
     for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
     {
-        tmpStr->resultFibersFromThreads[i] = resultFibers;
-        tmpStr->resultWeightsFromThreads[i] = resultWeights;
+        tmpStr.resultFibersFromThreads[i] = resultFibers;
+        tmpStr.resultWeightsFromThreads[i] = resultWeights;
     }
 
-    threadWorker->SetNumberOfThreads(this->GetNumberOfThreads());
-    threadWorker->SetSingleMethod(this->ThreadTracker,tmpStr);
-    threadWorker->SingleMethodExecute();
+    this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
+    this->GetMultiThreader()->SetSingleMethod(this->ThreadTracker,&tmpStr);
+    this->GetMultiThreader()->SingleMethodExecute();
 
     for (unsigned int j = 0;j < this->GetNumberOfThreads();++j)
     {
-        resultFibers.insert(resultFibers.end(),tmpStr->resultFibersFromThreads[j].begin(),tmpStr->resultFibersFromThreads[j].end());
-        resultWeights.insert(resultWeights.end(),tmpStr->resultWeightsFromThreads[j].begin(),tmpStr->resultWeightsFromThreads[j].end());
+        resultFibers.insert(resultFibers.end(),tmpStr.resultFibersFromThreads[j].begin(),tmpStr.resultFibersFromThreads[j].end());
+        resultWeights.insert(resultWeights.end(),tmpStr.resultWeightsFromThreads[j].begin(),tmpStr.resultWeightsFromThreads[j].end());
     }
-
-    delete tmpStr;
 
     std::cout << "\nKept " << resultFibers.size() << " fibers after filtering" << std::endl;
     this->createVTKOutput(resultFibers, resultWeights);
@@ -236,30 +251,48 @@ ITK_THREAD_RETURN_TYPE BaseProbabilisticTractographyImageFilter::ThreadTracker(v
     return NULL;
 }
 
-void BaseProbabilisticTractographyImageFilter::ThreadTrack(unsigned int numThread, FiberProcessVectorType &resultFibers, ListType &resultWeights)
+void BaseProbabilisticTractographyImageFilter::ThreadTrack(unsigned int numThread, FiberProcessVectorType &resultFibers,
+                                                           ListType &resultWeights)
 {
-    unsigned int dataSize = m_PointsToProcess.size();
-    unsigned int numPoints = floor((double) dataSize / this->GetNumberOfThreads());
+    bool continueLoop = true;
+    unsigned int highestToleratedSeedIndex = m_PointsToProcess.size() - 1;
 
-    unsigned int numPointsOverflow = dataSize - numPoints * this->GetNumberOfThreads();
+    unsigned int stepData = std::min((int)m_PointsToProcess.size(),100);
+    if (stepData == 0)
+        stepData = 1;
 
-    unsigned int startPoint;
+    while (continueLoop)
+    {
+        m_LockHighestProcessedSeed.Lock();
 
-    if (numThread < numPointsOverflow)
-        startPoint = (numPoints + 1) * numThread;
-    else
-        startPoint = (numPoints + 1) * numPointsOverflow + numPoints * (numThread - numPointsOverflow);
+        if (m_HighestProcessedSeed >= highestToleratedSeedIndex)
+        {
+            m_LockHighestProcessedSeed.Unlock();
+            continueLoop = false;
+            continue;
+        }
 
-    unsigned int endPoint = startPoint + numPoints;
-    if (numThread < numPointsOverflow)
-        endPoint++;
+        unsigned int startPoint = m_HighestProcessedSeed + 1;
+        unsigned int endPoint = m_HighestProcessedSeed + stepData - 1;
+        if (endPoint > highestToleratedSeedIndex)
+            endPoint = highestToleratedSeedIndex;
 
-    if (numThread+1 == this->GetNumberOfThreads())
-        endPoint = dataSize;
+        m_HighestProcessedSeed = endPoint;
 
-    // support progress methods/callbacks
-    itk::ProgressReporter progress(this, numThread, endPoint - startPoint + 1);
+        m_LockHighestProcessedSeed.Unlock();
 
+        this->ThreadedTrackComputer(numThread,resultFibers,resultWeights,startPoint,endPoint);
+
+        m_LockHighestProcessedSeed.Lock();
+        m_ProgressReport->CompletedPixel();
+        m_LockHighestProcessedSeed.Unlock();
+    }
+}
+
+void BaseProbabilisticTractographyImageFilter::ThreadedTrackComputer(unsigned int numThread, FiberProcessVectorType &resultFibers,
+                                                                     ListType &resultWeights, unsigned int startSeedIndex,
+                                                                     unsigned int endSeedIndex)
+{
     unsigned int nbImages = m_InputImages.size();
     DWIInterpolatorPointerVectorType dwiInterpolators(nbImages);
     for (unsigned int i = 0;i < nbImages;++i)
@@ -272,7 +305,7 @@ void BaseProbabilisticTractographyImageFilter::ThreadTrack(unsigned int numThrea
     ListType tmpWeights;
     ContinuousIndexType startIndex;
 
-    for (unsigned int i = startPoint;i < endPoint;++i)
+    for (unsigned int i = startSeedIndex;i <= endSeedIndex;++i)
     {
         m_SeedMask->TransformPhysicalPointToContinuousIndex(m_PointsToProcess[i][0],startIndex);
 
@@ -297,8 +330,6 @@ void BaseProbabilisticTractographyImageFilter::ThreadTrack(unsigned int numThrea
                 resultWeights.push_back(tmpWeights[j]);
             }
         }
-
-        progress.CompletedPixel();
     }
 }
 
