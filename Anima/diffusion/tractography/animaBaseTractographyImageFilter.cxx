@@ -167,7 +167,7 @@ ITK_THREAD_RETURN_TYPE BaseTractographyImageFilter::ThreadTracker(void *arg)
 void BaseTractographyImageFilter::ThreadTrack(unsigned int numThread, std::vector <FiberType> &resultFibers)
 {
     bool continueLoop = true;
-    unsigned int highestToleratedSeedIndex = m_PointsToProcess.size() - 1;
+    unsigned int highestToleratedSeedIndex = m_PointsToProcess.size();
 
     unsigned int stepData = std::min((int)m_PointsToProcess.size(),100);
     if (stepData == 0)
@@ -184,8 +184,8 @@ void BaseTractographyImageFilter::ThreadTrack(unsigned int numThread, std::vecto
             continue;
         }
 
-        unsigned int startPoint = m_HighestProcessedSeed + 1;
-        unsigned int endPoint = m_HighestProcessedSeed + stepData - 1;
+        unsigned int startPoint = m_HighestProcessedSeed;
+        unsigned int endPoint = m_HighestProcessedSeed + stepData;
         if (endPoint > highestToleratedSeedIndex)
             endPoint = highestToleratedSeedIndex;
 
@@ -205,7 +205,7 @@ void BaseTractographyImageFilter::ThreadedTrackComputer(unsigned int numThread, 
                                                         unsigned int startSeedIndex, unsigned int endSeedIndex)
 {    
     FiberType tmpFiber;
-    for (unsigned int i = startSeedIndex;i <= endSeedIndex;++i)
+    for (unsigned int i = startSeedIndex;i < endSeedIndex;++i)
     {
         tmpFiber = m_PointsToProcess[i].second;
         this->ComputeFiber(tmpFiber,m_PointsToProcess[i].first,numThread);

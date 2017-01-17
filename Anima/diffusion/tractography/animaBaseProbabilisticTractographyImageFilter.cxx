@@ -255,7 +255,7 @@ void BaseProbabilisticTractographyImageFilter::ThreadTrack(unsigned int numThrea
                                                            ListType &resultWeights)
 {
     bool continueLoop = true;
-    unsigned int highestToleratedSeedIndex = m_PointsToProcess.size() - 1;
+    unsigned int highestToleratedSeedIndex = m_PointsToProcess.size();
 
     unsigned int stepData = std::min((int)m_PointsToProcess.size(),100);
     if (stepData == 0)
@@ -272,8 +272,8 @@ void BaseProbabilisticTractographyImageFilter::ThreadTrack(unsigned int numThrea
             continue;
         }
 
-        unsigned int startPoint = m_HighestProcessedSeed + 1;
-        unsigned int endPoint = m_HighestProcessedSeed + stepData - 1;
+        unsigned int startPoint = m_HighestProcessedSeed;
+        unsigned int endPoint = m_HighestProcessedSeed + stepData;
         if (endPoint > highestToleratedSeedIndex)
             endPoint = highestToleratedSeedIndex;
 
@@ -305,7 +305,7 @@ void BaseProbabilisticTractographyImageFilter::ThreadedTrackComputer(unsigned in
     ListType tmpWeights;
     ContinuousIndexType startIndex;
 
-    for (unsigned int i = startSeedIndex;i <= endSeedIndex;++i)
+    for (unsigned int i = startSeedIndex;i < endSeedIndex;++i)
     {
         m_SeedMask->TransformPhysicalPointToContinuousIndex(m_PointsToProcess[i][0],startIndex);
 
