@@ -1,7 +1,7 @@
 #include <animaDTITractographyImageFilter.h>
 #include <itkTimeProbe.h>
 
-#include <itkImageFileReader.h>
+#include <animaReadWriteFunctions.h>
 #include <animaLogTensorImageFilter.h>
 #include <itkMultiThreader.h>
 #include <itkCommand.h>
@@ -21,7 +21,7 @@ int main(int argc,  char*  argv[])
 {
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
 
-    TCLAP::ValueArg<std::string> dtiArg("i","dti","Input DTI image",true,"","dti image",cmd);
+    TCLAP::ValueArg<std::string> dtiArg("i","dti","Input DT image",true,"","DT image",cmd);
     TCLAP::ValueArg<std::string> seedMaskArg("s","seed-mask","Seed mask",true,"","seed",cmd);
     TCLAP::ValueArg<std::string> fibersArg("o","fibers","Output fibers",true,"","fibers",cmd);
 
@@ -49,21 +49,15 @@ int main(int argc,  char*  argv[])
     }
 
     typedef anima::dtiTractographyImageFilter MainFilterType;
-    typedef MainFilterType::LogDTIImageType DTIImageType;
-    typedef itk::ImageFileReader <DTIImageType> DTIReaderType;
+    typedef MainFilterType::ModelImageType DTIImageType;
     typedef MainFilterType::MaskImageType MaskImageType;
-    typedef itk::ImageFileReader <MaskImageType> MaskReaderType;
 
     MainFilterType::Pointer dtiTracker = MainFilterType::New();
-
-    DTIReaderType::Pointer dtiReader = DTIReaderType::New();
-    dtiReader->SetFileName(dtiArg.getValue());
-    dtiReader->Update();
 
     typedef anima::LogTensorImageFilter <DTIImageType::IOPixelType,DTIImageType::ImageDimension> LogTensorFilterType;
     LogTensorFilterType::Pointer tensorLogger = LogTensorFilterType::New();
 
-    tensorLogger->SetInput(dtiReader->GetOutput());
+    tensorLogger->SetInput(anima::readImage <DTIImageType> (dtiArg.getValue()));
     tensorLogger->SetScaleNonDiagonal(false);
     tensorLogger->SetNumberOfThreads(nbThreadsArg.getValue());
 
@@ -71,29 +65,13 @@ int main(int argc,  char*  argv[])
 
     dtiTracker->SetInputImage(tensorLogger->GetOutput());
 
-    MaskReaderType::Pointer roiReader = MaskReaderType::New();
-    roiReader->SetFileName(seedMaskArg.getValue());
-    roiReader->Update();
-
-    dtiTracker->SetTrackingMask(roiReader->GetOutput());
+    dtiTracker->SetTrackingMask(anima::readImage <MaskImageType> (seedMaskArg.getValue()));
 
     if (cutMaskArg.getValue() != "")
-    {
-        MaskReaderType::Pointer cutReader = MaskReaderType::New();
-        cutReader->SetFileName(cutMaskArg.getValue());
-        cutReader->Update();
-
-        dtiTracker->SetCutMask(cutReader->GetOutput());
-    }
+        dtiTracker->SetCutMask(anima::readImage <MaskImageType> (cutMaskArg.getValue()));
 
     if (forbiddenMaskArg.getValue() != "")
-    {
-        MaskReaderType::Pointer forbiddenReader = MaskReaderType::New();
-        forbiddenReader->SetFileName(forbiddenMaskArg.getValue());
-        forbiddenReader->Update();
-
-        dtiTracker->SetForbiddenMask(forbiddenReader->GetOutput());
-    }
+        dtiTracker->SetForbiddenMask(anima::readImage <MaskImageType> (forbiddenMaskArg.getValue()));
 
     dtiTracker->SetNumberOfThreads(nbThreadsArg.getValue());
     dtiTracker->SetNumberOfFibersPerPixel(nbFibersArg.getValue());

@@ -26,7 +26,7 @@ public:
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self> ConstPointer;
 
-    itkTypeMacro(BaseProbabilisticTractographyImageFilter,itk::ProcessObject);
+    itkTypeMacro(BaseProbabilisticTractographyImageFilter,itk::ProcessObject)
 
     // Typdefs for scalar types for reading/writing images and for math operations
     typedef float ImageScalarType;
