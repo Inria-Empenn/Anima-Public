@@ -81,6 +81,9 @@ void ODFProbabilisticTractographyImageFilter::PrepareTractography()
         ++pos;
     }
 
+    unsigned int realNumGrads = pos;
+    BMatrix.set_size(realNumGrads,this->GetModelDimension());
+
     std::vector <double> LVector(this->GetModelDimension(),0);
     std::vector <double> PVector(this->GetModelDimension(),0);
 
@@ -116,7 +119,6 @@ void ODFProbabilisticTractographyImageFilter::PrepareTractography()
     vnl_matrix_inverse <double> tmpInv(tmpMat);
 
     m_SignalCoefsMatrix = tmpInv.inverse() * BMatrix.transpose();
-    unsigned int realNumGrads = pos;
     m_TMatrix.set_size(this->GetModelDimension(),realNumGrads);
 
     for (unsigned int i = 0;i < this->GetModelDimension();++i)
@@ -305,7 +307,7 @@ double ODFProbabilisticTractographyImageFilter::ComputeLogWeightUpdate(double b0
 
     unsigned int numGrads = this->GetDiffusionGradients().size();
     Vector3DType rotatedGradient(0.0);
-    Vector3DType sphRotatedGradient, tmpGradDir(0.0);
+    Vector3DType sphRotatedGradient;
     std::vector <double> rescaledModel(this->GetModelDimension(),0);
 
     // Compute scale model to get signal simulation
@@ -580,7 +582,7 @@ double ODFProbabilisticTractographyImageFilter::GetGeneralizedFractionalAnisotro
     for (unsigned int i = 0;i < this->GetModelDimension();++i)
         sumSquares += modelValue[i]*modelValue[i];
 
-    return sqrt(1.0 - modelValue[0]*modelValue[0]/sumSquares);
+    return std::sqrt(1.0 - modelValue[0]*modelValue[0]/sumSquares);
 }
 
 } // end of namespace anima

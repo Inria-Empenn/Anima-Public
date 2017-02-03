@@ -64,7 +64,7 @@ int main(int argc,  char*  argv[])
 
     TCLAP::SwitchArg averageClustersArg("M","average-clusters","Output only cluster mean",cmd,false);
 
-    TCLAP::ValueArg<unsigned int> nbThreadsArg("t","nb-threads","Number of threads to run on (default: all available)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbThreadsArg("T","nb-threads","Number of threads to run on (default: all available)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     try
     {
