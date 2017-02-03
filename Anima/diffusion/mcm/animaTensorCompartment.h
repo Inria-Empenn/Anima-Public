@@ -65,6 +65,7 @@ public:
     double GetRadialDiffusivity2() ITK_OVERRIDE;
 
     const Matrix3DType &GetDiffusionTensor() ITK_OVERRIDE;
+    double GetFractionalAnisotropy() ITK_OVERRIDE;
 
 protected:
     TensorCompartment() : Superclass()

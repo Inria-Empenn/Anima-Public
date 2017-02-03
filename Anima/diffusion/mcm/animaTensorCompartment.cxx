@@ -534,4 +534,20 @@ void TensorCompartment::UpdateAngleConfiguration()
     m_ModifiedAngles = false;
 }
 
+double TensorCompartment::GetFractionalAnisotropy()
+{
+    double l1 = this->GetAxialDiffusivity();
+    double l2 = this->GetRadialDiffusivity1();
+    double l3 = this->GetRadialDiffusivity2();
+
+    double numFA = std::sqrt ((l1 - l2) * (l1 - l2) + (l2 - l3) * (l2 - l3) + (l3 - l1) * (l3 - l1));
+    double denomFA = std::sqrt (l1 * l1 + l2 * l2 + l3 * l3);
+
+    double fa = 0;
+    if (denomFA != 0)
+        fa = std::sqrt(0.5) * (numFA / denomFA);
+
+    return fa;
+}
+
 } //end namespace anima

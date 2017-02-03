@@ -113,6 +113,7 @@ public:
 
     //! Get compartment as a 3D tensor (default behavior: throw exception if not supported by the compartment model)
     virtual const Matrix3DType &GetDiffusionTensor();
+    virtual double GetFractionalAnisotropy();
 
     std::vector <double> &GetBoundedSignVector() {return m_BoundedSignVector;}
     double GetBoundedSignVectorValue(unsigned int i) {return m_BoundedSignVector[i];}

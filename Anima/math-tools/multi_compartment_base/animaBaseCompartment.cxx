@@ -138,6 +138,10 @@ const BaseCompartment::Matrix3DType &BaseCompartment::GetDiffusionTensor()
 {
     throw itk::ExceptionObject(__FILE__,__LINE__,"This compartment type does not support diffusion tensor export",ITK_LOCATION);
 }
-    
+
+double BaseCompartment::GetFractionalAnisotropy()
+{
+    throw itk::ExceptionObject(__FILE__,__LINE__,"This compartment type does not support fractional anisotropy computation",ITK_LOCATION);
+}
 
 } // end namespace anima

@@ -305,5 +305,19 @@ const ZeppelinCompartment::Matrix3DType &ZeppelinCompartment::GetDiffusionTensor
     return m_DiffusionTensor;
 }
 
+double ZeppelinCompartment::GetFractionalAnisotropy()
+{
+    double l1 = this->GetAxialDiffusivity();
+    double l2 = this->GetRadialDiffusivity1();
+    double numFA = std::sqrt (2.0 * (l1 - l2) * (l1 - l2));
+    double denomFA = std::sqrt (l1 * l1 + 2.0 * l2 * l2);
+
+    double fa = 0;
+    if (denomFA != 0)
+        fa = std::sqrt(0.5) * (numFA / denomFA);
+
+    return fa;
+}
+
 } //end namespace anima
 

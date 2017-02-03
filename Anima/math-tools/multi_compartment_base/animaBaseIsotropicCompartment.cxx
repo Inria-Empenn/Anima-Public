@@ -125,5 +125,10 @@ const BaseIsotropicCompartment::Matrix3DType &BaseIsotropicCompartment::GetDiffu
     return m_DiffusionTensor;
 }
 
+double BaseIsotropicCompartment::GetFractionalAnisotropy()
+{
+    return 0;
+}
+
 } //end namespace anima
 

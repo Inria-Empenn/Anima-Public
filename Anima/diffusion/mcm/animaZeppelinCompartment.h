@@ -49,6 +49,7 @@ public:
     void SetRadialDiffusivity1(double num) ITK_OVERRIDE;
 
     const Matrix3DType &GetDiffusionTensor() ITK_OVERRIDE;
+    double GetFractionalAnisotropy() ITK_OVERRIDE;
 
 protected:
     ZeppelinCompartment() : Superclass()
