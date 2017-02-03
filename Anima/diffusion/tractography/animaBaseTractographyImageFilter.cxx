@@ -19,6 +19,7 @@ BaseTractographyImageFilter::BaseTractographyImageFilter()
     
     m_StepProgression = 1;
     m_MaxFiberAngle = M_PI / 2.0;
+    m_MinimalModelWeight = 0.25;
 
     m_ComputeLocalColors = true;
     m_HighestProcessedSeed = 0;

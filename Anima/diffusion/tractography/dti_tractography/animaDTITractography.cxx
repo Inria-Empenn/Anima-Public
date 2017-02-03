@@ -29,6 +29,8 @@ int main(int argc,  char*  argv[])
     TCLAP::ValueArg<std::string> forbiddenMaskArg("f","forbidden-mask","Mask for removing fibers (default: none)",false,"","remove mask",cmd);
 
     TCLAP::ValueArg<double> faThrArg("","fa-thr","FA threshold (default: 0.1)",false,0.1,"fa threshold",cmd);
+    TCLAP::ValueArg<double> minNewModelWeightArg("w","min-weight","Minimal model direction weight wrt previous (default: 0.25)",false,0.25,"minimal model direction weight",cmd);
+
     TCLAP::ValueArg<double> stopAngleArg("a","angle-max","Maximum angle for tracking (default: 60)",false,60.0,"maximum track angle",cmd);
     TCLAP::ValueArg<double> stepLengthArg("","step-length","Length of each step (default: 1)",false,1.0,"step length",cmd);
     TCLAP::ValueArg<int> nbFibersArg("","nb-fibers","Number of starting filters (n*n*n) per voxel (default: 1)",false,1,"number of seeds per voxel",cmd);
@@ -77,6 +79,7 @@ int main(int argc,  char*  argv[])
     dtiTracker->SetNumberOfFibersPerPixel(nbFibersArg.getValue());
     dtiTracker->SetStepProgression(stepLengthArg.getValue());
     dtiTracker->SetStopFAThreshold(faThrArg.getValue());
+    dtiTracker->SetMinimalModelWeight(minNewModelWeightArg.getValue());
     dtiTracker->SetMaxFiberAngle(stopAngleArg.getValue());
     dtiTracker->SetMinLengthFiber(minLengthArg.getValue());
     dtiTracker->SetMaxLengthFiber(maxLengthArg.getValue());

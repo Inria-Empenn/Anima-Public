@@ -28,7 +28,7 @@ public:
     typedef itk::LinearInterpolateImageFunction <ModelImageType> DTIInterpolatorType;
     typedef DTIInterpolatorType::Pointer DTIInterpolatorPointer;
         
-    virtual void SetInputImage(ModelImageType *input);
+    virtual void SetInputImage(ModelImageType *input) ITK_OVERRIDE;
 
     void SetStopFAThreshold(double num) {m_StopFAThreshold = num;}
     
