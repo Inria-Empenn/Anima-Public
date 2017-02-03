@@ -123,8 +123,6 @@ void BaseProbabilisticTractographyImageFilter::Update()
 void BaseProbabilisticTractographyImageFilter::PrepareTractography()
 {
     // Initialize random generator
-    srand(time(0));
-
     m_Generators.resize(this->GetNumberOfThreads());
 
     std::mt19937 motherGenerator(time(0));
