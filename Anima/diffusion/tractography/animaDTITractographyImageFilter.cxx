@@ -174,6 +174,8 @@ dtiTractographyImageFilter::GetNextDirection(PointType &previousDirection, Vecto
     for (unsigned int i = 0;i < 3;++i)
         newDirection[i] = newDirection[i] * modelWeight + previousDirection[i] * (1.0 - modelWeight);
 
+    anima::Normalize(newDirection,newDirection);
+
     return newDirection;
 }
 
