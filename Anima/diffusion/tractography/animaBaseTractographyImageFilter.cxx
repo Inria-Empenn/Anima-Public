@@ -368,6 +368,12 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
             
             VectorType tmpModelValue = this->GetModelValue(curIndex);
             
+            if (isZero(tmpModelValue))
+            {
+                continueLoop = false;
+                continue;
+            }
+
             if (fiber.size() > m_MaxLengthFiber / m_StepProgression)
             {
                 fiber.clear();
@@ -454,8 +460,14 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
                 return resVal;
             }
             
-            VectorType tmpModelValue = this->GetModelValue(curIndex);
-            
+            VectorType tmpModelValue = this->GetModelValue(curIndex);            
+
+            if (isZero(tmpModelValue))
+            {
+                continueLoop = false;
+                continue;
+            }
+
             if (fiber.size() <= 1)
             {
                 oldDir = this->GetModelPrincipalDirection(tmpModelValue,is2d,threadId);
@@ -504,6 +516,17 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
     }
     
     return resVal;
+}
+
+bool BaseTractographyImageFilter::isZero(VectorType &value)
+{
+    for (unsigned int i = 0;i < value.GetSize();++i)
+    {
+        if (value[i] != 0)
+            return false;
+    }
+
+    return true;
 }
 
 } // end of namespace anima

@@ -96,6 +96,8 @@ protected:
     virtual VectorType GetModelValue(ContinuousIndexType &index) = 0;
     virtual PointType GetModelPrincipalDirection(VectorType &modelValue, bool is2d, itk::ThreadIdType threadId) = 0;
     virtual PointType GetNextDirection(PointType &previousDirection, VectorType &modelValue, bool is2d, itk::ThreadIdType threadId) = 0;
+
+    bool isZero(VectorType &value);
     
 private:
     unsigned int m_NumberOfFibersPerPixel;
