@@ -1,6 +1,7 @@
 #include <tclap/CmdLine.h>
 
 #include <itkDisplacementFieldJacobianDeterminantFilter.h>
+#include <animaJacobianMatrixImageFilter.h>
 #include <animaReadWriteFunctions.h>
 #include <animaVelocityUtils.h>
 
@@ -9,9 +10,13 @@ int main(int ac, const char** av)
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ', ANIMA_VERSION);
 	
     TCLAP::ValueArg<std::string> inArg("i","input","Input field",true,"","input image",cmd);
-    TCLAP::ValueArg<std::string> outArg("o","output","Output jacobian determinant image",true,"","output image",cmd);
+    TCLAP::ValueArg<std::string> outArg("o","output","Output jacobian image",true,"","output image",cmd);
     
-    TCLAP::SwitchArg svfArg("S","svf","Input field is an SVF",cmd,false);
+    TCLAP::ValueArg<unsigned int> neighArg("n","neigh","Neighborhood size for Jacobian computation (default: 1)",false,1,"neighborhood size",cmd);
+
+    TCLAP::SwitchArg svfArg("S","svf","Compute the exponential of the input SVF",cmd,false);
+    TCLAP::SwitchArg noIdArg("N","no-id","Do not add identity to the jacobian matrix",cmd,false);
+    TCLAP::SwitchArg detArg("D","det","Simply compute the determinant of the jacobian (-N option ignored in that case)",cmd,false);
     TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
     
     try
@@ -45,16 +50,33 @@ int main(int ac, const char** av)
         inputField = const_cast <ImageType *> (resTrsf->GetParametersAsVectorField());
     }
 
-    typedef itk::DisplacementFieldJacobianDeterminantFilter <ImageType, double> MainFilterType;
-    MainFilterType::Pointer mainFilter = MainFilterType::New();
+    if (detArg.isSet())
+    {
+        typedef itk::DisplacementFieldJacobianDeterminantFilter <ImageType, double> MainFilterType;
+        MainFilterType::Pointer mainFilter = MainFilterType::New();
 
-    mainFilter->SetInput(inputField);
-    mainFilter->SetNumberOfThreads(nbpArg.getValue());
-    mainFilter->SetUseImageSpacingOn();
+        mainFilter->SetInput(inputField);
+        mainFilter->SetNumberOfThreads(nbpArg.getValue());
+        mainFilter->SetUseImageSpacingOn();
 
-    mainFilter->Update();
+        mainFilter->Update();
 
-    anima::writeImage <MainFilterType::OutputImageType> (outArg.getValue(),mainFilter->GetOutput());
-    
+        anima::writeImage <MainFilterType::OutputImageType> (outArg.getValue(),mainFilter->GetOutput());
+    }
+    else
+    {
+        typedef anima::JacobianMatrixImageFilter <PixelType, PixelType, Dimension> MainFilterType;
+        MainFilterType::Pointer mainFilter = MainFilterType::New();
+
+        mainFilter->SetInput(inputField);
+        mainFilter->SetNumberOfThreads(nbpArg.getValue());
+        mainFilter->SetNeighborhood(neighArg.getValue());
+        mainFilter->SetNoIdentity(noIdArg.isSet());
+
+        mainFilter->Update();
+
+        anima::writeImage <MainFilterType::OutputImageType> (outArg.getValue(),mainFilter->GetOutput());
+    }
+
     return 0;
 }
