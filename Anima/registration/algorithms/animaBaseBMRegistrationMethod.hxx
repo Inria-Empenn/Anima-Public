@@ -19,6 +19,7 @@ BaseBMRegistrationMethod <TInputImageType>
     m_MovingImage = 0;
 
     m_SVFElasticRegSigma = 0;
+    m_BCHCompositionOrder = 1;
 
     m_MaximumIterations = 10;
     m_MinimalTransformError = 0.0001;
@@ -292,7 +293,7 @@ BaseBMRegistrationMethod <TInputImageType>
         SVFTransformType *tmpTrsf = dynamic_cast<SVFTransformType *>(computedTransform.GetPointer());
         SVFTransformType *tmpAddOn = dynamic_cast<SVFTransformType *>(addOn);
 
-        anima::composeSVF(tmpTrsf,tmpAddOn,this->GetNumberOfThreads());
+        anima::composeSVF(tmpTrsf,tmpAddOn,this->GetNumberOfThreads(),m_BCHCompositionOrder);
         if (m_SVFElasticRegSigma > 0)
         {
             typedef typename SVFTransformType::VectorFieldType VelocityFieldType;

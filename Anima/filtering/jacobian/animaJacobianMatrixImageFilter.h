@@ -19,7 +19,7 @@ public:
     typedef typename itk::Image <itk::Vector <TOutputPixelType, Dimension * Dimension>, Dimension> OutputImageType;
     typedef itk::ImageToImageFilter <InputImageType, OutputImageType> Superclass;
     typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self>  ConstPointer;
+    typedef itk::SmartPointer<const Self> ConstPointer;
 
     itkNewMacro(Self)
 

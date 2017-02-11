@@ -58,6 +58,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::PyramidalDenseSVFMatchingBridge
     m_OutlierSigma = 3;
     m_MEstimateConvergenceThreshold = 0.01;
     m_NeighborhoodApproximation = 2.5;
+    m_BCHCompositionOrder = 1;
     m_UseTransformationDam = true;
     m_DamDistance = 2.5;
     m_NumberOfPyramidLevels = 3;
@@ -238,6 +239,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
 
         mainMatcher->SetVerbose(m_Verbose);
         m_bmreg->SetBlockMatcher(mainMatcher);
+        m_bmreg->SetBCHCompositionOrder(m_BCHCompositionOrder);
 
         if (m_progressCallback)
         {

@@ -61,6 +61,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::PyramidalDenseTensorSVFMa
     m_OutlierSigma = 3;
     m_MEstimateConvergenceThreshold = 0.01;
     m_NeighborhoodApproximation = 2.5;
+    m_BCHCompositionOrder = 1;
     m_UseTransformationDam = true;
     m_DamDistance = 2.5;
     m_NumberOfPyramidLevels = 3;
@@ -209,6 +210,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
 
         m_bmreg->SetBlockMatcher(mainMatcher);
         m_bmreg->SetAgregator(agregPtr);
+        m_bmreg->SetBCHCompositionOrder(m_BCHCompositionOrder);
 
         if (this->GetNumberOfThreads() != 0)
             m_bmreg->SetNumberOfThreads(this->GetNumberOfThreads());

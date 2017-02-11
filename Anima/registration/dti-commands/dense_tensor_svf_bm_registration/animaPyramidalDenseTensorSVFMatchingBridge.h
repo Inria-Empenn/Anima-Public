@@ -208,6 +208,9 @@ public:
     double GetNeighborhoodApproximation() {return m_NeighborhoodApproximation;}
     void SetNeighborhoodApproximation(double neighborhoodApproximation) {m_NeighborhoodApproximation = neighborhoodApproximation;}
 
+    unsigned int GetBCHCompositionOrder() {return m_BCHCompositionOrder;}
+    void SetBCHCompositionOrder(unsigned int order) {m_BCHCompositionOrder = order;}
+
     bool GetUseTransformationDam() {return m_UseTransformationDam;}
     void SetUseTransformationDam(bool useTransformationDam) {m_UseTransformationDam = useTransformationDam;}
 
@@ -269,6 +272,7 @@ private:
     double m_OutlierSigma;
     double m_MEstimateConvergenceThreshold;
     double m_NeighborhoodApproximation;
+    unsigned int m_BCHCompositionOrder;
 
     bool m_UseTransformationDam;
     double m_DamDistance;
