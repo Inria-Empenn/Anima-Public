@@ -10,7 +10,7 @@ namespace anima
 template <class ScalarType, unsigned int NDimensions>
 void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *baseTrsf,
                 itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *addonTrsf,
-                unsigned int numThreads = itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
+                unsigned int numThreads, unsigned int bchOrder);
 
 template <class ScalarType, unsigned int NDimensions>
 void GetSVFExponential(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *baseTrsf,
@@ -25,7 +25,7 @@ template <class ScalarType, unsigned int NDimensions>
 void composeDistortionCorrections(typename rpi::DisplacementFieldTransform <ScalarType,NDimensions>::Pointer &baseTrsf,
                                   typename rpi::DisplacementFieldTransform <ScalarType,NDimensions>::Pointer &positiveAddOn,
                                   typename rpi::DisplacementFieldTransform <ScalarType,NDimensions>::Pointer &negativeAddOn,
-                                  unsigned int numThreads =  itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
+                                  unsigned int numThreads);
 
 } // end of namespace anima
 

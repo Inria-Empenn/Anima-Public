@@ -5,6 +5,7 @@
 #include <itkMultiplyImageFilter.h>
 
 #include <itkComposeDisplacementFieldsImageFilter.h>
+#include <animaSVFLieBracketImageFilter.h>
 
 namespace anima
 {
@@ -12,10 +13,13 @@ namespace anima
 template <class ScalarType, unsigned int NDimensions>
 void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *baseTrsf,
                 itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *addonTrsf,
-                unsigned int numThreads)
+                unsigned int numThreads, unsigned int bchOrder)
 {
     if ((baseTrsf->GetParametersAsVectorField() == NULL)&&(addonTrsf->GetParametersAsVectorField() == NULL))
         return;
+
+    if ((bchOrder > 4)||(bchOrder < 1))
+        throw itk::ExceptionObject(__FILE__,__LINE__,"Invalid BCH order, not implemented yet",ITK_LOCATION);
 
     typedef typename itk::StationaryVelocityFieldTransform <ScalarType,NDimensions>::VectorFieldType VelocityFieldType;
 
@@ -25,7 +29,10 @@ void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *
         return;
     }
 
-    typedef itk::AddImageFilter <VelocityFieldType, VelocityFieldType> AddFilterType;
+    typedef itk::AddImageFilter <VelocityFieldType, VelocityFieldType> AddFilterType;    
+    typedef itk::MultiplyImageFilter <VelocityFieldType, itk::Image <double, NDimensions>,
+            VelocityFieldType> MultiplyConstFilterType;
+
     typename AddFilterType::Pointer bchAdder = AddFilterType::New();
     bchAdder->SetInput(0,baseTrsf->GetParametersAsVectorField());
     bchAdder->SetInput(1,addonTrsf->GetParametersAsVectorField());
@@ -37,6 +44,196 @@ void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *
 
     typename VelocityFieldType::Pointer resField = bchAdder->GetOutput();
     resField->DisconnectPipeline();
+
+    typedef anima::SVFLieBracketImageFilter <ScalarType, NDimensions> LieBracketFilterType;
+    typename LieBracketFilterType::JacobianImagePointer baseTrsfJac, addonTrsfJac;
+    typename LieBracketFilterType::OutputImagePointer previousLieBracket, previousSecondLieBracket;
+
+    if (bchOrder >= 2)
+    {
+        // Compute Lie bracket and add half of it to the output
+        typename LieBracketFilterType::Pointer lieBracketFilter = LieBracketFilterType::New();
+
+        lieBracketFilter->SetInput(0,baseTrsf->GetParametersAsVectorField());
+        lieBracketFilter->SetInput(1,addonTrsf->GetParametersAsVectorField());
+
+        if (numThreads > 0)
+            lieBracketFilter->SetNumberOfThreads(numThreads);
+
+        lieBracketFilter->Update();
+        baseTrsfJac = lieBracketFilter->GetFirstFieldJacobian();
+        baseTrsfJac->DisconnectPipeline();
+        addonTrsfJac = lieBracketFilter->GetSecondFieldJacobian();
+        addonTrsfJac->DisconnectPipeline();
+        previousLieBracket = lieBracketFilter->GetOutput();
+        previousLieBracket->DisconnectPipeline();
+
+        typename MultiplyConstFilterType::Pointer bracketMultiplier = MultiplyConstFilterType::New();
+        bracketMultiplier->SetInput(0,previousLieBracket);
+        bracketMultiplier->SetConstant(0.5);
+
+        if (numThreads > 0)
+            bracketMultiplier->SetNumberOfThreads(numThreads);
+
+        bracketMultiplier->Update();
+
+        typename AddFilterType::Pointer bchSecondAdder = AddFilterType::New();
+        bchSecondAdder->SetInput(0,resField);
+        bchSecondAdder->SetInput(1,bracketMultiplier->GetOutput());
+
+        if (numThreads > 0)
+            bchSecondAdder->SetNumberOfThreads(numThreads);
+
+        bchSecondAdder->Update();
+
+        resField = bchSecondAdder->GetOutput();
+        resField->DisconnectPipeline();
+    }
+
+    if (bchOrder >= 3)
+    {
+        // Compute Lie bracket one way and add 1/12 of it to the output
+        typename LieBracketFilterType::Pointer lieBracketFilter = LieBracketFilterType::New();
+
+        lieBracketFilter->SetInput(0,baseTrsf->GetParametersAsVectorField());
+        lieBracketFilter->SetInput(1,previousLieBracket);
+        lieBracketFilter->SetFirstFieldJacobian(baseTrsfJac);
+
+        if (numThreads > 0)
+            lieBracketFilter->SetNumberOfThreads(numThreads);
+
+        lieBracketFilter->Update();
+
+        typename MultiplyConstFilterType::Pointer bracketMultiplier = MultiplyConstFilterType::New();
+        bracketMultiplier->SetInput(0,lieBracketFilter->GetOutput());
+        bracketMultiplier->SetConstant(1.0 / 12);
+
+        if (numThreads > 0)
+            bracketMultiplier->SetNumberOfThreads(numThreads);
+
+        bracketMultiplier->Update();
+
+        typename AddFilterType::Pointer bchSecondAdder = AddFilterType::New();
+        bchSecondAdder->SetInput(0,resField);
+        bchSecondAdder->SetInput(1,bracketMultiplier->GetOutput());
+
+        if (numThreads > 0)
+            bchSecondAdder->SetNumberOfThreads(numThreads);
+
+        bchSecondAdder->Update();
+
+        resField = bchSecondAdder->GetOutput();
+        resField->DisconnectPipeline();
+
+        // Compute Lie bracket the other way round and add 1/12 of it to the output
+        typename LieBracketFilterType::Pointer reverseLieBracketFilter = LieBracketFilterType::New();
+
+        reverseLieBracketFilter->SetInput(0,previousLieBracket);
+        reverseLieBracketFilter->SetInput(1,addonTrsf->GetParametersAsVectorField());
+        reverseLieBracketFilter->SetFirstFieldJacobian(lieBracketFilter->GetSecondFieldJacobian());
+        reverseLieBracketFilter->SetSecondFieldJacobian(addonTrsfJac);
+
+        if (numThreads > 0)
+            reverseLieBracketFilter->SetNumberOfThreads(numThreads);
+
+        reverseLieBracketFilter->Update();
+
+        bracketMultiplier = MultiplyConstFilterType::New();
+        bracketMultiplier->SetInput(0,reverseLieBracketFilter->GetOutput());
+        bracketMultiplier->SetConstant(1.0 / 12);
+
+        if (numThreads > 0)
+            bracketMultiplier->SetNumberOfThreads(numThreads);
+
+        bracketMultiplier->Update();
+
+        bchSecondAdder = AddFilterType::New();
+        bchSecondAdder->SetInput(0,resField);
+        bchSecondAdder->SetInput(1,bracketMultiplier->GetOutput());
+
+        if (numThreads > 0)
+            bchSecondAdder->SetNumberOfThreads(numThreads);
+
+        bchSecondAdder->Update();
+
+        resField = bchSecondAdder->GetOutput();
+        resField->DisconnectPipeline();
+
+        previousLieBracket = lieBracketFilter->GetOutput();
+        previousLieBracket->DisconnectPipeline();
+
+        previousSecondLieBracket = reverseLieBracketFilter->GetOutput();
+        previousSecondLieBracket->DisconnectPipeline();
+    }
+
+    if (bchOrder == 4)
+    {
+        // Compute Lie bracket one way and add 1/48 of it to the output
+        typename LieBracketFilterType::Pointer lieBracketFilter = LieBracketFilterType::New();
+
+        lieBracketFilter->SetInput(0,previousLieBracket);
+        lieBracketFilter->SetInput(1,addonTrsf->GetParametersAsVectorField());
+        lieBracketFilter->SetSecondFieldJacobian(addonTrsfJac);
+
+        if (numThreads > 0)
+            lieBracketFilter->SetNumberOfThreads(numThreads);
+
+        lieBracketFilter->Update();
+
+        typename MultiplyConstFilterType::Pointer bracketMultiplier = MultiplyConstFilterType::New();
+        bracketMultiplier->SetInput(0,lieBracketFilter->GetOutput());
+        bracketMultiplier->SetConstant(1.0 / 48);
+
+        if (numThreads > 0)
+            bracketMultiplier->SetNumberOfThreads(numThreads);
+
+        bracketMultiplier->Update();
+
+        typename AddFilterType::Pointer bchSecondAdder = AddFilterType::New();
+        bchSecondAdder->SetInput(0,resField);
+        bchSecondAdder->SetInput(1,bracketMultiplier->GetOutput());
+
+        if (numThreads > 0)
+            bchSecondAdder->SetNumberOfThreads(numThreads);
+
+        bchSecondAdder->Update();
+
+        resField = bchSecondAdder->GetOutput();
+        resField->DisconnectPipeline();
+
+        // Compute Lie bracket the other way round and add 1/12 of it to the output
+        typename LieBracketFilterType::Pointer reverseLieBracketFilter = LieBracketFilterType::New();
+
+        reverseLieBracketFilter->SetInput(0,baseTrsf->GetParametersAsVectorField());
+        reverseLieBracketFilter->SetInput(1,previousSecondLieBracket);
+        reverseLieBracketFilter->SetFirstFieldJacobian(baseTrsfJac);
+
+        if (numThreads > 0)
+            reverseLieBracketFilter->SetNumberOfThreads(numThreads);
+
+        reverseLieBracketFilter->Update();
+
+        bracketMultiplier = MultiplyConstFilterType::New();
+        bracketMultiplier->SetInput(0,reverseLieBracketFilter->GetOutput());
+        bracketMultiplier->SetConstant(1.0 / 48);
+
+        if (numThreads > 0)
+            bracketMultiplier->SetNumberOfThreads(numThreads);
+
+        bracketMultiplier->Update();
+
+        bchSecondAdder = AddFilterType::New();
+        bchSecondAdder->SetInput(0,resField);
+        bchSecondAdder->SetInput(1,bracketMultiplier->GetOutput());
+
+        if (numThreads > 0)
+            bchSecondAdder->SetNumberOfThreads(numThreads);
+
+        bchSecondAdder->Update();
+
+        resField = bchSecondAdder->GetOutput();
+        resField->DisconnectPipeline();
+    }
 
     baseTrsf->SetParametersAsVectorField(resField.GetPointer());
 }
