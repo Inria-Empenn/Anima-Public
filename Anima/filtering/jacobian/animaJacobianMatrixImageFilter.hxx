@@ -43,30 +43,54 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
     {
         currentIndex = inputItr.GetIndex();
 
-        // Construct region to explore
-        for (unsigned int i = 1;i < Dimension;++i)
+        // Construct region to explore, first determine which index is most adapted to split explored region in two
+        unsigned int halfSplitIndex = 0;
+        unsigned int largestGap = 0;
+        for (unsigned int i = 0;i < Dimension;++i)
         {
             unsigned int baseIndex = std::max(largestRegion.GetIndex()[i],currentIndex[i] - m_Neighborhood);
             unsigned int maxValue = largestRegion.GetIndex()[i] + largestRegion.GetSize()[i] - 1;
             unsigned int upperIndex = std::min(maxValue,(unsigned int)(currentIndex[i] + m_Neighborhood));
 
-            inputRegion.SetIndex(i,baseIndex);
-            inputRegion.SetSize(i,upperIndex - baseIndex + 1);
+            if ((upperIndex - currentIndex[i] == m_Neighborhood)||(currentIndex[i] - baseIndex == m_Neighborhood))
+            {
+                halfSplitIndex = i;
+                break;
+            }
+
+            unsigned int maxGap = std::max(upperIndex - currentIndex[i],currentIndex[i] - baseIndex);
+            if (largestGap < maxGap)
+            {
+                largestGap = maxGap;
+                halfSplitIndex = i;
+            }
         }
 
-        unsigned int baseIndex = std::max(largestRegion.GetIndex()[0],currentIndex[0] - m_Neighborhood);
-        unsigned int maxValue = largestRegion.GetIndex()[0] + largestRegion.GetSize()[0] - 1;
-        unsigned int upperIndex = std::min(maxValue,(unsigned int)(currentIndex[0] + m_Neighborhood));
+        // Then build the region
+        for (unsigned int i = 0;i < Dimension;++i)
+        {
+            unsigned int baseIndex = std::max(largestRegion.GetIndex()[i],currentIndex[i] - m_Neighborhood);
+            unsigned int maxValue = largestRegion.GetIndex()[i] + largestRegion.GetSize()[i] - 1;
+            unsigned int upperIndex = std::min(maxValue,(unsigned int)(currentIndex[i] + m_Neighborhood));
 
-        if (upperIndex - currentIndex[0] > currentIndex[0] - baseIndex)
-        {
-            inputRegion.SetIndex(0,currentIndex[0]);
-            inputRegion.SetSize(0,upperIndex - currentIndex[0] + 1);
-        }
-        else
-        {
-            inputRegion.SetIndex(0,baseIndex);
-            inputRegion.SetSize(0,currentIndex[0] - baseIndex + 1);
+            if (i == halfSplitIndex)
+            {
+                if (upperIndex - currentIndex[i] > currentIndex[i] - baseIndex)
+                {
+                    inputRegion.SetIndex(i,currentIndex[i]);
+                    inputRegion.SetSize(i,upperIndex - currentIndex[i] + 1);
+                }
+                else
+                {
+                    inputRegion.SetIndex(i,baseIndex);
+                    inputRegion.SetSize(i,currentIndex[i] - baseIndex + 1);
+                }
+            }
+            else
+            {
+                inputRegion.SetIndex(i,baseIndex);
+                inputRegion.SetSize(i,upperIndex - baseIndex + 1);
+            }
         }
 
         dataMatrix.set_size((inputRegion.GetNumberOfPixels() - 1) * Dimension,Dimension * Dimension);
