@@ -4,6 +4,8 @@
 #include <itkImageRegionConstIteratorWithIndex.h>
 #include <itkImageRegionIterator.h>
 
+#include <vnl_qr.h>
+
 namespace anima
 {
 
@@ -31,8 +33,8 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
 
     IndexType currentIndex;
     IndexType internalIndex, internalIndexOpposite;
-    vnl_matrix <double> dataMatrix, pseudoInverse;
-    std::vector <double> dataVector;
+    vnl_matrix <double> dataMatrix;
+    vnl_vector <double> dataVector, outputVector;
     RegionType inputRegion;
     RegionType largestRegion = this->GetInput()->GetLargestPossibleRegion();
     InputPixelType pixelBeforeValue, pixelAfterValue;
@@ -95,7 +97,7 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
 
         dataMatrix.set_size((inputRegion.GetNumberOfPixels() - 1) * Dimension,Dimension * Dimension);
         dataMatrix.fill(0.0);
-        dataVector.resize(Dimension * (inputRegion.GetNumberOfPixels() - 1));
+        dataVector.set_size(Dimension * (inputRegion.GetNumberOfPixels() - 1));
 
         InputIteratorType internalItr(this->GetInput(),inputRegion);
         unsigned int pos = 0;
@@ -140,16 +142,10 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
             ++internalItr;
         }
 
-        pseudoInverse = dataMatrix.transpose() * dataMatrix;
-        pseudoInverse = vnl_matrix_inverse <double> (pseudoInverse) * dataMatrix.transpose();
+        outputVector = vnl_qr <double> (dataMatrix).solve(dataVector);
 
-        // The output is ordered as D00, D01, D02, D10, ..., D22
-        for (unsigned int i = 0;i < pseudoInverse.rows();++i)
-        {
-            outputValue[i] = 0;
-            for (unsigned int j = 0;j < pseudoInverse.cols();++j)
-                outputValue[i] += pseudoInverse(i,j) * dataVector[j];
-        }
+        for (unsigned int i = 0;i < outputValue.GetVectorDimension();++i)
+            outputValue[i] = outputVector[i];
 
         if (!m_NoIdentity)
         {
