@@ -266,10 +266,20 @@ SampleFromWatsonDistribution(const ScalarType &kappa, const VectorType &meanDire
     tmpVec[0] = std::sqrt(1.0 - S*S) * std::cos(phi);
     tmpVec[1] = std::sqrt(1.0 - S*S) * std::sin(phi);
     tmpVec[2] = S;
-
-    for (unsigned int i = 0;i < DataDimension;++i)
-        for (unsigned int j = 0;j < DataDimension;++j)
-            resVec[i] += rotationMatrix(i,j) * tmpVec[j];
+    
+    anima::RotateAroundAxis(tmpVec, rotationAngle, rotationNormal, resVec);
+    
+    double resNorm = anima::ComputeNorm(resVec);
+    
+    if (std::abs(resNorm - 1.0) > 1.0e-4)
+    {
+        std::cout << "Sampled direction norm: " << resNorm << std::endl;
+        std::cout << "Mean direction: " << meanDirection << std::endl;
+        std::cout << "Concentration parameter: " << kappa << std::endl;
+        throw itk::ExceptionObject(__FILE__, __LINE__,"The Watson sampler should generate points on the 2-sphere.",ITK_LOCATION);
+    }
+    
+    anima::Normalize(resVec,resVec);
 }
 
 template <class ScalarType, unsigned int DataDimension>
