@@ -40,6 +40,7 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
     InputPixelType pixelBeforeValue, pixelAfterValue;
     OutputPixelType outputValue;
     PointType pointBefore, pointAfter, unitVector;
+    std::vector < std::pair <IndexType,IndexType> > doubleDataTestVector;
 
     while (!inputItr.IsAtEnd())
     {
@@ -101,6 +102,7 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
 
         InputIteratorType internalItr(this->GetInput(),inputRegion);
         unsigned int pos = 0;
+        doubleDataTestVector.clear();
         while (!internalItr.IsAtEnd())
         {
             internalIndex = internalItr.GetIndex();
@@ -110,8 +112,30 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
                 continue;
             }
 
+            if (internalIndex[halfSplitIndex] == currentIndex[halfSplitIndex])
+            {
+                bool skipVoxel = false;
+                for (unsigned int i = 0;i < doubleDataTestVector.size();++i)
+                {
+                    if ((internalIndex == doubleDataTestVector[i].first)||(internalIndex == doubleDataTestVector[i].second))
+                    {
+                        skipVoxel = true;
+                        break;
+                    }
+                }
+
+                if (skipVoxel)
+                {
+                    ++internalItr;
+                    continue;
+                }
+            }
+
             for (unsigned int i = 0;i < Dimension;++i)
                 internalIndexOpposite[i] = 2 * currentIndex[i] - internalIndex[i];
+
+            if (internalIndex[halfSplitIndex] == currentIndex[halfSplitIndex])
+                doubleDataTestVector.push_back(std::make_pair(internalIndex,internalIndexOpposite));
 
             pixelBeforeValue = internalItr.Get();
             pixelAfterValue = m_FieldInterpolator->EvaluateAtIndex(internalIndexOpposite);
