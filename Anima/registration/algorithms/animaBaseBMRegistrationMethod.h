@@ -82,14 +82,17 @@ public:
 
     /** Set/Get the maximum number of iterations */
     itkSetMacro (MaximumIterations, unsigned int)
-    itkGetConstReferenceMacro (MaximumIterations, unsigned int)
+    itkGetMacro (MaximumIterations, unsigned int)
 
     /** Set/Get the minimal error over consecutive transformations */
     itkSetMacro(MinimalTransformError, double)
-    itkGetConstReferenceMacro(MinimalTransformError, double)
+    itkGetMacro(MinimalTransformError, double)
 
     itkSetMacro (SVFElasticRegSigma, double)
-    itkGetConstReferenceMacro (SVFElasticRegSigma, double)
+    itkGetMacro (SVFElasticRegSigma, double)
+
+    itkSetMacro (BCHCompositionOrder, unsigned int)
+    itkGetMacro (BCHCompositionOrder, unsigned int)
 
     itkSetMacro(VerboseProgression, bool)
     itkGetMacro(VerboseProgression, bool)
@@ -132,7 +135,7 @@ private:
     InputImagePointer m_FixedImage;
     InputImagePointer m_MovingImage;
 
-    unsigned m_MaximumIterations;
+    unsigned int m_MaximumIterations;
     double m_MinimalTransformError;
 
     // Resampler
@@ -144,6 +147,7 @@ private:
 
     // SVF specific regularization parameter
     double m_SVFElasticRegSigma;
+    unsigned int m_BCHCompositionOrder;
 
     bool m_Abort;
     bool m_VerboseProgression;

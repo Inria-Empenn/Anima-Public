@@ -1,0 +1,3 @@
+add_subdirectory(jacobian)
+add_subdirectory(image_mosaicing)
+add_subdirectory(transform_serie_xml_generator)

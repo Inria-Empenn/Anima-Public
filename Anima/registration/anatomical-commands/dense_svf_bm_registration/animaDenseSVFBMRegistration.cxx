@@ -55,6 +55,7 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<double> outlierSigmaArg("","os","Sigma for outlier rejection among local pairings (default: 3)",false,3,"outlier rejection sigma",cmd);
     TCLAP::ValueArg<double> mEstimateConvergenceThresholdArg("","met","Threshold to consider m-estimator converged (default: 0.01)",false,0.01,"m-estimation convergence threshold",cmd);
     TCLAP::ValueArg<double> neighborhoodApproximationArg("","na","Half size of the neighborhood approximation (multiplied by extrapolation sigma, default: 2.5)",false,2.5,"half size of neighborhood approximation",cmd);
+    TCLAP::ValueArg<unsigned int> bchOrderArg("b","bch-order","BCH composition order (default: 1)",false,1,"BCH order",cmd);
 
     TCLAP::SwitchArg useTransformDamArg("D","use-dam", "Activate transformation dam to force identity far away from any blocks", cmd, false);
     TCLAP::ValueArg<double> damDistanceArg("","dd","Distance of the deformation dam (crushes extrapolated displacements away from anything on a dd pixels distance, default: 3.0)",false,3.0,"identity dam distance",cmd);
@@ -115,6 +116,7 @@ int main(int argc, const char** argv)
     matcher->SetOutlierSigma(outlierSigmaArg.getValue());
     matcher->SetMEstimateConvergenceThreshold(mEstimateConvergenceThresholdArg.getValue());
     matcher->SetNeighborhoodApproximation(neighborhoodApproximationArg.getValue());
+    matcher->SetBCHCompositionOrder(bchOrderArg.getValue());
     matcher->SetUseTransformationDam(useTransformDamArg.isSet());
     matcher->SetDamDistance(damDistanceArg.getValue());
     matcher->SetNumberOfPyramidLevels( numPyramidLevelsArg.getValue() );
