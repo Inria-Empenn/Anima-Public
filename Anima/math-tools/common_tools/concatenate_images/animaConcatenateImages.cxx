@@ -11,6 +11,7 @@ struct arguments
     std::vector<std::string> inputs;
     std::string base, output;
     double origin, spacing;
+    unsigned int nbComponents;
 };
 
 template <class InputImageType, unsigned int InputDim, class OutputImageType >
@@ -65,6 +66,7 @@ concatenate(const arguments &args)
         baseImg->SetOrigin(finalOrigin);
         baseImg->SetSpacing(finalSpacing);
         baseImg->SetDirection(finalDirection);
+        baseImg->SetNumberOfComponentsPerPixel(args.nbComponents);
         baseImg->Allocate();
 
         typedef itk::ImageRegionIterator <OutputImageType> FillIteratorType;
@@ -82,7 +84,6 @@ concatenate(const arguments &args)
     else // use given basis.
         baseImg = anima::readImage<OutputImageType>(args.base);
 
-
     // allocate output
     typename OutputImageType::Pointer outputImg;
     typename OutputImageType::RegionType finalRegion;
@@ -94,15 +95,16 @@ concatenate(const arguments &args)
 
     for (unsigned int d = 0; d < InputDim; ++d)
     {
-
         finalIndex[d] = baseImg->GetLargestPossibleRegion().GetIndex()[d];
         finalSize[d] = baseImg->GetLargestPossibleRegion().GetSize()[d];
         finalOrigin[d] = baseImg->GetOrigin()[d];
         finalSpacing[d] = baseImg->GetSpacing()[d];
-        for(unsigned int i = 0; i < InputDim; ++i)
+
+        for(unsigned int i = 0;i < InputDim;++i)
             finalDirection[d][i] = baseImg->GetDirection()[d][i];
     }
-    for(unsigned int i = 0; i < InputDim +1; ++i)
+
+    for(unsigned int i = 0;i < InputDim + 1;++i)
     {
         finalDirection[InputDim][i] = baseImg->GetDirection()[InputDim][i];
         finalDirection[i][InputDim] = baseImg->GetDirection()[i][InputDim];
@@ -122,6 +124,7 @@ concatenate(const arguments &args)
     outputImg->SetOrigin(finalOrigin);
     outputImg->SetSpacing(finalSpacing);
     outputImg->SetDirection(finalDirection);
+    outputImg->SetNumberOfComponentsPerPixel(args.nbComponents);
     outputImg->Allocate();
 
     // fill with the base:
@@ -157,10 +160,10 @@ concatenate(const arguments &args)
 
 template <class ComponentType, unsigned int InputDim>
 void
-retrieveNbComponent(const arguments &args, itk::ImageIOBase::Pointer imageIO)
+retrieveNbComponent(arguments &args, itk::ImageIOBase::Pointer imageIO)
 {
-    unsigned int nbCom = imageIO->GetNumberOfComponents();
-    switch(nbCom)
+    args.nbComponents = imageIO->GetNumberOfComponents();
+    switch(args.nbComponents)
     {
     case 1:
         typedef itk::Image<ComponentType, InputDim> InputImageType;
@@ -181,7 +184,7 @@ retrieveNbComponent(const arguments &args, itk::ImageIOBase::Pointer imageIO)
 
 template <class ComponentType >
 void
-retrieveNbDimensions(const arguments &args, itk::ImageIOBase::Pointer imageIO)
+retrieveNbDimensions(arguments &args, itk::ImageIOBase::Pointer imageIO)
 {
 
     unsigned int nbDim = imageIO->GetNumberOfDimensions();
@@ -201,7 +204,7 @@ retrieveNbDimensions(const arguments &args, itk::ImageIOBase::Pointer imageIO)
 }
 
 void
-retrieveComponentType(const arguments &args, itk::ImageIOBase::Pointer imageIO)
+retrieveComponentType(arguments &args, itk::ImageIOBase::Pointer imageIO)
 {
     switch (imageIO->GetComponentType())
     {
