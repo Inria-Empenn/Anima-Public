@@ -7,7 +7,9 @@
 #include <itkBSplineInterpolateImageFunction.h>
 #include <itkWindowedSincInterpolateImageFunction.h>
 #include <itkConstantBoundaryCondition.h>
+#include <itkImageRegionIterator.h>
 
+#include <itkExtractImageFilter.h>
 #include <itkLinearInterpolateImageFunction.h>
 #include <animaResampleImageFilter.h>
 #include <animaTransformSeriesReader.h>
@@ -26,7 +28,7 @@ template <class ImageType>
 void
 applyVectorTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &args)
 {
-    typedef itk::VectorImage<float, ImageType::ImageDimension> OuputType;
+    typedef itk::VectorImage<float, ImageType::ImageDimension> OutputType;
 
     typedef anima::TransformSeriesReader <double, ImageType::ImageDimension> TransformSeriesReaderType;
     typedef typename TransformSeriesReaderType::OutputTransformType TransformType;
@@ -38,7 +40,7 @@ applyVectorTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
 
     std::cout << "Image to transform is vector." << std::endl;
 
-    typedef itk::ResampleImageFilter<ImageType, OuputType> ResampleFilterType;
+    typedef itk::ResampleImageFilter<ImageType, OutputType> ResampleFilterType;
     typename ResampleFilterType::Pointer vectorResampler = ResampleFilterType::New();
     typename itk::InterpolateImageFunction <ImageType>::Pointer interpolator;
 
@@ -90,15 +92,153 @@ applyVectorTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
     vectorResampler->SetNumberOfThreads(args.pthread);
     vectorResampler->Update();
 
-    anima::writeImage<OuputType>(args.output, vectorResampler->GetOutput());
+    anima::writeImage<OutputType>(args.output, vectorResampler->GetOutput());
 }
 
+template <class ImageType>
+void
+applyScalarTransfo4D(itk::ImageIOBase::Pointer geometryImageIO, const arguments &args)
+{
+    typedef itk::Image <float, ImageType::ImageDimension> OutputType;
+    const unsigned int InternalImageDimension = 3;
+    typedef itk::Image <float, InternalImageDimension> InternalImageType;
+
+    typedef anima::TransformSeriesReader <double, InternalImageDimension> TransformSeriesReaderType;
+    typedef typename TransformSeriesReaderType::OutputTransformType TransformType;
+    TransformSeriesReaderType *trReader = new TransformSeriesReaderType;
+    trReader->SetInput(args.transfo);
+    trReader->SetInvertTransform(args.invert);
+    trReader->Update();
+    typename TransformType::Pointer transfo = trReader->GetOutputTransform();
+
+    std::cout << "Image to transform is 4D scalar." << std::endl;
+    typename itk::InterpolateImageFunction <InternalImageType>::Pointer interpolator;
+
+    if(args.interpolation == "nearest")
+        interpolator = itk::NearestNeighborInterpolateImageFunction<InternalImageType>::New();
+    else if(args.interpolation == "linear")
+        interpolator = itk::LinearInterpolateImageFunction<InternalImageType>::New();
+    else if(args.interpolation == "bspline")
+        interpolator = itk::BSplineInterpolateImageFunction<InternalImageType>::New();
+    else if(args.interpolation == "sinc")
+    {
+        const unsigned int WindowRadius = 4;
+        typedef itk::Function::HammingWindowFunction<WindowRadius> WindowFunctionType;
+        typedef itk::ConstantBoundaryCondition<InternalImageType> BoundaryConditionType;
+        interpolator = itk::WindowedSincInterpolateImageFunction
+                <InternalImageType, WindowRadius, WindowFunctionType, BoundaryConditionType, double >::New();
+    }
+
+    typename OutputType::PointType origin;
+    typename OutputType::SpacingType spacing;
+    typename OutputType::DirectionType direction;
+    direction.SetIdentity();
+
+    typename OutputType::RegionType outputRegion;
+    for (unsigned int i = 0;i < InternalImageDimension;++i)
+    {
+        outputRegion.SetIndex(i,0);
+        outputRegion.SetSize(i,geometryImageIO->GetDimensions(i));
+        origin[i] = geometryImageIO->GetOrigin(i);
+        spacing[i] = geometryImageIO->GetSpacing(i);
+        for(unsigned int j = 0;j < InternalImageDimension;++j)
+            direction(i,j) = geometryImageIO->GetDirection(j)[i];
+    }
+
+    typename ImageType::Pointer inputImage = anima::readImage<ImageType> (args.input);
+    for (unsigned int i = InternalImageDimension;i < ImageType::ImageDimension;++i)
+    {
+        outputRegion.SetIndex(i,0);
+        outputRegion.SetSize(i,inputImage->GetLargestPossibleRegion().GetSize()[i]);
+        origin[i] = inputImage->GetOrigin()[i];
+        spacing[i] = inputImage->GetSpacing()[i];
+        direction(i,i) = inputImage->GetDirection()(i,i);
+    }
+
+    typename OutputType::Pointer outputImage = OutputType::New();
+    outputImage->Initialize();
+    outputImage->SetRegions(outputRegion);
+    outputImage->SetOrigin(origin);
+    outputImage->SetSpacing(spacing);
+    outputImage->SetDirection(direction);
+    outputImage->Allocate();
+
+    unsigned int numImages = inputImage->GetLargestPossibleRegion().GetSize()[InternalImageDimension];
+
+    for (unsigned int i = 0;i < numImages;++i)
+    {
+        std::cout << "Resampling sub-image " << i+1 << "/" << numImages << std::endl;
+        typedef anima::ResampleImageFilter<InternalImageType, InternalImageType> ResampleFilterType;
+        typename ResampleFilterType::Pointer scalarResampler = ResampleFilterType::New();
+        scalarResampler->SetTransform(transfo);
+        scalarResampler->SetInterpolator(interpolator);
+
+        typename InternalImageType::SizeType internalSize;
+        typename InternalImageType::PointType internalOrigin;
+        typename InternalImageType::SpacingType internalSpacing;
+        typename InternalImageType::DirectionType internalDirection;
+        internalDirection.SetIdentity();
+
+        for (unsigned int j = 0;j < InternalImageDimension;++j)
+        {
+            internalSize[j] = geometryImageIO->GetDimensions(j);
+            internalOrigin[j] = geometryImageIO->GetOrigin(j);
+            internalSpacing[j] = geometryImageIO->GetSpacing(j);
+            for(unsigned int k = 0;k < InternalImageDimension;++k)
+                internalDirection(j,k) = geometryImageIO->GetDirection(k)[j];
+        }
+
+        scalarResampler->SetSize(internalSize);
+        scalarResampler->SetOutputOrigin(internalOrigin);
+        scalarResampler->SetOutputSpacing(internalSpacing);
+        scalarResampler->SetOutputDirection(internalDirection);
+
+        typedef itk::ExtractImageFilter <ImageType, InternalImageType> ExtractFilterType;
+        typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
+        extractFilter->SetInput(inputImage);
+        extractFilter->SetDirectionCollapseToGuess();
+
+        typename ImageType::RegionType extractRegion = inputImage->GetLargestPossibleRegion();
+        extractRegion.SetIndex(InternalImageDimension,i);
+        extractRegion.SetSize(InternalImageDimension,0);
+
+        extractFilter->SetExtractionRegion(extractRegion);
+        extractFilter->SetNumberOfThreads(args.pthread);
+
+        extractFilter->Update();
+
+        scalarResampler->SetInput(extractFilter->GetOutput());
+        scalarResampler->SetNumberOfThreads(args.pthread);
+        scalarResampler->Update();
+
+        extractRegion.SetSize(InternalImageDimension,1);
+        for (unsigned int j = 0;j < InternalImageDimension;++j)
+        {
+            extractRegion.SetIndex(j,scalarResampler->GetOutput()->GetLargestPossibleRegion().GetIndex()[j]);
+            extractRegion.SetSize(j,scalarResampler->GetOutput()->GetLargestPossibleRegion().GetSize()[j]);
+        }
+
+        itk::ImageRegionIterator <InternalImageType> internalOutItr(scalarResampler->GetOutput(),
+                                                                    scalarResampler->GetOutput()->GetLargestPossibleRegion());
+        itk::ImageRegionIterator <OutputType> outItr(outputImage,extractRegion);
+
+        while (!outItr.IsAtEnd())
+        {
+            outItr.Set(internalOutItr.Get());
+
+            ++internalOutItr;
+            ++outItr;
+        }
+    }
+
+    anima::writeImage<OutputType>(args.output, outputImage);
+}
 
 template <class ImageType>
 void
 applyScalarTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &args)
 {
-    typedef itk::Image<float, ImageType::ImageDimension> OuputType;
+    typedef itk::Image <float, ImageType::ImageDimension> OutputType;
 
     typedef anima::TransformSeriesReader <double, ImageType::ImageDimension> TransformSeriesReaderType;
     typedef typename TransformSeriesReaderType::OutputTransformType TransformType;
@@ -108,8 +248,8 @@ applyScalarTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
     trReader->Update();
     typename TransformType::Pointer transfo = trReader->GetOutputTransform();
 
-    std::cout << "Image to transform is Scalar." << std::endl;
-    typedef anima::ResampleImageFilter<ImageType, OuputType> ResampleFilterType;
+    std::cout << "Image to transform is scalar" << std::endl;
+    typedef anima::ResampleImageFilter<ImageType, OutputType> ResampleFilterType;
     typename ResampleFilterType::Pointer scalarResampler = ResampleFilterType::New();
     typename itk::InterpolateImageFunction <ImageType>::Pointer interpolator;
 
@@ -147,14 +287,6 @@ applyScalarTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
             direction[i][j] = geometryImageIO->GetDirection(j)[i];
     }
 
-    for (unsigned int i = imageIODimension;i < ImageType::ImageDimension;++i)
-    {
-        size[i] = 1;
-        origin[i] = 0;
-        spacing[i] = 1;
-        direction[i][i] = 1;
-    }
-
     scalarResampler->SetSize(size);
     scalarResampler->SetOutputOrigin(origin);
     scalarResampler->SetOutputSpacing(spacing);
@@ -164,31 +296,40 @@ applyScalarTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
     scalarResampler->SetNumberOfThreads(args.pthread);
     scalarResampler->Update();
 
-    anima::writeImage<OuputType>(args.output, scalarResampler->GetOutput());
+    anima::writeImage<OutputType>(args.output, scalarResampler->GetOutput());
 }
-
 
 template <class ComponentType, int Dimension>
 void
 checkIfComponentsAreVectors(itk::ImageIOBase::Pointer inputImageIO, itk::ImageIOBase::Pointer geometryImageIO, const arguments &args)
 {
     if (inputImageIO->GetNumberOfComponents() > 1)
-        applyVectorTransfo<itk::VectorImage<ComponentType, Dimension> >(geometryImageIO, args);
+    {
+        if (Dimension > 3)
+            throw itk::ExceptionObject (__FILE__, __LINE__, "Number of dimensions not supported for vector image resampling", ITK_LOCATION);
+
+        applyVectorTransfo < itk::VectorImage<ComponentType, 3> > (geometryImageIO, args);
+    }
     else
-        applyScalarTransfo<itk::Image<ComponentType, Dimension> >(geometryImageIO, args);
+    {
+        if (Dimension < 4)
+            applyScalarTransfo < itk::Image<ComponentType, 3> > (geometryImageIO, args);
+        else
+            applyScalarTransfo4D < itk::Image<ComponentType, 4> > (geometryImageIO, args);
+    }
 }
 
 template <class ComponentType>
 void
 retrieveNbDimensions(itk::ImageIOBase::Pointer inputImageIO, itk::ImageIOBase::Pointer geometryImageIO,  const arguments &args)
 {
-    if(inputImageIO->GetNumberOfDimensions() > 3)
-    {
-        itk::ExceptionObject excp(__FILE__, __LINE__, "Number of type not supported.", ITK_LOCATION);
-        throw excp;
-    }
+    if (inputImageIO->GetNumberOfDimensions() > 4)
+        throw itk::ExceptionObject(__FILE__, __LINE__, "Number of dimensions not supported.", ITK_LOCATION);
+
+    if (inputImageIO->GetNumberOfDimensions() > 3)
+        checkIfComponentsAreVectors<ComponentType, 4> (inputImageIO, geometryImageIO, args);
     else
-        checkIfComponentsAreVectors<ComponentType, 3>(inputImageIO, geometryImageIO, args);
+        checkIfComponentsAreVectors<ComponentType, 3> (inputImageIO, geometryImageIO, args);
 }
 
 
