@@ -219,41 +219,15 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
         resVec[3] = optimizedValue[4];
         resVec[4] = optimizedValue[5];
 
-        double outB0Value = 0;
-        double normConstant = 0;
-
-        for (unsigned int i = 0;i < numInputs;++i)
-        {
-            double predictedValue = 0;
-            double bValue = m_BValuesList[i];
-
-            if (bValue == 0)
-                predictedValue = 1;
-            else
-            {
-                for (unsigned int j = 0;j < 3;++j)
-                    predictedValue += optimizedValue[j] * m_GradientDirections[i][j] * m_GradientDirections[i][j];
-
-                predictedValue += 2 * optimizedValue[3] * m_GradientDirections[i][0] * m_GradientDirections[i][1];
-                predictedValue += 2 * optimizedValue[4] * m_GradientDirections[i][0] * m_GradientDirections[i][2];
-                predictedValue += 2 * optimizedValue[5] * m_GradientDirections[i][1] * m_GradientDirections[i][2];
-
-                predictedValue = std::exp(- bValue * predictedValue);
-            }
-
-            outB0Value += predictedValue * dwi[i];
-            normConstant += predictedValue * predictedValue;
-        }
-
-        outB0Value /= normConstant;
+        double outB0Value = this->ComputeB0FromTensorVector(optimizedValue,dwi);
 
         anima::GetTensorFromVectorRepresentation(resVec,tmpTensor,3);
         vnl_symmetric_eigensystem <double> tmpEigs(tmpTensor);
 
-        bool isTensorOk = true;
-
         if (m_RemoveDegeneratedTensors)
         {
+            bool isTensorOk = true;
+
             for (unsigned int i = 0;i < 3;++i)
             {
                 if (tmpEigs.D[i] <= 0)
@@ -262,13 +236,30 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
                     break;
                 }
             }
+
+            if (!isTensorOk)
+            {
+                resVec.Fill(0.0);
+                outB0Value = 0;
+            }
+        }
+        else if (m_ProjectDegeneratedTensors)
+        {
+            anima::ProjectOnTensorSpace(tmpTensor,tmpTensor);
+            anima::GetVectorRepresentation(tmpTensor,resVec,m_NumberOfComponents);
+
+            optimizedValue[0] = resVec[0];
+            optimizedValue[1] = resVec[2];
+            optimizedValue[2] = resVec[5];
+            optimizedValue[3] = resVec[1];
+            optimizedValue[4] = resVec[3];
+            optimizedValue[5] = resVec[4];
+
+            outB0Value = this->ComputeB0FromTensorVector(optimizedValue,dwi);
         }
 
-        if (isTensorOk)
-        {
-            outIterator.Set(resVec);
-            outB0Iterator.Set(outB0Value);
-        }
+        outIterator.Set(resVec);
+        outB0Iterator.Set(outB0Value);
 
         for (unsigned int i = 0;i < numInputs;++i)
             ++inIterators[i];
@@ -277,6 +268,42 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
         ++outIterator;
         ++outB0Iterator;
     }
+}
+
+template <class InputPixelScalarType, class OutputPixelScalarType>
+double
+DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
+::ComputeB0FromTensorVector(const std::vector<double> &tensorValue, const std::vector<double> &dwiSignal)
+{
+    double outB0Value = 0;
+    double normConstant = 0;
+    unsigned int numInputs = dwiSignal.size();
+
+    for (unsigned int i = 0;i < numInputs;++i)
+    {
+        double predictedValue = 0;
+        double bValue = m_BValuesList[i];
+
+        if (bValue == 0)
+            predictedValue = 1;
+        else
+        {
+            for (unsigned int j = 0;j < 3;++j)
+                predictedValue += tensorValue[j] * m_GradientDirections[i][j] * m_GradientDirections[i][j];
+
+            predictedValue += 2 * tensorValue[3] * m_GradientDirections[i][0] * m_GradientDirections[i][1];
+            predictedValue += 2 * tensorValue[4] * m_GradientDirections[i][0] * m_GradientDirections[i][2];
+            predictedValue += 2 * tensorValue[5] * m_GradientDirections[i][1] * m_GradientDirections[i][2];
+
+            predictedValue = std::exp(- bValue * predictedValue);
+        }
+
+        outB0Value += predictedValue * dwiSignal[i];
+        normConstant += predictedValue * predictedValue;
+    }
+
+    outB0Value /= normConstant;
+    return outB0Value;
 }
 
 template <class InputPixelScalarType, class OutputPixelScalarType>

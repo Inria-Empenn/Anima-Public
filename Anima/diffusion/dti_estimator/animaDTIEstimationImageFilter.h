@@ -50,6 +50,7 @@ public:
     itkGetMacro(B0Threshold, double)
 
     itkSetMacro(RemoveDegeneratedTensors, bool)
+    itkSetMacro(ProjectDegeneratedTensors, bool)
 
     itkGetMacro(EstimatedB0Image, OutputB0ImageType *)
 
@@ -63,6 +64,7 @@ protected:
 
         m_B0Threshold = 0;
         m_RemoveDegeneratedTensors = true;
+        m_ProjectDegeneratedTensors = false;
         m_EstimatedB0Image = NULL;
     }
 
@@ -78,6 +80,8 @@ protected:
     double ComputeCostAtPosition(const std::vector<double> &x, const std::vector <double> &observedData,
                                  std::vector <double> &predictedValues);
 
+    double ComputeB0FromTensorVector(const std::vector <double> &tensorValue, const std::vector <double> &dwiSignal);
+
 private:
     DTIEstimationImageFilter(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
@@ -90,6 +94,7 @@ private:
 
     static const unsigned int m_NumberOfComponents = 6;
     bool m_RemoveDegeneratedTensors;
+    bool m_ProjectDegeneratedTensors;
 };
 
 } // end of namespace anima
