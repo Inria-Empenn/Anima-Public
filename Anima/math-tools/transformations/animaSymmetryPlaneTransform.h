@@ -12,16 +12,16 @@ public itk::MatrixOffsetTransformBase< TScalarType, 3 >
 {
 public:
     /** Standard class typedefs. */
-    typedef SymmetryPlaneTransform                  Self;
-    typedef itk::MatrixOffsetTransformBase< TScalarType, 3 >   Superclass;
-    typedef itk::SmartPointer<Self>                Pointer;
-    typedef itk::SmartPointer<const Self>          ConstPointer;
+    typedef SymmetryPlaneTransform Self;
+    typedef itk::MatrixOffsetTransformBase <TScalarType, 3> Superclass;
+    typedef itk::SmartPointer<Self> Pointer;
+    typedef itk::SmartPointer<const Self> ConstPointer;
 
     /** New macro for creation of through a Smart Pointer. */
-    itkNewMacro( Self );
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro( SymmetryPlaneTransform, MatrixOffsetTransformBase );
+    itkTypeMacro(SymmetryPlaneTransform, MatrixOffsetTransformBase)
 
     /** Dimension of the space. */
     itkStaticConstMacro(SpaceDimension, unsigned int, 3);

@@ -56,9 +56,9 @@ public:
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self> ConstPointer;
 
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
-    itkTypeMacro(PyramidalSymmetryBridge,itk::ProcessObject);
+    itkTypeMacro(PyramidalSymmetryBridge,itk::ProcessObject)
 
     void ParseParameters(int argc, const char **argv);
 
@@ -69,47 +69,47 @@ public:
     void ComputeRealignTransform(itk::Vector <double,InputImageType::ImageDimension> centralPoint,
                                  typename InputImageType::PointType &centerReal, ParametersType &imageParams);
 
-    Metric GetMetric(void){return m_metric;};
-    void SetMetric(Metric metric){m_metric=metric;};
+    Metric GetMetric() {return m_metric;}
+    void SetMetric(Metric metric) {m_metric=metric;}
 
-    OptimizerType GetOptimizerType(void){return m_optType;};
-    void SetOptimizerType(OptimizerType optType){m_optType=optType;};
+    OptimizerType GetOptimizerType() {return m_optType;}
+    void SetOptimizerType(OptimizerType optType) {m_optType=optType;}
 
-    int GetOptimizerMaxIterations(void){return m_optMaxIterations;};
-    void SetOptimizerMaxIterations(int optMaxIterations){m_optMaxIterations=optMaxIterations;};
+    int GetOptimizerMaxIterations() {return m_optMaxIterations;}
+    void SetOptimizerMaxIterations(int optMaxIterations) {m_optMaxIterations=optMaxIterations;}
 
-    int GetHistogramSize(void){return m_histogramSize;};
-    void SetHistogramSize(int histogramSize){m_histogramSize=histogramSize;};
+    int GetHistogramSize() {return m_histogramSize;}
+    void SetHistogramSize(int histogramSize) {m_histogramSize=histogramSize;}
 
-    double GetSearchRadius(void){return m_searchRadius;};
-    void SetSearchRadius(double searchRadius){m_searchRadius=searchRadius;};
+    double GetSearchRadius() {return m_searchRadius;}
+    void SetSearchRadius(double searchRadius) {m_searchRadius=searchRadius;}
 
-    double GetSearchAngleRadius(void){return m_searchAngleRadius;};
-    void SetSearchAngleRadius(double searchAngleRadius){m_searchAngleRadius=searchAngleRadius;};
+    double GetSearchAngleRadius(void) {return m_searchAngleRadius;}
+    void SetSearchAngleRadius(double searchAngleRadius) {m_searchAngleRadius=searchAngleRadius;}
 
-    double GetFinalRadius(void){return m_finalRadius;};
-    void SetFinalRadius(double finalRadius){m_finalRadius=finalRadius;};
+    double GetFinalRadius(void) {return m_finalRadius;}
+    void SetFinalRadius(double finalRadius) {m_finalRadius=finalRadius;}
 
-    int GetNumberOfPyramidLevels(void){return m_numberOfPyramidLevels;};
-    void SetNumberOfPyramidLevels(int numberOfPyramidLevels){m_numberOfPyramidLevels=numberOfPyramidLevels;};
+    int GetNumberOfPyramidLevels() {return m_numberOfPyramidLevels;}
+    void SetNumberOfPyramidLevels(int numberOfPyramidLevels) {m_numberOfPyramidLevels=numberOfPyramidLevels;}
 
-    std::string GetResultfile(void){return m_resultFile;};
-    void SetResultFile(std::string resultFile){m_resultFile=resultFile;};
+    std::string GetResultfile() {return m_resultFile;}
+    void SetResultFile(std::string resultFile) {m_resultFile=resultFile;}
 
-    std::string GetOutputRealignTransformFile(void){return m_outputRealignTransformFile;};
-    void SetOutputRealignTransformFile(std::string outputRealignTransformFile){m_outputRealignTransformFile=outputRealignTransformFile;};
+    std::string GetOutputRealignTransformFile() {return m_outputRealignTransformFile;}
+    void SetOutputRealignTransformFile(std::string outputRealignTransformFile) {m_outputRealignTransformFile=outputRealignTransformFile;}
 
-    std::string GetOutputTransformFile(void){return m_outputTransformFile;};
-    void SetOutputTransformFile(std::string outputTransformFile){m_outputTransformFile=outputTransformFile;};
+    std::string GetOutputTransformFile() {return m_outputTransformFile;}
+    void SetOutputTransformFile(std::string outputTransformFile) {m_outputTransformFile=outputTransformFile;}
 
-    std::string GetFixedfile(void){return m_fixedfile;};
-    void SetFixedfile(std::string fixedfile){m_fixedfile=fixedfile;};
+    std::string GetFixedfile() {return m_fixedfile;}
+    void SetFixedfile(std::string fixedfile) {m_fixedfile=fixedfile;}
 
-    void SetReferenceImage(InputImagePointer referenceImage){m_ReferenceImage = referenceImage;};
+    void SetReferenceImage(InputImagePointer referenceImage) {m_ReferenceImage = referenceImage;}
 
-    void SetFloatingImage(InputImagePointer floatingImage){m_FloatingImage= floatingImage;};
+    void SetFloatingImage(InputImagePointer floatingImage) {m_FloatingImage= floatingImage;}
 
-    void SetProgressCallback(itk::CStyleCommand::Pointer callback ){m_progressCallback = callback;};
+    void SetProgressCallback(itk::CStyleCommand::Pointer callback ) {m_progressCallback = callback;};
 
     void SaveResultFile(void);
 
@@ -117,13 +117,13 @@ public:
 
     void SaveTransformFile(void);
 
-    OutputImagePointer GetOutputImage(void){return m_OutputImage;};
+    OutputImagePointer GetOutputImage() {return m_OutputImage;}
 
     // Get Symmetry transform
-    TransformPointer GetOutputTransform(void){return m_OutputTransform;};
+    TransformPointer GetOutputTransform() {return m_OutputTransform;}
 
     //Get Transform to realign image onto its mid-sagittal plane
-    BaseTransformPointer GetOutputRealignTransform(void){return m_OutputRealignTransform;};
+    BaseTransformPointer GetOutputRealignTransform() {return m_OutputRealignTransform;}
 
 protected:
     PyramidalSymmetryBridge()

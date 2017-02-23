@@ -61,7 +61,7 @@ void PyramidalSymmetryBridge<PixelType,ScalarType>::Update()
     m_OutputTransform->SetRotationCenter(centralPoint);
 
     // Iterate over pyramid levels
-    for ( int i = 0;i < GetNumberOfPyramidLevels();++i)
+    for (int i = 0;i < GetNumberOfPyramidLevels();++i)
     {
         std::cout << "Processing pyramid level " << i << std::endl;
         std::cout << "Image size: " << m_ReferencePyramid->GetOutput(i)->GetLargestPossibleRegion().GetSize() << std::endl;
@@ -198,9 +198,9 @@ void PyramidalSymmetryBridge<PixelType,ScalarType>::Update()
     double valMax = std::abs(dirMatrix(0,0));
     for (unsigned int i = 1;i < InputImageType::ImageDimension;++i)
     {
-        if (std::abs(dirMatrix(i,0)) > valMax)
+        if (std::abs(dirMatrix(0,i)) > valMax)
         {
-            valMax = std::abs(dirMatrix(i,0));
+            valMax = std::abs(dirMatrix(0,i));
             indexAbsMax = i;
         }
     }
@@ -286,11 +286,12 @@ void PyramidalSymmetryBridge<PixelType,ScalarType>::ComputeRealignTransform(type
     theta_y = - matrixComposition[2][0] + matrixComposition[0][2]; //Y = R(3,1) - R(1,3)
     theta_z = - matrixComposition[0][1] + matrixComposition[1][0]; //Z = R(1,2) - R(2,1)
 
-    sinus = sqrt(theta_x*theta_x + theta_y*theta_y + theta_z*theta_z);
+    sinus = std::sqrt(theta_x*theta_x + theta_y*theta_y + theta_z*theta_z);
 
-    if (fabs(sinus) > 1e-9) {
+    if (std::abs(sinus) > 1e-9)
+    {
         cosinus = matrixComposition[0][0] + matrixComposition[1][1] + matrixComposition[2][2] - 1;
-        phi = atan(sinus / cosinus);
+        phi = std::atan(sinus / cosinus);
         f = phi / sinus;
         theta_x = theta_x * f;
         theta_y = theta_y * f;
@@ -318,9 +319,10 @@ void PyramidalSymmetryBridge<PixelType,ScalarType>::ComputeRealignTransform(type
 
     double u_x, u_y, u_z;
 
-    sinus = sqrt(theta_x*theta_x + theta_y*theta_y + theta_z*theta_z);
+    sinus = std::sqrt(theta_x*theta_x + theta_y*theta_y + theta_z*theta_z);
 
-    if (fabs(sinus) > 1e-9) {
+    if (std::abs(sinus) > 1e-9)
+    {
         u_x = theta_x / sinus;
         u_y = theta_y / sinus;
         u_z = theta_z / sinus;
@@ -336,8 +338,8 @@ void PyramidalSymmetryBridge<PixelType,ScalarType>::ComputeRealignTransform(type
 
     double c, s, t;
 
-    c = cos(phi);
-    s = sin(phi);
+    c = std::cos(phi);
+    s = std::sin(phi);
     t = 1 - c;
 
     HomogeneousMatrixType sqrtMatrix;
@@ -369,13 +371,12 @@ void PyramidalSymmetryBridge<PixelType,ScalarType>::ComputeRealignTransform(type
     tmpMatrix = tmpMatrix.GetInverse();
 
     // calcul de t = (r+I)^{-1}.T
-
-    for (unsigned int i=0; i<3; i++)
-        for (unsigned int j=0; j<3; j++)
-            sqrtMatrix[i][3]+= tmpMatrix[i][j] * matrixComposition[j][3];
+    for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
+        for (unsigned int j = 0;j < InputImageType::ImageDimension;++j)
+            sqrtMatrix[i][3] += tmpMatrix[i][j] * matrixComposition[j][3];
 
     itk::Vector <double,InputImageType::ImageDimension+1> centralPointHom, centralPointTr;
-    for (unsigned int i=0; i<InputImageType::ImageDimension; i++)
+    for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
         centralPointHom[i] = centralPoint[i];
     centralPointHom[InputImageType::ImageDimension] = 1;
 
@@ -386,15 +387,14 @@ void PyramidalSymmetryBridge<PixelType,ScalarType>::ComputeRealignTransform(type
     HomogeneousMatrixType trToCenterMatrix;
     trToCenterMatrix.SetIdentity();
 
-    // Only the two last coordinates should be taken care of. The plane already ensures the x axis is ok
-    for (unsigned int i=1; i<3; i++)
+    for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
         trToCenterMatrix(i,3) = centralPointTr[i] - centerReal[i];
 
     sqrtMatrix = sqrtMatrix * trToCenterMatrix;
 
     MatrixType trsfMatrix;
     OffsetType offsetVector;
-    for (unsigned int i=0; i<3; i++)
+    for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
     {
         offsetVector[i] = sqrtMatrix(i,3);
         for (unsigned int j=0; j<3; j++)
