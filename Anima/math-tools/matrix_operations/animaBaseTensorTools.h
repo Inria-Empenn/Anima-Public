@@ -21,6 +21,8 @@ template <class T1, class T2> void GetTensorFromVectorRepresentation(const itk::
                                                                      vnl_matrix <T2> &tensor, unsigned int tensDim = 0,
                                                                      bool scale = false);
 
+template <class T> void ProjectOnTensorSpace(const vnl_matrix <T> &matrix, vnl_matrix <T> &tensor);
+
 template <typename RealType>
 void ExtractRotationFromJacobianMatrix(vnl_matrix <RealType> &jacobianMatrix, vnl_matrix <RealType> &rotationMatrix,
                                        vnl_matrix <RealType> &tmpMat);

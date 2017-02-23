@@ -31,7 +31,7 @@ int main(int argc,  char **argv)
     TCLAP::SwitchArg bvalueScaleArg("B","b-no-scale","Do not scale b-values according to gradient norm",cmd);
     TCLAP::ValueArg<std::string> computationMaskArg("m","mask","Computation mask", false,"","computation mask",cmd);
 
-    TCLAP::SwitchArg keepDegArg("K","keep-degenerated","Keep degenerated values (takes over -P option)",cmd,false);
+    TCLAP::SwitchArg keepDegArg("K","keep-degenerated","Keep degenerated values",cmd,false);
     TCLAP::SwitchArg projectArg("P","project-degenerated","Project degenerated values",cmd,false);
 
     TCLAP::ValueArg<unsigned int> b0ThrArg("t","b0thr","bot_treshold",false,0,"B0 threshold (default : 0)",cmd);

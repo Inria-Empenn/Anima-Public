@@ -124,6 +124,26 @@ GetTensorFromVectorRepresentation(const itk::VariableLengthVector <T1> &vector,
         }
 }
 
+template <class T> void ProjectOnTensorSpace(const vnl_matrix <T> &matrix, vnl_matrix <T> &tensor)
+{
+    typedef itk::SymmetricEigenAnalysis < vnl_matrix <T>, vnl_diag_matrix<T>, vnl_matrix <T> > EigenAnalysisType;
+    unsigned int tensDim = matrix.rows();
+
+    EigenAnalysisType eigen(tensDim);
+    vnl_matrix <T> eigVecs(tensDim,tensDim);
+    vnl_diag_matrix <T> eigVals(tensDim);
+
+    eigen.ComputeEigenValuesAndVectors(matrix,eigVals,eigVecs);
+
+    for (unsigned int i = 0;i < tensDim;++i)
+    {
+        if (eigVals[i] <= 1.0e-16)
+            eigVals[i] = 1.0e-16;
+    }
+
+    RecomposeTensor(eigVals,eigVecs,tensor);
+}
+
 template <typename RealType>
 void
 ExtractRotationFromJacobianMatrix(vnl_matrix <RealType> &jacobianMatrix, vnl_matrix <RealType> &rotationMatrix,
