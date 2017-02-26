@@ -3,7 +3,7 @@
 
 #include <itkImage.h>
 #include <itkMultiResolutionPyramidImageFilter.h>
-#include <animaSymmetryConstrainedTransform.h>
+#include <animaAxisRotationTransform.h>
 #include <itkAffineTransform.h>
 #include <itkProcessObject.h>
 
@@ -25,7 +25,7 @@ public:
     typedef typename InputImageType::Pointer InputImagePointer;
     typedef typename InputImageType::RegionType InputImageRegionType;
 
-    typedef anima::SymmetryConstrainedTransform<ScalarType> TransformType;
+    typedef anima::AxisRotationTransform<ScalarType> TransformType;
     typedef typename TransformType::Pointer TransformPointer;
     typedef typename TransformType::ParametersType ParametersType;
     typedef typename TransformType::MatrixType MatrixType;

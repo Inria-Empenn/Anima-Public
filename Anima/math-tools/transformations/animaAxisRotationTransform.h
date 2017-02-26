@@ -6,22 +6,22 @@
 namespace anima
 {
 
-template < class TScalarType=double >    // Data type for scalars (float or double)
-class SymmetryConstrainedTransform :
-public itk::MatrixOffsetTransformBase< TScalarType, 3 >
+template < class TScalarType=double > // Data type for scalars (float or double)
+class AxisRotationTransform :
+public itk::MatrixOffsetTransformBase <TScalarType, 3>
 {
 public:
     /** Standard class typedefs. */
-    typedef SymmetryConstrainedTransform                  Self;
-    typedef itk::MatrixOffsetTransformBase< TScalarType, 3 >   Superclass;
-    typedef itk::SmartPointer<Self>                Pointer;
-    typedef itk::SmartPointer<const Self>          ConstPointer;
+    typedef AxisRotationTransform Self;
+    typedef itk::MatrixOffsetTransformBase <TScalarType, 3> Superclass;
+    typedef itk::SmartPointer <Self> Pointer;
+    typedef itk::SmartPointer <const Self> ConstPointer;
 
     /** New macro for creation of through a Smart Pointer. */
-    itkNewMacro( Self );
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro( SymmetryConstrainedTransform, MatrixOffsetTransformBase );
+    itkTypeMacro(AxisRotationTransform, MatrixOffsetTransformBase)
 
     /** Dimension of the space. */
     itkStaticConstMacro(SpaceDimension, unsigned int, 3);
@@ -55,34 +55,30 @@ public:
 
     virtual void SetIdentity() ITK_OVERRIDE;
 
-    void SetReferenceSymmetryPlanes(Superclass *refSymmetryPlane, Superclass *floSymmetryPlane);
-
-    void SetRotationCenter(OutputPointType &rotCenter);
+    void SetReferencePlaneNormal(InputVectorType &refPlaneNormal);
 
 protected:
-    SymmetryConstrainedTransform();
-    SymmetryConstrainedTransform(unsigned int outputSpaceDims,
-                                 unsigned int paramsSpaceDims);
+    AxisRotationTransform();
+    AxisRotationTransform(unsigned int outputSpaceDims,
+                          unsigned int paramsSpaceDims);
 
-    virtual ~SymmetryConstrainedTransform(){}
+    virtual ~AxisRotationTransform(){}
 
     void PrintSelf(std::ostream &os, itk::Indent indent) const ITK_OVERRIDE;
 
     void ComputeMatrix() ITK_OVERRIDE;
 
 private:
-    SymmetryConstrainedTransform(const Self&); //purposely not implemented
+    AxisRotationTransform(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
 
-    HomogeneousMatrixType m_RefSymmetryMatrix, m_FloSymmetryMatrix;
+    HomogeneousMatrixType m_ReferencePlane, m_InverseReferencePlane;
 
     ScalarType m_Angle;
     ScalarType m_TranslationY;
     ScalarType m_TranslationZ;
-
-    HomogeneousMatrixType m_CenterTransform, m_CenterTransformInv;
-}; //class SymmetryConstrainedTransform
+}; //class AxisRotationTransform
 
 }  // end of namespace anima
 
-#include "animaSymmetryConstrainedTransform.hxx"
+#include "animaAxisRotationTransform.hxx"

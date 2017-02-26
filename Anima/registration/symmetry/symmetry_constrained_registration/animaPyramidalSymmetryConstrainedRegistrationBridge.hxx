@@ -1,16 +1,18 @@
 #pragma once
-
 #include "animaPyramidalSymmetryConstrainedRegistrationBridge.h"
 
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
 #include <itkTransformFactoryBase.h>
 #include <itkTransformFileReader.h>
 #include <itkTransformFileWriter.h>
 #include <itkMultiResolutionPyramidImageFilter.h>
 #include <itkImageRegistrationMethod.h>
 #include <itkLinearInterpolateImageFunction.h>
+
+#include <animaReadWriteFunctions.h>
 #include <animaNewuoaOptimizer.h>
+#include <animaMatrixOperations.h>
+#include <animaResampleImageFilter.h>
+
 #include <itkMeanSquaresImageToImageMetric.h>
 #include <itkMutualInformationHistogramImageToImageMetric.h>
 #include <itkNormalizedMutualInformationHistogramImageToImageMetric.h>
@@ -62,27 +64,38 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::Update()
     this->SetupPyramids();
 
     typename TransformType::ParametersType initialParams(TransformType::ParametersDimension);
-
     for (unsigned int i = 0;i < TransformType::ParametersDimension;++i)
         initialParams[i] = 0;
 
-    m_OutputTransform->SetReferenceSymmetryPlanes(m_RefSymmetryTransform,m_FloSymmetryTransform);
-    m_OutputTransform->SetParameters(initialParams);
-
-    typedef typename itk::ImageMomentsCalculator <InputImageType> ImageMomentsType;
-    typename ImageMomentsType::Pointer momentsCalculator = ImageMomentsType::New();
-
-    momentsCalculator->SetImage(m_ReferenceImage);
-    momentsCalculator->Compute();
-
-    itk::Vector <double,InputImageType::ImageDimension> centralVector = momentsCalculator->GetCenterOfGravity();
-    typename InputImageType::PointType centralPoint;
-    typename InputImageType::IndexType centralIndex;
+    unsigned int indexAbsRefMax = 0;
+    typename InputImageType::DirectionType dirRefMatrix = m_ReferenceImage->GetDirection();
+    double valRefMax = std::abs(dirRefMatrix(0,0));
+    for (unsigned int i = 1;i < InputImageType::ImageDimension;++i)
+    {
+        if (std::abs(dirRefMatrix(0,i)) > valRefMax)
+        {
+            valRefMax = std::abs(dirRefMatrix(0,i));
+            indexAbsRefMax = i;
+        }
+    }
+    
+    OffsetType directionRefReal;
     for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
-        centralPoint[i] = centralVector[i];
+        directionRefReal[i] = dirRefMatrix(i,indexAbsRefMax);
+
+    m_OutputTransform->SetReferencePlaneNormal(directionRefReal);
+    m_OutputTransform->SetParameters(initialParams);
+    
+    InputImageType::PointType centralPoint;
+    itk::ContinuousIndex <ScalarType,InputImageType::ImageDimension> centralVoxIndex;
+    
+    for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
+        centralVoxIndex[i] = m_ReferenceImage->GetLargestPossibleRegion().GetSize()[i] / 2.0;
+    
+    m_ReferenceImage->TransformContinuousIndexToPhysicalPoint(centralVoxIndex,centralPoint);
 
     // Iterate over pyramid levels
-    for (unsigned int i = 0;i < m_NumberOfPyramidLevels;++i)
+    for (unsigned int i = 0;i < this->GetNumberOfPyramidLevels();++i)
     {
         std::cout << "Processing pyramid level " << i << std::endl;
         std::cout << "Image size: " << m_ReferencePyramid->GetOutput(i)->GetLargestPossibleRegion().GetSize() << std::endl;
@@ -107,10 +120,18 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::Update()
         optimizer->SetNumberSamplingPoints(m_OutputTransform->GetNumberOfParameters() + 2);
         optimizer->SetMaximumIteration(m_OptimizerMaximumIterations);
 
-        OptimizerType::ScalesType tmpScales( TransformType::ParametersDimension );
+        OptimizerType::ScalesType tmpScales (TransformType::ParametersDimension);
         tmpScales[0] = m_SearchRadius * 180.0 / (m_SearchAngleRadius * M_PI);
-        tmpScales[1] = 1.0 / m_ReferencePyramid->GetOutput(i)->GetSpacing()[1];
-        tmpScales[2] = 1.0 / m_ReferencePyramid->GetOutput(i)->GetSpacing()[2];
+        
+        unsigned int pos = 1;
+        for (unsigned int j = 0;j < InputImageType::ImageDimension;++j)
+        {
+            if (j == indexAbsRefMax)
+                continue;
+            
+            tmpScales[pos] = 1.0 / m_ReferencePyramid->GetOutput(i)->GetSpacing()[j];
+            ++pos;
+        }
 
         optimizer->SetScales(tmpScales);
 
@@ -173,11 +194,12 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::Update()
         {
             // We can work in 2D since the rest should be perfectly ok
             InputImageRegionType workRegion = m_ReferencePyramid->GetOutput(i)->GetLargestPossibleRegion();
+            InputImageRegionType::IndexType centralIndex;
             m_ReferencePyramid->GetOutput(i)->TransformPhysicalPointToIndex(centralPoint,centralIndex);
 
-            unsigned int baseIndex = centralIndex[0];
-            workRegion.SetIndex(0,baseIndex);
-            workRegion.SetSize(0,1);
+            unsigned int baseIndex = centralIndex[indexAbsRefMax];
+            workRegion.SetIndex(indexAbsRefMax,baseIndex);
+            workRegion.SetSize(indexAbsRefMax,1);
 
             reg->SetFixedImageRegion(workRegion);
         }
@@ -196,14 +218,13 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::Update()
             throw err;
         }
 
-        std::cout << "Converged after " << optimizer->GetCurrentIteration() << std::endl;
-
         m_OutputTransform->SetParameters(reg->GetLastTransformParameters());
     }
 
     // Now compute the final transform
-
-    itk::Matrix <ScalarType,InputImageType::ImageDimension+1,InputImageType::ImageDimension+1> initialMatrix, outputMatrix;
+    typedef itk::Matrix <ScalarType,InputImageType::ImageDimension+1,InputImageType::ImageDimension+1> TransformMatrixType;
+    TransformMatrixType refSymPlaneMatrix, initialMatrix, outputMatrix;
+    refSymPlaneMatrix.SetIdentity();
     initialMatrix.SetIdentity();
     outputMatrix.SetIdentity();
 
@@ -211,18 +232,21 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::Update()
     {
         for (unsigned int j = 0;j < InputImageType::ImageDimension;++j)
         {
+            refSymPlaneMatrix(i,j) = m_RefSymmetryTransform->GetMatrix()(i,j);
             outputMatrix(i,j) = m_OutputTransform->GetMatrix()(i,j);
             initialMatrix(i,j) = m_InitialTransform->GetMatrix()(i,j);
         }
 
+        refSymPlaneMatrix(i,3) = m_RefSymmetryTransform->GetOffset()[i];
         outputMatrix(i,3) = m_OutputTransform->GetOffset()[i];
         initialMatrix(i,3) = m_InitialTransform->GetOffset()[i];
     }
 
+    refSymPlaneMatrix = refSymPlaneMatrix.GetInverse();
     MatrixType tmpOutMatrix;
     OffsetType tmpOffset;
 
-    outputMatrix = initialMatrix * outputMatrix;
+    outputMatrix = initialMatrix * outputMatrix * refSymPlaneMatrix;
 
     for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
     {
@@ -238,7 +262,7 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::Update()
     m_OutputRealignTransform->SetMatrix(tmpOutMatrix);
     m_OutputRealignTransform->SetOffset(tmpOffset);
 
-    typedef typename itk::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
+    typedef typename anima::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
     typename ResampleFilterType::Pointer tmpResample = ResampleFilterType::New();
     tmpResample->SetTransform(m_OutputRealignTransform);
     tmpResample->SetInput(m_FloatingImage);
@@ -258,12 +282,7 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::WriteOutputs()
 {
     std::cout << "Writing output image to: " << m_resultFile << std::endl;
 
-    typename itk::ImageFileWriter <InputImageType>::Pointer imageWriter = itk::ImageFileWriter <InputImageType>::New();
-    imageWriter->SetUseCompression(true);
-    imageWriter->SetInput(m_OutputImage);
-    imageWriter->SetFileName(m_resultFile);
-
-    imageWriter->Update();
+    anima::writeImage <InputImageType> (m_resultFile,m_OutputImage);
 
     if (m_outputTransformFile != "")
     {
@@ -281,20 +300,14 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::SetupPyramids()
     m_InitialTransform->SetIdentity();
 
     typedef typename itk::CenteredTransformInitializer<BaseTransformType, InputImageType, InputImageType> TransformInitializerType;
-    typedef typename itk::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
+    typedef typename anima::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
 
-    InputImagePointer initialFloatingImage = m_FloatingImage;
-
-    typename TransformInitializerType::Pointer initializer = TransformInitializerType::New();
-    initializer->SetTransform(m_InitialTransform);
-    initializer->SetFixedImage(m_ReferenceImage);
-    initializer->SetMovingImage(m_FloatingImage);
-    initializer->MomentsOn();
-    initializer->InitializeTransform();
+    InputImagePointer initialReferenceImage;
+    InputImagePointer initialFloatingImage;
 
     typename ResampleFilterType::Pointer tmpResample = ResampleFilterType::New();
-    tmpResample->SetTransform(m_InitialTransform);
-    tmpResample->SetInput(m_FloatingImage);
+    tmpResample->SetTransform(m_RefSymmetryTransform);
+    tmpResample->SetInput(m_ReferenceImage);
 
     tmpResample->SetSize(m_ReferenceImage->GetLargestPossibleRegion().GetSize());
     tmpResample->SetOutputOrigin(m_ReferenceImage->GetOrigin());
@@ -303,34 +316,54 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::SetupPyramids()
     tmpResample->SetDefaultPixelValue(0);
     tmpResample->Update();
 
-    initialFloatingImage = tmpResample->GetOutput();
+    initialReferenceImage = tmpResample->GetOutput();
+    initialReferenceImage->DisconnectPipeline();
 
-    // Now the ugly part, basically we need the images to have the same sizes for pyramids but then we need to update the floating
-    // symmetry to make it work
+    // Tricky part: align the central planes of the two input images
+    OffsetType directionRefReal, directionFloReal;
 
-    itk::Matrix <ScalarType,InputImageType::ImageDimension+1,InputImageType::ImageDimension+1> initialMatrix, tmpMatrix, floatingSymmetry;
-    initialMatrix.SetIdentity();
-    floatingSymmetry.SetIdentity();
-    tmpMatrix.SetIdentity();
+    //First use real direction to find the real X direction
+    unsigned int indexAbsRefMax = 0;
+    unsigned int indexAbsFloMax = 0;
+    typename InputImageType::DirectionType dirRefMatrix = m_ReferenceImage->GetDirection();
+    typename InputImageType::DirectionType dirFloMatrix = m_FloatingImage->GetDirection();
+    double valRefMax = std::abs(dirRefMatrix(0,0));
+    double valFloMax = std::abs(dirFloMatrix(0,0));
+    for (unsigned int i = 1;i < InputImageType::ImageDimension;++i)
+    {
+        if (std::abs(dirRefMatrix(0,i)) > valRefMax)
+        {
+            valRefMax = std::abs(dirRefMatrix(0,i));
+            indexAbsRefMax = i;
+        }
+        
+        if (std::abs(dirFloMatrix(0,i)) > valFloMax)
+        {
+            valFloMax = std::abs(dirFloMatrix(0,i));
+            indexAbsFloMax = i;
+        }
+    }
 
+    // Now redo it with the real X-direction
+    for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
+    {
+        directionRefReal[i] = dirRefMatrix(i,indexAbsRefMax);
+        directionFloReal[i] = dirFloMatrix(i,indexAbsFloMax);
+    }
+
+    typedef itk::Matrix <ScalarType,InputImageType::ImageDimension+1,InputImageType::ImageDimension+1> TransformMatrixType;
+    MatrixType tmpMatrix = anima::GetRotationMatrixFromVectors(directionRefReal,directionFloReal);
+    TransformMatrixType floRefMatrix;
+    floRefMatrix.SetIdentity();
+    
     for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
     {
         for (unsigned int j = 0;j < InputImageType::ImageDimension;++j)
-        {
-            initialMatrix(i,j) = m_InitialTransform->GetMatrix()(i,j);
-            floatingSymmetry(i,j) = m_FloSymmetryTransform->GetMatrix()(i,j);
-        }
-
-        initialMatrix(i,3) = m_InitialTransform->GetOffset()[i];
-        floatingSymmetry(i,3) = m_FloSymmetryTransform->GetOffset()[i];
+            floRefMatrix(i,j) = tmpMatrix(i,j);
     }
 
-    initialMatrix = initialMatrix.GetInverse();
-
-    floatingSymmetry = initialMatrix * floatingSymmetry;
-
     itk::ContinuousIndex <ScalarType,InputImageType::ImageDimension> refImageCenter, floImageCenter;
-
+    
     for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
         refImageCenter[i] = m_ReferenceImage->GetLargestPossibleRegion().GetSize()[i] / 2.0;
     for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
@@ -340,12 +373,31 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::SetupPyramids()
     m_ReferenceImage->TransformContinuousIndexToPhysicalPoint(refImageCenter,refCenter);
     m_FloatingImage->TransformContinuousIndexToPhysicalPoint(floImageCenter,floCenter);
 
-    m_OutputTransform->SetRotationCenter(refCenter);
-
+    TransformMatrixType refTranslationMatrix, floTranslationMatrix;
+    refTranslationMatrix.SetIdentity();
+    floTranslationMatrix.SetIdentity();
+    
     for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
-        tmpMatrix(i,3) = floCenter[i] - refCenter[i];
+    {
+        refTranslationMatrix(i,3) = - refCenter[i];
+        floTranslationMatrix(i,3) = floCenter[i];
+    }
 
-    floatingSymmetry = floatingSymmetry * tmpMatrix;
+    floRefMatrix = floTranslationMatrix * floRefMatrix * refTranslationMatrix;
+    
+    TransformMatrixType floatingSymmetry;
+    floatingSymmetry.SetIdentity();
+    
+    for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
+    {
+        for (unsigned int j = 0;j < InputImageType::ImageDimension;++j)
+            floatingSymmetry(i,j) = m_FloSymmetryTransform->GetMatrix()(i,j);
+
+        floatingSymmetry(i,3) = m_FloSymmetryTransform->GetOffset()[i];
+    }
+
+    floRefMatrix = floatingSymmetry * floRefMatrix;
+    m_OutputTransform->SetCenter(refCenter);
 
     MatrixType floatingMatrix;
     OffsetType floatingOffset;
@@ -353,22 +405,34 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::SetupPyramids()
     for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
     {
         for (unsigned int j = 0;j < InputImageType::ImageDimension;++j)
-            floatingMatrix(i,j) = floatingSymmetry(i,j);
+            floatingMatrix(i,j) = floRefMatrix(i,j);
 
-        floatingOffset[i] = floatingSymmetry(i,3);
+        floatingOffset[i] = floRefMatrix(i,3);
     }
 
-    m_FloSymmetryTransform->SetMatrix(floatingMatrix);
-    m_FloSymmetryTransform->SetOffset(floatingOffset);
+    m_InitialTransform->SetMatrix(floatingMatrix);
+    m_InitialTransform->SetOffset(floatingOffset);
 
     // Now, create pyramid
-    typedef itk::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
-
     m_ReferencePyramid = PyramidType::New();
 
-    m_ReferencePyramid->SetInput(m_ReferenceImage);
+    m_ReferencePyramid->SetInput(initialReferenceImage);
     m_ReferencePyramid->SetNumberOfLevels(m_NumberOfPyramidLevels);
     m_ReferencePyramid->Update();
+    
+    tmpResample = ResampleFilterType::New();
+    tmpResample->SetTransform(m_InitialTransform);
+    tmpResample->SetInput(m_FloatingImage);
+    
+    tmpResample->SetSize(m_ReferenceImage->GetLargestPossibleRegion().GetSize());
+    tmpResample->SetOutputOrigin(m_ReferenceImage->GetOrigin());
+    tmpResample->SetOutputSpacing(m_ReferenceImage->GetSpacing());
+    tmpResample->SetOutputDirection(m_ReferenceImage->GetDirection());
+    tmpResample->SetDefaultPixelValue(0);
+    tmpResample->Update();
+    
+    initialFloatingImage = tmpResample->GetOutput();
+    initialFloatingImage->DisconnectPipeline();
 
     // Create pyramid for floating image
     m_FloatingPyramid = PyramidType::New();

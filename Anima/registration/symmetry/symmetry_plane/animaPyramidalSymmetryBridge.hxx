@@ -1,5 +1,4 @@
 #pragma once
-
 #include "animaPyramidalSymmetryBridge.h"
 
 #include <itkImageFileReader.h>
@@ -209,11 +208,7 @@ void PyramidalSymmetryBridge<PixelType,ScalarType>::Update()
     directionVox[indexAbsMax] = 1;
 
     for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
-    {
-        directionReal[i] = 0;
-        for (unsigned int j = 0;j < InputImageType::ImageDimension;++j)
-            directionReal[i] += dirMatrix(i,j) * directionVox[j];
-    }
+        directionReal[i] = dirMatrix(i,indexAbsMax);
 
     anima::TransformCartesianToSphericalCoordinates(directionReal,directionSpherical);
 

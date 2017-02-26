@@ -8,7 +8,7 @@
 int main(int ac, const char** av)
 {
     // Parsing arguments
-    TCLAP::CmdLine  cmd("INRIA / IRISA - VisAGeS Team", ' ',"1.0");
+    TCLAP::CmdLine  cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
 
     // Setting up parameters
     TCLAP::ValueArg<std::string> fixedArg("r","refimage","Fixed image",true,"","fixed image",cmd);
@@ -82,7 +82,7 @@ int main(int ac, const char** av)
     catch (itk::ExceptionObject &e)
     {
         std::cerr << "Unable to read reference symmetry transform... " << e << std::endl;
-        return -1;
+        return EXIT_FAILURE;
     }
 
     tmpTrRead = itk::TransformFileReader::New();
@@ -100,7 +100,7 @@ int main(int ac, const char** av)
     catch (itk::ExceptionObject &e)
     {
         std::cerr << "Unable to read floating symmetry transform... " << e << std::endl;
-        return -1;
+        return EXIT_FAILURE;
     }
 
     itk::TimeProbe timer;
@@ -114,7 +114,7 @@ int main(int ac, const char** av)
     catch (itk::ExceptionObject &err)
     {
         std::cerr << err << std::endl;
-        return -1;
+        return EXIT_FAILURE;
     }
 
     matcher->WriteOutputs();
