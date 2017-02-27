@@ -1,6 +1,4 @@
 #include <animaODFEstimatorImageFilter.h>
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
 #include <itkTimeProbe.h>
 #include <tclap/CmdLine.h>
 
@@ -36,12 +34,11 @@ int main(int argc, char **argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
     
     typedef anima::ODFEstimatorImageFilter <float,float> MainFilterType;
     typedef MainFilterType::TInputImage InputImageType;
-	typedef itk::ImageFileWriter < MainFilterType::TOutputImage > ImageWriterType;
 	
 	MainFilterType::Pointer mainFilter = MainFilterType::New();
 	mainFilter->SetLambda(lambdaArg.getValue());
@@ -85,12 +82,7 @@ int main(int argc, char **argv)
 	
 	std::cout << "Execution Time: " << tmpTime.GetTotal() << std::endl;
 	
-	ImageWriterType::Pointer imageWriter = ImageWriterType::New();
-	imageWriter->SetInput(mainFilter->GetOutput());
-	imageWriter->SetFileName(resArg.getValue());
-	imageWriter->SetUseCompression(true);
+    anima::writeImage <MainFilterType::TOutputImage> (resArg.getValue(),mainFilter->GetOutput());
 	
-	imageWriter->Update();
-	
-	return 0;
+	return EXIT_SUCCESS;
 }

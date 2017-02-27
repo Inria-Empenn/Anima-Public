@@ -1,7 +1,5 @@
 #include "animaLowMemNLMeansPatientToGroupComparisonBridge.h"
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
-
+#include <animaReadWriteFunctions.h>
 #include <animaVectorImagePatchStatistics.h>
 
 namespace anima
@@ -54,11 +52,7 @@ LowMemoryNLMeansPatientToGroupComparisonBridge::~LowMemoryNLMeansPatientToGroupC
 
 void LowMemoryNLMeansPatientToGroupComparisonBridge::SetComputationMask(std::string &cMask)
 {
-    itk::ImageFileReader <MaskImageType>::Pointer tmpRead = itk::ImageFileReader <MaskImageType>::New();
-    tmpRead->SetFileName(cMask);
-    tmpRead->Update();
-
-    m_ComputationMask = tmpRead->GetOutput();
+    m_ComputationMask = anima::readImage <MaskImageType> (cMask);
 
     m_DatabaseImages->SetComputationMask(m_ComputationMask);
     m_TestImage->SetComputationMask(m_ComputationMask);
@@ -293,12 +287,7 @@ void LowMemoryNLMeansPatientToGroupComparisonBridge::BuildAndWrite(OutputImageTy
         ++tmpResIt;
     }
 
-    itk::ImageFileWriter <OutputImageType>::Pointer outWriter = itk::ImageFileWriter <OutputImageType>::New();
-    outWriter->SetInput(tmpRes);
-    outWriter->SetFileName(resName);
-    outWriter->SetUseCompression(true);
-
-    outWriter->Update();
+    anima::writeImage <OutputImageType> (resName,tmpRes);
 }
 
 void LowMemoryNLMeansPatientToGroupComparisonBridge::PrepareNoiseEstimates()

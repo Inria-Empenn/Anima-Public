@@ -1,7 +1,5 @@
 #include <animaExpTensorImageFilter.h>
-
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
+#include <animaReadWriteFunctions.h>
 
 #include <tclap/CmdLine.h>
 
@@ -22,35 +20,22 @@ int main(int argc, char **argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
 
     typedef anima::ExpTensorImageFilter <float> MainFilterType;
-
-    typedef itk::ImageFileReader < MainFilterType::TInputImage > ImageReaderType;
-    typedef itk::ImageFileWriter < MainFilterType::TOutputImage > ImageWriterType;
 
     MainFilterType::Pointer mainFilter = MainFilterType::New();
 
     mainFilter->SetNumberOfThreads(nbpArg.getValue());
     mainFilter->SetScaleNonDiagonal(scaleArg.isSet());
-
-    ImageReaderType::Pointer tmpReader = ImageReaderType::New();
-    tmpReader->SetFileName(inArg.getValue());
-    tmpReader->Update();
-
-    mainFilter->SetInput(tmpReader->GetOutput());
+    mainFilter->SetInput(anima::readImage <MainFilterType::TInputImage> (inArg.getValue()));
 
     mainFilter->Update();
 
     std::cout << "Writing result to : " << resArg.getValue() << std::endl;
 
-    ImageWriterType::Pointer outWriter = ImageWriterType::New();
-    outWriter->SetInput(mainFilter->GetOutput());
-    outWriter->SetFileName(resArg.getValue());
-    outWriter->SetUseCompression(true);
+    anima::writeImage <MainFilterType::TOutputImage> (resArg.getValue(),mainFilter->GetOutput());
 
-    outWriter->Update();
-
-    return 0;
+    return EXIT_SUCCESS;
 }

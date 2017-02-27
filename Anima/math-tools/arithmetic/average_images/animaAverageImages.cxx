@@ -1,5 +1,4 @@
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
+#include <animaReadWriteFunctions.h>
 #include <itkImageRegionIterator.h>
 
 #include <tclap/CmdLine.h>
@@ -21,23 +20,16 @@ int main(int argc, char **argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
     
 	typedef itk::Image <float,3> floatImageType;
-	typedef itk::ImageFileReader <floatImageType> itkfloatReader;
-	typedef itk::ImageFileWriter <floatImageType> itkfloatWriter;
-    
 	typedef itk::Image <unsigned short,3> UShortImageType;
-	typedef itk::ImageFileReader <UShortImageType> itkUShortReader;
-    
 	typedef itk::VectorImage <float,3> VectorImageType;
-	typedef itk::ImageFileReader <VectorImageType> itkVectorReader;
-	typedef itk::ImageFileWriter <VectorImageType> itkVectorWriter;
 	
 	std::ifstream masksIn;
 	if (maskArg.getValue() != "")
-		masksIn.open(maskArg.getValue().c_str());
+		masksIn.open(maskArg.getValue());
 	
 	unsigned int nbImages = 0;
 	char refN[2048], maskN[2048];
@@ -47,7 +39,7 @@ int main(int argc, char **argv)
 		floatImageType::Pointer tmpOutput;
 		UShortImageType::Pointer tmpSumMasks;
 		
-		std::ifstream imageIn(inArg.getValue().c_str());
+		std::ifstream imageIn(inArg.getValue());
 		
 		while (tmpOutput.IsNull())
 		{
@@ -62,20 +54,10 @@ int main(int argc, char **argv)
 			
 			std::cout << "Adding image " << refN << "..." << std::endl;
             
-			itkfloatReader::Pointer tmpRead = itkfloatReader::New();
-			tmpRead->SetFileName(refN);
-			tmpRead->Update();
-			tmpOutput = tmpRead->GetOutput();
+            tmpOutput = anima::readImage <floatImageType> (refN);
 			
 			if (masksIn.is_open())
-			{
-				masksIn.getline(maskN,2048);
-				itkUShortReader::Pointer tmpMaskRead = itkUShortReader::New();
-				tmpMaskRead->SetFileName(maskN);
-				tmpMaskRead->Update();
-				
-				tmpSumMasks = tmpMaskRead->GetOutput();
-			}
+                tmpSumMasks = anima::readImage <UShortImageType> (maskN);
 			
 			nbImages++;
 		}
@@ -93,22 +75,17 @@ int main(int argc, char **argv)
 			
 			std::cout << "Adding image " << refN << "..." << std::endl;
 			
-			itkfloatReader::Pointer tmpRead = itkfloatReader::New();
-			tmpRead->SetFileName(refN);
-			tmpRead->Update();
-			
-			itk::ImageRegionIterator <floatImageType> tmpIt(tmpRead->GetOutput(),tmpRead->GetOutput()->GetLargestPossibleRegion());
-			itk::ImageRegionIterator <floatImageType> resIt(tmpOutput,tmpRead->GetOutput()->GetLargestPossibleRegion());
+            floatImageType::Pointer tmpImage = anima::readImage <floatImageType> (refN);
+			itk::ImageRegionIterator <floatImageType> tmpIt(tmpImage,tmpImage->GetLargestPossibleRegion());
+			itk::ImageRegionIterator <floatImageType> resIt(tmpOutput,tmpImage->GetLargestPossibleRegion());
 			
 			if (masksIn.is_open())
 			{
 				masksIn.getline(maskN,2048);
-				itkUShortReader::Pointer tmpMaskRead = itkUShortReader::New();
-				tmpMaskRead->SetFileName(maskN);
-				tmpMaskRead->Update();
+                UShortImageType::Pointer tmpMask = anima::readImage <UShortImageType> (maskN);
                 
-				itk::ImageRegionIterator <UShortImageType> tmpMaskIt(tmpMaskRead->GetOutput(),tmpRead->GetOutput()->GetLargestPossibleRegion());
-				itk::ImageRegionIterator <UShortImageType> sumMasksIt(tmpSumMasks,tmpRead->GetOutput()->GetLargestPossibleRegion());
+				itk::ImageRegionIterator <UShortImageType> tmpMaskIt(tmpMask,tmpImage->GetLargestPossibleRegion());
+				itk::ImageRegionIterator <UShortImageType> sumMasksIt(tmpSumMasks,tmpImage->GetLargestPossibleRegion());
 				
 				while (!sumMasksIt.IsAtEnd())
 				{
@@ -172,19 +149,14 @@ int main(int argc, char **argv)
 			}
 		}
         
-		itkfloatWriter::Pointer tmpWrite = itkfloatWriter::New();
-		tmpWrite->SetInput(tmpOutput);
-		tmpWrite->SetFileName(outArg.getValue());
-		tmpWrite->SetUseCompression(true);
-		
-		tmpWrite->Update();
+        anima::writeImage <floatImageType> (outArg.getValue(),tmpOutput);
 	}
 	else // vecArg is activated
 	{		
         VectorImageType::Pointer outputData;
         UShortImageType::Pointer tmpSumMasks;
         
-		std::ifstream imageIn(inArg.getValue().c_str());
+		std::ifstream imageIn(inArg.getValue());
 		
 		while (outputData.IsNull())
 		{
@@ -199,21 +171,11 @@ int main(int argc, char **argv)
 			
 			std::cout << "Adding image " << refN << "..." << std::endl;
 			std::string fileN(refN);
-			
-			itkVectorReader::Pointer tmpRead = itkVectorReader::New();
-			tmpRead->SetFileName(refN);
-			tmpRead->Update();
-			outputData = tmpRead->GetOutput();
+
+            outputData = anima::readImage <VectorImageType> (refN);
 			
 			if (masksIn.is_open())
-			{
-				masksIn.getline(maskN,2048);
-                itkUShortReader::Pointer tmpMaskRead = itkUShortReader::New();
-				tmpMaskRead->SetFileName(maskN);
-				tmpMaskRead->Update();
-				
-				tmpSumMasks = tmpMaskRead->GetOutput();
-			}
+                tmpSumMasks = anima::readImage <UShortImageType> (maskN);
 			
 			nbImages++;
 		}
@@ -232,22 +194,18 @@ int main(int argc, char **argv)
 			std::cout << "Adding image " << refN << "..." << std::endl;
 			std::string fileN(refN);
             
-            itkVectorReader::Pointer tmpRead = itkVectorReader::New();
-			tmpRead->SetFileName(refN);
-			tmpRead->Update();
+            VectorImageType::Pointer tmpImage = anima::readImage <VectorImageType> (refN);
             
-			itk::ImageRegionIterator <VectorImageType> tmpIt(tmpRead->GetOutput(),tmpRead->GetOutput()->GetLargestPossibleRegion());
-			itk::ImageRegionIterator <VectorImageType> resIt(outputData,tmpRead->GetOutput()->GetLargestPossibleRegion());
+			itk::ImageRegionIterator <VectorImageType> tmpIt(tmpImage,tmpImage->GetLargestPossibleRegion());
+			itk::ImageRegionIterator <VectorImageType> resIt(outputData,tmpImage->GetLargestPossibleRegion());
             
 			if (masksIn.is_open())
 			{
 				masksIn.getline(maskN,2048);
-				itkUShortReader::Pointer tmpMaskRead = itkUShortReader::New();
-				tmpMaskRead->SetFileName(maskN);
-				tmpMaskRead->Update();
+                UShortImageType::Pointer tmpMask = anima::readImage <UShortImageType> (maskN);
                 
-				itk::ImageRegionIterator <UShortImageType> tmpMaskIt(tmpMaskRead->GetOutput(),tmpRead->GetOutput()->GetLargestPossibleRegion());
-				itk::ImageRegionIterator <UShortImageType> sumMasksIt(tmpSumMasks,tmpRead->GetOutput()->GetLargestPossibleRegion());
+				itk::ImageRegionIterator <UShortImageType> tmpMaskIt(tmpMask,tmpImage->GetLargestPossibleRegion());
+				itk::ImageRegionIterator <UShortImageType> sumMasksIt(tmpSumMasks,tmpImage->GetLargestPossibleRegion());
 				
 				while (!sumMasksIt.IsAtEnd())
 				{
@@ -311,13 +269,8 @@ int main(int argc, char **argv)
 			}
 		}
         
-		itkVectorWriter::Pointer tmpWrite = itkVectorWriter::New();
-		tmpWrite->SetInput(outputData);
-		tmpWrite->SetFileName(outArg.getValue());
-		tmpWrite->SetUseCompression(true);
-		
-		tmpWrite->Update();
+        anima::writeImage <VectorImageType> (outArg.getValue(),outputData);
 	}
 	
-	return 0;
+	return EXIT_SUCCESS;
 }

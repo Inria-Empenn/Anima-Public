@@ -2,9 +2,6 @@
 #include <animaGradientFileReader.h>
 
 #include <tclap/CmdLine.h>
-
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
 #include <itkTimeProbe.h>
 #include <fstream>
 
@@ -46,7 +43,7 @@ int main(int argc,  char **argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
 
     typedef anima::DTIEstimationImageFilter <float, float> FilterType;
@@ -54,9 +51,6 @@ int main(int argc,  char **argv)
     typedef FilterType::InputImageType InputImageType;
     typedef FilterType::Image4DType Image4DType;
     typedef FilterType::OutputImageType VectorImageType;
-
-    typedef itk::ImageFileWriter <InputImageType> OutputB0ImageWriterType;
-    typedef itk::ImageFileWriter <VectorImageType> VectorImageWriterType;
 
     itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
     callback->SetCallback(eventCallback);
@@ -138,7 +132,7 @@ int main(int argc,  char **argv)
     } catch (itk::ExceptionObject &e)
     {
         std::cerr << e << std::endl;
-        return -1;
+        return EXIT_FAILURE;
     }
 
     tmpTimer.Stop();
@@ -150,22 +144,10 @@ int main(int argc,  char **argv)
     VectorImageType::Pointer output = mainFilter->GetOutput();
     output->DisconnectPipeline();
 
-    VectorImageWriterType::Pointer vectorWriter = VectorImageWriterType::New();
-    vectorWriter->SetInput(output);
-    vectorWriter->SetFileName(resArg.getValue());
-    vectorWriter->SetUseCompression(true);
-
-    vectorWriter->Update();
+    anima::writeImage <VectorImageType> (resArg.getValue(),output);
 
     if (b0OutArg.getValue() != "")
-    {
-        OutputB0ImageWriterType::Pointer b0Writer = OutputB0ImageWriterType::New();
-        b0Writer->SetInput(mainFilter->GetEstimatedB0Image());
-        b0Writer->SetFileName(b0OutArg.getValue());
-        b0Writer->SetUseCompression(true);
+        anima::writeImage <InputImageType> (b0OutArg.getValue(),mainFilter->GetEstimatedB0Image());
 
-        b0Writer->Update();
-    }
-
-    return 0;
+    return EXIT_SUCCESS;
 }

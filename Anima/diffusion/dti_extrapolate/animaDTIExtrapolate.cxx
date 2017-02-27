@@ -1,7 +1,6 @@
 #include <animaDTIExtrapolateImageFilter.h>
 
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
+#include <animaReadWriteFunctions.h>
 #include <itkTimeProbe.h>
 
 #include <tclap/CmdLine.h>
@@ -26,29 +25,15 @@ int main(int argc,  char **argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
 
     typedef anima::DTIExtrapolateImageFilter<float> FilterType;
     typedef FilterType::OutputImageType VectorImageType;
     typedef FilterType::OutputB0ImageType B0ImageType;
 
-    typedef itk::ImageFileReader <VectorImageType> InputImageReaderType;
-    typedef itk::ImageFileReader <B0ImageType> InputB0ImageReaderType;
-    typedef itk::ImageFileWriter <B0ImageType> OutputB0ImageWriterType;
-    typedef itk::ImageFileWriter <VectorImageType> VectorImageWriterType;
-
-    InputImageReaderType::Pointer inputReader = InputImageReaderType::New();
-    inputReader->SetFileName(inArg.getValue());
-
-    inputReader->Update();
-    VectorImageType::Pointer input = inputReader->GetOutput();
-
-    InputB0ImageReaderType::Pointer inputB0Reader = InputB0ImageReaderType::New();
-    inputB0Reader->SetFileName(b0InArg.getValue());
-
-    inputB0Reader->Update();
-    B0ImageType::Pointer inputB0 = inputB0Reader->GetOutput();
+    VectorImageType::Pointer input = anima::readImage <VectorImageType> (inArg.getValue());;
+    B0ImageType::Pointer inputB0 = anima::readImage <B0ImageType> (b0InArg.getValue());
 
     itk::TimeProbe tmpTimer;
 
@@ -62,11 +47,14 @@ int main(int argc,  char **argv)
         mainFilter->SetInitialEstimatedB0Image(inputB0);
         mainFilter->SetNumberOfThreads(nbpArg.getValue());
 
-        try {
+        try
+        {
             mainFilter->Update();
-        } catch (itk::ExceptionObject &e) {
+        }
+        catch (itk::ExceptionObject &e)
+        {
             std::cerr << e << std::endl;
-            exit(-1);
+            return EXIT_FAILURE;
         }
 
         input = mainFilter->GetOutput();
@@ -77,25 +65,12 @@ int main(int argc,  char **argv)
     tmpTimer.Stop();
 
     std::cout << "Extrapolation done in " << tmpTimer.GetTotal() << " s" << std::endl;
-
     std::cout << "Writing result to : " << resArg.getValue() << std::endl;
 
-    VectorImageWriterType::Pointer vectorWriter = VectorImageWriterType::New();
-    vectorWriter->SetInput(input);
-    vectorWriter->SetFileName(resArg.getValue());
-    vectorWriter->SetUseCompression(true);
-
-    vectorWriter->Update();
+    anima::writeImage <VectorImageType> (resArg.getValue(),input);
 
     if (b0OutArg.getValue() != "")
-    {
-        OutputB0ImageWriterType::Pointer b0Writer = OutputB0ImageWriterType::New();
-        b0Writer->SetInput(inputB0);
-        b0Writer->SetFileName(b0OutArg.getValue());
-        b0Writer->SetUseCompression(true);
+        anima::writeImage <B0ImageType> (b0OutArg.getValue(),inputB0);
 
-        b0Writer->Update();
-    }
-
-    return 0;
+    return EXIT_SUCCESS;
 }

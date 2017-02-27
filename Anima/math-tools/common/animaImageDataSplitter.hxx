@@ -4,7 +4,6 @@
 #include <itkImageRegionConstIteratorWithIndex.h>
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIterator.h>
-#include <itkImageFileWriter.h>
 
 #include <itkExceptionObject.h>
 

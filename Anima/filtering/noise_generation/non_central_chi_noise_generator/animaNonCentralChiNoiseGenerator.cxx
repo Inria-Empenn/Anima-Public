@@ -1,8 +1,7 @@
 #include <tclap/CmdLine.h>
 
 #include <animaNonCentralChiNoiseGeneratorImageFilter.h>
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
+#include <animaReadWriteFunctions.h>
 
 using namespace std;
 
@@ -29,12 +28,8 @@ int main(int argc, char **argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
-
-    string refName, resName;
-    refName = inArg.getValue();
-    resName = outArg.getValue();
 
     double backVar = backVarArg.getValue();
     double relStd = relStdArg.getValue();
@@ -59,19 +54,13 @@ int main(int argc, char **argv)
         case 4:
         {
             typedef itk::Image<float,4> ImageType;
-            typedef itk::ImageFileReader <ImageType> itkInputReader;
-            typedef itk::ImageFileWriter <ImageType> itkOutputWriter;
 
             typedef anima::NonCentralChiNoiseGeneratorImageFilter<4> NoiseFilterType;
 
             NoiseFilterType::Pointer mainFilter = NoiseFilterType::New();
             mainFilter->SetNumberOfThreads(nbpArg.getValue());
 
-            itkInputReader::Pointer imageReader = itkInputReader::New();
-            imageReader->SetFileName(refName.c_str());
-            imageReader->Update();
-
-            mainFilter->SetInput(imageReader->GetOutput());
+            mainFilter->SetInput(anima::readImage <ImageType> (inArg.getValue()));
             mainFilter->SetBackgroundVariance(backVar);
             mainFilter->SetRefVal(refValArg.getValue());
             mainFilter->SetRelStdDevGaussianNoise(relStd);
@@ -84,13 +73,8 @@ int main(int argc, char **argv)
                 mainFilter->SetAverageMeanValOnAllVolumes(true);
 
             mainFilter->Update();
-
-            itkOutputWriter::Pointer resultWriter = itkOutputWriter::New();
-            resultWriter->SetFileName(resName.c_str());
-            resultWriter->SetUseCompression(true);
-            resultWriter->SetInput(mainFilter->GetOutput());
-
-            resultWriter->Update();
+            
+            anima::writeImage <ImageType> (outArg.getValue(),mainFilter->GetOutput());
 
             break;
         }
@@ -99,19 +83,13 @@ int main(int argc, char **argv)
         default:
         {
             typedef itk::Image<float,3> ImageType;
-            typedef itk::ImageFileReader <ImageType> itkInputReader;
-            typedef itk::ImageFileWriter <ImageType> itkOutputWriter;
 
             typedef anima::NonCentralChiNoiseGeneratorImageFilter<3> NoiseFilterType;
 
             NoiseFilterType::Pointer mainFilter = NoiseFilterType::New();
             mainFilter->SetNumberOfThreads(nbpArg.getValue());
 
-            itkInputReader::Pointer imageReader = itkInputReader::New();
-            imageReader->SetFileName(refName.c_str());
-            imageReader->Update();
-
-            mainFilter->SetInput(imageReader->GetOutput());
+            mainFilter->SetInput(anima::readImage <ImageType> (inArg.getValue()));
             mainFilter->SetBackgroundVariance(backVar);
             mainFilter->SetRefVal(refValArg.getValue());
             mainFilter->SetRelStdDevGaussianNoise(relStd);
@@ -119,17 +97,12 @@ int main(int argc, char **argv)
             mainFilter->SetAverageMeanValOnAllVolumes(true);
 
             mainFilter->Update();
-
-            itkOutputWriter::Pointer resultWriter = itkOutputWriter::New();
-            resultWriter->SetFileName(resName.c_str());
-            resultWriter->SetUseCompression(true);
-            resultWriter->SetInput(mainFilter->GetOutput());
-
-            resultWriter->Update();
+            
+            anima::writeImage <ImageType> (outArg.getValue(),mainFilter->GetOutput());
 
             break;
         }
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }

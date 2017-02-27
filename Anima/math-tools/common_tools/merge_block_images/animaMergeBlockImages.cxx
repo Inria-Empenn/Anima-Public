@@ -2,8 +2,7 @@
 #include <iostream>
 #include <string>
 
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
+#include <animaReadWriteFunctions.h>
 #include <itkImageRegionIterator.h>
 
 using namespace std;
@@ -11,12 +10,7 @@ using namespace std;
 int main(int argc, char **argv)
 {
 	typedef itk::Image <double,3> DoubleImageType;
-	typedef itk::ImageFileReader <DoubleImageType> itkDoubleReader;
-	typedef itk::ImageFileWriter <DoubleImageType> itkDoubleWriter;
-	
 	typedef itk::VectorImage <double,3> VectorImageType;
-	typedef itk::ImageFileReader <VectorImageType> itkVectorReader;
-	typedef itk::ImageFileWriter <VectorImageType> itkVectorWriter;
 	
     TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);
     
@@ -33,27 +27,20 @@ int main(int argc, char **argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
     
-    string refName, geomName, resName;
-    refName = inArg.getValue();
-    geomName = geomArg.getValue();
-	resName = outArg.getValue();
-    
-	itkDoubleReader::Pointer geomReader = itkDoubleReader::New();
-	geomReader->SetFileName(geomName);
-	geomReader->Update();
+    DoubleImageType::Pointer geomImage = anima::readImage <DoubleImageType> (geomArg.getValue());
 	
-	DoubleImageType::SpacingType spacing = geomReader->GetOutput()->GetSpacing();
-	DoubleImageType::PointType origin = geomReader->GetOutput()->GetOrigin();
-	DoubleImageType::DirectionType direction = geomReader->GetOutput()->GetDirection();
-	DoubleImageType::RegionType region = geomReader->GetOutput()->GetLargestPossibleRegion();
+	DoubleImageType::SpacingType spacing = geomImage->GetSpacing();
+	DoubleImageType::PointType origin = geomImage->GetOrigin();
+	DoubleImageType::DirectionType direction = geomImage->GetDirection();
+	DoubleImageType::RegionType region = geomImage->GetLargestPossibleRegion();
 	
 	std::vector <std::string> fileNames;
 	std::vector <DoubleImageType::IndexType> indexes;
 	
-	ifstream fileList(refName.c_str());
+	ifstream fileList(inArg.getValue());
 	char tmpStr[2048];
     
 	while (!fileList.eof())
@@ -104,16 +91,14 @@ int main(int argc, char **argv)
 		
 		for (unsigned int i = 0;i < fileNames.size();++i)
 		{
-			itkDoubleReader::Pointer tmpRead = itkDoubleReader::New();
-			tmpRead->SetFileName(fileNames[i]);
-			tmpRead->Update();
+            DoubleImageType::Pointer tmpImage = anima::readImage <DoubleImageType> (fileNames[i]);
 			
-			DoubleImageType::RegionType origRegion = tmpRead->GetOutput()->GetLargestPossibleRegion();
+			DoubleImageType::RegionType origRegion = tmpImage->GetLargestPossibleRegion();
 			DoubleImageType::RegionType destRegion = origRegion;
 			for (unsigned int j = 0;j < DoubleImageType::GetImageDimension();++j)
 				destRegion.SetIndex(j,indexes[i][j]);
 			
-			itk::ImageRegionIterator <DoubleImageType> origItr(tmpRead->GetOutput(),origRegion);
+			itk::ImageRegionIterator <DoubleImageType> origItr(tmpImage,origRegion);
 			itk::ImageRegionIterator <DoubleImageType> destItr(mainData,destRegion);
 			
 			while (!origItr.IsAtEnd())
@@ -125,11 +110,7 @@ int main(int argc, char **argv)
 			}
 		}
 		
-		itkDoubleWriter::Pointer p_output = itkDoubleWriter::New();
-		p_output->SetFileName(resName);
-		p_output->SetInput(mainData);
-		p_output->SetUseCompression(true);
-		p_output->Update();
+        anima::writeImage <DoubleImageType> (outArg.getValue(),mainData);
 	}
 	else
 	{
@@ -146,17 +127,15 @@ int main(int argc, char **argv)
 		for (unsigned int i = 0;i < fileNames.size();++i)
 		{
 			std::cout << fileNames[i] << "..." << std::flush;
-			itkVectorReader::Pointer tmpRead = itkVectorReader::New();
-			tmpRead->SetFileName(fileNames[i]);
-			tmpRead->Update();
+            VectorImageType::Pointer tmpImage = anima::readImage <VectorImageType> (fileNames[i]);
 			
 			if (i == 0)
 			{
-				mainData->SetNumberOfComponentsPerPixel(tmpRead->GetOutput()->GetNumberOfComponentsPerPixel());
+				mainData->SetNumberOfComponentsPerPixel(tmpImage->GetNumberOfComponentsPerPixel());
 				mainData->Allocate();
 				
-				itk::VariableLengthVector <double> tmpVecFill(tmpRead->GetOutput()->GetNumberOfComponentsPerPixel());
-				for (unsigned int j = 0;j < tmpRead->GetOutput()->GetNumberOfComponentsPerPixel();++j)
+				itk::VariableLengthVector <double> tmpVecFill(tmpImage->GetNumberOfComponentsPerPixel());
+				for (unsigned int j = 0;j < tmpImage->GetNumberOfComponentsPerPixel();++j)
 					tmpVecFill[j] = 0;
                 
 				itk::ImageRegionIterator <VectorImageType> tmpDestItr(mainData,mainData->GetLargestPossibleRegion());
@@ -167,12 +146,12 @@ int main(int argc, char **argv)
 				}
 			}
 			
-			VectorImageType::RegionType origRegion = tmpRead->GetOutput()->GetLargestPossibleRegion();
+			VectorImageType::RegionType origRegion = tmpImage->GetLargestPossibleRegion();
 			VectorImageType::RegionType destRegion = origRegion;
 			for (unsigned int j = 0;j < VectorImageType::GetImageDimension();++j)
 				destRegion.SetIndex(j,indexes[i][j]);
 			
-			itk::ImageRegionIterator <VectorImageType> origItr(tmpRead->GetOutput(),origRegion);
+			itk::ImageRegionIterator <VectorImageType> origItr(tmpImage,origRegion);
 			itk::ImageRegionIterator <VectorImageType> destItr(mainData,destRegion);
 			
 			while (!origItr.IsAtEnd())
@@ -187,12 +166,8 @@ int main(int argc, char **argv)
 			std::cout << " Done..." <<std::endl;
 		}
 		
-		itkVectorWriter::Pointer p_output = itkVectorWriter::New();
-		p_output->SetFileName(resName);
-		p_output->SetInput(mainData);
-		p_output->SetUseCompression(true);
-		p_output->Update();		
+        anima::writeImage <VectorImageType> (outArg.getValue(),mainData);
 	}
 	
-    return 0;
+    return EXIT_SUCCESS;
 }

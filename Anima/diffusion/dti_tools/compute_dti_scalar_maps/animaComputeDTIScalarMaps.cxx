@@ -3,8 +3,6 @@
 #include <tclap/CmdLine.h>
 
 #include <itkImage.h>
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
 #include <itkCommand.h>
 
 #include <animaReadWriteFunctions.h>

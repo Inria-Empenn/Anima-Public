@@ -6,7 +6,6 @@
 #include <itkImageRegionConstIterator.h>
 #include <itkExtractImageFilter.h>
 #include <itkMultiThreader.h>
-#include <itkImageFileWriter.h>
 #include <itkImageMomentsCalculator.h>
 
 #include <animaVectorOperations.h>

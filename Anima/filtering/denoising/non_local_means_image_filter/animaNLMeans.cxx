@@ -1,10 +1,8 @@
 #include <animaNonLocalMeansImageFilter.h>
-
+#include <animaReadWriteFunctions.h>
 #include <tclap/CmdLine.h>
 
 #include <itkImage.h>
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
 #include <itkCommand.h>
 
 //Update progression of the process
@@ -144,17 +142,10 @@ int main(int ac, const char** av)
             std::cout<<"preparing filter..." << std::endl;
 
             typedef itk::Image<float, 2> ImageType;
-            typedef itk::ImageFileReader<ImageType> ReaderType;
-            typedef itk::ImageFileWriter<ImageType> WriterType;
             typedef anima::NonLocalMeansImageFilter<ImageType> FilterType;
 
-            ReaderType::Pointer reader = ReaderType::New();
-            reader->SetFileName(inputArg.getValue());
-            reader->Update();
-
             FilterType::Pointer filter = FilterType::New();
-            filter->SetInput(reader->GetOutput());
-
+            filter->SetInput(anima::readImage <ImageType> (inputArg.getValue()));
 
             filter->SetWeightThreshold(weightThrArg.getValue());
             filter->SetPatchHalfSize(patchHSArg.getValue());
@@ -172,13 +163,9 @@ int main(int ac, const char** av)
             filter->AddObserver(itk::ProgressEvent(), callback );
             filter->Update();
 
-            WriterType::Pointer writer = WriterType::New();
-            writer->SetFileName(outputArg.getValue());
-            writer->SetInput(filter->GetOutput());
-
             try
             {
-                writer->Update();
+                anima::writeImage <ImageType> (outputArg.getValue(),filter->GetOutput());
             }
             catch( itk::ExceptionObject & err )
             {
@@ -194,17 +181,11 @@ int main(int ac, const char** av)
             std::cout<<"preparing filter..." << std::endl;
 
             typedef itk::Image<float, 3> ImageType;
-            typedef itk::ImageFileReader<ImageType> ReaderType;
-            typedef itk::ImageFileWriter<ImageType> WriterType;
             typedef anima::NonLocalMeansImageFilter<ImageType> FilterType;
 
-            ReaderType::Pointer reader = ReaderType::New();
-            reader->SetFileName(inputArg.getValue());
-            reader->Update();
-
             FilterType::Pointer filter = FilterType::New();
-            filter->SetInput(reader->GetOutput());
-
+            filter->SetInput(anima::readImage <ImageType> (inputArg.getValue()));
+            
             filter->SetWeightThreshold(weightThrArg.getValue());
             filter->SetPatchHalfSize(patchHSArg.getValue());
             filter->SetSearchStepSize(patchSSArg.getValue());
@@ -221,14 +202,9 @@ int main(int ac, const char** av)
             filter->AddObserver(itk::ProgressEvent(), callback );
             filter->Update();
 
-
-            WriterType::Pointer writer = WriterType::New();
-            writer->SetFileName(outputArg.getValue());
-            writer->SetInput(filter->GetOutput());
-
             try
             {
-                writer->Update();
+                anima::writeImage <ImageType> (outputArg.getValue(),filter->GetOutput());
             }
             catch( itk::ExceptionObject & err )
             {
@@ -240,12 +216,10 @@ int main(int ac, const char** av)
         }
         case 4:
         {
-
             std::cerr<<"WARNING !\nInput is a 4D image, you should use the animaNLMeans-temporal command.\nContinue anyway? (y/n) ";
             char ans;
             do
             {
-
                 std::cin>>ans;
                 if (ans == 'n')
                     return 0;
@@ -260,17 +234,10 @@ int main(int ac, const char** av)
             std::cout<<"preparing filter...\n";
 
             typedef itk::Image<float, 4> ImageType;
-            typedef itk::ImageFileReader<ImageType> ReaderType;
-            typedef itk::ImageFileWriter<ImageType> WriterType;
             typedef anima::NonLocalMeansImageFilter<ImageType> FilterType;
 
-            ReaderType::Pointer reader = ReaderType::New();
-            reader->SetFileName(inputArg.getValue());
-            reader->Update();
-
             FilterType::Pointer filter = FilterType::New();
-            filter->SetInput(reader->GetOutput());
-
+            filter->SetInput(anima::readImage <ImageType> (inputArg.getValue()));
 
             filter->SetWeightThreshold(weightThrArg.getValue());
             filter->SetPatchHalfSize(patchHSArg.getValue());
@@ -288,13 +255,9 @@ int main(int ac, const char** av)
             filter->AddObserver(itk::ProgressEvent(), callback );
             filter->Update();
 
-            WriterType::Pointer writer = WriterType::New();
-            writer->SetFileName(outputArg.getValue());
-            writer->SetInput(filter->GetOutput());
-
             try
             {
-                writer->Update();
+                anima::writeImage <ImageType> (outputArg.getValue(),filter->GetOutput());
             }
             catch( itk::ExceptionObject & err )
             {

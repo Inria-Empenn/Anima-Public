@@ -1,7 +1,6 @@
 #include <tclap/CmdLine.h>
 
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
+#include <animaReadWriteFunctions.h>
 #include <itkImage.h>
 #include <itkVectorImage.h>
 
@@ -10,15 +9,9 @@
 template <class ImageType>
 void performSmoothing (std::string &inStr, std::string &outStr, double sigma, unsigned int nThreads)
 {
-    typedef itk::ImageFileReader <ImageType> ReaderType;
-    typedef itk::ImageFileWriter <ImageType> WriterType;
     typedef anima::SmoothingRecursiveYvvGaussianImageFilter <ImageType,ImageType> SmoothingFilterType;
 
-    typename ReaderType::Pointer inputReader = ReaderType::New();
-    inputReader->SetFileName(inStr);
-    inputReader->Update();
-
-    typename ImageType::Pointer currentImage = inputReader->GetOutput();
+    typename ImageType::Pointer currentImage = anima::readImage <ImageType> (inStr);
     currentImage->DisconnectPipeline();
 
     double meanSpacing = currentImage->GetSpacing()[0];
@@ -35,11 +28,7 @@ void performSmoothing (std::string &inStr, std::string &outStr, double sigma, un
     smoothFilter->Update();
 
     // Finally write the result
-    typename WriterType::Pointer writer = WriterType::New();
-    writer->SetInput(smoothFilter->GetOutput());
-    writer->SetFileName(outStr);
-    writer->SetUseCompression(true);
-    writer->Update();
+    anima::writeImage <ImageType> (outStr,smoothFilter->GetOutput());
 }
 
 int main(int argc, char **argv)
@@ -63,7 +52,7 @@ int main(int argc, char **argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
 
     typedef itk::Image <float,3> ImageType;
@@ -89,5 +78,5 @@ int main(int argc, char **argv)
     else
         performSmoothing<ImageType>(inArg.getValue(),outArg.getValue(),sigmaArg.getValue(),nbpArg.getValue());
 
-    return 0;
+    return EXIT_SUCCESS;
 }
