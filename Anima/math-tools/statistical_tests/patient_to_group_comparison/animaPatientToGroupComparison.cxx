@@ -1,12 +1,9 @@
 #include <iostream>
 #include <tclap/CmdLine.h>
 
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
+#include <animaReadWriteFunctions.h>
 #include <animaPatientToGroupComparisonImageFilter.h>
 #include <itkTimeProbe.h>
-
-using namespace std;
 
 int main(int argc, char **argv)
 {
@@ -32,34 +29,17 @@ int main(int argc, char **argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
     
-    string dataLTName, maskName;
-    dataLTName = dataLTArg.getValue();
-    maskName = maskArg.getValue();
-    
-    typedef itk::ImageFileWriter < itk::Image <double, 3> > itkOutputWriter;
-	
-    typedef itk::ImageFileReader < itk::Image <unsigned char, 3> > itkMaskReader;
-    itkMaskReader::Pointer maskRead = itkMaskReader::New();
-    maskRead->SetFileName(maskName.c_str());
-    maskRead->Update();
-    
     typedef itk::VectorImage<double,3> LogTensorImageType;
-    typedef itk::ImageFileReader <LogTensorImageType> itkInputReader;
-    
     typedef anima::PatientToGroupComparisonImageFilter<double> MAZScoreImageFilterType;
     
     MAZScoreImageFilterType::Pointer mainFilter = MAZScoreImageFilterType::New();
-    mainFilter->SetComputationMask(maskRead->GetOutput());
+    mainFilter->SetComputationMask(anima::readImage < itk::Image <unsigned char, 3> > (maskArg.getValue()));
     mainFilter->SetNumberOfThreads(nbpArg.getValue());
 	
-	itkInputReader::Pointer testLTReader = itkInputReader::New();
-	testLTReader->SetFileName(refLTArg.getValue());
-	testLTReader->Update();
-	mainFilter->SetInput(testLTReader->GetOutput());
-
+	mainFilter->SetInput(anima::readImage <LogTensorImageType> (refLTArg.getValue()));
     mainFilter->SetExplainedRatio(expVarArg.getValue());
     mainFilter->SetNumEigenValuesPCA(numEigenArg.getValue());
 
@@ -68,14 +48,12 @@ int main(int argc, char **argv)
     else
         mainFilter->SetStatisticalTestType(MAZScoreImageFilterType::FISHER);
 
-    ifstream fileIn(dataLTName.c_str());
+    std::ifstream fileIn(dataLTArg.getValue());
     if (!fileIn.is_open())
     {
-        std::cerr << "Could not open ODF data file (" << dataLTName << ")" << std::endl;
+        std::cerr << "Could not open data file (" << dataLTArg.getValue() << ")" << std::endl;
         return EXIT_FAILURE;
     }
-    
-    itkInputReader::Pointer ltReader;
     
     while (!fileIn.eof())
     {
@@ -86,11 +64,7 @@ int main(int argc, char **argv)
             continue;
         
         std::cout << "Loading tensor image " << tmpStr << "..." << std::endl;
-        ltReader = itkInputReader::New();
-        ltReader->SetFileName(tmpStr);
-        ltReader->Update();
-        
-        mainFilter->AddDatabaseInput(ltReader->GetOutput());
+        mainFilter->AddDatabaseInput(anima::readImage <LogTensorImageType> (tmpStr));
     }
     fileIn.close();
   		
@@ -101,22 +75,11 @@ int main(int argc, char **argv)
     catch (itk::ExceptionObject &e)
     {
         std::cerr << e << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
     
-    itkOutputWriter::Pointer resultWriter = itkOutputWriter::New();
-    resultWriter->SetFileName(resArg.getValue());
-    resultWriter->SetUseCompression(true);
-    resultWriter->SetInput(mainFilter->GetOutput(0));
+    anima::writeImage < itk::Image <double, 3> > (resArg.getValue(),mainFilter->GetOutput(0));
+    anima::writeImage < itk::Image <double, 3> > (resPValArg.getValue(),mainFilter->GetOutput(1));
 
-    resultWriter->Update();
-
-    itkOutputWriter::Pointer resultPValWriter = itkOutputWriter::New();
-    resultPValWriter->SetFileName(resPValArg.getValue());
-    resultPValWriter->SetUseCompression(true);
-    resultPValWriter->SetInput(mainFilter->GetOutput(1));
-
-    resultPValWriter->Update();
-
-    return 0;
+    return EXIT_SUCCESS;
 }

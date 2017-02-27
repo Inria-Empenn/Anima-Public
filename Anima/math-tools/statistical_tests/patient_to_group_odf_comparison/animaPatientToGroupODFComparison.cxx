@@ -1,8 +1,7 @@
 #include <iostream>
 #include <tclap/CmdLine.h>
 
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
+#include <animaReadWriteFunctions.h>
 #include <animaPatientToGroupODFComparisonImageFilter.h>
 #include <itkTimeProbe.h>
 
@@ -38,34 +37,18 @@ int main(int argc, char **argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
-	
-    std::string dataODFName, maskName;
-    dataODFName = dataODFArg.getValue();
-    maskName = maskArg.getValue();
-	
-    typedef itk::ImageFileWriter < itk::Image <double, 3> > itkOutputWriter;
-	
-    typedef itk::ImageFileReader < itk::Image <unsigned char, 3> > itkMaskReader;
-    itkMaskReader::Pointer maskRead = itkMaskReader::New();
-    maskRead->SetFileName(maskName.c_str());
-    maskRead->Update();
-	
+			
     typedef itk::VectorImage<double,3> ODFImageType;
-    typedef itk::ImageFileReader <ODFImageType> itkInputReader;
-	
     typedef anima::PatientToGroupODFComparisonImageFilter<double> MAOZScoreImageFilterType;
     
     MAOZScoreImageFilterType::Pointer mainFilter = MAOZScoreImageFilterType::New();
-    mainFilter->SetComputationMask(maskRead->GetOutput());
+    mainFilter->SetComputationMask(anima::readImage < itk::Image <unsigned char,3> > (maskArg.getValue()));
     mainFilter->SetNumberOfThreads(nbpArg.getValue());
 	
-	itkInputReader::Pointer testODFReader = itkInputReader::New();
-	testODFReader->SetFileName(refODFArg.getValue());
-	testODFReader->Update();
-	mainFilter->SetInput(testODFReader->GetOutput());
-	
+
+    mainFilter->SetInput(anima::readImage <ODFImageType> (refODFArg.getValue()));
 	mainFilter->SetExplainedRatio(expVarArg.getValue());
 	mainFilter->SetNumEigenValuesPCA(numEigenArg.getValue());
 	
@@ -79,14 +62,12 @@ int main(int argc, char **argv)
     else
         mainFilter->SetStatisticalTestType(MAOZScoreImageFilterType::FISHER);
 
-    std::ifstream fileIn(dataODFName.c_str());
+    std::ifstream fileIn(dataODFArg.getValue());
     if (!fileIn.is_open())
     {
-        std::cerr << "Could not open ODF data file (" << dataODFName << ")" << std::endl;
+        std::cerr << "Could not open ODF data file (" << dataODFArg.getValue() << ")" << std::endl;
         return EXIT_FAILURE;
     }
-
-    itkInputReader::Pointer odfReader;
     
     while (!fileIn.eof())
     {
@@ -97,11 +78,7 @@ int main(int argc, char **argv)
             continue;
         
         std::cout << "Loading ODF image " << tmpStr << "..." << std::endl;
-        odfReader = itkInputReader::New();
-        odfReader->SetFileName(tmpStr);
-        odfReader->Update();
-        
-        mainFilter->AddDatabaseInput(odfReader->GetOutput());
+        mainFilter->AddDatabaseInput(anima::readImage <ODFImageType> (tmpStr));
     }
     fileIn.close();
     
@@ -112,22 +89,11 @@ int main(int argc, char **argv)
     catch(itk::ExceptionObject &e)
     {
         std::cerr << e << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
     
-    itkOutputWriter::Pointer resultWriter = itkOutputWriter::New();
-    resultWriter->SetFileName(resArg.getValue());
-	resultWriter->SetUseCompression(true);
-    resultWriter->SetInput(mainFilter->GetOutput(0));
+    anima::writeImage < itk::Image <double, 3> > (resArg.getValue(),mainFilter->GetOutput(0));
+    anima::writeImage < itk::Image <double, 3> > (resPValArg.getValue(),mainFilter->GetOutput(1));
 	
-    resultWriter->Update();
-	
-    itkOutputWriter::Pointer resultPValWriter = itkOutputWriter::New();
-    resultPValWriter->SetFileName(resPValArg.getValue());
-    resultPValWriter->SetUseCompression(true);
-    resultPValWriter->SetInput(mainFilter->GetOutput(1));
-
-    resultPValWriter->Update();
-
-    return 0;
+    return EXIT_SUCCESS;
 }

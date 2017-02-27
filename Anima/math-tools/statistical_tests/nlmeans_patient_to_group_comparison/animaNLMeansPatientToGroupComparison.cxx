@@ -1,12 +1,9 @@
 #include <iostream>
 #include <tclap/CmdLine.h>
 
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
+#include <animaReadWriteFunctions.h>
 #include <animaNLMeansPatientToGroupComparisonImageFilter.h>
 #include <itkTimeProbe.h>
-
-using namespace std;
 
 int main(int argc, char **argv)
 {
@@ -45,28 +42,15 @@ int main(int argc, char **argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
     
-    string dataLTName, maskName;
-    dataLTName = dataLTArg.getValue();
-    maskName = maskArg.getValue();
-    
-    typedef itk::ImageFileWriter < itk::Image <double, 3> > itkOutputWriter;
-    typedef itk::ImageFileReader < itk::Image <double, 3> > itkOutputReader;
-	
-    typedef itk::ImageFileReader < itk::Image <unsigned char, 3> > itkMaskReader;
-    itkMaskReader::Pointer maskRead = itkMaskReader::New();
-    maskRead->SetFileName(maskName.c_str());
-    maskRead->Update();
-    
     typedef itk::VectorImage<double,3> LogTensorImageType;
-    typedef itk::ImageFileReader <LogTensorImageType> itkInputReader;
     
     typedef anima::NLMeansPatientToGroupComparisonImageFilter<double> NLComparisonImageFilterType;
     
     NLComparisonImageFilterType::Pointer mainFilter = NLComparisonImageFilterType::New();
-    mainFilter->SetComputationMask(maskRead->GetOutput());
+    mainFilter->SetComputationMask(anima::readImage < itk::Image <unsigned char, 3> > (maskArg.getValue()));
     mainFilter->SetNumberOfThreads(nbpArg.getValue());
 
 	mainFilter->SetWeightThreshold(weightThrArg.getValue());
@@ -78,14 +62,9 @@ int main(int argc, char **argv)
 	mainFilter->SetSearchNeighborhood(patchNeighArg.getValue());
     mainFilter->SetBetaParameter(betaArg.getValue());
 	
-	itkInputReader::Pointer testLTReader = itkInputReader::New();
-	testLTReader->SetFileName(refLTArg.getValue());
-	testLTReader->Update();
-	mainFilter->SetInput(0,testLTReader->GetOutput());
+    mainFilter->SetInput(0,anima::readImage <LogTensorImageType> (refLTArg.getValue()));
 	
-    ifstream fileIn(dataLTName.c_str());
-    
-    itkInputReader::Pointer ltReader;
+    std::ifstream fileIn(dataLTArg.getValue());
     
     while (!fileIn.eof())
     {
@@ -96,33 +75,15 @@ int main(int argc, char **argv)
             continue;
         
         std::cout << "Loading database image " << tmpStr << "..." << std::endl;
-        ltReader = itkInputReader::New();
-        ltReader->SetFileName(tmpStr);
-        ltReader->Update();
-        
-        mainFilter->AddDatabaseInput(ltReader->GetOutput());
+        mainFilter->AddDatabaseInput(anima::readImage <LogTensorImageType> (tmpStr));
     }
     fileIn.close();
     
-    itkOutputReader::Pointer dbMeanAveRead = itkOutputReader::New();
-    dbMeanAveRead->SetFileName(dbMeanDistAveArg.getValue());
-    dbMeanAveRead->Update();
-    mainFilter->SetDatabaseMeanDistanceAverage(dbMeanAveRead->GetOutput());
+    mainFilter->SetDatabaseMeanDistanceAverage(anima::readImage < itk::Image <double, 3> > (dbMeanDistAveArg.getValue()));
+    mainFilter->SetDatabaseMeanDistanceStd(anima::readImage < itk::Image <double, 3> > (dbMeanDistStdArg.getValue()));
   	
-    itkOutputReader::Pointer dbMeanStdRead = itkOutputReader::New();
-    dbMeanStdRead->SetFileName(dbMeanDistStdArg.getValue());
-    dbMeanStdRead->Update();
-    mainFilter->SetDatabaseMeanDistanceStd(dbMeanStdRead->GetOutput());
-  	
-    itkOutputReader::Pointer dbCovAveRead = itkOutputReader::New();
-    dbCovAveRead->SetFileName(dbCovDistAveArg.getValue());
-    dbCovAveRead->Update();
-    mainFilter->SetDatabaseCovarianceDistanceAverage(dbCovAveRead->GetOutput());
-  	
-    itkOutputReader::Pointer dbCovStdRead = itkOutputReader::New();
-    dbCovStdRead->SetFileName(dbCovDistStdArg.getValue());
-    dbCovStdRead->Update();
-    mainFilter->SetDatabaseCovarianceDistanceStd(dbCovStdRead->GetOutput());
+    mainFilter->SetDatabaseCovarianceDistanceAverage(anima::readImage < itk::Image <double, 3> > (dbCovDistAveArg.getValue()));
+    mainFilter->SetDatabaseCovarianceDistanceStd(anima::readImage < itk::Image <double, 3> > (dbCovDistStdArg.getValue()));
   	
     try
     {
@@ -131,35 +92,16 @@ int main(int argc, char **argv)
     catch (itk::ExceptionObject &e)
     {
         std::cerr << e << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
     
-    itkOutputWriter::Pointer resultWriter = itkOutputWriter::New();
-    resultWriter->SetFileName(resArg.getValue());
-	resultWriter->SetUseCompression(true);
-	resultWriter->SetInput(mainFilter->GetOutput(0));
-    
-    resultWriter->Update();
+    anima::writeImage < itk::Image <double, 3> > (resArg.getValue(),mainFilter->GetOutput(0));
     
     if (resScoreArg.getValue() != "")
-    {
-        itkOutputWriter::Pointer resultScoreWriter = itkOutputWriter::New();
-        resultScoreWriter->SetFileName(resScoreArg.getValue());
-        resultScoreWriter->SetUseCompression(true);
-        resultScoreWriter->SetInput(mainFilter->GetOutput(1));
-        
-        resultScoreWriter->Update();
-    }
-    
+        anima::writeImage < itk::Image <double, 3> > (resScoreArg.getValue(),mainFilter->GetOutput(1));
+
     if (resNumPatchesArg.getValue() != "")
-    {
-        itkOutputWriter::Pointer resultNPatchesWriter = itkOutputWriter::New();
-        resultNPatchesWriter->SetFileName(resNumPatchesArg.getValue());
-        resultNPatchesWriter->SetUseCompression(true);
-        resultNPatchesWriter->SetInput(mainFilter->GetOutput(2));
-        
-        resultNPatchesWriter->Update();
-    }
+        anima::writeImage < itk::Image <double, 3> > (resScoreArg.getValue(),mainFilter->GetOutput(2));
     
-    return 0;
+    return EXIT_SUCCESS;
 }

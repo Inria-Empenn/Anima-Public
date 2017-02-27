@@ -1,13 +1,11 @@
 #include <iostream>
 #include <tclap/CmdLine.h>
 
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
 #include <itkTimeProbe.h>
 #include <itkImageConstIterator.h>
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionConstIteratorWithIndex.h>
-#include "animaReadWriteFunctions.h"
+#include <animaReadWriteFunctions.h>
 
 int main(int argc, char **argv)
 {
@@ -26,31 +24,28 @@ int main(int argc, char **argv)
         return(1);
     }
 
-    std::string dataLTName = dataListArg.getValue();
-    std::string maskName = maskArg.getValue();
-
     // load mask file
     typedef itk::Image <unsigned char, 3> MaskType;
-    typedef itk::ImageFileReader < MaskType > itkMaskReader;
-    itkMaskReader::Pointer maskRead = itkMaskReader::New();
-    maskRead->SetFileName(maskName.c_str());
-    maskRead->Update();
+    MaskType::Pointer maskImage = anima::readImage <MaskType> (maskArg.getValue());
     typedef itk::ImageRegionConstIteratorWithIndex<MaskType>  MaskIterator;
 
-    MaskIterator iterMaskImage( maskRead->GetOutput(), maskRead->GetOutput()->GetRequestedRegion() );
+    MaskIterator iterMaskImage(maskImage,maskImage->GetRequestedRegion());
 
     typedef itk::Image <double, 3> ImageType;
     typedef itk::ImageRegionConstIterator<ImageType>  ImageIterator;
 
     // load filenames file
-    std::ifstream fileIn(dataLTName.c_str());
+    std::ifstream fileIn(dataListArg.getValue());
 
     std::vector< std::vector<double> > allSamples;
     std::string oneLine;
 
     unsigned int nbImg=0;
     std::vector<std::string> labels;
-    std::vector<unsigned int> xSample;  std::vector<unsigned int> ySample;  std::vector<unsigned int> zSample;
+    std::vector<unsigned int> xSample;
+    std::vector<unsigned int> ySample;
+    std::vector<unsigned int> zSample;
+    
     while (std::getline(fileIn, oneLine))
     {
         std::size_t pos = oneLine.find(":");               // position of ":" in str
@@ -99,7 +94,7 @@ int main(int argc, char **argv)
     if (resNameArg.getValue() != "")
     {
         // save csv
-        std::ofstream file(resNameArg.getValue().c_str());
+        std::ofstream file(resNameArg.getValue());
 
         for(unsigned int indexI=0;indexI<allSamples.size();++indexI)
         {

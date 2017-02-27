@@ -1,12 +1,9 @@
 #include <iostream>
 #include <tclap/CmdLine.h>
 
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
+#include <animaReadWriteFunctions.h>
 #include <animaLocalPatchMeanDistanceImageFilter.h>
 #include <itkTimeProbe.h>
-
-using namespace std;
 
 int main(int argc, char **argv)
 {
@@ -30,33 +27,19 @@ int main(int argc, char **argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
     
-    string dataLTName, maskName;
-    dataLTName = dataLTArg.getValue();
-    maskName = maskArg.getValue();
-    
-    typedef itk::ImageFileWriter < itk::Image <double, 3> > itkOutputWriter;
-	
-    typedef itk::ImageFileReader < itk::Image <unsigned char, 3> > itkMaskReader;
-    itkMaskReader::Pointer maskRead = itkMaskReader::New();
-    maskRead->SetFileName(maskName.c_str());
-    maskRead->Update();
-    
     typedef itk::VectorImage<double,3> LogTensorImageType;
-    typedef itk::ImageFileReader <LogTensorImageType> itkInputReader;
-    
     typedef anima::LocalPatchMeanDistanceImageFilter<double> MainFilterType;
     
     MainFilterType::Pointer mainFilter = MainFilterType::New();
-    mainFilter->SetComputationMask(maskRead->GetOutput());
+    mainFilter->SetComputationMask(anima::readImage < itk::Image <unsigned char, 3> > (maskArg.getValue()));
     mainFilter->SetNumberOfThreads(nbpArg.getValue());
 
 	mainFilter->SetPatchHalfSize(patchHSArg.getValue());
 	
-    ifstream fileIn(dataLTName.c_str());
-    itkInputReader::Pointer ltReader;
+    std::ifstream fileIn(dataLTArg.getValue());
     
     unsigned int count = 0;
     while (!fileIn.eof())
@@ -68,11 +51,7 @@ int main(int argc, char **argv)
             continue;
         
         std::cout << "Loading database image " << tmpStr << "..." << std::endl;
-        ltReader = itkInputReader::New();
-        ltReader->SetFileName(tmpStr);
-        ltReader->Update();
-        
-        mainFilter->SetInput(count,ltReader->GetOutput());
+        mainFilter->SetInput(count,anima::readImage <LogTensorImageType> (tmpStr));
         ++count;
     }
     fileIn.close();
@@ -84,25 +63,13 @@ int main(int argc, char **argv)
     catch(itk::ExceptionObject &e)
     {
         std::cerr << e << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
     
-    itkOutputWriter::Pointer resultWriter = itkOutputWriter::New();
-    resultWriter->SetFileName(resArg.getValue());
-	resultWriter->SetUseCompression(true);
-	resultWriter->SetInput(mainFilter->GetOutput(0));
-    
-    resultWriter->Update();
+    anima::writeImage < itk::Image <double, 3> > (resArg.getValue(),mainFilter->GetOutput(0));
     
     if (resStdArg.getValue() != "")
-    {
-        itkOutputWriter::Pointer resultStdWriter = itkOutputWriter::New();
-        resultStdWriter->SetFileName(resStdArg.getValue());
-        resultStdWriter->SetUseCompression(true);
-        resultStdWriter->SetInput(mainFilter->GetOutput(1));
-        
-        resultStdWriter->Update();
-    }
+        anima::writeImage < itk::Image <double, 3> > (resStdArg.getValue(),mainFilter->GetOutput(1));
     
-    return 0;
+    return EXIT_SUCCESS;
 }
