@@ -19,9 +19,9 @@ public:
     typedef typename Superclass::AgregatorType AgregatorType;
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(AsymmetricBMRegistrationMethod, BaseBMRegistrationMethod);
+    itkTypeMacro(AsymmetricBMRegistrationMethod, BaseBMRegistrationMethod)
 
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
 protected:
     AsymmetricBMRegistrationMethod() {}

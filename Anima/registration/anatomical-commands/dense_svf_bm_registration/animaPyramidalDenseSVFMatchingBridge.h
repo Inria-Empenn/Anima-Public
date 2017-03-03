@@ -20,6 +20,11 @@ public:
     typedef typename InputImageType::Pointer InputImagePointer;
     typedef typename InputImageType::ConstPointer InputImageConstPointer;
 
+    typedef itk::Image <unsigned char, ImageDimension> MaskImageType;
+    typedef typename MaskImageType::Pointer MaskImagePointer;
+    typedef anima::PyramidImageFilter <MaskImageType,MaskImageType> MaskPyramidType;
+    typedef typename MaskPyramidType::Pointer MaskPyramidPointer;
+
     typedef BaseTransformAgregator < ImageDimension > BaseAgregatorType;
     typedef DenseSVFTransformAgregator < ImageDimension > MEstimateAgregatorType;
     typedef BalooSVFTransformAgregator < ImageDimension > BalooAgregatorType;
@@ -220,6 +225,8 @@ public:
     double GetPercentageKept() {return m_PercentageKept;}
     void SetPercentageKept(double PercentageKept) {m_PercentageKept=PercentageKept;}
 
+    void SetBlockGenerationMask(MaskImageType *mask) {m_BlockGenerationMask = mask;}
+
     void SetVerbose(bool value) {m_Verbose = value;}
 
 protected:
@@ -236,7 +243,9 @@ private:
     InputImagePointer m_OutputImage;
 
     InputImageConstPointer m_ReferenceImage, m_FloatingImage;
+    MaskImagePointer m_BlockGenerationMask;
     PyramidPointer m_ReferencePyramid, m_FloatingPyramid;
+    MaskPyramidPointer m_BlockGenerationPyramid;
 
     std::string m_outputTransformFile;
     std::string m_resultFile;

@@ -142,12 +142,20 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
         typename InputImageType::Pointer floImage = m_FloatingPyramid->GetOutput(i);
         floImage->DisconnectPipeline();
 
+        typename MaskImageType::Pointer maskGenerationImage = 0;
+        if (m_BlockGenerationPyramid)
+        {
+            maskGenerationImage = m_BlockGenerationPyramid->GetOutput(i);
+            maskGenerationImage->DisconnectPipeline();
+        }
+
         BlockMatcherType *mainMatcher = new BlockMatcherType;
         BlockMatcherType *reverseMatcher = 0;
         mainMatcher->SetBlockPercentageKept(GetPercentageKept());
         mainMatcher->SetBlockSize(GetBlockSize());
         mainMatcher->SetBlockSpacing(GetBlockSpacing());
         mainMatcher->SetBlockVarianceThreshold(GetStDevThreshold() * GetStDevThreshold());
+        mainMatcher->SetBlockGenerationMask(maskGenerationImage);
 
         if (m_Verbose)
         {
@@ -176,6 +184,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
                 reverseMatcher->SetBlockSpacing(GetBlockSpacing());
                 reverseMatcher->SetBlockVarianceThreshold(GetStDevThreshold() * GetStDevThreshold());
                 reverseMatcher->SetVerbose(m_Verbose);
+                reverseMatcher->SetBlockGenerationMask(maskGenerationImage);
 
                 tmpReg->SetReverseBlockMatcher(reverseMatcher);
                 m_bmreg = tmpReg;
@@ -572,6 +581,16 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
     m_FloatingPyramid->SetImageResampler(floResampler);
 
     m_FloatingPyramid->Update();
+
+    m_BlockGenerationPyramid = 0;
+    if (m_BlockGenerationMask)
+    {
+        m_BlockGenerationPyramid = MaskPyramidType::New();
+        m_BlockGenerationPyramid->SetInput(m_BlockGenerationMask);
+        m_BlockGenerationPyramid->SetNumberOfLevels(GetNumberOfPyramidLevels());
+        m_BlockGenerationPyramid->SetNumberOfThreads(GetNumberOfThreads());
+        m_BlockGenerationPyramid->Update();
+    }
 }
 
 } // end of namespace anima

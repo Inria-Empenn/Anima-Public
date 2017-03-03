@@ -22,9 +22,9 @@ public:
     typedef typename Superclass::SVFTransformType SVFTransformType;
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(KissingSymmetricBMRegistrationMethod, BaseBMRegistrationMethod);
+    itkTypeMacro(KissingSymmetricBMRegistrationMethod, BaseBMRegistrationMethod)
 
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
 protected:
     KissingSymmetricBMRegistrationMethod() {}

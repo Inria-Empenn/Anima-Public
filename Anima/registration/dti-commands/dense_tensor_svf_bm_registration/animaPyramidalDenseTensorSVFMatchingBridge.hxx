@@ -93,6 +93,13 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
         typename InputImageType::Pointer floImage = m_FloatingPyramid->GetOutput(i);
         floImage->DisconnectPipeline();
 
+        typename MaskImageType::Pointer maskGenerationImage = 0;
+        if (m_BlockGenerationPyramid)
+        {
+            maskGenerationImage = m_BlockGenerationPyramid->GetOutput(i);
+            maskGenerationImage->DisconnectPipeline();
+        }
+
         // Update field to match the current resolution
         if (m_OutputTransform->GetParametersAsVectorField() != NULL)
         {
@@ -171,6 +178,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
         mainMatcher->SetBlockSize(GetBlockSize());
         mainMatcher->SetBlockSpacing(GetBlockSpacing());
         mainMatcher->SetBlockVarianceThreshold(GetStDevThreshold() * GetStDevThreshold());
+        mainMatcher->SetBlockGenerationMask(maskGenerationImage);
         mainMatcher->SetUseTransformationDam(m_UseTransformationDam);
         mainMatcher->SetDamDistance(m_DamDistance * meanSpacing / 2.0);
 
@@ -192,6 +200,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
                 reverseMatcher->SetBlockSize(GetBlockSize());
                 reverseMatcher->SetBlockSpacing(GetBlockSpacing());
                 reverseMatcher->SetBlockVarianceThreshold(GetStDevThreshold() * GetStDevThreshold());
+                reverseMatcher->SetBlockGenerationMask(maskGenerationImage);
                 reverseMatcher->SetUseTransformationDam(m_UseTransformationDam);
                 reverseMatcher->SetDamDistance(m_DamDistance * meanSpacing / 2.0);
 
@@ -499,6 +508,16 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::SetupPyramids()
     m_FloatingPyramid->SetImageResampler(floResampler);
 
     m_FloatingPyramid->Update();
+
+    m_BlockGenerationPyramid = 0;
+    if (m_BlockGenerationMask)
+    {
+        m_BlockGenerationPyramid = MaskPyramidType::New();
+        m_BlockGenerationPyramid->SetInput(m_BlockGenerationMask);
+        m_BlockGenerationPyramid->SetNumberOfLevels(GetNumberOfPyramidLevels());
+        m_BlockGenerationPyramid->SetNumberOfThreads(GetNumberOfThreads());
+        m_BlockGenerationPyramid->Update();
+    }
 }
 
 } // end of namespace anima

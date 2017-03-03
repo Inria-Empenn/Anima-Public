@@ -26,6 +26,7 @@ public:
     typedef typename ScalarImageType::IndexType IndexType;
     typedef typename ScalarImageType::PointType PointType;
     typedef itk::VectorImage <PixelType, NDimensions> VectorImageType;
+    typedef itk::Image <unsigned char, NDimensions> MaskImageType;
 
     /** Method for creation through the object factory. */
     itkNewMacro(Self)
@@ -37,6 +38,7 @@ public:
 
     typedef typename ScalarImageType::Pointer ScalarImagePointer;
     typedef typename VectorImageType::Pointer VectorImagePointer;
+    typedef typename MaskImageType::Pointer MaskImagePointer;
 
     itkSetMacro(NumberOfThreads, unsigned int)
     itkGetMacro(NumberOfThreads, unsigned int)
@@ -65,6 +67,9 @@ public:
     void SetDamDistance(double val);
     itkGetMacro(DamDistance, double)
 
+    void clearGenerationMasks() {m_GenerationMasks.clear();}
+    void AddGenerationMask(MaskImageType *mask);
+
     void AddReferenceImage(itk::ImageBase <NDimensions> *refImage);
     itk::ImageBase <NDimensions> *GetFirstReferenceImage();
 
@@ -76,9 +81,11 @@ public:
     void RegionBlockGenerator(std::vector <unsigned int> &num_start, std::vector <unsigned int> &block_start_offsets,
                               std::vector <unsigned int> &num_blocks, std::vector <ImageRegionType> &tmpOutput,
                               std::vector <PointType> &block_origins, std::vector <double> &block_variances,
-                              unsigned int &total_num_blocks);
+                              unsigned int &total_num_blocks, unsigned int maskIndex);
 
     std::vector <ImageRegionType> &GetOutput();
+    std::vector <unsigned int> &GetMaskStartingIndexes();
+
     std::vector <PointType> &GetOutputPositions();
     WeightImagePointer &GetBlockDamWeights();
 
@@ -96,12 +103,14 @@ protected:
 
         m_ComputeOuterDam = false;
         m_DamDistance = 4;
+        m_GenerationMasks.clear();
 
         m_UpToDate = false;
     }
 
     virtual ~BlockMatchingInitializer() {}
 
+    void ComputeBlocksOnGenerationMask(unsigned int maskIndex);
     void ComputeOuterDamFromBlocks();
 
     bool CheckBlockConditions(ImageRegionType &region, double &blockVariance);
@@ -118,6 +127,7 @@ protected:
         std::vector < std::vector <unsigned int> > startBlocks, nb_blocks;
         std::vector <unsigned int> totalNumberOfBlocks;
         std::vector < std::vector <double> > blocks_variances;
+        unsigned int maskIndex;
         std::vector < std::vector <PointType> > blocks_positions;
     };
 
@@ -150,7 +160,10 @@ private:
     std::vector <ScalarImagePointer> m_ReferenceScalarImages;
     std::vector <VectorImagePointer> m_ReferenceVectorImages;
 
+    std::vector <MaskImagePointer> m_GenerationMasks;
+
     std::vector <ImageRegionType> m_Output;
+    std::vector <unsigned int> m_MaskStartingIndexes;
     std::vector <PointType> m_OutputPositions;
 
     bool m_UpToDate;

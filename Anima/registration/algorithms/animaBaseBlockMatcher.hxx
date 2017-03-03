@@ -54,6 +54,7 @@ BaseBlockMatcher <TInputImageType>
     initPtr->SetBlockSpacing(m_BlockSpacing);
     initPtr->SetScalarVarianceThreshold(m_BlockVarianceThreshold);
     initPtr->SetTensorVarianceThreshold(m_BlockVarianceThreshold);
+    initPtr->AddGenerationMask(m_BlockGenerationMask);
 
     initPtr->SetRequestedRegion(m_ReferenceImage->GetLargestPossibleRegion());
 

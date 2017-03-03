@@ -22,6 +22,7 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<std::string> outputTransformArg("O","outtransform","Output transformation",false,"","output transform",cmd);
     TCLAP::SwitchArg ppdImageArg("P","ppd", "Re-orientation strategy set to preservation of principal direction (default: finite strain)", cmd, false);
 
+    TCLAP::ValueArg<std::string> blockMaskArg("M","mask-im","Mask image for block generation",false,"","block mask image",cmd);
     TCLAP::ValueArg<unsigned int> blockSizeArg("","bs","Block size (default: 5)",false,5,"block size",cmd);
     TCLAP::ValueArg<unsigned int> blockSpacingArg("","sp","Block spacing (default: 2)",false,2,"block spacing",cmd);
     TCLAP::ValueArg<float> stdevThresholdArg("s","stdev","Threshold block standard deviation (default: 0)",false,0,"block minimal standard deviation",cmd);
@@ -146,6 +147,9 @@ int main(int ac, const char** av)
     matcher->SetDamDistance(damDistanceArg.getValue());
     matcher->SetNumberOfPyramidLevels( numPyramidLevelsArg.getValue() );
     matcher->SetLastPyramidLevel( lastPyramidLevelArg.getValue() );
+
+    if (blockMaskArg.getValue() != "")
+        matcher->SetBlockGenerationMask(anima::readImage<PyramidBMType::MaskImageType>(blockMaskArg.getValue()));
 
     if (numThreadsArg.getValue() != 0)
         matcher->SetNumberOfThreads( numThreadsArg.getValue() );

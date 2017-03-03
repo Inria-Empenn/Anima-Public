@@ -31,7 +31,7 @@ public:
     typedef itk::SmartPointer <const Self> ConstPointer;
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(BaseBMRegistrationMethod, itk::ProcessObject);
+    itkTypeMacro(BaseBMRegistrationMethod, itk::ProcessObject)
 
     typedef typename TInputImageType::IOPixelType ImageScalarType;
 
@@ -62,6 +62,9 @@ public:
     typedef typename ResamplerFilterType::Pointer ResamplerFilterPointer;
 
     typedef anima::BaseBlockMatcher <TInputImageType> BlockMatcherType;
+
+    typedef itk::Image <unsigned char, TInputImageType::ImageDimension> MaskImageType;
+    typedef typename MaskImageType::Pointer MaskImagePointer;
 
     /** Set/Get the Fixed image. */
     itkSetObjectMacro (FixedImage, InputImageType)
@@ -98,6 +101,9 @@ public:
     itkGetMacro(VerboseProgression, bool)
 
     void Abort() {m_Abort = true;}
+
+    itkSetObjectMacro (BlockGenerationMask, MaskImageType)
+    itkGetObjectMacro (BlockGenerationMask, MaskImageType)
 
     itkSetMacro(InitialTransform, TransformPointer)
     TransformPointer &GetInitialTransform() {return m_InitialTransform;}
@@ -137,6 +143,8 @@ private:
 
     unsigned int m_MaximumIterations;
     double m_MinimalTransformError;
+
+    MaskImagePointer m_BlockGenerationMask;
 
     // Resampler
     ResamplerFilterPointer m_ReferenceImageResampler;

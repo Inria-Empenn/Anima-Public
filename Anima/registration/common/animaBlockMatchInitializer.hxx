@@ -44,6 +44,16 @@ BlockMatchingInitializer<PixelType,NDimensions>
 }
 
 template <class PixelType, unsigned int NDimensions>
+std::vector <unsigned int> &
+BlockMatchingInitializer<PixelType,NDimensions>::GetMaskStartingIndexes()
+{
+    if (m_MaskStartingIndexes.size() == 0)
+        this->Update();
+
+    return m_MaskStartingIndexes;
+}
+
+template <class PixelType, unsigned int NDimensions>
 void
 BlockMatchingInitializer<PixelType,NDimensions>
 ::AddReferenceImage(itk::ImageBase <NDimensions> *refImage)
@@ -60,6 +70,15 @@ BlockMatchingInitializer<PixelType,NDimensions>
         m_ReferenceVectorImages.push_back(dynamic_cast <VectorImageType *> (refImage));
         m_ReferenceVectorImages.back()->DisconnectPipeline();
     }
+}
+
+template <class PixelType, unsigned int NDimensions>
+void
+BlockMatchingInitializer<PixelType,NDimensions>
+::AddGenerationMask(MaskImageType *mask)
+{
+    if (mask)
+        m_GenerationMasks.push_back(mask);
 }
 
 template <class PixelType, unsigned int NDimensions>
@@ -168,6 +187,19 @@ template <class PixelType, unsigned int NDimensions>
 void BlockMatchingInitializer<PixelType,NDimensions>
 ::Update()
 {
+    if (m_GenerationMasks.size() == 0)
+    {
+        // Not taking origin, orientation, we don't care about it
+        MaskImagePointer wholeMask = MaskImageType::New();
+        wholeMask->Initialize();
+        wholeMask->SetRegions(m_RequestedRegion);
+        wholeMask->Allocate();
+        wholeMask->FillBuffer(1);
+
+        m_GenerationMasks.push_back(wholeMask);
+        m_UpToDate = false;
+    }
+
     if (m_UpToDate)
         return;
 
@@ -185,6 +217,55 @@ void BlockMatchingInitializer<PixelType,NDimensions>
         m_BlockDamWeights->FillBuffer(0);
     }
 
+    m_Output.clear();
+    m_OutputPositions.clear();
+    m_MaskStartingIndexes.resize(m_GenerationMasks.size());
+    for (unsigned int i = 0;i < m_GenerationMasks.size();++i)
+    {
+        m_MaskStartingIndexes[i] = m_Output.size();
+        this->ComputeBlocksOnGenerationMask(i);
+    }
+
+    if (m_ComputeOuterDam)
+        this->ComputeOuterDamFromBlocks();
+
+    m_UpToDate = true;
+}
+
+template <class PixelType, unsigned int NDimensions>
+void BlockMatchingInitializer<PixelType,NDimensions>::ComputeBlocksOnGenerationMask(unsigned int maskIndex)
+{
+    ImageRegionType workRegion;
+    IndexType minIndex, maxIndex, tmpIndex;
+    minIndex = m_RequestedRegion.GetIndex() + m_RequestedRegion.GetSize();
+    maxIndex = m_RequestedRegion.GetIndex();
+    typedef itk::ImageRegionIteratorWithIndex <MaskImageType> MaskIteratorType;
+    MaskIteratorType maskItr(m_GenerationMasks[maskIndex],m_RequestedRegion);
+
+    while (!maskItr.IsAtEnd())
+    {
+        if (maskItr.Get() != 0)
+        {
+            tmpIndex = maskItr.GetIndex();
+            for (unsigned int i = 0;i < NDimensions;++i)
+            {
+                if (tmpIndex[i] < minIndex[i])
+                    minIndex[i] = tmpIndex[i];
+
+                if (tmpIndex[i] > maxIndex[i])
+                    maxIndex[i] = tmpIndex[i];
+            }
+        }
+
+        ++maskItr;
+    }
+
+    for (unsigned int i = 0;i < NDimensions;++i)
+    {
+        workRegion.SetIndex(i,minIndex[i]);
+        workRegion.SetSize(i,maxIndex[i] - minIndex[i] + 1);
+    }
+
     itk::MultiThreader::Pointer threaderBlockGenerator = itk::MultiThreader::New();
 
     BlockGeneratorThreadStruct *tmpStr = new BlockGeneratorThreadStruct;
@@ -194,13 +275,13 @@ void BlockMatchingInitializer<PixelType,NDimensions>
 
     for (unsigned int i = 0;i < NDimensions;++i)
     {
-        totalNbBlocks[i] = std::floor((float)(this->GetRequestedRegion().GetSize()[i] / this->GetBlockSpacing()) + 0.5);
+        totalNbBlocks[i] = std::floor((float)(workRegion.GetSize()[i] / this->GetBlockSpacing()) + 0.5);
         if (totalNbBlocks[i] < 1)
             totalNbBlocks[i] = 1;
 
-        unsigned int spaceRequired = this->GetRequestedRegion().GetSize()[i] - (totalNbBlocks[i] - 1) * this->GetBlockSpacing() - 1;
+        unsigned int spaceRequired = workRegion.GetSize()[i] - (totalNbBlocks[i] - 1) * this->GetBlockSpacing() - 1;
 
-        tmpStr->blockStartOffsets[i] = std::floor(spaceRequired / 2.0);
+        tmpStr->blockStartOffsets[i] = workRegion.GetIndex()[i] + std::floor(spaceRequired / 2.0);
     }
 
     unsigned int nb_blocks_per_thread = (unsigned int) std::floor((float)(totalNbBlocks[NDimensions-1] / this->GetNumberOfThreads()));
@@ -212,6 +293,7 @@ void BlockMatchingInitializer<PixelType,NDimensions>
 
     tmpStr->startBlocks.resize(this->GetNumberOfThreads());
     tmpStr->nb_blocks.resize(this->GetNumberOfThreads());
+    tmpStr->maskIndex = maskIndex;
 
     unsigned int currentCount = 0;
     for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
@@ -299,11 +381,6 @@ void BlockMatchingInitializer<PixelType,NDimensions>
     }
 
     delete tmpStr;
-
-    if (m_ComputeOuterDam)
-        this->ComputeOuterDamFromBlocks();
-
-    m_UpToDate = true;
 }
 
 template <class PixelType, unsigned int NDimensions>
@@ -319,7 +396,8 @@ BlockMatchingInitializer<PixelType,NDimensions>
 
     tmpStr->Filter->RegionBlockGenerator(tmpStr->startBlocks[nbThread], tmpStr->blockStartOffsets, tmpStr->nb_blocks[nbThread],
                                          tmpStr->tmpOutput[nbThread], tmpStr->blocks_positions[nbThread],
-                                         tmpStr->blocks_variances[nbThread], tmpStr->totalNumberOfBlocks[nbThread]);
+                                         tmpStr->blocks_variances[nbThread], tmpStr->totalNumberOfBlocks[nbThread],
+                                         tmpStr->maskIndex);
 
     return NULL;
 }
@@ -329,7 +407,7 @@ void BlockMatchingInitializer<PixelType,NDimensions>
 ::RegionBlockGenerator(std::vector <unsigned int> &num_start, std::vector <unsigned int> &block_start_offsets,
                        std::vector <unsigned int> &num_blocks, std::vector <ImageRegionType> &tmpOutput,
                        std::vector<PointType> &block_origins, std::vector <double> &block_variances,
-                       unsigned int &total_num_blocks)
+                       unsigned int &total_num_blocks, unsigned int maskIndex)
 {
     typename ImageRegionType::IndexType startPosition, blockPosition;
     typename ImageRegionType::SizeType blockSize;
@@ -370,10 +448,15 @@ void BlockMatchingInitializer<PixelType,NDimensions>
 
         if (this->CheckBlockConditions(tmpBlock,blockVar))
         {
-            tmpOutput.push_back(tmpBlock);
-            block_variances.push_back(blockVar);
             for (unsigned int i = 0;i < NDimensions;++i)
                 blockPosition[i] = block_start_offsets[i] + (num_start[i] + positionCounter[i])*this->GetBlockSpacing();
+
+            if (m_GenerationMasks[maskIndex]->GetPixel(blockPosition) == 0)
+                continue;
+
+            tmpOutput.push_back(tmpBlock);
+            block_variances.push_back(blockVar);
+
             this->GetFirstReferenceImage()->TransformIndexToPhysicalPoint(blockPosition,blockOrigin);
             block_origins.push_back(blockOrigin);
         }

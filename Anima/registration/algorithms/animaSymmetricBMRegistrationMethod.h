@@ -22,9 +22,9 @@ public:
     typedef typename Superclass::SVFTransformType SVFTransformType;
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(SymmetricBMRegistrationMethod, BaseBMRegistrationMethod);
+    itkTypeMacro(SymmetricBMRegistrationMethod, BaseBMRegistrationMethod)
 
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     void SetReverseBlockMatcher(BlockMatcherType *matcher) {m_ReverseBlockMatcher = matcher;}
 

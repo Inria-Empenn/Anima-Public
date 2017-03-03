@@ -33,6 +33,9 @@ public:
     typedef typename AgregatorType::BaseInputTransformType BaseInputTransformType;
     typedef typename BaseInputTransformType::Pointer BaseInputTransformPointer;
 
+    typedef itk::Image <unsigned char, TInputImageType::ImageDimension> MaskImageType;
+    typedef typename MaskImageType::Pointer MaskImagePointer;
+
     /**  Type of the optimizer. */
     typedef itk::SingleValuedNonLinearOptimizer OptimizerType;
     typedef typename OptimizerType::Pointer OptimizerPointer;
@@ -43,6 +46,7 @@ public:
 
     void SetReferenceImage(InputImageType *image) {m_ReferenceImage = image;}
     void SetMovingImage(InputImageType *image) {m_MovingImage = image;}
+    void SetBlockGenerationMask(MaskImageType *image) {m_BlockGenerationMask = image;}
 
     virtual typename AgregatorType::TRANSFORM_TYPE GetAgregatorInputTransformType() = 0;
 
@@ -93,6 +97,7 @@ public:
 
     InputImagePointer &GetReferenceImage() {return m_ReferenceImage;}
     InputImagePointer &GetMovingImage() {return m_MovingImage;}
+    MaskImagePointer &GetBlockGenerationMask() {return m_BlockGenerationMask;}
 
     virtual bool GetMaximizedMetric() = 0;
 
@@ -130,6 +135,7 @@ protected:
 private:
     InputImagePointer m_ReferenceImage;
     InputImagePointer m_MovingImage;
+    MaskImagePointer m_BlockGenerationMask;
 
     bool m_ForceComputeBlocks;
     unsigned int m_NumberOfThreads;

@@ -30,6 +30,7 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<std::string> initialTransformArg("i","inittransform","Initial transformation",false,"","initial transform",cmd);
     TCLAP::ValueArg<std::string> outputTransformArg("O","outtransform","Output transformation",false,"","output transform",cmd);
 
+    TCLAP::ValueArg<std::string> blockMaskArg("M","mask-im","Mask image for block generation",false,"","block mask image",cmd);
     TCLAP::ValueArg<unsigned int> blockSizeArg("","bs","Block size (default: 5)",false,5,"block size",cmd);
     TCLAP::ValueArg<unsigned int> blockSpacingArg("","sp","Block spacing (default: 5)",false,5,"block spacing",cmd);
     TCLAP::ValueArg<float> stdevThresholdArg("s","stdev","Threshold block standard deviation (default: 5)",false,5,"block minimal standard deviation",cmd);
@@ -75,7 +76,7 @@ int main(int argc, const char** argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
 
     // Setting matcher arguments
@@ -106,6 +107,9 @@ int main(int argc, const char** argv)
     matcher->SetSeStoppingThreshold( seStoppingThresholdArg.getValue() );
     matcher->SetNumberOfPyramidLevels( numPyramidLevelsArg.getValue() );
     matcher->SetLastPyramidLevel( lastPyramidLevelArg.getValue() );
+
+    if (blockMaskArg.getValue() != "")
+        matcher->SetBlockGenerationMask(anima::readImage<PyramidBMType::MaskImageType>(blockMaskArg.getValue()));
 
     if (numThreadsArg.getValue() != 0)
         matcher->SetNumberOfThreads( numThreadsArg.getValue() );

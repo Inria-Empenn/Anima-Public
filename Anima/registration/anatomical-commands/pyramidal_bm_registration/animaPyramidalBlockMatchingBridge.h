@@ -20,6 +20,11 @@ public:
     typedef typename InputImageType::Pointer InputImagePointer;
     typedef typename InputImageType::ConstPointer InputImageConstPointer;
 
+    typedef itk::Image <unsigned char, ImageDimension> MaskImageType;
+    typedef typename MaskImageType::Pointer MaskImagePointer;
+    typedef anima::PyramidImageFilter <MaskImageType,MaskImageType> MaskPyramidType;
+    typedef typename MaskPyramidType::Pointer MaskPyramidPointer;
+
     typedef anima::BaseTransformAgregator < ImageDimension > AgregatorType;
     typedef typename AgregatorType::BaseOutputTransformType BaseTransformType;
     typedef typename BaseTransformType::Pointer BaseTransformPointer;
@@ -205,7 +210,9 @@ public:
     bool GetInitializeOnCenterOfGravity() {return m_InitializeOnCenterOfGravity;}
     void SetInitializeOnCenterOfGravity(bool initOnCenterOfGravity) {m_InitializeOnCenterOfGravity=initOnCenterOfGravity;}
 
-   void SetVerbose(bool value) {m_Verbose = value;}
+    void SetBlockGenerationMask(MaskImageType *mask) {m_BlockGenerationMask = mask;}
+
+    void SetVerbose(bool value) {m_Verbose = value;}
 
 protected:
     PyramidalBlockMatchingBridge();
@@ -221,8 +228,11 @@ private:
     BaseTransformPointer m_OutputTransform;
     InputImagePointer m_OutputImage;
 
+    MaskImagePointer m_BlockGenerationMask;
+
     InputImageConstPointer m_ReferenceImage, m_FloatingImage;
     PyramidPointer m_ReferencePyramid, m_FloatingPyramid;
+    MaskPyramidPointer m_BlockGenerationPyramid;
 
     std::string m_outputTransformFile;
     std::string m_resultFile;
