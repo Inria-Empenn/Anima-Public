@@ -209,9 +209,14 @@ SampleFromWatsonDistribution(const ScalarType &kappa, const VectorType &meanDire
     // Code to compute rotation matrix from vectors, taken from registration code
     tmpVec[2] = 1;
 
-    vnl_matrix <double> rotationMatrix = anima::GetRotationMatrixFromVectors(tmpVec,meanDirection).GetVnlMatrix();
+    VectorType rotationNormal;
+    anima::ComputeCrossProduct(tmpVec, meanDirection, rotationNormal);
+    anima::Normalize(rotationNormal, rotationNormal);
+
     // Now resuming onto sampling around direction [0,0,1]
     anima::TransformCartesianToSphericalCoordinates(meanDirection, tmpVec);
+
+    double rotationAngle = tmpVec[0];
 
     if (std::abs(tmpVec[2] - 1.0) > 1.0e-6)
         throw itk::ExceptionObject(__FILE__, __LINE__,"The Watson distribution is on the 2-sphere.",ITK_LOCATION);
