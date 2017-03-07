@@ -17,7 +17,6 @@ BaseBMRegistrationMethod <TInputImageType>
     m_Abort = false;
     m_FixedImage = 0;
     m_MovingImage = 0;
-    m_BlockGenerationMask = 0;
 
     m_SVFElasticRegSigma = 0;
     m_BCHCompositionOrder = 1;

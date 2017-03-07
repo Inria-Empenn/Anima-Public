@@ -102,9 +102,6 @@ public:
 
     void Abort() {m_Abort = true;}
 
-    itkSetObjectMacro (BlockGenerationMask, MaskImageType)
-    itkGetObjectMacro (BlockGenerationMask, MaskImageType)
-
     itkSetMacro(InitialTransform, TransformPointer)
     TransformPointer &GetInitialTransform() {return m_InitialTransform;}
 
@@ -143,8 +140,6 @@ private:
 
     unsigned int m_MaximumIterations;
     double m_MinimalTransformError;
-
-    MaskImagePointer m_BlockGenerationMask;
 
     // Resampler
     ResamplerFilterPointer m_ReferenceImageResampler;

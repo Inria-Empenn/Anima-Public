@@ -18,7 +18,6 @@ AsymmetricBMRegistrationMethod <TInputImageType>
     this->GetBlockMatcher()->SetForceComputeBlocks(false);
     this->GetBlockMatcher()->SetReferenceImage(this->GetFixedImage());
     this->GetBlockMatcher()->SetMovingImage(movingImage);
-    this->GetBlockMatcher()->SetBlockGenerationMask(this->GetBlockGenerationMask());
     this->GetBlockMatcher()->SetNumberOfThreads(this->GetNumberOfThreads());
     this->GetBlockMatcher()->Update();
 

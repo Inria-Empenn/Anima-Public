@@ -3,7 +3,6 @@
 
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIteratorWithIndex.h>
-#include <itkImageFileWriter.h>
 
 #include <itkExpNegativeImageFilter.h>
 #include <itkDanielssonDistanceMapImageFilter.h>
@@ -452,7 +451,10 @@ void BlockMatchingInitializer<PixelType,NDimensions>
                 blockPosition[i] = block_start_offsets[i] + (num_start[i] + positionCounter[i])*this->GetBlockSpacing();
 
             if (m_GenerationMasks[maskIndex]->GetPixel(blockPosition) == 0)
+            {
+                continueLoop = this->ProgressCounter(positionCounter,num_blocks);
                 continue;
+            }
 
             tmpOutput.push_back(tmpBlock);
             block_variances.push_back(blockVar);
