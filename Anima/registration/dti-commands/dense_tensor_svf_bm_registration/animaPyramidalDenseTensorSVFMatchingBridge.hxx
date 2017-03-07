@@ -512,7 +512,13 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::SetupPyramids()
     m_BlockGenerationPyramid = 0;
     if (m_BlockGenerationMask)
     {
+        typedef anima::ResampleImageFilter<MaskImageType, MaskImageType,
+                typename BaseAgregatorType::ScalarType> MaskResampleFilterType;
+
+        typename MaskResampleFilterType::Pointer maskResampler = MaskResampleFilterType::New();
+
         m_BlockGenerationPyramid = MaskPyramidType::New();
+        m_BlockGenerationPyramid->SetImageResampler(maskResampler);
         m_BlockGenerationPyramid->SetInput(m_BlockGenerationMask);
         m_BlockGenerationPyramid->SetNumberOfLevels(GetNumberOfPyramidLevels());
         m_BlockGenerationPyramid->SetNumberOfThreads(GetNumberOfThreads());
