@@ -671,6 +671,9 @@ BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInte
             }
         }
 
+        if (stopLoop)
+            continue;
+
         emptyClasses.resize(numberOfClasses);
         // Computes weight sum for further weight normalization
         for (unsigned int i = 0;i < numberOfClasses;++i)
@@ -695,22 +698,21 @@ BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInte
         }
 
         // Weight normalization
-        tmpVector.resize(numberOfClasses);
+        tmpVector.clear();
         for (unsigned int i = 0;i < numberOfClasses;++i)
         {
             if (!emptyClasses[i])
-                tmpVector[i] = anima::safe_log(fiberComputationData.classWeights[i]) + logWeightSums[i];
-            else
-                tmpVector[i] = 0;
+                tmpVector.push_back(anima::safe_log(fiberComputationData.classWeights[i]) + logWeightSums[i]);
         }
 
         double tmpSum = 0;
+        double logSumTmpVector = anima::ExponentialSum(tmpVector);
+
         for (unsigned int i = 0;i < numberOfClasses;++i)
         {
             if (!emptyClasses[i])
             {
-                double t = std::exp(tmpVector[i] - anima::ExponentialSum(tmpVector));
-
+                double t = std::exp(anima::safe_log(fiberComputationData.classWeights[i]) + logWeightSums[i] - logSumTmpVector);
                 fiberComputationData.classWeights[i] = t;
                 tmpSum += t;
             }
@@ -763,9 +765,10 @@ BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInte
 
                 for (unsigned int i = 0;i < fiberComputationData.classSizes[m];++i)
                 {
-                    weightSpecificClassValues[i] = fiberComputationData.particleWeights[fiberComputationData.reverseClassMemberships[m][i]];
-                    previousDirectionsCopy[i] = previousDirections[fiberComputationData.reverseClassMemberships[m][i]];
-                    fiberParticlesCopy[i] = fiberComputationData.fiberParticles[fiberComputationData.reverseClassMemberships[m][i]];
+                    unsigned int posIndex = fiberComputationData.reverseClassMemberships[m][i];
+                    weightSpecificClassValues[i] = fiberComputationData.particleWeights[posIndex];
+                    previousDirectionsCopy[i] = previousDirections[posIndex];
+                    fiberParticlesCopy[i] = fiberComputationData.fiberParticles[posIndex];
                 }
 
                 std::discrete_distribution<> dist(weightSpecificClassValues.begin(),weightSpecificClassValues.end());
@@ -816,7 +819,7 @@ BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInte
         if (numIter > m_MaxLengthFiber / m_StepProgression)
             stopLoop = true;
 
-        numberOfClasses = this->UpdateClassesMemberships(fiberComputationData,previousDirections);
+        numberOfClasses = this->UpdateClassesMemberships(fiberComputationData,previousDirections,m_Generators[numThread]);
 
         for (unsigned int i = 0;i < fiberComputationData.particleWeights.size();++i)
         {
@@ -847,7 +850,7 @@ BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInte
 }
 
 unsigned int
-BaseProbabilisticTractographyImageFilter::UpdateClassesMemberships(FiberWorkType &fiberData, DirectionVectorType &directions)
+BaseProbabilisticTractographyImageFilter::UpdateClassesMemberships(FiberWorkType &fiberData, DirectionVectorType &directions, std::mt19937 &random_generator)
 {
     const unsigned int p = PointType::PointDimension;
     typedef anima::KMeansFilter <PointType,p> KMeansFilterType;
@@ -1090,8 +1093,6 @@ BaseProbabilisticTractographyImageFilter::UpdateClassesMemberships(FiberWorkType
                         newClassWeights[currentIndex] += fiberData.classWeights[classIndex] * fiberData.particleWeights[fiberData.reverseClassMemberships[classIndex][k]];
                 }
 
-                newClassWeights[currentIndex] = std::max(newClassWeights[currentIndex],1.0e-16);
-
                 // Recompute particle weights after fusion
                 for (unsigned int j = 0;j < fusedClassesIndexes[i].size();++j)
                 {
@@ -1099,7 +1100,7 @@ BaseProbabilisticTractographyImageFilter::UpdateClassesMemberships(FiberWorkType
                     for (unsigned int k = 0;k < fiberData.reverseClassMemberships[classIndex].size();++k)
                     {
                         unsigned int posIndex = fiberData.reverseClassMemberships[classIndex][k];
-                        newParticleWeights[posIndex] = exp( anima::safe_log(fiberData.classWeights[classIndex]) + anima::safe_log(fiberData.particleWeights[posIndex]) - anima::safe_log(newClassWeights[currentIndex]));
+                        newParticleWeights[posIndex] = std::exp(anima::safe_log(fiberData.classWeights[classIndex]) + anima::safe_log(fiberData.particleWeights[posIndex]) - anima::safe_log(newClassWeights[currentIndex]));
                     }
                 }
             }
@@ -1126,10 +1127,11 @@ BaseProbabilisticTractographyImageFilter::UpdateClassesMemberships(FiberWorkType
 
             // Now cluster them, loop until the two classes are not empty
             bool loopOnClustering = true;
+            std::uniform_int_distribution <unsigned int> uniInt(0,1);
             while (loopOnClustering)
             {
                 for (unsigned int j = 0;j < clustering.size();++j)
-                    clustering[j] = rand() % 2;
+                    clustering[j] = uniInt(random_generator) % 2;
 
                 KMeansFilterType kmFilter;
                 kmFilter.SetInputData(vectorToCluster);
@@ -1170,9 +1172,6 @@ BaseProbabilisticTractographyImageFilter::UpdateClassesMemberships(FiberWorkType
                 }
             }
 
-            newClassWeights[currentIndex] = std::max(newClassWeights[currentIndex],1.0e-16);
-            newClassWeights[newClassIndex] = std::max(newClassWeights[newClassIndex],1.0e-16);
-
             // Finally, update particle weights
             pos = 0;
             for (unsigned int j = 0;j < fusedClassesIndexes[i].size();++j)
@@ -1194,22 +1193,15 @@ BaseProbabilisticTractographyImageFilter::UpdateClassesMemberships(FiberWorkType
     }
 
     double tmpSum = 0;
-    double maxWeight = newClassWeights[0];
-    double indexMaxWeight = 0;
     for (unsigned int i = 0;i < finalNumClasses;++i)
     {
+        if (newReverseClassesMemberships[i].size() > 0)
+            newClassWeights[i] = std::max(1.0e-16,newClassWeights[i]);
         tmpSum += newClassWeights[i];
-
-        if (fiberData.classWeights[i] > maxWeight)
-        {
-            maxWeight = newClassWeights[i];
-            indexMaxWeight = i;
-        }
     }
 
-    if (tmpSum > 1)
-        newClassWeights[indexMaxWeight] -= (tmpSum - 1.0);
-
+    for (unsigned int i = 0;i < finalNumClasses;++i)
+        newClassWeights[i] /= tmpSum;
 
     for (unsigned int i = 0;i < finalNumClasses;++i)
         newClassSizes[i] = newReverseClassesMemberships[i].size();

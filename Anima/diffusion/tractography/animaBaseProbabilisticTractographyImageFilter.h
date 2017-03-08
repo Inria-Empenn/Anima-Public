@@ -198,7 +198,7 @@ protected:
     virtual void PrepareTractography();
 
     //! This ugly guy is the heart of multi-modal probabilistic tractography, making decisions on split and merges of particles
-    unsigned int UpdateClassesMemberships(FiberWorkType &fiberData, DirectionVectorType &directions);
+    unsigned int UpdateClassesMemberships(FiberWorkType &fiberData, DirectionVectorType &directions, std::mt19937 &random_generator);
 
     //! This guy takes the result of computefiber and merges the classes, each one becomes one fiber
     // Returns in outputMerged several fibers, as of now if there are active particles it returns only the merge of those, and returns true.
