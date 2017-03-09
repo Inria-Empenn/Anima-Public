@@ -1,4 +1,5 @@
 #pragma once
+#include "animaOrientedModelBaseResampleImageFilter.h"
 
 #include <itkImageRegionConstIteratorWithIndex.h>
 #include <itkImageRegionIteratorWithIndex.h>
@@ -66,9 +67,6 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 ::BeforeThreadedGenerateData()
 {
     Superclass::BeforeThreadedGenerateData();
-
-    m_StartIndex = this->GetInput(0)->GetLargestPossibleRegion().GetIndex();
-    m_EndIndex = m_StartIndex + this->GetInput(0)->GetLargestPossibleRegion().GetSize();
 
     if (m_Transform.IsNull())
         itkExceptionMacro("No valid transformation...");

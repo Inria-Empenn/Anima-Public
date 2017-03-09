@@ -172,7 +172,6 @@ private:
     DirectionType m_OutputDirection;
     RegionType m_OutputLargestPossibleRegion;
 
-    InputIndexType m_StartIndex, m_EndIndex;
     InputIndexType m_StartIndDef, m_EndIndDef;
 };
 
