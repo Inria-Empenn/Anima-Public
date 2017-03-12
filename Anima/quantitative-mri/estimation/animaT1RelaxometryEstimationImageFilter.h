@@ -18,10 +18,10 @@ public:
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(T1RelaxometryEstimationImageFilter, MaskedImageToImageFilter);
+    itkTypeMacro(T1RelaxometryEstimationImageFilter, MaskedImageToImageFilter)
 
     /** Image typedef support */
     typedef TInputImage  InputImageType;

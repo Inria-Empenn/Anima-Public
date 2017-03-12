@@ -51,8 +51,10 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
         unsigned int largestGap = 0;
         for (unsigned int i = 0;i < Dimension;++i)
         {
-            unsigned int baseIndex = std::max(largestRegion.GetIndex()[i],currentIndex[i] - m_Neighborhood);
-            unsigned int maxValue = largestRegion.GetIndex()[i] + largestRegion.GetSize()[i] - 1;
+            int largestIndex = largestRegion.GetIndex()[i];
+            int testedIndex = currentIndex[i] - m_Neighborhood;
+            unsigned int baseIndex = std::max(largestIndex,testedIndex);
+            unsigned int maxValue = largestIndex + largestRegion.GetSize()[i] - 1;
             unsigned int upperIndex = std::min(maxValue,(unsigned int)(currentIndex[i] + m_Neighborhood));
 
             if ((upperIndex - currentIndex[i] == m_Neighborhood)||(currentIndex[i] - baseIndex == m_Neighborhood))
@@ -72,8 +74,10 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
         // Then build the region
         for (unsigned int i = 0;i < Dimension;++i)
         {
-            unsigned int baseIndex = std::max(largestRegion.GetIndex()[i],currentIndex[i] - m_Neighborhood);
-            unsigned int maxValue = largestRegion.GetIndex()[i] + largestRegion.GetSize()[i] - 1;
+            int largestIndex = largestRegion.GetIndex()[i];
+            int testedIndex = currentIndex[i] - m_Neighborhood;
+            unsigned int baseIndex = std::max(largestIndex,testedIndex);
+            unsigned int maxValue = largestIndex + largestRegion.GetSize()[i] - 1;
             unsigned int upperIndex = std::min(maxValue,(unsigned int)(currentIndex[i] + m_Neighborhood));
 
             if (i == halfSplitIndex)

@@ -3,6 +3,7 @@
 
 #include <itkImageRegionIterator.h>
 #include <itkImageRegionConstIterator.h>
+#include <complex>
 
 namespace anima
 {
