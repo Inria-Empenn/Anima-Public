@@ -16,6 +16,8 @@
 #include <animaReadWriteFunctions.h>
 #include <animaRetrieveImageTypeMacros.h>
 
+#include <animaGradientFileReader.h>
+
 struct arguments
 {
     bool invert;
@@ -23,6 +25,60 @@ struct arguments
     std::string input, output, geometry, transfo, interpolation;
 
 };
+
+void applyTransformationToGradients(std::string &inputGradientsFileName, std::string &outputGradientsFileName, const arguments &args)
+{
+    typedef anima::TransformSeriesReader <double, 3> TransformSeriesReaderType;
+    typedef TransformSeriesReaderType::OutputTransformType TransformType;
+    TransformSeriesReaderType *trReader = new TransformSeriesReaderType;
+    trReader->SetInput(args.transfo);
+    trReader->SetInvertTransform(!args.invert);
+    trReader->Update();
+    typename TransformType::Pointer transfo = trReader->GetOutputTransform();
+
+    TransformType::MatrixOffsetTransformPointerType linearTrsf = transfo->GetGlobalLinearTransform();
+    TransformType::MatrixOffsetTransformType::MatrixType linearMatrix = linearTrsf->GetMatrix();
+
+    typedef anima::GradientFileReader < vnl_vector_fixed <double,3>, double > GFReaderType;
+    GFReaderType gfReader;
+    gfReader.SetGradientFileName(inputGradientsFileName);
+    gfReader.SetGradientIndependentNormalization(false);
+    gfReader.Update();
+
+    GFReaderType::GradientVectorType directions = gfReader.GetGradients();
+
+    vnl_vector_fixed <double,3> tmpDir(0.0);
+    for (unsigned int i = 0;i < directions.size();++i)
+    {
+        double norm = 0;
+        double normAfter = 0;
+        for (unsigned int j = 0;j < 3;++j)
+        {
+            tmpDir[j] = 0;
+            for (unsigned int k = 0;k < 3;++k)
+                tmpDir[j] += linearMatrix(j,k) * directions[i][k];
+
+            norm += directions[i][j] * directions[i][j];
+            normAfter += tmpDir[j] * tmpDir[j];
+        }
+
+        for (unsigned int j = 0;j < 3;++j)
+            tmpDir[j] *= std::sqrt(norm / normAfter);
+
+        directions[i] = tmpDir;
+    }
+
+    std::ofstream outputFile(outputGradientsFileName);
+    for (unsigned int i = 0;i < 3;++i)
+    {
+        for (unsigned int j = 0;j < directions.size();++j)
+            outputFile << directions[j][i] << " ";
+
+        outputFile << std::endl;
+    }
+
+    outputFile.close();
+}
 
 template <class ImageType>
 void
@@ -357,6 +413,9 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<std::string> outArg("o","output","Output resampled image",true,"","output image",cmd);
     TCLAP::ValueArg<std::string> geomArg("g","geometry","Geometry image",true,"","geometry image",cmd);
 
+    TCLAP::ValueArg<std::string> bvecArg("","grad","DWI gradient file",false,"","gradient file",cmd);
+    TCLAP::ValueArg<std::string> bvecOutArg("O","out-grad","Output gradient file",false,"","gradient file",cmd);
+
     TCLAP::SwitchArg invertArg("I","invert","Invert the transformation series",cmd,false);
     TCLAP::ValueArg<std::string> interpolationArg("n",
                                                   "interpolation",
@@ -442,6 +501,27 @@ int main(int ac, const char** av)
         std::cerr << "Can't apply transformation, be sure to use valid arguments..." << std::endl;
         std::cerr << err << std::endl;
         return EXIT_FAILURE;
+    }
+
+    if (bvecArg.getValue() != "")
+    {
+        std::string outputGradientFileName = bvecOutArg.getValue();
+        if (outputGradientFileName == "")
+        {
+            outputGradientFileName = bvecArg.getValue();
+            outputGradientFileName = outputGradientFileName.erase(outputGradientFileName.find_first_of('.'));
+        }
+
+        try
+        {
+            applyTransformationToGradients(bvecArg.getValue(),outputGradientFileName,args);
+        }
+        catch (itk::ExceptionObject & err)
+        {
+            std::cerr << "Can't apply transformation to gradients, be sure to use valid arguments..." << std::endl;
+            std::cerr << err << std::endl;
+            return EXIT_FAILURE;
+        }
     }
 
     return EXIT_SUCCESS;
