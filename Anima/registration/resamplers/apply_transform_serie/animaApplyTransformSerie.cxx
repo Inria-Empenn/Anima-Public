@@ -62,8 +62,11 @@ void applyTransformationToGradients(std::string &inputGradientsFileName, std::st
             normAfter += tmpDir[j] * tmpDir[j];
         }
 
-        for (unsigned int j = 0;j < 3;++j)
-            tmpDir[j] *= std::sqrt(norm / normAfter);
+        if (normAfter != 0)
+        {
+            for (unsigned int j = 0;j < 3;++j)
+                tmpDir[j] *= std::sqrt(norm / normAfter);
+        }
 
         directions[i] = tmpDir;
     }
@@ -510,6 +513,7 @@ int main(int ac, const char** av)
         {
             outputGradientFileName = bvecArg.getValue();
             outputGradientFileName = outputGradientFileName.erase(outputGradientFileName.find_first_of('.'));
+            outputGradientFileName += "_tr.bvec";
         }
 
         try
