@@ -3,7 +3,6 @@
 
 #include <itkImageRegionIterator.h>
 #include <itkImageRegionConstIterator.h>
-#include <complex>
 
 namespace anima
 {
@@ -136,15 +135,8 @@ T1RelaxometryEstimationImageFilter <TInputImage,TOutputImage>
 
             continue;
         }
-        else if(lnValue > 0)
-            lnValue = std::log(lnValue);
         else
-        {
-            std::complex <double> lnComplexValue(lnValue,0);
-
-            lnComplexValue = std::log(lnComplexValue);
-            lnValue = lnComplexValue.real();
-        }
+            lnValue = std::log(std::abs(lnValue));
 
         basicT1Value /= lnValue;
 
