@@ -31,6 +31,8 @@ BaseBlockMatcher <TInputImageType>
 
     m_OptimizerType = Bobyqa;
     m_Verbose = true;
+
+    m_HighestProcessedBlock = 0;
 }
 
 template <typename TInputImageType>
@@ -149,6 +151,7 @@ BaseBlockMatcher <TInputImageType>
     if ((m_ForceComputeBlocks) || (m_BlockTransformPointers.size() == 0))
         this->InitializeBlocks();
 
+    m_HighestProcessedBlock = 0;
     itk::MultiThreader::Pointer threadWorker = itk::MultiThreader::New();
     ThreadedMatchData *tmpStr = new ThreadedMatchData;
     tmpStr->BlockMatch = this;
@@ -168,29 +171,56 @@ BaseBlockMatcher <TInputImageType>
     itk::MultiThreader::ThreadInfoStruct *threadArgs = (itk::MultiThreader::ThreadInfoStruct *)arg;
     ThreadedMatchData* data = (ThreadedMatchData *)threadArgs->UserData;
 
-    data->BlockMatch->BlockMatch(threadArgs->ThreadID, threadArgs->NumberOfThreads);
+    data->BlockMatch->ProcessBlockMatch();
     return NULL;
 }
 
 template <typename TInputImageType>
 void
 BaseBlockMatcher <TInputImageType>
-::BlockMatch(unsigned threadId, unsigned NbThreads)
+::ProcessBlockMatch()
+{
+    bool continueLoop = true;
+    unsigned int highestToleratedBlockIndex = m_BlockRegions.size();
+
+    unsigned int stepData = std::min((int)m_BlockRegions.size(),100);
+    if (stepData == 0)
+        stepData = 1;
+
+    while (continueLoop)
+    {
+        m_LockHighestProcessedBlock.Lock();
+
+        if (m_HighestProcessedBlock >= highestToleratedBlockIndex)
+        {
+            m_LockHighestProcessedBlock.Unlock();
+            continueLoop = false;
+            continue;
+        }
+
+        unsigned int startPoint = m_HighestProcessedBlock;
+        unsigned int endPoint = m_HighestProcessedBlock + stepData;
+        if (endPoint > highestToleratedBlockIndex)
+            endPoint = highestToleratedBlockIndex;
+
+        m_HighestProcessedBlock = endPoint;
+
+        m_LockHighestProcessedBlock.Unlock();
+
+        this->BlockMatch(startPoint,endPoint);
+    }
+}
+
+template <typename TInputImageType>
+void
+BaseBlockMatcher <TInputImageType>
+::BlockMatch(unsigned int startIndex, unsigned int endIndex)
 {
     MetricPointer metric = this->SetupMetric();
     OptimizerPointer optimizer = this->SetupOptimizer();
 
-    unsigned totalRegionSize = m_BlockRegions.size();
-    unsigned step = totalRegionSize / NbThreads;
-
-    unsigned startBlock = threadId*step;
-    unsigned endBlock = (1+threadId)*step;
-
-    if (threadId+1==NbThreads) // Ensure we got up to the last block
-        endBlock = totalRegionSize;
-
     // Loop over the desired blocks
-    for (unsigned int block = startBlock; block < endBlock; ++block)
+    for (unsigned int block = startIndex;block < endIndex;++block)
     {
         this->BlockMatchingSetup(metric, block);
         optimizer->SetCostFunction(metric);

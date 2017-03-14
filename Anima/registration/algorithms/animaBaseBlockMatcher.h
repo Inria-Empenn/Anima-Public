@@ -3,6 +3,7 @@
 
 #include <itkSingleValuedNonLinearOptimizer.h>
 #include <itkSingleValuedCostFunction.h>
+#include <itkFastMutexLock.h>
 
 namespace anima
 {
@@ -113,7 +114,9 @@ protected:
     /** Do the matching for a batch of regions (splited according to the thread id + nb threads) */
     static ITK_THREAD_RETURN_TYPE ThreadedMatching(void *arg);
 
-    void BlockMatch(unsigned threadId, unsigned NbThreads);
+    void ProcessBlockMatch();
+    void BlockMatch(unsigned int startIndex, unsigned int endIndex);
+
     virtual void InitializeBlocks();
 
     virtual MetricPointer SetupMetric() = 0;
@@ -167,6 +170,9 @@ private:
     double m_FinalRadius;
     unsigned int m_OptimizerMaximumIterations;
     double m_StepSize;
+
+    itk::SimpleFastMutexLock m_LockHighestProcessedBlock;
+    int m_HighestProcessedBlock;
 };
 
 } // end namespace anima
