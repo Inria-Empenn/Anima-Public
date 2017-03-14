@@ -123,6 +123,7 @@ public:
     itkGetMacro(InitialDirectionMode,InitialDirectionModeType)
 
     void SetInputImagesFrom4DImage(Input4DImageType *in4DImage);
+    InputImagePointerVectorType GetInputImages() {return m_InputImages;}
     InputImageType *GetInputImage(unsigned int i)
     {
         if (i < m_InputImages.size())
@@ -227,6 +228,9 @@ protected:
 
     //! Check stopping criterions to stop a particle (model dependent, not implemented here)
     virtual bool CheckModelProperties(double estimatedB0Value, double estimatedNoiseValue, VectorType &modelValue, unsigned int threadId) = 0;
+
+    //! Computes additional scalar maps that are model dependent to add to the output
+    virtual void ComputeAdditionalScalarMaps() {}
 
 private:
     //Internal variable for model vector dimension, has to be set by child class !

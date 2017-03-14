@@ -9,6 +9,9 @@
 
 #include <itkSymmetricEigenAnalysis.h>
 
+#include <vtkPointData.h>
+#include <vtkDoubleArray.h>
+
 namespace anima
 {
 
@@ -531,6 +534,44 @@ void DTIProbabilisticTractographyImageFilter::GetEigenValueCombinations(VectorTy
     }
     
     meanLambda /= 3.0;
+}
+
+void DTIProbabilisticTractographyImageFilter::ComputeAdditionalScalarMaps()
+{
+    vtkSmartPointer <vtkPolyData> outputPtr = this->GetOutput();
+
+    unsigned int nbImages = this->GetInputImages().size();
+    DWIInterpolatorPointerVectorType dwiInterpolators(nbImages);
+    for (unsigned int i = 0;i < nbImages;++i)
+    {
+        dwiInterpolators[i] = InterpolatorType::New();
+        dwiInterpolators[i]->SetInputImage(this->GetInputImage(i));
+    }
+
+    unsigned int numPoints = outputPtr->GetPoints()->GetNumberOfPoints();
+    vtkPoints *myPoints = outputPtr->GetPoints();
+
+    vtkDoubleArray* tensorsArray = vtkDoubleArray::New();
+    tensorsArray->SetNumberOfComponents(6);
+    tensorsArray->SetName("Tensors");
+
+    typename Superclass::InterpolatorType::ContinuousIndexType tmpIndex;
+    VectorType dwiValue(nbImages), tensorValue(this->GetModelDimension());
+    double noiseValue;
+
+    for (unsigned int i = 0;i < numPoints;++i)
+    {
+        for (unsigned int j = 0;j < 3;++j)
+            tmpIndex[j] = myPoints->GetPoint(i)[j];
+
+        this->ComputeModelEstimation(dwiInterpolators,tmpIndex,dwiValue,noiseValue,tensorValue);
+
+        for (unsigned int j = 0;j < this->GetModelDimension();++j)
+            tensorsArray->InsertNextValue(tensorValue[j]);
+    }
+
+    outputPtr->GetPointData()->AddArray(tensorsArray);
+    tensorsArray->Delete();
 }
 
 } // end of namespace anima

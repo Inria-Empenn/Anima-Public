@@ -470,6 +470,8 @@ void BaseProbabilisticTractographyImageFilter::createVTKOutput(FiberProcessVecto
     // Add particle weights to data
     m_Output->GetPointData()->AddArray(weights);
 
+    this->ComputeAdditionalScalarMaps();
+
     myPoints->Delete();
     myColors->Delete();
     weights->Delete();

@@ -64,6 +64,8 @@ protected:
     double GetFractionalAnisotropy(VectorType &modelValue);
     void GetEigenValueCombinations(VectorType &modelValue, double &meanLambda, double &perpLambda);
 
+    void ComputeAdditionalScalarMaps() ITK_OVERRIDE;
+
 private:
     double m_ThresholdForProlateTensor;
     double m_OblateSigma;
