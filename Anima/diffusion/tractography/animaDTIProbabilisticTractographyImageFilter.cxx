@@ -564,7 +564,9 @@ void DTIProbabilisticTractographyImageFilter::ComputeAdditionalScalarMaps()
         for (unsigned int j = 0;j < 3;++j)
             tmpIndex[j] = myPoints->GetPoint(i)[j];
 
-        this->ComputeModelEstimation(dwiInterpolators,tmpIndex,dwiValue,noiseValue,tensorValue);
+        tensorValue.Fill(0.0);
+        if (dwiInterpolators[0]->IsInsideBuffer(tmpIndex))
+            this->ComputeModelEstimation(dwiInterpolators,tmpIndex,dwiValue,noiseValue,tensorValue);
 
         for (unsigned int j = 0;j < this->GetModelDimension();++j)
             tensorsArray->InsertNextValue(tensorValue[j]);
