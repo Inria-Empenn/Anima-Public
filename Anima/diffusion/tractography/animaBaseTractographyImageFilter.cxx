@@ -274,8 +274,8 @@ void BaseTractographyImageFilter::createVTKOutput(std::vector < FiberType > &fil
     m_Output->Initialize();
     m_Output->Allocate();
     
-    vtkPoints* myPoints = vtkPoints::New();
-    vtkUnsignedCharArray* myColors = vtkUnsignedCharArray::New();
+    vtkSmartPointer <vtkPoints> myPoints = vtkPoints::New();
+    vtkSmartPointer <vtkUnsignedCharArray> myColors = vtkUnsignedCharArray::New();
     myColors->SetNumberOfComponents (3);
     PointType tmpDiff;
     
@@ -323,8 +323,8 @@ void BaseTractographyImageFilter::createVTKOutput(std::vector < FiberType > &fil
     m_Output->SetPoints (myPoints);
     if (m_ComputeLocalColors)
         m_Output->GetPointData()->SetScalars (myColors);
-    myPoints->Delete();
-    myColors->Delete();
+
+    this->ComputeAdditionalScalarMaps();
 }
 
 BaseTractographyImageFilter::FiberProcessVectorType

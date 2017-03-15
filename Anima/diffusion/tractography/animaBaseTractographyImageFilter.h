@@ -97,6 +97,7 @@ protected:
     virtual PointType GetModelPrincipalDirection(VectorType &modelValue, bool is2d, itk::ThreadIdType threadId) = 0;
     virtual PointType GetNextDirection(PointType &previousDirection, VectorType &modelValue, bool is2d, itk::ThreadIdType threadId) = 0;
 
+    virtual void ComputeAdditionalScalarMaps() {}
     bool isZero(VectorType &value);
     
 private:

@@ -501,7 +501,7 @@ double DTIProbabilisticTractographyImageFilter::GetFractionalAnisotropy(VectorTy
     }
     
     // FA
-    return sqrt(3.0 * num / (2.0 * denom));
+    return std::sqrt(3.0 * num / (2.0 * denom));
 }
 
 void DTIProbabilisticTractographyImageFilter::GetEigenValueCombinations(VectorType &modelValue, double &meanLambda, double &perpLambda)
@@ -551,12 +551,12 @@ void DTIProbabilisticTractographyImageFilter::ComputeAdditionalScalarMaps()
     unsigned int numPoints = outputPtr->GetPoints()->GetNumberOfPoints();
     vtkPoints *myPoints = outputPtr->GetPoints();
 
-    vtkDoubleArray* tensorsArray = vtkDoubleArray::New();
+    vtkSmartPointer <vtkDoubleArray> tensorsArray = vtkDoubleArray::New();
     tensorsArray->SetNumberOfComponents(6);
     tensorsArray->SetName("Tensors");
 
-    typename Superclass::InterpolatorType::ContinuousIndexType tmpIndex;
     PointType tmpPoint;
+    Superclass::InterpolatorType::ContinuousIndexType tmpIndex;
     VectorType dwiValue(nbImages), tensorValue(this->GetModelDimension());
     double noiseValue;
 
@@ -564,9 +564,8 @@ void DTIProbabilisticTractographyImageFilter::ComputeAdditionalScalarMaps()
     {
         for (unsigned int j = 0;j < 3;++j)
             tmpPoint[j] = myPoints->GetPoint(i)[j];
-        
-        this->GetInputImage(0)->TransformPhysicalPointToContinuousIndex(tmpPoint,tmpIndex);
 
+        this->GetInputImage(0)->TransformPhysicalPointToContinuousIndex(tmpPoint,tmpIndex);
         tensorValue.Fill(0.0);
         if (dwiInterpolators[0]->IsInsideBuffer(tmpIndex))
             this->ComputeModelEstimation(dwiInterpolators,tmpIndex,dwiValue,noiseValue,tensorValue);
@@ -576,7 +575,6 @@ void DTIProbabilisticTractographyImageFilter::ComputeAdditionalScalarMaps()
     }
 
     outputPtr->GetPointData()->AddArray(tensorsArray);
-    tensorsArray->Delete();
 }
 
 } // end of namespace anima

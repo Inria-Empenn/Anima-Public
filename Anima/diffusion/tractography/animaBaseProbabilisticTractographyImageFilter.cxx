@@ -410,11 +410,11 @@ void BaseProbabilisticTractographyImageFilter::createVTKOutput(FiberProcessVecto
     m_Output->Initialize();
     m_Output->Allocate();
 
-    vtkPoints* myPoints = vtkPoints::New();
-    vtkUnsignedCharArray* myColors = vtkUnsignedCharArray::New();
+    vtkSmartPointer <vtkPoints> myPoints = vtkPoints::New();
+    vtkSmartPointer <vtkUnsignedCharArray> myColors = vtkUnsignedCharArray::New();
     myColors->SetNumberOfComponents(3);
 
-    vtkDoubleArray* weights = vtkDoubleArray::New();
+    vtkSmartPointer <vtkDoubleArray> weights = vtkDoubleArray::New();
     weights->SetNumberOfComponents(1);
     weights->SetName("Fiber weights");
 
@@ -471,10 +471,6 @@ void BaseProbabilisticTractographyImageFilter::createVTKOutput(FiberProcessVecto
     m_Output->GetPointData()->AddArray(weights);
 
     this->ComputeAdditionalScalarMaps();
-
-    myPoints->Delete();
-    myColors->Delete();
-    weights->Delete();
 }
 
 BaseProbabilisticTractographyImageFilter::FiberProcessVectorType
@@ -636,8 +632,6 @@ BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInte
             for (unsigned int j = 0;j < InputImageType::ImageDimension;++j)
                 currentPoint[j] += m_StepProgression * newDirection[j];
 
-            fiberComputationData.fiberParticles[i].push_back(currentPoint);
-
             // Log-weight update must be done at new position (except for prior and proposal)
             m_SeedMask->TransformPhysicalPointToContinuousIndex(currentPoint,newIndex);
 
@@ -652,6 +646,8 @@ BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInte
                 fiberComputationData.particleWeights[i] = 0;
                 continue;
             }
+
+            fiberComputationData.fiberParticles[i].push_back(currentPoint);
 
             estimatedB0Value = this->ComputeModelEstimation(dwiInterpolators, newIndex, dwiValue, estimatedNoiseValue, modelValue);
 

@@ -2,6 +2,10 @@
 #include <itkSymmetricEigenAnalysis.h>
 #include <animaVectorOperations.h>
 
+#include <vtkDoubleArray.h>
+#include <vtkPointData.h>
+#include <animaBaseTensorTools.h>
+
 namespace anima
 {
 
@@ -135,15 +139,7 @@ dtiTractographyImageFilter::GetNextDirection(PointType &previousDirection, Vecto
     typedef vnl_matrix <double> MatrixType;
     MatrixType tmpMat(3,3);
 
-    unsigned int pos = 0;
-    for (unsigned int i = 0;i < 3;++i)
-        for (unsigned int j = 0;j <= i;++j)
-        {
-            tmpMat(i,j) = modelValue[pos];
-            if (j != i)
-                tmpMat(j,i) = tmpMat(i,j);
-            ++pos;
-        }
+    anima::GetTensorFromVectorRepresentation(modelValue,tmpMat,3,false);
 
     vnl_diag_matrix <double> eVals(3);
     itk::SymmetricEigenAnalysis <MatrixType,vnl_diag_matrix <double>,MatrixType> EigenAnalysis(3);
@@ -177,6 +173,46 @@ dtiTractographyImageFilter::GetNextDirection(PointType &previousDirection, Vecto
     anima::Normalize(newDirection,newDirection);
 
     return newDirection;
+}
+
+
+void dtiTractographyImageFilter::ComputeAdditionalScalarMaps()
+{
+    vtkSmartPointer <vtkPolyData> outputPtr = this->GetOutput();
+
+    unsigned int numPoints = outputPtr->GetPoints()->GetNumberOfPoints();
+    vtkPoints *myPoints = outputPtr->GetPoints();
+
+    vtkSmartPointer <vtkDoubleArray> tensorsArray = vtkDoubleArray::New();
+    tensorsArray->SetNumberOfComponents(6);
+    tensorsArray->SetName("Tensors");
+
+    PointType tmpPoint;
+    DTIInterpolatorType::ContinuousIndexType tmpIndex;
+    VectorType tensorValue(6);
+
+    typedef vnl_matrix <double> MatrixType;
+    MatrixType tmpMat(3,3);
+
+    for (unsigned int i = 0;i < numPoints;++i)
+    {
+        for (unsigned int j = 0;j < 3;++j)
+            tmpPoint[j] = myPoints->GetPoint(i)[j];
+
+        this->GetInputImage()->TransformPhysicalPointToContinuousIndex(tmpPoint,tmpIndex);
+        tensorValue.Fill(0.0);
+        if (m_DTIInterpolator->IsInsideBuffer(tmpIndex))
+            tensorValue = this->GetModelValue(tmpIndex);
+
+        anima::GetTensorFromVectorRepresentation(tensorValue,tmpMat,3,false);
+        anima::GetTensorExponential(tmpMat,tmpMat);
+        anima::GetVectorRepresentation(tmpMat,tensorValue,6,false);
+
+        for (unsigned int j = 0;j < tensorValue.GetSize();++j)
+            tensorsArray->InsertNextValue(tensorValue[j]);
+    }
+
+    outputPtr->GetPointData()->AddArray(tensorsArray);
 }
 
 } // end of namespace anima

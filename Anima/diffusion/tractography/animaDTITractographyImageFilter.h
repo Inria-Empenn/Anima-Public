@@ -43,6 +43,8 @@ protected:
     virtual PointType GetNextDirection(PointType &previousDirection, VectorType &modelValue, bool is2d,
                                        itk::ThreadIdType threadId) ITK_OVERRIDE;
 
+    virtual void ComputeAdditionalScalarMaps() ITK_OVERRIDE;
+
 private:
     double m_StopFAThreshold;
     DTIInterpolatorPointer m_DTIInterpolator;
