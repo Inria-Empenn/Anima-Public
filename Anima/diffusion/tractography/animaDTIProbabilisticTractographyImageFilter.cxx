@@ -556,13 +556,16 @@ void DTIProbabilisticTractographyImageFilter::ComputeAdditionalScalarMaps()
     tensorsArray->SetName("Tensors");
 
     typename Superclass::InterpolatorType::ContinuousIndexType tmpIndex;
+    PointType tmpPoint;
     VectorType dwiValue(nbImages), tensorValue(this->GetModelDimension());
     double noiseValue;
 
     for (unsigned int i = 0;i < numPoints;++i)
     {
         for (unsigned int j = 0;j < 3;++j)
-            tmpIndex[j] = myPoints->GetPoint(i)[j];
+            tmpPoint[j] = myPoints->GetPoint(i)[j];
+        
+        this->GetInputImage(0)->TransformPhysicalPointToContinuousIndex(tmpPoint,tmpIndex);
 
         tensorValue.Fill(0.0);
         if (dwiInterpolators[0]->IsInsideBuffer(tmpIndex))
