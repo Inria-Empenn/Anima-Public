@@ -1,12 +1,15 @@
 set(BINARY_TOOLS_LIST 
   animaApplyDistortionCorrection
   animaApplyTransformSerie
+  animaAverageImages
   animaBMDistortionCorrection
+  animaBuildSamplesFromVolumes
   animaCollapseImage
   animaComputeDTIScalarMaps
   animaConcatenateImages
   animaConnectedComponents
   animaConvertImage
+  animaCramersTest
   animaCropImage
   animaDTIEstimator
   animaDTIExtrapolate
@@ -15,6 +18,7 @@ set(BINARY_TOOLS_LIST
   animaDenseSVFBMRegistration
   animaDenseTensorSVFBMRegistration
   animaDiceMeasure
+  animaDisplacementFieldJacobian
   animaDistortionCorrection
   animaExpTensors
   animaFDRCorrectPValues
@@ -31,6 +35,7 @@ set(BINARY_TOOLS_LIST
   animaLocalPatchCovarianceDistance
   animaLocalPatchMeanDistance
   animaLogTensors
+  animaLowMemCramersTest
   animaLowMemLocalPatchCovarianceDistance
   animaLowMemLocalPatchMeanDistance
   animaLowMemNLMeansPatientToGroupComparison
@@ -38,8 +43,11 @@ set(BINARY_TOOLS_LIST
   animaLowMemPatientToGroupODFComparison
   animaMaskImage
   animaMCMApplyTransformSerie
-  animaMCMAveraging
+  animaMCMAverageImages
   animaMCMEstimator
+  animaMCMModelAveraging
+  animaMCMProbabilisticTractography
+  animaMCMTractography
   animaMergeBlockImages
   animaMorphologicalOperations
   animaN4BiasCorrection
