@@ -62,6 +62,9 @@ TransformSeriesReader<TScalarType,NDimensions>
                 throw itk::ExceptionObject(__FILE__, __LINE__,"Type of transformation not found for a transform in the list",ITK_LOCATION);
 
             std::string typeStr = typeNode->GetText();
+            typeStr = typeStr.substr(typeStr.find_first_not_of(" \n\r\t"));
+            typeStr.erase(typeStr.find_last_not_of(" \n\r\t")+1);
+
             if (typeStr == "linear")
                 infoTrsf.trType = LINEAR;
             else if (typeStr == "svf")
@@ -93,6 +96,8 @@ TransformSeriesReader<TScalarType,NDimensions>
                 throw itk::ExceptionObject(__FILE__, __LINE__,"File name not found for a transform in the list",ITK_LOCATION);
 
             infoTrsf.fileName = fileNode->GetText();
+            infoTrsf.fileName = infoTrsf.fileName.substr(infoTrsf.fileName.find_first_not_of(" \n\r\t"));
+            infoTrsf.fileName.erase(infoTrsf.fileName.find_last_not_of(" \n\r\t")+1);
 
             transformationList.push_back(infoTrsf);
 
