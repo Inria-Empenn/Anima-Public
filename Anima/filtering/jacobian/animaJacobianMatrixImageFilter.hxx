@@ -33,8 +33,8 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
 
     IndexType currentIndex;
     IndexType internalIndex, internalIndexOpposite;
-    vnl_matrix <double> dataMatrix;
-    vnl_vector <double> dataVector, outputVector;
+    vnl_matrix <double> dataMatrix, dataMatrixToSolve;
+    vnl_vector <double> dataVector, dataVectorToSolve, outputVector;
     RegionType inputRegion;
     RegionType largestRegion = this->GetInput()->GetLargestPossibleRegion();
     InputPixelType pixelBeforeValue, pixelAfterValue;
@@ -100,9 +100,10 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
             }
         }
 
-        dataMatrix.set_size((inputRegion.GetNumberOfPixels() - 1) * Dimension,Dimension * Dimension);
+        unsigned int maxRowSize = (inputRegion.GetNumberOfPixels() - 1) * Dimension;
+        dataMatrix.set_size(maxRowSize,Dimension * Dimension);
         dataMatrix.fill(0.0);
-        dataVector.set_size(Dimension * (inputRegion.GetNumberOfPixels() - 1));
+        dataVector.set_size(maxRowSize);
 
         InputIteratorType internalItr(this->GetInput(),inputRegion);
         unsigned int pos = 0;
@@ -170,7 +171,16 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
             ++internalItr;
         }
 
-        outputVector = vnl_qr <double> (dataMatrix).solve(dataVector);
+        dataMatrixToSolve.set_size(pos * Dimension,Dimension * Dimension);
+        dataVectorToSolve.set_size(pos * Dimension);
+        for (unsigned int i = 0;i < pos * Dimension;++i)
+        {
+            dataVectorToSolve[i] = dataVector[i];
+            for (unsigned int j = 0;j < Dimension * Dimension;++j)
+                dataMatrixToSolve(i,j) = dataMatrix(i,j);
+        }
+
+        outputVector = vnl_qr <double> (dataMatrixToSolve).solve(dataVectorToSolve);
 
         for (unsigned int i = 0;i < outputValue.GetVectorDimension();++i)
             outputValue[i] = outputVector[i];

@@ -69,10 +69,11 @@ int main(int argc, char **argv)
     // Now do the composition
     if (composeField)
     {
-        std::cout << "Composing transformations" << std::endl;
+        std::cout << "Composing transformations ";
 
         if (expArg.isSet() || compositionArg.isSet())
         {
+            std::cout << "using regular transformation composition" << std::endl;
             typedef itk::ComposeDisplacementFieldsImageFilter <FieldType,FieldType> ComposeFilterType;
             typedef FieldType::PixelType VectorType;
             typedef itk::VectorLinearInterpolateNearestNeighborExtrapolateImageFunction <FieldType,VectorType::ValueType> VectorInterpolateFunctionType;
@@ -92,6 +93,8 @@ int main(int argc, char **argv)
         }
         else
         {
+            std::cout << "using BCH approximation of order " << bchArg.getValue() << std::endl;
+
             SVFTransformType::Pointer inputTrsf = SVFTransformType::New();
             SVFTransformType::Pointer composeTrsf = SVFTransformType::New();
 
