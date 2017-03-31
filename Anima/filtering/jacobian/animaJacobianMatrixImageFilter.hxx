@@ -18,6 +18,19 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
 
     m_FieldInterpolator = InterpolatorType::New();
     m_FieldInterpolator->SetInputImage(this->GetInput());
+
+    if (m_ComputeDeterminant)
+    {
+        m_DeterminantImage = DeterminantImageType::New();
+        m_DeterminantImage->Initialize();
+        m_DeterminantImage->SetOrigin(this->GetOutput()->GetOrigin());
+        m_DeterminantImage->SetSpacing(this->GetOutput()->GetSpacing());
+        m_DeterminantImage->SetDirection(this->GetOutput()->GetDirection());
+        m_DeterminantImage->SetRegions(this->GetOutput()->GetLargestPossibleRegion());
+
+        m_DeterminantImage->Allocate();
+        m_DeterminantImage->FillBuffer(0.0);
+    }
 }
 
 template <typename TPixelType, typename TOutputPixelType, unsigned int Dimension>
@@ -27,9 +40,13 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
 {
     typedef itk::ImageRegionConstIteratorWithIndex <InputImageType> InputIteratorType;
     typedef itk::ImageRegionIterator <OutputImageType> OutputIteratorType;
+    typedef itk::ImageRegionIterator <DeterminantImageType> DetIteratorType;
 
     InputIteratorType inputItr(this->GetInput(),outputRegionForThread);
     OutputIteratorType outputItr(this->GetOutput(),outputRegionForThread);
+    DetIteratorType detImageIt;
+    if (m_ComputeDeterminant)
+        detImageIt = DetIteratorType (m_DeterminantImage,outputRegionForThread);
 
     IndexType currentIndex;
     IndexType internalIndex, internalIndexOpposite;
@@ -41,6 +58,7 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
     OutputPixelType outputValue;
     PointType pointBefore, pointAfter, unitVector;
     std::vector < std::pair <IndexType,IndexType> > doubleDataTestVector;
+    vnl_matrix <double> jacMatrix(Dimension,Dimension);
 
     while (!inputItr.IsAtEnd())
     {
@@ -193,8 +211,21 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
 
         outputItr.Set(outputValue);
 
+        if (m_ComputeDeterminant)
+        {
+            for (unsigned int i = 0;i < Dimension;++i)
+            {
+                for (unsigned int j = 0;j < Dimension;++j)
+                    jacMatrix(i,j) = outputValue[i * Dimension + j];
+            }
+
+            detImageIt.Set(vnl_determinant (jacMatrix));
+        }
+
         ++inputItr;
         ++outputItr;
+        if (m_ComputeDeterminant)
+            ++detImageIt;
     }
 }
 

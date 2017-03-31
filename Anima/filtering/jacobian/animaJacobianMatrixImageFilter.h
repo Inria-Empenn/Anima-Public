@@ -23,6 +23,7 @@ public:
     typedef JacobianMatrixImageFilter Self;
     typedef typename itk::Image <itk::Vector <TPixelType, Dimension>, Dimension> InputImageType;
     typedef typename itk::Image <itk::Vector <TOutputPixelType, Dimension * Dimension>, Dimension> OutputImageType;
+    typedef typename itk::Image <TOutputPixelType, Dimension> DeterminantImageType;
     typedef itk::ImageToImageFilter <InputImageType, OutputImageType> Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self> ConstPointer;
@@ -47,12 +48,17 @@ public:
 
     itkSetMacro(NoIdentity, bool)
     itkSetMacro(Neighborhood, unsigned int)
+    itkSetMacro(ComputeDeterminant, bool)
+    itkGetObjectMacro(DeterminantImage, DeterminantImageType)
 
 protected:
     JacobianMatrixImageFilter()
     {
         m_NoIdentity = false;
         m_Neighborhood = 1;
+
+        m_ComputeDeterminant = false;
+        m_DeterminantImage = 0;
     }
 
     virtual ~JacobianMatrixImageFilter() {}
@@ -69,6 +75,9 @@ private:
 
     //! Neighborhood from which to compute Jacobian matrix
     unsigned int m_Neighborhood;
+
+    typename DeterminantImageType::Pointer m_DeterminantImage;
+    bool m_ComputeDeterminant;
 
     InterpolatorPointer m_FieldInterpolator;
 };

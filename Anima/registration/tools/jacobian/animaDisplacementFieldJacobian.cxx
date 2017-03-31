@@ -1,6 +1,5 @@
 #include <tclap/CmdLine.h>
 
-#include <itkDisplacementFieldJacobianDeterminantFilter.h>
 #include <animaJacobianMatrixImageFilter.h>
 #include <animaReadWriteFunctions.h>
 #include <animaVelocityUtils.h>
@@ -50,33 +49,21 @@ int main(int ac, const char** av)
         inputField = const_cast <ImageType *> (resTrsf->GetParametersAsVectorField());
     }
 
+    typedef anima::JacobianMatrixImageFilter <PixelType, PixelType, Dimension> MainFilterType;
+    MainFilterType::Pointer mainFilter = MainFilterType::New();
+
+    mainFilter->SetInput(inputField);
+    mainFilter->SetNumberOfThreads(nbpArg.getValue());
+    mainFilter->SetNeighborhood(neighArg.getValue());
+    mainFilter->SetNoIdentity(noIdArg.isSet());
+    mainFilter->SetComputeDeterminant(detArg.isSet());
+
+    mainFilter->Update();
+
     if (detArg.isSet())
-    {
-        typedef itk::DisplacementFieldJacobianDeterminantFilter <ImageType, double> MainFilterType;
-        MainFilterType::Pointer mainFilter = MainFilterType::New();
-
-        mainFilter->SetInput(inputField);
-        mainFilter->SetNumberOfThreads(nbpArg.getValue());
-        mainFilter->SetUseImageSpacingOn();
-
-        mainFilter->Update();
-
-        anima::writeImage <MainFilterType::OutputImageType> (outArg.getValue(),mainFilter->GetOutput());
-    }
+        anima::writeImage <MainFilterType::DeterminantImageType> (outArg.getValue(),mainFilter->GetDeterminantImage());
     else
-    {
-        typedef anima::JacobianMatrixImageFilter <PixelType, PixelType, Dimension> MainFilterType;
-        MainFilterType::Pointer mainFilter = MainFilterType::New();
-
-        mainFilter->SetInput(inputField);
-        mainFilter->SetNumberOfThreads(nbpArg.getValue());
-        mainFilter->SetNeighborhood(neighArg.getValue());
-        mainFilter->SetNoIdentity(noIdArg.isSet());
-
-        mainFilter->Update();
-
         anima::writeImage <MainFilterType::OutputImageType> (outArg.getValue(),mainFilter->GetOutput());
-    }
 
     return 0;
 }
