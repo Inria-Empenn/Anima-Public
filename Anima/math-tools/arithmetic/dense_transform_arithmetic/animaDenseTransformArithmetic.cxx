@@ -3,6 +3,7 @@
 #include <itkImage.h>
 #include <itkComposeDisplacementFieldsImageFilter.h>
 #include <itkVectorLinearInterpolateNearestNeighborExtrapolateImageFunction.h>
+#include <itkMultiplyImageFilter.h>
 
 #include <animaReadWriteFunctions.h>
 #include <animaVelocityUtils.h>
@@ -23,7 +24,9 @@ int main(int argc, char **argv)
     
     TCLAP::SwitchArg expArg("E","exp","Exponentiate inputs (if not selected, composition will be done using BCH)",cmd,false);
     TCLAP::SwitchArg compositionArg("R","regular-composition","Use regular composition (transformations are taken as dense field (if not selected and no exponentiation is done, BCH will be used)",cmd,false);
+
     TCLAP::ValueArg<unsigned int> bchArg("b","bch-order","Order of BCH composition (in between 1 and 4)",false,3,"BCH order",cmd);
+    TCLAP::ValueArg<unsigned int> dividerArg("d","div-order","If BCH composition of order > 1, divide input fields by d (default: 1)",false,1,"BCH field divider",cmd);
 
     TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
     
@@ -93,17 +96,56 @@ int main(int argc, char **argv)
         }
         else
         {
-            std::cout << "using BCH approximation of order " << bchArg.getValue() << std::endl;
+            unsigned int dividerValue = 1;
+            if (bchArg.getValue() > 1)
+                dividerValue = dividerArg.getValue();
+
+            std::cout << "using BCH approximation of order " << bchArg.getValue() << ", dividing input fields by " << dividerValue << std::endl;
+
+            if (dividerValue != 1)
+            {
+                typedef itk::MultiplyImageFilter <FieldType, itk::Image <double, 3>, FieldType>  MultiplyConstantFilterType;
+                MultiplyConstantFilterType::Pointer inputFieldDivider = MultiplyConstantFilterType::New();
+                inputFieldDivider->SetInput(inputField);
+                inputFieldDivider->SetConstant(1.0 / dividerValue);
+                inputFieldDivider->SetNumberOfThreads(nbpArg.getValue());
+
+                inputFieldDivider->Update();
+                inputField = inputFieldDivider->GetOutput();
+                inputField->DisconnectPipeline();
+
+                MultiplyConstantFilterType::Pointer composeFieldDivider = MultiplyConstantFilterType::New();
+                composeFieldDivider->SetInput(composeField);
+                composeFieldDivider->SetConstant(1.0 / dividerValue);
+                composeFieldDivider->SetNumberOfThreads(nbpArg.getValue());
+
+                composeFieldDivider->Update();
+                composeField = composeFieldDivider->GetOutput();
+                composeField->DisconnectPipeline();
+            }
 
             SVFTransformType::Pointer inputTrsf = SVFTransformType::New();
+            SVFTransformType::Pointer resultTrsf = SVFTransformType::New();
             SVFTransformType::Pointer composeTrsf = SVFTransformType::New();
 
             inputTrsf->SetParametersAsVectorField(inputField);
+            resultTrsf->SetParametersAsVectorField(inputField);
             composeTrsf->SetParametersAsVectorField(composeField);
 
-            anima::composeSVF(inputTrsf.GetPointer(),composeTrsf.GetPointer(),nbpArg.getValue(),bchArg.getValue());
+            for (unsigned int i = 0;i < dividerValue;++i)
+            {
+                std::cout << "Iteration " << i+1 << " / " << dividerValue << std::endl;
+                anima::composeSVF(resultTrsf.GetPointer(),composeTrsf.GetPointer(),nbpArg.getValue(),bchArg.getValue());
 
-            inputField = const_cast <FieldType *> (inputTrsf->GetParametersAsVectorField());
+                if (i < dividerValue - 1)
+                {
+                    anima::composeSVF(inputTrsf.GetPointer(),resultTrsf.GetPointer(),nbpArg.getValue(),bchArg.getValue());
+                    resultTrsf->SetParametersAsVectorField(inputTrsf->GetParametersAsVectorField());
+                    inputTrsf->SetParametersAsVectorField(inputField);
+                }
+            }
+
+            inputField = const_cast <FieldType *> (resultTrsf->GetParametersAsVectorField());
         }
     }
 
