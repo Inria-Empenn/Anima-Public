@@ -24,6 +24,9 @@ template <class T> vnl_matrix <T> GetLogarithm(const vnl_matrix <T> & m, const d
 //! Computation of the matrix exponential. Algo: classical scaling and squaring, as in Matlab. See Higham, SIAM Matr. Anal., 2004.
 template <class T> vnl_matrix <T> GetExponential(const vnl_matrix <T> & m, const int numApprox=1);
 
+//! Computation of a 3D rotation matrix exponential. Rodrigues' explicit formula
+template <class T> void Get3DRotationExponential(const std::vector <T> &angles, vnl_matrix <T> &outputRotation);
+
 //! Class to compute many log-vectors in a multi-threaded way
 template <class TInputScalarType, class TOutputScalarType, unsigned int NDimensions, unsigned int NDegreesOfFreedom>
 class MatrixLoggerFilter

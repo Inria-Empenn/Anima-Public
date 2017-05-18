@@ -119,6 +119,28 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
     m_EstimatedB0Image->Allocate();
     m_EstimatedB0Image->FillBuffer(0.0);
 
+    vnl_matrix <double> initSolverSystem(this->GetNumberOfIndexedInputs(),m_NumberOfComponents + 1);
+    initSolverSystem.fill(0.0);
+    for (unsigned int i = 0;i < this->GetNumberOfIndexedInputs();++i)
+    {
+        initSolverSystem(i,0) = 1.0;
+        unsigned int pos = 1;
+        for (unsigned int j = 0;j < 3;++j)
+        {
+            for (unsigned int k = 0;k < j;++k)
+            {
+                initSolverSystem(i,pos) = - 2.0 * m_BValuesList[i] * m_GradientDirections[i][j] * m_GradientDirections[i][k];
+                ++pos;
+            }
+
+            initSolverSystem(i,pos) = - m_BValuesList[i] * m_GradientDirections[i][j] * m_GradientDirections[i][j];
+            ++pos;
+        }
+    }
+
+    vnl_matrix_inverse <double> inverter (initSolverSystem);
+    m_InitialMatrixSolver = inverter.pinverse();
+
     Superclass::BeforeThreadedGenerateData();
 }
 
@@ -145,12 +167,17 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
 
     typedef typename OutputImageType::PixelType OutputPixelType;
     std::vector <double> dwi (numInputs,0);
+    std::vector <double> lnDwi (numInputs,0);
     OutputPixelType resVec(m_NumberOfComponents);
-
-    vnl_matrix <double> tmpTensor(3,3);
 
     std::vector <double> predictedValues(numInputs,0);
     OptimizationDataStructure data;
+    data.rotationMatrix.set_size(3,3);
+    data.workEigenValues.set_size(3);
+    data.workTensor.set_size(3,3);
+
+    typedef itk::SymmetricEigenAnalysis < vnl_matrix <double>, vnl_diag_matrix<double>, vnl_matrix <double> > EigenAnalysisType;
+    EigenAnalysisType eigen(3);
 
     while (!outIterator.IsAtEnd())
     {
@@ -172,27 +199,63 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
         }
 
         for (unsigned int i = 0;i < numInputs;++i)
+        {
             dwi[i] = inIterators[i].Get();
+            lnDwi[i] = std::log(std::max(1.0e-6,dwi[i]));
+        }
+
+        for (unsigned int i = 0;i < m_NumberOfComponents;++i)
+        {
+            for (unsigned int j = 0;j < numInputs;++j)
+                resVec[i] += m_InitialMatrixSolver(i+1,j) * lnDwi[j];
+        }
+
+        anima::GetTensorFromVectorRepresentation(resVec,data.workTensor);
+
+        eigen.ComputeEigenValuesAndVectors(data.workTensor,data.workEigenValues,data.rotationMatrix);
+        if (vnl_determinant (data.rotationMatrix) < 0)
+            data.rotationMatrix *= -1;
+
+        std::vector <double> optimizedValue(m_NumberOfComponents, 0.0);
+
+        double cThetaControl = 0;
+        for (unsigned int i = 0;i < 3;++i)
+            cThetaControl += data.rotationMatrix(i,i);
+
+        if (std::abs(cThetaControl + 1.0) > 1.0e-4)
+        {
+            data.rotationMatrix = anima::GetLogarithm(data.rotationMatrix);
+
+            optimizedValue[0] = - data.rotationMatrix(1,2);
+            optimizedValue[1] = data.rotationMatrix(0,2);
+            optimizedValue[2] = - data.rotationMatrix(0,1);
+        }
+
+        for (unsigned int i = 0;i < 3;++i)
+        {
+            optimizedValue[i] += M_PI;
+            int num2Pi = std::floor(optimizedValue[i] / (2.0 * M_PI));
+            optimizedValue[i] -= 2.0 * M_PI * num2Pi + M_PI;
+
+            double tmpVal = std::log(std::max(1.0e-6,data.workEigenValues[i]));
+            optimizedValue[i + 3] = std::min(- 4.6, std::max(tmpVal,- 13.5));
+        }
 
         // NLOPT optimization
         nlopt::opt opt(nlopt::LN_BOBYQA, m_NumberOfComponents);
 
-        std::vector <double> lowerBounds(m_NumberOfComponents, 0);
+        std::vector <double> lowerBounds(m_NumberOfComponents, - M_PI);
         for (unsigned int i = 0;i < 3;++i)
-            lowerBounds[i + 3] = -1.0e-3;
+            lowerBounds[i + 3] = - 13.5;
 
         opt.set_lower_bounds(lowerBounds);
 
-        std::vector <double> upperBounds(m_NumberOfComponents, 5.0e-3);
+        std::vector <double> upperBounds(m_NumberOfComponents, M_PI);
         for (unsigned int i = 0;i < 3;++i)
-            upperBounds[i + 3] = 1.0e-3;
+            upperBounds[i + 3] = - 4.6;
 
         opt.set_upper_bounds(upperBounds);
         opt.set_xtol_rel(1e-4);
-
-        std::vector <double> optimizedValue(m_NumberOfComponents, 1.0e-3);
-        for (unsigned int i = 0;i < 3;++i)
-            upperBounds[i + 3] = 0.0;
 
         double minf;
 
@@ -211,52 +274,14 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
             itkExceptionMacro("NLOPT optimization error");
         }
 
-        // Tensor is column first
-        resVec[0] = optimizedValue[0];
-        resVec[2] = optimizedValue[1];
-        resVec[5] = optimizedValue[2];
-        resVec[1] = optimizedValue[3];
-        resVec[3] = optimizedValue[4];
-        resVec[4] = optimizedValue[5];
+        anima::Get3DRotationExponential(optimizedValue,data.rotationMatrix);
+        for (unsigned int i = 0;i < 3;++i)
+            data.workEigenValues[i] = std::exp(optimizedValue[3 + i]);
 
-        double outB0Value = this->ComputeB0FromTensorVector(optimizedValue,dwi);
+        anima::RecomposeTensor(data.workEigenValues,data.rotationMatrix,data.workTensor);
+        anima::GetVectorRepresentation(data.workTensor,resVec);
 
-        anima::GetTensorFromVectorRepresentation(resVec,tmpTensor,3);
-        vnl_symmetric_eigensystem <double> tmpEigs(tmpTensor);
-
-        if (m_RemoveDegeneratedTensors)
-        {
-            bool isTensorOk = true;
-
-            for (unsigned int i = 0;i < 3;++i)
-            {
-                if (tmpEigs.D[i] <= 0)
-                {
-                    isTensorOk = false;
-                    break;
-                }
-            }
-
-            if (!isTensorOk)
-            {
-                resVec.Fill(0.0);
-                outB0Value = 0;
-            }
-        }
-        else if (m_ProjectDegeneratedTensors)
-        {
-            anima::ProjectOnTensorSpace(tmpTensor,tmpTensor);
-            anima::GetVectorRepresentation(tmpTensor,resVec,m_NumberOfComponents);
-
-            optimizedValue[0] = resVec[0];
-            optimizedValue[1] = resVec[2];
-            optimizedValue[2] = resVec[5];
-            optimizedValue[3] = resVec[1];
-            optimizedValue[4] = resVec[3];
-            optimizedValue[5] = resVec[4];
-
-            outB0Value = this->ComputeB0FromTensorVector(optimizedValue,dwi);
-        }
+        double outB0Value = this->ComputeB0FromTensorVector(data.workTensor,dwi);
 
         outIterator.Set(resVec);
         outB0Iterator.Set(outB0Value);
@@ -273,7 +298,7 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
 template <class InputPixelScalarType, class OutputPixelScalarType>
 double
 DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
-::ComputeB0FromTensorVector(const std::vector<double> &tensorValue, const std::vector<double> &dwiSignal)
+::ComputeB0FromTensorVector(const vnl_matrix <double> &tensorValue, const std::vector <double> &dwiSignal)
 {
     double outB0Value = 0;
     double normConstant = 0;
@@ -289,11 +314,11 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
         else
         {
             for (unsigned int j = 0;j < 3;++j)
-                predictedValue += tensorValue[j] * m_GradientDirections[i][j] * m_GradientDirections[i][j];
-
-            predictedValue += 2 * tensorValue[3] * m_GradientDirections[i][0] * m_GradientDirections[i][1];
-            predictedValue += 2 * tensorValue[4] * m_GradientDirections[i][0] * m_GradientDirections[i][2];
-            predictedValue += 2 * tensorValue[5] * m_GradientDirections[i][1] * m_GradientDirections[i][2];
+            {
+                predictedValue += tensorValue(j,j) * m_GradientDirections[i][j] * m_GradientDirections[i][j];
+                for (unsigned int k = j + 1;k < 3;++k)
+                    predictedValue += 2.0 * tensorValue(j,k) * m_GradientDirections[i][j] * m_GradientDirections[i][k];
+            }
 
             predictedValue = std::exp(- bValue * predictedValue);
         }
@@ -313,15 +338,24 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
 {
     OptimizationDataStructure *data = static_cast <OptimizationDataStructure *> (func_data);
 
-    return data->filter->ComputeCostAtPosition(x,data->dwi,data->predictedValues);
+    return data->filter->ComputeCostAtPosition(x,data->dwi,data->predictedValues,data->rotationMatrix,data->workTensor,data->workEigenValues);
 }
 
 template <class InputPixelScalarType, class OutputPixelScalarType>
 double
 DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
 ::ComputeCostAtPosition(const std::vector<double> &x, const std::vector <double> &observedData,
-                        std::vector <double> &predictedValues)
+                        std::vector <double> &predictedValues, vnl_matrix <double> &rotationMatrix,
+                        vnl_matrix<double> &workTensor, vnl_diag_matrix <double> &workEigenValues)
 {
+    anima::Get3DRotationExponential(x,rotationMatrix);
+    workEigenValues.set_size(3);
+    for (unsigned int i = 0;i < 3;++i)
+        workEigenValues[i] = std::exp(x[3 + i]);
+
+    workTensor.set_size(3,3);
+    anima::RecomposeTensor(workEigenValues,rotationMatrix,workTensor);
+
     for (unsigned int i = 0;i < this->GetNumberOfIndexedInputs();++i)
     {
         predictedValues[i] = 0;
@@ -333,11 +367,11 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
         }
 
         for (unsigned int j = 0;j < 3;++j)
-            predictedValues[i] += x[j] * m_GradientDirections[i][j] * m_GradientDirections[i][j];
-
-        predictedValues[i] += 2 * x[3] * m_GradientDirections[i][0] * m_GradientDirections[i][1];
-        predictedValues[i] += 2 * x[4] * m_GradientDirections[i][0] * m_GradientDirections[i][2];
-        predictedValues[i] += 2 * x[5] * m_GradientDirections[i][1] * m_GradientDirections[i][2];
+        {
+            predictedValues[i] += workTensor(j,j) * m_GradientDirections[i][j] * m_GradientDirections[i][j];
+            for (unsigned int k = j + 1;k < 3;++k)
+                predictedValues[i] += 2.0 * workTensor(j,k) * m_GradientDirections[i][j] * m_GradientDirections[i][k];
+        }
 
         predictedValues[i] = std::exp(- bValue * predictedValues[i]);
     }

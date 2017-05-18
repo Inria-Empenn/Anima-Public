@@ -42,15 +42,14 @@ public:
     {
         Self *filter;
         std::vector <double> dwi, predictedValues;
+        vnl_matrix <double> rotationMatrix, workTensor;
+        vnl_diag_matrix <double> workEigenValues;
     };
 
     void SetBValuesList(std::vector <double> bValuesList ) {m_BValuesList = bValuesList;}
 
     itkSetMacro(B0Threshold, double)
     itkGetMacro(B0Threshold, double)
-
-    itkSetMacro(RemoveDegeneratedTensors, bool)
-    itkSetMacro(ProjectDegeneratedTensors, bool)
 
     itkGetMacro(EstimatedB0Image, OutputB0ImageType *)
 
@@ -63,8 +62,6 @@ protected:
         m_BValuesList.clear();
 
         m_B0Threshold = 0;
-        m_RemoveDegeneratedTensors = true;
-        m_ProjectDegeneratedTensors = false;
         m_EstimatedB0Image = NULL;
     }
 
@@ -78,9 +75,10 @@ protected:
 
     static double OptimizationFunction(const std::vector<double> &x, std::vector<double> &grad, void *func_data);
     double ComputeCostAtPosition(const std::vector<double> &x, const std::vector <double> &observedData,
-                                 std::vector <double> &predictedValues);
+                                 std::vector <double> &predictedValues, vnl_matrix <double> &rotationMatrix,
+                                 vnl_matrix <double> &workTensor, vnl_diag_matrix <double> &workEigenValues);
 
-    double ComputeB0FromTensorVector(const std::vector <double> &tensorValue, const std::vector <double> &dwiSignal);
+    double ComputeB0FromTensorVector(const vnl_matrix <double> &tensorValue, const std::vector <double> &dwiSignal);
 
 private:
     DTIEstimationImageFilter(const Self&); //purposely not implemented
@@ -93,8 +91,8 @@ private:
     typename OutputB0ImageType::Pointer m_EstimatedB0Image;
 
     static const unsigned int m_NumberOfComponents = 6;
-    bool m_RemoveDegeneratedTensors;
-    bool m_ProjectDegeneratedTensors;
+
+    vnl_matrix <double> m_InitialMatrixSolver;
 };
 
 } // end of namespace anima

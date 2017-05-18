@@ -14,7 +14,6 @@
 #include <animaVectorOperations.h>
 
 #include <animaDTIEstimationImageFilter.h>
-#include <animaDTIExtrapolateImageFilter.h>
 #include <animaBaseTensorTools.h>
 
 #include <animaTensorCompartment.h>
@@ -210,7 +209,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     dtiEstimator->SetBValuesList(m_BValuesList);
     dtiEstimator->SetNumberOfThreads(this->GetNumberOfThreads());
     dtiEstimator->SetComputationMask(this->GetComputationMask());
-    dtiEstimator->SetRemoveDegeneratedTensors(false);
     dtiEstimator->SetVerboseProgression(false);
 
     for(unsigned int i = 0;i < this->GetNumberOfIndexedInputs();++i)
@@ -221,16 +219,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     dtiEstimator->Update();
 
-    typedef anima::DTIExtrapolateImageFilter <OutputPixelType> DTIExtrapolateFilterType;
-    typename DTIExtrapolateFilterType::Pointer dtiExtrapolator = DTIExtrapolateFilterType::New();
-
-    dtiExtrapolator->SetInput(dtiEstimator->GetOutput());
-    dtiExtrapolator->SetInitialEstimatedB0Image(dtiEstimator->GetEstimatedB0Image());
-    dtiExtrapolator->SetNumberOfThreads(this->GetNumberOfThreads());
-
-    dtiExtrapolator->Update();
-
-    m_InitialDTImage = dtiExtrapolator->GetOutput();
+    m_InitialDTImage = dtiEstimator->GetOutput();
     m_InitialDTImage->DisconnectPipeline();
 
     if (!m_ExternalDTIParameters)

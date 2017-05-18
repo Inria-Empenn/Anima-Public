@@ -268,6 +268,44 @@ template <class T> vnl_matrix <T> GetExponential(const vnl_matrix <T> & m, const
     return exp;
 }
 
+template <class T> void Get3DRotationExponential(const std::vector <T> &angles, vnl_matrix <T> &outputRotation)
+{
+    const unsigned int dataDim = 3;
+    outputRotation.set_size(dataDim,dataDim);
+    outputRotation.set_identity();
+
+    double thetaValue = 0;
+    for (unsigned int i = 0;i < dataDim;++i)
+        thetaValue += angles[i] * angles[i];
+
+    if (thetaValue == 0)
+        return;
+
+    double sqrtTheta = std::sqrt(thetaValue);
+    double firstAddConstant = std::sin(sqrtTheta) / sqrtTheta;
+    double secondAddConstant = (1.0 - std::cos(sqrtTheta)) / thetaValue;
+
+    for (unsigned int i = 0;i < dataDim;++i)
+    {
+        for (unsigned int j = 0;j < dataDim;++j)
+        {
+            if (j != i)
+            {
+                outputRotation(i,i) -= secondAddConstant * angles[j] * angles[j];
+                outputRotation(i,j) += secondAddConstant * angles[i] * angles[j];
+            }
+        }
+    }
+
+    // Add skew symmetric part
+    outputRotation(0,1) -= angles[2] * firstAddConstant;
+    outputRotation(0,2) += angles[1] * firstAddConstant;
+    outputRotation(1,2) -= angles[0] * firstAddConstant;
+    outputRotation(1,0) += angles[2] * firstAddConstant;
+    outputRotation(2,0) -= angles[1] * firstAddConstant;
+    outputRotation(2,1) += angles[0] * firstAddConstant;
+}
+
 // Multi-threaded matrix logger
 template <class TInputScalarType, class TOutputScalarType, unsigned int NDimensions, unsigned int NDegreesOfFreedom>
 void
