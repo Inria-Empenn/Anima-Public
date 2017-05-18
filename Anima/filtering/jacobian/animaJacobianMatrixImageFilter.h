@@ -12,7 +12,8 @@ namespace anima
  * @brief Compute the Jacobian matrix in real coordinates of a displacement field
  *
  * The Jacobian matrix is computed as a linear least squares problem based on multiple directional derivatives around each pixel
- * The output vector in each voxel is of size Dimension^2 and is stored on rows first.
+ * The output vector in each voxel is of size Dimension^2 and is stored on rows first, i.e.
+ * J[0] = dT_0/dx_0, J[1] = dT_0/dx_1, J[2] = dT_0/dx_2, J[3] = dT_1/dx_0, ...
  */
 template <typename TPixelType, typename TOutputPixelType, unsigned int Dimension>
 class JacobianMatrixImageFilter :

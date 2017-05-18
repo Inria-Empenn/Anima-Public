@@ -57,16 +57,19 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
     InputPixelType pixelBeforeValue, pixelAfterValue;
     OutputPixelType outputValue;
     PointType pointBefore, pointAfter, unitVector;
-    std::vector < std::pair <IndexType,IndexType> > doubleDataTestVector;
+    std::vector <IndexType> indexesUsedVector;
     vnl_matrix <double> jacMatrix(Dimension,Dimension);
+
+    double meanSpacing = 0;
+    for (unsigned int i = 0;i < Dimension;++i)
+        meanSpacing += this->GetInput()->GetSpacing()[i];
+    meanSpacing /= Dimension;
 
     while (!inputItr.IsAtEnd())
     {
         currentIndex = inputItr.GetIndex();
 
-        // Construct region to explore, first determine which index is most adapted to split explored region in two
-        unsigned int halfSplitIndex = 0;
-        unsigned int largestGap = 0;
+        // Build the explored region
         for (unsigned int i = 0;i < Dimension;++i)
         {
             int largestIndex = largestRegion.GetIndex()[i];
@@ -75,47 +78,8 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
             unsigned int maxValue = largestIndex + largestRegion.GetSize()[i] - 1;
             unsigned int upperIndex = std::min(maxValue,(unsigned int)(currentIndex[i] + m_Neighborhood));
 
-            if ((upperIndex - currentIndex[i] == m_Neighborhood)||(currentIndex[i] - baseIndex == m_Neighborhood))
-            {
-                halfSplitIndex = i;
-                break;
-            }
-
-            unsigned int maxGap = std::max(upperIndex - currentIndex[i],currentIndex[i] - baseIndex);
-            if (largestGap < maxGap)
-            {
-                largestGap = maxGap;
-                halfSplitIndex = i;
-            }
-        }
-
-        // Then build the region
-        for (unsigned int i = 0;i < Dimension;++i)
-        {
-            int largestIndex = largestRegion.GetIndex()[i];
-            int testedIndex = currentIndex[i] - m_Neighborhood;
-            unsigned int baseIndex = std::max(largestIndex,testedIndex);
-            unsigned int maxValue = largestIndex + largestRegion.GetSize()[i] - 1;
-            unsigned int upperIndex = std::min(maxValue,(unsigned int)(currentIndex[i] + m_Neighborhood));
-
-            if (i == halfSplitIndex)
-            {
-                if (upperIndex - currentIndex[i] > currentIndex[i] - baseIndex)
-                {
-                    inputRegion.SetIndex(i,currentIndex[i]);
-                    inputRegion.SetSize(i,upperIndex - currentIndex[i] + 1);
-                }
-                else
-                {
-                    inputRegion.SetIndex(i,baseIndex);
-                    inputRegion.SetSize(i,currentIndex[i] - baseIndex + 1);
-                }
-            }
-            else
-            {
-                inputRegion.SetIndex(i,baseIndex);
-                inputRegion.SetSize(i,upperIndex - baseIndex + 1);
-            }
+            inputRegion.SetIndex(i,baseIndex);
+            inputRegion.SetSize(i,upperIndex - baseIndex + 1);
         }
 
         unsigned int maxRowSize = (inputRegion.GetNumberOfPixels() - 1) * Dimension;
@@ -125,7 +89,7 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
 
         InputIteratorType internalItr(this->GetInput(),inputRegion);
         unsigned int pos = 0;
-        doubleDataTestVector.clear();
+        indexesUsedVector.clear();
         while (!internalItr.IsAtEnd())
         {
             internalIndex = internalItr.GetIndex();
@@ -135,30 +99,27 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
                 continue;
             }
 
-            if (internalIndex[halfSplitIndex] == currentIndex[halfSplitIndex])
-            {
-                bool skipVoxel = false;
-                for (unsigned int i = 0;i < doubleDataTestVector.size();++i)
-                {
-                    if ((internalIndex == doubleDataTestVector[i].first)||(internalIndex == doubleDataTestVector[i].second))
-                    {
-                        skipVoxel = true;
-                        break;
-                    }
-                }
-
-                if (skipVoxel)
-                {
-                    ++internalItr;
-                    continue;
-                }
-            }
-
             for (unsigned int i = 0;i < Dimension;++i)
                 internalIndexOpposite[i] = 2 * currentIndex[i] - internalIndex[i];
 
-            if (internalIndex[halfSplitIndex] == currentIndex[halfSplitIndex])
-                doubleDataTestVector.push_back(std::make_pair(internalIndex,internalIndexOpposite));
+            bool skipVoxel = false;
+            for (unsigned int i = 0;i < indexesUsedVector.size();++i)
+            {
+                if ((internalIndexOpposite == indexesUsedVector[i])||(internalIndex == indexesUsedVector[i]))
+                {
+                    skipVoxel = true;
+                    break;
+                }
+            }
+
+            if (skipVoxel)
+            {
+                ++internalItr;
+                continue;
+            }
+
+            indexesUsedVector.push_back(internalIndex);
+            indexesUsedVector.push_back(internalIndexOpposite);
 
             pixelBeforeValue = internalItr.Get();
             pixelAfterValue = m_FieldInterpolator->EvaluateAtIndex(internalIndexOpposite);
@@ -172,6 +133,8 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
                 unitVector[i] = pointAfter[i] - pointBefore[i];
                 pointDist += unitVector[i] * unitVector[i];
             }
+
+            double dataWeight = std::sqrt(std::exp(- pointDist / (meanSpacing * meanSpacing)));
             pointDist = std::sqrt(pointDist);
             for (unsigned int i = 0;i < Dimension;++i)
                 unitVector[i] /= pointDist;
@@ -179,10 +142,10 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
             for (unsigned int i = 0;i < Dimension;++i)
             {
                 double diffValue = (pixelAfterValue[i] - pixelBeforeValue[i]) / pointDist;
-                dataVector[pos * Dimension + i] = diffValue;
+                dataVector[pos * Dimension + i] = diffValue * dataWeight;
 
                 for (unsigned int j = 0;j < Dimension;++j)
-                    dataMatrix(pos * Dimension + i,i * Dimension + j) = unitVector[j];
+                    dataMatrix(pos * Dimension + i,i * Dimension + j) = unitVector[j] * dataWeight;
             }
 
             ++pos;
