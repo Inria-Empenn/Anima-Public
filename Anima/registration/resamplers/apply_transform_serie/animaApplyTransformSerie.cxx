@@ -36,8 +36,16 @@ void applyTransformationToGradients(std::string &inputGradientsFileName, std::st
     trReader->Update();
     typename TransformType::Pointer transfo = trReader->GetOutputTransform();
 
-    TransformType::MatrixOffsetTransformPointerType linearTrsf = transfo->GetGlobalLinearTransform();
-    TransformType::MatrixOffsetTransformType::MatrixType linearMatrix = linearTrsf->GetMatrix();
+    if (!transfo->IsLinear())
+        throw itk::ExceptionObject(__FILE__,__LINE__,"Transformation is not globally linear",ITK_LOCATION);
+
+    typedef itk::MatrixOffsetTransformBase <double, 3> LinearTransformType;
+    LinearTransformType::Pointer linearTrsf = LinearTransformType::New();
+    linearTrsf->SetIdentity();
+    for (unsigned int i = 0;i < transfo->GetNumberOfTransforms();++i)
+        linearTrsf->Compose(dynamic_cast <LinearTransformType *> (transfo->GetNthTransform(i).GetPointer()));
+
+    LinearTransformType::MatrixType linearMatrix = linearTrsf->GetMatrix();
 
     typedef anima::GradientFileReader < vnl_vector_fixed <double,3>, double > GFReaderType;
     GFReaderType gfReader;

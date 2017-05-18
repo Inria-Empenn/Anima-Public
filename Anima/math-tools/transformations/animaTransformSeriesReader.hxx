@@ -152,7 +152,7 @@ TransformSeriesReader<TScalarType,NDimensions>
         }
     }
 
-    std::cout << "Loaded " << m_OutputTransform->GetNumberOfTransformsInStack() << " transformations from transform list file: " << m_Input << std::endl;
+    std::cout << "Loaded " << m_OutputTransform->GetNumberOfTransforms() << " transformations from transform list file: " << m_Input << std::endl;
 }
 
 template <class TScalarType, unsigned int NDimensions>
@@ -180,7 +180,7 @@ TransformSeriesReader<TScalarType,NDimensions>
         trsf = tmpInvert;
     }
 
-    m_OutputTransform->InsertTransform(trsf.GetPointer());
+    m_OutputTransform->AddTransform(trsf);
 }
 
 template <class TScalarType, unsigned int NDimensions>
@@ -208,7 +208,7 @@ TransformSeriesReader<TScalarType,NDimensions>
         dispTrsf = tmpInvert;
     }
 
-    m_OutputTransform->InsertTransform(dispTrsf.GetPointer());
+    m_OutputTransform->AddTransform(dispTrsf);
 }
 
 template <class TScalarType, unsigned int NDimensions>
@@ -234,7 +234,7 @@ TransformSeriesReader<TScalarType,NDimensions>
     DenseTransformPointer dispTrsf = DenseTransformType::New();
     anima::GetSVFExponential(svfPointer.GetPointer(),dispTrsf.GetPointer(),invert);
 
-    m_OutputTransform->InsertTransform(dispTrsf.GetPointer());
+    m_OutputTransform->AddTransform(dispTrsf);
 }
 
 } // end of namespace anima

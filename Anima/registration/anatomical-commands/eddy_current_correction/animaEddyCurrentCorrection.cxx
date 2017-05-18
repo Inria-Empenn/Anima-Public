@@ -6,7 +6,7 @@
 #include <itkExtractImageFilter.h>
 
 #include <itkImageRegionIterator.h>
-#include <itkGeneralTransform.h>
+#include <itkCompositeTransform.h>
 #include <itkStationaryVelocityFieldTransform.h>
 #include <rpiDisplacementFieldTransform.h>
 #include <animaVelocityUtils.h>
@@ -224,9 +224,9 @@ int main(int argc, const char** argv)
         }
 
         // Finally, apply transform serie to image
-        typedef itk::GeneralTransform <AgregatorType::ScalarType,Dimension> GeneralTransformType;
+        typedef itk::CompositeTransform <AgregatorType::ScalarType,Dimension> GeneralTransformType;
         GeneralTransformType::Pointer transformSerie = GeneralTransformType::New();
-        transformSerie->InsertTransform(matcher->GetOutputTransform().GetPointer());
+        transformSerie->AddTransform(matcher->GetOutputTransform().GetPointer());
 
         typedef itk::StationaryVelocityFieldTransform <AgregatorType::ScalarType,Dimension> SVFTransformType;
         typedef SVFTransformType::Pointer SVFTransformPointer;
@@ -239,7 +239,7 @@ int main(int argc, const char** argv)
         DenseTransformPointer dispTrsf = DenseTransformType::New();
         anima::GetSVFExponential(svfPointer.GetPointer(),dispTrsf.GetPointer(),false);
 
-        transformSerie->InsertTransform(dispTrsf.GetPointer());
+        transformSerie->AddTransform(dispTrsf.GetPointer());
 
         typedef anima::ResampleImageFilter<InputSubImageType, InputSubImageType> ResampleFilterType;
         ResampleFilterType::Pointer scalarResampler = ResampleFilterType::New();

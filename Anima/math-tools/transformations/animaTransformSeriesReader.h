@@ -1,6 +1,6 @@
 #pragma once
 
-#include <itkGeneralTransform.h>
+#include <itkCompositeTransform.h>
 
 namespace anima
 {
@@ -23,7 +23,7 @@ namespace anima
             bool invert;
         };
 
-        typedef itk::GeneralTransform <TScalarType,NDimensions> OutputTransformType;
+        typedef itk::CompositeTransform <TScalarType,NDimensions> OutputTransformType;
         typedef typename OutputTransformType::Pointer OutputTransformPointer;
 
         TransformSeriesReader();
