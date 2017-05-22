@@ -245,7 +245,7 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
             optimizedValue[i] -= 2.0 * M_PI * num2Pi + M_PI;
 
             double tmpVal = std::log(std::max(1.0e-6,data.workEigenValues[i]));
-            optimizedValue[i + 3] = std::min(- 4.6, std::max(tmpVal,- 13.5));
+            optimizedValue[i + 3] = std::min(- 4.6, std::max(tmpVal,- 14));
         }
 
         // NLOPT optimization
@@ -253,7 +253,7 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
 
         std::vector <double> lowerBounds(m_NumberOfComponents, - M_PI);
         for (unsigned int i = 0;i < 3;++i)
-            lowerBounds[i + 3] = - 13.5;
+            lowerBounds[i + 3] = - 14;
 
         opt.set_lower_bounds(lowerBounds);
 
