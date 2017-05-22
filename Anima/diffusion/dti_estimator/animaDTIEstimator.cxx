@@ -21,8 +21,8 @@ int main(int argc,  char **argv)
 
     TCLAP::ValueArg<std::string> inArg("i","inputdwi","dwi_volume",true,"","DWI volume",cmd);
     TCLAP::ValueArg<std::string> resArg("o","output","dit_volume",true,"","result DTI image",cmd);
-    TCLAP::ValueArg<std::string> b0OutArg("O","output-b0","output_b0",true,"","result B0 image",cmd);
-    TCLAP::ValueArg<std::string> varOutArg("N","output-variance","output_variance",true,"","result noise variance image",cmd);
+    TCLAP::ValueArg<std::string> b0OutArg("O","output-b0","output_b0",false,"","result B0 image",cmd);
+    TCLAP::ValueArg<std::string> varOutArg("N","output-variance","output_variance",false,"","result noise variance image",cmd);
 
     TCLAP::ValueArg<std::string> gradsArg("g","grad","input_gradients",true,"","Input gradients",cmd);
     TCLAP::ValueArg<std::string> bvalArg("b","bval","input_b-values",true,"","Input b-values",cmd);

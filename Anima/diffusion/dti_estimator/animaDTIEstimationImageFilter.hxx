@@ -172,7 +172,7 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
     typedef itk::ImageRegionIterator <OutputImageType> OutImageIteratorType;
     OutImageIteratorType outIterator(this->GetOutput(),outputRegionForThread);
 
-    typedef itk::ImageRegionIteratorWithIndex <OutputB0ImageType> OutB0ImageIteratorType;
+    typedef itk::ImageRegionIterator <OutputB0ImageType> OutB0ImageIteratorType;
     OutB0ImageIteratorType outB0Iterator(m_EstimatedB0Image,outputRegionForThread);
     OutB0ImageIteratorType outVarianceIterator(m_EstimatedVarianceImage,outputRegionForThread);
 
@@ -198,7 +198,8 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
         {
             outIterator.Set(resVec);
             outB0Iterator.Set(0);
-            
+            outVarianceIterator.Set(0);
+
             for (unsigned int i = 0;i < numInputs;++i)
                 ++inIterators[i];
             
@@ -234,14 +235,8 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
         for (unsigned int i = 0;i < 3;++i)
             cThetaControl += data.rotationMatrix(i,i);
 
-        if (std::abs(cThetaControl + 1.0) > 1.0e-4)
-        {
-            data.rotationMatrix = anima::GetLogarithm(data.rotationMatrix);
-
-            optimizedValue[0] = - data.rotationMatrix(1,2);
-            optimizedValue[1] = data.rotationMatrix(0,2);
-            optimizedValue[2] = - data.rotationMatrix(0,1);
-        }
+        if (std::abs(cThetaControl + 1.0) > 1.0e-5)
+            anima::Get3DRotationLogarithm(data.rotationMatrix,optimizedValue);
 
         for (unsigned int i = 0;i < 3;++i)
         {

@@ -268,6 +268,34 @@ template <class T> vnl_matrix <T> GetExponential(const vnl_matrix <T> & m, const
     return exp;
 }
 
+template <class T> void Get3DRotationLogarithm(const vnl_matrix <T> &rotationMatrix, std::vector <T> &outputAngles)
+{
+    const unsigned int dataDim = 3;
+    if (outputAngles.size() < dataDim)
+        outputAngles.resize(dataDim);
+
+    double rotationTrace = 0;
+    for (unsigned int i = 0;i < dataDim;++i)
+        rotationTrace += rotationMatrix(i,i);
+
+    double cTheta = (rotationTrace - 1.0) / 2.0;
+    double theta = std::acos(cTheta);
+    double sTheta = std::sin(theta);
+
+    unsigned int pos = 0;
+    for (int i = dataDim - 1;i >= 0;--i)
+    {
+        for (int j = dataDim - 1;j > i;--j)
+        {
+            outputAngles[pos] = theta * (rotationMatrix(i,j) - rotationMatrix(j,i)) / (2.0 * sTheta);
+            if (pos % 2 == 0)
+                outputAngles[pos] *= -1;
+
+            ++pos;
+        }
+    }
+}
+
 template <class T> void Get3DRotationExponential(const std::vector <T> &angles, vnl_matrix <T> &outputRotation)
 {
     const unsigned int dataDim = 3;
@@ -298,12 +326,25 @@ template <class T> void Get3DRotationExponential(const std::vector <T> &angles, 
     }
 
     // Add skew symmetric part
-    outputRotation(0,1) -= angles[2] * firstAddConstant;
-    outputRotation(0,2) += angles[1] * firstAddConstant;
-    outputRotation(1,2) -= angles[0] * firstAddConstant;
-    outputRotation(1,0) += angles[2] * firstAddConstant;
-    outputRotation(2,0) -= angles[1] * firstAddConstant;
-    outputRotation(2,1) += angles[0] * firstAddConstant;
+    unsigned int pos = dataDim - 1;
+    for (unsigned int i = 0;i < dataDim;++i)
+    {
+        for (unsigned int j = i + 1;j < dataDim;++j)
+        {
+            if ((i + j) % 2 != 0)
+            {
+                outputRotation(i,j) -= angles[pos] * firstAddConstant;
+                outputRotation(j,i) += angles[pos] * firstAddConstant;
+            }
+            else
+            {
+                outputRotation(i,j) += angles[pos] * firstAddConstant;
+                outputRotation(j,i) -= angles[pos] * firstAddConstant;
+            }
+
+            --pos;
+        }
+    }
 }
 
 // Multi-threaded matrix logger
