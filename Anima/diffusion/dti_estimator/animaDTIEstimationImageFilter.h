@@ -52,6 +52,7 @@ public:
     itkGetMacro(B0Threshold, double)
 
     itkGetMacro(EstimatedB0Image, OutputB0ImageType *)
+    itkGetMacro(EstimatedVarianceImage, OutputB0ImageType *)
 
     void AddGradientDirection(unsigned int i, vnl_vector_fixed<double,3> &grad);
 
@@ -63,6 +64,7 @@ protected:
 
         m_B0Threshold = 0;
         m_EstimatedB0Image = NULL;
+        m_EstimatedVarianceImage = NULL;
     }
 
     virtual ~DTIEstimationImageFilter() {}
@@ -78,7 +80,7 @@ protected:
                                  std::vector <double> &predictedValues, vnl_matrix <double> &rotationMatrix,
                                  vnl_matrix <double> &workTensor, vnl_diag_matrix <double> &workEigenValues);
 
-    double ComputeB0FromTensorVector(const vnl_matrix <double> &tensorValue, const std::vector <double> &dwiSignal);
+    double ComputeB0AndVarianceFromTensorVector(const vnl_matrix <double> &tensorValue, const std::vector <double> &dwiSignal, double &outVarianceValue);
 
 private:
     DTIEstimationImageFilter(const Self&); //purposely not implemented
@@ -88,7 +90,7 @@ private:
     std::vector< vnl_vector_fixed<double,3> > m_GradientDirections;
 
     double m_B0Threshold;
-    typename OutputB0ImageType::Pointer m_EstimatedB0Image;
+    typename OutputB0ImageType::Pointer m_EstimatedB0Image, m_EstimatedVarianceImage;
 
     static const unsigned int m_NumberOfComponents = 6;
 

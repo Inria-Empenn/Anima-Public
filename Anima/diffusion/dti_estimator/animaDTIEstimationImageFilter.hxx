@@ -118,6 +118,16 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
 
     m_EstimatedB0Image->Allocate();
     m_EstimatedB0Image->FillBuffer(0.0);
+    
+    m_EstimatedVarianceImage = OutputB0ImageType::New();
+    m_EstimatedVarianceImage->Initialize();
+    m_EstimatedVarianceImage->SetOrigin(this->GetOutput()->GetOrigin());
+    m_EstimatedVarianceImage->SetSpacing(this->GetOutput()->GetSpacing());
+    m_EstimatedVarianceImage->SetDirection(this->GetOutput()->GetDirection());
+    m_EstimatedVarianceImage->SetRegions(this->GetOutput()->GetLargestPossibleRegion());
+    
+    m_EstimatedVarianceImage->Allocate();
+    m_EstimatedVarianceImage->FillBuffer(0.0);
 
     vnl_matrix <double> initSolverSystem(this->GetNumberOfIndexedInputs(),m_NumberOfComponents + 1);
     initSolverSystem.fill(0.0);
@@ -164,6 +174,7 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
 
     typedef itk::ImageRegionIteratorWithIndex <OutputB0ImageType> OutB0ImageIteratorType;
     OutB0ImageIteratorType outB0Iterator(m_EstimatedB0Image,outputRegionForThread);
+    OutB0ImageIteratorType outVarianceIterator(m_EstimatedVarianceImage,outputRegionForThread);
 
     typedef typename OutputImageType::PixelType OutputPixelType;
     std::vector <double> dwi (numInputs,0);
@@ -194,10 +205,11 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
             ++maskIterator;
             ++outIterator;
             ++outB0Iterator;
+            ++outVarianceIterator;
             
             continue;
         }
-
+        
         for (unsigned int i = 0;i < numInputs;++i)
         {
             dwi[i] = inIterators[i].Get();
@@ -281,10 +293,12 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
         anima::RecomposeTensor(data.workEigenValues,data.rotationMatrix,data.workTensor);
         anima::GetVectorRepresentation(data.workTensor,resVec);
 
-        double outB0Value = this->ComputeB0FromTensorVector(data.workTensor,dwi);
+        double outVarianceValue;
+        double outB0Value = this->ComputeB0AndVarianceFromTensorVector(data.workTensor,dwi,outVarianceValue);
 
         outIterator.Set(resVec);
         outB0Iterator.Set(outB0Value);
+        outVarianceIterator.Set(outVarianceValue);
 
         for (unsigned int i = 0;i < numInputs;++i)
             ++inIterators[i];
@@ -292,20 +306,23 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
         ++maskIterator;
         ++outIterator;
         ++outB0Iterator;
+        ++outVarianceIterator;
     }
 }
 
 template <class InputPixelScalarType, class OutputPixelScalarType>
 double
 DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
-::ComputeB0FromTensorVector(const vnl_matrix <double> &tensorValue, const std::vector <double> &dwiSignal)
+::ComputeB0AndVarianceFromTensorVector(const vnl_matrix <double> &tensorValue, const std::vector <double> &dwiSignal, double &outVarianceValue)
 {
-    double outB0Value = 0;
-    double normConstant = 0;
+    double sumSquaredObservedSignals = 0;
+    double sumPredictedPerObservedSignals = 0;
+    double sumSquaredPredictedSignals = 0;
     unsigned int numInputs = dwiSignal.size();
 
     for (unsigned int i = 0;i < numInputs;++i)
     {
+        double observedValue = dwiSignal[i];
         double predictedValue = 0;
         double bValue = m_BValuesList[i];
 
@@ -322,12 +339,14 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
 
             predictedValue = std::exp(- bValue * predictedValue);
         }
-
-        outB0Value += predictedValue * dwiSignal[i];
-        normConstant += predictedValue * predictedValue;
+        
+        sumSquaredObservedSignals += observedValue * observedValue;
+        sumSquaredPredictedSignals += predictedValue * predictedValue;
+        sumPredictedPerObservedSignals += predictedValue * observedValue;
     }
 
-    outB0Value /= normConstant;
+    double outB0Value = sumPredictedPerObservedSignals / sumSquaredPredictedSignals;
+    outVarianceValue = (sumSquaredObservedSignals - 2.0 * outB0Value * sumPredictedPerObservedSignals + outB0Value * outB0Value * sumSquaredPredictedSignals) / (numInputs - 1.0);
     return outB0Value;
 }
 
