@@ -231,9 +231,11 @@ double ODFProbabilisticTractographyImageFilter::ComputeLogWeightUpdate(double b0
     DirectionVectorType maximaODF;
     unsigned int numDirs = this->FindODFMaxima(modelValue,maximaODF,m_MinimalDiffusionProbability,is2d);
 
+    double concentrationParameter = b0Value / std::sqrt(noiseValue);
+
     for (unsigned int i = 0;i < numDirs;++i)
     {
-        double tmpVal = std::log(anima::EvaluateWatsonPDF(maximaODF[i], newDirection, this->GetLogLikelihoodConcentrationParameter()));
+        double tmpVal = std::log(anima::EvaluateWatsonPDF(maximaODF[i], newDirection, concentrationParameter));
         if ((tmpVal > logLikelihood)||(i == 0))
             logLikelihood = tmpVal;
     }

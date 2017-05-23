@@ -27,7 +27,7 @@ int main(int argc,  char*  argv[])
     TCLAP::ValueArg<std::string> seedMaskArg("s","seed-mask","Seed mask",true,"","seed",cmd);
     TCLAP::ValueArg<std::string> fibersArg("o","fibers","Output fibers",true,"","fibers",cmd);
     TCLAP::ValueArg<std::string> b0Arg("b","b0","B0 image",true,"","b0 image",cmd);
-    TCLAP::ValueArg<std::string> noiseArg("N","noise","Noise image",false,"","noise image",cmd);
+    TCLAP::ValueArg<std::string> noiseArg("N","noise","Noise image",true,"","noise image",cmd);
 
     TCLAP::ValueArg<int> colinearityModeArg("","col-init-mode",
                                             "Colinearity mode for initialization - 0: center, 1: outward, 2: top, 3: bottom, 4: left, 5: right, 6: front, 7: back (default: 0)",
@@ -56,7 +56,6 @@ int main(int argc,  char*  argv[])
     TCLAP::ValueArg<double> minDiffProbaArg("","mdp","Minimal diffusion probability for an ODF direction to be kept (default: 0.02",false,0.01,"Minimal diffusion probability for an ODF direction",cmd);
     TCLAP::ValueArg<double> trashThrArg("","trash-thr","Relative threshold to keep fibers in trash (default: 0.1)",false,0.1,"trash threshold",cmd);
     TCLAP::ValueArg<double> kappaPriorArg("k","kappa-prior","Kappa of prior distribution (default: 15)",false,15.0,"prior kappa",cmd);
-    TCLAP::ValueArg<double> kappaLogLikelihoodArg("K","kappa-log","Concentration parameter for log-likelihood update (default: 15.0)",false,15.0,"log-likelihood kappa",cmd);
     TCLAP::ValueArg<double> curvScaleArg("","cs","Scale for ODF curvature to get vMF kappa (default: 6)",false,6.0,"scale for ODF curvature",cmd);
 
     TCLAP::ValueArg<double> distThrArg("","dist-thr","Hausdorff distance threshold for mergine clusters (default: 0.5)",false,0.5,"merging threshold",cmd);
@@ -108,9 +107,7 @@ int main(int argc,  char*  argv[])
 
     typedef MainFilterType::ScalarImageType ScalarImageType;
     odfTracker->SetB0Image(anima::readImage <ScalarImageType> (b0Arg.getValue()));
-
-    if (noiseArg.getValue() != "")
-        odfTracker->SetNoiseImage(anima::readImage <ScalarImageType> (noiseArg.getValue()));
+    odfTracker->SetNoiseImage(anima::readImage <ScalarImageType> (noiseArg.getValue()));
 
     odfTracker->SetNumberOfFibersPerPixel(nbFibersArg.getValue());
     odfTracker->SetStepProgression(stepLengthArg.getValue());
@@ -125,7 +122,6 @@ int main(int argc,  char*  argv[])
     
     odfTracker->SetMinimalDiffusionProbability(minDiffProbaArg.getValue());
     odfTracker->SetKappaOfPriorDistribution(kappaPriorArg.getValue());
-    odfTracker->SetLogLikelihoodConcentrationParameter(kappaLogLikelihoodArg.getValue());
     
     odfTracker->SetPositionDistanceFuseThreshold(distThrArg.getValue());
     odfTracker->SetKappaSplitThreshold(kappaThrArg.getValue());

@@ -150,9 +150,6 @@ public:
     itkSetMacro(KappaOfPriorDistribution,double)
     itkGetMacro(KappaOfPriorDistribution,double)
 
-    itkSetMacro(LogLikelihoodConcentrationParameter,double)
-    itkGetMacro(LogLikelihoodConcentrationParameter,double)
-
     itkSetMacro(PositionDistanceFuseThreshold,double)
     itkSetMacro(KappaSplitThreshold,double)
 
@@ -243,7 +240,6 @@ private:
     double m_ResamplingThreshold;
 
     double m_KappaOfPriorDistribution;
-    double m_LogLikelihoodConcentrationParameter;
 
     InputModelImagePointer m_InputModelImage;
 

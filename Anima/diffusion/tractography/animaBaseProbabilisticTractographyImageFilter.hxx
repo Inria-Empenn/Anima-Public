@@ -39,7 +39,6 @@ BaseProbabilisticTractographyImageFilter <TInputModelImageType>
     m_StepProgression = 1.0;
 
     m_KappaOfPriorDistribution = 30.0;
-    m_LogLikelihoodConcentrationParameter = 30.0;
 
     m_MinLengthFiber = 10.0;
     m_MaxLengthFiber = 150.0;
@@ -126,14 +125,14 @@ BaseProbabilisticTractographyImageFilter <TInputModelImageType>
     if (!m_B0Image)
         itkExceptionMacro("No B0 image, required");
 
+    if (!m_NoiseImage)
+        itkExceptionMacro("No sigma square noise image, required");
+
     m_B0Interpolator = ScalarInterpolatorType::New();
     m_B0Interpolator->SetInputImage(m_B0Image);
 
-    if (m_NoiseImage)
-    {
-        m_NoiseInterpolator = ScalarInterpolatorType::New();
-        m_NoiseInterpolator->SetInputImage(m_NoiseImage);
-    }
+    m_NoiseInterpolator = ScalarInterpolatorType::New();
+    m_NoiseInterpolator->SetInputImage(m_NoiseImage);
 
     // Initialize random generator
     m_Generators.resize(this->GetNumberOfThreads());
@@ -598,8 +597,7 @@ BaseProbabilisticTractographyImageFilter <TInputModelImageType>
             double estimatedNoiseValue = 20.0;
             this->ComputeModelValue(modelInterpolator, currentIndex, modelValue);
             double estimatedB0Value = m_B0Interpolator->EvaluateAtContinuousIndex(currentIndex);
-            if (m_NoiseImage)
-                estimatedNoiseValue = m_NoiseInterpolator->EvaluateAtContinuousIndex(currentIndex);
+            estimatedNoiseValue = m_NoiseInterpolator->EvaluateAtContinuousIndex(currentIndex);
 
             if (!this->CheckModelProperties(estimatedB0Value,estimatedNoiseValue,modelValue,numThread))
             {
@@ -678,8 +676,7 @@ BaseProbabilisticTractographyImageFilter <TInputModelImageType>
 
             this->ComputeModelValue(modelInterpolator, newIndex, modelValue);
             estimatedB0Value = m_B0Interpolator->EvaluateAtContinuousIndex(newIndex);
-            if (m_NoiseImage)
-                estimatedNoiseValue = m_NoiseInterpolator->EvaluateAtContinuousIndex(newIndex);
+            estimatedNoiseValue = m_NoiseInterpolator->EvaluateAtContinuousIndex(newIndex);
 
             // Update the weight of the particle
             double updateWeightLogVal = this->ComputeLogWeightUpdate(estimatedB0Value, estimatedNoiseValue, newDirection,

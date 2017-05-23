@@ -194,20 +194,22 @@ double DTIProbabilisticTractographyImageFilter::ComputeLogWeightUpdate(double b0
     // Computes prior, proposal and log-likelihood values
     double logLikelihood = 0;
     double LC = this->GetLinearCoefficient(modelValue);
+
+    double concentrationParameter = b0Value / std::sqrt(noiseValue);
     
     if (LC > m_ThresholdForProlateTensor)
     {
         Vector3DType dtiPrincipalDirection(0.0);
         
         this->GetDTIPrincipalDirection(modelValue, dtiPrincipalDirection, is2d);
-        logLikelihood = std::log(anima::EvaluateWatsonPDF(dtiPrincipalDirection, newDirection, this->GetLogLikelihoodConcentrationParameter()));
+        logLikelihood = std::log(anima::EvaluateWatsonPDF(dtiPrincipalDirection, newDirection, concentrationParameter));
     }
     else
     {
         Vector3DType dtiMinorDirection(0.0);
         
         this->GetDTIMinorDirection(modelValue, dtiMinorDirection);
-        logLikelihood = std::log(anima::EvaluateWatsonPDF(dtiMinorDirection, newDirection, this->GetLogLikelihoodConcentrationParameter()));
+        logLikelihood = std::log(anima::EvaluateWatsonPDF(dtiMinorDirection, newDirection, - concentrationParameter));
     }
     
     double resVal = log_prior + logLikelihood - log_proposal;
