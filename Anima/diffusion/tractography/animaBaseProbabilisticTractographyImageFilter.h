@@ -13,12 +13,11 @@
 #include <vector>
 #include <random>
 
-#include "AnimaTractographyExport.h"
-
 namespace anima
 {
 
-class ANIMATRACTOGRAPHY_EXPORT BaseProbabilisticTractographyImageFilter : public itk::ProcessObject
+template <class TInputModelImageType>
+class BaseProbabilisticTractographyImageFilter : public itk::ProcessObject
 {
 public:
     /** SmartPointer typedef support  */
@@ -34,11 +33,15 @@ public:
     typedef float ImageScalarType;
     typedef double MathScalarType;
 
-    // Typdefs for input DWI images
-    typedef itk::Image <ImageScalarType,4> Input4DImageType;
-    typedef itk::Image <ImageScalarType,3> InputImageType;
-    typedef InputImageType::Pointer InputImagePointerType;
-    typedef std::vector <InputImagePointerType> InputImagePointerVectorType;
+    // Typdef for input model image
+    typedef TInputModelImageType InputModelImageType;
+    typedef typename InputModelImageType::Pointer InputModelImagePointer;
+
+    // Typedefs for B0 and noise images
+    typedef itk::Image <ImageScalarType, 3> ScalarImageType;
+    typedef typename ScalarImageType::Pointer ScalarImagePointer;
+    typedef itk::LinearInterpolateImageFunction <ScalarImageType> ScalarInterpolatorType;
+    typedef typename ScalarInterpolatorType::Pointer ScalarInterpolatorPointer;
 
     // Typedefs for input mask image
     typedef itk::Image <unsigned short, 3> MaskImageType;
@@ -53,11 +56,10 @@ public:
     typedef std::vector <MathScalarType> ListType;
     typedef std::vector <Vector3DType> DirectionVectorType;
 
-    // Typedefs for DWI interpolator
-    typedef itk::LinearInterpolateImageFunction <InputImageType> InterpolatorType;
-    typedef InterpolatorType::Pointer InterpolatorPointerType;
-    typedef std::vector < InterpolatorPointerType > DWIInterpolatorPointerVectorType;
-    typedef InterpolatorType::ContinuousIndexType ContinuousIndexType;
+    // Typedefs for model images interpolator
+    typedef itk::InterpolateImageFunction <InputModelImageType> InterpolatorType;
+    typedef typename InterpolatorType::Pointer InterpolatorPointer;
+    typedef typename InterpolatorType::ContinuousIndexType ContinuousIndexType;
 
     // Typdefs for fibers
     typedef std::vector <PointType> FiberType;
@@ -122,27 +124,17 @@ public:
     void SetInitialDirectionMode(const InitialDirectionModeType &dir) {m_InitialDirectionMode = dir;}
     itkGetMacro(InitialDirectionMode,InitialDirectionModeType)
 
-    void SetInputImagesFrom4DImage(Input4DImageType *in4DImage);
-    InputImagePointerVectorType GetInputImages() {return m_InputImages;}
-    InputImageType *GetInputImage(unsigned int i)
-    {
-        if (i < m_InputImages.size())
-            return m_InputImages[i];
-
-        return 0;
-    }
-
-    void AddGradientDirection(unsigned int i, Vector3DType &grad);
-    DirectionVectorType &GetDiffusionGradients() {return m_DiffusionGradients;}
-    Vector3DType &GetDiffusionGradient(unsigned int i) {return m_DiffusionGradients[i];}
-
-    void SetBValuesList(ListType bValuesList) {m_BValuesList = bValuesList;}
-    MathScalarType GetBValueItem(unsigned int i) {return m_BValuesList[i];}
+    void SetInputModelImage(InputModelImageType *inImage) {m_InputModelImage = inImage;}
+    InputModelImageType *GetInputModelImage() {return m_InputModelImage;}
+    virtual InterpolatorType *GetModelInterpolator();
 
     itkSetObjectMacro(SeedMask,MaskImageType)
     itkSetObjectMacro(FilterMask,MaskImageType)
     itkSetObjectMacro(CutMask,MaskImageType)
     itkSetObjectMacro(ForbiddenMask,MaskImageType)
+
+    itkSetObjectMacro(B0Image,ScalarImageType)
+    itkSetObjectMacro(NoiseImage,ScalarImageType)
 
     itkSetMacro(NumberOfParticles,unsigned int)
     itkSetMacro(NumberOfFibersPerPixel,unsigned int)
@@ -157,6 +149,9 @@ public:
 
     itkSetMacro(KappaOfPriorDistribution,double)
     itkGetMacro(KappaOfPriorDistribution,double)
+
+    itkSetMacro(LogLikelihoodConcentrationParameter,double)
+    itkGetMacro(LogLikelihoodConcentrationParameter,double)
 
     itkSetMacro(PositionDistanceFuseThreshold,double)
     itkSetMacro(KappaSplitThreshold,double)
@@ -192,7 +187,7 @@ protected:
                                unsigned int endSeedIndex);
 
     //! This little guy is the one handling probabilistic tracking
-    FiberProcessVectorType ComputeFiber(FiberType &fiber, DWIInterpolatorPointerVectorType &dwiInterpolators,
+    FiberProcessVectorType ComputeFiber(FiberType &fiber, InterpolatorPointer &modelInterpolator,
                                         unsigned int numThread, ListType &resultWeights);
 
     //! Generate seed points (can be re-implemented but this one has to be called)
@@ -215,13 +210,11 @@ protected:
                                              std::mt19937 &random_generator, unsigned int threadId) = 0;
 
     //! Update particle weight based on an underlying model and the chosen direction (model dependent, not implemented here)
-    virtual double ComputeLogWeightUpdate(double b0Value, double noiseValue, Vector3DType &newDirection, Vector3DType &sampling_direction,
-                                          VectorType &modelValue, VectorType &dwiValue,
+    virtual double ComputeLogWeightUpdate(double b0Value, double noiseValue, Vector3DType &newDirection, VectorType &modelValue,
                                           double &log_prior, double &log_proposal, unsigned int threadId) = 0;
 
     //! Estimate model from raw diffusion data (model dependent, not implemented here)
-    virtual double ComputeModelEstimation(DWIInterpolatorPointerVectorType &dwiInterpolators, ContinuousIndexType &index,
-                                          VectorType &dwiValue, double &noiseValue, VectorType &modelValue) = 0;
+    virtual void ComputeModelValue(InterpolatorPointer &modelInterpolator, ContinuousIndexType &index, VectorType &modelValue) = 0;
 
     //! Initialize first direction from user input (model dependent, not implemented here)
     virtual Vector3DType InitializeFirstIterationFromModel(Vector3DType &colinearDir, VectorType &modelValue, unsigned int threadId) = 0;
@@ -250,18 +243,19 @@ private:
     double m_ResamplingThreshold;
 
     double m_KappaOfPriorDistribution;
+    double m_LogLikelihoodConcentrationParameter;
 
-    InputImagePointerVectorType m_InputImages;
+    InputModelImagePointer m_InputModelImage;
 
     MaskImagePointer m_SeedMask;
     MaskImagePointer m_FilterMask;
     MaskImagePointer m_CutMask;
     MaskImagePointer m_ForbiddenMask;
 
-    std::vector <std::mt19937> m_Generators;
+    ScalarImagePointer m_B0Image, m_NoiseImage;
+    ScalarInterpolatorPointer m_B0Interpolator, m_NoiseInterpolator;
 
-    DirectionVectorType m_DiffusionGradients;
-    ListType m_BValuesList;
+    std::vector <std::mt19937> m_Generators;
 
     ColinearityDirectionType m_InitialColinearityDirection;
     InitialDirectionModeType m_InitialDirectionMode;
@@ -287,3 +281,5 @@ private:
 };
 
 }//end of namesapce
+
+#include "animaBaseProbabilisticTractographyImageFilter.hxx"

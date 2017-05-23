@@ -15,17 +15,11 @@ namespace anima
 {
 
 ODFProbabilisticTractographyImageFilter::ODFProbabilisticTractographyImageFilter()
-: BaseProbabilisticTractographyImageFilter()
+    : BaseProbabilisticTractographyImageFilter()
 {
     m_ODFSHOrder = 4;
     m_GFAThreshold = 0.1;
     m_MinimalDiffusionProbability = 0;
-
-    // Magic value for regularization from Descoteaux et al. article
-    m_Lambda = 0.006;
-
-    // Delta from Aganj et al article to better handle noise
-    m_DeltaAganjRegularization = 0.001;
 
     m_CurvatureScale = 6.0;
 
@@ -40,90 +34,19 @@ ODFProbabilisticTractographyImageFilter::~ODFProbabilisticTractographyImageFilte
         delete m_ODFSHBasis;
 }
 
-void ODFProbabilisticTractographyImageFilter::SetODFSHOrder(unsigned int num)
-{
-    m_ODFSHOrder = num;
-    this->SetModelDimension((m_ODFSHOrder + 1)*(m_ODFSHOrder + 2)/2);
-}
-
 void ODFProbabilisticTractographyImageFilter::PrepareTractography()
 {
     // Call base preparation
     BaseProbabilisticTractographyImageFilter::PrepareTractography();
+
+    m_ODFSHOrder = std::round(-1.5 + 0.5 * std::sqrt(8 * this->GetInputModelImage()->GetNumberOfComponentsPerPixel() + 1));
+    this->SetModelDimension((m_ODFSHOrder + 1)*(m_ODFSHOrder + 2)/2);
 
     // Initialize estimation matrices for Aganj et al based estimation
     if (m_ODFSHBasis)
         delete m_ODFSHBasis;
 
     m_ODFSHBasis = new anima::ODFSphericalHarmonicBasis(m_ODFSHOrder);
-
-    unsigned int posValue = 0;
-    unsigned int numGrads = this->GetDiffusionGradients().size();
-
-    vnl_matrix <double> BMatrix(numGrads,this->GetModelDimension());
-    Vector3DType sphDiffGradient;
-
-    unsigned int pos = 0;
-    for (unsigned int i = 0;i < numGrads;++i)
-    {
-        if (anima::ComputeNorm(this->GetDiffusionGradient(i)) == 0)
-            continue;
-
-        posValue = 0;
-        anima::TransformCartesianToSphericalCoordinates(this->GetDiffusionGradient(i),sphDiffGradient);
-        for (int k = 0;k <= (int)m_ODFSHOrder;k += 2)
-            for (int m = -k;m <= k;++m)
-            {
-                BMatrix(pos,posValue) = m_ODFSHBasis->getNthSHValueAtPosition(k,m,sphDiffGradient[0],sphDiffGradient[1]);
-                ++posValue;
-            }
-
-        ++pos;
-    }
-
-    unsigned int realNumGrads = pos;
-    BMatrix.set_size(realNumGrads,this->GetModelDimension());
-
-    std::vector <double> LVector(this->GetModelDimension(),0);
-    std::vector <double> PVector(this->GetModelDimension(),0);
-
-    posValue = 0;
-    for (unsigned int k = 0;k <= m_ODFSHOrder;k += 2)
-    {
-        double ljVal = k*k*(k + 1)*(k + 1);
-        double pjValNum = 1, pjValDenom = 1, pjVal;
-
-        for (unsigned int l = 2;l <= k; l += 2)
-        {
-            pjValNum *= (l-1);
-            pjValDenom *= l;
-        }
-
-        pjVal = pjValNum/pjValDenom;
-        if (k/2 % 2 != 0)
-            pjVal *= -1;
-
-        for (int m = -k;m <= (int)k;++m)
-        {
-            LVector[posValue] = ljVal;
-            PVector[posValue] = k*(k+1.0)*pjVal/(-8.0*M_PI);
-
-            ++posValue;
-        }
-    }
-
-    vnl_matrix <double> tmpMat = BMatrix.transpose() * BMatrix;
-    for (unsigned int i = 0;i < this->GetModelDimension();++i)
-        tmpMat(i,i) += m_Lambda*LVector[i];
-
-    vnl_matrix_inverse <double> tmpInv(tmpMat);
-
-    m_SignalCoefsMatrix = tmpInv.inverse() * BMatrix.transpose();
-    m_TMatrix.set_size(this->GetModelDimension(),realNumGrads);
-
-    for (unsigned int i = 0;i < this->GetModelDimension();++i)
-        for (unsigned int j = 0;j < realNumGrads;++j)
-            m_TMatrix(i,j) = m_SignalCoefsMatrix(i,j) * PVector[i];
 }
 
 ODFProbabilisticTractographyImageFilter::Vector3DType
@@ -133,7 +56,7 @@ ODFProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDi
                                                              unsigned int threadId)
 {
     Vector3DType resVec(0.0);
-    bool is2d = (this->GetInputImage(0)->GetLargestPossibleRegion().GetSize()[2] == 1);
+    bool is2d = (this->GetInputModelImage()->GetLargestPossibleRegion().GetSize()[2] == 1);
 
     DirectionVectorType maximaODF;
     unsigned int numDirs = this->FindODFMaxima(modelValue,maximaODF,m_MinimalDiffusionProbability,is2d);
@@ -181,28 +104,28 @@ ODFProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDi
         chosenKappa = kappaValues[chosenDirection];
     }
 
-//    if (chosenKappa > 700)
-//        anima::SampleFromVMFDistributionNumericallyStable(chosenKappa,sampling_direction,resVec,random_generator);
-//    else
-//        anima::SampleFromVMFDistribution(chosenKappa,sampling_direction,resVec,random_generator);
+    //    if (chosenKappa > 700)
+    //        anima::SampleFromVMFDistributionNumericallyStable(chosenKappa,sampling_direction,resVec,random_generator);
+    //    else
+    //        anima::SampleFromVMFDistribution(chosenKappa,sampling_direction,resVec,random_generator);
 
     anima::SampleFromWatsonDistribution(chosenKappa,sampling_direction,resVec,3,random_generator);
 
     if (is2d)
     {
-        resVec[InputImageType::ImageDimension - 1] = 0;
+        resVec[InputModelImageType::ImageDimension - 1] = 0;
         resVec.Normalize();
     }
 
     if (numDirs > 0)
     {
-//        log_prior = anima::safe_log( anima::ComputeVMFPdf(resVec, oldDirection, this->GetKappaOfPriorDistribution()));
+        //        log_prior = anima::safe_log( anima::ComputeVMFPdf(resVec, oldDirection, this->GetKappaOfPriorDistribution()));
         log_prior = anima::safe_log( anima::EvaluateWatsonPDF(resVec, oldDirection, this->GetKappaOfPriorDistribution()));
 
         log_proposal = 0;
         for (unsigned int i = 0;i < numDirs;++i)
         {
-//            log_proposal += mixtureWeights[i] * anima::ComputeVMFPdf(resVec, maximaODF[i], kappaValues[i]);
+            //            log_proposal += mixtureWeights[i] * anima::ComputeVMFPdf(resVec, maximaODF[i], kappaValues[i]);
             log_proposal += mixtureWeights[i] * anima::EvaluateWatsonPDF(resVec, maximaODF[i], kappaValues[i]);
         }
 
@@ -219,7 +142,7 @@ ODFProbabilisticTractographyImageFilter::Vector3DType ODFProbabilisticTractograp
                                                                                                                                  unsigned int threadId)
 {
     Vector3DType resVec(0.0), tmpVec;
-    bool is2d = (this->GetInputImage(0)->GetLargestPossibleRegion().GetSize()[2] == 1);
+    bool is2d = (this->GetInputModelImage()->GetLargestPossibleRegion().GetSize()[2] == 1);
 
     DirectionVectorType maximaODF;
     unsigned int numDirs = this->FindODFMaxima(modelValue,maximaODF,m_MinimalDiffusionProbability,is2d);
@@ -233,7 +156,7 @@ ODFProbabilisticTractographyImageFilter::Vector3DType ODFProbabilisticTractograp
             double maxVal = 0;
             for (unsigned int i = 0;i < numDirs;++i)
             {
-                for (unsigned int j = 0;j < InputImageType::ImageDimension;++j)
+                for (unsigned int j = 0;j < InputModelImageType::ImageDimension;++j)
                     tmpVec[j] = maximaODF[i][j];
 
                 double tmpVal = anima::ComputeScalarProduct(colinearDir, tmpVec);
@@ -298,83 +221,24 @@ bool ODFProbabilisticTractographyImageFilter::CheckModelProperties(double estima
     return true;
 }
 
-double ODFProbabilisticTractographyImageFilter::ComputeLogWeightUpdate(double b0Value, double noiseValue, Vector3DType &newDirection, Vector3DType &sampling_direction,
-                                                                       VectorType &modelValue, VectorType &dwiValue,
+double ODFProbabilisticTractographyImageFilter::ComputeLogWeightUpdate(double b0Value, double noiseValue, Vector3DType &newDirection, VectorType &modelValue,
                                                                        double &log_prior, double &log_proposal, unsigned int threadId)
 {
-    Matrix3DType rotationMatrix = anima::GetRotationMatrixFromVectors(sampling_direction,newDirection);
-    rotationMatrix = rotationMatrix.GetTranspose();
+    double logLikelihood = 0.0;
 
-    unsigned int numGrads = this->GetDiffusionGradients().size();
-    Vector3DType rotatedGradient(0.0);
-    Vector3DType sphRotatedGradient;
-    std::vector <double> rescaledModel(this->GetModelDimension(),0);
+    bool is2d = (this->GetInputModelImage()->GetLargestPossibleRegion().GetSize()[2] == 1);
 
-    // Compute scale model to get signal simulation
-    unsigned int realNumGrads = m_TMatrix.columns();
-    std::vector <double> tmpData(realNumGrads,0);
+    DirectionVectorType maximaODF;
+    unsigned int numDirs = this->FindODFMaxima(modelValue,maximaODF,m_MinimalDiffusionProbability,is2d);
 
-    unsigned int pos = 0;
-    for (unsigned int i = 0;i < numGrads;++i)
+    for (unsigned int i = 0;i < numDirs;++i)
     {
-        if (anima::ComputeNorm(this->GetDiffusionGradient(i)) == 0)
-            continue;
-
-        double e = dwiValue[i] / b0Value;
-
-        if (e < 0)
-            tmpData[pos] = m_DeltaAganjRegularization / 2.0;
-        else if (e < m_DeltaAganjRegularization)
-            tmpData[pos] = m_DeltaAganjRegularization / 2.0 + e * e / (2.0 * m_DeltaAganjRegularization);
-        else if (e < 1.0 - m_DeltaAganjRegularization)
-            tmpData[pos] = e;
-        else if (e < 1)
-            tmpData[pos] = 1.0 - m_DeltaAganjRegularization / 2.0 - (1.0 - e) * (1.0 - e) / (2.0 * m_DeltaAganjRegularization);
-        else
-            tmpData[pos] = 1.0 - m_DeltaAganjRegularization / 2.0;
-
-        tmpData[pos] = std::log(-std::log(tmpData[pos]));
-        ++pos;
+        double tmpVal = std::log(anima::EvaluateWatsonPDF(maximaODF[i], newDirection, this->GetLogLikelihoodConcentrationParameter()));
+        if ((tmpVal > logLikelihood)||(i == 0))
+            logLikelihood = tmpVal;
     }
 
-    for (unsigned int i = 0;i < this->GetModelDimension();++i)
-    {
-        for (unsigned int j = 0;j < realNumGrads;++j)
-            rescaledModel[i] += m_SignalCoefsMatrix(i,j)*tmpData[j];
-    }
-
-    double logLikelihood = 0;
-
-    for (unsigned int i = 0;i < numGrads;++i)
-    {
-        if (anima::ComputeNorm(this->GetDiffusionGradient(i)) == 0)
-            continue;
-
-        for (unsigned int j = 0;j < InputImageType::ImageDimension;++j)
-        {
-            rotatedGradient[j] = 0;
-            for (unsigned int k = 0;k < InputImageType::ImageDimension;++k)
-                rotatedGradient[j] += rotationMatrix(j,k) * this->GetDiffusionGradient(i)[k];
-        }
-
-        anima::TransformCartesianToSphericalCoordinates(rotatedGradient,sphRotatedGradient);
-
-        double signalValue = m_ODFSHBasis->getValueAtPosition(rescaledModel,sphRotatedGradient[0],sphRotatedGradient[1]);
-
-        // Aganj et al formulation
-        signalValue = b0Value * exp(-exp(signalValue));
-        //std::cout << signalValue << " " << dwiValue[i] << std::endl;
-
-        double tmpVal = - 0.5 * log(noiseValue * 2 * M_PI);
-        double residual = dwiValue[i] - signalValue;
-        tmpVal -= residual * residual / (2.0 * noiseValue);
-
-        logLikelihood += tmpVal;
-    }
-
-    double resVal = logLikelihood / numGrads;
-    resVal += log_prior - log_proposal;
-
+    double resVal = logLikelihood + log_prior - log_proposal;
     return resVal;
 }
 
@@ -389,22 +253,22 @@ unsigned int ODFProbabilisticTractographyImageFilter::FindODFMaxima(const Vector
 
     // Find the max of the ODF v, set max to the value...
     struct XYZ array[] = {
-        {-1,0,0},
-        {0,-1,0},
-        {0,0,-1},
-        {0.1789,0.1113,-0.9776},
-        {0.0635,-0.3767,-0.9242},
-        {-0.7108,-0.0516,-0.7015},
-        {-0.6191,0.4385,-0.6515},
-        {-0.2424,-0.7843,-0.571},
-        {0.2589,0.618,-0.7423},
-        {0.8169,-0.1697,-0.5513},
-        {0.8438,-0.5261,-0.106},
-        {0.2626,-0.9548,-0.1389},
-        {-1e-04,-0.9689,0.2476},
-        {-0.7453,-0.6663,0.0242},
-        {-0.9726,-0.2317,0.0209}
-    };
+    {-1,0,0},
+    {0,-1,0},
+    {0,0,-1},
+    {0.1789,0.1113,-0.9776},
+    {0.0635,-0.3767,-0.9242},
+    {-0.7108,-0.0516,-0.7015},
+    {-0.6191,0.4385,-0.6515},
+    {-0.2424,-0.7843,-0.571},
+    {0.2589,0.618,-0.7423},
+    {0.8169,-0.1697,-0.5513},
+    {0.8438,-0.5261,-0.106},
+    {0.2626,-0.9548,-0.1389},
+    {-1e-04,-0.9689,0.2476},
+    {-0.7453,-0.6663,0.0242},
+    {-0.9726,-0.2317,0.0209}
+};
 
     for (unsigned int i = 0;i < initDirs.size();++i)
     {
@@ -493,15 +357,15 @@ unsigned int ODFProbabilisticTractographyImageFilter::FindODFMaxima(const Vector
             maxima[i][2] = 0;
 
             double norm = 0;
-            for (unsigned int j = 0;j < InputImageType::ImageDimension - 1;++j)
+            for (unsigned int j = 0;j < InputModelImageType::ImageDimension - 1;++j)
                 norm += maxima[i][j] * maxima[i][j];
             norm = sqrt(norm);
 
-            outOfPlaneDirs[i] = (fabs(norm) < 0.5);
+            outOfPlaneDirs[i] = (std::abs(norm) < 0.5);
 
             if (!outOfPlaneDirs[i])
             {
-                for (unsigned int j = 0;j < InputImageType::ImageDimension - 1;++j)
+                for (unsigned int j = 0;j < InputModelImageType::ImageDimension - 1;++j)
                     maxima[i][j] /= norm;
             }
         }
@@ -520,60 +384,14 @@ unsigned int ODFProbabilisticTractographyImageFilter::FindODFMaxima(const Vector
     return maxima.size();
 }
 
-double ODFProbabilisticTractographyImageFilter::ComputeModelEstimation(DWIInterpolatorPointerVectorType &dwiInterpolators, ContinuousIndexType &index,
-                                                                       VectorType &dwiValue, double &noiseValue, VectorType &modelValue)
+void ODFProbabilisticTractographyImageFilter::ComputeModelValue(InterpolatorPointer &modelInterpolator, ContinuousIndexType &index,
+                                                                VectorType &modelValue)
 {
-    unsigned int numInputs = dwiInterpolators.size();
-    dwiValue.SetSize(numInputs);
-
-    for (unsigned int i = 0;i < numInputs;++i)
-        dwiValue[i] = dwiInterpolators[i]->EvaluateAtContinuousIndex(index);
-
-    double b0Value = dwiValue[0];
-
     modelValue.SetSize(this->GetModelDimension());
     modelValue.Fill(0.0);
 
-    // Hard coded noise value for now
-    noiseValue = 20;
-    if (b0Value <= 0)
-        return 0;
-
-    unsigned int realNumGrads = m_TMatrix.columns();
-    std::vector <double> tmpData(realNumGrads,0);
-
-    unsigned int pos = 0;
-    for (unsigned int i = 0;i < numInputs;++i)
-    {
-        if (anima::ComputeNorm(this->GetDiffusionGradient(i)) == 0)
-            continue;
-
-        double e = dwiValue[i] / b0Value;
-
-        if (e < 0)
-            tmpData[pos] = m_DeltaAganjRegularization / 2.0;
-        else if (e < m_DeltaAganjRegularization)
-            tmpData[pos] = m_DeltaAganjRegularization / 2.0 + e * e / (2.0 * m_DeltaAganjRegularization);
-        else if (e < 1.0 - m_DeltaAganjRegularization)
-            tmpData[pos] = e;
-        else if (e < 1)
-            tmpData[pos] = 1.0 - m_DeltaAganjRegularization / 2.0 - (1.0 - e) * (1.0 - e) / (2.0 * m_DeltaAganjRegularization);
-        else
-            tmpData[pos] = 1.0 - m_DeltaAganjRegularization / 2.0;
-
-        tmpData[pos] = std::log(-std::log(tmpData[pos]));
-        ++pos;
-    }
-
-    modelValue[0] = 1.0 / (2.0 * sqrt(M_PI));
-
-    for (unsigned int i = 1;i < this->GetModelDimension();++i)
-    {
-        for (unsigned int j = 0;j < realNumGrads;++j)
-            modelValue[i] += m_TMatrix(i,j)*tmpData[j];
-    }
-
-    return b0Value;
+    if (modelInterpolator->IsInsideBuffer(index))
+        modelValue = modelInterpolator->EvaluateAtContinuousIndex(index);
 }
 
 double ODFProbabilisticTractographyImageFilter::GetGeneralizedFractionalAnisotropy(VectorType &modelValue)

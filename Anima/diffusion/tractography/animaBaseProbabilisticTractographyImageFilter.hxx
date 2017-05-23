@@ -1,6 +1,7 @@
 #include "animaBaseProbabilisticTractographyImageFilter.h"
 
 #include <itkImageRegionIteratorWithIndex.h>
+#include <itkLinearInterpolateImageFunction.h>
 
 #include <itkImageRegionIterator.h>
 #include <itkImageRegionConstIterator.h>
@@ -23,17 +24,9 @@
 namespace anima
 {
 
-void BaseProbabilisticTractographyImageFilter::AddGradientDirection(unsigned int i, Vector3DType &grad)
-{
-    if (i == m_DiffusionGradients.size())
-        m_DiffusionGradients.push_back(grad);
-    else if (i > m_DiffusionGradients.size())
-        std::cerr << "Trying to add a direction not contiguous... Add directions contiguously (0,1,2,3,...)..." << std::endl;
-    else
-        m_DiffusionGradients[i] = grad;
-}
-
-BaseProbabilisticTractographyImageFilter::BaseProbabilisticTractographyImageFilter()
+template <class TInputModelImageType>
+BaseProbabilisticTractographyImageFilter <TInputModelImageType>
+::BaseProbabilisticTractographyImageFilter()
 {
     m_PointsToProcess.clear();
 
@@ -46,6 +39,7 @@ BaseProbabilisticTractographyImageFilter::BaseProbabilisticTractographyImageFilt
     m_StepProgression = 1.0;
 
     m_KappaOfPriorDistribution = 30.0;
+    m_LogLikelihoodConcentrationParameter = 30.0;
 
     m_MinLengthFiber = 10.0;
     m_MaxLengthFiber = 150.0;
@@ -67,13 +61,18 @@ BaseProbabilisticTractographyImageFilter::BaseProbabilisticTractographyImageFilt
     m_ProgressReport = 0;
 }
 
-BaseProbabilisticTractographyImageFilter::~BaseProbabilisticTractographyImageFilter()
+template <class TInputModelImageType>
+BaseProbabilisticTractographyImageFilter <TInputModelImageType>
+::~BaseProbabilisticTractographyImageFilter()
 {
     if (m_ProgressReport)
         delete m_ProgressReport;
 }
 
-void BaseProbabilisticTractographyImageFilter::Update()
+template <class TInputModelImageType>
+void
+BaseProbabilisticTractographyImageFilter <TInputModelImageType>
+::Update()
 {
     this->PrepareTractography();
     m_Output = vtkPolyData::New();
@@ -119,8 +118,23 @@ void BaseProbabilisticTractographyImageFilter::Update()
     this->createVTKOutput(resultFibers, resultWeights);
 }
 
-void BaseProbabilisticTractographyImageFilter::PrepareTractography()
+template <class TInputModelImageType>
+void
+BaseProbabilisticTractographyImageFilter <TInputModelImageType>
+::PrepareTractography()
 {
+    if (!m_B0Image)
+        itkExceptionMacro("No B0 image, required");
+
+    m_B0Interpolator = ScalarInterpolatorType::New();
+    m_B0Interpolator->SetInputImage(m_B0Image);
+
+    if (m_NoiseImage)
+    {
+        m_NoiseInterpolator = ScalarInterpolatorType::New();
+        m_NoiseInterpolator->SetInputImage(m_NoiseImage);
+    }
+
     // Initialize random generator
     m_Generators.resize(this->GetNumberOfThreads());
 
@@ -129,24 +143,24 @@ void BaseProbabilisticTractographyImageFilter::PrepareTractography()
     for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
         m_Generators[i] = std::mt19937(motherGenerator());
 
-    // If needed, compute DWI gravity center
-    bool is2d = m_InputImages[0]->GetLargestPossibleRegion().GetSize()[2] == 1;
+    bool is2d = m_InputModelImage->GetLargestPossibleRegion().GetSize()[2] == 1;
     if (is2d && (m_InitialColinearityDirection == Top))
         m_InitialColinearityDirection = Front;
     if (is2d && (m_InitialColinearityDirection == Bottom))
         m_InitialColinearityDirection = Back;
 
+    // If needed, ensure DWI gravity center is computed
     if ((m_InitialColinearityDirection == Outward)||(m_InitialColinearityDirection == Center))
     {
-        itk::ImageMomentsCalculator <InputImageType>::Pointer momentsCalculator = itk::ImageMomentsCalculator <InputImageType>::New();
-        momentsCalculator->SetImage(m_InputImages[0]);
+        itk::ImageMomentsCalculator <ScalarImageType>::Pointer momentsCalculator = itk::ImageMomentsCalculator <ScalarImageType>::New();
+        momentsCalculator->SetImage(m_B0Image);
         momentsCalculator->Compute();
         m_DWIGravityCenter = momentsCalculator->GetCenterOfGravity();
     }
 
     typedef itk::ImageRegionIteratorWithIndex <MaskImageType> MaskImageIteratorType;
 
-    MaskImageIteratorType maskItr(m_SeedMask, m_InputImages[0]->GetLargestPossibleRegion());
+    MaskImageIteratorType maskItr(m_SeedMask, m_InputModelImage->GetLargestPossibleRegion());
     m_PointsToProcess.clear();
 
     IndexType tmpIndex;
@@ -160,7 +174,7 @@ void BaseProbabilisticTractographyImageFilter::PrepareTractography()
 
     if (m_FilterMask)
     {
-        MaskImageIteratorType filterItr(m_FilterMask, m_InputImages[0]->GetLargestPossibleRegion());
+        MaskImageIteratorType filterItr(m_FilterMask, m_InputModelImage->GetLargestPossibleRegion());
         while (!filterItr.IsAtEnd())
         {
             if (filterItr.Get() == 0)
@@ -237,7 +251,22 @@ void BaseProbabilisticTractographyImageFilter::PrepareTractography()
     std::cout << "Generated " << m_PointsToProcess.size() << " seed points from ROI mask" << std::endl;
 }
 
-ITK_THREAD_RETURN_TYPE BaseProbabilisticTractographyImageFilter::ThreadTracker(void *arg)
+template <class TInputModelImageType>
+typename BaseProbabilisticTractographyImageFilter <TInputModelImageType>::InterpolatorType *
+BaseProbabilisticTractographyImageFilter <TInputModelImageType>::GetModelInterpolator()
+{
+    typedef itk::LinearInterpolateImageFunction <InputModelImageType> InternalInterpolatorType;
+
+    typename InternalInterpolatorType::Pointer outInterpolator = InternalInterpolatorType::New();
+    outInterpolator->SetInputImage(m_InputModelImage);
+
+    return outInterpolator;
+}
+
+template <class TInputModelImageType>
+ITK_THREAD_RETURN_TYPE
+BaseProbabilisticTractographyImageFilter <TInputModelImageType>
+::ThreadTracker(void *arg)
 {
     itk::MultiThreader::ThreadInfoStruct *threadArgs = (itk::MultiThreader::ThreadInfoStruct *)arg;
     unsigned int nbThread = threadArgs->ThreadID;
@@ -248,8 +277,11 @@ ITK_THREAD_RETURN_TYPE BaseProbabilisticTractographyImageFilter::ThreadTracker(v
     return NULL;
 }
 
-void BaseProbabilisticTractographyImageFilter::ThreadTrack(unsigned int numThread, FiberProcessVectorType &resultFibers,
-                                                           ListType &resultWeights)
+template <class TInputModelImageType>
+void
+BaseProbabilisticTractographyImageFilter <TInputModelImageType>
+::ThreadTrack(unsigned int numThread, FiberProcessVectorType &resultFibers,
+              ListType &resultWeights)
 {
     bool continueLoop = true;
     unsigned int highestToleratedSeedIndex = m_PointsToProcess.size();
@@ -286,18 +318,14 @@ void BaseProbabilisticTractographyImageFilter::ThreadTrack(unsigned int numThrea
     }
 }
 
-void BaseProbabilisticTractographyImageFilter::ThreadedTrackComputer(unsigned int numThread, FiberProcessVectorType &resultFibers,
-                                                                     ListType &resultWeights, unsigned int startSeedIndex,
-                                                                     unsigned int endSeedIndex)
+template <class TInputModelImageType>
+void
+BaseProbabilisticTractographyImageFilter <TInputModelImageType>
+::ThreadedTrackComputer(unsigned int numThread, FiberProcessVectorType &resultFibers,
+                        ListType &resultWeights, unsigned int startSeedIndex,
+                        unsigned int endSeedIndex)
 {
-    unsigned int nbImages = m_InputImages.size();
-    DWIInterpolatorPointerVectorType dwiInterpolators(nbImages);
-    for (unsigned int i = 0;i < nbImages;++i)
-    {
-        dwiInterpolators[i] = InterpolatorType::New();
-        dwiInterpolators[i]->SetInputImage(m_InputImages[i]);
-    }
-
+    InterpolatorPointer modelInterpolator = this->GetModelInterpolator();
     FiberProcessVectorType tmpFibers;
     ListType tmpWeights;
     ContinuousIndexType startIndex;
@@ -306,16 +334,7 @@ void BaseProbabilisticTractographyImageFilter::ThreadedTrackComputer(unsigned in
     {
         m_SeedMask->TransformPhysicalPointToContinuousIndex(m_PointsToProcess[i][0],startIndex);
 
-        // TO DO FOR DIRECTIONAL INTEGRATION: write generic function to extract local fiber orientations from model
-        VectorType dwiValue(nbImages);
-        dwiValue.Fill(0.0);
-        VectorType modelValue(m_ModelDimension);
-        modelValue.Fill(0.0);
-        double noiseValue = 20;
-        this->ComputeModelEstimation(dwiInterpolators, startIndex, dwiValue, noiseValue, modelValue);
-
-        // CHECK NEEDED : Do we update the right things ?
-        tmpFibers = this->ComputeFiber(m_PointsToProcess[i], dwiInterpolators, numThread, tmpWeights);
+        tmpFibers = this->ComputeFiber(m_PointsToProcess[i], modelInterpolator, numThread, tmpWeights);
 
         tmpFibers = this->FilterOutputFibers(tmpFibers, tmpWeights);
 
@@ -330,8 +349,10 @@ void BaseProbabilisticTractographyImageFilter::ThreadedTrackComputer(unsigned in
     }
 }
 
-BaseProbabilisticTractographyImageFilter::FiberProcessVectorType
-BaseProbabilisticTractographyImageFilter::FilterOutputFibers(FiberProcessVectorType &fibers, ListType &weights)
+template <class TInputModelImageType>
+typename BaseProbabilisticTractographyImageFilter <TInputModelImageType>::FiberProcessVectorType
+BaseProbabilisticTractographyImageFilter <TInputModelImageType>
+::FilterOutputFibers(FiberProcessVectorType &fibers, ListType &weights)
 {
     FiberProcessVectorType resVal;
     ListType tmpWeights = weights;
@@ -404,7 +425,10 @@ BaseProbabilisticTractographyImageFilter::FilterOutputFibers(FiberProcessVectorT
     return resVal;
 }
 
-void BaseProbabilisticTractographyImageFilter::createVTKOutput(FiberProcessVectorType &filteredFibers, ListType &filteredWeights)
+template <class TInputModelImageType>
+void
+BaseProbabilisticTractographyImageFilter <TInputModelImageType>
+::createVTKOutput(FiberProcessVectorType &filteredFibers, ListType &filteredWeights)
 {
     m_Output = vtkPolyData::New();
     m_Output->Initialize();
@@ -474,11 +498,12 @@ void BaseProbabilisticTractographyImageFilter::createVTKOutput(FiberProcessVecto
     m_Output->GetPointData()->AddArray(weights);
 }
 
-BaseProbabilisticTractographyImageFilter::FiberProcessVectorType
-BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInterpolatorPointerVectorType &dwiInterpolators,
-                                                       unsigned int numThread, ListType &resultWeights)
+template <class TInputModelImageType>
+typename BaseProbabilisticTractographyImageFilter <TInputModelImageType>::FiberProcessVectorType
+BaseProbabilisticTractographyImageFilter <TInputModelImageType>
+::ComputeFiber(FiberType &fiber, InterpolatorPointer &modelInterpolator,
+               unsigned int numThread, ListType &resultWeights)
 {
-    unsigned int nbImages = dwiInterpolators.size();
     unsigned int numberOfClasses = 1;
 
     FiberWorkType fiberComputationData;
@@ -516,9 +541,8 @@ BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInte
     std::vector <bool> usedFibers;
 
     // Here to constrain directions to 2D plane if needed
-    bool is2d = m_InputImages[0]->GetLargestPossibleRegion().GetSize()[2] == 1;
+    bool is2d = m_InputModelImage->GetLargestPossibleRegion().GetSize()[2] == 1;
 
-    VectorType dwiValue(nbImages);
     VectorType modelValue(m_ModelDimension);
 
     Vector3DType sampling_direction(0.0), newDirection;
@@ -549,7 +573,7 @@ BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInte
             m_SeedMask->TransformPhysicalPointToContinuousIndex(currentPoint,currentIndex);
 
             // Trash fiber if it goes outside of the brain
-            if (!dwiInterpolators[0]->IsInsideBuffer(currentIndex))
+            if (!modelInterpolator->IsInsideBuffer(currentIndex))
             {
                 fiberComputationData.stoppedParticles[i] = true;
                 fiberComputationData.particleWeights[i] = 0;
@@ -570,10 +594,12 @@ BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInte
             }
 
             // Computes diffusion information at current position
-            dwiValue.Fill(0.0);
             modelValue.Fill(0.0);
             double estimatedNoiseValue = 20.0;
-            double estimatedB0Value = this->ComputeModelEstimation(dwiInterpolators, currentIndex, dwiValue, estimatedNoiseValue, modelValue);
+            this->ComputeModelValue(modelInterpolator, currentIndex, modelValue);
+            double estimatedB0Value = m_B0Interpolator->EvaluateAtContinuousIndex(currentIndex);
+            if (m_NoiseImage)
+                estimatedNoiseValue = m_NoiseInterpolator->EvaluateAtContinuousIndex(currentIndex);
 
             if (!this->CheckModelProperties(estimatedB0Value,estimatedNoiseValue,modelValue,numThread))
             {
@@ -607,12 +633,12 @@ BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInte
                         initDir[1] = 1;
                         break;
                     case Outward:
-                        for (unsigned int j = 0;j < InputImageType::ImageDimension;++j)
+                        for (unsigned int j = 0;j < InputModelImageType::ImageDimension;++j)
                             initDir[j] = currentPoint[j] - m_DWIGravityCenter[j];
                         break;
                     case Center:
                     default:
-                        for (unsigned int j = 0;j < InputImageType::ImageDimension;++j)
+                        for (unsigned int j = 0;j < InputModelImageType::ImageDimension;++j)
                             initDir[j] = m_DWIGravityCenter[j] - currentPoint[j];
                         break;
                 }
@@ -630,7 +656,7 @@ BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInte
                                                      log_proposal, m_Generators[numThread], numThread);
 
             // Update the position of the particle
-            for (unsigned int j = 0;j < InputImageType::ImageDimension;++j)
+            for (unsigned int j = 0;j < InputModelImageType::ImageDimension;++j)
                 currentPoint[j] += m_StepProgression * newDirection[j];
 
             // Log-weight update must be done at new position (except for prior and proposal)
@@ -641,7 +667,7 @@ BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInte
 
             modelValue.Fill(0.0);
 
-            if (!dwiInterpolators[0]->IsInsideBuffer(newIndex))
+            if (!modelInterpolator->IsInsideBuffer(newIndex))
             {
                 fiberComputationData.stoppedParticles[i] = true;
                 fiberComputationData.particleWeights[i] = 0;
@@ -650,11 +676,14 @@ BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInte
 
             fiberComputationData.fiberParticles[i].push_back(currentPoint);
 
-            estimatedB0Value = this->ComputeModelEstimation(dwiInterpolators, newIndex, dwiValue, estimatedNoiseValue, modelValue);
+            this->ComputeModelValue(modelInterpolator, newIndex, modelValue);
+            estimatedB0Value = m_B0Interpolator->EvaluateAtContinuousIndex(newIndex);
+            if (m_NoiseImage)
+                estimatedNoiseValue = m_NoiseInterpolator->EvaluateAtContinuousIndex(newIndex);
 
             // Update the weight of the particle
-            double updateWeightLogVal = this->ComputeLogWeightUpdate(estimatedB0Value, estimatedNoiseValue, newDirection, sampling_direction,
-                                                                     modelValue, dwiValue, log_prior, log_proposal, numThread);
+            double updateWeightLogVal = this->ComputeLogWeightUpdate(estimatedB0Value, estimatedNoiseValue, newDirection,
+                                                                     modelValue, log_prior, log_proposal, numThread);
 
             logWeightVals[i] = updateWeightLogVal + anima::safe_log(oldFiberWeights[i]);
         }
@@ -848,8 +877,10 @@ BaseProbabilisticTractographyImageFilter::ComputeFiber(FiberType &fiber, DWIInte
     return fiberComputationData.fiberParticles;
 }
 
+template <class TInputModelImageType>
 unsigned int
-BaseProbabilisticTractographyImageFilter::UpdateClassesMemberships(FiberWorkType &fiberData, DirectionVectorType &directions, std::mt19937 &random_generator)
+BaseProbabilisticTractographyImageFilter <TInputModelImageType>
+::UpdateClassesMemberships(FiberWorkType &fiberData, DirectionVectorType &directions, std::mt19937 &random_generator)
 {
     const unsigned int p = PointType::PointDimension;
     typedef anima::KMeansFilter <PointType,p> KMeansFilterType;
@@ -1215,10 +1246,10 @@ BaseProbabilisticTractographyImageFilter::UpdateClassesMemberships(FiberWorkType
     return finalNumClasses;
 }
 
+template <class TInputModelImageType>
 bool
-BaseProbabilisticTractographyImageFilter::MergeParticleClassFibers(FiberWorkType &fiberData,
-                                                                   FiberProcessVectorType &outputMerged,
-                                                                   unsigned int classNumber)
+BaseProbabilisticTractographyImageFilter <TInputModelImageType>
+::MergeParticleClassFibers(FiberWorkType &fiberData, FiberProcessVectorType &outputMerged, unsigned int classNumber)
 {
     unsigned int numClasses = fiberData.classSizes.size();
     outputMerged.clear();
@@ -1345,35 +1376,6 @@ BaseProbabilisticTractographyImageFilter::MergeParticleClassFibers(FiberWorkType
     }
 
     return false;
-}
-
-void BaseProbabilisticTractographyImageFilter::SetInputImagesFrom4DImage(Input4DImageType *in4DImage)
-{
-    unsigned int ndim = in4DImage->GetLargestPossibleRegion().GetSize()[3];
-
-    Input4DImageType::RegionType region4d = in4DImage->GetLargestPossibleRegion();
-    region4d.SetSize(3,0);
-
-    typedef itk::ExtractImageFilter <Input4DImageType,InputImageType> ImageExtractorType;
-    typedef ImageExtractorType::Pointer ImageExtractorPointer;
-
-    std::cout << "Loading " << ndim << " input DWIs from 4D image..." << std::endl;
-
-    m_InputImages.resize(ndim);
-    for (unsigned int i = 0;i < ndim;++i)
-    {
-        region4d.SetIndex(3,i);
-
-        ImageExtractorPointer imageExtractor = ImageExtractorType::New();
-        imageExtractor->SetInput(in4DImage);
-        imageExtractor->SetExtractionRegion(region4d);
-        imageExtractor->SetDirectionCollapseToGuess();
-
-        imageExtractor->Update();
-
-        m_InputImages[i] = imageExtractor->GetOutput();
-        m_InputImages[i]->DisconnectPipeline();
-    }
 }
 
 } // end of namespace anima

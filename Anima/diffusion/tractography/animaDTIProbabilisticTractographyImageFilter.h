@@ -1,5 +1,6 @@
 #pragma once
 
+#include <itkVectorImage.h>
 #include <animaBaseProbabilisticTractographyImageFilter.h>
 #include <random>
 
@@ -8,36 +9,27 @@
 namespace anima
 {
 
-class ANIMATRACTOGRAPHY_EXPORT DTIProbabilisticTractographyImageFilter : public BaseProbabilisticTractographyImageFilter
+class ANIMATRACTOGRAPHY_EXPORT DTIProbabilisticTractographyImageFilter : public BaseProbabilisticTractographyImageFilter < itk::VectorImage <float, 3> >
 {
 public:
     /** SmartPointer typedef support  */
     typedef DTIProbabilisticTractographyImageFilter Self;
-    typedef BaseProbabilisticTractographyImageFilter Superclass;
+    typedef BaseProbabilisticTractographyImageFilter < itk::VectorImage <float, 3> > Superclass;
 
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self> ConstPointer;
 
-    itkNewMacro(Self);
+    itkNewMacro(Self)
+    itkTypeMacro(DTIProbabilisticTractographyImageFilter,BaseProbabilisticTractographyImageFilter)
 
-    itkTypeMacro(DTIProbabilisticTractographyImageFilter,BaseProbabilisticTractographyImageFilter);
-
-    typedef vnl_matrix <double> MatrixFreeType;
-
-    void SetDesignMatrix();
-    void SetEstimationMatrix();
     void SetKappaPolynomialCoefficients(std::vector <double> &coefs);
 
-    itkSetMacro(FAThreshold,double);
-    itkSetMacro(ThresholdForProlateTensor,double);
-    itkSetMacro(OblateSigma,double);
+    itkSetMacro(FAThreshold,double)
+    itkSetMacro(ThresholdForProlateTensor,double)
 
 protected:
     DTIProbabilisticTractographyImageFilter();
     virtual ~DTIProbabilisticTractographyImageFilter();
-
-    //! Generate seed points
-    void PrepareTractography() ITK_OVERRIDE;
 
     double GetKappaFromFA(double FA);
     void GetDTIPrincipalDirection(const VectorType &modelValue, Vector3DType &resVec, bool is2d);
@@ -48,12 +40,10 @@ protected:
                                              double &log_proposal, std::mt19937 &random_generator,
                                              unsigned int threadId) ITK_OVERRIDE;
 
-    virtual double ComputeLogWeightUpdate(double b0Value, double noiseValue, Vector3DType &newDirection, Vector3DType &sampling_direction,
-                                          VectorType &modelValue, VectorType &dwiValue,
+    virtual double ComputeLogWeightUpdate(double b0Value, double noiseValue, Vector3DType &newDirection, VectorType &modelValue,
                                           double &log_prior, double &log_proposal, unsigned int threadId) ITK_OVERRIDE;
 
-    virtual double ComputeModelEstimation(DWIInterpolatorPointerVectorType &dwiInterpolators, ContinuousIndexType &index,
-                                          VectorType &dwiValue, double &noiseValue, VectorType &modelValue) ITK_OVERRIDE;
+    virtual void ComputeModelValue(InterpolatorPointer &modelInterpolator, ContinuousIndexType &index, VectorType &modelValue) ITK_OVERRIDE;
 
     virtual Vector3DType InitializeFirstIterationFromModel(Vector3DType &colinearDir,
                                                            VectorType &modelValue, unsigned int threadId) ITK_OVERRIDE;
@@ -68,14 +58,9 @@ protected:
 
 private:
     double m_ThresholdForProlateTensor;
-    double m_OblateSigma;
-
     double m_FAThreshold;
 
     std::vector <double> m_KappaPolynomialCoefficients;
-
-    MatrixFreeType m_DesignMatrix;
-    MatrixFreeType m_EstimationMatrix;
 };
 
 } // end of namespace anima
