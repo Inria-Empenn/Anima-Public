@@ -34,7 +34,7 @@ int main(int argc,  char*  argv[])
     TCLAP::ValueArg<std::string> seedMaskArg("s","seed-mask","Seed mask",true,"","seed",cmd);
     TCLAP::ValueArg<std::string> fibersArg("o","fibers","Output fibers",true,"","fibers",cmd);
     TCLAP::ValueArg<std::string> b0Arg("b","b0","B0 image",true,"","b0 image",cmd);
-    TCLAP::ValueArg<std::string> noiseArg("n","noise","Noise image",false,"","noise image",cmd);
+    TCLAP::ValueArg<std::string> noiseArg("N","noise","Noise image",false,"","noise image",cmd);
     
     TCLAP::ValueArg<unsigned int> colinearityModeArg("","col-init-mode",
                                                      "Colinearity mode for initialization - 0: center, 1: outward, 2: top, 3: bottom, 4: left, 5: right, 6: front, 7: back (default: 0)",

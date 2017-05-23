@@ -124,7 +124,7 @@ public:
     void SetInitialDirectionMode(const InitialDirectionModeType &dir) {m_InitialDirectionMode = dir;}
     itkGetMacro(InitialDirectionMode,InitialDirectionModeType)
 
-    void SetInputModelImage(InputModelImageType *inImage) {m_InputModelImage = inImage;}
+    virtual void SetInputModelImage(InputModelImageType *inImage) {m_InputModelImage = inImage;}
     InputModelImageType *GetInputModelImage() {return m_InputModelImage;}
     virtual InterpolatorType *GetModelInterpolator();
 
