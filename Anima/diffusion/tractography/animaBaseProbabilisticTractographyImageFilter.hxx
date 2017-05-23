@@ -259,6 +259,7 @@ BaseProbabilisticTractographyImageFilter <TInputModelImageType>::GetModelInterpo
     typename InternalInterpolatorType::Pointer outInterpolator = InternalInterpolatorType::New();
     outInterpolator->SetInputImage(m_InputModelImage);
 
+    outInterpolator->Register();
     return outInterpolator;
 }
 
