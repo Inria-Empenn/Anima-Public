@@ -195,7 +195,9 @@ double DTIProbabilisticTractographyImageFilter::ComputeLogWeightUpdate(double b0
     double logLikelihood = 0;
     double LC = this->GetLinearCoefficient(modelValue);
 
-    double concentrationParameter = b0Value / std::sqrt(noiseValue);
+    double concentrationParameter = 50.0;
+    if (noiseValue > 0)
+        concentrationParameter = b0Value / std::sqrt(noiseValue);
     
     if (LC > m_ThresholdForProlateTensor)
     {
