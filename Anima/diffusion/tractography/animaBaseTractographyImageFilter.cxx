@@ -346,6 +346,10 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
         bool continueLoop = true;
         m_MaskImage->TransformPhysicalPointToContinuousIndex(curPoint,curIndex);
         m_MaskImage->TransformPhysicalPointToIndex(curPoint,curNearestIndex);
+
+        double currentSNRValue = 50.0;
+        VectorType modelValue;
+        modelValue.SetSize(1);
         
         while (continueLoop)
         {
@@ -367,9 +371,9 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
                 }
             }
             
-            VectorType tmpModelValue = this->GetModelValue(curIndex);
-            
-            if (isZero(tmpModelValue))
+            this->GetModelValue(curIndex,currentSNRValue,modelValue);
+
+            if (isZero(modelValue))
             {
                 continueLoop = false;
                 continue;
@@ -382,21 +386,21 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
             }
             
             if (fiber.size() <= 1)
-                oldDir = this->GetModelPrincipalDirection(tmpModelValue,is2d,threadId);
+                oldDir = this->GetModelPrincipalDirection(modelValue,is2d,threadId);
             else
             {
                 for (unsigned int i = 0;i < 3;++i)
                     oldDir[i] = fiber[fiber.size() - 1][i] - fiber[fiber.size() - 2][i];
             }
             
-            if (!this->CheckModelCompatibility(tmpModelValue,threadId))
+            if (!this->CheckModelCompatibility(modelValue,threadId))
             {
                 continueLoop = false;
                 continue;
             }
 
             // Do some stuff to progress one step
-            newDir = this->GetNextDirection(oldDir,tmpModelValue,is2d,threadId);
+            newDir = this->GetNextDirection(oldDir,modelValue,is2d,threadId);
             
             if (anima::ComputeOrientationAngle(oldDir, newDir) > m_MaxFiberAngle)
             {
@@ -423,7 +427,7 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
             fiber.push_back(curPoint);
         }
     }
-    
+
     if ((ways == Backward)||(ways == Both))
     {
         PointType curPoint = fiber[0];
@@ -435,6 +439,10 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
         m_MaskImage->TransformPhysicalPointToContinuousIndex(curPoint,curIndex);
         m_MaskImage->TransformPhysicalPointToIndex(curPoint,curNearestIndex);
         
+        double currentSNRValue = 50.0;
+        VectorType modelValue;
+        modelValue.SetSize(1);
+
         while (continueLoop)
         {
             if (!m_CutMaskImage.IsNull())
@@ -461,9 +469,9 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
                 return resVal;
             }
             
-            VectorType tmpModelValue = this->GetModelValue(curIndex);            
+            this->GetModelValue(curIndex,currentSNRValue,modelValue);
 
-            if (isZero(tmpModelValue))
+            if (isZero(modelValue))
             {
                 continueLoop = false;
                 continue;
@@ -471,7 +479,7 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
 
             if (fiber.size() <= 1)
             {
-                oldDir = this->GetModelPrincipalDirection(tmpModelValue,is2d,threadId);
+                oldDir = this->GetModelPrincipalDirection(modelValue,is2d,threadId);
                 for (unsigned int i = 0;i < 3;++i)
                     oldDir[i] *= -1.0;
             }
@@ -481,14 +489,14 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
                     oldDir[i] = fiber[0][i] - fiber[1][i];
             }
             
-            if (!this->CheckModelCompatibility(tmpModelValue,threadId))
+            if (!this->CheckModelCompatibility(modelValue,threadId))
             {
                 continueLoop = false;
                 continue;
             }
             
             // Do some stuff to progress one step
-            newDir = this->GetNextDirection(oldDir,tmpModelValue,is2d,threadId);
+            newDir = this->GetNextDirection(oldDir,modelValue,is2d,threadId);
             
             if (anima::ComputeOrientationAngle(oldDir, newDir) > m_MaxFiberAngle)
             {

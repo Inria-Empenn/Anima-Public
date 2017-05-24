@@ -68,12 +68,10 @@ bool dtiTractographyImageFilter::CheckIndexInImageBounds(ContinuousIndexType &in
     return m_DTIInterpolator->IsInsideBuffer(index);
 }
 
-dtiTractographyImageFilter::VectorType
-dtiTractographyImageFilter::GetModelValue(ContinuousIndexType &index)
+void
+dtiTractographyImageFilter::GetModelValue(ContinuousIndexType &index, double &currentSNRValue, VectorType &modelValue)
 {
-    VectorType outputValue = m_DTIInterpolator->EvaluateAtContinuousIndex(index);
-
-    return outputValue;
+    modelValue = m_DTIInterpolator->EvaluateAtContinuousIndex(index);
 }
 
 dtiTractographyImageFilter::PointType
@@ -177,6 +175,7 @@ void dtiTractographyImageFilter::ComputeAdditionalScalarMaps()
 
     typedef vnl_matrix <double> MatrixType;
     MatrixType tmpMat(3,3);
+    double tmpSNRValue = 50.0;
 
     for (unsigned int i = 0;i < numPoints;++i)
     {
@@ -186,7 +185,7 @@ void dtiTractographyImageFilter::ComputeAdditionalScalarMaps()
         this->GetInputImage()->TransformPhysicalPointToContinuousIndex(tmpPoint,tmpIndex);
         tensorValue.Fill(0.0);
         if (m_DTIInterpolator->IsInsideBuffer(tmpIndex))
-            tensorValue = this->GetModelValue(tmpIndex);
+            this->GetModelValue(tmpIndex,tmpSNRValue,tensorValue);
 
         anima::GetTensorFromVectorRepresentation(tensorValue,tmpMat,3,false);
         anima::GetTensorExponential(tmpMat,tmpMat);
