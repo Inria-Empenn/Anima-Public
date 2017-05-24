@@ -38,7 +38,7 @@ protected:
 
     virtual bool CheckModelCompatibility(VectorType &modelValue, itk::ThreadIdType threadId) ITK_OVERRIDE;
     virtual bool CheckIndexInImageBounds(ContinuousIndexType &index) ITK_OVERRIDE;
-    virtual void GetModelValue(ContinuousIndexType &index, double &currentSNRValue, VectorType &modelValue) ITK_OVERRIDE;
+    virtual void GetModelValue(ContinuousIndexType &index, VectorType &modelValue) ITK_OVERRIDE;
     virtual PointType GetModelPrincipalDirection(VectorType &modelValue, bool is2d, itk::ThreadIdType threadId) ITK_OVERRIDE;
     virtual PointType GetNextDirection(PointType &previousDirection, VectorType &modelValue, bool is2d,
                                        itk::ThreadIdType threadId) ITK_OVERRIDE;

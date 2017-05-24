@@ -347,7 +347,6 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
         m_MaskImage->TransformPhysicalPointToContinuousIndex(curPoint,curIndex);
         m_MaskImage->TransformPhysicalPointToIndex(curPoint,curNearestIndex);
 
-        double currentSNRValue = 50.0;
         VectorType modelValue;
         modelValue.SetSize(1);
         
@@ -371,7 +370,7 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
                 }
             }
             
-            this->GetModelValue(curIndex,currentSNRValue,modelValue);
+            this->GetModelValue(curIndex,modelValue);
 
             if (isZero(modelValue))
             {
@@ -439,7 +438,6 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
         m_MaskImage->TransformPhysicalPointToContinuousIndex(curPoint,curIndex);
         m_MaskImage->TransformPhysicalPointToIndex(curPoint,curNearestIndex);
         
-        double currentSNRValue = 50.0;
         VectorType modelValue;
         modelValue.SetSize(1);
 
@@ -469,7 +467,7 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
                 return resVal;
             }
             
-            this->GetModelValue(curIndex,currentSNRValue,modelValue);
+            this->GetModelValue(curIndex,modelValue);
 
             if (isZero(modelValue))
             {

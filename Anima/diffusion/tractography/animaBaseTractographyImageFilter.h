@@ -95,7 +95,7 @@ protected:
     virtual bool CheckIndexInImageBounds(ContinuousIndexType &index) = 0;
 
     //! Computes value of model from data. May use SNR and previous model value to perform smart interpolation. Replaces SNR and modelValue by the outputs
-    virtual void GetModelValue(ContinuousIndexType &index, double &currentSNRValue, VectorType &modelValue) = 0;
+    virtual void GetModelValue(ContinuousIndexType &index, VectorType &modelValue) = 0;
 
     virtual PointType GetModelPrincipalDirection(VectorType &modelValue, bool is2d, itk::ThreadIdType threadId) = 0;
     virtual PointType GetNextDirection(PointType &previousDirection, VectorType &modelValue, bool is2d, itk::ThreadIdType threadId) = 0;
