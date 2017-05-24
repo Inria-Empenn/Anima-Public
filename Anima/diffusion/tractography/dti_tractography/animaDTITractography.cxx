@@ -47,7 +47,7 @@ int main(int argc,  char*  argv[])
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
 
     typedef anima::dtiTractographyImageFilter MainFilterType;
@@ -103,5 +103,5 @@ int main(int argc,  char*  argv[])
     writer.SetFileName(fibersArg.getValue());
     writer.Update();
 
-    return 0;
+    return EXIT_SUCCESS;
 }
