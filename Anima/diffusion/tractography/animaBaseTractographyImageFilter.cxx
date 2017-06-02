@@ -322,9 +322,10 @@ void BaseTractographyImageFilter::createVTKOutput(std::vector < FiberType > &fil
     
     m_Output->SetPoints (myPoints);
     if (m_ComputeLocalColors)
+    {
         m_Output->GetPointData()->SetScalars (myColors);
-
-    this->ComputeAdditionalScalarMaps();
+        this->ComputeAdditionalScalarMaps();
+    }
 }
 
 BaseTractographyImageFilter::FiberProcessVectorType

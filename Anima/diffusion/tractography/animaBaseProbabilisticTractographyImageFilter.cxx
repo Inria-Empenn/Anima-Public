@@ -465,12 +465,13 @@ void BaseProbabilisticTractographyImageFilter::createVTKOutput(FiberProcessVecto
 
     m_Output->SetPoints(myPoints);
     if (m_ComputeLocalColors)
+    {
         m_Output->GetPointData()->SetScalars(myColors);
+        this->ComputeAdditionalScalarMaps();
+    }
 
     // Add particle weights to data
     m_Output->GetPointData()->AddArray(weights);
-
-    this->ComputeAdditionalScalarMaps();
 }
 
 BaseProbabilisticTractographyImageFilter::FiberProcessVectorType
