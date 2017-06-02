@@ -22,6 +22,7 @@ set(BINARY_TOOLS_LIST
   animaEddyCurrentCorrection
   animaExpTensors
   animaFDRCorrectPValues
+  animaFibersFilterer
   animaFillHoleImage
   animaGaussianNoiseGenerator
   animaGcStremMsLesionsSegmentation
