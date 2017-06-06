@@ -26,13 +26,13 @@ add_library(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   ${ITKIO_LIBRARIES}
+  ${TinyXML2_LIBRARY}
   AnimaOptimizers
   AnimaSHTools
   vtkIOXML
   vtkIOLegacy
   vtksys
   )
-
 
 ################################################################################
 # Auto generate the export file for the libs
@@ -43,13 +43,11 @@ generate_export_header(${PROJECT_NAME}
   EXPORT_FILE_NAME "${PROJECT_NAME}Export.h"
   )
 
-
 ## #############################################################################
 ## install
 ## #############################################################################
 
 set_lib_install_rules(${PROJECT_NAME})
-
 
 ## #############################################################################
 ## Subdirs exe directories

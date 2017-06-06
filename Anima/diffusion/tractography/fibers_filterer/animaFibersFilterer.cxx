@@ -3,7 +3,7 @@
 #include <animaReadWriteFunctions.h>
 #include <animaFibersWriter.h>
 
-#include <vtkXMLPolyDataReader.h>
+#include <animaFibersReader.h>
 #include <vtkSmartPointer.h>
 #include <vtkPoints.h>
 #include <vtkPointData.h>
@@ -98,7 +98,7 @@ int main(int argc, char **argv)
 {
     TCLAP::CmdLine cmd("Filters fibers from a vtp file using a label image and specifying with several -t and -f which labels should be touched or are forbidden for each fiber. INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
 
-    TCLAP::ValueArg<std::string> inArg("i","input","input tracks file (.vtp)",true,"","tracks vtp file",cmd);
+    TCLAP::ValueArg<std::string> inArg("i","input","input tracks file",true,"","tracks vtp file",cmd);
     TCLAP::ValueArg<std::string> roiArg("r","roi","input ROI label image",true,"","ROI image",cmd);
     TCLAP::ValueArg<std::string> outArg("o","output","output tracks name",true,"","tracks",cmd);
 
@@ -122,11 +122,11 @@ int main(int argc, char **argv)
     InterpolatorType::Pointer interpolator = InterpolatorType::New();
     interpolator->SetInputImage(roiImage);
 
-    vtkSmartPointer <vtkXMLPolyDataReader> trackReader = vtkSmartPointer <vtkXMLPolyDataReader>::New();
+    anima::FibersReader trackReader;
+    trackReader.SetFileName(inArg.getValue());
+    trackReader.Update();
 
-    trackReader->SetFileName(inArg.getValue().c_str());
-    trackReader->Update();
-    vtkSmartPointer <vtkPolyData> tracks = trackReader->GetOutput();
+    vtkSmartPointer <vtkPolyData> tracks = trackReader.GetOutput();
 
     std::vector <unsigned int> touchLabels = touchArg.getValue();
     std::vector <unsigned int> forbiddenLabels = forbiddenArg.getValue();
