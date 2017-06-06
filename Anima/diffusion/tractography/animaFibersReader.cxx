@@ -57,7 +57,7 @@ void FibersReader::ReadFileAsMedinriaFibers()
     std::string baseName;
     std::size_t lastSlashPos = m_FileName.find_last_of('/');
     if (lastSlashPos != std::string::npos)
-        baseName.append(m_FileName.begin(),m_FileName.begin() + lastSlashPos);
+        baseName.append(m_FileName.begin(),m_FileName.begin() + lastSlashPos + 1);
 
     tinyxml2::XMLDocument doc;
     tinyxml2::XMLError loadOk = doc.LoadFile(m_FileName.c_str());
