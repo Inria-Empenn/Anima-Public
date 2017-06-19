@@ -1,5 +1,6 @@
 #include <itkGrayscaleErodeImageFilter.h>
 #include <itkGrayscaleDilateImageFilter.h>
+#include <itkGrayscaleMorphologicalClosingImageFilter.h>
 #include <itkBinaryBallStructuringElement.h>
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
@@ -13,7 +14,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> outArg("o","outputfile","Output image",true,"","output image",cmd);
     TCLAP::ValueArg<unsigned int> nbpArg("p","nbcores","Number of cores to run on (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"Number of cores",cmd);
 	
-    TCLAP::ValueArg<std::string> actArg("a","action","Action to perform ([dil], er)",false,"dil","Action to perform",cmd);
+    TCLAP::ValueArg<std::string> actArg("a","action","Action to perform ([clos], dil, er)",false,"clos","Action to perform",cmd);
     TCLAP::ValueArg<double> radiusArg("r","radius","Radius of morphological operation in mm3",false,1,"morphological radius",cmd);
 	
 
@@ -34,6 +35,7 @@ int main(int argc, char **argv)
 	typedef itk::BinaryBallStructuringElement <unsigned short, 3> BallElementType;
 	typedef itk::GrayscaleErodeImageFilter <ImageType,ImageType,BallElementType> ErodeFilterType;
 	typedef itk::GrayscaleDilateImageFilter <ImageType,ImageType,BallElementType> DilateFilterType;
+    typedef itk::GrayscaleMorphologicalClosingImageFilter <ImageType,ImageType,BallElementType> ClosingFilterType;
 	
 	itkImageReader::Pointer imRead = itkImageReader::New();
 	imRead->SetFileName(inArg.getValue());
@@ -86,20 +88,37 @@ int main(int argc, char **argv)
 		
 		resPointer = mainFilter->GetOutput();
 	}
-	else
+	else 
 	{
-        std::cout << std::endl;
-		std::cout << "Performing dilation with radius " << radiusArg.getValue() << "..." << std::endl;
-        
-        DilateFilterType::Pointer mainFilter = DilateFilterType::New();
-		mainFilter->SetInput(imRead->GetOutput());
-		mainFilter->SetNumberOfThreads(nbpArg.getValue());
-		mainFilter->SetKernel(tmpBall);
-		
-		mainFilter->Update();
-		
-		resPointer = mainFilter->GetOutput();
-	}
+        if (actArg.getValue() == "dil")
+        {
+            std::cout << std::endl;
+            std::cout << "Performing dilation with radius " << radiusArg.getValue() << "..." << std::endl;
+            
+            DilateFilterType::Pointer mainFilter = DilateFilterType::New();
+            mainFilter->SetInput(imRead->GetOutput());
+            mainFilter->SetNumberOfThreads(nbpArg.getValue());
+            mainFilter->SetKernel(tmpBall);
+
+            mainFilter->Update();
+
+            resPointer = mainFilter->GetOutput();
+        }
+        else
+        {
+            std::cout << std::endl;
+            std::cout << "Performing closing with radius " << radiusArg.getValue() << "..." << std::endl;
+            
+            ClosingFilterType::Pointer mainFilter = ClosingFilterType::New();
+            mainFilter->SetInput(imRead->GetOutput());
+            mainFilter->SetNumberOfThreads(nbpArg.getValue());
+            mainFilter->SetKernel(tmpBall);
+            
+            mainFilter->Update();
+            
+            resPointer = mainFilter->GetOutput();  
+        }
+    }
 
 
     std::cout << "Image spacing: " << spacing0 << "*" << spacing1 << "*" << spacing2  << std::endl;
