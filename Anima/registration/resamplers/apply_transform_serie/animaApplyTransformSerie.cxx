@@ -17,12 +17,13 @@
 #include <animaRetrieveImageTypeMacros.h>
 
 #include <animaGradientFileReader.h>
+#include <itkTransformToDisplacementFieldFilter.h>
 
 struct arguments
 {
     bool invert;
     unsigned int pthread;
-    std::string input, output, geometry, transfo, interpolation;
+    std::string input, output, output_trsf, geometry, transfo, interpolation;
 
 };
 
@@ -160,6 +161,22 @@ applyVectorTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
     vectorResampler->Update();
 
     anima::writeImage<OutputType>(args.output, vectorResampler->GetOutput());
+
+
+	// Generate the dense deformation field resulting from the composition of the transformations
+
+	typedef double CoordinateRepType;
+	typedef itk::Vector< CoordinateRepType, ImageType::ImageDimension > VectorPixelType;
+	typedef itk::Image< VectorPixelType, ImageType::ImageDimension > DisplacementFieldImageType;
+	typedef itk::TransformToDisplacementFieldFilter< DisplacementFieldImageType, CoordinateRepType > DisplacementFieldGeneratorType;
+
+	DisplacementFieldGeneratorType::Pointer dispfieldGenerator = DisplacementFieldGeneratorType::New();
+	dispfieldGenerator->UseReferenceImageOn();
+	dispfieldGenerator->SetReferenceImage(vectorResampler->GetOutput());
+	dispfieldGenerator->SetTransform(transfo);
+	dispfieldGenerator->Update();
+
+	anima::writeImage<DisplacementFieldImageType>(args.output_trsf, dispfieldGenerator->GetOutput());
 }
 
 template <class ImageType>
@@ -299,6 +316,23 @@ applyScalarTransfo4D(itk::ImageIOBase::Pointer geometryImageIO, const arguments 
     }
 
     anima::writeImage<OutputType>(args.output, outputImage);
+
+
+	// Generate the dense deformation field resulting from the composition of the transformations
+
+	typedef double CoordinateRepType;
+	typedef itk::Vector< CoordinateRepType, ImageType::ImageDimension > VectorPixelType;
+	typedef itk::Image< VectorPixelType, ImageType::ImageDimension > DisplacementFieldImageType;
+	typedef itk::TransformToDisplacementFieldFilter< DisplacementFieldImageType, CoordinateRepType > DisplacementFieldGeneratorType;
+
+	DisplacementFieldGeneratorType::Pointer dispfieldGenerator = DisplacementFieldGeneratorType::New();
+	dispfieldGenerator->UseReferenceImageOn();
+	dispfieldGenerator->SetReferenceImage(scalarResampler->GetOutput());
+	dispfieldGenerator->SetTransform(transfo);
+	dispfieldGenerator->Update();
+
+	anima::writeImage<DisplacementFieldImageType>(args.output_trsf, dispfieldGenerator->GetOutput());
+
 }
 
 template <class ImageType>
@@ -364,6 +398,23 @@ applyScalarTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
     scalarResampler->Update();
 
     anima::writeImage<OutputType>(args.output, scalarResampler->GetOutput());
+	
+
+	// Generate the dense deformation field resulting from the composition of the transformations
+
+    typedef double CoordinateRepType;
+    typedef itk::Vector< CoordinateRepType, ImageType::ImageDimension > VectorPixelType;
+    typedef itk::Image< VectorPixelType, ImageType::ImageDimension > DisplacementFieldImageType;
+    typedef itk::TransformToDisplacementFieldFilter< DisplacementFieldImageType, CoordinateRepType > DisplacementFieldGeneratorType;
+
+    DisplacementFieldGeneratorType::Pointer dispfieldGenerator = DisplacementFieldGeneratorType::New();
+    dispfieldGenerator->UseReferenceImageOn();
+    dispfieldGenerator->SetReferenceImage(scalarResampler->GetOutput());
+    dispfieldGenerator->SetTransform(transfo);
+    dispfieldGenerator->Update();
+
+    anima::writeImage<DisplacementFieldImageType>(args.output_trsf, dispfieldGenerator->GetOutput());
+
 }
 
 template <class ComponentType, int Dimension>
@@ -374,7 +425,7 @@ checkIfComponentsAreVectors(itk::ImageIOBase::Pointer inputImageIO, itk::ImageIO
     {
         if (Dimension > 3)
             throw itk::ExceptionObject (__FILE__, __LINE__, "Number of dimensions not supported for vector image resampling", ITK_LOCATION);
-
+	
         applyVectorTransfo < itk::VectorImage<ComponentType, 3> > (geometryImageIO, args);
     }
     else
@@ -424,6 +475,7 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<std::string> outArg("o","output","Output resampled image",true,"","output image",cmd);
     TCLAP::ValueArg<std::string> geomArg("g","geometry","Geometry image",true,"","geometry image",cmd);
 
+	TCLAP::ValueArg<std::string> outtrArg("T", "output_trsf", "Output resulting transformation field (dense not SVF)", false, "", "output transfo", cmd);
     TCLAP::ValueArg<std::string> bvecArg("","grad","DWI gradient file",false,"","gradient file",cmd);
     TCLAP::ValueArg<std::string> bvecOutArg("O","out-grad","Output gradient file",false,"","gradient file",cmd);
 
@@ -438,7 +490,7 @@ int main(int ac, const char** av)
 
     TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default : all cores)",
                                          false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
-
+					
     try
     {
         cmd.parse(ac,av);
@@ -479,6 +531,7 @@ int main(int ac, const char** av)
     arguments args;
     args.input = inArg.getValue();
     args.output = outArg.getValue();
+    args.output_trsf = outtrArg.getValue();
     args.geometry = geomArg.getValue();
     args.transfo = trArg.getValue();
     args.invert = invertArg.getValue();
