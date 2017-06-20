@@ -4,7 +4,7 @@
 #include <itkMatrix.h>
 #include <itkSingleValuedNonLinearOptimizer.h>
 
-#include <nlopt.h>
+#include <nlopt.hpp>
 #include <AnimaOptimizersExport.h>
 
 #include <animaNLOPTParametersConstraintFunction.h>

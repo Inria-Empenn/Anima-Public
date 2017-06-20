@@ -87,13 +87,13 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/${PROJECT_NAME}Exports.cmake.in
 )
 
 include(${PROJECT_NAME}Exports)
-include(AnimaModulesSetup)
 
 ################################################################################
 # Find dependencies
 ################################################################################
 
 include(AnimaDependencies)
+include(AnimaModulesSetup)
 include(ITKLibs)
 
 

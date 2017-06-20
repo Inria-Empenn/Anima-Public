@@ -13,16 +13,23 @@ FIND_PATH(NLOPT_INCLUDE_DIR nlopt.h
   /usr/local/include
 )
 
+FIND_PATH(NLOPT_AUTOGEN_INCLUDE_DIR nlopt.hpp
+  /usr/include
+  /usr/local/include
+)
+
 set(NLOPT_LIBRARY_DIR "" CACHE PATH "NLOPT library folder")
 
-FIND_LIBRARY(NLOPT_LIBRARY NAMES nlopt libnlopt
+FIND_LIBRARY(NLOPT_LIBRARY NAMES nlopt_cxx libnlopt_cxx
   HINTS "${NLOPT_LIBRARY_DIR}" "${NLOPT_LIBRARY_DIR}/Release" "${NLOPT_LIBRARY_DIR}/Debug"
 )
 
 mark_as_advanced(NLOPT_LIBRARY)
 
-IF( EXISTS "${NLOPT_INCLUDE_DIR}" AND EXISTS "${NLOPT_LIBRARY}" )
-  SET(NLOPT_FOUND TRUE)
+IF( EXISTS "${NLOPT_INCLUDE_DIR}" AND EXISTS "${NLOPT_AUTOGEN_INCLUDE_DIR}" AND EXISTS "${NLOPT_LIBRARY}" )
+  set(NLOPT_FOUND TRUE)
+  set(NLOPT_INCLUDE_DIRS "${NLOPT_INCLUDE_DIR}" "${NLOPT_AUTOGEN_INCLUDE_DIR}" CACHE PATH "NLOPT include directories")
+  mark_as_advanced(NLOPT_INCLUDE_DIRS)
 else()
   message(FATAL_ERROR "NLOPT not found")
 endif()
