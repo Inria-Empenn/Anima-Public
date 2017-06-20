@@ -164,19 +164,21 @@ applyVectorTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
 
 
 	// Generate the dense deformation field resulting from the composition of the transformations
+	if (args.output_trsf != "")
+	{
+		typedef double CoordinateRepType;
+		typedef itk::Vector< CoordinateRepType, ImageType::ImageDimension > VectorPixelType;
+		typedef itk::Image< VectorPixelType, ImageType::ImageDimension > DisplacementFieldImageType;
+		typedef itk::TransformToDisplacementFieldFilter< DisplacementFieldImageType, CoordinateRepType > DisplacementFieldGeneratorType;
 
-	typedef double CoordinateRepType;
-	typedef itk::Vector< CoordinateRepType, ImageType::ImageDimension > VectorPixelType;
-	typedef itk::Image< VectorPixelType, ImageType::ImageDimension > DisplacementFieldImageType;
-	typedef itk::TransformToDisplacementFieldFilter< DisplacementFieldImageType, CoordinateRepType > DisplacementFieldGeneratorType;
+		DisplacementFieldGeneratorType::Pointer dispfieldGenerator = DisplacementFieldGeneratorType::New();
+		dispfieldGenerator->UseReferenceImageOn();
+		dispfieldGenerator->SetReferenceImage(vectorResampler->GetOutput());
+		dispfieldGenerator->SetTransform(transfo);
+		dispfieldGenerator->Update();
 
-	DisplacementFieldGeneratorType::Pointer dispfieldGenerator = DisplacementFieldGeneratorType::New();
-	dispfieldGenerator->UseReferenceImageOn();
-	dispfieldGenerator->SetReferenceImage(vectorResampler->GetOutput());
-	dispfieldGenerator->SetTransform(transfo);
-	dispfieldGenerator->Update();
-
-	anima::writeImage<DisplacementFieldImageType>(args.output_trsf, dispfieldGenerator->GetOutput());
+		anima::writeImage<DisplacementFieldImageType>(args.output_trsf, dispfieldGenerator->GetOutput());
+	}
 }
 
 template <class ImageType>
@@ -317,22 +319,6 @@ applyScalarTransfo4D(itk::ImageIOBase::Pointer geometryImageIO, const arguments 
 
     anima::writeImage<OutputType>(args.output, outputImage);
 
-
-	// Generate the dense deformation field resulting from the composition of the transformations
-
-	typedef double CoordinateRepType;
-	typedef itk::Vector< CoordinateRepType, ImageType::ImageDimension > VectorPixelType;
-	typedef itk::Image< VectorPixelType, ImageType::ImageDimension > DisplacementFieldImageType;
-	typedef itk::TransformToDisplacementFieldFilter< DisplacementFieldImageType, CoordinateRepType > DisplacementFieldGeneratorType;
-
-	DisplacementFieldGeneratorType::Pointer dispfieldGenerator = DisplacementFieldGeneratorType::New();
-	dispfieldGenerator->UseReferenceImageOn();
-	dispfieldGenerator->SetReferenceImage(scalarResampler->GetOutput());
-	dispfieldGenerator->SetTransform(transfo);
-	dispfieldGenerator->Update();
-
-	anima::writeImage<DisplacementFieldImageType>(args.output_trsf, dispfieldGenerator->GetOutput());
-
 }
 
 template <class ImageType>
@@ -401,19 +387,21 @@ applyScalarTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
 	
 
 	// Generate the dense deformation field resulting from the composition of the transformations
+	if (args.output_trsf != "")
+	{
+		typedef double CoordinateRepType;
+		typedef itk::Vector< CoordinateRepType, ImageType::ImageDimension > VectorPixelType;
+		typedef itk::Image< VectorPixelType, ImageType::ImageDimension > DisplacementFieldImageType;
+		typedef itk::TransformToDisplacementFieldFilter< DisplacementFieldImageType, CoordinateRepType > DisplacementFieldGeneratorType;
 
-    typedef double CoordinateRepType;
-    typedef itk::Vector< CoordinateRepType, ImageType::ImageDimension > VectorPixelType;
-    typedef itk::Image< VectorPixelType, ImageType::ImageDimension > DisplacementFieldImageType;
-    typedef itk::TransformToDisplacementFieldFilter< DisplacementFieldImageType, CoordinateRepType > DisplacementFieldGeneratorType;
+		DisplacementFieldGeneratorType::Pointer dispfieldGenerator = DisplacementFieldGeneratorType::New();
+		dispfieldGenerator->UseReferenceImageOn();
+		dispfieldGenerator->SetReferenceImage(scalarResampler->GetOutput());
+		dispfieldGenerator->SetTransform(transfo);
+		dispfieldGenerator->Update();
 
-    DisplacementFieldGeneratorType::Pointer dispfieldGenerator = DisplacementFieldGeneratorType::New();
-    dispfieldGenerator->UseReferenceImageOn();
-    dispfieldGenerator->SetReferenceImage(scalarResampler->GetOutput());
-    dispfieldGenerator->SetTransform(transfo);
-    dispfieldGenerator->Update();
-
-    anima::writeImage<DisplacementFieldImageType>(args.output_trsf, dispfieldGenerator->GetOutput());
+		anima::writeImage<DisplacementFieldImageType>(args.output_trsf, dispfieldGenerator->GetOutput());
+	}
 
 }
 
