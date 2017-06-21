@@ -22,6 +22,7 @@
 struct arguments
 {
     bool invert;
+    unsigned int exponentiationOrder;
     unsigned int pthread;
     std::string input, output, geometry, transfo, interpolation;
 
@@ -34,6 +35,8 @@ void applyTransformationToGradients(std::string &inputGradientsFileName, std::st
     TransformSeriesReaderType *trReader = new TransformSeriesReaderType;
     trReader->SetInput(args.transfo);
     trReader->SetInvertTransform(!args.invert);
+    trReader->SetExponentiationOrder(args.exponentiationOrder);
+    trReader->SetNumberOfThreads(args.pthread);
     trReader->Update();
     typename TransformType::Pointer transfo = trReader->GetOutputTransform();
 
@@ -103,6 +106,8 @@ applyVectorTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
     TransformSeriesReaderType *trReader = new TransformSeriesReaderType;
     trReader->SetInput(args.transfo);
     trReader->SetInvertTransform(args.invert);
+    trReader->SetExponentiationOrder(args.exponentiationOrder);
+    trReader->SetNumberOfThreads(args.pthread);
     trReader->Update();
     typename TransformType::Pointer transfo = trReader->GetOutputTransform();
 
@@ -176,6 +181,8 @@ applyScalarTransfo4D(itk::ImageIOBase::Pointer geometryImageIO, const arguments 
     TransformSeriesReaderType *trReader = new TransformSeriesReaderType;
     trReader->SetInput(args.transfo);
     trReader->SetInvertTransform(args.invert);
+    trReader->SetExponentiationOrder(args.exponentiationOrder);
+    trReader->SetNumberOfThreads(args.pthread);
     trReader->Update();
     typename TransformType::Pointer transfo = trReader->GetOutputTransform();
 
@@ -314,6 +321,8 @@ applyScalarTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
     TransformSeriesReaderType *trReader = new TransformSeriesReaderType;
     trReader->SetInput(args.transfo);
     trReader->SetInvertTransform(args.invert);
+    trReader->SetExponentiationOrder(args.exponentiationOrder);
+    trReader->SetNumberOfThreads(args.pthread);
     trReader->Update();
     typename TransformType::Pointer transfo = trReader->GetOutputTransform();
 
@@ -430,6 +439,7 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<std::string> bvecArg("","grad","DWI gradient file",false,"","gradient file",cmd);
     TCLAP::ValueArg<std::string> bvecOutArg("O","out-grad","Output gradient file",false,"","gradient file",cmd);
 
+    TCLAP::ValueArg<unsigned int> expOrderArg("e","exp-order","Order of field exponentiation approximation (in between 0 and 1, default: 0)",false,0,"exponentiation order",cmd);
     TCLAP::SwitchArg invertArg("I","invert","Invert the transformation series",cmd,false);
     TCLAP::ValueArg<std::string> interpolationArg("n",
                                                   "interpolation",
@@ -486,6 +496,7 @@ int main(int ac, const char** av)
     args.transfo = trArg.getValue();
     args.invert = invertArg.getValue();
     args.pthread = nbpArg.getValue();
+    args.exponentiationOrder = expOrderArg.getValue();
     args.interpolation = interpolationArg.getValue();
 
     bool badInterpolation = true;

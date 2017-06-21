@@ -97,6 +97,9 @@ public:
     itkSetMacro (BCHCompositionOrder, unsigned int)
     itkGetMacro (BCHCompositionOrder, unsigned int)
 
+    itkSetMacro (ExponentiationOrder, unsigned int)
+    itkGetMacro (ExponentiationOrder, unsigned int)
+
     itkSetMacro(VerboseProgression, bool)
     itkGetMacro(VerboseProgression, bool)
 
@@ -151,6 +154,7 @@ private:
     // SVF specific regularization parameter
     double m_SVFElasticRegSigma;
     unsigned int m_BCHCompositionOrder;
+    unsigned int m_ExponentiationOrder;
 
     bool m_Abort;
     bool m_VerboseProgression;

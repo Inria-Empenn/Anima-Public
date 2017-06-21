@@ -14,6 +14,7 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<unsigned int> neighArg("n","neigh","Neighborhood size for Jacobian computation (default: 1)",false,1,"neighborhood size",cmd);
 
     TCLAP::SwitchArg svfArg("S","svf","Compute the exponential of the input SVF",cmd,false);
+    TCLAP::ValueArg<unsigned int> expOrderArg("O","exp-order","Order of field exponentiation approximation (in between 0 and 1, default: 0)",false,0,"exponentiation order",cmd);
     TCLAP::SwitchArg noIdArg("N","no-id","Do not add identity to the jacobian matrix",cmd,false);
     TCLAP::SwitchArg detArg("D","det","Simply compute the determinant of the jacobian (-N option ignored in that case)",cmd,false);
     TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
@@ -44,7 +45,7 @@ int main(int ac, const char** av)
         typedef rpi::DisplacementFieldTransform <PixelType, Dimension> RPIDispType;
         RPIDispType::Pointer resTrsf = RPIDispType::New();
 
-        anima::GetSVFExponential(svfTrsf.GetPointer(),resTrsf.GetPointer(),false);
+        anima::GetSVFExponential(svfTrsf.GetPointer(),resTrsf.GetPointer(),expOrderArg.getValue(),nbpArg.getValue(),false);
 
         inputField = const_cast <ImageType *> (resTrsf->GetParametersAsVectorField());
     }

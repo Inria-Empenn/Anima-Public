@@ -31,6 +31,7 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<std::string> outArg("o","output","Output resampled image",true,"","output image",cmd);
     TCLAP::ValueArg<std::string> geomArg("g","geometry","Geometry image",true,"","geometry image",cmd);
     
+    TCLAP::ValueArg<unsigned int> expOrderArg("O","exp-order","Order of field exponentiation approximation (in between 0 and 1, default: 0)",false,0,"exponentiation order",cmd);
     TCLAP::SwitchArg invertArg("I","invert","Invert the transformation series",cmd,false);
     TCLAP::SwitchArg nearestArg("N","nearest","Use nearest neighbor interpolation",cmd,false);
     
@@ -43,7 +44,7 @@ int main(int ac, const char** av)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
 
     const    unsigned int    Dimension = 3;
@@ -76,7 +77,9 @@ int main(int ac, const char** av)
     TransformSeriesReaderType *trReader = new TransformSeriesReaderType;
     trReader->SetInput(trArg.getValue());
     trReader->SetInvertTransform(invertArg.isSet());
-    
+    trReader->SetExponentiationOrder(expOrderArg.getValue());
+    trReader->SetNumberOfThreads(nbpArg.getValue());
+
     try
     {
         trReader->Update();
@@ -84,7 +87,7 @@ int main(int ac, const char** av)
     catch (itk::ExceptionObject &e)
     {
         std::cerr << e << std::endl;
-        return -1;
+        return EXIT_FAILURE;
     }
     
     TransformType::Pointer trsf = trReader->GetOutputTransform();
@@ -142,5 +145,5 @@ int main(int ac, const char** av)
     
     writer->Update();
     
-    return 0;
+    return EXIT_SUCCESS;
 }

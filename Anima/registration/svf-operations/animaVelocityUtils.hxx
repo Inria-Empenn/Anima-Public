@@ -5,7 +5,9 @@
 #include <itkMultiplyImageFilter.h>
 
 #include <itkComposeDisplacementFieldsImageFilter.h>
+#include <itkVectorLinearInterpolateNearestNeighborExtrapolateImageFunction.h>
 #include <animaSVFLieBracketImageFilter.h>
+#include <animaSVFExponentialImageFilter.h>
 
 namespace anima
 {
@@ -204,7 +206,8 @@ void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *
 
 template <class ScalarType, unsigned int NDimensions>
 void GetSVFExponential(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *baseTrsf,
-                       rpi::DisplacementFieldTransform <ScalarType,NDimensions> *resultTransform, bool invert)
+                       rpi::DisplacementFieldTransform <ScalarType,NDimensions> *resultTransform,
+                       unsigned int exponentiationOrder, unsigned int numThreads, bool invert)
 {
     if (baseTrsf->GetParametersAsVectorField() == NULL)
         return;
@@ -213,11 +216,34 @@ void GetSVFExponential(itk::StationaryVelocityFieldTransform <ScalarType,NDimens
     typedef typename SVFType::VectorFieldType FieldType;
     typedef typename FieldType::Pointer FieldPointer;
 
-    typename SVFType::Pointer tmpPtr = baseTrsf;
-    if (invert)
-        tmpPtr = dynamic_cast <SVFType *> (baseTrsf->GetInverseTransform().GetPointer());
+    typedef anima::SVFExponentialImageFilter <ScalarType, NDimensions> ExponentialFilterType;
 
-    FieldPointer resField = tmpPtr->GetDisplacementFieldAsVectorField();
+    FieldPointer tmpPtr = const_cast <FieldType *> (baseTrsf->GetParametersAsVectorField());
+    if (invert)
+    {
+        typedef itk::MultiplyImageFilter <FieldType,itk::Image <float, NDimensions>, FieldType> MultiplyFilterType;
+        typename MultiplyFilterType::Pointer multiplier = MultiplyFilterType::New();
+        multiplier->SetInput(tmpPtr);
+        multiplier->SetConstant(-1.0);
+
+        multiplier->SetNumberOfThreads(numThreads);
+        multiplier->Update();
+
+        tmpPtr = multiplier->GetOutput();
+        tmpPtr->DisconnectPipeline();
+    }
+
+    typename ExponentialFilterType::Pointer expFilter = ExponentialFilterType::New();
+    expFilter->SetInput(tmpPtr);
+    expFilter->SetExponentiationOrder(exponentiationOrder);
+    expFilter->SetNumberOfThreads(numThreads);
+    expFilter->SetMaximalDisplacementAmplitude(0.25);
+
+    expFilter->Update();
+
+    FieldPointer resField = expFilter->GetOutput();
+    resField->DisconnectPipeline();
+
     resultTransform->SetParametersAsVectorField(resField.GetPointer());
 }
 

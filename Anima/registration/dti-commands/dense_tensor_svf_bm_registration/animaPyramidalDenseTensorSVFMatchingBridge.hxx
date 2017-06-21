@@ -62,6 +62,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::PyramidalDenseTensorSVFMa
     m_MEstimateConvergenceThreshold = 0.01;
     m_NeighborhoodApproximation = 2.5;
     m_BCHCompositionOrder = 1;
+    m_ExponentiationOrder = 1;
     m_UseTransformationDam = true;
     m_DamDistance = 2.5;
     m_NumberOfPyramidLevels = 3;
@@ -220,6 +221,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
         m_bmreg->SetBlockMatcher(mainMatcher);
         m_bmreg->SetAgregator(agregPtr);
         m_bmreg->SetBCHCompositionOrder(m_BCHCompositionOrder);
+        m_bmreg->SetExponentiationOrder(m_ExponentiationOrder);
 
         if (this->GetNumberOfThreads() != 0)
             m_bmreg->SetNumberOfThreads(this->GetNumberOfThreads());
@@ -420,7 +422,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
     }
 
     DisplacementFieldTransformPointer outputDispTrsf = DisplacementFieldTransformType::New();
-    anima::GetSVFExponential(m_OutputTransform.GetPointer(), outputDispTrsf.GetPointer(), false);
+    anima::GetSVFExponential(m_OutputTransform.GetPointer(), outputDispTrsf.GetPointer(), m_ExponentiationOrder, GetNumberOfThreads(), false);
 
     typedef typename anima::TensorResampleImageFilter <InputImageType, typename BaseAgregatorType::ScalarType> ResampleFilterType;
     typename ResampleFilterType::Pointer tmpResample = ResampleFilterType::New();

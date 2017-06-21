@@ -135,9 +135,7 @@ int main(int argc, const char** argv)
     matcher->SetFloatingImage(tmpRead->GetOutput());
 
     if (initialTransformArg.getValue() != "")
-    {
         matcher->SetInitialTransform(initialTransformArg.getValue());
-    }
 
     AffineTransformPointer tmpTrsf = AffineTransformType::New();
     tmpTrsf->SetIdentity();
@@ -146,7 +144,6 @@ int main(int argc, const char** argv)
 
     // Process
     itk::TimeProbe timer;
-
     timer.Start();
 
     try
@@ -157,7 +154,7 @@ int main(int argc, const char** argv)
     catch (itk::ExceptionObject &e)
     {
         std::cerr << e << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
 
     timer.Stop();

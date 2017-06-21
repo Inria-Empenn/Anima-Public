@@ -20,6 +20,9 @@ TransformSeriesReader<TScalarType,NDimensions>
 {
     m_OutputTransform = NULL;
     m_InvertTransform = false;
+
+    m_ExponentiationOrder = 1;
+    m_NumberOfThreads = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
 }
 
 template <class TScalarType, unsigned int NDimensions>
@@ -186,7 +189,7 @@ TransformSeriesReader<TScalarType,NDimensions>
 template <class TScalarType, unsigned int NDimensions>
 void
 TransformSeriesReader<TScalarType,NDimensions>
-::addDenseTransformation(std::string &fileName,bool invert)
+::addDenseTransformation(std::string &fileName, bool invert)
 {
     typedef rpi::DisplacementFieldTransform <TScalarType,NDimensions> DenseTransformType;
     typedef typename DenseTransformType::Pointer DenseTransformPointer;
@@ -214,7 +217,7 @@ TransformSeriesReader<TScalarType,NDimensions>
 template <class TScalarType, unsigned int NDimensions>
 void
 TransformSeriesReader<TScalarType,NDimensions>
-::addSVFTransformation(std::string &fileName,bool invert)
+::addSVFTransformation(std::string &fileName, bool invert)
 {
     typedef itk::StationaryVelocityFieldTransform <TScalarType,NDimensions> SVFTransformType;
     typedef typename SVFTransformType::Pointer SVFTransformPointer;
@@ -232,7 +235,7 @@ TransformSeriesReader<TScalarType,NDimensions>
     svfPointer->SetParametersAsVectorField(trReader->GetOutput());
 
     DenseTransformPointer dispTrsf = DenseTransformType::New();
-    anima::GetSVFExponential(svfPointer.GetPointer(),dispTrsf.GetPointer(),invert);
+    anima::GetSVFExponential(svfPointer.GetPointer(),dispTrsf.GetPointer(),m_ExponentiationOrder,m_NumberOfThreads,invert);
 
     m_OutputTransform->AddTransform(dispTrsf);
 }
