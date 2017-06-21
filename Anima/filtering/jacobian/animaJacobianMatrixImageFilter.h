@@ -67,10 +67,6 @@ protected:
     void BeforeThreadedGenerateData() ITK_OVERRIDE;
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
-    void SimpleCubicSplineInterpolation(vnl_vector <double> &xValues, vnl_vector <double> &yValues,
-                                        vnl_vector <double> &splineCoefficients, vnl_matrix <double> &workMatrix,
-                                        vnl_vector <double> &workValues);
-
 private:
     JacobianMatrixImageFilter(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented

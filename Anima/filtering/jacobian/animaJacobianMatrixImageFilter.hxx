@@ -54,17 +54,11 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
     vnl_vector <double> dataVector, dataVectorToSolve, outputVector;
     RegionType inputRegion;
     RegionType largestRegion = this->GetInput()->GetLargestPossibleRegion();
-    InputPixelType pixelBeforeValue, pixelAfterValue, pointCenterValue;
+    InputPixelType pixelBeforeValue, pixelAfterValue;
     OutputPixelType outputValue;
     PointType pointBefore, pointAfter, unitVector;
     std::vector <IndexType> indexesUsedVector;
     vnl_matrix <double> jacMatrix(Dimension,Dimension);
-
-    vnl_matrix <double> workSplineMatrix;
-    vnl_vector <double> workSplineValues;
-    vnl_vector <double> workSplineCoefficients;
-    vnl_vector <double> splineXValues(3), splineYValues(3);
-    splineXValues.fill(0.0);
 
     double meanSpacing = 0;
     for (unsigned int i = 0;i < Dimension;++i)
@@ -74,7 +68,6 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
     while (!inputItr.IsAtEnd())
     {
         currentIndex = inputItr.GetIndex();
-        pointCenterValue = inputItr.Get();
 
         // Build the explored region
         for (unsigned int i = 0;i < Dimension;++i)
@@ -146,18 +139,9 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
             for (unsigned int i = 0;i < Dimension;++i)
                 unitVector[i] /= pointDist;
 
-            splineXValues[0] = - pointDist / 2.0;
-            splineXValues[2] = pointDist / 2.0;
-
             for (unsigned int i = 0;i < Dimension;++i)
             {
-                splineYValues[0] = pixelBeforeValue[i];
-                splineYValues[1] = pointCenterValue[i];
-                splineYValues[2] = pixelAfterValue[i];
-
-                this->SimpleCubicSplineInterpolation(splineXValues,splineYValues,workSplineCoefficients,workSplineMatrix,workSplineValues);
-
-                double diffValue = workSplineCoefficients[1];
+                double diffValue = (pixelAfterValue[i] - pixelBeforeValue[i]) / pointDist;
                 dataVector[pos * Dimension + i] = diffValue * dataWeight;
 
                 for (unsigned int j = 0;j < Dimension;++j)
@@ -206,56 +190,6 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
         if (m_ComputeDeterminant)
             ++detImageIt;
     }
-}
-
-template <typename TPixelType, typename TOutputPixelType, unsigned int Dimension>
-void
-JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
-::SimpleCubicSplineInterpolation(vnl_vector <double> &xValues, vnl_vector <double> &yValues,
-                                 vnl_vector <double> &splineCoefficients, vnl_matrix <double> &workMatrix,
-                                 vnl_vector <double> &workValues)
-{
-    workMatrix.set_size(8,8);
-    workMatrix.fill(0);
-    workValues.set_size(8);
-    workValues.fill(0.0);
-
-    // 4 first lines : function values
-    for (unsigned int i = 0;i < 2;++i)
-    {
-        workMatrix(i,0) = 1.0;
-        workMatrix(i+2,4) = 1.0;
-        workValues[i] = yValues[i];
-        workValues[i+2] = yValues[i+1];
-
-        for (unsigned int j = 1;j < 4;++j)
-        {
-            workMatrix(i,j) = std::pow(xValues[i],j);
-            workMatrix(i+2,j) = std::pow(xValues[i+1],j);
-        }
-    }
-
-    // Fifth line (equal first derivatives at x1)
-    workMatrix(4,1) = 1.0;
-    workMatrix(4,2) = 2.0 * xValues[1];
-    workMatrix(4,3) = 3.0 * xValues[1] * xValues[1];
-    workMatrix(4,5) = - 1.0;
-    workMatrix(4,6) = - 2.0 * xValues[1];
-    workMatrix(4,7) = - 3.0 * xValues[1] * xValues[1];
-
-    // Sixth line (equal second derivatives at x1)
-    workMatrix(5,2) = 2.0;
-    workMatrix(5,3) = 6.0 * xValues[1];
-    workMatrix(5,6) = - 2.0;
-    workMatrix(5,7) = - 6.0 * xValues[1];
-
-    // Last two lines (second derivatives at x0 and x2 null -> natural spline)
-    workMatrix(6,2) = 2.0;
-    workMatrix(6,3) = 6.0 * xValues[0];
-    workMatrix(7,6) = 2.0;
-    workMatrix(7,7) = 6.0 * xValues[2];
-
-    splineCoefficients = vnl_qr <double> (workMatrix).solve(workValues);
 }
 
 } //end of namespace anima
