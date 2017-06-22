@@ -11,10 +11,10 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<std::string> inArg("i","input","Input field",true,"","input image",cmd);
     TCLAP::ValueArg<std::string> outArg("o","output","Output jacobian image",true,"","output image",cmd);
     
-    TCLAP::ValueArg<unsigned int> neighArg("n","neigh","Neighborhood size for Jacobian computation (default: 1)",false,1,"neighborhood size",cmd);
+    TCLAP::ValueArg<unsigned int> neighArg("n","neigh","Neighborhood size for Jacobian computation (default: 0 = 6-connectivity)",false,0,"neighborhood size",cmd);
 
     TCLAP::SwitchArg svfArg("S","svf","Compute the exponential of the input SVF",cmd,false);
-    TCLAP::ValueArg<unsigned int> expOrderArg("O","exp-order","Order of field exponentiation approximation (in between 0 and 1, default: 0)",false,0,"exponentiation order",cmd);
+    TCLAP::ValueArg<unsigned int> expOrderArg("e","exp-order","Order of field exponentiation approximation (in between 0 and 1, default: 0)",false,0,"exponentiation order",cmd);
     TCLAP::SwitchArg noIdArg("N","no-id","Do not add identity to the jacobian matrix",cmd,false);
     TCLAP::SwitchArg detArg("D","det","Simply compute the determinant of the jacobian (-N option ignored in that case)",cmd,false);
     TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
@@ -26,7 +26,7 @@ int main(int ac, const char** av)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
 
     const unsigned int Dimension = 3;
@@ -66,5 +66,5 @@ int main(int ac, const char** av)
     else
         anima::writeImage <MainFilterType::OutputImageType> (outArg.getValue(),mainFilter->GetOutput());
 
-    return 0;
+    return EXIT_SUCCESS;
 }

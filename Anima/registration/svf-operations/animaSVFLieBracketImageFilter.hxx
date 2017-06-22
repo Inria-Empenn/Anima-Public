@@ -23,7 +23,7 @@ SVFLieBracketImageFilter <TPixelType, Dimension>
         jacFilter->SetInput(this->GetInput(0));
         jacFilter->SetNoIdentity(true);
         jacFilter->SetNumberOfThreads(this->GetNumberOfThreads());
-        jacFilter->SetNeighborhood(1);
+        jacFilter->SetNeighborhood(0);
 
         jacFilter->Update();
 
@@ -37,7 +37,7 @@ SVFLieBracketImageFilter <TPixelType, Dimension>
         jacFilter->SetInput(this->GetInput(1));
         jacFilter->SetNoIdentity(true);
         jacFilter->SetNumberOfThreads(this->GetNumberOfThreads());
-        jacFilter->SetNeighborhood(1);
+        jacFilter->SetNeighborhood(0);
 
         jacFilter->Update();
 

@@ -30,7 +30,7 @@ SVFExponentialImageFilter <TPixelType, Dimension>
         jacFilter->SetInput(this->GetInput());
         jacFilter->SetNoIdentity(true);
         jacFilter->SetNumberOfThreads(this->GetNumberOfThreads());
-        jacFilter->SetNeighborhood(1);
+        jacFilter->SetNeighborhood(0);
 
         jacFilter->Update();
 
