@@ -68,7 +68,7 @@ SVFExponentialImageFilter <TPixelType, Dimension>
 
     maxNorm = std::sqrt(maxNorm);
 
-    double numIter = std::log(maxNorm / (2.0 * m_MaximalDisplacementAmplitude * pixelSpacing));
+    double numIter = std::log(maxNorm / (m_MaximalDisplacementAmplitude * pixelSpacing)) / std::log(2.0);
 
     m_NumberOfSquarings = 0;
     if (numIter + 1 > 0)
@@ -95,10 +95,9 @@ SVFExponentialImageFilter <TPixelType, Dimension>
     OutputPixelType outputValue;
     JacobianPixelType jacValue;
 
-    double scalingFactor = std::pow(2.0,- m_NumberOfSquarings);
+    double scalingFactor = 1.0 / std::pow(2.0, m_NumberOfSquarings);
     while (!outItr.IsAtEnd())
     {
-        outputValue.Fill(0);
         inputValue = inputItr.Get();
         for (unsigned int i = 0;i < Dimension;++i)
             outputValue[i] = scalingFactor * inputValue[i];
@@ -109,7 +108,7 @@ SVFExponentialImageFilter <TPixelType, Dimension>
             for (unsigned int i = 0;i < Dimension;++i)
             {
                 for (unsigned int j = 0;j < Dimension;++j)
-                    outputValue[i] += scalingFactor * scalingFactor * jacValue[i * Dimension + j] * inputValue[j];
+                    outputValue[i] += 0.5 * scalingFactor * scalingFactor * jacValue[i * Dimension + j] * inputValue[j];
             }
         }
 
