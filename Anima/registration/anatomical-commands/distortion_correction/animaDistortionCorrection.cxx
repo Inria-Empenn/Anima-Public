@@ -8,7 +8,7 @@
 int main(int ac, const char** av)
 {
     std::string descriptionMessage;
-    descriptionMessage += "Compute a vector field in order to unwarp distorted EPI\n";
+    descriptionMessage += "Compute a vector field in order to correct a distorted EPI\n";
     descriptionMessage += "INRIA / IRISA - VisAGeS Team";
 
     TCLAP::CmdLine cmd(descriptionMessage, ' ',ANIMA_VERSION);
@@ -28,9 +28,8 @@ int main(int ac, const char** av)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
-    // Classique typedef
 
     const unsigned int Dimension = 3;
 
@@ -60,5 +59,5 @@ int main(int ac, const char** av)
 
     anima::writeImage<VectorFieldType>(outArg.getValue(),filter->GetOutput());
 
-    return 0;
+    return EXIT_SUCCESS;
 }

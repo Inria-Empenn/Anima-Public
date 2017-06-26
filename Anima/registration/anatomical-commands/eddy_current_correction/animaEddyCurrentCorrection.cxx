@@ -200,6 +200,7 @@ int main(int argc, const char** argv)
         nonLinearMatcher->SetSymmetryType((NonLinearPyramidBMType::SymmetryType) symmetryArg.getValue());
         nonLinearMatcher->SetAgregator(NonLinearPyramidBMType::Baloo);
         nonLinearMatcher->SetBCHCompositionOrder(1);
+        nonLinearMatcher->SetExponentiationOrder(0);
         nonLinearMatcher->SetExtrapolationSigma(extrapolationSigmaArg.getValue());
         nonLinearMatcher->SetElasticSigma(elasticSigmaArg.getValue());
         nonLinearMatcher->SetOutlierSigma(outlierSigmaArg.getValue());
@@ -237,7 +238,7 @@ int main(int argc, const char** argv)
         SVFTransformPointer svfPointer = nonLinearMatcher->GetOutputTransform();
 
         DenseTransformPointer dispTrsf = DenseTransformType::New();
-        anima::GetSVFExponential(svfPointer.GetPointer(),dispTrsf.GetPointer(),false);
+        anima::GetSVFExponential(svfPointer.GetPointer(),dispTrsf.GetPointer(),0,numThreadsArg.getValue(),false);
 
         transformSerie->AddTransform(dispTrsf.GetPointer());
 

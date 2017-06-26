@@ -210,6 +210,9 @@ public:
     unsigned int GetBCHCompositionOrder() {return m_BCHCompositionOrder;}
     void SetBCHCompositionOrder(unsigned int order) {m_BCHCompositionOrder = order;}
 
+    unsigned int GetExponentiationOrder() {return m_ExponentiationOrder;}
+    void SetExponentiationOrder(unsigned int order) {m_ExponentiationOrder = order;}
+
     bool GetUseTransformationDam() {return m_UseTransformationDam;}
     void SetUseTransformationDam(bool useTransformationDam) {m_UseTransformationDam = useTransformationDam;}
 
@@ -280,6 +283,7 @@ private:
     double m_MEstimateConvergenceThreshold;
     double m_NeighborhoodApproximation;
     unsigned int m_BCHCompositionOrder;
+    unsigned int m_ExponentiationOrder;
 
     bool m_UseTransformationDam;
     double m_DamDistance;

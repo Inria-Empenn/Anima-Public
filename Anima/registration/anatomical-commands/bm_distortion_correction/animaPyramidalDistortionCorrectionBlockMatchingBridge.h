@@ -145,7 +145,10 @@ public:
     
     double GetNeighborhoodApproximation() {return m_NeighborhoodApproximation;}
     void SetNeighborhoodApproximation(double neighborhoodApproximation) {m_NeighborhoodApproximation = neighborhoodApproximation;}
-    
+
+    unsigned int GetExponentiationOrder() {return m_ExponentiationOrder;}
+    void SetExponentiationOrder(unsigned int order) {m_ExponentiationOrder = order;}
+
     bool GetUseTransformationDam() {return m_UseTransformationDam;}
     void SetUseTransformationDam(bool useTransformationDam) {m_UseTransformationDam = useTransformationDam;}
 
@@ -204,7 +207,8 @@ private:
     double m_OutlierSigma;
     double m_MEstimateConvergenceThreshold;
     double m_NeighborhoodApproximation;
-    
+    unsigned int m_ExponentiationOrder;
+
     bool m_UseTransformationDam;
     double m_DamDistance;
     

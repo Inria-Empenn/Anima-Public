@@ -48,15 +48,17 @@ public:
     typedef typename InterpolatorType::Pointer InterpolatorPointer;
 
     itkSetMacro(NoIdentity, bool)
-    itkSetMacro(Neighborhood, unsigned int)
     itkSetMacro(ComputeDeterminant, bool)
     itkGetObjectMacro(DeterminantImage, DeterminantImageType)
+
+    void SetNeighborhood(unsigned int val);
 
 protected:
     JacobianMatrixImageFilter()
     {
         m_NoIdentity = false;
         m_Neighborhood = 1;
+        m_OnlySixConnectivity = true;
 
         m_ComputeDeterminant = false;
         m_DeterminantImage = 0;
@@ -67,6 +69,8 @@ protected:
     void BeforeThreadedGenerateData() ITK_OVERRIDE;
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
+    bool CheckFaceConnectivity(const IndexType &internalIndex, const IndexType &currentIndex);
+
 private:
     JacobianMatrixImageFilter(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
@@ -74,8 +78,9 @@ private:
     //! Add identity to the obtained Jacobian matrix
     bool m_NoIdentity;
 
-    //! Neighborhood from which to compute Jacobian matrix
+    //! Neighborhood from which to compute Jacobian matrix, 0 -> do only 6 connectivity approximation
     unsigned int m_Neighborhood;
+    bool m_OnlySixConnectivity;
 
     typename DeterminantImageType::Pointer m_DeterminantImage;
     bool m_ComputeDeterminant;

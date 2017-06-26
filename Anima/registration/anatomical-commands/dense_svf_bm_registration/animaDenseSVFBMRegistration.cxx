@@ -6,8 +6,7 @@
 
 int main(int argc, const char** argv)
 {
-    const    unsigned int    Dimension = 3;
-    typedef anima::PyramidalDenseSVFMatchingBridge <Dimension> PyramidBMType;
+    typedef anima::PyramidalDenseSVFMatchingBridge <3> PyramidBMType;
     typedef PyramidBMType::InputImageType InputImageType;
     typedef itk::ImageFileReader<InputImageType> ReaderType;
 
@@ -56,7 +55,8 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<double> outlierSigmaArg("","os","Sigma for outlier rejection among local pairings (default: 3)",false,3,"outlier rejection sigma",cmd);
     TCLAP::ValueArg<double> mEstimateConvergenceThresholdArg("","met","Threshold to consider m-estimator converged (default: 0.01)",false,0.01,"m-estimation convergence threshold",cmd);
     TCLAP::ValueArg<double> neighborhoodApproximationArg("","na","Half size of the neighborhood approximation (multiplied by extrapolation sigma, default: 2.5)",false,2.5,"half size of neighborhood approximation",cmd);
-    TCLAP::ValueArg<unsigned int> bchOrderArg("B","bch-order","BCH composition order (default: 1)",false,1,"BCH order",cmd);
+    TCLAP::ValueArg<unsigned int> bchOrderArg("b","bch-order","BCH composition order (default: 1)",false,1,"BCH order",cmd);
+    TCLAP::ValueArg<unsigned int> expOrderArg("e","exp-order","Order of field exponentiation approximation (in between 0 and 1, default: 0)",false,0,"exponentiation order",cmd);
 
     TCLAP::SwitchArg useTransformDamArg("D","use-dam", "Activate transformation dam to force identity far away from any blocks", cmd, false);
     TCLAP::ValueArg<double> damDistanceArg("","dd","Distance of the deformation dam (crushes extrapolated displacements away from anything on a dd pixels distance, default: 3.0)",false,3.0,"identity dam distance",cmd);
@@ -72,7 +72,7 @@ int main(int argc, const char** argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        exit(-1);
+        return EXIT_FAILURE;
     }
 
     PyramidBMType::Pointer matcher = PyramidBMType::New();
@@ -118,6 +118,7 @@ int main(int argc, const char** argv)
     matcher->SetMEstimateConvergenceThreshold(mEstimateConvergenceThresholdArg.getValue());
     matcher->SetNeighborhoodApproximation(neighborhoodApproximationArg.getValue());
     matcher->SetBCHCompositionOrder(bchOrderArg.getValue());
+    matcher->SetExponentiationOrder(expOrderArg.getValue());
     matcher->SetUseTransformationDam(useTransformDamArg.isSet());
     matcher->SetDamDistance(damDistanceArg.getValue());
     matcher->SetNumberOfPyramidLevels( numPyramidLevelsArg.getValue() );
@@ -135,7 +136,6 @@ int main(int argc, const char** argv)
     matcher->SetOutputTransformFile( outputTransformArg.getValue() );
 
     itk::TimeProbe timer;
-
     timer.Start();
 
     try
@@ -146,7 +146,7 @@ int main(int argc, const char** argv)
     catch (itk::ExceptionObject &e)
     {
         std::cerr << e << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
 
     timer.Stop();

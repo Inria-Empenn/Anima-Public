@@ -20,6 +20,7 @@ BaseBMRegistrationMethod <TInputImageType>
 
     m_SVFElasticRegSigma = 0;
     m_BCHCompositionOrder = 1;
+    m_ExponentiationOrder = 0;
 
     m_MaximumIterations = 10;
     m_MinimalTransformError = 0.0001;
@@ -172,7 +173,7 @@ BaseBMRegistrationMethod <TInputImageType>
             DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
             SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (currentTransform);
 
-            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),false);
+            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfThreads(),false);
 
             resampleFilter->SetTransform(dispTrsf);
         }
@@ -192,7 +193,7 @@ BaseBMRegistrationMethod <TInputImageType>
             DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
             SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (currentTransform);
 
-            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),false);
+            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfThreads(),false);
 
             resampleFilter->SetTransform(dispTrsf);
         }
@@ -220,7 +221,7 @@ BaseBMRegistrationMethod <TInputImageType>
             DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
             SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (currentTransform);
 
-            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),true);
+            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfThreads(),true);
 
             resampleFilter->SetTransform(dispTrsf);
         }
@@ -244,7 +245,7 @@ BaseBMRegistrationMethod <TInputImageType>
             DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
             SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (currentTransform);
 
-            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),true);
+            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfThreads(),true);
 
             resampleFilter->SetTransform(dispTrsf);
         }

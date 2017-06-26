@@ -36,6 +36,23 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
 template <typename TPixelType, typename TOutputPixelType, unsigned int Dimension>
 void
 JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
+::SetNeighborhood(unsigned int val)
+{
+    if (val == 0)
+    {
+        m_Neighborhood = 1;
+        m_OnlySixConnectivity = true;
+    }
+    else
+    {
+        m_Neighborhood = val;
+        m_OnlySixConnectivity = false;
+    }
+}
+
+template <typename TPixelType, typename TOutputPixelType, unsigned int Dimension>
+void
+JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
 ::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
 {
     typedef itk::ImageRegionConstIteratorWithIndex <InputImageType> InputIteratorType;
@@ -97,6 +114,16 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
             {
                 ++internalItr;
                 continue;
+            }
+
+            if (m_OnlySixConnectivity)
+            {
+                bool faceConnex = this->CheckFaceConnectivity(internalIndex,currentIndex);
+                if (!faceConnex)
+                {
+                    ++internalItr;
+                    continue;
+                }
             }
 
             for (unsigned int i = 0;i < Dimension;++i)
@@ -190,6 +217,24 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
         if (m_ComputeDeterminant)
             ++detImageIt;
     }
+}
+
+template <typename TPixelType, typename TOutputPixelType, unsigned int Dimension>
+bool
+JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
+::CheckFaceConnectivity(const IndexType &internalIndex, const IndexType &currentIndex)
+{
+    unsigned int numDiff = 0;
+    for (unsigned int i = 0;i < Dimension;++i)
+    {
+        if (internalIndex[i] != currentIndex[i])
+            ++numDiff;
+
+        if (numDiff > 1)
+            return false;
+    }
+
+    return true;
 }
 
 } //end of namespace anima

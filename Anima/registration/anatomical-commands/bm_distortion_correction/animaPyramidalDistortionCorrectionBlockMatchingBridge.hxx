@@ -51,6 +51,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::PyramidalDisto
     m_OutlierSigma = 3;
     m_MEstimateConvergenceThreshold = 0.01;
     m_NeighborhoodApproximation = 2.5;
+    m_ExponentiationOrder = 1;
     m_UseTransformationDam = true;
     m_DamDistance = 2.5;
     m_NumberOfPyramidLevels = 3;
@@ -232,6 +233,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
         }
 
         bmreg->SetAgregator(agregPtr);
+        bmreg->SetExponentiationOrder(m_ExponentiationOrder);
 
         mainMatcher->SetBlockTransformType((typename BlockMatcherType::TransformDefinition) m_TransformKind);
         mainMatcher->SetSimilarityType((typename BlockMatcherType::SimilarityDefinition) m_Metric);
