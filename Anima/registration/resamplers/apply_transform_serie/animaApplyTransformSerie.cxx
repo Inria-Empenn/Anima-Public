@@ -569,6 +569,7 @@ int main(int ac, const char** av)
         typedef TransformSeriesReaderType::OutputTransformType TransformType;
         TransformSeriesReaderType *trReader = new TransformSeriesReaderType;
         trReader->SetInput(args.transfo);
+        trReader->SetExponentiationOrder(args.exponentiationOrder);
         trReader->SetInvertTransform(!args.invert);
         trReader->Update();
         typename TransformType::Pointer transfo = trReader->GetOutputTransform();

@@ -26,7 +26,7 @@ int main(int argc, char **argv)
     TCLAP::SwitchArg compositionArg("R","regular-composition","Use regular composition (transformations are taken as dense field (if not selected and no exponentiation is done, BCH will be used)",cmd,false);
 
     TCLAP::ValueArg<unsigned int> bchArg("b","bch-order","Order of BCH composition (in between 1 and 4, default: 2)",false,2,"BCH order",cmd);
-    TCLAP::ValueArg<unsigned int> expOrderArg("O","exp-order","Order of field exponentiation approximation (in between 0 and 1, default: 0)",false,0,"exponentiation order",cmd);
+    TCLAP::ValueArg<unsigned int> expOrderArg("e","exp-order","Order of field exponentiation approximation (in between 0 and 1, default: 0)",false,0,"exponentiation order",cmd);
     TCLAP::ValueArg<unsigned int> dividerArg("d","div-order","If BCH composition of order > 1, divide input fields by d (default: 1)",false,1,"BCH field divider",cmd);
 
     TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);

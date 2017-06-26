@@ -199,7 +199,7 @@ int main(int argc, const char** argv)
         nonLinearMatcher->SetTranslateUpperBound(translateUpperBoundArg.getValue());
         nonLinearMatcher->SetSymmetryType((NonLinearPyramidBMType::SymmetryType) symmetryArg.getValue());
         nonLinearMatcher->SetAgregator(NonLinearPyramidBMType::Baloo);
-        nonLinearMatcher->SetBCHCompositionOrder(2);
+        nonLinearMatcher->SetBCHCompositionOrder(1);
         nonLinearMatcher->SetExponentiationOrder(0);
         nonLinearMatcher->SetExtrapolationSigma(extrapolationSigmaArg.getValue());
         nonLinearMatcher->SetElasticSigma(elasticSigmaArg.getValue());
