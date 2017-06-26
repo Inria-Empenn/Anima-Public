@@ -56,11 +56,13 @@ connectedComponent(const arguments &args)
     std::cout << "Original number of objects: " << relabelFilter->GetOriginalNumberOfObjects() <<std::endl;
     std::cout << "Total image spacing: " << spacingTot << std::endl;
     std::cout << "Connected components minimum size: " << args.min << " mm3 --> " << "process on " << minSizeInVoxel-1 << " voxel(s)" << std::endl;
-    if(diff>0.000001)
+
+    if (diff > 1.0e-6)
     {
         std::cout << "-- Warning: operation is not complete, " << (double)(minSizeInVoxel-1)*spacingTot << " mm3 is/are removed ("  << minSizeInVoxel-1  << " voxel(s)) "
-              << "instead of " << args.min << " mm3 (" << minSizeInVoxelD << " voxel(s))" << std::endl;
+                  << "instead of " << args.min << " mm3 (" << minSizeInVoxelD << " voxel(s))" << std::endl;
     }
+
     std::cout << "Number of objects after cleaning too small ones: " << relabelFilter->GetNumberOfObjects() << std::endl;
     std::cout << std::endl;
 
@@ -74,22 +76,20 @@ retrieveDimension(const arguments &args, itk::ImageIOBase::Pointer imageIO)
 
     switch(nbDim)
     {
-    case 2:
-        connectedComponent<2>(args);
-        break;
-    case 3:
-        connectedComponent<3>(args);
-        break;
-    case 4:
-        connectedComponent<4>(args);
-        break;
-    default:
-        itk::ExceptionObject excp(__FILE__, __LINE__, "Number of dimension not supported.", ITK_LOCATION);
-        throw excp;
+        case 2:
+            connectedComponent<2>(args);
+            break;
+        case 3:
+            connectedComponent<3>(args);
+            break;
+        case 4:
+            connectedComponent<4>(args);
+            break;
+        default:
+            itk::ExceptionObject excp(__FILE__, __LINE__, "Number of dimension not supported.", ITK_LOCATION);
+            throw excp;
     }
 }
-
-
 
 int main(int argc, char **argv)
 {
@@ -127,7 +127,6 @@ int main(int argc, char **argv)
 
     std::cout<<"\npreparing filter...\n";
 
-
     arguments args;
 
     args.input = inArg.getValue();
@@ -140,7 +139,7 @@ int main(int argc, char **argv)
     {
         retrieveDimension(args, imageIO);
     }
-    catch ( itk::ExceptionObject & err )
+    catch (itk::ExceptionObject & err)
     {
         std::cerr << "Itk cannot concatenate, be sure to use valid arguments..." << std::endl;
         std::cerr << err << std::endl;
