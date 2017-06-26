@@ -23,7 +23,7 @@ struct arguments
 {
     bool invert;
     unsigned int pthread;
-    std::string input, output, output_trsf, geometry, transfo, interpolation;
+    std::string input, output, geometry, transfo, interpolation;
 
 };
 
@@ -161,24 +161,6 @@ applyVectorTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
     vectorResampler->Update();
 
     anima::writeImage<OutputType>(args.output, vectorResampler->GetOutput());
-
-
-	// Generate the dense deformation field resulting from the composition of the transformations
-	if (args.output_trsf != "")
-	{
-		typedef double CoordinateRepType;
-		typedef itk::Vector< CoordinateRepType, ImageType::ImageDimension > VectorPixelType;
-		typedef itk::Image< VectorPixelType, ImageType::ImageDimension > DisplacementFieldImageType;
-		typedef itk::TransformToDisplacementFieldFilter< DisplacementFieldImageType, CoordinateRepType > DisplacementFieldGeneratorType;
-
-		DisplacementFieldGeneratorType::Pointer dispfieldGenerator = DisplacementFieldGeneratorType::New();
-		dispfieldGenerator->UseReferenceImageOn();
-		dispfieldGenerator->SetReferenceImage(vectorResampler->GetOutput());
-		dispfieldGenerator->SetTransform(transfo);
-		dispfieldGenerator->Update();
-
-		anima::writeImage<DisplacementFieldImageType>(args.output_trsf, dispfieldGenerator->GetOutput());
-	}
 }
 
 template <class ImageType>
@@ -384,25 +366,6 @@ applyScalarTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
     scalarResampler->Update();
 
     anima::writeImage<OutputType>(args.output, scalarResampler->GetOutput());
-	
-
-	// Generate the dense deformation field resulting from the composition of the transformations
-	if (args.output_trsf != "")
-	{
-		typedef double CoordinateRepType;
-		typedef itk::Vector< CoordinateRepType, ImageType::ImageDimension > VectorPixelType;
-		typedef itk::Image< VectorPixelType, ImageType::ImageDimension > DisplacementFieldImageType;
-		typedef itk::TransformToDisplacementFieldFilter< DisplacementFieldImageType, CoordinateRepType > DisplacementFieldGeneratorType;
-
-		DisplacementFieldGeneratorType::Pointer dispfieldGenerator = DisplacementFieldGeneratorType::New();
-		dispfieldGenerator->UseReferenceImageOn();
-		dispfieldGenerator->SetReferenceImage(scalarResampler->GetOutput());
-		dispfieldGenerator->SetTransform(transfo);
-		dispfieldGenerator->Update();
-
-		anima::writeImage<DisplacementFieldImageType>(args.output_trsf, dispfieldGenerator->GetOutput());
-	}
-
 }
 
 template <class ComponentType, int Dimension>
@@ -413,7 +376,7 @@ checkIfComponentsAreVectors(itk::ImageIOBase::Pointer inputImageIO, itk::ImageIO
     {
         if (Dimension > 3)
             throw itk::ExceptionObject (__FILE__, __LINE__, "Number of dimensions not supported for vector image resampling", ITK_LOCATION);
-	
+
         applyVectorTransfo < itk::VectorImage<ComponentType, 3> > (geometryImageIO, args);
     }
     else
@@ -463,7 +426,7 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<std::string> outArg("o","output","Output resampled image",true,"","output image",cmd);
     TCLAP::ValueArg<std::string> geomArg("g","geometry","Geometry image",true,"","geometry image",cmd);
 
-	TCLAP::ValueArg<std::string> outtrArg("T", "output_trsf", "Output resulting transformation field (dense not SVF)", false, "", "output transfo", cmd);
+    TCLAP::ValueArg<std::string> outTrArg("T", "output_trsf", "Output resulting transformation field (dense not SVF)", false, "", "output transfo", cmd);
     TCLAP::ValueArg<std::string> bvecArg("","grad","DWI gradient file",false,"","gradient file",cmd);
     TCLAP::ValueArg<std::string> bvecOutArg("O","out-grad","Output gradient file",false,"","gradient file",cmd);
 
@@ -478,7 +441,7 @@ int main(int ac, const char** av)
 
     TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default : all cores)",
                                          false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
-					
+
     try
     {
         cmd.parse(ac,av);
@@ -491,9 +454,9 @@ int main(int ac, const char** av)
 
     // Find out the type of the image in file
     itk::ImageIOBase::Pointer inputImageIO = itk::ImageIOFactory::CreateImageIO(inArg.getValue().c_str(),
-                                                                           itk::ImageIOFactory::ReadMode);
+                                                                                itk::ImageIOFactory::ReadMode);
     itk::ImageIOBase::Pointer geometryImageIO = itk::ImageIOFactory::CreateImageIO(geomArg.getValue().c_str(),
-                                                                           itk::ImageIOFactory::ReadMode);
+                                                                                   itk::ImageIOFactory::ReadMode);
     if(!inputImageIO)
     {
         std::cerr << "Itk could not find suitable IO factory for the input." << std::endl;
@@ -519,7 +482,6 @@ int main(int ac, const char** av)
     arguments args;
     args.input = inArg.getValue();
     args.output = outArg.getValue();
-    args.output_trsf = outtrArg.getValue();
     args.geometry = geomArg.getValue();
     args.transfo = trArg.getValue();
     args.invert = invertArg.getValue();
@@ -538,7 +500,7 @@ int main(int ac, const char** av)
     }
 
     if(badInterpolation)
-         std::cerr << "Interpolation method not suported, it must be one of [nearest, linear, bspline, sinc]." << std::endl;
+        std::cerr << "Interpolation method not suported, it must be one of [nearest, linear, bspline, sinc]." << std::endl;
 
     try
     {
@@ -575,6 +537,54 @@ int main(int ac, const char** av)
             std::cerr << err << std::endl;
             return EXIT_FAILURE;
         }
+    }
+
+    // Generate the dense deformation field resulting from the composition of the transformations
+    if (outTrArg.getValue() != "")
+    {
+        typedef double CoordinateRepType;
+        typedef itk::Vector< CoordinateRepType, 3> VectorPixelType;
+        typedef itk::Image< VectorPixelType, 3> DisplacementFieldImageType;
+        typedef itk::TransformToDisplacementFieldFilter <DisplacementFieldImageType, CoordinateRepType> DisplacementFieldGeneratorType;
+
+        DisplacementFieldGeneratorType::Pointer dispFieldGenerator = DisplacementFieldGeneratorType::New();
+        DisplacementFieldImageType::DirectionType dirMatrix;
+        DisplacementFieldImageType::SpacingType spacingVector;
+        DisplacementFieldImageType::PointType originVector;
+        DisplacementFieldImageType::SizeType sizeOutput;
+        DisplacementFieldImageType::IndexType indexOutput;
+
+        typedef anima::TransformSeriesReader <CoordinateRepType, 3> TransformSeriesReaderType;
+        typedef TransformSeriesReaderType::OutputTransformType TransformType;
+        TransformSeriesReaderType *trReader = new TransformSeriesReaderType;
+        trReader->SetInput(args.transfo);
+        trReader->SetInvertTransform(!args.invert);
+        trReader->Update();
+        typename TransformType::Pointer transfo = trReader->GetOutputTransform();
+
+        for (unsigned int i = 0; i < 3; ++i)
+        {
+            originVector[i] = geometryImageIO->GetOrigin(i);
+            spacingVector[i] = geometryImageIO->GetSpacing(i);
+            indexOutput[i] = 0;
+            sizeOutput[i] = geometryImageIO->GetDimensions(i);
+
+            for (unsigned int j = 0; j < 3; ++j)
+                dirMatrix(i,j) = geometryImageIO->GetDirection(j)[i];
+        }
+
+        dispFieldGenerator->UseReferenceImageOff();
+        dispFieldGenerator->SetOutputDirection(dirMatrix);
+        dispFieldGenerator->SetOutputOrigin(originVector);
+        dispFieldGenerator->SetOutputSpacing(spacingVector);
+        dispFieldGenerator->SetOutputStartIndex(indexOutput);
+        dispFieldGenerator->SetSize(sizeOutput);
+
+        dispFieldGenerator->SetTransform(transfo);
+        dispFieldGenerator->SetNumberOfThreads(nbpArg.getValue());
+        dispFieldGenerator->Update();
+
+        anima::writeImage <DisplacementFieldImageType>(outTrArg.getValue(), dispFieldGenerator->GetOutput());
     }
 
     return EXIT_SUCCESS;
