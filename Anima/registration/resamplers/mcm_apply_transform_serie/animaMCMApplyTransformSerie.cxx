@@ -1,17 +1,20 @@
 #include <tclap/CmdLine.h>
 
+#include <animaMCMFileReader.h>
+#include <animaMCMFileWriter.h>
+#include <animaMultiCompartmentModelCreator.h>
 #include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
 
 #include <animaTransformSeriesReader.h>
 #include <itkNearestNeighborInterpolateImageFunction.h>
+#include <animaMCMLinearInterpolateImageFunction.h>
 
-#include <animaODFResampleImageFilter.h>
+#include <animaMCMResampleImageFilter.h>
 
 int main(int ac, const char** av)
 {
     std::string descriptionMessage;
-    descriptionMessage += "Resampler tool to apply a series of transformations to an image of ODF models in Max Descoteaux's basis. ";
+    descriptionMessage += "Resampler tool to apply a series of transformations to a multi-tensor image. ";
     descriptionMessage += "Input transform is an XML file describing all transforms to apply. ";
     descriptionMessage += "Such a file should look like this:\n";
     descriptionMessage += "<TransformationList>\n";
@@ -30,8 +33,11 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<std::string> trArg("t","trsf","Transformations XML list",true,"","transformations list",cmd);
     TCLAP::ValueArg<std::string> outArg("o","output","Output resampled image",true,"","output image",cmd);
     TCLAP::ValueArg<std::string> geomArg("g","geometry","Geometry image",true,"","geometry image",cmd);
-    
+
+    TCLAP::ValueArg<int> numFasciclesOut("n","num-fasc","Number of DDI output fascicles (default: same as input)",false,-1,"number of DDI output fascicles",cmd);
     TCLAP::ValueArg<unsigned int> expOrderArg("e","exp-order","Order of field exponentiation approximation (in between 0 and 1, default: 0)",false,0,"exponentiation order",cmd);
+
+    TCLAP::SwitchArg ppdArg("P","ppd","Use PPD re-orientation scheme (default: no)",cmd,false);
     TCLAP::SwitchArg invertArg("I","invert","Invert the transformation series",cmd,false);
     TCLAP::SwitchArg nearestArg("N","nearest","Use nearest neighbor interpolation",cmd,false);
     
@@ -47,24 +53,25 @@ int main(int ac, const char** av)
         return EXIT_FAILURE;
     }
 
-    const    unsigned int    Dimension = 3;
-    typedef  float           PixelType;
+    const unsigned int Dimension = 3;
+    typedef float PixelType;
     
-    typedef itk::VectorImage< PixelType, Dimension >  ImageType;
+    typedef anima::MCMImage< PixelType, Dimension > ImageType;
     typedef anima::TransformSeriesReader <double, Dimension> TransformSeriesReaderType;
     typedef TransformSeriesReaderType::OutputTransformType TransformType;
     
     typedef itk::ImageFileReader <ImageType> ReaderType;
-    typedef itk::ImageFileWriter <ImageType> WriterType;
+    typedef anima::MCMFileReader <float,3> MCMReaderType;
+    typedef anima::MCMFileWriter <float, 3> MCMWriterType;
 
-    ReaderType::Pointer reader = ReaderType::New();
-    reader->SetFileName(inArg.getValue());
-    reader->Update();
+    MCMReaderType reader;
+    reader.SetFileName(inArg.getValue());
+    reader.Update();
     
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(geomArg.getValue().c_str(),
                                                                            itk::ImageIOFactory::ReadMode);
 
-    if (!imageIO)
+    if( !imageIO )
     {
         std::cerr << "Itk could not find suitable IO factory for the input" << std::endl;
         return EXIT_FAILURE;
@@ -76,10 +83,10 @@ int main(int ac, const char** av)
 
     TransformSeriesReaderType *trReader = new TransformSeriesReaderType;
     trReader->SetInput(trArg.getValue());
-    trReader->SetInvertTransform(invertArg.isSet());
     trReader->SetExponentiationOrder(expOrderArg.getValue());
     trReader->SetNumberOfThreads(nbpArg.getValue());
-
+    trReader->SetInvertTransform(invertArg.isSet());
+    
     try
     {
         trReader->Update();
@@ -93,18 +100,62 @@ int main(int ac, const char** av)
     TransformType::Pointer trsf = trReader->GetOutputTransform();
     
     itk::InterpolateImageFunction <ImageType>::Pointer interpolator;
-    
+    unsigned int numIsotropicCompartments = reader.GetModelVectorImage()->GetDescriptionModel()->GetNumberOfIsotropicCompartments();
+    unsigned int numFasciclesInput = reader.GetModelVectorImage()->GetDescriptionModel()->GetNumberOfCompartments() - numIsotropicCompartments;
+    unsigned int numFasciclesOutput = numFasciclesInput;
+
+    if (numFasciclesOut.getValue() >= 0)
+        numFasciclesOutput = std::min((unsigned int)numFasciclesOut.getValue(),numFasciclesInput);
+
+    anima::MultiCompartmentModelCreator mcmCreator;
+
+    mcmCreator.SetModelWithFreeWaterComponent(false);
+    mcmCreator.SetModelWithRestrictedWaterComponent(false);
+    mcmCreator.SetModelWithStationaryWaterComponent(false);
+
+    for (unsigned int i = 0;i < numIsotropicCompartments;++i)
+    {
+        switch (reader.GetModelVectorImage()->GetDescriptionModel()->GetCompartment(i)->GetCompartmentType())
+        {
+            case anima::FreeWater:
+                mcmCreator.SetModelWithFreeWaterComponent(true);
+                break;
+
+            case anima::IsotropicRestrictedWater:
+                mcmCreator.SetModelWithRestrictedWaterComponent(true);
+                break;
+
+            case anima::StationaryWater:
+            default:
+                mcmCreator.SetModelWithStationaryWaterComponent(true);
+                break;
+        }
+    }
+
+    mcmCreator.SetCompartmentType(anima::Tensor);
+    mcmCreator.SetNumberOfCompartments(numFasciclesOutput);
+
+    anima::MultiCompartmentModel::Pointer outputReferenceModel = mcmCreator.GetNewMultiCompartmentModel();
+
     if (nearestArg.isSet())
         interpolator = itk::NearestNeighborInterpolateImageFunction<ImageType>::New();
     else
-        interpolator = anima::VectorModelLinearInterpolateImageFunction<ImageType>::New();
-    
-    typedef anima::ODFResampleImageFilter <ImageType, double> ResampleFilterType;
+    {
+        anima::MCMLinearInterpolateImageFunction<ImageType>::Pointer tmpInterpolator = anima::MCMLinearInterpolateImageFunction<ImageType>::New();
+        tmpInterpolator->SetReferenceOutputModel(outputReferenceModel);
+        interpolator = tmpInterpolator;
+    }
 
+    typedef anima::MCMResampleImageFilter <ImageType, double> ResampleFilterType;
     ResampleFilterType::Pointer resample = ResampleFilterType::New();
         
     resample->SetTransform(trsf);
-    resample->SetFiniteStrainReorientation(true);
+    resample->SetFiniteStrainReorientation(!ppdArg.isSet());
+    if (nearestArg.isSet())
+        resample->SetReferenceOutputModel(reader.GetModelVectorImage()->GetDescriptionModel());
+    else
+        resample->SetReferenceOutputModel(outputReferenceModel);
+
     resample->SetInterpolator(interpolator.GetPointer());
     resample->SetNumberOfThreads(nbpArg.getValue());
 
@@ -128,22 +179,18 @@ int main(int ac, const char** av)
     resample->SetOutputOrigin(origin);
     resample->SetOutputSpacing(spacing);
     resample->SetOutputDirection(directionMatrix);
-    
-    resample->SetInput(reader->GetOutput());
+
+    resample->SetInput(reader.GetModelVectorImage());
     
     std::cout << "Applying transform... " << std::flush;
     resample->Update();
     std::cout << "Done..." << std::endl;
 
-    WriterType::Pointer writer = WriterType::New();
+    MCMWriterType mcmWriter;
+    mcmWriter.SetInputImage(resample->GetOutput());
 
-    writer->SetUseCompression(true);
-    
-    writer->SetInput(resample->GetOutput());
-    
-    writer->SetFileName(outArg.getValue());
-    
-    writer->Update();
+    mcmWriter.SetFileName(outArg.getValue());
+    mcmWriter.Update();
     
     return EXIT_SUCCESS;
 }
