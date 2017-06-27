@@ -1,4 +1,5 @@
 add_subdirectory(apply_transform_serie)
 add_subdirectory(apply_distortion_correction)
+add_subdirectory(mcm_apply_transform_serie)
 add_subdirectory(odf_apply_transform_serie)
 add_subdirectory(tensor_apply_transform_serie)
