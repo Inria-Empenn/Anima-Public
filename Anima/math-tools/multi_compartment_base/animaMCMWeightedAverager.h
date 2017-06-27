@@ -44,6 +44,8 @@ public:
 
     unsigned int GetOutputModelSize();
 
+    void SetUpToDate(bool val) {m_UpToDate = val;}
+
     void Update();
 
 protected:
@@ -56,7 +58,7 @@ protected:
     void ComputeOutputTensorModel();
     virtual void ComputeOutputNonTensorModel();
 
-    virtual bool CheckTensorCompatibility(MCMCompartmentPointer &compartment);
+    bool CheckTensorCompatibility(MCMCompartmentPointer &compartment);
 
 private:
     std::vector <MCMPointer> m_InputModels;
@@ -67,6 +69,7 @@ private:
     MCMPointer m_OutputModel;
     bool m_UpToDate;
 
+protected:
     // Internal work variables
     std::vector < itk::VariableLengthVector <double> > m_InternalLogTensors;
 

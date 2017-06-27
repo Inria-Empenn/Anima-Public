@@ -1,0 +1,1 @@
+add_subdirectory(mcm_average_images)

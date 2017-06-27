@@ -210,7 +210,7 @@ void MCMWeightedAverager::ComputeTensorDistanceMatrix()
 
 void MCMWeightedAverager::ComputeNonTensorDistanceMatrix()
 {
-    itkExceptionMacro("Non non-tensor distance matrix implemented in public version")
+    itkExceptionMacro("No non-tensor distance matrix implemented in public version")
 }
 
 void MCMWeightedAverager::ComputeOutputTensorModel()
@@ -250,7 +250,7 @@ void MCMWeightedAverager::ComputeOutputTensorModel()
 
 void MCMWeightedAverager::ComputeOutputNonTensorModel()
 {
-    itkExceptionMacro("Non non-tensor distance matrix implemented in public version")
+    itkExceptionMacro("No non-tensor model computation implemented in public version")
 }
 
 } // end namespace anima

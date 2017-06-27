@@ -64,6 +64,8 @@ public:
 
     virtual void SetInputImage(const InputImageType *ptr) ITK_OVERRIDE;
 
+    std::vector <AveragerPointer> &GetAveragers() const {return m_MCMAveragers;}
+
 protected:
     MCMLinearInterpolateImageFunction();
     virtual ~MCMLinearInterpolateImageFunction() {}
