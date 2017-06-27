@@ -44,6 +44,7 @@ public:
     typedef typename MCMAveragerType::Pointer MCMAveragerPointer;
 
     void SetReferenceOutputModel(MCModelPointer &model);
+    MCModelType *GetReferenceOutputModel() {return m_ReferenceOutputModel;}
 
 protected:
     MCMAverageImagesImageFilter ()
