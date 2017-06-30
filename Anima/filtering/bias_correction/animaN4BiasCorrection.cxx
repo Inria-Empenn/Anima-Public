@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
     catch (TCLAP::ArgException & e)
     {
         std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
     typedef itk::Image<float, 3 > ImageType;
@@ -262,9 +262,8 @@ int main(int argc, char *argv[])
     {
         std::cerr << "ExceptionObject caught !" << std::endl;
         std::cerr << err << std::endl;
-        exit(EXIT_FAILURE);
+         return EXIT_FAILURE;
     }
-
 
     /**
    * Reconstruct the bias field at full image resolution.  Divide
@@ -331,7 +330,7 @@ int main(int argc, char *argv[])
     {
         std::cerr << "ExceptionObject caught !" << std::endl;
         std::cerr << err << std::endl;
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;
