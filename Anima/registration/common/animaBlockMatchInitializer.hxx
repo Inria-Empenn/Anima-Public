@@ -118,11 +118,11 @@ void BlockMatchingInitializer<PixelType,NDimensions>
 
 template <class PixelType, unsigned int NDimensions>
 void BlockMatchingInitializer<PixelType,NDimensions>
-::SetTensorVarianceThreshold(double val)
+::SetOrientedModelVarianceThreshold(double val)
 {
-    if (val != m_TensorVarianceThreshold)
+    if (val != m_OrientedModelVarianceThreshold)
     {
-        m_TensorVarianceThreshold = val;
+        m_OrientedModelVarianceThreshold = val;
         m_UpToDate = false;
     }
 }
@@ -232,7 +232,67 @@ void BlockMatchingInitializer<PixelType,NDimensions>
 }
 
 template <class PixelType, unsigned int NDimensions>
-void BlockMatchingInitializer<PixelType,NDimensions>::ComputeBlocksOnGenerationMask(unsigned int maskIndex)
+void
+BlockMatchingInitializer<PixelType,NDimensions>
+::ComputeBlocksOnGenerationMask(unsigned int maskIndex)
+{
+    itk::MultiThreader::Pointer threaderBlockGenerator = itk::MultiThreader::New();
+
+    BlockGeneratorThreadStruct *tmpStr = this->InitializeThreading(maskIndex);
+
+    threaderBlockGenerator->SetNumberOfThreads(this->GetNumberOfThreads());
+    threaderBlockGenerator->SetSingleMethod(this->ThreadBlockGenerator,tmpStr);
+    threaderBlockGenerator->SingleMethodExecute();
+
+    m_Output.clear();
+    m_OutputPositions.clear();
+    unsigned int totalNumberOfBlocks = 0;
+    unsigned int realNumberOfBlocks = 0;
+
+    for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
+    {
+        realNumberOfBlocks += tmpStr->tmpOutput[i].size();
+        totalNumberOfBlocks += tmpStr->totalNumberOfBlocks[i];
+    }
+
+    double percentageBlocksKept = (double) realNumberOfBlocks / totalNumberOfBlocks;
+
+    if (percentageBlocksKept > m_PercentageKept)
+    {
+        std::vector < std::pair <double, std::pair <PointType, ImageRegionType> > > sortVector;
+        for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
+            for (unsigned int j = 0;j < tmpStr->tmpOutput[i].size();++j)
+            {
+                std::pair <PointType, ImageRegionType> tmpPair(tmpStr->blocks_positions[i][j],tmpStr->tmpOutput[i][j]);
+                sortVector.push_back(std::make_pair(tmpStr->blocks_variances[i][j],tmpPair));
+            }
+
+        unsigned int numRemoved = std::floor((1.0 - m_PercentageKept) * totalNumberOfBlocks);
+        std::partial_sort(sortVector.begin(),sortVector.begin() + numRemoved,sortVector.end(),pair_comparator());
+
+        for (unsigned int i = numRemoved;i < sortVector.size();++i)
+        {
+            m_Output.push_back(sortVector[i].second.second);
+            m_OutputPositions.push_back(sortVector[i].second.first);
+        }
+    }
+    else
+    {
+        for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
+        {
+            m_Output.insert(m_Output.end(), tmpStr->tmpOutput[i].begin(), tmpStr->tmpOutput[i].end());
+            m_OutputPositions.insert(m_OutputPositions.end(), tmpStr->blocks_positions[i].begin(),
+                                     tmpStr->blocks_positions[i].end());
+        }
+    }
+
+    delete tmpStr;
+}
+
+template <class PixelType, unsigned int NDimensions>
+typename BlockMatchingInitializer<PixelType,NDimensions>::BlockGeneratorThreadStruct *
+BlockMatchingInitializer<PixelType,NDimensions>
+::InitializeThreading(unsigned int maskIndex)
 {
     ImageRegionType workRegion;
     IndexType minIndex, maxIndex, tmpIndex;
@@ -264,8 +324,6 @@ void BlockMatchingInitializer<PixelType,NDimensions>::ComputeBlocksOnGenerationM
         workRegion.SetIndex(i,minIndex[i]);
         workRegion.SetSize(i,maxIndex[i] - minIndex[i] + 1);
     }
-
-    itk::MultiThreader::Pointer threaderBlockGenerator = itk::MultiThreader::New();
 
     BlockGeneratorThreadStruct *tmpStr = new BlockGeneratorThreadStruct;
 
@@ -333,53 +391,7 @@ void BlockMatchingInitializer<PixelType,NDimensions>::ComputeBlocksOnGenerationM
         tmpStr->blocks_variances[i].clear();
     }
 
-    threaderBlockGenerator->SetNumberOfThreads(this->GetNumberOfThreads());
-    threaderBlockGenerator->SetSingleMethod(this->ThreadBlockGenerator,tmpStr);
-    threaderBlockGenerator->SingleMethodExecute();
-
-    m_Output.clear();
-    m_OutputPositions.clear();
-    unsigned int totalNumberOfBlocks = 0;
-    unsigned int realNumberOfBlocks = 0;
-
-    for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
-    {
-        realNumberOfBlocks += tmpStr->tmpOutput[i].size();
-        totalNumberOfBlocks += tmpStr->totalNumberOfBlocks[i];
-    }
-
-    double percentageBlocksKept = (double) realNumberOfBlocks / totalNumberOfBlocks;
-
-    if (percentageBlocksKept > m_PercentageKept)
-    {
-        std::vector < std::pair <double, std::pair <PointType, ImageRegionType> > > sortVector;
-        for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
-            for (unsigned int j = 0;j < tmpStr->tmpOutput[i].size();++j)
-            {
-                std::pair <PointType, ImageRegionType> tmpPair(tmpStr->blocks_positions[i][j],tmpStr->tmpOutput[i][j]);
-                sortVector.push_back(std::make_pair(tmpStr->blocks_variances[i][j],tmpPair));
-            }
-
-        unsigned int numRemoved = std::floor((1.0 - m_PercentageKept) * totalNumberOfBlocks);
-        std::partial_sort(sortVector.begin(),sortVector.begin() + numRemoved,sortVector.end(),pair_comparator());
-
-        for (unsigned int i = numRemoved;i < sortVector.size();++i)
-        {
-            m_Output.push_back(sortVector[i].second.second);
-            m_OutputPositions.push_back(sortVector[i].second.first);
-        }
-    }
-    else
-    {
-        for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
-        {
-            m_Output.insert(m_Output.end(), tmpStr->tmpOutput[i].begin(), tmpStr->tmpOutput[i].end());
-            m_OutputPositions.insert(m_OutputPositions.end(), tmpStr->blocks_positions[i].begin(),
-                                     tmpStr->blocks_positions[i].end());
-        }
-    }
-
-    delete tmpStr;
+    return tmpStr;
 }
 
 template <class PixelType, unsigned int NDimensions>
@@ -579,7 +591,7 @@ BlockMatchingInitializer<PixelType,NDimensions>
 
     for (unsigned int i = 0;i < m_ReferenceVectorImages.size();++i)
     {
-        if (!this->CheckTensorVariance(m_ReferenceVectorImages[i],region,tmpVar))
+        if (!this->CheckOrientedModelVariance(m_ReferenceVectorImages[i],region,tmpVar))
             return false;
 
         if (tmpVar > blockVariance)
@@ -592,7 +604,7 @@ BlockMatchingInitializer<PixelType,NDimensions>
 
 template <class PixelType, unsigned int NDimensions>
 bool BlockMatchingInitializer<PixelType,NDimensions>
-::CheckTensorVariance(VectorImageType *refImage, ImageRegionType &region, double &blockVariance)
+::CheckOrientedModelVariance(VectorImageType *refImage, ImageRegionType &region, double &blockVariance)
 {
     itk::ImageRegionConstIterator <VectorImageType> refItr(refImage,region);
     typedef typename VectorImageType::PixelType VectorType;
@@ -636,7 +648,7 @@ bool BlockMatchingInitializer<PixelType,NDimensions>
 
     blockVariance = std::sqrt(blockVariance);
 
-    if (blockVariance > this->GetTensorVarianceThreshold())
+    if (blockVariance > this->GetOrientedModelVarianceThreshold())
         return true;
     else
         return false;
