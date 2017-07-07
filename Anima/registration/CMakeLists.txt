@@ -5,7 +5,7 @@ project(ANIMA-REGISTRATION)
 ################################################################################
 
 add_subdirectory(anatomical-commands)
-add_subdirectory(dti-commands)
+add_subdirectory(diffusion-commands)
 add_subdirectory(symmetry)
 add_subdirectory(resamplers)
 add_subdirectory(similarity-measures)
