@@ -18,7 +18,7 @@ public:
     typedef itk::Object Superclass;
     typedef BlockMatchingInitializer <PixelType,NDimensions> Self;
     typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self>  ConstPointer;
+    typedef itk::SmartPointer<const Self> ConstPointer;
 
     typedef itk::Image <PixelType, NDimensions> ScalarImageType;
     typedef itk::Image <double, NDimensions> WeightImageType;
@@ -70,18 +70,16 @@ public:
     void clearGenerationMasks() {m_GenerationMasks.clear();}
     void AddGenerationMask(MaskImageType *mask);
 
-    void AddReferenceImage(itk::ImageBase <NDimensions> *refImage);
+    virtual void AddReferenceImage(itk::ImageBase <NDimensions> *refImage);
     itk::ImageBase <NDimensions> *GetFirstReferenceImage();
+
+    ScalarImageType *GetReferenceScalarImage(unsigned int i) {return m_ReferenceScalarImages[i];}
+    VectorImageType *GetReferenceVectorImage(unsigned int i) {return m_ReferenceVectorImages[i];}
 
     void Update();
 
     // Does the splitting and calls RegionBlockGenerator on a sub region
     static ITK_THREAD_RETURN_TYPE ThreadBlockGenerator(void *arg);
-
-    void RegionBlockGenerator(std::vector <unsigned int> &num_start, std::vector <unsigned int> &block_start_offsets,
-                              std::vector <unsigned int> &num_blocks, std::vector <ImageRegionType> &tmpOutput,
-                              std::vector <PointType> &block_origins, std::vector <double> &block_variances,
-                              unsigned int &total_num_blocks, unsigned int maskIndex);
 
     std::vector <ImageRegionType> &GetOutput();
     std::vector <unsigned int> &GetMaskStartingIndexes();
@@ -99,7 +97,12 @@ public:
         std::vector < std::vector <double> > blocks_variances;
         unsigned int maskIndex;
         std::vector < std::vector <PointType> > blocks_positions;
+
+        //! To be able to inherit from it
+        virtual ~BlockGeneratorThreadStruct() {}
     };
+
+    void RegionBlockGenerator(BlockGeneratorThreadStruct *workStr, unsigned int threadId);
 
 protected:
     BlockMatchingInitializer() : Superclass()
@@ -125,11 +128,14 @@ protected:
     void ComputeBlocksOnGenerationMask(unsigned int maskIndex);
     void ComputeOuterDamFromBlocks();
 
-    virtual BlockGeneratorThreadStruct *InitializeThreading(unsigned int maskIndex);
+    virtual void InitializeThreading(unsigned int maskIndex, BlockGeneratorThreadStruct *&workStr);
 
-    bool CheckBlockConditions(ImageRegionType &region, double &blockVariance);
+    bool CheckBlockConditions(ImageRegionType &region, double &blockVariance, BlockGeneratorThreadStruct *workStr,
+                              unsigned int threadId);
+
     bool CheckScalarVariance(ScalarImageType *refImage, ImageRegionType &region, double &blockVariance);
-    virtual bool CheckOrientedModelVariance(VectorImageType *refImage, ImageRegionType &region, double &blockVariance);
+    virtual bool CheckOrientedModelVariance(unsigned int imageIndex, ImageRegionType &region, double &blockVariance,
+                                            BlockGeneratorThreadStruct *workStr, unsigned int threadId);
 
     bool ProgressCounter(std::vector <unsigned int> &counter, std::vector <unsigned int> &bounds);
 

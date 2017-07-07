@@ -238,7 +238,8 @@ BlockMatchingInitializer<PixelType,NDimensions>
 {
     itk::MultiThreader::Pointer threaderBlockGenerator = itk::MultiThreader::New();
 
-    BlockGeneratorThreadStruct *tmpStr = this->InitializeThreading(maskIndex);
+    BlockGeneratorThreadStruct *tmpStr;
+    this->InitializeThreading(maskIndex,tmpStr);
 
     threaderBlockGenerator->SetNumberOfThreads(this->GetNumberOfThreads());
     threaderBlockGenerator->SetSingleMethod(this->ThreadBlockGenerator,tmpStr);
@@ -290,9 +291,9 @@ BlockMatchingInitializer<PixelType,NDimensions>
 }
 
 template <class PixelType, unsigned int NDimensions>
-typename BlockMatchingInitializer<PixelType,NDimensions>::BlockGeneratorThreadStruct *
-BlockMatchingInitializer<PixelType,NDimensions>
-::InitializeThreading(unsigned int maskIndex)
+void
+BlockMatchingInitializer<PixelType, NDimensions>
+::InitializeThreading(unsigned int maskIndex, BlockGeneratorThreadStruct *&workStr)
 {
     ImageRegionType workRegion;
     IndexType minIndex, maxIndex, tmpIndex;
@@ -325,10 +326,11 @@ BlockMatchingInitializer<PixelType,NDimensions>
         workRegion.SetSize(i,maxIndex[i] - minIndex[i] + 1);
     }
 
-    BlockGeneratorThreadStruct *tmpStr = new BlockGeneratorThreadStruct;
+    if (workStr == 0)
+        workStr = new BlockGeneratorThreadStruct;
 
     std::vector <unsigned int> totalNbBlocks(NDimensions);
-    tmpStr->blockStartOffsets.resize(NDimensions);
+    workStr->blockStartOffsets.resize(NDimensions);
 
     for (unsigned int i = 0;i < NDimensions;++i)
     {
@@ -338,7 +340,7 @@ BlockMatchingInitializer<PixelType,NDimensions>
 
         unsigned int spaceRequired = workRegion.GetSize()[i] - (totalNbBlocks[i] - 1) * this->GetBlockSpacing() - 1;
 
-        tmpStr->blockStartOffsets[i] = workRegion.GetIndex()[i] + std::floor(spaceRequired / 2.0);
+        workStr->blockStartOffsets[i] = workRegion.GetIndex()[i] + std::floor(spaceRequired / 2.0);
     }
 
     unsigned int nb_blocks_per_thread = (unsigned int) std::floor((float)(totalNbBlocks[NDimensions-1] / this->GetNumberOfThreads()));
@@ -348,16 +350,16 @@ BlockMatchingInitializer<PixelType,NDimensions>
         this->SetNumberOfThreads(totalNbBlocks[NDimensions-1]);
     }
 
-    tmpStr->startBlocks.resize(this->GetNumberOfThreads());
-    tmpStr->nb_blocks.resize(this->GetNumberOfThreads());
-    tmpStr->maskIndex = maskIndex;
+    workStr->startBlocks.resize(this->GetNumberOfThreads());
+    workStr->nb_blocks.resize(this->GetNumberOfThreads());
+    workStr->maskIndex = maskIndex;
 
     unsigned int currentCount = 0;
     for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
     {
         std::vector <unsigned int> startBlock(NDimensions,0);
         startBlock[NDimensions-1] = currentCount;
-        tmpStr->startBlocks[i] = startBlock;
+        workStr->startBlocks[i] = startBlock;
 
         std::vector <unsigned int> numBlockVec(NDimensions);
         for (unsigned int j = 0;j < NDimensions-1;++j)
@@ -372,26 +374,24 @@ BlockMatchingInitializer<PixelType,NDimensions>
             numBlocksForThread = totalNbBlocks[NDimensions-1] - currentCount;
 
         numBlockVec[NDimensions-1] = numBlocksForThread;
-        tmpStr->nb_blocks[i] = numBlockVec;
+        workStr->nb_blocks[i] = numBlockVec;
 
         currentCount += numBlocksForThread;
     }
 
-    tmpStr->Filter = this;
-    tmpStr->tmpOutput.resize(this->GetNumberOfThreads());
-    tmpStr->totalNumberOfBlocks.resize(this->GetNumberOfThreads());
-    tmpStr->blocks_positions.resize(this->GetNumberOfThreads());
-    tmpStr->blocks_variances.resize(this->GetNumberOfThreads());
+    workStr->Filter = this;
+    workStr->tmpOutput.resize(this->GetNumberOfThreads());
+    workStr->totalNumberOfBlocks.resize(this->GetNumberOfThreads());
+    workStr->blocks_positions.resize(this->GetNumberOfThreads());
+    workStr->blocks_variances.resize(this->GetNumberOfThreads());
 
     for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
     {
-        tmpStr->tmpOutput[i].clear();
-        tmpStr->totalNumberOfBlocks[i] = 0;
-        tmpStr->blocks_positions[i].clear();
-        tmpStr->blocks_variances[i].clear();
+        workStr->tmpOutput[i].clear();
+        workStr->totalNumberOfBlocks[i] = 0;
+        workStr->blocks_positions[i].clear();
+        workStr->blocks_variances[i].clear();
     }
-
-    return tmpStr;
 }
 
 template <class PixelType, unsigned int NDimensions>
@@ -405,20 +405,14 @@ BlockMatchingInitializer<PixelType,NDimensions>
 
     BlockGeneratorThreadStruct *tmpStr = (BlockGeneratorThreadStruct *)threadArgs->UserData;
 
-    tmpStr->Filter->RegionBlockGenerator(tmpStr->startBlocks[nbThread], tmpStr->blockStartOffsets, tmpStr->nb_blocks[nbThread],
-                                         tmpStr->tmpOutput[nbThread], tmpStr->blocks_positions[nbThread],
-                                         tmpStr->blocks_variances[nbThread], tmpStr->totalNumberOfBlocks[nbThread],
-                                         tmpStr->maskIndex);
+    tmpStr->Filter->RegionBlockGenerator(tmpStr,nbThread);
 
     return NULL;
 }
 
 template <class PixelType, unsigned int NDimensions>
 void BlockMatchingInitializer<PixelType,NDimensions>
-::RegionBlockGenerator(std::vector <unsigned int> &num_start, std::vector <unsigned int> &block_start_offsets,
-                       std::vector <unsigned int> &num_blocks, std::vector <ImageRegionType> &tmpOutput,
-                       std::vector<PointType> &block_origins, std::vector <double> &block_variances,
-                       unsigned int &total_num_blocks, unsigned int maskIndex)
+::RegionBlockGenerator(BlockGeneratorThreadStruct *workStr, unsigned int threadId)
 {
     typename ImageRegionType::IndexType startPosition, blockPosition;
     typename ImageRegionType::SizeType blockSize;
@@ -428,9 +422,9 @@ void BlockMatchingInitializer<PixelType,NDimensions>
     ImageRegionType tmpBlock;
     int indexPos;
     double blockVar = 0;
-    total_num_blocks = 0;
-    block_variances.clear();
-    block_origins.clear();
+    workStr->totalNumberOfBlocks[threadId] = 0;
+    workStr->blocks_variances[threadId].clear();
+    workStr->blocks_positions[threadId].clear();
 
     unsigned int block_half_size = std::floor ((this->GetBlockSize() - 1) / 2.0);
 
@@ -442,7 +436,7 @@ void BlockMatchingInitializer<PixelType,NDimensions>
         for (unsigned int i = 0;i < NDimensions;++i)
         {
             blockSize[i] = this->GetBlockSize();
-            indexPos = block_start_offsets[i] + (num_start[i] + positionCounter[i])*this->GetBlockSpacing() - block_half_size;
+            indexPos = workStr->blockStartOffsets[i] + (workStr->startBlocks[threadId][i] + positionCounter[i])*this->GetBlockSpacing() - block_half_size;
             if (indexPos < largestRegion.GetIndex()[i])
             {
                 blockSize[i] += indexPos - largestRegion.GetIndex()[i];
@@ -455,27 +449,27 @@ void BlockMatchingInitializer<PixelType,NDimensions>
 
         tmpBlock.SetIndex(startPosition);
         tmpBlock.SetSize(blockSize);
-        total_num_blocks++;
+        workStr->totalNumberOfBlocks[threadId]++;
 
-        if (this->CheckBlockConditions(tmpBlock,blockVar))
+        if (this->CheckBlockConditions(tmpBlock,blockVar,workStr,threadId))
         {
             for (unsigned int i = 0;i < NDimensions;++i)
-                blockPosition[i] = block_start_offsets[i] + (num_start[i] + positionCounter[i])*this->GetBlockSpacing();
+                blockPosition[i] = workStr->blockStartOffsets[i] + (workStr->startBlocks[threadId][i] + positionCounter[i])*this->GetBlockSpacing();
 
-            if (m_GenerationMasks[maskIndex]->GetPixel(blockPosition) == 0)
+            if (m_GenerationMasks[workStr->maskIndex]->GetPixel(blockPosition) == 0)
             {
-                continueLoop = this->ProgressCounter(positionCounter,num_blocks);
+                continueLoop = this->ProgressCounter(positionCounter,workStr->nb_blocks[threadId]);
                 continue;
             }
 
-            tmpOutput.push_back(tmpBlock);
-            block_variances.push_back(blockVar);
+            workStr->tmpOutput[threadId].push_back(tmpBlock);
+            workStr->blocks_variances[threadId].push_back(blockVar);
 
             this->GetFirstReferenceImage()->TransformIndexToPhysicalPoint(blockPosition,blockOrigin);
-            block_origins.push_back(blockOrigin);
+            workStr->blocks_positions[threadId].push_back(blockOrigin);
         }
 
-        continueLoop = this->ProgressCounter(positionCounter,num_blocks);
+        continueLoop = this->ProgressCounter(positionCounter,workStr->nb_blocks[threadId]);
     }
 }
 
@@ -564,7 +558,8 @@ BlockMatchingInitializer<PixelType,NDimensions>
 template <class PixelType, unsigned int NDimensions>
 bool
 BlockMatchingInitializer<PixelType,NDimensions>
-::CheckBlockConditions(ImageRegionType &region, double &blockVariance)
+::CheckBlockConditions(ImageRegionType &region, double &blockVariance, BlockGeneratorThreadStruct *workStr,
+                       unsigned int threadId)
 {
     ImageRegionType refRegion = this->GetFirstReferenceImage()->GetLargestPossibleRegion();
 
@@ -591,7 +586,7 @@ BlockMatchingInitializer<PixelType,NDimensions>
 
     for (unsigned int i = 0;i < m_ReferenceVectorImages.size();++i)
     {
-        if (!this->CheckOrientedModelVariance(m_ReferenceVectorImages[i],region,tmpVar))
+        if (!this->CheckOrientedModelVariance(i,region,tmpVar,workStr,threadId))
             return false;
 
         if (tmpVar > blockVariance)
@@ -604,8 +599,10 @@ BlockMatchingInitializer<PixelType,NDimensions>
 
 template <class PixelType, unsigned int NDimensions>
 bool BlockMatchingInitializer<PixelType,NDimensions>
-::CheckOrientedModelVariance(VectorImageType *refImage, ImageRegionType &region, double &blockVariance)
+::CheckOrientedModelVariance(unsigned int imageIndex, ImageRegionType &region, double &blockVariance,
+                             BlockGeneratorThreadStruct *workStr, unsigned int threadId)
 {
+    VectorImageType *refImage = m_ReferenceVectorImages[imageIndex];
     itk::ImageRegionConstIterator <VectorImageType> refItr(refImage,region);
     typedef typename VectorImageType::PixelType VectorType;
 
