@@ -2,6 +2,8 @@
 
 #include <boost/format.hpp>
 
+#include <itksys/SystemTools.hxx>
+
 #include <animaNoiseGeneratorImageFilter.h>
 #include <animaReadWriteFunctions.h>
 
@@ -9,17 +11,17 @@ int main(int argc, char **argv)
 {
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
 
-    TCLAP::ValueArg<std::string> inArg("i","inputfile","Input image",true,"","input image",cmd);
-    TCLAP::ValueArg<std::string> outArg("o","outprefix","Output prefix name of files",true,"","output prefix",cmd);
-    TCLAP::ValueArg<std::string> b0Arg("b","b0","Masked B0 image",true,"","b0 image",cmd);
+    TCLAP::ValueArg<std::string> inArg("i","inputfile","Input image on which to add noise.",true,"","input image",cmd);
+    TCLAP::ValueArg<std::string> outArg("o","outputfile","Output image. If number of replicates is 1, it is used as provided for saving the noisy dataset with the corresponding file name. If number of replicates > 1, the extension is extracted as desired output file format and the file name without extension is used as base file name for all replicates.",true,"","output file prefix",cmd);
+    TCLAP::ValueArg<std::string> refArg("r","reference","Masked reference image over which the average SNR is defined.",true,"","reference image",cmd);
     
-    TCLAP::ValueArg<double> snrArg("s","snr","Average SNR in dB over the B0 image (default: 25dB)",false,25.0,"mean snr",cmd);
-    TCLAP::ValueArg<unsigned int> repArg("r","num-replicates","Number of independent noisy datasets to generate (default: 1)",false,1,"number of replicates",cmd);
+    TCLAP::ValueArg<double> snrArg("s","snr","Average SNR in dB over the reference image (default: 25dB).",false,25.0,"mean snr",cmd);
+    TCLAP::ValueArg<unsigned int> repArg("n","num-replicates","Number of independent noisy datasets to generate (default: 1).",false,1,"number of replicates",cmd);
     
     TCLAP::SwitchArg gaussArg("G","gauss-noise","Adds Gaussian noise instead of Rician noise.",cmd,false);
     TCLAP::SwitchArg verboseArg("V","verbose","Outputs noise calculations to the console.",cmd,false);
 
-    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default : all cores).",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     try
     {
@@ -38,7 +40,7 @@ int main(int argc, char **argv)
     typedef itk::Image<float,3> Input3DImageType;
     typedef itk::ImageRegionConstIterator<Input3DImageType> Iterator3DImageType;
     
-    Input3DImageType::Pointer b0Image = anima::readImage<Input3DImageType>(b0Arg.getValue());
+    Input3DImageType::Pointer b0Image = anima::readImage<Input3DImageType>(refArg.getValue());
     Iterator3DImageType b0Itr(b0Image, b0Image->GetLargestPossibleRegion());
     
     double meanB0Value = 0;
@@ -105,11 +107,20 @@ int main(int argc, char **argv)
             mainFilter->SetNumberOfReplicates(repArg.getValue());
             mainFilter->Update();
 
-            for (unsigned int i = 0;i < repArg.getValue();++i)
+            if (repArg.getValue() == 1)
+                anima::writeImage<ImageType>(outArg.getValue(), mainFilter->GetOutput(0));
+            else
             {
-                std::string tmpStr = str(boost::format("%1$'0'3d") % (i + 1));
-                anima::writeImage<ImageType>(outArg.getValue() + tmpStr + ".nii.gz", mainFilter->GetOutput(i));
+                std::string filePrefix = itksys::SystemTools::GetFilenameWithoutExtension(outArg.getValue());
+                std::string fileExtension = itksys::SystemTools::GetFilenameExtension(outArg.getValue());
+                
+                for (unsigned int i = 0;i < repArg.getValue();++i)
+                {
+                    std::string tmpStr = str(boost::format("%1$'0'3d") % (i + 1));
+                    anima::writeImage<ImageType>(filePrefix + tmpStr + fileExtension, mainFilter->GetOutput(i));
+                }
             }
+            
             
             break;
         }
@@ -125,12 +136,21 @@ int main(int argc, char **argv)
             mainFilter->SetInput(anima::readImage<ImageType>(inArg.getValue()));
             mainFilter->SetStandardDeviation(stdDev);
             mainFilter->SetUseGaussianDistribution(gaussArg.isSet());
+            mainFilter->SetNumberOfReplicates(repArg.getValue());
             mainFilter->Update();
 
-            for (unsigned int i = 0;i < repArg.getValue();++i)
+            if (repArg.getValue() == 1)
+                anima::writeImage<ImageType>(outArg.getValue(), mainFilter->GetOutput(0));
+            else
             {
-                std::string tmpStr = str(boost::format("%1$'0'3d") % (i + 1));
-                anima::writeImage<ImageType>(outArg.getValue() + tmpStr + ".nii.gz", mainFilter->GetOutput(i));
+                std::string filePrefix = itksys::SystemTools::GetFilenameWithoutExtension(outArg.getValue());
+                std::string fileExtension = itksys::SystemTools::GetFilenameExtension(outArg.getValue());
+                
+                for (unsigned int i = 0;i < repArg.getValue();++i)
+                {
+                    std::string tmpStr = str(boost::format("%1$'0'3d") % (i + 1));
+                    anima::writeImage<ImageType>(filePrefix + tmpStr + fileExtension, mainFilter->GetOutput(i));
+                }
             }
             
             break;
