@@ -1006,7 +1006,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
             {
                 typedef anima::MCMWeightsInequalityConstraintFunction WeightInequalityFunctionType;
                 WeightInequalityFunctionType::Pointer weightsInequality = WeightInequalityFunctionType::New();
-                weightsInequality->SetTolerance(1.0e-8);
+                double wIneqTol = std::min(1.0e-12, xTol / 10.0);
+                weightsInequality->SetTolerance(wIneqTol);
                 weightsInequality->SetMCMStructure(costCast->GetMCMStructure());
 
                 tmpOpt->AddInequalityConstraint(weightsInequality);
