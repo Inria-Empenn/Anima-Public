@@ -93,8 +93,6 @@ NoiseGeneratorImageFilter<Dimension>
             double x = -1.0 * sqSignal / (2.0 * varianceValue);
             double laguerreValue = KummerFunction(x, -0.5, 1.0);
             sd = std::sqrt( 2.0 * varianceValue + sqSignal - M_PI * varianceValue * laguerreValue * laguerreValue / 2.0 );
-            
-            std::cout << m_StandardDeviation << " " << sd << std::endl;
         }
         
         for (unsigned int i = 0;i < m_NumberOfReplicates;++i)
