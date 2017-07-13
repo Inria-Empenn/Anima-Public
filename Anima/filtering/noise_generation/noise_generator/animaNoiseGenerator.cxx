@@ -1,6 +1,7 @@
-#include <tclap/CmdLine.h>
+#include <sstream>
+#include <iomanip>
 
-#include <boost/format.hpp>
+#include <tclap/CmdLine.h>
 
 #include <itksys/SystemTools.hxx>
 
@@ -116,11 +117,12 @@ int main(int argc, char **argv)
                 
                 for (unsigned int i = 0;i < repArg.getValue();++i)
                 {
-                    std::string tmpStr = str(boost::format("%1$'0'3d") % (i + 1));
+                    std::stringstream ss;
+                    ss << std::setw(3) << std::setfill('0') << (i + 1);
+                    std::string tmpStr = ss.str();
                     anima::writeImage<ImageType>(filePrefix + tmpStr + fileExtension, mainFilter->GetOutput(i));
                 }
             }
-            
             
             break;
         }
@@ -148,7 +150,9 @@ int main(int argc, char **argv)
                 
                 for (unsigned int i = 0;i < repArg.getValue();++i)
                 {
-                    std::string tmpStr = str(boost::format("%1$'0'3d") % (i + 1));
+                    std::stringstream ss;
+                    ss << std::setw(3) << std::setfill('0') << (i + 1);
+                    std::string tmpStr = ss.str();
                     anima::writeImage<ImageType>(filePrefix + tmpStr + fileExtension, mainFilter->GetOutput(i));
                 }
             }
