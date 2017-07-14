@@ -5,6 +5,7 @@ project(ANIMA-FILTERING)
 ################################################################################
 
 add_subdirectory(denoising)
+add_subdirectory(intensity_normalization)
 add_subdirectory(noise_generation)
 add_subdirectory(regularization)
 add_subdirectory(dti_tools)
