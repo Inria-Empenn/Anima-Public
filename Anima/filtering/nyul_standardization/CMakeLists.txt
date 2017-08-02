@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaIntensityNormalization)
+project(animaNyulStandardization)
 
 ## #############################################################################
 ## List Sources
