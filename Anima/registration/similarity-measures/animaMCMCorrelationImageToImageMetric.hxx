@@ -145,7 +145,7 @@ MCMCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,Imag
     p[0] = m_LowerBoundGaussianSigma + (m_UpperBoundGaussianSigma - m_LowerBoundGaussianSigma) / 10.0;
 
     typename OptimizerType::Pointer smoothingOptimizer = OptimizerType::New();
-    smoothingOptimizer->SetAlgorithm(anima::NLOPTOptimizers::NLOPT_LN_BOBYQA);
+    smoothingOptimizer->SetAlgorithm(NLOPT_LN_BOBYQA);
     smoothingOptimizer->SetMaximize(false);
     smoothingOptimizer->SetXTolRel(1.0e-8);
     smoothingOptimizer->SetMaxEval(2000);
@@ -188,7 +188,7 @@ MCMCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,Imag
     p[0] = m_LowerBoundGaussianSigma + (m_UpperBoundGaussianSigma - m_LowerBoundGaussianSigma) / 10.0;
 
     typename OptimizerType::Pointer smoothingOptimizer = OptimizerType::New();
-    smoothingOptimizer->SetAlgorithm(anima::NLOPTOptimizers::NLOPT_LN_BOBYQA);
+    smoothingOptimizer->SetAlgorithm(NLOPT_LN_BOBYQA);
     smoothingOptimizer->SetMaximize(false);
     smoothingOptimizer->SetXTolRel(1.0e-8);
     smoothingOptimizer->SetMaxEval(2000);

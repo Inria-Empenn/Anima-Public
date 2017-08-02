@@ -991,22 +991,22 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         {
             anima::BaseMCMCostFunction *costCast = dynamic_cast <anima::BaseMCMCostFunction *> (cost.GetPointer());
             tmpOpt->SetCostFunction(costCast);
-            tmpOpt->SetAlgorithm(anima::NLOPTOptimizers::NLOPT_AUGLAG);
+            tmpOpt->SetAlgorithm(NLOPT_AUGLAG);
 
             if (m_Optimizer == "bobyqa")
             {
-                tmpOpt->SetLocalOptimizer(anima::NLOPTOptimizers::NLOPT_LN_BOBYQA);
+                tmpOpt->SetLocalOptimizer(NLOPT_LN_BOBYQA);
                 if (defaultTol)
                     xTol = 1.0e-7;
             }
             else if (m_Optimizer == "ccsaq")
-                tmpOpt->SetLocalOptimizer(anima::NLOPTOptimizers::NLOPT_LD_CCSAQ);
+                tmpOpt->SetLocalOptimizer(NLOPT_LD_CCSAQ);
 
             if (!m_UseFixedWeights)
             {
                 typedef anima::MCMWeightsInequalityConstraintFunction WeightInequalityFunctionType;
                 WeightInequalityFunctionType::Pointer weightsInequality = WeightInequalityFunctionType::New();
-                double wIneqTol = std::min(1.0e-12, xTol / 10.0);
+                double wIneqTol = std::min(1.0e-16, xTol / 10.0);
                 weightsInequality->SetTolerance(wIneqTol);
                 weightsInequality->SetMCMStructure(costCast->GetMCMStructure());
 
@@ -1017,12 +1017,12 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         {
             if (m_Optimizer == "bobyqa")
             {
-                tmpOpt->SetAlgorithm(anima::NLOPTOptimizers::NLOPT_LN_BOBYQA);
+                tmpOpt->SetAlgorithm(NLOPT_LN_BOBYQA);
                 if (defaultTol)
                     xTol = 1.0e-7;
             }
             else if (m_Optimizer == "ccsaq")
-                tmpOpt->SetAlgorithm(anima::NLOPTOptimizers::NLOPT_LD_CCSAQ);
+                tmpOpt->SetAlgorithm(NLOPT_LD_CCSAQ);
 
             anima::GaussianMCMVariableProjectionSingleValuedCostFunction *costCast =
                     dynamic_cast <anima::GaussianMCMVariableProjectionSingleValuedCostFunction *> (cost.GetPointer());
