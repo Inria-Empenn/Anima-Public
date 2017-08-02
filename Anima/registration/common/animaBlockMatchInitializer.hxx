@@ -238,7 +238,7 @@ BlockMatchingInitializer<PixelType,NDimensions>
 {
     itk::MultiThreader::Pointer threaderBlockGenerator = itk::MultiThreader::New();
 
-    BlockGeneratorThreadStruct *tmpStr;
+    BlockGeneratorThreadStruct *tmpStr = 0;
     this->InitializeThreading(maskIndex,tmpStr);
 
     threaderBlockGenerator->SetNumberOfThreads(this->GetNumberOfThreads());
