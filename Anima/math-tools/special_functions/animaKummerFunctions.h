@@ -27,7 +27,7 @@ KummerMethod2(const double &x,
               const unsigned int maxIter = 10000,
               const double tol = 1.0e-15);
 
-//! According to Muller, K. E. (2001) ‘Computing the confluent hypergeometric function, M (a, b, x)’, Numerische Mathematik, pp. 179–196. Switch between Method 1 and 2 according to recommandation at the end of page 5. Covers most situations (at least all common situations encountered in MR image processing).
+//! Computes the confluent hypergeometric function 1F1 also known as the Kummer function M because it is the solution of Kummer's equation. This code implements some of the methods from Muller, K. E. (2001) ‘Computing the confluent hypergeometric function, M (a, b, x)’, Numerische Mathematik, pp. 179–196. It switches between Method 1 and 2 according to recommendation at the end of page 5. Covers most situations (at least all common situations encountered in MR image processing).
 ANIMASPECIALFUNCTIONS_EXPORT
 double
 KummerFunction(const double &x,

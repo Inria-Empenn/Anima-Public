@@ -10,9 +10,9 @@
 namespace anima
 {
 
-template <unsigned int Dimension>
+template <class ImageType>
 void
-NoiseGeneratorImageFilter<Dimension>
+NoiseGeneratorImageFilter<ImageType>
 ::GenerateOutputInformation ()
 {
     //-------------------------------
@@ -33,9 +33,9 @@ NoiseGeneratorImageFilter<Dimension>
     Superclass::GenerateOutputInformation();
 }
 
-template <unsigned int Dimension>
+template <class ImageType>
 void
-NoiseGeneratorImageFilter<Dimension>
+NoiseGeneratorImageFilter<ImageType>
 ::BeforeThreadedGenerateData ()
 {
     m_Generators.clear();
@@ -44,43 +44,22 @@ NoiseGeneratorImageFilter<Dimension>
         m_Generators.push_back(std::mt19937(motherGenerator()));
 }
 
-template <unsigned int Dimension>
+template <class ImageType>
 void
-NoiseGeneratorImageFilter<Dimension>
+NoiseGeneratorImageFilter<ImageType>
 ::ThreadedGenerateData (const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
 {
-    if (Dimension < 4)
-        this->TreatRegionWithNoiseVariance(outputRegionForThread,threadId);
-    else
-    {
-        OutputImageRegionType region = outputRegionForThread;
-        region.SetSize(3,1);
-        unsigned int maxIndex4d = outputRegionForThread.GetIndex()[3] + outputRegionForThread.GetSize()[3];
-
-        for (unsigned int i = outputRegionForThread.GetIndex()[3];i < maxIndex4d;++i)
-        {
-            region.SetIndex(3,i);
-            this->TreatRegionWithNoiseVariance(region,threadId);
-        }
-    }
-}
-
-template <unsigned int Dimension>
-void
-NoiseGeneratorImageFilter<Dimension>
-::TreatRegionWithNoiseVariance(const OutputImageRegionType &region, itk::ThreadIdType threadId)
-{
-    typedef itk::ImageRegionConstIterator<TInputImage> InputImageIteratorType;
+    typedef itk::ImageRegionConstIterator<InputImageType> InputImageIteratorType;
     typedef itk::ImageRegionIterator<OutputImageType> OutputImageIteratorType;
-
-    InputImageIteratorType inputIterator(this->GetInput(), region);
+    
+    InputImageIteratorType inputIterator(this->GetInput(), outputRegionForThread);
     
     std::vector<OutputImageIteratorType> outIterators(m_NumberOfReplicates);
     for (unsigned int i = 0;i < m_NumberOfReplicates;++i)
-        outIterators[i] = OutputImageIteratorType(this->GetOutput(i), region);
+        outIterators[i] = OutputImageIteratorType(this->GetOutput(i), outputRegionForThread);
     
     double mean = 0;
-
+    
     while (!inputIterator.IsAtEnd())
     {
         double refData = inputIterator.Get();
@@ -112,7 +91,7 @@ NoiseGeneratorImageFilter<Dimension>
             outIterators[i].Set(data);
             ++outIterators[i];
         }
-
+        
         ++inputIterator;
     }
 }

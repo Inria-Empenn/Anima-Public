@@ -10,15 +10,15 @@
 namespace anima
 {
 
-template <unsigned int Dimension>
+template <class ImageType>
 class NoiseGeneratorImageFilter :
-public itk::ImageToImageFilter< itk::Image <float, Dimension> , itk::Image <float, Dimension> >
+public itk::ImageToImageFilter<ImageType,ImageType>
 {
 public:
     /** Standard class typedefs. */
     typedef NoiseGeneratorImageFilter Self;
-    typedef typename itk::Image <float, Dimension> TInputImage;
-    typedef typename itk::Image <float, Dimension> TOutputImage;
+    typedef ImageType TInputImage;
+    typedef ImageType TOutputImage;
     typedef itk::ImageToImageFilter< TInputImage, TOutputImage > Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self>  ConstPointer;
