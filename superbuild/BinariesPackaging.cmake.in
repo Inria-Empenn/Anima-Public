@@ -26,7 +26,6 @@ set(BINARY_TOOLS_LIST
   animaFDRCorrectPValues
   animaFibersFilterer
   animaFillHoleImage
-  animaGaussianNoiseGenerator
   animaGcStremMsLesionsSegmentation
   animaGeneralizedFA
   animaGraphCut
@@ -57,7 +56,8 @@ set(BINARY_TOOLS_LIST
   animaNLMeans
   animaNLMeansPatientToGroupComparison
   animaNLMeansTemporal
-  animaNonCentralChiNoiseGenerator
+  animaNoiseGenerator
+  animaNyulStandardization
   animaODFApplyTransformSerie
   animaODFEstimator
   animaODFProbabilisticTractography
