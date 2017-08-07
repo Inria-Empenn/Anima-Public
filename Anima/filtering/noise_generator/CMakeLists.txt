@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaNonCentralChiNoiseGenerator)
+project(animaNoiseGenerator)
 
 ## #############################################################################
 ## List Sources
@@ -24,6 +24,7 @@ add_executable(${PROJECT_NAME}
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME}
+  AnimaSpecialFunctions
   ${ITKIO_LIBRARIES}
   )
 
