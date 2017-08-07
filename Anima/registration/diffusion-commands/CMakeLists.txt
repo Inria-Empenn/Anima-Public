@@ -1,0 +1,2 @@
+add_subdirectory(dense-mcm-svf-bm-registration)
+add_subdirectory(dense_tensor_svf_bm_registration)

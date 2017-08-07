@@ -18,7 +18,7 @@ public:
     typedef itk::Object Superclass;
     typedef BlockMatchingInitializer <PixelType,NDimensions> Self;
     typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self>  ConstPointer;
+    typedef itk::SmartPointer<const Self> ConstPointer;
 
     typedef itk::Image <PixelType, NDimensions> ScalarImageType;
     typedef itk::Image <double, NDimensions> WeightImageType;
@@ -49,8 +49,8 @@ public:
     void SetScalarVarianceThreshold(double val);
     itkGetMacro(ScalarVarianceThreshold, double)
 
-    void SetTensorVarianceThreshold(double val);
-    itkGetMacro(TensorVarianceThreshold, double)
+    void SetOrientedModelVarianceThreshold(double val);
+    itkGetMacro(OrientedModelVarianceThreshold, double)
 
     void SetRequestedRegion(const ImageRegionType &val);
     itkGetMacro(RequestedRegion, ImageRegionType)
@@ -70,24 +70,39 @@ public:
     void clearGenerationMasks() {m_GenerationMasks.clear();}
     void AddGenerationMask(MaskImageType *mask);
 
-    void AddReferenceImage(itk::ImageBase <NDimensions> *refImage);
+    virtual void AddReferenceImage(itk::ImageBase <NDimensions> *refImage);
     itk::ImageBase <NDimensions> *GetFirstReferenceImage();
+
+    ScalarImageType *GetReferenceScalarImage(unsigned int i) {return m_ReferenceScalarImages[i];}
+    VectorImageType *GetReferenceVectorImage(unsigned int i) {return m_ReferenceVectorImages[i];}
 
     void Update();
 
     // Does the splitting and calls RegionBlockGenerator on a sub region
     static ITK_THREAD_RETURN_TYPE ThreadBlockGenerator(void *arg);
 
-    void RegionBlockGenerator(std::vector <unsigned int> &num_start, std::vector <unsigned int> &block_start_offsets,
-                              std::vector <unsigned int> &num_blocks, std::vector <ImageRegionType> &tmpOutput,
-                              std::vector <PointType> &block_origins, std::vector <double> &block_variances,
-                              unsigned int &total_num_blocks, unsigned int maskIndex);
-
     std::vector <ImageRegionType> &GetOutput();
     std::vector <unsigned int> &GetMaskStartingIndexes();
 
     std::vector <PointType> &GetOutputPositions();
     WeightImagePointer &GetBlockDamWeights();
+
+    struct BlockGeneratorThreadStruct
+    {
+        Pointer Filter;
+        std::vector < std::vector <ImageRegionType> > tmpOutput;
+        std::vector <unsigned int> blockStartOffsets;
+        std::vector < std::vector <unsigned int> > startBlocks, nb_blocks;
+        std::vector <unsigned int> totalNumberOfBlocks;
+        std::vector < std::vector <double> > blocks_variances;
+        unsigned int maskIndex;
+        std::vector < std::vector <PointType> > blocks_positions;
+
+        //! To be able to inherit from it
+        virtual ~BlockGeneratorThreadStruct() {}
+    };
+
+    void RegionBlockGenerator(BlockGeneratorThreadStruct *workStr, unsigned int threadId);
 
 protected:
     BlockMatchingInitializer() : Superclass()
@@ -97,7 +112,7 @@ protected:
         m_NumberOfThreads = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
 
         m_ScalarVarianceThreshold = 5.0;
-        m_TensorVarianceThreshold = 0.0;
+        m_OrientedModelVarianceThreshold = 0.0;
 
         m_PercentageKept = 0.8;
 
@@ -113,23 +128,16 @@ protected:
     void ComputeBlocksOnGenerationMask(unsigned int maskIndex);
     void ComputeOuterDamFromBlocks();
 
-    bool CheckBlockConditions(ImageRegionType &region, double &blockVariance);
+    virtual void InitializeThreading(unsigned int maskIndex, BlockGeneratorThreadStruct *&workStr);
+
+    bool CheckBlockConditions(ImageRegionType &region, double &blockVariance, BlockGeneratorThreadStruct *workStr,
+                              unsigned int threadId);
+
     bool CheckScalarVariance(ScalarImageType *refImage, ImageRegionType &region, double &blockVariance);
-    bool CheckTensorVariance(VectorImageType *refImage, ImageRegionType &region, double &blockVariance);
+    virtual bool CheckOrientedModelVariance(unsigned int imageIndex, ImageRegionType &region, double &blockVariance,
+                                            BlockGeneratorThreadStruct *workStr, unsigned int threadId);
 
     bool ProgressCounter(std::vector <unsigned int> &counter, std::vector <unsigned int> &bounds);
-
-    struct BlockGeneratorThreadStruct
-    {
-        Pointer Filter;
-        std::vector < std::vector <ImageRegionType> > tmpOutput;
-        std::vector <unsigned int> blockStartOffsets;
-        std::vector < std::vector <unsigned int> > startBlocks, nb_blocks;
-        std::vector <unsigned int> totalNumberOfBlocks;
-        std::vector < std::vector <double> > blocks_variances;
-        unsigned int maskIndex;
-        std::vector < std::vector <PointType> > blocks_positions;
-    };
 
     struct pair_comparator
     {
@@ -147,7 +155,7 @@ private:
     unsigned int m_NumberOfThreads;
 
     double m_ScalarVarianceThreshold;
-    double m_TensorVarianceThreshold;
+    double m_OrientedModelVarianceThreshold;
     double m_PercentageKept;
 
     bool m_ComputeOuterDam;

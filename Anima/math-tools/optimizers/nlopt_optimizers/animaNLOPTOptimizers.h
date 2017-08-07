@@ -104,127 +104,23 @@ namespace anima
         typedef SingleValuedNonLinearOptimizer::ParametersType ParametersType; /**< Parameter type */
         typedef anima::NLOPTParametersConstraintFunction ConstraintsFunctionType; /**< Base constraints (for inequality and equality) */
 
-        /**********************************************************************************************//**
-         * \enum	nlopt_algorithm
-         *
-         * \brief	Values that represent the nlopt_algorithm to use. Naming conventions:
-         *
-         * 			-  NLOPT_{G/L}{D/N}_ : global/local derivative/no-derivative optimization,
-         * 			respectively
-         *
-         * 			-  _RAND : algorithms involve some randomization.
-         *
-         * 			-  *_NOSCAL : algorithms are *not* scaled to a unit hypercube
-         * 			(i.e. they are sensitive to the units of x)
-        *************************************************************************************************/
-        typedef enum {
-            NLOPT_GN_DIRECT = 0,
-            NLOPT_GN_DIRECT_L,
-            NLOPT_GN_DIRECT_L_RAND,
-            NLOPT_GN_DIRECT_NOSCAL,
-            NLOPT_GN_DIRECT_L_NOSCAL,
-            NLOPT_GN_DIRECT_L_RAND_NOSCAL,
-            
-            NLOPT_GN_ORIG_DIRECT,
-            NLOPT_GN_ORIG_DIRECT_L,
-            
-            NLOPT_GD_STOGO,
-            NLOPT_GD_STOGO_RAND,
-            
-            NLOPT_LD_LBFGS_NOCEDAL,
-            
-            NLOPT_LD_LBFGS,
-            
-            NLOPT_LN_PRAXIS,
-            
-            NLOPT_LD_VAR1,
-            NLOPT_LD_VAR2,
-            
-            NLOPT_LD_TNEWTON,
-            NLOPT_LD_TNEWTON_RESTART,
-            NLOPT_LD_TNEWTON_PRECOND,
-            NLOPT_LD_TNEWTON_PRECOND_RESTART,
-            
-            NLOPT_GN_CRS2_LM,
-            
-            NLOPT_GN_MLSL,
-            NLOPT_GD_MLSL,
-            NLOPT_GN_MLSL_LDS,
-            NLOPT_GD_MLSL_LDS,
-            
-            NLOPT_LD_MMA,
-            
-            NLOPT_LN_COBYLA,
-            
-            NLOPT_LN_NEWUOA,
-            NLOPT_LN_NEWUOA_BOUND,
-            
-            NLOPT_LN_NELDERMEAD,
-            NLOPT_LN_SBPLX,
-            
-            NLOPT_LN_AUGLAG,
-            NLOPT_LD_AUGLAG,
-            NLOPT_LN_AUGLAG_EQ,
-            NLOPT_LD_AUGLAG_EQ,
-            
-            NLOPT_LN_BOBYQA,
-            
-            NLOPT_GN_ISRES,
-            
-            /* new variants that require local_optimizer to be set,
-             not with older constants for backwards compatibility */
-            NLOPT_AUGLAG,
-            NLOPT_AUGLAG_EQ,
-            NLOPT_G_MLSL,
-            NLOPT_G_MLSL_LDS,
-            
-            NLOPT_LD_SLSQP,
-            
-            NLOPT_LD_CCSAQ,
-            
-            NLOPT_GN_ESCH
-            
-            //NLOPT_NUM_ALGORITHMS /* not an algorithm, just the number of them */
-        } nlopt_algorithm;
-
-
-        /**********************************************************************************************//**
-         * \enum	nlopt_result
-         *
-         * \brief	Values that represent the result of a nlopt function.
-        *************************************************************************************************/
-        typedef enum {
-            NLOPT_FAILURE = -1,				/**< generic failure code */
-            NLOPT_INVALID_ARGS = -2,		/**< Invalid arguments (eg lower bounds bigger than upper bounds, unknown algorithm, etc) */
-            NLOPT_OUT_OF_MEMORY = -3,		/**< Ran out of memory */
-            NLOPT_ROUNDOFF_LIMITED = -4,	/**< Halted because roundoff errors limited progress */
-            NLOPT_FORCED_STOP = -5,			/**< Halted because of a forced termination \sa StopOptimization */
-            NLOPT_SUCCESS = 1,				/**< generic success code */
-            NLOPT_STOPVAL_REACHED = 2,		/**< Optimization stopped because 'stopval' was reached */
-            NLOPT_FTOL_REACHED = 3,			/**< Optimization stopped because 'ftol_rel' or 'ftol_abs' was reached */
-            NLOPT_XTOL_REACHED = 4,			/**< Optimization stopped because 'xtol_rel' or 'xtol_abs' was reached */
-            NLOPT_MAXEVAL_REACHED = 5,		/**< Optimization stopped because 'maxeval' was reached. */
-            NLOPT_MAXTIME_REACHED = 6		/**< Optimization stopped because 'maxtime' was reached. */
-        } nlopt_result;
-
-
         /** Method for creation through the object factory. */
-        itkNewMacro(Self);
+        itkNewMacro(Self)
 
         /** Run-time type information (and related methods). */
-        itkTypeMacro(NLOPTOptimizers, SingleValuedNonLinearOptimizer );
+        itkTypeMacro(NLOPTOptimizers, SingleValuedNonLinearOptimizer)
 
         /** Type of the Cost Function   */
         typedef  itk::SingleValuedCostFunction         CostFunctionType;
         typedef  CostFunctionType::Pointer        CostFunctionPointer;
 
         /** NLOPT Algorithm to use */
-        itkSetMacro( Algorithm, nlopt_algorithm );
-        itkGetConstReferenceMacro( Algorithm, nlopt_algorithm );
+        itkSetMacro(Algorithm, nlopt_algorithm)
+        itkGetConstReferenceMacro(Algorithm, nlopt_algorithm)
 
         /** Returns the last error code of NLOPT */
-        itkSetMacro( ErrorCode, nlopt_result );
-        itkGetConstReferenceMacro( ErrorCode, nlopt_result );
+        itkSetMacro(ErrorCode, nlopt_result)
+        itkGetConstReferenceMacro(ErrorCode, nlopt_result)
 
         std::string GetErrorCodeDescription() const;
 
@@ -232,19 +128,19 @@ namespace anima
 
 
         /** Returns the current value */
-        itkGetConstReferenceMacro( CurrentCost, MeasureType );
+        itkGetConstReferenceMacro(CurrentCost, MeasureType)
         /** Returns the current value */
-        MeasureType GetValue() const { return this->GetCurrentCost(); }
+        MeasureType GetValue() const {return this->GetCurrentCost();}
 
         void SetLowerBoundParameters( const ParametersType& p );
-        itkGetConstReferenceMacro( LowerBoundParameters, ParametersType );
+        itkGetConstReferenceMacro(LowerBoundParameters, ParametersType)
 
         void SetUpperBoundParameters( const ParametersType& p );
-        itkGetConstReferenceMacro( UpperBoundParameters, ParametersType );
+        itkGetConstReferenceMacro(UpperBoundParameters, ParametersType)
 
         /** Set if the Optimizer should Maximize the metric */
-        itkSetMacro( Maximize, bool );
-        itkGetConstReferenceMacro( Maximize, bool );
+        itkSetMacro(Maximize, bool)
+        itkGetConstReferenceMacro(Maximize, bool)
 
         /** Stopping criteria:
           * Stop when an objective value of at least stopval is found: stop minimizing
@@ -262,8 +158,8 @@ namespace anima
           * \note You do not need to use all of the stopping criteria! In most cases,
           * you only need one or two, and can omit the remainder (all criteria are
           * disabled by default).*/
-        void SetStopVal(double stopval) { m_StopValSet=true; m_StopVal=stopval; }
-        itkGetConstReferenceMacro( StopVal, double );
+        void SetStopVal(double stopval) {m_StopValSet=true; m_StopVal=stopval;}
+        itkGetConstReferenceMacro(StopVal, double)
 
         /** Stopping criteria:
           * Set relative tolerance on function value: stop when an optimization step (or
@@ -283,8 +179,8 @@ namespace anima
           * \note You do not need to use all of the stopping criteria! In most cases,
           * you only need one or two, and can omit the remainder (all criteria are
           * disabled by default).*/
-        itkSetMacro( FTolRel, double );
-        itkGetConstReferenceMacro( FTolRel, double );
+        itkSetMacro(FTolRel, double)
+        itkGetConstReferenceMacro(FTolRel, double)
 
         /** Stopping criteria:
           * Set absolute tolerance on function value: stop when an optimization
@@ -301,8 +197,8 @@ namespace anima
           * \note You do not need to use all of the stopping criteria! In most cases,
           * you only need one or two, and can omit the remainder (all criteria are
           * disabled by default).*/
-        itkSetMacro( FTolAbs, double );
-        itkGetConstReferenceMacro( FTolAbs, double );
+        itkSetMacro(FTolAbs, double)
+        itkGetConstReferenceMacro(FTolAbs, double)
 
         /** Stopping criteria:
           * Set relative tolerance on optimization parameters: stop when an optimization
@@ -322,8 +218,8 @@ namespace anima
           * \note You do not need to use all of the stopping criteria! In most cases,
           * you only need one or two, and can omit the remainder (all criteria are
           * disabled by default).*/
-        itkSetMacro( XTolRel, double );
-        itkGetConstReferenceMacro( XTolRel, double );
+        itkSetMacro(XTolRel, double)
+        itkGetConstReferenceMacro(XTolRel, double)
 
         /** Stopping criteria:
           * Set the absolute tolerance on optimization parameters.
@@ -341,8 +237,8 @@ namespace anima
           * \note You do not need to use all of the stopping criteria! In most cases,
           * you only need one or two, and can omit the remainder (all criteria are
           * disabled by default).*/
-        itkSetMacro( XTolAbs, double );
-        itkGetConstReferenceMacro( XTolAbs, double );
+        itkSetMacro(XTolAbs, double)
+        itkGetConstReferenceMacro(XTolAbs, double)
 
         /** Stopping criteria:
           * Stop when the number of function evaluations exceeds maxeval. (This is not
@@ -360,8 +256,8 @@ namespace anima
           * \note You do not need to use all of the stopping criteria! In most cases,
           * you only need one or two, and can omit the remainder (all criteria are
           * disabled by default).*/
-        itkSetMacro( MaxEval, int );
-        itkGetConstReferenceMacro( MaxEval, int );
+        itkSetMacro(MaxEval, int)
+        itkGetConstReferenceMacro(MaxEval, int)
 
         /** Stopping criteria:
           * Stop when the optimization time (in seconds) exceeds maxtime. (This is not
@@ -379,37 +275,35 @@ namespace anima
           * \note You do not need to use all of the stopping criteria! In most cases,
           * you only need one or two, and can omit the remainder (all criteria are
           * disabled by default).*/
-        itkSetMacro( MaxTime, double );
-        itkGetConstReferenceMacro( MaxTime, double );
+        itkSetMacro(MaxTime, double)
+        itkGetConstReferenceMacro(MaxTime, double)
         
         /** Vector storage size:
          * number of gradients to "remember" from previous optimization steps: increasing it increases the memory requirements but speeds convergence.*/
-        itkSetMacro(VectorStorageSize, int);
-        itkGetConstReferenceMacro(VectorStorageSize, int);
+        itkSetMacro(VectorStorageSize, int)
+        itkGetConstReferenceMacro(VectorStorageSize, int)
         
         /** Stochastic population size:
          * This is for random global optimization. It sets the number of random particles to propagate from.*/
-        itkSetMacro(PopulationSize, int);
-        itkGetConstReferenceMacro(PopulationSize, int);
+        itkSetMacro(PopulationSize, int)
+        itkGetConstReferenceMacro(PopulationSize, int)
         
         /** Set local optimizer for AUGLAG and MLSL algos */
-        itkSetMacro( LocalOptimizer, nlopt_algorithm );
-        itkGetConstReferenceMacro( LocalOptimizer, nlopt_algorithm );
+        itkSetMacro(LocalOptimizer, nlopt_algorithm)
+        itkGetConstReferenceMacro(LocalOptimizer, nlopt_algorithm)
 
         void StartOptimization() ITK_OVERRIDE;
 
         /** Tells Nlopt to stop the optimization at the next iteration and to returns  the best point found so far. */
-        void StopOptimization()
-        { nlopt_force_stop(m_NloptOptions); }
+        void StopOptimization() {nlopt_force_stop(m_NloptOptions);}
 
-        itkGetMacro(VerboseLevel, unsigned int);
-        itkSetMacro(VerboseLevel, unsigned int);
+        itkGetMacro(VerboseLevel, unsigned int)
+        itkSetMacro(VerboseLevel, unsigned int)
 
         void AddInequalityConstraint(ConstraintsFunctionType *constraint);
         void ClearInequalityConstraints();
         void AddEqualityConstraint(ConstraintsFunctionType *constraint);
         void ClearEqualityConstraints();
-
 
     protected:
         NLOPTOptimizers();
@@ -417,7 +311,7 @@ namespace anima
         virtual ~NLOPTOptimizers();
         void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
         static double NloptFunctionWrapper(unsigned n, const double *x, double *grad, void *data);
-        itkSetMacro(CurrentCost, double);
+        itkSetMacro(CurrentCost, double)
 
     private:
         nlopt_opt			m_NloptOptions;
@@ -455,6 +349,3 @@ namespace anima
     }; // end of class
 
 } // end of namespace anima
-
-
-

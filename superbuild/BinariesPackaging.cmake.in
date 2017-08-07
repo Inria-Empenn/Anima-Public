@@ -10,11 +10,13 @@ set(BINARY_TOOLS_LIST
   animaConnectedComponents
   animaConvertImage
   animaCramersTest
+  animaCreateImage
   animaCropImage
   animaDTIEstimator
   animaDTIProbabilisticTractography
   animaDTITractography
   animaDenseSVFBMRegistration
+  animaDenseMCMSVFBMRegistration
   animaDenseTensorSVFBMRegistration
   animaDiceMeasure
   animaDisplacementFieldJacobian
