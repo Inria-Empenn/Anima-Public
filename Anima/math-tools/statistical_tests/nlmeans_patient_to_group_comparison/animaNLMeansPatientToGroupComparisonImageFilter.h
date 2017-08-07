@@ -21,10 +21,10 @@ public:
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(NLMeansPatientToGroupComparisonImageFilter, MaskedImageToImageFilter);
+    itkTypeMacro(NLMeansPatientToGroupComparisonImageFilter, MaskedImageToImageFilter)
 
     /** Image typedef support */
     typedef itk::VectorImage <PixelScalarType, 3> InputImageType;
@@ -55,18 +55,18 @@ public:
         m_DatabaseImages.push_back(tmpIm);
     }
 
-    itkSetMacro(DatabaseCovarianceDistanceAverage, OutputImagePointer);
-    itkSetMacro(DatabaseCovarianceDistanceStd, OutputImagePointer);
-    itkSetMacro(DatabaseMeanDistanceAverage, OutputImagePointer);
-    itkSetMacro(DatabaseMeanDistanceStd, OutputImagePointer);
+    itkSetMacro(DatabaseCovarianceDistanceAverage, OutputImagePointer)
+    itkSetMacro(DatabaseCovarianceDistanceStd, OutputImagePointer)
+    itkSetMacro(DatabaseMeanDistanceAverage, OutputImagePointer)
+    itkSetMacro(DatabaseMeanDistanceStd, OutputImagePointer)
 
-    itkSetMacro(PatchHalfSize, unsigned int);
-    itkSetMacro(SearchNeighborhood, unsigned int);
-    itkSetMacro(SearchStepSize, unsigned int);
-    itkSetMacro(WeightThreshold, double);
-    itkSetMacro(MeanThreshold, double);
-    itkSetMacro(VarianceThreshold, double);
-    itkSetMacro(BetaParameter, double);
+    itkSetMacro(PatchHalfSize, unsigned int)
+    itkSetMacro(SearchNeighborhood, unsigned int)
+    itkSetMacro(SearchStepSize, unsigned int)
+    itkSetMacro(WeightThreshold, double)
+    itkSetMacro(MeanThreshold, double)
+    itkSetMacro(VarianceThreshold, double)
+    itkSetMacro(BetaParameter, double)
 
 protected:
     NLMeansPatientToGroupComparisonImageFilter()

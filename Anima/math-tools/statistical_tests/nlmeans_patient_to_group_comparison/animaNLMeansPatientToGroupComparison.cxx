@@ -5,6 +5,13 @@
 #include <animaNLMeansPatientToGroupComparisonImageFilter.h>
 #include <itkTimeProbe.h>
 
+//Update progression of the process
+void eventCallback (itk::Object* caller, const itk::EventObject& event, void* clientData)
+{
+    itk::ProcessObject * processObject = (itk::ProcessObject*) caller;
+    std::cout<<"\033[K\rProgression: "<<(int)(processObject->GetProgress() * 100)<<"%"<<std::flush;
+}
+
 int main(int argc, char **argv)
 {
     TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);
@@ -45,10 +52,12 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
     
-    typedef itk::VectorImage<double,3> LogTensorImageType;
-    
+    typedef itk::VectorImage<double,3> LogTensorImageType;    
     typedef anima::NLMeansPatientToGroupComparisonImageFilter<double> NLComparisonImageFilterType;
     
+    itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
+    callback->SetCallback(eventCallback);
+
     NLComparisonImageFilterType::Pointer mainFilter = NLComparisonImageFilterType::New();
     mainFilter->SetComputationMask(anima::readImage < itk::Image <unsigned char, 3> > (maskArg.getValue()));
     mainFilter->SetNumberOfThreads(nbpArg.getValue());
@@ -63,6 +72,7 @@ int main(int argc, char **argv)
     mainFilter->SetBetaParameter(betaArg.getValue());
 	
     mainFilter->SetInput(0,anima::readImage <LogTensorImageType> (refLTArg.getValue()));
+    mainFilter->AddObserver(itk::ProgressEvent(), callback);
 	
     std::ifstream fileIn(dataLTArg.getValue());
     

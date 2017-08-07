@@ -21,10 +21,10 @@ public:
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(LocalPatchMeanDistanceImageFilter, MaskedImageToImageFilter);
+    itkTypeMacro(LocalPatchMeanDistanceImageFilter, MaskedImageToImageFilter)
 
     /** Image typedef support */
     typedef itk::VectorImage <PixelScalarType, 3> InputImageType;
@@ -43,7 +43,7 @@ public:
     typedef typename Superclass::MaskImageType MaskImageType;
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
-    itkSetMacro(PatchHalfSize, unsigned int);
+    itkSetMacro(PatchHalfSize, unsigned int)
 
 protected:
     LocalPatchMeanDistanceImageFilter()

@@ -5,6 +5,13 @@
 #include <animaLocalPatchCovarianceDistanceImageFilter.h>
 #include <itkTimeProbe.h>
 
+//Update progression of the process
+void eventCallback (itk::Object* caller, const itk::EventObject& event, void* clientData)
+{
+    itk::ProcessObject * processObject = (itk::ProcessObject*) caller;
+    std::cout<<"\033[K\rProgression: "<<(int)(processObject->GetProgress() * 100)<<"%"<<std::flush;
+}
+
 int main(int argc, char **argv)
 {
     TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);
@@ -32,13 +39,17 @@ int main(int argc, char **argv)
     
     typedef itk::VectorImage<double,3> LogTensorImageType;
     typedef anima::LocalPatchCovarianceDistanceImageFilter<double> MainFilterType;
-    
+       
+    itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
+    callback->SetCallback(eventCallback);
+
     MainFilterType::Pointer mainFilter = MainFilterType::New();
     mainFilter->SetComputationMask(anima::readImage < itk::Image <unsigned char, 3> > (maskArg.getValue()));
     mainFilter->SetNumberOfThreads(nbpArg.getValue());
 
 	mainFilter->SetPatchHalfSize(patchHSArg.getValue());
-	
+    mainFilter->AddObserver(itk::ProgressEvent(), callback);
+
     std::ifstream fileIn(dataLTArg.getValue());
     
     unsigned int count = 0;
