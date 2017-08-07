@@ -65,7 +65,6 @@ protected:
     void GenerateOutputInformation() ITK_OVERRIDE;
     void BeforeThreadedGenerateData() ITK_OVERRIDE;
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
-    void TreatRegionWithNoiseVariance(const OutputImageRegionType &region, itk::ThreadIdType threadId);
 
 private:
     NoiseGeneratorImageFilter(const Self&); //purposely not implemented
