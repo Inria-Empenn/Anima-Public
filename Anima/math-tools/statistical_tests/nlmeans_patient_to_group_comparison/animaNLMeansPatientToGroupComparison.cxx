@@ -111,7 +111,7 @@ int main(int argc, char **argv)
         anima::writeImage < itk::Image <double, 3> > (resScoreArg.getValue(),mainFilter->GetOutput(1));
 
     if (resNumPatchesArg.getValue() != "")
-        anima::writeImage < itk::Image <double, 3> > (resScoreArg.getValue(),mainFilter->GetOutput(2));
+        anima::writeImage < itk::Image <double, 3> > (resNumPatchesArg.getValue(),mainFilter->GetOutput(2));
     
     return EXIT_SUCCESS;
 }
