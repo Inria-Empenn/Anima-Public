@@ -49,10 +49,6 @@ LocalPatchMeanDistanceImageFilter<PixelScalarType>
 
     unsigned int numDistances = numSamplesDatabase * (numSamplesDatabase + 1) / 2 - numSamplesDatabase;
 
-    CovarianceType eVec(ndim,ndim);
-    vnl_diag_matrix <double> eVals(ndim);
-    itk::SymmetricEigenAnalysis <vnl_matrix <double>, vnl_diag_matrix <double>, vnl_matrix <double> > EigenAnalysis(ndim);
-
     InputImageIndexType curIndex;
     OutputImageRegionType largestRegionOut = this->GetOutput(0)->GetLargestPossibleRegion();
 
@@ -97,7 +93,7 @@ LocalPatchMeanDistanceImageFilter<PixelScalarType>
         varDist *= numDistances / (numDistances - 1.0);
 
         outMeanIterator.Set(meanDist);
-        outStdIterator.Set(sqrt(varDist));
+        outStdIterator.Set(std::sqrt(varDist));
 
         ++outMeanIterator;
         ++outStdIterator;

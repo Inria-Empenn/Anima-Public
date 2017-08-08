@@ -41,7 +41,7 @@ unsigned int computePatchMeanAndCovariance(const itk::VectorImage <T1, Dimension
     while (!imageIt.IsAtEnd())
     {
         for (unsigned int i = 0;i < ndim;++i)
-            patchDiff = patchMean[i] - imageIt.Get()[i];
+            patchDiff[i] = patchMean[i] - imageIt.Get()[i];
 
         for (unsigned int i = 0;i < ndim;++i)
             for (unsigned int j = i;j < ndim;++j)
@@ -170,7 +170,7 @@ template <class T> double VectorCovarianceTest(vnl_matrix <T> &logRefPatchCov, v
                 varsDist += 2.0 * (logRefPatchCov(i,j) - logMoving(i,j)) * (logRefPatchCov(i,j) - logMoving(i,j));
         }
 
-    varsDist = sqrt(varsDist);
+    varsDist = std::sqrt(varsDist);
 
     return varsDist;
 }
@@ -203,7 +203,7 @@ double VectorMeansTest(itk::VariableLengthVector <T> &refPatchMean, itk::Variabl
                 distMeans += S_pooled_inv(j,k) * meansDiff[j] * meansDiff[k];
         }
 
-    distMeans = sqrt(distMeans);
+    distMeans = std::sqrt(distMeans);
 
     return distMeans;
 }
