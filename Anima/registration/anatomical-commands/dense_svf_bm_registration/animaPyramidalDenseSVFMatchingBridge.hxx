@@ -482,7 +482,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::GetOutputDisplacementFieldTrans
 {
     DisplacementFieldTransformPointer outputDispTrsf = DisplacementFieldTransformType::New();
 
-    anima::GetSVFExponential(m_OutputTransform.GetPointer(), outputDispTrsf.GetPointer(), false);
+    anima::GetSVFExponential(m_OutputTransform.GetPointer(), outputDispTrsf.GetPointer(), m_ExponentiationOrder, this->GetNumberOfThreads(), false);
 
     return outputDispTrsf;
 }
