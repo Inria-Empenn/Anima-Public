@@ -3,7 +3,13 @@
 
 #include <animaReadWriteFunctions.h>
 #include <animaPatientToGroupComparisonImageFilter.h>
-#include <itkTimeProbe.h>
+
+//Update progression of the process
+void eventCallback (itk::Object* caller, const itk::EventObject& event, void* clientData)
+{
+    itk::ProcessObject * processObject = (itk::ProcessObject*) caller;
+    std::cout<<"\033[K\rProgression: "<<(int)(processObject->GetProgress() * 100)<<"%"<<std::flush;
+}
 
 int main(int argc, char **argv)
 {
@@ -12,7 +18,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> refLTArg("i","input","Test Image",true,"","test image",cmd);
     TCLAP::ValueArg<std::string> dataLTArg("I","database","Database Image List",true,"","database image list",cmd);
     
-	TCLAP::ValueArg<std::string> maskArg("m","maskname","Computation mask",true,"","computation mask",cmd);
+    TCLAP::ValueArg<std::string> maskArg("m","maskname","Computation mask",true,"","computation mask",cmd);
     TCLAP::ValueArg<std::string> resArg("o","outputname","Z-Score output image",true,"","Z-Score output image",cmd);
     TCLAP::ValueArg<std::string> resPValArg("O","outpvalname","P-value output image",true,"","P-Value output image",cmd);
 
@@ -21,7 +27,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<unsigned int> numEigenArg("E","numeigenpca","Number of eigenvalues to keep (default: 6)",false,6,"Number of PCA eigen values",cmd);
 
     TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
-	
+
     try
     {
         cmd.parse(argc,argv);
@@ -34,12 +40,15 @@ int main(int argc, char **argv)
     
     typedef itk::VectorImage<double,3> LogTensorImageType;
     typedef anima::PatientToGroupComparisonImageFilter<double> MAZScoreImageFilterType;
-    
+
+    itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
+    callback->SetCallback(eventCallback);
+
     MAZScoreImageFilterType::Pointer mainFilter = MAZScoreImageFilterType::New();
     mainFilter->SetComputationMask(anima::readImage < itk::Image <unsigned char, 3> > (maskArg.getValue()));
     mainFilter->SetNumberOfThreads(nbpArg.getValue());
-	
-	mainFilter->SetInput(anima::readImage <LogTensorImageType> (refLTArg.getValue()));
+
+    mainFilter->SetInput(anima::readImage <LogTensorImageType> (refLTArg.getValue()));
     mainFilter->SetExplainedRatio(expVarArg.getValue());
     mainFilter->SetNumEigenValuesPCA(numEigenArg.getValue());
 
@@ -67,7 +76,9 @@ int main(int argc, char **argv)
         mainFilter->AddDatabaseInput(anima::readImage <LogTensorImageType> (tmpStr));
     }
     fileIn.close();
-  		
+
+    mainFilter->AddObserver(itk::ProgressEvent(), callback);
+
     try
     {
         mainFilter->Update();

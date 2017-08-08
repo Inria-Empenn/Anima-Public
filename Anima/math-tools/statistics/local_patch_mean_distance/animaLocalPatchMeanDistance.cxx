@@ -3,7 +3,6 @@
 
 #include <animaReadWriteFunctions.h>
 #include <animaLocalPatchMeanDistanceImageFilter.h>
-#include <itkTimeProbe.h>
 
 //Update progression of the process
 void eventCallback (itk::Object* caller, const itk::EventObject& event, void* clientData)
@@ -18,7 +17,7 @@ int main(int argc, char **argv)
     
     TCLAP::ValueArg<std::string> dataLTArg("i","database","Database Image List",true,"","database image list",cmd);
     
-	TCLAP::ValueArg<std::string> maskArg("m","maskname","Computation mask",true,"","computation mask",cmd);
+    TCLAP::ValueArg<std::string> maskArg("m","maskname","Computation mask",true,"","computation mask",cmd);
     TCLAP::ValueArg<std::string> resArg("o","outputmean","Average distance output image",true,"","Average distance output image",cmd);
     
     TCLAP::ValueArg<std::string> resStdArg("O","outputstd","Standard deviation output image",false,"","Standard deviation output image",cmd);
@@ -47,9 +46,9 @@ int main(int argc, char **argv)
     mainFilter->SetComputationMask(anima::readImage < itk::Image <unsigned char, 3> > (maskArg.getValue()));
     mainFilter->SetNumberOfThreads(nbpArg.getValue());
 
-	mainFilter->SetPatchHalfSize(patchHSArg.getValue());
+    mainFilter->SetPatchHalfSize(patchHSArg.getValue());
     mainFilter->AddObserver(itk::ProgressEvent(), callback);
-	
+
     std::ifstream fileIn(dataLTArg.getValue());
     
     unsigned int count = 0;
@@ -66,7 +65,7 @@ int main(int argc, char **argv)
         ++count;
     }
     fileIn.close();
-  	
+
     try
     {
         mainFilter->Update();
