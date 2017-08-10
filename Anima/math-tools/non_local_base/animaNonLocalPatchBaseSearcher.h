@@ -30,13 +30,13 @@ public:
     void SetWeightThreshold(double arg) {m_WeightThreshold = arg;}
 
     void SetInputImage(ImageType *arg) {m_InputImage = arg;}
-    itkGetObjectMacro(InputImage, ImageType);
+    itkGetObjectMacro(InputImage, ImageType)
 
     void AddComparisonImage(ImageType *arg);
     ImageType *GetComparisonImage(unsigned int index);
 
-    itkGetConstReferenceMacro(DatabaseWeights, std::vector <double>);
-    itkGetConstReferenceMacro(DatabaseSamples, std::vector <PixelType>);
+    itkGetConstReferenceMacro(DatabaseWeights, std::vector <double>)
+    itkGetConstReferenceMacro(DatabaseSamples, std::vector <PixelType>)
 
     void UpdateAtPosition(const IndexType &dataIndex);
 

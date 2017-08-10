@@ -122,15 +122,16 @@ NonLocalPatchBaseSearcher <ImageType>
 
         if (movingRegionIsValid && onSearchStepSize && (!isCentralIndex))
         {
+            blockRegionMoving.SetIndex(movingIndex);
+            blockRegionMoving.SetSize(blockRegion.GetSize());
+
             for (unsigned int k = 0;k < numComparisonImages;++k)
             {
                 this->ComputeComparisonProperties(k,blockRegionMoving);
+
                 // Should we compute the weight value of this patch ?
                 if (this->TestPatchConformity(k,dataIndex,dispCurIndex))
                 {
-                    blockRegionMoving.SetIndex(movingIndex);
-                    blockRegionMoving.SetSize(blockRegion.GetSize());
-
                     double weightValue = this->ComputeWeightValue(k,blockRegion,blockRegionMoving);
                     if (weightValue > m_WeightThreshold)
                     {

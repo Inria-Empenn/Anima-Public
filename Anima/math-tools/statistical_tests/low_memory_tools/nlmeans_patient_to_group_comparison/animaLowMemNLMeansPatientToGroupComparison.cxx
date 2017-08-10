@@ -22,15 +22,15 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> resNumPatchesArg("","outputnpatches","Number of patches output image",false,"","Number of patches output image",cmd);
 	
 	TCLAP::ValueArg<double> weightThrArg("w","weightthr","NL weight threshold: patches around have to be similar enough (default: 0.0)",false,0.0,"NL weight threshold",cmd);
-	TCLAP::ValueArg<double> meanThrArg("M","patchmeanthr","Proportion of patches kept after mean test (default: 10.0)",false,10.0,"NL mean patch proportion",cmd);
-	TCLAP::ValueArg<double> varThrArg("c","patchcovthr","Proportion of patches kept after covariance test (default: 10.0)",false,10.0,"NL covariance patch proportion",cmd);
-	TCLAP::ValueArg<double> betaArg("b","beta","Beta parameter for local noise estimation (default: 1)",false,1,"Beta for local noise estimation",cmd);
+    TCLAP::ValueArg<double> meanThrArg("M","patchmeanthr","Tolerance for means test (test if meansTest > meanDatabase + M * stdDatabase, default: M=2.5)",false,2.5,"NL mean patch proportion",cmd);
+    TCLAP::ValueArg<double> varThrArg("c","patchcovthr","Tolerance for covariance test (test if covDist > meanDatabase + c * stdDatabase, default: c=2.5)",false,2.5,"NL covariance patch proportion",cmd);
+    TCLAP::ValueArg<double> betaArg("b","beta","Beta parameter for local noise estimation (default: 1)",false,1,"Beta for local noise estimation",cmd);
     
     TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
     
     TCLAP::ValueArg<unsigned int> patchHSArg("","patchhalfsize","Patch half size in each direction (default: 1)",false,1,"patch half size",cmd);
-    TCLAP::ValueArg<unsigned int> patchSSArg("","patchstepsize","Patch step size for searching (default: 2)",false,2,"patch search step size",cmd);
-    TCLAP::ValueArg<unsigned int> patchNeighArg("n","patchneighborhood","Patch half neighborhood size (default: 4)",false,4,"patch search neighborhood size",cmd);
+    TCLAP::ValueArg<unsigned int> patchSSArg("","patchstepsize","Patch step size for searching (default: 1)",false,1,"patch search step size",cmd);
+    TCLAP::ValueArg<unsigned int> patchNeighArg("n","patchneighborhood","Patch half neighborhood size (default: 2)",false,2,"patch search neighborhood size",cmd);
 
 	TCLAP::ValueArg<unsigned int> splitsArg("s","split","Split image for low memory (default: 2)",false,2,"Number of splits",cmd);
     TCLAP::ValueArg<int> specSplitArg("S","splittoprocess","Specific split to process (use to run on cluster (default: -1 = all)",false,-1,"Split to process",cmd);
@@ -43,7 +43,7 @@ int main(int argc, char **argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
     
     std::string dataName, maskName;
@@ -87,10 +87,10 @@ int main(int argc, char **argv)
     catch(itk::ExceptionObject &e)
     {
         std::cerr << e << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
     
 	delete mainFilter;
 	
-    return 0;
+    return EXIT_SUCCESS;
 }
