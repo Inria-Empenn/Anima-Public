@@ -44,13 +44,11 @@ int main(int argc, char **argv)
 		while (tmpOutput.IsNull())
 		{
 			imageIn.getline(refN,2048);
-			
+
+            if (masksIn.is_open())
+                masksIn.getline(maskN,2048);
             if (strcmp(refN,"") == 0)
-			{
-				if (masksIn.is_open())
-					masksIn.getline(maskN,2048);
                 continue;
-			}
 			
 			std::cout << "Adding image " << refN << "..." << std::endl;
             
@@ -64,15 +62,13 @@ int main(int argc, char **argv)
 		
 		while(!imageIn.eof())
 		{
-			imageIn.getline(refN,2048);
-			
+            imageIn.getline(refN,2048);
+
+            if (masksIn.is_open())
+                masksIn.getline(maskN,2048);
             if (strcmp(refN,"") == 0)
-			{
-				if (masksIn.is_open())
-					masksIn.getline(maskN,2048);
                 continue;
-			}
-			
+
 			std::cout << "Adding image " << refN << "..." << std::endl;
 			
             floatImageType::Pointer tmpImage = anima::readImage <floatImageType> (refN);
@@ -80,8 +76,7 @@ int main(int argc, char **argv)
 			itk::ImageRegionIterator <floatImageType> resIt(tmpOutput,tmpImage->GetLargestPossibleRegion());
 			
 			if (masksIn.is_open())
-			{
-				masksIn.getline(maskN,2048);
+            {
                 UShortImageType::Pointer tmpMask = anima::readImage <UShortImageType> (maskN);
                 
 				itk::ImageRegionIterator <UShortImageType> tmpMaskIt(tmpMask,tmpImage->GetLargestPossibleRegion());
@@ -161,17 +156,13 @@ int main(int argc, char **argv)
 		while (outputData.IsNull())
 		{
 			imageIn.getline(refN,2048);
-			
+
+            if (masksIn.is_open())
+                masksIn.getline(maskN,2048);
             if (strcmp(refN,"") == 0)
-			{
-				if (masksIn.is_open())
-					masksIn.getline(maskN,2048);
                 continue;
-			}
 			
 			std::cout << "Adding image " << refN << "..." << std::endl;
-			std::string fileN(refN);
-
             outputData = anima::readImage <VectorImageType> (refN);
 			
 			if (masksIn.is_open())
@@ -184,15 +175,12 @@ int main(int argc, char **argv)
 		{
 			imageIn.getline(refN,2048);
 			
+            if (masksIn.is_open())
+                masksIn.getline(maskN,2048);
             if (strcmp(refN,"") == 0)
-			{
-				if (masksIn.is_open())
-					masksIn.getline(maskN,2048);
                 continue;
-			}
 			
 			std::cout << "Adding image " << refN << "..." << std::endl;
-			std::string fileN(refN);
             
             VectorImageType::Pointer tmpImage = anima::readImage <VectorImageType> (refN);
             
@@ -200,8 +188,7 @@ int main(int argc, char **argv)
 			itk::ImageRegionIterator <VectorImageType> resIt(outputData,tmpImage->GetLargestPossibleRegion());
             
 			if (masksIn.is_open())
-			{
-				masksIn.getline(maskN,2048);
+            {
                 UShortImageType::Pointer tmpMask = anima::readImage <UShortImageType> (maskN);
                 
 				itk::ImageRegionIterator <UShortImageType> tmpMaskIt(tmpMask,tmpImage->GetLargestPossibleRegion());
