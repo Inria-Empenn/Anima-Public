@@ -536,7 +536,11 @@ void PyramidalBlockMatchingBridge<ImageDimension>::WriteClosestRigidTransform(Po
 
     itk::TransformFileWriter::Pointer rigidWriter = itk::TransformFileWriter::New();
     rigidWriter->SetInput(rigidTransform);
-    rigidWriter->SetFileName("nearestRigid_"+GetOutputTransformFile());
+
+    std::string rigidFileName(GetOutputTransformFile());
+    rigidFileName.insert(rigidFileName.rfind("."),"_nearestRigid");
+    rigidWriter->SetFileName(rigidFileName);
+    std::cout << "Writing output nearest rigid transform to: " << rigidFileName << std::endl;
     rigidWriter->Update();
 }
 
