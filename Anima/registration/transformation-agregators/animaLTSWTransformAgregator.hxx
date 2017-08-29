@@ -16,6 +16,15 @@ LTSWTransformAgregator() : Superclass()
 {
     m_LTSCut = 0.5;
     m_StoppingThreshold = 1.0e-2;
+    m_EstimationBarycenter.Fill(0);
+}
+
+template <unsigned int NDimensions>
+typename LTSWTransformAgregator <NDimensions>::PointType
+LTSWTransformAgregator <NDimensions>::
+GetEstimationBarycenter()
+{
+    return m_EstimationBarycenter;
 }
 
 template <unsigned int NDimensions>
@@ -42,6 +51,7 @@ Update()
             return returnValue;
 
         case Superclass::RIGID:
+        case Superclass::ANISOTROPIC_SIM:
         case Superclass::AFFINE:
             returnValue = this->ltswEstimateAnyToAffine();
             return returnValue;
@@ -65,15 +75,22 @@ ltswEstimateTranslationsToAny()
     std::vector <PointType> transformedPoints(nbPts);
     std::vector <double> weights = this->GetInputWeights();
 
-    for (unsigned int i = 0;i < nbPts;++i)
+    BaseInputTransformType * currTrsf = 0;
+    if (this->GetOutputTransformType() == Superclass::ANISOTROPIC_SIM)
+        currTrsf = this->GetCurrentLinearTransform();
+
+    for (unsigned int i = 0; i < nbPts; ++i)
     {
         PointType tmpOrig = this->GetInputOrigin(i);
         BaseInputTransformType * tmpTrsf = this->GetInputTransform(i);
         PointType tmpDisp = tmpTrsf->TransformPoint(tmpOrig);
         originPoints[i] = tmpOrig;
-        transformedPoints[i] = tmpDisp;
+        if (this->GetOutputTransformType() == Superclass::ANISOTROPIC_SIM)
+            transformedPoints[i] = currTrsf->TransformPoint(tmpDisp);
+        else
+            transformedPoints[i] = tmpDisp;
     }
-
+   
     std::vector <PointType> originPointsFiltered = originPoints;
     std::vector <PointType> transformedPointsFiltered = transformedPoints;
     std::vector <double> weightsFiltered = weights;
@@ -102,6 +119,11 @@ ltswEstimateTranslationsToAny()
             case Superclass::RIGID:
                 anima::computeRigidLSWFromTranslations<InternalScalarType,ScalarType,NDimensions>
                         (originPointsFiltered,transformedPointsFiltered,weightsFiltered,resultTransform);
+                break;
+
+            case Superclass::ANISOTROPIC_SIM:
+                m_EstimationBarycenter = anima::computeAnisotropSimLSWFromTranslations<InternalScalarType, ScalarType, NDimensions>
+                    (originPointsFiltered, transformedPointsFiltered, weightsFiltered, resultTransform);
                 break;
 
             case Superclass::AFFINE:

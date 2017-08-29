@@ -20,6 +20,8 @@ public:
     typedef typename InputImageType::Pointer InputImagePointer;
     typedef typename InputImageType::ConstPointer InputImageConstPointer;
 
+    typedef typename InputImageType::PointType PointType;
+
     typedef itk::Image <unsigned char, ImageDimension> MaskImageType;
     typedef typename MaskImageType::Pointer MaskImagePointer;
     typedef anima::PyramidImageFilter <MaskImageType,MaskImageType> MaskPyramidType;
@@ -87,12 +89,14 @@ public:
     {
         outRigid = 0,
         outTranslation,
-        outAffine
+        outAffine,
+        outAnisotropic_Sim
     };
 
     void Update() ITK_OVERRIDE;
     void Abort();
     void WriteOutputs();
+    void WriteClosestRigidTransform(PointType& xbar);
 
     /**
     * Setter for images

@@ -20,6 +20,7 @@ public:
 
     MEstTransformAgregator();
     virtual ~MEstTransformAgregator() {}
+    PointType GetEstimationBarycenter() ITK_OVERRIDE;
 
     virtual bool Update();
 
@@ -34,6 +35,8 @@ private:
 
     double m_MEstimateFactor;
     double m_StoppingThreshold;
+
+    PointType m_EstimationBarycenter;
 };
 
 } // end of namespace anima

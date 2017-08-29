@@ -25,7 +25,7 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<std::string> fixedArg("r","refimage","Fixed image",true,"","fixed image",cmd);
     TCLAP::ValueArg<std::string> movingArg("m","movingimage","Moving image",true,"","moving image",cmd);
     TCLAP::ValueArg<std::string> outArg("o","outputimage","Output (registered) image",true,"","output image",cmd);
-    TCLAP::ValueArg<unsigned int> outTrTypeArg("","ot","Output transformation type (0: rigid, 1: translation, 2: affine, default: 0)",false,0,"output transformation type",cmd);
+    TCLAP::ValueArg<unsigned int> outTrTypeArg("","ot","Output transformation type (0: rigid, 1: translation, 2: affine, 3: anisotropic_sim, default: 0)",false,0,"output transformation type",cmd);
 
     TCLAP::ValueArg<std::string> initialTransformArg("i","inittransform","Initial transformation",false,"","initial transform",cmd);
     TCLAP::ValueArg<std::string> outputTransformArg("O","outtransform","Output transformation",false,"","output transform",cmd);

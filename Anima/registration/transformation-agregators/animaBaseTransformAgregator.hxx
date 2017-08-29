@@ -92,4 +92,15 @@ SetInputTransforms(std::vector <BaseInputTransformPointer> &inputTransforms)
     m_UpToDate = false;
 }
 
+
+template <unsigned int NDimensions>
+void
+BaseTransformAgregator <NDimensions>::
+SetCurrentLinearTransform(BaseInputTransformPointer &inputTransform)
+{
+    m_CurrentLinearTransform = inputTransform;
+
+    m_UpToDate = false;
+}
+
 } // end of namespace anima

@@ -20,14 +20,17 @@ public:
 
     LSWTransformAgregator();
     virtual ~LSWTransformAgregator() {}
+    PointType GetEstimationBarycenter() ITK_OVERRIDE;
 
     virtual bool Update();
 
 private:
     void lswEstimateTranslationsToTranslation();
     void lswEstimateTranslationsToRigid();
+    void lswEstimateTranslationsToAnisotropSim();
     void lswEstimateTranslationsToAffine();
     void lswEstimateAnyToAffine();
+    PointType m_EstimationBarycenter;
 };
 
 }// end of namespace anima

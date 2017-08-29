@@ -103,6 +103,7 @@ BaseBMRegistrationMethod <TInputImageType>
 
         // Perform one iteration of registration between the images
         // Calls pure virtual method that can use the block matching class available here
+        this->GetAgregator()->SetCurrentLinearTransform(computedTransform);
         TransformPointer addOn;
         this->PerformOneIteration(fixedResampled, movingResampled, addOn);
 
@@ -275,9 +276,17 @@ BaseBMRegistrationMethod <TInputImageType>
     {
         typename TransformType::ParametersType oldPars = computedTransform->GetParameters();
 
-        AffineTransformType *tmpTrsf = dynamic_cast<AffineTransformType *>(computedTransform.GetPointer());
-        AffineTransformType *tmpAddOn = dynamic_cast<AffineTransformType *>(addOn);
-        tmpTrsf->Compose(tmpAddOn, true);
+        if (m_Agregator->GetOutputTransformType() != AgregatorType::ANISOTROPIC_SIM)
+        {
+            AffineTransformType *tmpTrsf = dynamic_cast<AffineTransformType *>(computedTransform.GetPointer());
+            AffineTransformType *tmpAddOn = dynamic_cast<AffineTransformType *>(addOn);
+            tmpTrsf->Compose(tmpAddOn, true);
+        }
+        else
+        {
+            // no composition since we compute global transform only
+            computedTransform->SetParameters(addOn->GetParameters());
+        }
 
         typename TransformType::ParametersType newPars = computedTransform->GetParameters();
 

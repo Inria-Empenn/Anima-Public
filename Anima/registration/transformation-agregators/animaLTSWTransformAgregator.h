@@ -25,6 +25,8 @@ public:
 
     LTSWTransformAgregator();
     virtual ~LTSWTransformAgregator() {}
+    
+    PointType GetEstimationBarycenter() ITK_OVERRIDE;
 
     virtual bool Update();
 
@@ -39,6 +41,9 @@ private:
 
     double m_LTSCut;
     double m_StoppingThreshold;
+
+    PointType m_EstimationBarycenter;
+
 };
 
 } // end of namespace anima

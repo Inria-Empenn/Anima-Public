@@ -27,6 +27,13 @@ void computeRigidLSWFromTranslations(std::vector < itk::Point<TInput,NDimensions
                                      typename itk::AffineTransform<TScalarType,NDimensions>::Pointer &resultTransform);
 
 template <class TInput, class TScalarType, unsigned int NDimensions>
+itk::Point <TInput, NDimensions> computeAnisotropSimLSWFromTranslations(std::vector < itk::Point<TInput, NDimensions> > &inputOrigins,
+    std::vector < itk::Point<TInput, NDimensions> > &inputTransformed,
+    std::vector <TInput> &weights,
+    vnl_matrix <TInput> &UMatrix,
+    typename itk::AffineTransform<TScalarType, NDimensions>::Pointer &resultTransform);
+
+template <class TInput, class TScalarType, unsigned int NDimensions>
 void computeAffineLSWFromTranslations(std::vector < itk::Point<TInput,NDimensions> > &inputOrigins,
                                       std::vector < itk::Point<TInput,NDimensions> > &inputTransformed,
                                       std::vector <TInput> &weights,
@@ -45,6 +52,17 @@ void pairingToQuaternion(const itk::Vector <TInput,NDimensions> &inputPoint, con
 
 template <class PointType, class TOutput>
 void pairingToQuaternion(const PointType &inputPoint, const PointType &inputTransformedPoint, vnl_matrix <TOutput> &outputMatrix, unsigned int ndim);
+
+template <class TInput, class TOutput, unsigned int NDimensions>
+void pairingToQuaternionScalDerivative(const vnl_vector_fixed <TInput, NDimensions> &inputPoint, const vnl_vector_fixed <TInput, NDimensions> &inputTransformedPoint,
+    vnl_matrix <TOutput> &outputMatrix, const int &dimScal);
+
+template <class TInput, class TOutput, unsigned int NDimensions>
+void pairingToQuaternionScalDerivative(const itk::Vector <TInput, NDimensions> &inputPoint, const itk::Vector <TInput, NDimensions> &inputTransformedPoint,
+    vnl_matrix <TOutput> &outputMatrix, const int &dimScal);
+
+template <class PointType, class TOutput>
+void pairingToQuaternionScalDerivative(const PointType &inputPoint, const PointType &inputTransformedPoint, vnl_matrix <TOutput> &outputMatrix, unsigned int ndim, const int &dimScal);
 
 }// end of namespace anima
 

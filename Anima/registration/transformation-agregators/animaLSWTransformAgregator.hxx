@@ -12,6 +12,15 @@ template <unsigned int NDimensions>
 LSWTransformAgregator <NDimensions>::
 LSWTransformAgregator() : Superclass()
 {
+    m_EstimationBarycenter.Fill(0);
+}
+
+template <unsigned int NDimensions>
+typename LSWTransformAgregator <NDimensions>::PointType
+LSWTransformAgregator <NDimensions>::
+GetEstimationBarycenter()
+{
+    return m_EstimationBarycenter;
 }
 
 template <unsigned int NDimensions>
@@ -42,6 +51,11 @@ Update()
 
                 case Superclass::RIGID:
                     this->lswEstimateTranslationsToRigid();
+                    this->SetUpToDate(true);
+                    return true;
+
+                case Superclass::ANISOTROPIC_SIM:
+                    this->lswEstimateTranslationsToAnisotropSim();
                     this->SetUpToDate(true);
                     return true;
 
@@ -128,6 +142,40 @@ lswEstimateTranslationsToRigid()
 
     typename BaseOutputTransformType::Pointer resultTransform;
     anima::computeRigidLSWFromTranslations<InternalScalarType,ScalarType,NDimensions>(originPoints,transformedPoints,this->GetInputWeights(),resultTransform);
+    this->SetOutput(resultTransform);
+}
+
+template <unsigned int NDimensions>
+void
+LSWTransformAgregator <NDimensions>::
+lswEstimateTranslationsToAnisotropSim()
+{
+    unsigned int nbPts = this->GetInputOrigins().size();
+
+    if (NDimensions > 3)
+    {
+        std::cerr << "Dimension not supported for quaternions" << std::endl;
+        return;
+    }
+
+    std::vector <PointType> originPoints(nbPts);
+    std::vector <PointType> transformedPoints(nbPts);
+
+    BaseInputTransformType * currTrsf = this->GetCurrentLinearTransform();
+
+    for (unsigned int i = 0; i < nbPts; ++i)
+    {
+        PointType tmpOrig = this->GetInputOrigin(i);
+        BaseInputTransformType * tmpTrsf = this->GetInputTransform(i);
+        
+        PointType tmpDisp = tmpTrsf->TransformPoint(tmpOrig);
+        originPoints[i] = tmpOrig;
+        transformedPoints[i] = currTrsf->TransformPoint(tmpDisp);
+
+    }
+
+    typename BaseOutputTransformType::Pointer resultTransform;
+    m_EstimationBarycenter=anima::computeAnisotropSimLSWFromTranslations<InternalScalarType, ScalarType, NDimensions>(originPoints, transformedPoints, this->GetInputWeights(), resultTransform);
     this->SetOutput(resultTransform);
 }
 

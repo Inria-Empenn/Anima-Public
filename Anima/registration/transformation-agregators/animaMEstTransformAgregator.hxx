@@ -2,7 +2,7 @@
 
 #include <animaLogRigid3DTransform.h>
 #include <animaLinearTransformEstimationTools.h>
-
+#include "animaMEstTransformAgregator.h"
 #include <algorithm>
 
 namespace anima
@@ -14,6 +14,15 @@ MEstTransformAgregator() : Superclass()
 {
     m_MEstimateFactor = 0.5;
     m_StoppingThreshold = 1.0e-2;
+    m_EstimationBarycenter.Fill(0);
+}
+
+template <unsigned int NDimensions>
+typename MEstTransformAgregator <NDimensions>::PointType
+MEstTransformAgregator <NDimensions>::
+GetEstimationBarycenter()
+{
+    return m_EstimationBarycenter;
 }
 
 template <unsigned int NDimensions>
@@ -64,13 +73,20 @@ mestEstimateTranslationsToAny()
     std::vector <PointType> transformedPoints(nbPts);
     std::vector <double> weights = this->GetInputWeights();
 
+    BaseInputTransformType * currTrsf = 0;
+    if (this->GetOutputTransformType() == Superclass::ANISOTROPIC_SIM)
+        currTrsf = this->GetCurrentLinearTransform();
+
     for (unsigned int i = 0;i < nbPts;++i)
     {
         PointType tmpOrig = this->GetInputOrigin(i);
         BaseInputTransformType * tmpTrsf = this->GetInputTransform(i);
         PointType tmpDisp = tmpTrsf->TransformPoint(tmpOrig);
         originPoints[i] = tmpOrig;
-        transformedPoints[i] = tmpDisp;
+        if (this->GetOutputTransformType() == Superclass::ANISOTROPIC_SIM)
+            transformedPoints[i] = currTrsf->TransformPoint(tmpDisp);
+        else
+            transformedPoints[i] = tmpDisp;
     }
 
     std::vector <double> weightsFiltered = weights;
@@ -102,6 +118,11 @@ mestEstimateTranslationsToAny()
             case Superclass::RIGID:
                 anima::computeRigidLSWFromTranslations<InternalScalarType,ScalarType,NDimensions>
                         (originPoints,transformedPoints,weightsFiltered,resultTransform);
+                break;
+
+            case Superclass::ANISOTROPIC_SIM:
+                m_EstimationBarycenter = anima::computeAnisotropSimLSWFromTranslations<InternalScalarType, ScalarType, NDimensions>
+                    (originPoints, transformedPoints, weightsFiltered, resultTransform);
                 break;
 
             case Superclass::AFFINE:

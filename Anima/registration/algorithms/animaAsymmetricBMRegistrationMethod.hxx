@@ -47,7 +47,7 @@ AsymmetricBMRegistrationMethod <TInputImageType>
 
     this->GetAgregator()->SetInputWeights(this->GetBlockMatcher()->GetBlockWeights());
     this->GetAgregator()->SetInputTransforms(this->GetBlockMatcher()->GetBlockTransformPointers());
-
+    
     addOn = this->GetAgregator()->GetOutput();
 }
 
