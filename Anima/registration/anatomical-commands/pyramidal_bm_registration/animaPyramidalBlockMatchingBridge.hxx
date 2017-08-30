@@ -505,9 +505,9 @@ void PyramidalBlockMatchingBridge<ImageDimension>::WriteClosestRigidTransform(Po
 {
     AffineTransformType *tmpTrsf = dynamic_cast<AffineTransformType *>(m_OutputTransform.GetPointer());
 
-    AffineTransformType::MatrixType linearMatrix = tmpTrsf->GetMatrix();
-    AffineTransformType::OffsetType transformOffset = tmpTrsf->GetOffset();
-    vnl_svd<AffineTransformType::MatrixType::ValueType> svdUWV(linearMatrix.GetVnlMatrix());
+    typename AffineTransformType::MatrixType linearMatrix = tmpTrsf->GetMatrix();
+    typename AffineTransformType::OffsetType transformOffset = tmpTrsf->GetOffset();
+    vnl_svd<typename AffineTransformType::MatrixType::ValueType> svdUWV(linearMatrix.GetVnlMatrix());
     PointType ybar;
     for (unsigned int i = 0; i < ImageDimension; ++i)
     {
@@ -515,8 +515,8 @@ void PyramidalBlockMatchingBridge<ImageDimension>::WriteClosestRigidTransform(Po
         for (unsigned int j = 0; j < ImageDimension; ++j)
             ybar[i] += linearMatrix(i, j)*xbar[j];
     }
-    AffineTransformType::OffsetType rigidOffset;
-    AffineTransformType::MatrixType linearPartRigid;
+    typename AffineTransformType::OffsetType rigidOffset;
+    typename AffineTransformType::MatrixType linearPartRigid;
     linearPartRigid.Fill(0);
     
     for (unsigned int i = 0; i < ImageDimension; ++i)
