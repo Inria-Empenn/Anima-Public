@@ -7,6 +7,13 @@
 #include <animaReadWriteFunctions.h>
 #include <itkTimeProbe.h>
 
+//Update progression of the process
+void eventCallback (itk::Object* caller, const itk::EventObject& event, void* clientData)
+{
+    itk::ProcessObject * processObject = (itk::ProcessObject*) caller;
+    std::cout<<"\033[K\rProgression: "<<(int)(processObject->GetProgress() * 100)<<"%"<<std::flush;
+}
+
 int main(int argc, char **argv)
 {
     TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);
@@ -18,7 +25,7 @@ int main(int argc, char **argv)
 
     TCLAP::ValueArg<std::string> resT2Arg("o","out-t2","Result T2 image",true,"","result T2 image",cmd);
     TCLAP::ValueArg<std::string> resM0Arg("O","out-m0","Result M0 image",false,"","result M0 image",cmd);
-    TCLAP::ValueArg<std::string> resB1Arg("","--out-b1","B1 map",false,"","B1 map",cmd);
+    TCLAP::ValueArg<std::string> resB1Arg("","out-b1","B1 map",false,"","B1 map",cmd);
 
     TCLAP::ValueArg<double> upperBoundT2Arg("u","upper-bound-t2","T2 value upper bound (default: 1000)",false,1000,"T2 value upper bound",cmd);
     TCLAP::ValueArg<double> upperBoundM0Arg("","upper-bound-m0","M0 value upper bound (default: 5000)",false,5000,"M0 value upper bound",cmd);
@@ -45,7 +52,10 @@ int main(int argc, char **argv)
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
         return EXIT_FAILURE;
     }
-    
+
+    itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
+    callback->SetCallback(eventCallback);
+
     typedef itk::Image <double,3> InputImageType;
     typedef InputImageType OutputImageType;
     typedef anima::T2EPGRelaxometryEstimationImageFilter <InputImageType,OutputImageType> FilterType;
@@ -80,11 +90,12 @@ int main(int argc, char **argv)
     itk::TimeProbe tmpTime;
     tmpTime.Start();
     
+    mainFilter->AddObserver(itk::ProgressEvent(), callback);
     mainFilter->Update();
     
     tmpTime.Stop();
     
-    std::cout << "Total computation time: " << tmpTime.GetTotal() << std::endl;
+    std::cout << "\nTotal computation time: " << tmpTime.GetTotal() << std::endl;
 
     anima::writeImage <OutputImageType> (resT2Arg.getValue(),mainFilter->GetOutput(0));
 
