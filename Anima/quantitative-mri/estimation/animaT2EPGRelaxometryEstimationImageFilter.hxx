@@ -95,7 +95,7 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
 
     while (!maskItr.IsAtEnd())
     {
-        double t1Value = 1;
+        double t1Value = m_T2UpperBound;
 
         if (m_T1Map)
             t1Value = t1MapItr.Get();
@@ -107,7 +107,7 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
             t2Value = t1Value / 2.0;
         double m0Value = m_M0UpperBound / 2.0;
 
-        if ((maskItr.Get() == 0)||(b1Value == 0)||(t1Value == 0))
+        if ((maskItr.Get() == 0)||(t1Value == 0))
         {
             outT2Iterator.Set(0);
             outM0Iterator.Set(0);
@@ -139,7 +139,7 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
         cost->SetT2RelaxometrySignals(relaxoT2Data);
 
         unsigned int iterNum = 0;
-        while ((std::abs(b1ValueOld - b1Value) / b1Value > m_OptimizerStopCondition)&&(iterNum < m_MaximumOptimizerIterations))
+        while (((std::abs(b1ValueOld - b1Value) / b1Value) > m_OptimizerStopCondition)&&(iterNum < m_MaximumOptimizerIterations))
         {
             b1ValueOld = b1Value;
             ++iterNum;
@@ -155,7 +155,12 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
                 OptimizerType::ScalesType scales(dimension);
 
                 OptimizerType::Pointer optimizer = OptimizerType::New();
-                optimizer->SetRhoBegin(m_OptimizerInitialStep);
+
+                if (i == 0)
+                    optimizer->SetRhoBegin(m_OptimizerInitialStep);
+                else
+                    optimizer->SetRhoBegin(0.1);
+
                 optimizer->SetRhoEnd(m_OptimizerStopCondition);
                 optimizer->SetNumberSamplingPoints(dimension + 2);
                 optimizer->SetMaximumIteration(m_MaximumOptimizerIterations);

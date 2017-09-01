@@ -7,7 +7,7 @@ namespace anima
 T2EPGRelaxometryCostFunction::MeasureType
 T2EPGRelaxometryCostFunction::GetValue(const ParametersType & parameters) const
 {
-    if (m_OptimizeB1Value)
+    if (!m_OptimizeB1Value)
     {
         m_T2Value = parameters[0];
         m_M0Value = parameters[1];
