@@ -42,9 +42,13 @@ public:
     itkSetMacro(M0Value, double)
 
     itkSetMacro(B1OnExcitationAngle, bool)
+    itkSetMacro(OptimizeB1Value, bool)
 
     unsigned int GetNumberOfParameters() const ITK_OVERRIDE
     {
+        if (m_OptimizeB1Value)
+            return 1;
+
         return 2;
     }
 
@@ -57,6 +61,8 @@ protected:
         m_M0Value = 1;
 
         m_T2EchoSpacing = 1;
+
+        m_OptimizeB1Value = false;
 
         m_B1OnExcitationAngle = false;
     }
@@ -74,6 +80,8 @@ private:
     std::vector <double> m_T2FlipAngles;
 
     bool m_B1OnExcitationAngle;
+
+    bool m_OptimizeB1Value;
 
     mutable double m_T1Value, m_T2Value, m_M0Value, m_B1Value;
 };

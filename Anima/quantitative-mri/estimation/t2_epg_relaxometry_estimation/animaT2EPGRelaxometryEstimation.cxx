@@ -7,6 +7,13 @@
 #include <animaReadWriteFunctions.h>
 #include <itkTimeProbe.h>
 
+//Update progression of the process
+void eventCallback (itk::Object* caller, const itk::EventObject& event, void* clientData)
+{
+    itk::ProcessObject * processObject = (itk::ProcessObject*) caller;
+    std::cout<<"\033[K\rProgression: "<<(int)(processObject->GetProgress() * 100)<<"%"<<std::flush;
+}
+
 int main(int argc, char **argv)
 {
     TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);
@@ -15,13 +22,11 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> maskArg("m","maskname","Computation mask",false,"","computation mask",cmd);
 
     TCLAP::ValueArg<std::string> t1MapArg("","t1","T1 map",false,"","T1 map",cmd);
-    TCLAP::ValueArg<std::string> b1MapArg("","b1","B1 map",false,"","B1 map",cmd);
-    TCLAP::ValueArg<std::string> initialT2Arg("","init-t2","T2 initial map",false,"","T2 initial map",cmd);
-    TCLAP::ValueArg<std::string> initialM0Arg("","init-m0","M0 initial map",false,"","M0 initial map",cmd);
 
     TCLAP::ValueArg<std::string> resT2Arg("o","out-t2","Result T2 image",true,"","result T2 image",cmd);
     TCLAP::ValueArg<std::string> resM0Arg("O","out-m0","Result M0 image",false,"","result M0 image",cmd);
-	
+    TCLAP::ValueArg<std::string> resB1Arg("","out-b1","B1 map",false,"","B1 map",cmd);
+
     TCLAP::ValueArg<double> upperBoundT2Arg("u","upper-bound-t2","T2 value upper bound (default: 1000)",false,1000,"T2 value upper bound",cmd);
     TCLAP::ValueArg<double> upperBoundM0Arg("","upper-bound-m0","M0 value upper bound (default: 5000)",false,5000,"M0 value upper bound",cmd);
 
@@ -45,14 +50,15 @@ int main(int argc, char **argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
-    
+
+    itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
+    callback->SetCallback(eventCallback);
+
     typedef itk::Image <double,3> InputImageType;
     typedef InputImageType OutputImageType;
     typedef anima::T2EPGRelaxometryEstimationImageFilter <InputImageType,OutputImageType> FilterType;
-    typedef itk::ImageFileReader <InputImageType> InputImageReaderType;
-    typedef itk::ImageFileWriter <OutputImageType> OutputImageWriterType;
     
     FilterType::Pointer mainFilter = FilterType::New();
 	
@@ -71,51 +77,11 @@ int main(int argc, char **argv)
     mainFilter->SetOptimizerInitialStep(optimizerInitialStepArg.getValue());
 
     if (t1MapArg.getValue() != "")
-    {
-        InputImageReaderType::Pointer t1MapRead = InputImageReaderType::New();
-        t1MapRead->SetFileName(t1MapArg.getValue().c_str());
-        t1MapRead->Update();
-        
-        mainFilter->SetT1Map(t1MapRead->GetOutput());
-    }
+        mainFilter->SetT1Map(anima::readImage <InputImageType> (t1MapArg.getValue()));
     
-    if (b1MapArg.getValue() != "")
-    {
-        InputImageReaderType::Pointer b1MapRead = InputImageReaderType::New();
-        b1MapRead->SetFileName(b1MapArg.getValue().c_str());
-        b1MapRead->Update();
-        
-        mainFilter->SetB1Map(b1MapRead->GetOutput());
-    }
-    
-    if (initialT2Arg.getValue() != "")
-    {
-        InputImageReaderType::Pointer initT2Read = InputImageReaderType::New();
-        initT2Read->SetFileName(initialT2Arg.getValue().c_str());
-        initT2Read->Update();
-        
-        mainFilter->SetInitialT2Map(initT2Read->GetOutput());
-    }
-    
-    if (initialM0Arg.getValue() != "")
-    {
-        InputImageReaderType::Pointer initM0Read = InputImageReaderType::New();
-        initM0Read->SetFileName(initialM0Arg.getValue().c_str());
-        initM0Read->Update();
-        
-        mainFilter->SetInitialM0Map(initM0Read->GetOutput());
-    }
-
     if (maskArg.getValue() != "")
-    {
-        typedef itk::ImageFileReader < itk::Image <unsigned char, 3> > itkMaskReader;
-        itkMaskReader::Pointer maskRead = itkMaskReader::New();
-        maskRead->SetFileName(maskArg.getValue().c_str());
-        maskRead->Update();
-        
-        mainFilter->SetComputationMask(maskRead->GetOutput());
-    }
-    
+        mainFilter->SetComputationMask(anima::readImage < itk::Image <unsigned char, 3> > (maskArg.getValue()));
+
     mainFilter->SetB1OnExcitationAngle(b1OnExcAngleArg.isSet());
 
     mainFilter->SetAverageSignalThreshold(backgroundSignalThresholdArg.getValue());
@@ -124,28 +90,20 @@ int main(int argc, char **argv)
     itk::TimeProbe tmpTime;
     tmpTime.Start();
     
+    mainFilter->AddObserver(itk::ProgressEvent(), callback);
     mainFilter->Update();
     
     tmpTime.Stop();
     
-    std::cout << "Total computation time: " << tmpTime.GetTotal() << std::endl;
+    std::cout << "\nTotal computation time: " << tmpTime.GetTotal() << std::endl;
 
-    OutputImageWriterType::Pointer resultT2Writer = OutputImageWriterType::New();
-    resultT2Writer->SetFileName(resT2Arg.getValue().c_str());
-    resultT2Writer->SetUseCompression(true);
-    resultT2Writer->SetInput(mainFilter->GetOutput(0));
-    
-    resultT2Writer->Update();
-    
+    anima::writeImage <OutputImageType> (resT2Arg.getValue(),mainFilter->GetOutput(0));
+
     if (resM0Arg.getValue() != "")
-    {
-        OutputImageWriterType::Pointer resultM0Writer = OutputImageWriterType::New();
-        resultM0Writer->SetFileName(resM0Arg.getValue().c_str());
-        resultM0Writer->SetUseCompression(true);
-        resultM0Writer->SetInput(mainFilter->GetOutput(1));
-        
-        resultM0Writer->Update();
-    }
+        anima::writeImage <OutputImageType> (resM0Arg.getValue(),mainFilter->GetOutput(1));
 
-    return 0;
+    if (resB1Arg.getValue() != "")
+        anima::writeImage <OutputImageType> (resB1Arg.getValue(),mainFilter->GetOutput(2));
+
+    return EXIT_SUCCESS;
 }

@@ -18,10 +18,10 @@ public:
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(T2EPGRelaxometryEstimationImageFilter, MaskedImageToImageFilter);
+    itkTypeMacro(T2EPGRelaxometryEstimationImageFilter, MaskedImageToImageFilter)
 
     /** Image typedef support */
     typedef TInputImage  InputImageType;
@@ -34,23 +34,20 @@ public:
     typedef typename Superclass::InputImageRegionType InputImageRegionType;
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
-    itkSetMacro(EchoSpacing, double);
+    itkSetMacro(EchoSpacing, double)
 
     void SetT1Map(OutputImageType *map) {m_T1Map = map;}
-    void SetB1Map(OutputImageType *map) {m_B1Map = map;}
-    void SetInitialT2Map(OutputImageType *map) {m_InitialT2Map = map;}
-    void SetInitialM0Map(OutputImageType *map) {m_InitialM0Map = map;}
 
-    itkSetMacro(M0UpperBound, double);
-    itkSetMacro(T2UpperBound, double);
-    itkSetMacro(AverageSignalThreshold, double);
+    itkSetMacro(M0UpperBound, double)
+    itkSetMacro(T2UpperBound, double)
+    itkSetMacro(AverageSignalThreshold, double)
 
-    itkSetMacro(MaximumOptimizerIterations, unsigned int);
-    itkSetMacro(OptimizerStopCondition, double);
-    itkSetMacro(OptimizerInitialStep, double);
+    itkSetMacro(MaximumOptimizerIterations, unsigned int)
+    itkSetMacro(OptimizerStopCondition, double)
+    itkSetMacro(OptimizerInitialStep, double)
 
-    itkSetMacro(T2ExcitationFlipAngle, double);
-    itkSetMacro(B1OnExcitationAngle, bool);
+    itkSetMacro(T2ExcitationFlipAngle, double)
+    itkSetMacro(B1OnExcitationAngle, bool)
 
     void SetT2FlipAngles(std::vector <double> & flipAngles) {m_T2FlipAngles = flipAngles;}
     void SetT2FlipAngles(double singleAngle, unsigned int numAngles) {m_T2FlipAngles = std::vector <double> (numAngles,singleAngle);}
@@ -59,10 +56,10 @@ protected:
     T2EPGRelaxometryEstimationImageFilter()
     : Superclass()
     {
-        // There are 2 outputs: T2, M0
-        this->SetNumberOfRequiredOutputs(2);
+        // There are 2 outputs: T2, M0, B1
+        this->SetNumberOfRequiredOutputs(3);
 
-        for (unsigned int i = 0;i < 2;++i)
+        for (unsigned int i = 0;i < 3;++i)
             this->SetNthOutput(i, this->MakeOutput(i));
 
         m_AverageSignalThreshold = 0;
@@ -97,12 +94,6 @@ private:
 
     // T1 relaxometry specific values
     OutputImagePointer m_T1Map;
-    // B1 specific values
-    OutputImagePointer m_B1Map;
-    // T2 initial values
-    OutputImagePointer m_InitialT2Map;
-    // M0 initial values
-    OutputImagePointer m_InitialM0Map;
 
     // T2 relaxometry specific values
     double m_EchoSpacing;

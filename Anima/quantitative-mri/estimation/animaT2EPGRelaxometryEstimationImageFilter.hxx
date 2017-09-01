@@ -68,6 +68,7 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
 
     OutImageIteratorType outT2Iterator(this->GetOutput(0),outputRegionForThread);
     OutImageIteratorType outM0Iterator(this->GetOutput(1),outputRegionForThread);
+    OutImageIteratorType outB1Iterator(this->GetOutput(2),outputRegionForThread);
 
     unsigned int numInputs = this->GetNumberOfIndexedInputs();
     std::vector <ImageIteratorType> inIterators;
@@ -81,18 +82,6 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
     if (m_T1Map)
         t1MapItr = OutImageIteratorType(m_T1Map,outputRegionForThread);
 
-    OutImageIteratorType b1MapItr;
-    if (m_B1Map)
-        b1MapItr = OutImageIteratorType(m_B1Map,outputRegionForThread);
-
-    OutImageIteratorType initialT2Itr;
-    if (m_InitialT2Map)
-        initialT2Itr = OutImageIteratorType(m_InitialT2Map,outputRegionForThread);
-
-    OutImageIteratorType initialM0Itr;
-    if (m_InitialM0Map)
-        initialM0Itr = OutImageIteratorType(m_InitialM0Map,outputRegionForThread);
-
     std::vector <double> relaxoT2Data(numInputs,0);
 
     typedef anima::BobyqaOptimizer OptimizerType;
@@ -104,32 +93,30 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
     cost->SetT2FlipAngles(m_T2FlipAngles);
     cost->SetB1OnExcitationAngle(m_B1OnExcitationAngle);
 
-    unsigned int dimension = cost->GetNumberOfParameters();
-    itk::Array<double> lowerBounds(dimension);
-    itk::Array<double> upperBounds(dimension);
-    OptimizerType::ParametersType p(dimension);
-    OptimizerType::ScalesType scales(dimension);
-
     while (!maskItr.IsAtEnd())
     {
-        double t1Value = 1;
+        double t1Value = m_T2UpperBound;
 
         if (m_T1Map)
             t1Value = t1MapItr.Get();
 
         double b1Value = 1;
+        double b1ValueOld = 0;
+        double t2Value = m_T2UpperBound / 2.0;
+        if (m_T1Map && (m_T2UpperBound > t1Value))
+            t2Value = t1Value / 2.0;
+        double m0Value = m_M0UpperBound / 2.0;
 
-        if (m_B1Map)
-            b1Value = b1MapItr.Get();
-
-        if ((maskItr.Get() == 0)||(b1Value == 0)||(t1Value == 0))
+        if ((maskItr.Get() == 0)||(t1Value == 0))
         {
             outT2Iterator.Set(0);
             outM0Iterator.Set(0);
+            outB1Iterator.Set(0);
 
             ++maskItr;
             ++outT2Iterator;
             ++outM0Iterator;
+            ++outB1Iterator;
 
             for (unsigned int i = 0;i < numInputs;++i)
                 ++inIterators[i];
@@ -137,19 +124,12 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
             if (m_T1Map)
                 ++t1MapItr;
 
-            if (m_B1Map)
-                ++b1MapItr;
-
-            if (m_InitialT2Map)
-                ++initialT2Itr;
-
-            if (m_InitialM0Map)
-                ++initialM0Itr;
-
             continue;
         }
 
         cost->SetT1Value(t1Value);
+        cost->SetM0Value(m0Value);
+        cost->SetT2Value(t2Value);
         cost->SetB1Value(b1Value);
 
         // Here go the T2 and M0 estimation
@@ -158,66 +138,97 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
 
         cost->SetT2RelaxometrySignals(relaxoT2Data);
 
-        OptimizerType::Pointer optimizer = OptimizerType::New();
-        optimizer->SetRhoBegin(m_OptimizerInitialStep);
-        optimizer->SetRhoEnd(m_OptimizerStopCondition);
-        optimizer->SetNumberSamplingPoints(dimension + 2);
-        optimizer->SetMaximumIteration(m_MaximumOptimizerIterations);
+        unsigned int iterNum = 0;
+        while (((std::abs(b1ValueOld - b1Value) / b1Value) > m_OptimizerStopCondition)&&(iterNum < m_MaximumOptimizerIterations))
+        {
+            b1ValueOld = b1Value;
+            ++iterNum;
 
-        lowerBounds[0] = 1.0e-4;
-        upperBounds[0] = m_T2UpperBound;
-        if (m_T1Map && (m_T2UpperBound > t1Value))
-            upperBounds[0] = t1Value;
+            // Switch between B1 and T2 optimization
+            for (unsigned int i = 0;i < 2;++i)
+            {
+                cost->SetOptimizeB1Value(i == 1);
+                unsigned int dimension = cost->GetNumberOfParameters();
+                itk::Array<double> lowerBounds(dimension);
+                itk::Array<double> upperBounds(dimension);
+                OptimizerType::ParametersType p(dimension);
+                OptimizerType::ScalesType scales(dimension);
 
-        lowerBounds[1] = 1.0e-4;
-        upperBounds[1] = m_M0UpperBound;
+                OptimizerType::Pointer optimizer = OptimizerType::New();
 
-        if (m_InitialT2Map)
-            p[0] = initialT2Itr.Get();
-        else
-            p[0] = (lowerBounds[0] + upperBounds[0]) / 2.0;
+                if (i == 0)
+                    optimizer->SetRhoBegin(m_OptimizerInitialStep);
+                else
+                    optimizer->SetRhoBegin(0.1);
 
-        if (m_InitialM0Map)
-            p[1] = initialM0Itr.Get();
-        else
-            p[1] = (lowerBounds[1] + upperBounds[1]) / 2.0;
+                optimizer->SetRhoEnd(m_OptimizerStopCondition);
+                optimizer->SetNumberSamplingPoints(dimension + 2);
+                optimizer->SetMaximumIteration(m_MaximumOptimizerIterations);
 
-        scales[0] = (upperBounds[1] - lowerBounds[1]) / (upperBounds[0] - lowerBounds[0]);
-        scales[1] = 1;
+                if (i == 0) // T2 optimization
+                {
+                    lowerBounds[0] = 1.0e-4;
+                    upperBounds[0] = m_T2UpperBound;
+                    if (m_T1Map && (m_T2UpperBound > t1Value))
+                        upperBounds[0] = t1Value;
 
-        optimizer->SetScales(scales);
-        optimizer->SetLowerBounds(lowerBounds);
-        optimizer->SetUpperBounds(upperBounds);
-        optimizer->SetMaximize(false);
+                    lowerBounds[1] = 1.0e-4;
+                    upperBounds[1] = m_M0UpperBound;
 
-        optimizer->SetCostFunction(cost);
+                    p[0] = t2Value;
+                    p[1] = m0Value;
+                    scales[0] = (upperBounds[1] - lowerBounds[1]) / (upperBounds[0] - lowerBounds[0]);
+                    scales[1] = 1;
+                }
+                else
+                {
+                    lowerBounds[0] = 0.5;
+                    upperBounds[0] = 2.0;
+                    p[0] = b1Value;
+                    scales[0] = 1.0;
+                }
 
-        optimizer->SetInitialPosition(p);
-        optimizer->StartOptimization();
+                optimizer->SetScales(scales);
+                optimizer->SetLowerBounds(lowerBounds);
+                optimizer->SetUpperBounds(upperBounds);
+                optimizer->SetMaximize(false);
 
-        p = optimizer->GetCurrentPosition();
+                optimizer->SetCostFunction(cost);
 
-        outT2Iterator.Set(p[0]);
-        outM0Iterator.Set(p[1]);
+                optimizer->SetInitialPosition(p);
+                optimizer->StartOptimization();
+
+                p = optimizer->GetCurrentPosition();
+
+                if (i == 0)
+                {
+                    t2Value = p[0];
+                    m0Value = p[1];
+                    cost->SetM0Value(m0Value);
+                    cost->SetT2Value(t2Value);
+                }
+                else
+                {
+                    b1Value = p[0];
+                    cost->SetB1Value(b1Value);
+                }
+            }
+        }
+
+        outT2Iterator.Set(t2Value);
+        outM0Iterator.Set(m0Value);
+        outB1Iterator.Set(b1ValueOld);
 
         ++maskItr;
         ++outT2Iterator;
         ++outM0Iterator;
+        ++outB1Iterator;
 
         for (unsigned int i = 0;i < numInputs;++i)
             ++inIterators[i];
 
         if (m_T1Map)
             ++t1MapItr;
-
-        if (m_B1Map)
-            ++b1MapItr;
-
-        if (m_InitialT2Map)
-            ++initialT2Itr;
-
-        if (m_InitialM0Map)
-            ++initialM0Itr;
     }
 }
 

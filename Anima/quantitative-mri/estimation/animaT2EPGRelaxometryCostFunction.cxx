@@ -7,8 +7,13 @@ namespace anima
 T2EPGRelaxometryCostFunction::MeasureType
 T2EPGRelaxometryCostFunction::GetValue(const ParametersType & parameters) const
 {
-    m_T2Value = parameters[0];
-    m_M0Value = parameters[1];
+    if (!m_OptimizeB1Value)
+    {
+        m_T2Value = parameters[0];
+        m_M0Value = parameters[1];
+    }
+    else
+        m_B1Value = parameters[0];
 
     double residualValue = 0;
     unsigned int numT2Signals = m_T2RelaxometrySignals.size();
