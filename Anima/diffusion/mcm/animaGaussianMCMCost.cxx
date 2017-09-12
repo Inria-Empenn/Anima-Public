@@ -121,7 +121,7 @@ GaussianMCMCost::GetDerivativeMatrix(const ParametersType &parameters, Derivativ
     
     for (unsigned int i = 0;i < nbValues;++i)
         for (unsigned int j = 0;j < nbParams;++j)
-            derivative(j,i) = m_B0Value signalJacobians[i][j] + m_PredictedSignals[i] * observedJacobianProducts[j] / m_PredictedSquaredNorm - 2.0 * m_PredictedSignals[i] * m_B0Value * m_PredictedJacobianProducts[j] / ,m_PredictedSquaredNorm;
+            derivative(j,i) = m_B0Value * signalJacobians[i][j] + m_PredictedSignals[i] * observedJacobianProducts[j] / m_PredictedSquaredNorm - 2.0 * m_PredictedSignals[i] * m_B0Value * m_PredictedJacobianProducts[j] / m_PredictedSquaredNorm;
 }
 
 void
