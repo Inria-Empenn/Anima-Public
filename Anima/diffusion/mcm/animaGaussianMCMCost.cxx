@@ -76,7 +76,7 @@ GaussianMCMCost::GetDerivativeMatrix(const ParametersType &parameters, Derivativ
 {
     unsigned int nbParams = parameters.GetSize();
     if (m_MarginalEstimation)
-        itkExceptionMacro("Marginal estimation does not handle Levenberg-Marquardt");
+        itkExceptionMacro("Marginal estimation does not boil down to a least square minimization problem.");
 
     if (nbParams == 0)
         return;
@@ -102,19 +102,26 @@ GaussianMCMCost::GetDerivativeMatrix(const ParametersType &parameters, Derivativ
     derivative.Fill(0.0);
 
     ListType signalJacobian;
+    std::vector<ListType> signalJacobians(nbValues);
     m_PredictedJacobianProducts.resize(nbParams);
     std::fill(m_PredictedJacobianProducts.begin(),m_PredictedJacobianProducts.end(),0.0);
+    ListType observedJacobianProducts(nbParams,0.0);
 
     for (unsigned int i = 0;i < nbValues;++i)
     {
         signalJacobian = m_MCMStructure->GetSignalJacobian(m_BValues[i], m_Gradients[i]);
+        signalJacobians[i] = signalJacobian;
 
         for (unsigned int j = 0;j < nbParams;++j)
         {
-            derivative(j,i) = m_B0Value * m_PredictedSignals[i] * signalJacobian[j] - m_ObservedSignals[i] * signalJacobian[j];
             m_PredictedJacobianProducts[j] += m_PredictedSignals[i] * signalJacobian[j];
+            observedJacobianProducts[j] += m_ObservedSignals[i] * signalJacobian[j];
         }
     }
+    
+    for (unsigned int i = 0;i < nbValues;++i)
+        for (unsigned int j = 0;j < nbParams;++j)
+            derivative(j,i) = m_B0Value signalJacobians[i][j] + m_PredictedSignals[i] * observedJacobianProducts[j] / m_PredictedSquaredNorm - 2.0 * m_PredictedSignals[i] * m_B0Value * m_PredictedJacobianProducts[j] / ,m_PredictedSquaredNorm;
 }
 
 void
@@ -127,14 +134,14 @@ GaussianMCMCost::GetCurrentDerivative(DerivativeMatrixType &derivativeMatrix, De
 
     for (unsigned int j = 0;j < nbParams;++j)
     {
-        double jacobianProductsSum = 0;
+        double residualJacobianResidualProduct = 0;
         for (unsigned int i = 0;i < nbValues;++i)
-            jacobianProductsSum += derivativeMatrix(j,i);
+            residualJacobianResidualProduct += derivativeMatrix(j,i) * m_Residuals[i];
 
         if (!m_MarginalEstimation)
-            derivative[j] = 2.0 * m_B0Value * jacobianProductsSum / m_SigmaSquare;
+            derivative[j] = 2.0 * residualJacobianResidualProduct / m_SigmaSquare;
         else
-            derivative[j] = 2.0 * (m_PredictedJacobianProducts[j] / m_PredictedSquaredNorm + (nbValues + 1.0) * m_B0Value * jacobianProductsSum / (nbValues * m_SigmaSquare));
+            derivative[j] = 2.0 * (m_PredictedJacobianProducts[j] / m_PredictedSquaredNorm + (nbValues + 1.0) * m_B0Value * residualJacobianResidualProduct / (nbValues * m_SigmaSquare));
     }
 }
     
