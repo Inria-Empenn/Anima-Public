@@ -659,7 +659,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>::CreateCostFunction(std
         if (m_Optimizer == "levenberg")
             internalCost->SetUseDerivative(!m_VNLDerivativeComputation);
         else
-            internalCost->SetUseDerivative(m_Optimizer == "ccsaq");
+            internalCost->SetUseDerivative((m_Optimizer == "ccsaq")||(m_Optimizer == "bfgs"));
 
         baseCost = internalCost;
     }
@@ -1008,6 +1008,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
             }
             else if (m_Optimizer == "ccsaq")
                 tmpOpt->SetLocalOptimizer(NLOPT_LD_CCSAQ);
+            else if (m_Optimizer == "bfgs")
+                tmpOpt->SetLocalOptimizer(NLOPT_LD_LBFGS);
 
             if (!m_UseFixedWeights)
             {
@@ -1030,6 +1032,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
             }
             else if (m_Optimizer == "ccsaq")
                 tmpOpt->SetAlgorithm(NLOPT_LD_CCSAQ);
+            else if (m_Optimizer == "bfgs")
+                tmpOpt->SetAlgorithm(NLOPT_LD_LBFGS);
 
             anima::MCMSingleValuedCostFunction *costCast =
                     dynamic_cast <anima::MCMSingleValuedCostFunction *> (cost.GetPointer());
