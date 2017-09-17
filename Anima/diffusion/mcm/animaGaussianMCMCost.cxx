@@ -101,7 +101,6 @@ GaussianMCMCost::GetDerivativeMatrix(const ParametersType &parameters, Derivativ
     derivative.SetSize(nbParams, nbValues);
     derivative.Fill(0.0);
 
-    ListType signalJacobian;
     std::vector<ListType> signalJacobians(nbValues);
     m_PredictedJacobianProducts.resize(nbParams);
     std::fill(m_PredictedJacobianProducts.begin(),m_PredictedJacobianProducts.end(),0.0);
@@ -109,13 +108,12 @@ GaussianMCMCost::GetDerivativeMatrix(const ParametersType &parameters, Derivativ
 
     for (unsigned int i = 0;i < nbValues;++i)
     {
-        signalJacobian = m_MCMStructure->GetSignalJacobian(m_BValues[i], m_Gradients[i]);
-        signalJacobians[i] = signalJacobian;
+        signalJacobians[i] = m_MCMStructure->GetSignalJacobian(m_BValues[i], m_Gradients[i]);
 
         for (unsigned int j = 0;j < nbParams;++j)
         {
-            m_PredictedJacobianProducts[j] += m_PredictedSignals[i] * signalJacobian[j];
-            observedJacobianProducts[j] += m_ObservedSignals[i] * signalJacobian[j];
+            m_PredictedJacobianProducts[j] += m_PredictedSignals[i] * signalJacobians[i][j];
+            observedJacobianProducts[j] += m_ObservedSignals[i] * signalJacobians[i][j];
         }
     }
     
