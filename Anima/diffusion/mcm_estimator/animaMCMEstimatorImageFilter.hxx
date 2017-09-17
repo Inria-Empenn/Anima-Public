@@ -125,7 +125,7 @@ void
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::BeforeThreadedGenerateData()
 {
-    if ((m_Optimizer == "levenberg")&&((m_MLEstimationStrategy != VariableProjection)||(m_NoiseType != Gaussian)))
+    if ((m_Optimizer == "levenberg")&&((m_MLEstimationStrategy == Marginal)||(m_NoiseType != Gaussian)))
         itkExceptionMacro("Levenberg Marquardt optimizer only working with Gaussian noise and variable projection");
 
     if ((m_Optimizer != "bobyqa")&&m_UseCommonDiffusivities)
