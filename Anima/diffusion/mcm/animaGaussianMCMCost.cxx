@@ -48,6 +48,7 @@ GaussianMCMCost::GetValues(const ParametersType &parameters)
     // Update B0
     m_B0Value = observedPredictedProduct / m_PredictedSquaredNorm;
 
+    m_Residuals.SetSize(nbImages);
     for (unsigned int i = 0;i < nbImages;++i)
         m_Residuals[i] = m_B0Value * m_PredictedSignals[i] - m_ObservedSignals[i];
 
