@@ -9,24 +9,26 @@
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
 #include <vtkCleanPolyData.h>
+#include <vtkGenericCell.h>
 
 #include <itkNearestNeighborInterpolateImageFunction.h>
+#include <itkMultiThreader.h>
 
-void filterTracks(vtkPolyData *tracks, itk::NearestNeighborInterpolateImageFunction < itk::Image <unsigned short, 3> > * interpolator,
+void FilterTracks(vtkPolyData *tracks, unsigned int startIndex, unsigned int endIndex,
+                  itk::NearestNeighborInterpolateImageFunction < itk::Image <unsigned short, 3> > * interpolator,
                   const std::vector <unsigned int> &touchLabels, const std::vector <unsigned int> &forbiddenLabels)
 {
-    vtkIdType numCells = tracks->GetNumberOfCells();
-
     std::vector <unsigned int> seenLabels;
     double pointPositionVTK[3];
     itk::ContinuousIndex<double, 3> currentIndex;
     typedef itk::Image <unsigned short, 3>::PointType PointType;
     PointType pointPosition;
 
-    for (unsigned int i = 0;i < numCells;++i)
+    vtkSmartPointer <vtkGenericCell> cell = vtkGenericCell::New();
+    for (unsigned int i = startIndex;i < endIndex;++i)
     {
         // Inspect i-th cell
-        vtkCell *cell = tracks->GetCell(i);
+        tracks->GetCell(i,cell);
         vtkPoints *cellPts = cell->GetPoints();
         vtkIdType numCellPts = cellPts->GetNumberOfPoints();
         seenLabels.clear();
@@ -82,16 +84,35 @@ void filterTracks(vtkPolyData *tracks, itk::NearestNeighborInterpolateImageFunct
         if (!lineOk || (seenLabels.size() != touchLabels.size()))
             tracks->DeleteCell(i);
     }
+}
 
-    tracks->RemoveDeletedCells();
+typedef struct
+{
+    vtkPolyData *tracks;
+    itk::NearestNeighborInterpolateImageFunction < itk::Image <unsigned short, 3> > *interpolator;
+    std::vector <unsigned int> touchLabels;
+    std::vector <unsigned int> forbiddenLabels;
+} ThreaderArguments;
 
-    // Out of security, but apparently does not do much
-    vtkSmartPointer <vtkCleanPolyData> vtkCleaner = vtkSmartPointer <vtkCleanPolyData>::New();
-    vtkCleaner->SetInputData(tracks);
-    vtkCleaner->Update();
-    tracks->ShallowCopy(vtkCleaner->GetOutput());
+ITK_THREAD_RETURN_TYPE ThreadFilterer(void *arg)
+{
+    itk::MultiThreader::ThreadInfoStruct *threadArgs = (itk::MultiThreader::ThreadInfoStruct *)arg;
+    unsigned int nbThread = threadArgs->ThreadID;
+    unsigned int numTotalThread = threadArgs->NumberOfThreads;
 
-    std::cout << "Kept " << tracks->GetNumberOfCells() << " after filtering" << std::endl;
+    ThreaderArguments *tmpArg = (ThreaderArguments *)threadArgs->UserData;
+    unsigned int nbTotalCells = tmpArg->tracks->GetNumberOfCells();
+
+    unsigned int step = nbTotalCells / numTotalThread;
+    unsigned int startIndex = nbThread * step;
+    unsigned int endIndex = (nbThread + 1) * step;
+
+    if (nbThread == numTotalThread - 1)
+        endIndex = nbTotalCells;
+
+    FilterTracks(tmpArg->tracks, startIndex, endIndex, tmpArg->interpolator, tmpArg->touchLabels, tmpArg->forbiddenLabels);
+
+    return NULL;
 }
 
 int main(int argc, char **argv)
@@ -105,6 +126,7 @@ int main(int argc, char **argv)
     TCLAP::MultiArg<unsigned int> touchArg("t", "touch", "Labels that have to be touched",false,"touched labels",cmd);
     TCLAP::MultiArg<unsigned int> forbiddenArg("f", "forbid", "Labels that must not to be touched",false,"forbidden labels",cmd);
 
+    TCLAP::ValueArg<unsigned int> nbThreadsArg("T","nb-threads","Number of threads to run on (default: all available)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
     try
     {
         cmd.parse(argc,argv);
@@ -128,10 +150,34 @@ int main(int argc, char **argv)
 
     vtkSmartPointer <vtkPolyData> tracks = trackReader.GetOutput();
 
+    // Get dummy cell so that it's thread safe
+    vtkSmartPointer <vtkGenericCell> dummyCell = vtkGenericCell::New();
+    tracks->GetCell(0,dummyCell);
+
     std::vector <unsigned int> touchLabels = touchArg.getValue();
     std::vector <unsigned int> forbiddenLabels = forbiddenArg.getValue();
 
-    filterTracks(tracks,interpolator,touchLabels,forbiddenLabels);
+    ThreaderArguments tmpStr;
+    tmpStr.interpolator = interpolator;
+    tmpStr.tracks = tracks;
+    tmpStr.touchLabels = touchLabels;
+    tmpStr.forbiddenLabels = forbiddenLabels;
+
+    itk::MultiThreader::Pointer mThreader = itk::MultiThreader::New();
+    mThreader->SetNumberOfThreads(nbThreadsArg.getValue());
+    mThreader->SetSingleMethod(ThreadFilterer,&tmpStr);
+    mThreader->SingleMethodExecute();
+
+    // Final pruning of removed cells
+    tracks->RemoveDeletedCells();
+
+    // Out of security, but apparently does not do much
+    vtkSmartPointer <vtkCleanPolyData> vtkCleaner = vtkSmartPointer <vtkCleanPolyData>::New();
+    vtkCleaner->SetInputData(tracks);
+    vtkCleaner->Update();
+    tracks->ShallowCopy(vtkCleaner->GetOutput());
+
+    std::cout << "Kept " << tracks->GetNumberOfCells() << " after filtering" << std::endl;
 
     anima::FibersWriter writer;
     writer.SetInputData(tracks);
