@@ -66,5 +66,68 @@ VMFDistance(const itk::Point <ScalarType, Dimension> &muFirst, const double &kap
 
     return sqrt(dist);
 }
+
+template <class ScalarType>
+double
+GetVonMisesConcentrationMLE(const ScalarType rbar)
+{
+    // This function performs maximum-likelihood estimation of the concentration parameter for the 2D von Mises distribution. Given \theta_1, ..., \theta_n n i.i.d. angles following the same von Mises distribution with mean \mu and concentration parameter \kappa, rbar is expected to be the square root of the sum of the squared average cosine of the angles and the squared average sine of the angles.
+    
+    double kappa = 0.0;
+    
+    if (rbar < 0.44639)
+    {
+        // Approximation given by Eq. (5.4.8) p. 123. Provides two figure accuracy for rbar < 0.45
+        double rbarSq = rbar * rbar;
+        kappa = rbar * (12.0 + 6.0 * rbarSq + 5.0 * rbarSq * rbarSq) / 6.0;
+    } // Next, linear interpolation between tabulated values reported in Appendix 2.2 p. 297
+    else if (rbar < 0.48070)
+        kappa = 0.1 * (rbar - 0.44639) / (0.48070 - 0.44639) + 1.0;
+    else if (rbar < 0.51278)
+        kappa = 0.1 * (rbar - 0.48070) / (0.51278 - 0.48070) + 1.1;
+    else if (rbar < 0.54267)
+        kappa = 0.1 * (rbar - 0.51278) / (0.54267 - 0.51278) + 1.2;
+    else if (rbar < 0.57042)
+        kappa = 0.1 * (rbar - 0.54267) / (0.57042 - 0.54267) + 1.3;
+    else if (rbar < 0.59613)
+        kappa = 0.1 * (rbar - 0.57042) / (0.59613 - 0.57042) + 1.4;
+    else if (rbar < 0.61990)
+        kappa = 0.1 * (rbar - 0.59613) / (0.61990 - 0.59613) + 1.5;
+    else if (rbar < 0.64183)
+        kappa = 0.1 * (rbar - 0.61990) / (0.64183 - 0.61990) + 1.6;
+    else if (rbar < 0.66204)
+        kappa = 0.1 * (rbar - 0.64183) / (0.66204 - 0.64183) + 1.7;
+    else if (rbar < 0.68065)
+        kappa = 0.1 * (rbar - 0.66204) / (0.68065 - 0.66204) + 1.8;
+    else if (rbar < 0.69777)
+        kappa = 0.1 * (rbar - 0.68065) / (0.69777 - 0.68065) + 1.9;
+    else if (rbar < 0.71353)
+        kappa = 0.1 * (rbar - 0.69777) / (0.71353 - 0.69777) + 2.0;
+    else if (rbar < 0.72803)
+        kappa = 0.1 * (rbar - 0.71353) / (0.72803 - 0.71353) + 2.1;
+    else if (rbar < 0.74138)
+        kappa = 0.1 * (rbar - 0.72803) / (0.74138 - 0.72803) + 2.2;
+    else if (rbar < 0.75367)
+        kappa = 0.1 * (rbar - 0.74138) / (0.75367 - 0.74138) + 2.3;
+    else if (rbar < 0.76500)
+        kappa = 0.1 * (rbar - 0.75367) / (0.76500 - 0.75367) + 2.4;
+    else if (rbar < 0.77545)
+        kappa = 0.1 * (rbar - 0.76500) / (0.77545 - 0.76500) + 2.5;
+    else if (rbar < 0.78511)
+        kappa = 0.1 * (rbar - 0.77545) / (0.78511 - 0.77545) + 2.6;
+    else if (rbar < 0.79404)
+        kappa = 0.1 * (rbar - 0.78511) / (0.79404 - 0.78511) + 2.7;
+    else if (rbar < 0.80231)
+        kappa = 0.1 * (rbar - 0.79404) / (0.80231 - 0.79404) + 2.8;
+    else
+    {
+        // Approximation given by Eq. (5.4.10) p. 123. Provides three figure accuracy for rbar > 0.8
+        double irbar = 1.0 - rbar;
+        double irbarSq = irbar * irbar;
+        kappa = 1.0 / (2.0 * irbar - irbarSq - irbar * irbarSq);
+    }
+    
+    return kappa;
+}
     
 } // end of namespace anima
