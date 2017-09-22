@@ -71,13 +71,16 @@ template <class ScalarType>
 double
 GetVonMisesConcentrationMLE(const ScalarType rbar)
 {
+    // This function performs maximum-likelihood estimation of the concentration parameter for the 2D von Mises distribution. Given \theta_1, ..., \theta_n n i.i.d. angles following the same von Mises distribution with mean \mu and concentration parameter \kappa, rbar is expected to be the square root of the sum of the squared average cosine of the angles and the squared average sine of the angles.
+    
     double kappa = 0.0;
     
     if (rbar < 0.44639)
     {
+        // Approximation given by Eq. (5.4.8) p. 123. Provides two figure accuracy for rbar < 0.45
         double rbarSq = rbar * rbar;
         kappa = rbar * (12.0 + 6.0 * rbarSq + 5.0 * rbarSq * rbarSq) / 6.0;
-    }
+    } // Next, linear interpolation between tabulated values reported in Appendix 2.2 p. 297
     else if (rbar < 0.48070)
         kappa = 0.1 * (rbar - 0.44639) / (0.48070 - 0.44639) + 1.0;
     else if (rbar < 0.51278)
@@ -118,6 +121,7 @@ GetVonMisesConcentrationMLE(const ScalarType rbar)
         kappa = 0.1 * (rbar - 0.79404) / (0.80231 - 0.79404) + 2.8;
     else
     {
+        // Approximation given by Eq. (5.4.10) p. 123. Provides three figure accuracy for rbar > 0.8
         double irbar = 1.0 - rbar;
         double irbarSq = irbar * irbar;
         kappa = 1.0 / (2.0 * irbar - irbarSq - irbar * irbarSq);
