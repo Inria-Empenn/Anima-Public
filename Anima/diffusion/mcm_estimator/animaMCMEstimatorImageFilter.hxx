@@ -12,6 +12,9 @@
 #include <animaGaussianMCMCost.h>
 #include <animaGaussianMCMVariableProjectionCost.h>
 
+#include <animaVectorOperations.h>
+#include <animaSphereOperations.h>
+
 #include <animaDTIEstimationImageFilter.h>
 #include <animaBaseTensorTools.h>
 
@@ -355,14 +358,116 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         case DDI:
             this->ComputeExtraAxonalAndKappaCoarseGrids();
             break;
-
+            
         case Tensor:
             this->ComputeTensorRadialDiffsAndAzimuthCoarseGrids();
             break;
-
+            
         default:
             // No coarse grid initialization for simple models
             break;
+    }
+
+    // Sparse pre-computation
+    this->InitializeDictionary();
+}
+
+template <class InputPixelType, class OutputPixelType>
+void
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
+::InitializeDictionary()
+{
+    anima::GetSphereEvenSampling(m_DictionaryDirections,m_NumberOfDictionaryEntries);
+    std::vector <double> fakeIsotropicDirection(3,0);
+
+    unsigned int countIsoComps = 0;
+    if (m_ModelWithFreeWaterComponent)
+    {
+        m_DictionaryDirections.insert(m_DictionaryDirections.begin(),fakeIsotropicDirection);
+        ++countIsoComps;
+    }
+
+    if (m_ModelWithStationaryWaterComponent)
+    {
+        m_DictionaryDirections.insert(m_DictionaryDirections.begin(),fakeIsotropicDirection);
+        ++countIsoComps;
+    }
+
+    if (m_ModelWithRestrictedWaterComponent)
+    {
+        m_DictionaryDirections.insert(m_DictionaryDirections.begin(),fakeIsotropicDirection);
+        ++countIsoComps;
+    }
+
+    m_SparseSticksDictionary.set_size(m_NumberOfImages,countIsoComps + m_NumberOfDictionaryEntries);
+    m_SparseSticksDictionary.fill(0.0);
+
+    countIsoComps = 0;
+    MCMPointer mcm;
+    MCMCreatorType *mcmCreator = m_MCMCreators[0];
+    if (m_ModelWithFreeWaterComponent)
+    {
+        mcmCreator->SetModelWithFreeWaterComponent(true);
+        mcmCreator->SetModelWithStationaryWaterComponent(false);
+        mcmCreator->SetModelWithRestrictedWaterComponent(false);
+        mcmCreator->SetNumberOfCompartments(0);
+
+        mcm = mcmCreator->GetNewMultiCompartmentModel();
+
+        for (unsigned int i = 0;i < m_NumberOfImages;++i)
+            m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_BValuesList[i], m_GradientDirections[i]);
+
+        ++countIsoComps;
+    }
+
+    if (m_ModelWithStationaryWaterComponent)
+    {
+        mcmCreator->SetModelWithFreeWaterComponent(false);
+        mcmCreator->SetModelWithStationaryWaterComponent(true);
+        mcmCreator->SetModelWithRestrictedWaterComponent(false);
+        mcmCreator->SetNumberOfCompartments(0);
+
+        mcm = mcmCreator->GetNewMultiCompartmentModel();
+
+        for (unsigned int i = 0;i < m_NumberOfImages;++i)
+            m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_BValuesList[i], m_GradientDirections[i]);
+
+        ++countIsoComps;
+    }
+
+    if (m_ModelWithRestrictedWaterComponent)
+    {
+        mcmCreator->SetModelWithFreeWaterComponent(false);
+        mcmCreator->SetModelWithStationaryWaterComponent(false);
+        mcmCreator->SetModelWithRestrictedWaterComponent(true);
+        mcmCreator->SetNumberOfCompartments(0);
+
+        mcm = mcmCreator->GetNewMultiCompartmentModel();
+
+        for (unsigned int i = 0;i < m_NumberOfImages;++i)
+            m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_BValuesList[i], m_GradientDirections[i]);
+
+        ++countIsoComps;
+    }
+
+    mcmCreator->SetModelWithFreeWaterComponent(false);
+    mcmCreator->SetModelWithStationaryWaterComponent(false);
+    mcmCreator->SetModelWithRestrictedWaterComponent(false);
+    mcmCreator->SetNumberOfCompartments(1);
+    mcmCreator->SetCompartmentType(Stick);
+
+    mcm = mcmCreator->GetNewMultiCompartmentModel();
+
+    for (unsigned int i = 0;i < m_NumberOfDictionaryEntries;++i)
+    {
+        anima::TransformCartesianToSphericalCoordinates(m_DictionaryDirections[i + countIsoComps],
+                m_DictionaryDirections[i + countIsoComps]);
+
+        mcm->GetCompartment(0)->SetOrientationTheta(m_DictionaryDirections[i + countIsoComps][0]);
+        mcm->GetCompartment(0)->SetOrientationPhi(m_DictionaryDirections[i + countIsoComps][1]);
+
+        for (unsigned int j = 0;j < m_NumberOfImages;++j)
+            m_SparseSticksDictionary(j,countIsoComps + i) = mcm->GetPredictedSignal(m_BValuesList[j], m_GradientDirections[j]);
     }
 }
 
@@ -371,50 +476,50 @@ void
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::ComputeExtraAxonalAndKappaCoarseGrids()
 {
-    // m_ValuesCoarseGrid[0] -> extra axonal fractions, m_ValuesCoarseGrid[1] -> kappa
-    m_ValuesCoarseGrid.resize(2);
-
-    unsigned int coarseGridSize = 8;
-    m_ValuesCoarseGrid[0].resize(coarseGridSize);
-    m_ValuesCoarseGrid[1].resize(coarseGridSize);
-
-    // The anisotropy index suggested by NODDI signal expression is not the ODI
-    // index defined in Zhang et al., 2012, Neuroimage. Instead, it amounts to
-    // (3 * tau1(k) - 1) / 2 \in [0,1] which is not analytically invertible.
-    // However it is well approximated by k^power / (halfLife + k^power) where
-    // power and halfLife are given by:
-
-    double power = 1.385829;
-    double halfLife = 5.312364;
-    for (unsigned int i = 0;i < coarseGridSize;++i)
-    {
-        double tmpVal = (i + 1.0) / (coarseGridSize + 1.0);
-        m_ValuesCoarseGrid[0][i] = tmpVal;
-        m_ValuesCoarseGrid[1][i] = std::pow(tmpVal * halfLife / (1.0 - tmpVal), 1.0 / power);
+        // m_ValuesCoarseGrid[0] -> extra axonal fractions, m_ValuesCoarseGrid[1] -> kappa
+        m_ValuesCoarseGrid.resize(2);
+        
+        unsigned int coarseGridSize = 8;
+        m_ValuesCoarseGrid[0].resize(coarseGridSize);
+        m_ValuesCoarseGrid[1].resize(coarseGridSize);
+        
+        // The anisotropy index suggested by NODDI signal expression is not the ODI
+        // index defined in Zhang et al., 2012, Neuroimage. Instead, it amounts to
+        // (3 * tau1(k) - 1) / 2 \in [0,1] which is not analytically invertible.
+        // However it is well approximated by k^power / (halfLife + k^power) where
+        // power and halfLife are given by:
+        
+        double power = 1.385829;
+        double halfLife = 5.312364;
+        for (unsigned int i = 0;i < coarseGridSize;++i)
+        {
+            double tmpVal = (i + 1.0) / (coarseGridSize + 1.0);
+            m_ValuesCoarseGrid[0][i] = tmpVal;
+            m_ValuesCoarseGrid[1][i] = std::pow(tmpVal * halfLife / (1.0 - tmpVal), 1.0 / power);
+        }
     }
-}
-
-template <class InputPixelType, class OutputPixelType>
-void
-MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
-::ComputeTensorRadialDiffsAndAzimuthCoarseGrids()
-{
-    // m_ValuesCoarseGrid[0] -> azimuth
-    // m_ValuesCoarseGrid[1] -> radial diff 1 vs axial diff weight
-    // m_ValuesCoarseGrid[2] -> radial diff 2 vs radial diff 1 weight
-    m_ValuesCoarseGrid.resize(3);
-
-    unsigned int coarseGridSize = 8;
-    for (unsigned int i = 0;i < 3;++i)
-        m_ValuesCoarseGrid[i].resize(coarseGridSize);
-
-    for (unsigned int i = 0;i < coarseGridSize;++i)
+    
+    template <class InputPixelType, class OutputPixelType>
+    void
+    MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
+    ::ComputeTensorRadialDiffsAndAzimuthCoarseGrids()
     {
-        m_ValuesCoarseGrid[0][i] = 2.0 * (i + 1) * M_PI / (coarseGridSize + 1.0);
-        m_ValuesCoarseGrid[1][i] = i / (coarseGridSize - 1.0);
-        m_ValuesCoarseGrid[2][i] = i / (coarseGridSize - 1.0);
+        // m_ValuesCoarseGrid[0] -> azimuth
+        // m_ValuesCoarseGrid[1] -> radial diff 1 vs axial diff weight
+        // m_ValuesCoarseGrid[2] -> radial diff 2 vs radial diff 1 weight
+        m_ValuesCoarseGrid.resize(3);
+        
+        unsigned int coarseGridSize = 8;
+        for (unsigned int i = 0;i < 3;++i)
+            m_ValuesCoarseGrid[i].resize(coarseGridSize);
+        
+        for (unsigned int i = 0;i < coarseGridSize;++i)
+        {
+            m_ValuesCoarseGrid[0][i] = 2.0 * (i + 1) * M_PI / (coarseGridSize + 1.0);
+            m_ValuesCoarseGrid[1][i] = i / (coarseGridSize - 1.0);
+            m_ValuesCoarseGrid[2][i] = i / (coarseGridSize - 1.0);
+        }
     }
-}
 
 template <class InputPixelType, class OutputPixelType>
 void

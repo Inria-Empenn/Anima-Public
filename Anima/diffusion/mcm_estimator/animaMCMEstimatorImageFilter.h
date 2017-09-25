@@ -257,8 +257,9 @@ protected:
 
         m_BValuesList.clear();
         m_GradientDirections.clear();
-        m_Optimizer = "bobyqa";
 
+        m_NumberOfDictionaryEntries = 30;
+        m_Optimizer = "bobyqa";
         m_NumberOfRandomRestarts = 1;
         m_AbsoluteCostChange = 0.01;
         m_B0Threshold = 0;
@@ -386,6 +387,9 @@ protected:
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(MCMEstimatorImageFilter);
 
+    //! Utility function to initialize dictionary of sticks for initial sparse estimation
+    void InitializeDictionary();
+
     std::vector <double> m_BValuesList;
     std::vector< GradientType > m_GradientDirections;
 
@@ -399,6 +403,11 @@ private:
     std::vector <MCMCreatorType *> m_MCMCreators;
 
     std::string m_Optimizer;
+
+    //! Sparse dictionary for pre-, rough estimation of directions in sticks
+    vnl_matrix <double> m_SparseSticksDictionary;
+    unsigned int m_NumberOfDictionaryEntries;
+    std::vector < std::vector <double> > m_DictionaryDirections;
 
     double m_B0Threshold;
     unsigned int m_NumberOfImages;
