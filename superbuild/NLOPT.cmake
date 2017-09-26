@@ -28,7 +28,6 @@ ExternalProject_Add(${proj}
 
 ExternalProject_Get_Property(${proj} binary_dir)
 set(${proj}_BUILD_DIR ${binary_dir})
-set(${proj}_SRC_DIR ${CMAKE_SOURCE_DIR}/External-Projects/${proj}/api)
-set(${proj}_AUTOGEN_DIR ${binary_dir}/api)
+set(${proj}_INCLUDE_DIR ${binary_dir}/api)
 
 set(Anima_DEPS "${Anima_DEPS};${proj}")
