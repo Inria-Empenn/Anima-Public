@@ -6,6 +6,7 @@
 #include <animaSmoothingRecursiveYvvGaussianImageFilter.h>
 
 #include <animaVelocityUtils.h>
+#include <itkImageRegionIterator.h>
 
 namespace anima
 {
@@ -285,7 +286,7 @@ BaseBMRegistrationMethod <TInputImageType>
         for (unsigned int i = 0; i < newPars.Size(); ++i)
             err += std::pow(newPars[i] - oldPars[i], 2.);
 
-        if (err < m_MinimalTransformError)
+        if (err <= m_MinimalTransformError)
             return false;
     }
     else
@@ -295,6 +296,31 @@ BaseBMRegistrationMethod <TInputImageType>
         SVFTransformType *tmpAddOn = dynamic_cast<SVFTransformType *>(addOn);
 
         anima::composeSVF(tmpTrsf,tmpAddOn,this->GetNumberOfThreads(),m_BCHCompositionOrder);
+
+        typedef typename SVFTransformType::VectorFieldType VectorFieldType;
+        typedef itk::ImageRegionConstIterator <VectorFieldType> IteratorType;
+        IteratorType diffItr(tmpAddOn->GetParametersAsVectorField(),
+                             tmpAddOn->GetParametersAsVectorField()->GetLargestPossibleRegion());
+
+        bool smallEnoughTransform = true;
+        while (!diffItr.IsAtEnd())
+        {
+            double err = 0;
+            for (unsigned int i = 0;i < VectorFieldType::ImageDimension;++i)
+                err += diffItr.Get()[i] * diffItr.Get()[i];
+
+            if (err > m_MinimalTransformError)
+            {
+                smallEnoughTransform = false;
+                break;
+            }
+
+            ++diffItr;
+        }
+
+        if (smallEnoughTransform)
+            return false;
+
         if (m_SVFElasticRegSigma > 0)
         {
             typedef typename SVFTransformType::VectorFieldType VelocityFieldType;
