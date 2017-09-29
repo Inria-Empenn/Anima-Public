@@ -45,13 +45,11 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::PyramidalDenseMCMSVFMatching
     m_OptimizerMaximumIterations = 100;
     m_SearchRadius = 2;
     m_SearchAngleRadius = 5;
-    m_SearchSkewRadius = 5;
     m_SearchScaleRadius = 0.1;
     m_FinalRadius = 0.001;
     m_StepSize = 1;
     m_TranslateUpperBound = 50;
     m_AngleUpperBound = 180;
-    m_SkewUpperBound = 45;
     m_ScaleUpperBound = 3;
     m_Agregator = Baloo;
     m_ExtrapolationSigma = 3;
@@ -365,9 +363,6 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
         double sar = m_SearchAngleRadius;
         mainMatcher->SetSearchAngleRadius(sar);
 
-        double skr = m_SearchSkewRadius;
-        mainMatcher->SetSearchSkewRadius(skr);
-
         double scr = m_SearchScaleRadius;
         mainMatcher->SetSearchScaleRadius(scr);
 
@@ -383,9 +378,6 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
         double aub = m_AngleUpperBound;
         mainMatcher->SetAngleMax(aub);
 
-        double skub = m_SkewUpperBound;
-        mainMatcher->SetSkewMax(skub);
-
         double scub = m_ScaleUpperBound;
         mainMatcher->SetScaleMax(scub);
 
@@ -396,13 +388,11 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
 
             reverseMatcher->SetSearchRadius(sr);
             reverseMatcher->SetSearchAngleRadius(sar);
-            reverseMatcher->SetSearchSkewRadius(skr);
             reverseMatcher->SetSearchScaleRadius(scr);
             reverseMatcher->SetFinalRadius(fr);
             reverseMatcher->SetStepSize(ss);
             reverseMatcher->SetTranslateMax(tub);
             reverseMatcher->SetAngleMax(aub);
-            reverseMatcher->SetSkewMax(skub);
             reverseMatcher->SetScaleMax(scub);
         }
 

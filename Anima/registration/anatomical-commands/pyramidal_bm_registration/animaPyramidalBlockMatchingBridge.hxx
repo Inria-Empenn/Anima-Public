@@ -47,13 +47,11 @@ PyramidalBlockMatchingBridge<ImageDimension>::PyramidalBlockMatchingBridge()
     m_OptimizerMaximumIterations = 100;
     m_SearchRadius = 2;
     m_SearchAngleRadius = 5;
-    m_SearchSkewRadius = 5;
     m_SearchScaleRadius = 0.1;
     m_FinalRadius = 0.001;
     m_StepSize = 1;
     m_TranslateUpperBound = 50;
     m_AngleUpperBound = 180;
-    m_SkewUpperBound = 45;
     m_ScaleUpperBound = 3;
     m_Agregator = MEstimation;
     m_OutputTransformType = outRigid;
@@ -370,9 +368,6 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
         double sar = GetSearchAngleRadius();
         mainMatcher->SetSearchAngleRadius(sar);
 
-        double skr = GetSearchSkewRadius();
-        mainMatcher->SetSearchSkewRadius(skr);
-
         double scr = GetSearchScaleRadius();
         mainMatcher->SetSearchScaleRadius(scr);
 
@@ -388,9 +383,6 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
         double aub = GetAngleUpperBound();
         mainMatcher->SetAngleMax(aub);
 
-        double skub = GetSkewUpperBound();
-        mainMatcher->SetSkewMax(skub);
-
         double scub = GetScaleUpperBound();
         mainMatcher->SetScaleMax(scub);
 
@@ -401,13 +393,11 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
 
             reverseMatcher->SetSearchRadius(sr);
             reverseMatcher->SetSearchAngleRadius(sar);
-            reverseMatcher->SetSearchSkewRadius(skr);
             reverseMatcher->SetSearchScaleRadius(scr);
             reverseMatcher->SetFinalRadius(fr);
             reverseMatcher->SetStepSize(ss);
             reverseMatcher->SetTranslateMax(tub);
             reverseMatcher->SetAngleMax(aub);
-            reverseMatcher->SetSkewMax(skub);
             reverseMatcher->SetScaleMax(scub);
         }
 

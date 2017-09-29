@@ -50,14 +50,12 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<double> searchRadiusArg("","sr","Search radius in pixels (exhaustive search window, rho start for bobyqa, default: 2)",false,2,"optimizer search radius",cmd);
     TCLAP::ValueArg<double> searchAngleRadiusArg("","sar","Search angle radius in degrees (rho start for bobyqa, default: 5)",false,5,"optimizer search angle radius",cmd);
     TCLAP::ValueArg<double> searchScaleRadiusArg("","scr","Search scale radius (rho start for bobyqa, default: 0.1)",false,0.1,"optimizer search scale radius",cmd);
-    TCLAP::ValueArg<double> searchSkewRadiusArg("","skr","Search skew radius in degrees (rho start for bobyqa, default: 5)",false,5,"optimizer search skew radius",cmd);
     TCLAP::ValueArg<double> finalRadiusArg("","fr","Final radius (rho end for bobyqa, default: 0.001)",false,0.001,"optimizer final radius",cmd);
     TCLAP::ValueArg<double> searchStepArg("","st","Search step for exhaustive search (default: 2)",false,2,"exhaustive optimizer search step",cmd);
 
     TCLAP::ValueArg<double> translateUpperBoundArg("","tub","Upper bound on translation for bobyqa (in voxels, default: 10)",false,10,"Bobyqa translate upper bound",cmd);
     TCLAP::ValueArg<double> angleUpperBoundArg("","aub","Upper bound on angles for bobyqa (in degrees, default: 180)",false,180,"Bobyqa angle upper bound",cmd);
     TCLAP::ValueArg<double> scaleUpperBoundArg("","scu","Upper bound on scale for bobyqa (default: 3)",false,3,"Bobyqa scale upper bound",cmd);
-    TCLAP::ValueArg<double> skewUpperBoundArg("","sku","Upper bound on skew for bobyqa (in degrees, default: 45)",false,45,"Bobyqa skew upper bound",cmd);
 
     TCLAP::ValueArg<unsigned int> symmetryArg("","sym-reg","Registration symmetry type (0: asymmetric, 1: symmetric, 2: kissing, default: 0)",false,0,"symmetry type",cmd);
 
@@ -93,12 +91,10 @@ int main(int argc, const char** argv)
     matcher->SetOptimizerMaximumIterations( optimizerMaxIterationsArg.getValue() );
     matcher->SetSearchRadius( searchRadiusArg.getValue() );
     matcher->SetSearchAngleRadius( searchAngleRadiusArg.getValue() );
-    matcher->SetSearchSkewRadius( searchSkewRadiusArg.getValue() );
     matcher->SetSearchScaleRadius( searchScaleRadiusArg.getValue() );
     matcher->SetStepSize( searchStepArg.getValue() );
     matcher->SetTranslateUpperBound( translateUpperBoundArg.getValue() );
     matcher->SetAngleUpperBound( angleUpperBoundArg.getValue() );
-    matcher->SetSkewUpperBound( skewUpperBoundArg.getValue() );
     matcher->SetScaleUpperBound( scaleUpperBoundArg.getValue() );
     matcher->SetSymmetryType( (PyramidBMType::SymmetryType) symmetryArg.getValue() );
     matcher->SetAgregator( (PyramidBMType::Agregator) agregatorArg.getValue() );

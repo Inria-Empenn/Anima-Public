@@ -18,11 +18,9 @@ BaseAffineBlockMatcher<TInputImageType>
 
     m_AngleMax = M_PI;
     m_TranslateMax = 10;
-    m_SkewMax = M_PI / 4.0;
     m_ScaleMax = 3;
 
     m_SearchAngleRadius = 5;
-    m_SearchSkewRadius = 5;
     m_SearchScaleRadius = 0.1;
 
     m_AffineDirection = 1;
@@ -195,7 +193,7 @@ BaseAffineBlockMatcher<TInputImageType>
 
         case Affine:
         {
-            // There are 12 parameters: 3 angles, 3 translations, 3 scales, 3 skew factors
+            // There are 12 parameters: 3 angles, 3 translations, 3 scales, 3 angles again
             for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
             {
                 // Angles
@@ -215,11 +213,11 @@ BaseAffineBlockMatcher<TInputImageType>
                 lowerBounds[2 * InputImageType::ImageDimension + i] = - std::log (m_ScaleMax);
                 upperBounds[2 * InputImageType::ImageDimension + i] = std::log (m_ScaleMax);
 
-                // Skews
-                tmpScales[3 * InputImageType::ImageDimension + i] = this->GetSearchRadius() * 180.0 / (m_SearchSkewRadius * M_PI);
+                // Second angles
+                tmpScales[3 * InputImageType::ImageDimension + i] = this->GetSearchRadius() * 180.0 / (m_SearchAngleRadius * M_PI);
 
-                lowerBounds[3 * InputImageType::ImageDimension + i] = - m_SkewMax * M_PI / 180.0;
-                upperBounds[3 * InputImageType::ImageDimension + i] = m_SkewMax * M_PI / 180.0;
+                lowerBounds[3 * InputImageType::ImageDimension + i] = - m_AngleMax * M_PI / 180.0;
+                upperBounds[3 * InputImageType::ImageDimension + i] = m_AngleMax * M_PI / 180.0;
             }
 
             break;

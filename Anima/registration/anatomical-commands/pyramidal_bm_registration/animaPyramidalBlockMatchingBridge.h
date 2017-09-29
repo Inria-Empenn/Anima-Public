@@ -162,9 +162,6 @@ public:
     double GetSearchAngleRadius() {return m_SearchAngleRadius;}
     void SetSearchAngleRadius(double SearchAngleRadius) {m_SearchAngleRadius=SearchAngleRadius;}
 
-    double GetSearchSkewRadius() {return m_SearchSkewRadius;}
-    void SetSearchSkewRadius(double SearchSkewRadius) {m_SearchSkewRadius=SearchSkewRadius;}
-
     double GetSearchScaleRadius() {return m_SearchScaleRadius;}
     void SetSearchScaleRadius(double SearchScaleRadius) {m_SearchScaleRadius=SearchScaleRadius;}
 
@@ -179,9 +176,6 @@ public:
 
     double GetAngleUpperBound() {return m_AngleUpperBound;}
     void SetAngleUpperBound(double AngleUpperBound) {m_AngleUpperBound=AngleUpperBound;}
-
-    double GetSkewUpperBound() {return m_SkewUpperBound;}
-    void SetSkewUpperBound(double SkewUpperBound) {m_SkewUpperBound=SkewUpperBound;}
 
     double GetScaleUpperBound() {return m_ScaleUpperBound;}
     void SetScaleUpperBound(double ScaleUpperBound) {m_ScaleUpperBound=ScaleUpperBound;}
@@ -252,13 +246,11 @@ private:
     unsigned int m_OptimizerMaximumIterations;
     double m_SearchRadius;
     double m_SearchAngleRadius;
-    double m_SearchSkewRadius;
     double m_SearchScaleRadius;
     double m_FinalRadius;
     double m_StepSize;
     double m_TranslateUpperBound;
     double m_AngleUpperBound;
-    double m_SkewUpperBound;
     double m_ScaleUpperBound;
     Agregator m_Agregator;
     OutputTransform m_OutputTransformType;
