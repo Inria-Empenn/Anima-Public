@@ -6,7 +6,9 @@ namespace anima
 {
 
 /**
- * Computes N samples evenly spread on the sphere using the Fibonacci spiral algorithm.
+ * Computes N samples almost evenly spread on the half-sphere.
+ * C.G. Koay. A simple scheme for generating nearly uniform distribution of antipodally symmetric pointson the unit sphere
+ * Journal of computer science, 2, 2011, pp. 377-381
  *
  * @param spherePoints output vector containing all sampled point
  * @param numSamples number of output samples required
