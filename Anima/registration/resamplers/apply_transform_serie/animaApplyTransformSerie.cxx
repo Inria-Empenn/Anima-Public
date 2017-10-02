@@ -137,18 +137,19 @@ applyVectorTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
     typename ImageType::SpacingType spacing;
     typename ImageType::DirectionType direction;
     direction.SetIdentity();
-    unsigned int imageIODimension = geometryImageIO->GetNumberOfDimensions();
+    unsigned int imageIODimension = std::min(geometryImageIO->GetNumberOfDimensions(),ImageType::GetImageDimension());
 
     for (unsigned int i = 0;i < imageIODimension;++i)
     {
         size[i] = geometryImageIO->GetDimensions(i);
         origin[i] = geometryImageIO->GetOrigin(i);
         spacing[i] = geometryImageIO->GetSpacing(i);
-        for(unsigned int j = 0; j < imageIODimension; ++j)
-            direction[i][j] = geometryImageIO->GetDirection(j)[i];
+        for(unsigned int j = 0;j < imageIODimension;++j)
+            direction(i,j) = geometryImageIO->GetDirection(j)[i];
     }
 
-    for (unsigned int i = imageIODimension;i < ImageType::ImageDimension;++i)
+    // Fill the rest
+    for (unsigned int i = imageIODimension;i < ImageType::GetImageDimension();++i)
     {
         size[i] = 1;
         origin[i] = 0;
@@ -221,7 +222,7 @@ applyScalarTransfo4D(itk::ImageIOBase::Pointer geometryImageIO, const arguments 
     }
 
     typename ImageType::Pointer inputImage = anima::readImage<ImageType> (args.input);
-    for (unsigned int i = InternalImageDimension;i < ImageType::ImageDimension;++i)
+    for (unsigned int i = InternalImageDimension;i < ImageType::GetImageDimension();++i)
     {
         outputRegion.SetIndex(i,0);
         outputRegion.SetSize(i,inputImage->GetLargestPossibleRegion().GetSize()[i]);
@@ -310,6 +311,7 @@ applyScalarTransfo4D(itk::ImageIOBase::Pointer geometryImageIO, const arguments 
 
 }
 
+// Transform application to 3D image or lower
 template <class ImageType>
 void
 applyScalarTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &args)
@@ -354,7 +356,7 @@ applyScalarTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
     typename ImageType::SpacingType spacing;
     typename ImageType::DirectionType direction;
     direction.SetIdentity();
-    unsigned int imageIODimension = geometryImageIO->GetNumberOfDimensions();
+    unsigned int imageIODimension = std::min(geometryImageIO->GetNumberOfDimensions(),ImageType::GetImageDimension());
 
     for (unsigned int i = 0;i < imageIODimension;++i)
     {
@@ -362,7 +364,16 @@ applyScalarTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
         origin[i] = geometryImageIO->GetOrigin(i);
         spacing[i] = geometryImageIO->GetSpacing(i);
         for(unsigned int j = 0; j < imageIODimension; ++j)
-            direction[i][j] = geometryImageIO->GetDirection(j)[i];
+            direction(i,j) = geometryImageIO->GetDirection(j)[i];
+    }
+
+    // Fill the rest, just in case the geometry was under-dimensioned
+    for (unsigned int i = imageIODimension;i < ImageType::GetImageDimension();++i)
+    {
+        size[i] = 1;
+        origin[i] = 0;
+        spacing[i] = 1;
+        direction(i,i) = 1;
     }
 
     scalarResampler->SetSize(size);
