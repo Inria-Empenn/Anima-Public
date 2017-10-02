@@ -81,7 +81,7 @@ DistortionCorrectionBlockMatcher<TInputImageType>
             typename LocalMetricType::Pointer tmpMetric = LocalMetricType::New();
             tmpMetric->SetScaleIntensities(true);
 
-            metric = LocalMetricType::New();
+            metric = tmpMetric;
             break;
         }
     }
