@@ -27,7 +27,7 @@ public:
     virtual ~LTSWTransformAgregator() {}
     
     PointType GetEstimationBarycenter() ITK_OVERRIDE;
-
+    vnl_matrix <double> GetEstimationPcaOriginPoints();
     virtual bool Update();
 
     void SetLTSCut(double ltsCut) {m_LTSCut = ltsCut;this->SetUpToDate(false);}
@@ -43,6 +43,7 @@ private:
     double m_StoppingThreshold;
 
     PointType m_EstimationBarycenter;
+    vnl_matrix <double> m_EstimationPcaOriginPoints;
 
 };
 

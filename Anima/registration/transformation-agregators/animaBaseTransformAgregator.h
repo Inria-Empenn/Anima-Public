@@ -84,6 +84,7 @@ public:
     bool GetVerboseAgregation() {return m_VerboseAgregation;}
 
     virtual PointType GetEstimationBarycenter() { return PointType(); }
+    virtual vnl_matrix <double> GetEstimationPcaOriginPoints() {return vnl_matrix <double>(); }
 
     TRANSFORM_TYPE GetInputTransformType() {return m_InputTransformType;}
     TRANSFORM_TYPE GetOutputTransformType() {return m_OutputTransformType;}

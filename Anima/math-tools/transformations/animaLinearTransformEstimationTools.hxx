@@ -130,10 +130,11 @@ template <class TInput, class TScalarType, unsigned int NDimensions>
 itk::Point <TInput, NDimensions> computeAnisotropSimLSWFromTranslations(std::vector < itk::Point<TInput, NDimensions> > &inputOrigins,
     std::vector < itk::Point<TInput, NDimensions> > &inputTransformed,
     std::vector <TInput> &weights,
-    typename itk::AffineTransform<TScalarType, NDimensions>::Pointer &resultTransform)
+    typename itk::AffineTransform<TScalarType, NDimensions>::Pointer &resultTransform,
+    vnl_matrix <double> &UMatrix)
 {
     unsigned int nbPts = inputOrigins.size();
-    itk::Point <TInput, NDimensions> barX, barY, unweightedBarX;
+    itk::Point <TInput, NDimensions> barX, barY;
     // See Pennec PhD
     vnl_matrix <TInput> AMatrix(4, 4, 0);
     vnl_matrix <TInput> covInputOrigins(NDimensions, NDimensions, 0);
@@ -141,7 +142,6 @@ itk::Point <TInput, NDimensions> computeAnisotropSimLSWFromTranslations(std::vec
 
     for (unsigned int j = 0; j < NDimensions; ++j)
     {
-        unweightedBarX[j] = 0;
         barX[j] = 0;
         barY[j] = 0;
     }
@@ -151,11 +151,9 @@ itk::Point <TInput, NDimensions> computeAnisotropSimLSWFromTranslations(std::vec
     {
         for (unsigned int j = 0; j < NDimensions; ++j)
         {
-            unweightedBarX[j] += inputOrigins[i][j] / nbPts;
             barX[j] += weights[i] * inputOrigins[i][j];
             barY[j] += weights[i] * inputTransformed[i][j];
         }
-
         sumWeights += weights[i];
     }
 
@@ -164,27 +162,6 @@ itk::Point <TInput, NDimensions> computeAnisotropSimLSWFromTranslations(std::vec
         barX[j] /= sumWeights;
         barY[j] /= sumWeights;
     }
-
-    for (unsigned int i = 0; i < nbPts; ++i)
-    {
-        for (unsigned int j = 0; j < NDimensions; ++j)
-        {
-            for (unsigned int k = 0; k < NDimensions; ++k)
-            {
-                covInputOrigins(j, k) += (inputOrigins[i][j] - unweightedBarX[j])*(inputOrigins[i][k] - unweightedBarX[k]);
-            }
-        }
-    }
-
-    itk::SymmetricEigenAnalysis < vnl_matrix <TInput>, vnl_diag_matrix<TInput>, vnl_matrix <TInput> > eigenSystem(3);
-    vnl_matrix <double> UMatrix(3, 3);
-    vnl_diag_matrix <double> eValsCov(3);
-
-    eigenSystem.SetOrderEigenValues(true);
-    eigenSystem.ComputeEigenValuesAndVectors(covInputOrigins, eValsCov, UMatrix);
-
-    if (vnl_determinant(UMatrix) < 0)
-        UMatrix *= -1;
 
     vnl_vector_fixed <TInput, NDimensions> xVector, xiVector, yVector;
     unsigned int iter = 0;
@@ -211,7 +188,7 @@ itk::Point <TInput, NDimensions> computeAnisotropSimLSWFromTranslations(std::vec
 
         for (unsigned int i = 0; i < nbPts; ++i)
         {
-            xiVector = scal*UMatrix*(inputOrigins[i].GetVnlVector() - barX.GetVnlVector());
+            xiVector = scal*UMatrix.transpose()*(inputOrigins[i].GetVnlVector() - barX.GetVnlVector());
             yVector = inputTransformed[i].GetVnlVector() - barY.GetVnlVector();
             anima::pairingToQuaternion(xiVector, yVector, tmpMatrix);
             AMatrix += weights[i] * tmpMatrix.transpose()*tmpMatrix;
@@ -233,7 +210,7 @@ itk::Point <TInput, NDimensions> computeAnisotropSimLSWFromTranslations(std::vec
         for (unsigned int i = 0; i < nbPts; ++i)
         {
             yVector = inputTransformed[i].GetVnlVector() - barY.GetVnlVector();
-            xVector = UMatrix*(inputOrigins[i].GetVnlVector() - barX.GetVnlVector());
+            xVector = UMatrix.transpose()*(inputOrigins[i].GetVnlVector() - barX.GetVnlVector());
             for (unsigned int j = 0; j < NDimensions; ++j)
             {
                 anima::pairingToQuaternionScalDerivative(xVector, yVector, tmpMatrix, j);
@@ -260,7 +237,7 @@ itk::Point <TInput, NDimensions> computeAnisotropSimLSWFromTranslations(std::vec
     }
     
     vnl_matrix <TScalarType> rotationMatrix = anima::computeRotationFromQuaternion<TInput, TScalarType>(q);
-    vnl_matrix <TScalarType> linearPartMatrix = rotationMatrix*scal*UMatrix;
+    vnl_matrix <TScalarType> linearPartMatrix = rotationMatrix*scal*UMatrix.transpose();
 
     itk::Vector <TScalarType, NDimensions> translationPart;
     for (unsigned int i = 0; i < NDimensions; ++i)
@@ -314,7 +291,7 @@ void computeLogEuclideanAverage(std::vector < vnl_matrix <TInput> > &inputTransf
 }
 
 template <class TInput, class TScalarType, unsigned int NDimensions>
-void computeAffineLSWFromTranslations(std::vector < itk::Point<TInput,NDimensions> > &inputOrigins,
+itk::Point <TInput, NDimensions> computeAffineLSWFromTranslations(std::vector < itk::Point<TInput,NDimensions> > &inputOrigins,
                                       std::vector < itk::Point<TInput,NDimensions> > &inputTransformed,
                                       std::vector <TInput> &weights,
                                       typename itk::AffineTransform<TScalarType,NDimensions>::Pointer &resultTransform)
@@ -377,6 +354,8 @@ void computeAffineLSWFromTranslations(std::vector < itk::Point<TInput,NDimension
 
     resultTransform->SetMatrix(outMatrix);
     resultTransform->SetOffset(translationPart);
+
+    return barX;
 }
 
 template <class TInput, class TOutput> vnl_matrix <TOutput> computeRotationFromQuaternion(vnl_vector <TInput> eigenVector)

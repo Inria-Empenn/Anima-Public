@@ -96,6 +96,7 @@ public:
     void Update() ITK_OVERRIDE;
     void Abort();
     void WriteOutputs();
+    void WriteClosestRigidTransform(PointType& xbar, vnl_matrix <double>& UMatrix);
     void WriteClosestRigidTransform(PointType& xbar);
 
     /**

@@ -30,11 +30,11 @@ template <class TInput, class TScalarType, unsigned int NDimensions>
 itk::Point <TInput, NDimensions> computeAnisotropSimLSWFromTranslations(std::vector < itk::Point<TInput, NDimensions> > &inputOrigins,
     std::vector < itk::Point<TInput, NDimensions> > &inputTransformed,
     std::vector <TInput> &weights,
-    vnl_matrix <TInput> &UMatrix,
-    typename itk::AffineTransform<TScalarType, NDimensions>::Pointer &resultTransform);
+    typename itk::AffineTransform<TScalarType, NDimensions>::Pointer &resultTransform,
+    vnl_matrix <double> &UMatrix);
 
 template <class TInput, class TScalarType, unsigned int NDimensions>
-void computeAffineLSWFromTranslations(std::vector < itk::Point<TInput,NDimensions> > &inputOrigins,
+itk::Point <TInput, NDimensions> computeAffineLSWFromTranslations(std::vector < itk::Point<TInput,NDimensions> > &inputOrigins,
                                       std::vector < itk::Point<TInput,NDimensions> > &inputTransformed,
                                       std::vector <TInput> &weights,
                                       typename itk::AffineTransform<TScalarType,NDimensions>::Pointer &resultTransform);

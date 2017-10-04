@@ -21,7 +21,7 @@ public:
     LSWTransformAgregator();
     virtual ~LSWTransformAgregator() {}
     PointType GetEstimationBarycenter() ITK_OVERRIDE;
-
+    vnl_matrix <double> GetEstimationPcaOriginPoints();
     virtual bool Update();
 
 private:
@@ -31,6 +31,7 @@ private:
     void lswEstimateTranslationsToAffine();
     void lswEstimateAnyToAffine();
     PointType m_EstimationBarycenter;
+    vnl_matrix <double> m_EstimationPcaOriginPoints;
 };
 
 }// end of namespace anima

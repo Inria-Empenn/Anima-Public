@@ -128,6 +128,8 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
 
     typedef anima::AnatomicalBlockMatcher <InputImageType> BlockMatcherType;
     itk::Point<double, ImageDimension> estimationBarycenter;
+    vnl_matrix <double> estimationPcaOriginPoints;
+
     // Iterate over pyramid levels
     for (unsigned int i = 0;i < GetNumberOfPyramidLevels() && !m_Abort; ++i)
     {
@@ -417,8 +419,14 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
         }
 
         if (GetOutputTransformType() == outAnisotropic_Sim)
+        {
             estimationBarycenter = agreg->GetEstimationBarycenter();
-
+            estimationPcaOriginPoints = agreg->GetEstimationPcaOriginPoints();
+        }
+        if (GetOutputTransformType() == outAffine)
+        {
+            estimationBarycenter = agreg->GetEstimationBarycenter();
+        }
         // Polyrigid will have to be handled here
         AffineTransformType *tmpTrsf = dynamic_cast<AffineTransformType *>(m_OutputTransform.GetPointer());
         tmpTrsf->SetParameters(m_bmreg->GetOutput()->Get()->GetParameters());
@@ -449,6 +457,8 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
         tmpTrsf->Compose(m_InitialTransform, false);
     
     if (GetOutputTransformType() == outAnisotropic_Sim)
+        this->WriteClosestRigidTransform(estimationBarycenter, estimationPcaOriginPoints);
+    if (GetOutputTransformType() == outAffine)
         this->WriteClosestRigidTransform(estimationBarycenter);
 
     typedef typename anima::ResampleImageFilter<InputImageType, InputImageType,
@@ -501,13 +511,12 @@ void PyramidalBlockMatchingBridge<ImageDimension>::WriteOutputs()
 }
 
 template <unsigned int ImageDimension>
-void PyramidalBlockMatchingBridge<ImageDimension>::WriteClosestRigidTransform(PointType& xbar)
+void PyramidalBlockMatchingBridge<ImageDimension>::WriteClosestRigidTransform(PointType& xbar, vnl_matrix <double>& UMatrix)
 {
     AffineTransformType *tmpTrsf = dynamic_cast<AffineTransformType *>(m_OutputTransform.GetPointer());
 
     typename AffineTransformType::MatrixType linearMatrix = tmpTrsf->GetMatrix();
     typename AffineTransformType::OffsetType transformOffset = tmpTrsf->GetOffset();
-    vnl_svd<typename AffineTransformType::MatrixType::ValueType> svdUWV(linearMatrix.GetVnlMatrix());
     PointType ybar;
     for (unsigned int i = 0; i < ImageDimension; ++i)
     {
@@ -517,15 +526,19 @@ void PyramidalBlockMatchingBridge<ImageDimension>::WriteClosestRigidTransform(Po
     }
     typename AffineTransformType::OffsetType rigidOffset;
     typename AffineTransformType::MatrixType linearPartRigid;
+    typename AffineTransformType::OffsetType UOffset;
     linearPartRigid.Fill(0);
-    
+    vnl_matrix <double> RMatrix = linearMatrix.GetVnlMatrix()*UMatrix;
+    RMatrix = RMatrix.normalize_columns();
+
     for (unsigned int i = 0; i < ImageDimension; ++i)
     {
         rigidOffset[i] = ybar[i];
+        UOffset[i] = 0;
         for (unsigned int j = 0; j < ImageDimension; ++j)
         {
             for (unsigned int k = 0; k < ImageDimension; ++k)
-                linearPartRigid(i, j) += svdUWV.U(i, k)*svdUWV.V(j, k);
+                linearPartRigid(i, j) += RMatrix(i, k)*UMatrix(j, k);
             rigidOffset[i] -= linearPartRigid(i, j)*xbar[j];
         }
     }
@@ -533,12 +546,67 @@ void PyramidalBlockMatchingBridge<ImageDimension>::WriteClosestRigidTransform(Po
     AffineTransformPointer rigidTransform = AffineTransformType::New();
     rigidTransform->SetMatrix(linearPartRigid);
     rigidTransform->SetOffset(rigidOffset);
-
     itk::TransformFileWriter::Pointer rigidWriter = itk::TransformFileWriter::New();
     rigidWriter->SetInput(rigidTransform);
-
     std::string rigidFileName(GetOutputTransformFile());
     rigidFileName.insert(rigidFileName.rfind("."),"_nearestRigid");
+    rigidWriter->SetFileName(rigidFileName);
+    std::cout << "Writing output nearest rigid transform to: " << rigidFileName << std::endl;
+    rigidWriter->Update();
+
+    AffineTransformPointer UTransform = AffineTransformType::New();
+    UTransform->SetMatrix(UMatrix);
+    UTransform->SetOffset(UOffset);
+    itk::TransformFileWriter::Pointer UWriter = itk::TransformFileWriter::New();
+    UWriter->SetInput(UTransform);
+    std::string UFileName(GetOutputTransformFile());
+    UFileName.insert(UFileName.rfind("."), "_UMatrix");
+    UWriter->SetFileName(UFileName);
+    std::cout << "Writing output UMatrix to: " << UFileName << std::endl;
+    UWriter->Update();
+}
+
+template <unsigned int ImageDimension>
+void PyramidalBlockMatchingBridge<ImageDimension>::WriteClosestRigidTransform(PointType& xbar)
+{
+    AffineTransformType *tmpTrsf = dynamic_cast<AffineTransformType *>(m_OutputTransform.GetPointer());
+
+    typename AffineTransformType::MatrixType linearMatrix = tmpTrsf->GetMatrix();
+    typename AffineTransformType::OffsetType transformOffset = tmpTrsf->GetOffset();
+    vnl_svd<typename AffineTransformType::MatrixType::ValueType> UWVLinearMatrixSVD(linearMatrix.GetVnlMatrix());
+    vnl_matrix<typename AffineTransformType::MatrixType::ValueType> leftRot = UWVLinearMatrixSVD.U()*vnl_determinant(UWVLinearMatrixSVD.U());
+    vnl_matrix<typename AffineTransformType::MatrixType::ValueType> rightRot = UWVLinearMatrixSVD.V()*vnl_determinant(UWVLinearMatrixSVD.V());
+    PointType ybar;
+    for (unsigned int i = 0; i < ImageDimension; ++i)
+    {
+        ybar[i] = transformOffset[i];
+        for (unsigned int j = 0; j < ImageDimension; ++j)
+            ybar[i] += linearMatrix(i, j)*xbar[j];
+    }
+    typename AffineTransformType::OffsetType rigidOffset;
+    typename AffineTransformType::MatrixType linearPartRigid;
+    typename AffineTransformType::OffsetType UOffset;
+    linearPartRigid.Fill(0);
+    
+    for (unsigned int i = 0; i < ImageDimension; ++i)
+    {
+        rigidOffset[i] = ybar[i];
+        UOffset[i] = 0;
+        for (unsigned int j = 0; j < ImageDimension; ++j)
+        {
+            for (unsigned int k = 0; k < ImageDimension; ++k)
+                linearPartRigid(i, j) += leftRot(i, k)*rightRot(j, k);
+            rigidOffset[i] -= linearPartRigid(i, j)*xbar[j];
+        }
+    }
+
+    AffineTransformPointer rigidTransform = AffineTransformType::New();
+    rigidTransform->SetMatrix(linearPartRigid);
+    rigidTransform->SetOffset(rigidOffset);
+    itk::TransformFileWriter::Pointer rigidWriter = itk::TransformFileWriter::New();
+    rigidWriter->SetInput(rigidTransform);
+    std::string rigidFileName(GetOutputTransformFile());
+    rigidFileName.insert(rigidFileName.rfind("."), "_nearestRigid");
     rigidWriter->SetFileName(rigidFileName);
     std::cout << "Writing output nearest rigid transform to: " << rigidFileName << std::endl;
     rigidWriter->Update();
