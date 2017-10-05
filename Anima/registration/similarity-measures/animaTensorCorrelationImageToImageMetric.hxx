@@ -1,6 +1,6 @@
 #pragma once
-
 #include "animaTensorCorrelationImageToImageMetric.h"
+
 #include <itkImageRegionConstIteratorWithIndex.h>
 
 #include <animaBaseTensorTools.h>
@@ -39,10 +39,10 @@ TensorCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,I
         itkExceptionMacro( << "Fixed image has not been assigned" );
     }
 
-    if (( this->m_NumberOfPixelsCounted <= 1 )||(m_FixedDenominator == 0))
+    if ((this->m_NumberOfPixelsCounted <= 1)||(m_FixedDenominator == 0))
         return 0;
 
-    this->SetTransformParameters( parameters );
+    this->SetTransformParameters(parameters);
 
     unsigned int vectorSize = m_FixedImageValues[0].GetSize();
     PixelType movingValue;
@@ -68,12 +68,12 @@ TensorCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,I
 
     for (unsigned int i = 0;i < this->m_NumberOfPixelsCounted;++i)
     {
-        transformedPoint = this->m_Transform->TransformPoint( m_FixedImagePoints[i] );
+        transformedPoint = this->m_Transform->TransformPoint(m_FixedImagePoints[i]);
         this->m_Interpolator->GetInputImage()->TransformPhysicalPointToContinuousIndex(transformedPoint,transformedIndex);
 
-        if( this->m_Interpolator->IsInsideBuffer( transformedIndex ) )
+        if( this->m_Interpolator->IsInsideBuffer(transformedIndex))
         {
-            movingValue = this->m_Interpolator->EvaluateAtContinuousIndex( transformedIndex );
+            movingValue = this->m_Interpolator->EvaluateAtContinuousIndex(transformedIndex);
 
             if (this->GetModelRotation() != Superclass::NONE)
             {
@@ -107,7 +107,7 @@ TensorCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,I
         }
     }
 
-    movingDenominator = mSS - mST * mST;
+    movingDenominator = mSS + mST * mST * (3.0 * this->m_NumberOfPixelsCounted * m_LogEpsilon * m_LogEpsilon - 2.0);
 
     if (movingDenominator == 0)
         return 0;
@@ -124,7 +124,7 @@ TensorCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,I
     return measure;
 }
 
-template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >
+template <class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension>
 void
 TensorCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,ImageDimension>
 ::PreComputeFixedValues()
@@ -149,7 +149,7 @@ TensorCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,I
 
     typedef itk::ImageRegionConstIteratorWithIndex<FixedImageType> FixedIteratorType;
 
-    FixedIteratorType ti( fixedImage, this->GetFixedImageRegion() );
+    FixedIteratorType ti(fixedImage, this->GetFixedImageRegion());
     typename FixedImageType::IndexType index;
 
     m_FixedImagePoints.resize(this->m_NumberOfPixelsCounted);
@@ -162,7 +162,7 @@ TensorCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,I
     while(!ti.IsAtEnd())
     {
         index = ti.GetIndex();
-        fixedImage->TransformIndexToPhysicalPoint( index, inputPoint );
+        fixedImage->TransformIndexToPhysicalPoint(index, inputPoint);
 
         m_FixedImagePoints[pos] = inputPoint;
         fixedValue = ti.Get();
@@ -184,16 +184,7 @@ TensorCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,I
         ++pos;
     }
 
-    m_FixedDenominator -= m_FixedTProduct * m_FixedTProduct;
-}
-
-template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >
-void
-TensorCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,ImageDimension>
-::PrintSelf(std::ostream& os, itk::Indent indent) const
-{
-    Superclass::PrintSelf(os, indent);
-    os << indent << m_FixedDenominator << std::endl;
+    m_FixedDenominator += m_FixedTProduct * m_FixedTProduct * (3.0 * this->m_NumberOfPixelsCounted * m_LogEpsilon * m_LogEpsilon - 2.0);
 }
 
 } // end of namespace anima
