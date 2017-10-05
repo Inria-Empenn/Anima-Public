@@ -1,7 +1,4 @@
-# Should not be here if VTK not found but you're never too careful
-if(USE_VTK AND VTK_FOUND)
-
-project(AnimaTractography)
+project(AnimaIODiffusion)
 
 ## #############################################################################
 ## List Sources
@@ -10,7 +7,6 @@ project(AnimaTractography)
 list_source_files(${PROJECT_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}
   )
-
 
 ## #############################################################################
 ## add lib
@@ -25,12 +21,13 @@ add_library(${PROJECT_NAME}
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME}
-  ${ITKIO_LIBRARIES}
   ${TinyXML2_LIBRARY}
-  AnimaIODiffusion
-  AnimaOptimizers
-  AnimaSHTools
+  ITKCommon
+  vtkIOXML
+  vtkIOLegacy
+  vtksys
   )
+
 
 ################################################################################
 # Auto generate the export file for the libs
@@ -41,19 +38,9 @@ generate_export_header(${PROJECT_NAME}
   EXPORT_FILE_NAME "${PROJECT_NAME}Export.h"
   )
 
+
 ## #############################################################################
 ## install
 ## #############################################################################
 
 set_lib_install_rules(${PROJECT_NAME})
-
-## #############################################################################
-## Subdirs exe directories
-## #############################################################################
-
-add_subdirectory(dti_probabilistic_tractography)
-add_subdirectory(dti_tractography)
-add_subdirectory(fibers_filterer)
-add_subdirectory(odf_probabilistic_tractography)
-
-endif() #USE_VTK AND VTK_FOUND

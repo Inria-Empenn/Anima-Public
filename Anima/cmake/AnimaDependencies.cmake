@@ -5,7 +5,7 @@ set(_ITKVersionString "${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR}.${ITK_VERSION_P
 math(EXPR _ITKVersionNum "${ITK_VERSION_MAJOR}*100*100 + ${ITK_VERSION_MINOR}*100 + ${ITK_VERSION_PATCH}")
   
 if(_ITKVersionNum LESS 41200)
-  message(SEND_ERROR "The ITK version you want to use (${_ITKVersionString}) is not supported by this project. Please use a more recent version of ITK. The minimum required version is 4.10.1")
+  message(SEND_ERROR "The ITK version you want to use (${_ITKVersionString}) is not supported by this project. Please use a more recent version of ITK. The minimum required version is 4.12.0")
 else()
   include(${ITK_USE_FILE})
 endif()
@@ -36,7 +36,7 @@ if (BUILD_MODULE_REGISTRATION OR BUILD_MODULE_DIFFUSION)
 endif()
 
 # VTK
-if (BUILD_MODULE_REGISTRATION OR BUILD_MODULE_DIFFUSION)
+if (BUILD_MODULE_REGISTRATION OR BUILD_MODULE_DIFFUSION OR BUILD_MODULE_MATHS)
   option(USE_VTK "Use VTK libraries (necessary for some registration tools and tractography)" OFF)
 
   if(USE_VTK)

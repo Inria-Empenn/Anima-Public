@@ -6,6 +6,11 @@ project(ANIMA-MATHS)
 
 add_subdirectory(arithmetic)
 add_subdirectory(common_tools)
+
+if (USE_VTK AND VTK_FOUND)
+  add_subdirectory(diffusion_io)
+endif()
+
 add_subdirectory(multi_compartment_base)
 add_subdirectory(optimizers)
 add_subdirectory(special_functions)

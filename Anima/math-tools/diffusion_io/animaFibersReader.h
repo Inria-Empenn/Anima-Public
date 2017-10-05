@@ -4,11 +4,11 @@
 #include <vtkPolyData.h>
 #include <string>
 
-#include "AnimaTractographyExport.h"
+#include "AnimaIODiffusionExport.h"
 
 namespace anima {
 
-class ANIMATRACTOGRAPHY_EXPORT FibersReader
+class ANIMAIODIFFUSION_EXPORT FibersReader
 {
 public:
     FibersReader()
