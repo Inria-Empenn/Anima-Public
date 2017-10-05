@@ -1,5 +1,11 @@
 add_subdirectory(apply_transform_serie)
 add_subdirectory(apply_distortion_correction)
+
+if (USE_VTK AND VTK_FOUND)
+  add_subdirectory(fibers_apply_transform_serie)
+endif()
+
 add_subdirectory(mcm_apply_transform_serie)
 add_subdirectory(odf_apply_transform_serie)
+add_subdirectory(pyramid_image)
 add_subdirectory(tensor_apply_transform_serie)

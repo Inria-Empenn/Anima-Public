@@ -119,9 +119,9 @@ int main(int argc, char **argv)
 {
     TCLAP::CmdLine cmd("Filters fibers from a vtp file using a label image and specifying with several -t and -f which labels should be touched or are forbidden for each fiber. INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
 
-    TCLAP::ValueArg<std::string> inArg("i","input","input tracks file",true,"","tracks vtp file",cmd);
+    TCLAP::ValueArg<std::string> inArg("i","input","input tracks file",true,"","input tracks",cmd);
     TCLAP::ValueArg<std::string> roiArg("r","roi","input ROI label image",true,"","ROI image",cmd);
-    TCLAP::ValueArg<std::string> outArg("o","output","output tracks name",true,"","tracks",cmd);
+    TCLAP::ValueArg<std::string> outArg("o","output","output tracks name",true,"","output tracks",cmd);
 
     TCLAP::MultiArg<unsigned int> touchArg("t", "touch", "Labels that have to be touched",false,"touched labels",cmd);
     TCLAP::MultiArg<unsigned int> forbiddenArg("f", "forbid", "Labels that must not to be touched",false,"forbidden labels",cmd);
