@@ -6,43 +6,6 @@
 namespace anima
 {
 
-namespace mcm_utilities
-{
-
-double UnboundValue(double x, double lowerBound, double upperBound)
-{
-    if (x < lowerBound)
-        x = lowerBound;
-    if (x > upperBound)
-        x = upperBound;
-    
-    return std::asin(2.0 * (x - lowerBound) / (upperBound - lowerBound) - 1.0);
-}
-
-double ComputeBoundedValue(double x, double &inputSign, double lowerBound, double upperBound)
-{
-    double sinVal = std::sin(x);
-
-    if (std::cos(x) >= 0)
-        inputSign = 1.0;
-    else
-        inputSign = -1.0;
-
-    return (upperBound - lowerBound) * (sinVal + 1.0) / 2.0 + lowerBound;
-}
-
-double BoundedDerivativeAddOn(double x, double inputSign, double lowerBound, double upperBound)
-{
-    if (x < lowerBound)
-        x = lowerBound;
-    if (x > upperBound)
-        x = upperBound;
-    
-    return inputSign * std::sqrt((x - lowerBound) * (upperBound - x));
-}
-
-} // end namespace mcm_utilities
-
 const double BaseCompartment::m_ZeroLowerBound = 0.0;
 const double BaseCompartment::m_DiffusivityLowerBound = 1e-5;
 const double BaseCompartment::m_PolarAngleUpperBound = M_PI;

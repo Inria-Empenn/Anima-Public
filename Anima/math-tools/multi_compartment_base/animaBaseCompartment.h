@@ -24,17 +24,6 @@ enum DiffusionModelCompartmentType
     DDI
 };
 
-namespace mcm_utilities
-{
-
-// Utility functions to bound and rescale values, used in all compartments
-// TO DO : move in a better place
-ANIMAMCMBASE_EXPORT double UnboundValue(double x, double lowerBound, double upperBound);
-ANIMAMCMBASE_EXPORT double ComputeBoundedValue(double x, double &inputSign, double lowerBound, double upperBound);
-ANIMAMCMBASE_EXPORT double BoundedDerivativeAddOn(double x, double inputSign, double lowerBound, double upperBound);
-
-} // end namespace mcm_utilities
-
 class ANIMAMCMBASE_EXPORT BaseCompartment : public itk::LightObject
 {
 public:

@@ -1,4 +1,5 @@
 #include <animaZeppelinCompartment.h>
+#include <animaLevenbergTools.h>
 
 #include <animaVectorOperations.h>
 #include <itkSymmetricEigenAnalysis.h>
@@ -16,7 +17,7 @@ double ZeppelinCompartment::GetFourierTransformedDiffusionProfile(double bValue,
                                + (this->GetAxialDiffusivity() - this->GetRadialDiffusivity1())
                                * m_GradientEigenvector1 * m_GradientEigenvector1));
 }
-    
+
 ZeppelinCompartment::ListType ZeppelinCompartment::GetSignalAttenuationJacobian(double bValue, const Vector3DType &gradient)
 {
     ListType jacobian(this->GetNumberOfParameters());
@@ -26,8 +27,8 @@ ZeppelinCompartment::ListType ZeppelinCompartment::GetSignalAttenuationJacobian(
     // Derivative w.r.t. theta
     double thetaDeriv = 1.0;
     if (this->GetUseBoundedOptimization())
-        thetaDeriv = mcm_utilities::BoundedDerivativeAddOn(this->GetOrientationTheta(), this->GetBoundedSignVectorValue(0),
-                                                           m_ZeroLowerBound, m_PolarAngleUpperBound);
+        thetaDeriv = levenberg::BoundedDerivativeAddOn(this->GetOrientationTheta(), this->GetBoundedSignVectorValue(0),
+                                                       m_ZeroLowerBound, m_PolarAngleUpperBound);
     
     jacobian[0] = -2.0 * bValue * (this->GetAxialDiffusivity() - this->GetRadialDiffusivity1())
             * (gradient[0] * std::cos(this->GetOrientationTheta()) * std::cos(this->GetOrientationPhi())
@@ -37,8 +38,8 @@ ZeppelinCompartment::ListType ZeppelinCompartment::GetSignalAttenuationJacobian(
     // Derivative w.r.t. phi
     double phiDeriv = 1.0;
     if (this->GetUseBoundedOptimization())
-        phiDeriv = mcm_utilities::BoundedDerivativeAddOn(this->GetOrientationPhi(), this->GetBoundedSignVectorValue(1),
-                                                         m_ZeroLowerBound, m_AzimuthAngleUpperBound);
+        phiDeriv = levenberg::BoundedDerivativeAddOn(this->GetOrientationPhi(), this->GetBoundedSignVectorValue(1),
+                                                     m_ZeroLowerBound, m_AzimuthAngleUpperBound);
     
     jacobian[1] = -2.0 * bValue * std::sin(this->GetOrientationTheta())
             * (this->GetAxialDiffusivity() - this->GetRadialDiffusivity1())
@@ -50,17 +51,17 @@ ZeppelinCompartment::ListType ZeppelinCompartment::GetSignalAttenuationJacobian(
         // Derivative w.r.t. to d1
         double d1Deriv = 1.0;
         if (this->GetUseBoundedOptimization())
-            d1Deriv = mcm_utilities::BoundedDerivativeAddOn(this->GetAxialDiffusivity() - this->GetRadialDiffusivity1(),
-                                                            this->GetBoundedSignVectorValue(2),
-                                                            m_ZeroLowerBound, m_DiffusivityUpperBound);
+            d1Deriv = levenberg::BoundedDerivativeAddOn(this->GetAxialDiffusivity() - this->GetRadialDiffusivity1(),
+                                                        this->GetBoundedSignVectorValue(2),
+                                                        m_ZeroLowerBound, m_DiffusivityUpperBound);
         
         jacobian[2] = -bValue * m_GradientEigenvector1 * m_GradientEigenvector1 * signalAttenuation * d1Deriv;
         
         // Derivative w.r.t. to d3
         double d3Deriv = 1.0;
         if (this->GetUseBoundedOptimization())
-            d3Deriv = mcm_utilities::BoundedDerivativeAddOn(this->GetRadialDiffusivity1(), this->GetBoundedSignVectorValue(3),
-                                                            m_DiffusivityLowerBound, m_RadialDiffusivityUpperBound);
+            d3Deriv = levenberg::BoundedDerivativeAddOn(this->GetRadialDiffusivity1(), this->GetBoundedSignVectorValue(3),
+                                                        m_DiffusivityLowerBound, m_RadialDiffusivityUpperBound);
         
         jacobian[3] = -bValue * signalAttenuation * d3Deriv;
     }
@@ -158,22 +159,22 @@ ZeppelinCompartment::ListType ZeppelinCompartment::GetParameterUpperBounds()
 
     return upperBounds;
 }
-    
+
 ZeppelinCompartment::ListType ZeppelinCompartment::BoundParameters(const ListType &params)
 {    
     ListType boundedParams = params;
     
     double inputSign = 1;
-    boundedParams[0] = mcm_utilities::ComputeBoundedValue(params[0], inputSign, m_ZeroLowerBound, m_PolarAngleUpperBound);
+    boundedParams[0] = levenberg::ComputeBoundedValue(params[0], inputSign, m_ZeroLowerBound, m_PolarAngleUpperBound);
     this->SetBoundedSignVectorValue(0,inputSign);
-    boundedParams[1] = mcm_utilities::ComputeBoundedValue(params[1], inputSign, m_ZeroLowerBound, m_AzimuthAngleUpperBound);
+    boundedParams[1] = levenberg::ComputeBoundedValue(params[1], inputSign, m_ZeroLowerBound, m_AzimuthAngleUpperBound);
     this->SetBoundedSignVectorValue(1,inputSign);
 
     if (m_EstimateDiffusivities)
     {
-        boundedParams[2] = mcm_utilities::ComputeBoundedValue(params[2], inputSign, m_ZeroLowerBound, m_DiffusivityUpperBound);
+        boundedParams[2] = levenberg::ComputeBoundedValue(params[2], inputSign, m_ZeroLowerBound, m_DiffusivityUpperBound);
         this->SetBoundedSignVectorValue(2,inputSign);
-        boundedParams[3] = mcm_utilities::ComputeBoundedValue(params[3], inputSign, m_DiffusivityLowerBound, m_RadialDiffusivityUpperBound);
+        boundedParams[3] = levenberg::ComputeBoundedValue(params[3], inputSign, m_DiffusivityLowerBound, m_RadialDiffusivityUpperBound);
         this->SetBoundedSignVectorValue(3,inputSign);
     }
     
@@ -182,13 +183,13 @@ ZeppelinCompartment::ListType ZeppelinCompartment::BoundParameters(const ListTyp
 
 void ZeppelinCompartment::UnboundParameters(ListType &params)
 {
-    params[0] = mcm_utilities::UnboundValue(params[0], m_ZeroLowerBound, m_PolarAngleUpperBound);
-    params[1] = mcm_utilities::UnboundValue(params[1], m_ZeroLowerBound, m_AzimuthAngleUpperBound);
+    params[0] = levenberg::UnboundValue(params[0], m_ZeroLowerBound, m_PolarAngleUpperBound);
+    params[1] = levenberg::UnboundValue(params[1], m_ZeroLowerBound, m_AzimuthAngleUpperBound);
     
     if (m_EstimateDiffusivities)
     {
-        params[2] = mcm_utilities::UnboundValue(params[2], m_ZeroLowerBound, m_DiffusivityUpperBound);
-        params[3] = mcm_utilities::UnboundValue(params[3], m_DiffusivityLowerBound, m_RadialDiffusivityUpperBound);
+        params[2] = levenberg::UnboundValue(params[2], m_ZeroLowerBound, m_DiffusivityUpperBound);
+        params[3] = levenberg::UnboundValue(params[3], m_DiffusivityLowerBound, m_RadialDiffusivityUpperBound);
     }
 }
 

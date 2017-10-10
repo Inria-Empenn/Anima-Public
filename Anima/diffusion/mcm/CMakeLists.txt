@@ -24,7 +24,7 @@ add_library(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   AnimaMCMBase
   AnimaSpecialFunctions
-  ITKOptimizers
+  AnimaOptimizers
   ITKCommon
   ${TinyXML2_LIBRARY}
   ${ITKIO_LIBRARIES}

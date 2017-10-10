@@ -1,4 +1,5 @@
 #include <animaIsotropicRestrictedWaterCompartment.h>
+#include <animaLevenbergTools.h>
 
 namespace anima
 {
@@ -29,7 +30,7 @@ IsotropicRestrictedWaterCompartment::ListType IsotropicRestrictedWaterCompartmen
 void IsotropicRestrictedWaterCompartment::UnboundParameters(ListType &params)
 {
     if (this->GetEstimateAxialDiffusivity())
-        params[0] = mcm_utilities::UnboundValue(params[0], m_IsotropicRestrictedWaterDiffusivityLowerBound,
+        params[0] = levenberg::UnboundValue(params[0], m_IsotropicRestrictedWaterDiffusivityLowerBound,
                 m_IsotropicRestrictedWaterDiffusivityUpperBound);
 }
 
@@ -39,7 +40,7 @@ IsotropicRestrictedWaterCompartment::ListType IsotropicRestrictedWaterCompartmen
     if (this->GetEstimateAxialDiffusivity())
     {
         double inputSign = 1;
-        outputParams[0] = mcm_utilities::ComputeBoundedValue(params[0], inputSign, m_IsotropicRestrictedWaterDiffusivityLowerBound,
+        outputParams[0] = levenberg::ComputeBoundedValue(params[0], inputSign, m_IsotropicRestrictedWaterDiffusivityLowerBound,
                 m_IsotropicRestrictedWaterDiffusivityUpperBound);
 
         this->SetBoundedSignVectorValue(0,inputSign);
@@ -50,9 +51,9 @@ IsotropicRestrictedWaterCompartment::ListType IsotropicRestrictedWaterCompartmen
 
 double IsotropicRestrictedWaterCompartment::GetAxialDiffusivityDerivativeFactor()
 {
-    return mcm_utilities::BoundedDerivativeAddOn(this->GetAxialDiffusivity(),this->GetBoundedSignVectorValue(0),
-                                                 m_IsotropicRestrictedWaterDiffusivityLowerBound,
-                                                 m_IsotropicRestrictedWaterDiffusivityUpperBound);
+    return levenberg::BoundedDerivativeAddOn(this->GetAxialDiffusivity(),this->GetBoundedSignVectorValue(0),
+                                             m_IsotropicRestrictedWaterDiffusivityLowerBound,
+                                             m_IsotropicRestrictedWaterDiffusivityUpperBound);
 }
 
 } // end namespace anima
