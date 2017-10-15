@@ -45,15 +45,15 @@ public:
     typedef itk::VariableLengthVector <double> ModelOutputVectorType;
 
     virtual double GetFourierTransformedDiffusionProfile(double bValue, const Vector3DType &gradient) = 0;
-    virtual ListType GetSignalAttenuationJacobian(double bValue, const Vector3DType &gradient) = 0;
+    virtual ListType &GetSignalAttenuationJacobian(double bValue, const Vector3DType &gradient) = 0;
     virtual double GetLogDiffusionProfile(const Vector3DType &sample) = 0;
 
     //! Various methods for optimization parameters setting and getting
     virtual void SetParametersFromVector(const ListType &params) = 0;
-    virtual ListType GetParametersAsVector() = 0;
+    virtual ListType &GetParametersAsVector() = 0;
 
-    virtual ListType GetParameterLowerBounds() = 0;
-    virtual ListType GetParameterUpperBounds() = 0;
+    virtual ListType &GetParameterLowerBounds() = 0;
+    virtual ListType &GetParameterUpperBounds() = 0;
 
     //! Get compartment overall description vector, mainly for writing, should be self-contained
     virtual ModelOutputVectorType &GetCompartmentVector() = 0;
@@ -126,7 +126,9 @@ protected:
 
     virtual ~BaseCompartment() {}
 
-    virtual ListType BoundParameters(const ListType &params) = 0;
+    //! From input vector, fills m_BoundedVector with bounded values
+    virtual void BoundParameters(const ListType &params) = 0;
+
     virtual void UnboundParameters(ListType &params) = 0;
 
     static const unsigned int m_SpaceDimension = 3;
@@ -142,6 +144,21 @@ protected:
 
     //! Matrix to hold working value of diffusion tensor approximation to the model
     Matrix3DType m_DiffusionTensor;
+
+    //! Vector holding current bounded values
+    ListType m_BoundedVector;
+
+    //! Vector holding current jacobian value
+    ListType m_JacobianVector;
+
+    //! Vector holding current parameters vector
+    ListType m_ParametersVector;
+
+    //! Vector holding current parameters lower bounds
+    ListType m_ParametersLowerBoundsVector;
+
+    //! Vector holding current parameters upper bounds
+    ListType m_ParametersUpperBoundsVector;
 
     //! Vector to hold working value of compartment vector
     ModelOutputVectorType m_CompartmentVector;

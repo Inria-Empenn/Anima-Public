@@ -24,8 +24,8 @@ public:
 
     DiffusionModelCompartmentType GetCompartmentType() ITK_OVERRIDE {return StationaryWater;}
 
-    virtual ListType GetParameterLowerBounds() ITK_OVERRIDE;
-    virtual ListType GetParameterUpperBounds() ITK_OVERRIDE;
+    virtual ListType &GetParameterLowerBounds() ITK_OVERRIDE;
+    virtual ListType &GetParameterUpperBounds() ITK_OVERRIDE;
 
 protected:
     StationaryWaterCompartment() : Superclass()
@@ -36,7 +36,7 @@ protected:
 
     virtual ~StationaryWaterCompartment() {}
 
-    virtual ListType BoundParameters(const ListType &params) ITK_OVERRIDE;
+    virtual void BoundParameters(const ListType &params) ITK_OVERRIDE;
     virtual void UnboundParameters(ListType &params) ITK_OVERRIDE;
 
 private:

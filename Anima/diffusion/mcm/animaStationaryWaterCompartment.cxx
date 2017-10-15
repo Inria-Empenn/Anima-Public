@@ -3,16 +3,16 @@
 namespace anima
 {
 
-StationaryWaterCompartment::ListType StationaryWaterCompartment::GetParameterLowerBounds()
+StationaryWaterCompartment::ListType &StationaryWaterCompartment::GetParameterLowerBounds()
 {
-    ListType lowerBounds(this->GetNumberOfParameters());
-    return lowerBounds;
+    m_ParametersLowerBoundsVector.resize(this->GetNumberOfParameters());
+    return m_ParametersLowerBoundsVector;
 }
 
-StationaryWaterCompartment::ListType StationaryWaterCompartment::GetParameterUpperBounds()
+StationaryWaterCompartment::ListType &StationaryWaterCompartment::GetParameterUpperBounds()
 {
-    ListType upperBounds(this->GetNumberOfParameters(),0);
-    return upperBounds;
+    m_ParametersUpperBoundsVector.resize(this->GetNumberOfParameters());
+    return m_ParametersUpperBoundsVector;
 }
 
 void StationaryWaterCompartment::UnboundParameters(ListType &params)
@@ -20,11 +20,10 @@ void StationaryWaterCompartment::UnboundParameters(ListType &params)
     // Not doing anything, as there are no params
 }
 
-StationaryWaterCompartment::ListType StationaryWaterCompartment::BoundParameters(const ListType &params)
+void StationaryWaterCompartment::BoundParameters(const ListType &params)
 {
     // Not doing anything, as there are no params
-    ListType outputParams = params;
-    return outputParams;
+    m_BoundedVector.resize(params.size());
 }
 
 } // end namespace anima

@@ -48,7 +48,7 @@ public:
 
     BaseCompartment *GetCompartment(unsigned int i);
 
-    ListType GetParametersAsVector();
+    ListType &GetParametersAsVector();
     void SetParametersFromVector(ListType &params);
 
     const ListType &GetCompartmentWeights() {return m_CompartmentWeights;}
@@ -62,11 +62,11 @@ public:
     void SetModelVector(const ModelOutputVectorType &mcmVec);
 
     double GetPredictedSignal(double bValue, const Vector3DType &gradient);
-    ListType GetSignalJacobian(double bValue, const Vector3DType &gradient);
+    ListType &GetSignalJacobian(double bValue, const Vector3DType &gradient);
     double GetDiffusionProfile(Vector3DType &sample);
 
-    ListType GetParameterLowerBounds();
-    ListType GetParameterUpperBounds();
+    ListType &GetParameterLowerBounds();
+    ListType &GetParameterUpperBounds();
 
     //! Number of parameters to be optimized
     unsigned int GetNumberOfParameters();
@@ -106,6 +106,21 @@ private:
     bool m_CommonExtraAxonalFractionParameters;
 
     unsigned int m_NumberOfIsotropicCompartments;
+
+    //! Vector holding current jacobian value
+    ListType m_JacobianVector;
+
+    //! Vector holding current parameters vector
+    ListType m_ParametersVector;
+
+    //! Vector holding working value vector
+    ListType m_WorkVector;
+
+    //! Vector holding current parameters lower bounds
+    ListType m_ParametersLowerBoundsVector;
+
+    //! Vector holding current parameters upper bounds
+    ListType m_ParametersUpperBoundsVector;
 
     //! Working variable for handling model vector representation
     ModelOutputVectorType m_ModelVector;

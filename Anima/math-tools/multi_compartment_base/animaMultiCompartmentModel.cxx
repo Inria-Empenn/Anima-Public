@@ -56,50 +56,40 @@ BaseCompartment *MultiCompartmentModel::GetCompartment(unsigned int i)
     return m_Compartments[i];
 }
 
-MultiCompartmentModel::ListType MultiCompartmentModel::GetParametersAsVector()
+MultiCompartmentModel::ListType &MultiCompartmentModel::GetParametersAsVector()
 {
     unsigned int vectorSize = 0;
     for (unsigned int i = 0;i < m_Compartments.size();++i)
         vectorSize += m_Compartments[i]->GetNumberOfParameters();
 
-    unsigned int numCompartments = this->GetNumberOfCompartments();
-    unsigned int numNonIsotropicCompartments = numCompartments - m_NumberOfIsotropicCompartments;
     unsigned int numWeightsToOptimize = this->GetNumberOfOptimizedWeights();
 
     vectorSize += numWeightsToOptimize;
 
-    ListType outputVector(vectorSize,0);
-    ListType tmpParams;
+    m_ParametersVector.resize(vectorSize);
 
     unsigned int pos = 0;
     // Not accounting for optimize weights with common compartment weights, and no free water
     // In that case, weights are not optimized
     if (m_OptimizeWeights && (numWeightsToOptimize > 0))
     {
-        for (unsigned int i = 1;i < m_NumberOfIsotropicCompartments;++i)
-        {
-            outputVector[pos] = m_CompartmentWeights[i];
-            ++pos;
-        }
+        for (unsigned int i = 0;i < numWeightsToOptimize;++i)
+            m_ParametersVector[i] = m_CompartmentWeights[i+1];
 
-        for (unsigned int i = 0;i < numNonIsotropicCompartments;++i)
-        {
-            outputVector[pos] = m_CompartmentWeights[m_NumberOfIsotropicCompartments + i];
-            ++pos;
-        }
+        pos += numWeightsToOptimize;
     }
 
     for (unsigned int i = 0;i < m_Compartments.size();++i)
     {
-        tmpParams = m_Compartments[i]->GetParametersAsVector();
+        m_WorkVector = m_Compartments[i]->GetParametersAsVector();
 
-        for (unsigned int j = 0;j < tmpParams.size();++j)
-            outputVector[pos + j] = tmpParams[j];
+        for (unsigned int j = 0;j < m_WorkVector.size();++j)
+            m_ParametersVector[pos + j] = m_WorkVector[j];
 
-        pos += tmpParams.size();
+        pos += m_WorkVector.size();
     }
 
-    return outputVector;
+    return m_ParametersVector;
 }
 
 double MultiCompartmentModel::GetCompartmentWeight(unsigned int i)
@@ -121,30 +111,21 @@ void MultiCompartmentModel::SetCompartmentWeights(const ListType &weights)
 
 void MultiCompartmentModel::SetParametersFromVector(ListType &params)
 {
-    ListType tmpParams;
     unsigned int pos = 0;
     unsigned int numCompartments = this->GetNumberOfCompartments();
-    unsigned int numNonIsotropicCompartments = numCompartments - m_NumberOfIsotropicCompartments;
-    int numWeightsToOptimize = this->GetNumberOfOptimizedWeights();
+    unsigned int numWeightsToOptimize = this->GetNumberOfOptimizedWeights();
 
     // Set compartment fractions if optimized
     if (m_OptimizeWeights && (numWeightsToOptimize > 0))
     {
         double sumWeights = 0;
-        for (unsigned int i = 1;i < m_NumberOfIsotropicCompartments;++i)
+        for (unsigned int i = 0;i < numWeightsToOptimize;++i)
         {
-            m_CompartmentWeights[i] = params[i-1];
-            sumWeights += params[i-1];
+            m_CompartmentWeights[i+1] = params[i];
+            sumWeights += params[i];
         }
 
-        pos = m_NumberOfIsotropicCompartments - 1;
-
-        for (unsigned int i = 0;i < numNonIsotropicCompartments;++i)
-        {
-            m_CompartmentWeights[i + m_NumberOfIsotropicCompartments] = params[pos];
-            sumWeights += params[pos];
-            ++pos;
-        }
+        pos = numWeightsToOptimize;
 
         if (sumWeights <= 1.0)
             m_CompartmentWeights[0] = 1.0 - sumWeights;
@@ -161,10 +142,10 @@ void MultiCompartmentModel::SetParametersFromVector(ListType &params)
         unsigned int tmpCompartmentSize = m_Compartments[i]->GetNumberOfParameters();
 
         // Set compartment parameters
-        tmpParams.resize(tmpCompartmentSize);
-        std::copy(params.begin() + pos,params.begin() + pos + tmpCompartmentSize,tmpParams.begin());
+        m_WorkVector.resize(tmpCompartmentSize);
+        std::copy(params.begin() + pos,params.begin() + pos + tmpCompartmentSize,m_WorkVector.begin());
 
-        m_Compartments[i]->SetParametersFromVector(tmpParams);
+        m_Compartments[i]->SetParametersFromVector(m_WorkVector);
 
         if (i > m_NumberOfIsotropicCompartments)
         {
@@ -270,7 +251,7 @@ double MultiCompartmentModel::GetPredictedSignal(double bValue, const Vector3DTy
     return std::abs(ftDiffusionProfile);
 }
     
-MultiCompartmentModel::ListType MultiCompartmentModel::GetSignalJacobian(double bValue, const Vector3DType &gradient)
+MultiCompartmentModel::ListType &MultiCompartmentModel::GetSignalJacobian(double bValue, const Vector3DType &gradient)
 {
     unsigned int jacobianSize = 0;
     for (unsigned int i = 0;i < m_Compartments.size();++i)
@@ -282,8 +263,7 @@ MultiCompartmentModel::ListType MultiCompartmentModel::GetSignalJacobian(double 
 
     jacobianSize += numWeightsToOptimize;
     
-    ListType jacobian(jacobianSize,0);
-    ListType compartmentJacobian;
+    m_JacobianVector.resize(jacobianSize);
     
     unsigned int pos = 0;
     // Not accounting for optimize weights with common compartment weights, and no free water
@@ -292,30 +272,23 @@ MultiCompartmentModel::ListType MultiCompartmentModel::GetSignalJacobian(double 
     {
         double firstCompartmentSignal = m_Compartments[0]->GetFourierTransformedDiffusionProfile(bValue, gradient);
         
-        for (unsigned int i = 1;i < m_NumberOfIsotropicCompartments;++i)
-        {
-            jacobian[pos] = m_Compartments[i]->GetFourierTransformedDiffusionProfile(bValue, gradient) - firstCompartmentSignal;
-            ++pos;
-        }
+        for (unsigned int i = 0;i < numWeightsToOptimize;++i)
+            m_JacobianVector[i] = m_Compartments[i+1]->GetFourierTransformedDiffusionProfile(bValue, gradient) - firstCompartmentSignal;
 
-        for (unsigned int i = 0;i < numNonIsotropicCompartments;++i)
-        {
-            jacobian[pos] = m_Compartments[m_NumberOfIsotropicCompartments + i]->GetFourierTransformedDiffusionProfile(bValue, gradient) - firstCompartmentSignal;
-            ++pos;
-        }
+        pos += numWeightsToOptimize;
     }
     
     for (unsigned int i = 0;i < m_Compartments.size();++i)
     {
-        compartmentJacobian = m_Compartments[i]->GetSignalAttenuationJacobian(bValue, gradient);
+        m_WorkVector = m_Compartments[i]->GetSignalAttenuationJacobian(bValue, gradient);
         
-        for (unsigned int j = 0;j < compartmentJacobian.size();++j)
-            jacobian[pos + j] = m_CompartmentWeights[i] * compartmentJacobian[j];
+        for (unsigned int j = 0;j < m_WorkVector.size();++j)
+            m_JacobianVector[pos + j] = m_CompartmentWeights[i] * m_WorkVector[j];
         
-        pos += compartmentJacobian.size();
+        pos += m_WorkVector.size();
     }
     
-    return jacobian;
+    return m_JacobianVector;
 }
 
 double MultiCompartmentModel::GetDiffusionProfile(Vector3DType &sample)
@@ -331,50 +304,71 @@ double MultiCompartmentModel::GetDiffusionProfile(Vector3DType &sample)
     return resVal;
 }
 
-MultiCompartmentModel::ListType MultiCompartmentModel::GetParameterLowerBounds()
+MultiCompartmentModel::ListType &MultiCompartmentModel::GetParameterLowerBounds()
 {
-    ListType outputVector;
-    ListType tmpLowerBounds;
+    unsigned int vectorSize = 0;
+    for (unsigned int i = 0;i < m_Compartments.size();++i)
+        vectorSize += m_Compartments[i]->GetNumberOfParameters();
 
-    int numWeightsToOptimize = this->GetNumberOfOptimizedWeights();
+    unsigned int numWeightsToOptimize = this->GetNumberOfOptimizedWeights();
 
+    vectorSize += numWeightsToOptimize;
+
+    m_ParametersLowerBoundsVector.resize(vectorSize);
+
+    unsigned int pos = 0;
     // Lower bound of weights is 0
     if (m_OptimizeWeights)
     {
         for (unsigned int i = 0;i < numWeightsToOptimize;++i)
-            outputVector.push_back(0.0);
+            m_ParametersLowerBoundsVector[i] = 0;
+
+        pos += numWeightsToOptimize;
     }
 
     for (unsigned int i = 0;i < m_Compartments.size();++i)
     {
-        tmpLowerBounds = m_Compartments[i]->GetParameterLowerBounds();
-        outputVector.insert(outputVector.end(),tmpLowerBounds.begin(),tmpLowerBounds.end());
+        m_WorkVector = m_Compartments[i]->GetParameterLowerBounds();
+        for (unsigned int j = 0;j < m_WorkVector.size();++j)
+            m_ParametersLowerBoundsVector[pos + j] = m_WorkVector[j];
+
+        pos += m_WorkVector.size();
     }
 
-    return outputVector;
+    return m_ParametersLowerBoundsVector;
 }
 
-MultiCompartmentModel::ListType MultiCompartmentModel::GetParameterUpperBounds()
+MultiCompartmentModel::ListType &MultiCompartmentModel::GetParameterUpperBounds()
 {
-    ListType outputVector;
-    ListType tmpUpperBounds;
+    unsigned int vectorSize = 0;
+    for (unsigned int i = 0;i < m_Compartments.size();++i)
+        vectorSize += m_Compartments[i]->GetNumberOfParameters();
 
-    int numWeightsToOptimize = this->GetNumberOfOptimizedWeights();
+    unsigned int numWeightsToOptimize = this->GetNumberOfOptimizedWeights();
 
+    vectorSize += numWeightsToOptimize;
+    m_ParametersUpperBoundsVector.resize(vectorSize);
+
+    unsigned int pos = 0;
     // Upper bound of weights is 1
     if (m_OptimizeWeights)
     {
         for (unsigned int i = 0;i < numWeightsToOptimize;++i)
-            outputVector.push_back(1.0);
+            m_ParametersUpperBoundsVector[i] = 1.0;
+
+        pos += numWeightsToOptimize;
     }
 
     for (unsigned int i = 0;i < m_Compartments.size();++i)
     {
-        tmpUpperBounds = m_Compartments[i]->GetParameterUpperBounds();
-        outputVector.insert(outputVector.end(),tmpUpperBounds.begin(),tmpUpperBounds.end());
+        m_WorkVector = m_Compartments[i]->GetParameterUpperBounds();
+        for (unsigned int j = 0;j < m_WorkVector.size();++j)
+            m_ParametersUpperBoundsVector[pos + j] = m_WorkVector[j];
+
+        pos += m_WorkVector.size();
     }
 
-    return outputVector;
+    return m_ParametersUpperBoundsVector;
 }
 
 unsigned int MultiCompartmentModel::GetNumberOfOptimizedWeights()

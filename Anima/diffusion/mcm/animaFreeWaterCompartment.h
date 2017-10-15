@@ -24,8 +24,8 @@ public:
 
     DiffusionModelCompartmentType GetCompartmentType() ITK_OVERRIDE {return FreeWater;}
 
-    virtual ListType GetParameterLowerBounds() ITK_OVERRIDE;
-    virtual ListType GetParameterUpperBounds() ITK_OVERRIDE;
+    virtual ListType &GetParameterLowerBounds() ITK_OVERRIDE;
+    virtual ListType &GetParameterUpperBounds() ITK_OVERRIDE;
 
 protected:
     FreeWaterCompartment() : Superclass()
@@ -35,7 +35,7 @@ protected:
 
     virtual ~FreeWaterCompartment() {}
 
-    virtual ListType BoundParameters(const ListType &params) ITK_OVERRIDE;
+    virtual void BoundParameters(const ListType &params) ITK_OVERRIDE;
     virtual void UnboundParameters(ListType &params) ITK_OVERRIDE;
     double GetAxialDiffusivityDerivativeFactor() ITK_OVERRIDE;
 
