@@ -124,12 +124,11 @@ bool MCML2DistanceComputer::CheckTensorCompatibility(const MCMPointer &firstMode
 
 double MCML2DistanceComputer::ComputeTensorDistance(const MCMPointer &firstModel, const MCMPointer &secondModel) const
 {
-    typedef itk::Matrix <double, 3, 3> MatrixType;
     unsigned int fixedNumCompartments = firstModel->GetNumberOfCompartments();
     unsigned int movingNumCompartments = secondModel->GetNumberOfCompartments();
 
-    std::vector <MatrixType> firstModelMatrices(fixedNumCompartments);
-    std::vector <MatrixType> secondModelMatrices(movingNumCompartments);
+    std::vector < vnl_matrix <double> > firstModelMatrices(fixedNumCompartments);
+    std::vector < vnl_matrix <double> > secondModelMatrices(movingNumCompartments);
     std::vector <double> firstModelWeights(fixedNumCompartments);
     std::vector <double> secondModelWeights(movingNumCompartments);
 
@@ -139,7 +138,7 @@ double MCML2DistanceComputer::ComputeTensorDistance(const MCMPointer &firstModel
         if (firstModel->GetCompartmentWeight(i) == 0)
             continue;
 
-        firstModelMatrices[pos] = firstModel->GetCompartment(i)->GetDiffusionTensor();
+        firstModelMatrices[pos] = firstModel->GetCompartment(i)->GetDiffusionTensor().GetVnlMatrix();
         firstModelWeights[pos] = firstModel->GetCompartmentWeight(i);
         ++pos;
     }
@@ -158,7 +157,7 @@ double MCML2DistanceComputer::ComputeTensorDistance(const MCMPointer &firstModel
         if (secondModel->GetCompartmentWeight(i) == 0)
             continue;
 
-        secondModelMatrices[pos] = secondModel->GetCompartment(i)->GetDiffusionTensor();
+        secondModelMatrices[pos] = secondModel->GetCompartment(i)->GetDiffusionTensor().GetVnlMatrix();
         secondModelWeights[pos] = secondModel->GetCompartmentWeight(i);
         ++pos;
     }
@@ -174,49 +173,84 @@ double MCML2DistanceComputer::ComputeTensorDistance(const MCMPointer &firstModel
     double metricValue = 0;
     double pi23half = std::pow(2.0 * M_PI,1.5);
 
-    MatrixType workMatrix;
+    vnl_matrix <double> workMatrix(3,3);
     for (unsigned int i = 0;i < fixedNumCompartments;++i)
     {
         double currentFixedWeight = firstModelWeights[i];
-        workMatrix = firstModelMatrices[i] + firstModelMatrices[i];
-        for (unsigned int k = 0;k < 3;++k)
-            workMatrix(k,k) += 1.0 / m_LowPassGaussianSigma;
-        metricValue += currentFixedWeight * currentFixedWeight * pi23half / std::sqrt(vnl_determinant <double> (workMatrix.GetVnlMatrix()));
+        for (unsigned int j = 0;j < 3;++j)
+        {
+            workMatrix(j,j) = 2.0 * firstModelMatrices[i](j,j) + 1.0 / m_LowPassGaussianSigma;
+            for (unsigned int k = j+1;k < 3;++k)
+            {
+                workMatrix(j,k) = 2.0 * firstModelMatrices[i](j,k);
+                workMatrix(k,j) = workMatrix(j,k);
+            }
+        }
+
+        metricValue += currentFixedWeight * currentFixedWeight * pi23half / std::sqrt(vnl_determinant <double> (workMatrix));
 
         for (unsigned int j = i+1;j < fixedNumCompartments;++j)
         {
             double secondFixedWeight = firstModelWeights[j];
-            workMatrix = firstModelMatrices[i] + firstModelMatrices[j];
             for (unsigned int k = 0;k < 3;++k)
-                workMatrix(k,k) += 1.0 / m_LowPassGaussianSigma;
-            metricValue += 2.0 * currentFixedWeight * secondFixedWeight * pi23half / std::sqrt(vnl_determinant <double> (workMatrix.GetVnlMatrix()));
+            {
+                workMatrix(k,k) = firstModelMatrices[i](k,k) + firstModelMatrices[j](k,k) + 1.0 / m_LowPassGaussianSigma;
+                for (unsigned int l = k+1;l < 3;++l)
+                {
+                    workMatrix(k,l) = firstModelMatrices[i](k,l) + firstModelMatrices[j](k,l);
+                    workMatrix(l,k) = workMatrix(k,l);
+                }
+            }
+
+            metricValue += 2.0 * currentFixedWeight * secondFixedWeight * pi23half / std::sqrt(vnl_determinant <double> (workMatrix));
         }
 
         for (unsigned int j = 0;j < movingNumCompartments;++j)
         {
             double currentMovingWeight = secondModelWeights[j];
-            workMatrix = firstModelMatrices[i] + secondModelMatrices[j];
             for (unsigned int k = 0;k < 3;++k)
-                workMatrix(k,k) += 1.0 / m_LowPassGaussianSigma;
-            metricValue -= 2.0 * currentFixedWeight * currentMovingWeight * pi23half / std::sqrt(vnl_determinant <double> (workMatrix.GetVnlMatrix()));
+            {
+                workMatrix(k,k) = firstModelMatrices[i](k,k) + secondModelMatrices[j](k,k) + 1.0 / m_LowPassGaussianSigma;
+                for (unsigned int l = k+1;l < 3;++l)
+                {
+                    workMatrix(k,l) = firstModelMatrices[i](k,l) + secondModelMatrices[j](k,l);
+                    workMatrix(l,k) = workMatrix(k,l);
+                }
+            }
+
+            metricValue -= 2.0 * currentFixedWeight * currentMovingWeight * pi23half / std::sqrt(vnl_determinant <double> (workMatrix));
         }
     }
 
     for (unsigned int i = 0;i < movingNumCompartments;++i)
     {
         double currentMovingWeight = secondModelWeights[i];
-        workMatrix = secondModelMatrices[i] + secondModelMatrices[i];
-        for (unsigned int k = 0;k < 3;++k)
-            workMatrix(k,k) += 1.0 / m_LowPassGaussianSigma;
-        metricValue += currentMovingWeight * currentMovingWeight * pi23half / std::sqrt(vnl_determinant <double> (workMatrix.GetVnlMatrix()));
+        for (unsigned int j = 0;j < 3;++j)
+        {
+            workMatrix(j,j) = 2.0 * secondModelMatrices[i](j,j) + 1.0 / m_LowPassGaussianSigma;
+            for (unsigned int k = j+1;k < 3;++k)
+            {
+                workMatrix(j,k) = 2.0 * secondModelMatrices[i](j,k);
+                workMatrix(k,j) = workMatrix(j,k);
+            }
+        }
+
+        metricValue += currentMovingWeight * currentMovingWeight * pi23half / std::sqrt(vnl_determinant <double> (workMatrix));
 
         for (unsigned int j = i+1;j < movingNumCompartments;++j)
         {
             double secondMovingWeight = secondModelWeights[j];
-            workMatrix = secondModelMatrices[i] + secondModelMatrices[j];
             for (unsigned int k = 0;k < 3;++k)
-                workMatrix(k,k) += 1.0 / m_LowPassGaussianSigma;
-            metricValue += 2.0 * currentMovingWeight * secondMovingWeight * pi23half / std::sqrt(vnl_determinant <double> (workMatrix.GetVnlMatrix()));
+            {
+                workMatrix(k,k) = secondModelMatrices[i](k,k) + secondModelMatrices[j](k,k) + 1.0 / m_LowPassGaussianSigma;
+                for (unsigned int l = k+1;l < 3;++l)
+                {
+                    workMatrix(k,l) = secondModelMatrices[i](k,l) + secondModelMatrices[j](k,l);
+                    workMatrix(l,k) = workMatrix(k,l);
+                }
+            }
+
+            metricValue += 2.0 * currentMovingWeight * secondMovingWeight * pi23half / std::sqrt(vnl_determinant <double> (workMatrix));
         }
     }
 

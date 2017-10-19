@@ -12,9 +12,7 @@ namespace anima
 {
 
 /**
- * @brief Computes a weighted average of input multi-compartment models. The output model is at the same
- * time giving the number and type of output compartments but also its parameters are erased when performing Update
- * to get the result
+ * @brief Computes a L2 distance between two MCM of any type
  */
 class ANIMAMCMBASE_EXPORT MCML2DistanceComputer : public itk::LightObject
 {
