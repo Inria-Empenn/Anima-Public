@@ -8,7 +8,7 @@ namespace anima
 {
 
 template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >
-class MCMBasicMeanSquaresImageToImageMetric :
+class MCMPairingMeanSquaresImageToImageMetric :
 public BaseOrientedModelImageToImageMetric< anima::MCMImage < TFixedImagePixelType, ImageDimension >, anima::MCMImage < TMovingImagePixelType, ImageDimension > >
 {
 public:
@@ -16,7 +16,7 @@ public:
     typedef anima::MCMImage < TFixedImagePixelType, ImageDimension > TFixedImage;
     typedef anima::MCMImage < TMovingImagePixelType, ImageDimension > TMovingImage;
 
-    typedef MCMBasicMeanSquaresImageToImageMetric Self;
+    typedef MCMPairingMeanSquaresImageToImageMetric Self;
     typedef BaseOrientedModelImageToImageMetric<TFixedImage, TMovingImage > Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self> ConstPointer;
@@ -29,7 +29,7 @@ public:
     itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(MCMBasicMeanSquaresImageToImageMetric, BaseOrientedModelImageToImageMetric)
+    itkTypeMacro(MCMPairingMeanSquaresImageToImageMetric, BaseOrientedModelImageToImageMetric)
 
     /** Types transferred from the base class */
     typedef typename TFixedImage::PixelType               PixelType;
@@ -57,8 +57,8 @@ public:
     void PreComputeFixedValues();
 
 protected:
-    MCMBasicMeanSquaresImageToImageMetric();
-    virtual ~MCMBasicMeanSquaresImageToImageMetric() {}
+    MCMPairingMeanSquaresImageToImageMetric();
+    virtual ~MCMPairingMeanSquaresImageToImageMetric() {}
 
     bool CheckTensorCompatibility() const;
     double ComputeTensorBasedMetricPart(unsigned int index, const MCModelPointer &movingValue) const;
@@ -67,7 +67,7 @@ protected:
     bool isZero(PixelType &vector) const;
 
 private:
-    MCMBasicMeanSquaresImageToImageMetric(const Self&); //purposely not implemented
+    MCMPairingMeanSquaresImageToImageMetric(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
 
     MCModelPointer m_ZeroDiffusionModel;
@@ -81,4 +81,4 @@ private:
 
 } // end namespace anima
 
-#include "animaMCMBasicMeanSquaresImageToImageMetric.hxx"
+#include "animaMCMPairingMeanSquaresImageToImageMetric.hxx"

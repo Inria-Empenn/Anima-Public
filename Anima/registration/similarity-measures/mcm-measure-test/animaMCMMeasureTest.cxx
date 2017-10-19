@@ -1,5 +1,5 @@
 #include <animaMultiCompartmentModel.h>
-#include <animaMCMBasicMeanSquaresImageToImageMetric.h>
+#include <animaMCMPairingMeanSquaresImageToImageMetric.h>
 #include <animaMCMMeanSquaresImageToImageMetric.h>
 #include <animaMCMCorrelationImageToImageMetric.h>
 #include <itkImageRegionIterator.h>
@@ -50,7 +50,7 @@ int main(int ac, const char** av)
 
     gradientReader.Update();
 
-    typedef anima::MCMBasicMeanSquaresImageToImageMetric <double, double, 3> BasicMetricType;
+    typedef anima::MCMPairingMeanSquaresImageToImageMetric <double, double, 3> BasicMetricType;
     typedef BasicMetricType::Pointer BasicMetricPointer;
 
     BasicMetricPointer testBasicMetric = BasicMetricType::New();

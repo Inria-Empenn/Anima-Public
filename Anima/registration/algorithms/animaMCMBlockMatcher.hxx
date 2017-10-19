@@ -2,7 +2,7 @@
 #include <animaMCMBlockMatcher.h>
 
 /* Similarity measures */
-#include <animaMCMBasicMeanSquaresImageToImageMetric.h>
+#include <animaMCMPairingMeanSquaresImageToImageMetric.h>
 #include <animaMCMMeanSquaresImageToImageMetric.h>
 #include <animaMCMCorrelationImageToImageMetric.h>
 #include <animaBaseOrientedModelImageToImageMetric.h>
@@ -89,7 +89,7 @@ MCMBlockMatcher<TInputImageType>
         case MCMBasicMeanSquares:
         case MCMOneToOneBasicMeanSquares:
         {
-            typedef anima::MCMBasicMeanSquaresImageToImageMetric<typename InputImageType::IOPixelType, typename InputImageType::IOPixelType,
+            typedef anima::MCMPairingMeanSquaresImageToImageMetric<typename InputImageType::IOPixelType, typename InputImageType::IOPixelType,
                                                                  InputImageType::ImageDimension > MetricType;
 
             typename MetricType::Pointer tmpMetric = MetricType::New();
@@ -171,7 +171,7 @@ MCMBlockMatcher<TInputImageType>
     tmpMetric->SetTransform(this->GetBlockTransformPointer(block));
     tmpMetric->Initialize();
 
-    typedef anima::MCMBasicMeanSquaresImageToImageMetric <typename InputImageType::IOPixelType,
+    typedef anima::MCMPairingMeanSquaresImageToImageMetric <typename InputImageType::IOPixelType,
                                                           typename InputImageType::IOPixelType,
                                                           InputImageType::ImageDimension > MCMBasicMeanSquaresMetricType;
 
