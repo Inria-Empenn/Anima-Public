@@ -38,13 +38,12 @@ public:
 
     void SetT1Map(OutputImageType *map) {m_T1Map = map;}
 
-    itkSetMacro(M0UpperBound, double)
     itkSetMacro(T2UpperBound, double)
     itkSetMacro(AverageSignalThreshold, double)
+    itkSetMacro(TRValue, double)
 
     itkSetMacro(MaximumOptimizerIterations, unsigned int)
     itkSetMacro(OptimizerStopCondition, double)
-    itkSetMacro(OptimizerInitialStep, double)
 
     itkSetMacro(T2ExcitationFlipAngle, double)
     itkSetMacro(B1OnExcitationAngle, bool)
@@ -63,15 +62,14 @@ protected:
             this->SetNthOutput(i, this->MakeOutput(i));
 
         m_AverageSignalThreshold = 0;
-        m_EchoSpacing = 1;
-        m_T2ExcitationFlipAngle = M_PI / 6;
+        m_EchoSpacing = 10;
+        m_T2ExcitationFlipAngle = M_PI / 2.0;
 
-        m_M0UpperBound = 5000;
         m_T2UpperBound = 1000;
+        m_TRValue = 5000;
 
-        m_MaximumOptimizerIterations = 200;
+        m_MaximumOptimizerIterations = 5000;
         m_OptimizerStopCondition = 1.0e-4;
-        m_OptimizerInitialStep = 10;
 
         m_B1OnExcitationAngle = false;
     }
@@ -80,6 +78,7 @@ protected:
 
     void CheckComputationMask() ITK_OVERRIDE;
 
+    void BeforeThreadedGenerateData() ITK_OVERRIDE;
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
@@ -95,14 +94,17 @@ private:
     // T1 relaxometry specific values
     OutputImagePointer m_T1Map;
 
+    // T2 initial values
+    OutputImagePointer m_InitialT2Image;
+
     // T2 relaxometry specific values
     double m_EchoSpacing;
     std::vector <double> m_T2FlipAngles;
     double m_T2ExcitationFlipAngle;
+    double m_TRValue;
 
     bool m_B1OnExcitationAngle;
 
-    double m_M0UpperBound;
     double m_T2UpperBound;
 };
     

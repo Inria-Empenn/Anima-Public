@@ -21,11 +21,13 @@ int main(int argc, char **argv)
 
     TCLAP::ValueArg<double> trArg("","tr","Repetition time for T2 relaxometry (default: 5000)",false,5000,"repetition time",cmd);
     TCLAP::ValueArg<double> upperBoundT2Arg("u","upper-bound-t2","T2 value upper bound (default: 1000)",false,1000,"T2 value upper bound",cmd);
-    TCLAP::ValueArg<double> upperBoundM0Arg("","upper-bound-m0","M0 value upper bound (default: 5000)",false,5000,"M0 value upper bound",cmd);
 
-    TCLAP::ValueArg<std::string> echoSpacingArg("e","echo-spacing","Spacing between two successive echoes (default: 10), or a file containing the echo times for each acquisition",false,"10","Spacing between echoes",cmd);
+    TCLAP::ValueArg<double> echoSpacingArg("e","echo-spacing","Spacing between two successive echoes (default: 10)",false,10,"Spacing between echoes",cmd);
     TCLAP::ValueArg<double> backgroundSignalThresholdArg("t","signal-thr","Background signal threshold (default: 10)",false,10,"Background signal threshold",cmd);
     
+    TCLAP::ValueArg<unsigned int> numOptimizerIterArg("","opt-iter","Maximal number of optimizer iterations (default: 2000)",false,2000,"Maximal number of optimizer iterations",cmd);
+    TCLAP::ValueArg<double> optimizerStopConditionArg("","opt-stop","Optimizer stopping threshold (default: 1.0e-4)",false,1.0e-4,"Optimizer stopping threshold",cmd);
+
     TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     try
@@ -50,42 +52,11 @@ int main(int argc, char **argv)
     anima::setMultipleImageFilterInputsFromFileName<InputImageType,FilterType>(t2Arg.getValue(),mainFilter);
 
     mainFilter->SetTRValue(trArg.getValue());
+    mainFilter->SetEchoSpacing(echoSpacingArg.getValue());
 
+    mainFilter->SetMaximumOptimizerIterations(numOptimizerIterArg.getValue());
+    mainFilter->SetOptimizerStopCondition(optimizerStopConditionArg.getValue());
 
-    // get the echo time from double or from file
-    unsigned int numInputs=mainFilter->GetNumberOfIndexedInputs();
-    std::vector<double> echoTime(numInputs);
-    try
-    {
-        const double echoSpacing = std::stod(echoSpacingArg.getValue());
-        for(unsigned int index=0;index<echoTime.size();++index)
-            echoTime[index]=(index+1)*(echoSpacing);
-    }
-    catch(std::invalid_argument &)  // then try to read file
-    {
-        std::ifstream inputFile(echoSpacingArg.getValue().c_str());
-        if (!inputFile.is_open())
-        {
-            std::cerr << "Entry for echo spacing is neither a double, neither a readable file" << echoSpacingArg.getValue() << std::endl;
-            return EXIT_FAILURE;
-        }
-
-        unsigned int index = 0;
-        while (!inputFile.eof())
-        {
-            inputFile>>echoTime[index];
-            ++index;
-        }
-        if(index!=numInputs)
-        {
-            std::cerr << "Number of echos in " << echoSpacingArg.getValue() << "different from number of input acquisitions."<< std::endl;
-            return EXIT_FAILURE;
-        }
-    }
-    mainFilter->SetEchoTime(echoTime);
-    //
-
-    mainFilter->SetM0UpperBoundValue(upperBoundM0Arg.getValue());
     mainFilter->SetT2UpperBoundValue(upperBoundT2Arg.getValue());
     
     if (t1MapArg.getValue() != "")

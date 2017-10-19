@@ -18,10 +18,10 @@ public:
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(T2RelaxometryEstimationImageFilter, MaskedImageToImageFilter);
+    itkTypeMacro(T2RelaxometryEstimationImageFilter, MaskedImageToImageFilter)
 
     /** Image typedef support */
     typedef TInputImage  InputImageType;
@@ -36,12 +36,14 @@ public:
 
 
     /** Setter */
-    void SetEchoTime(const std::vector<double> & echoTime){m_EchoTime=echoTime;}
     void SetT1Map(OutputImageType *map) {m_T1Map = map;}
-    itkSetMacro(TRValue, double);
-    itkSetMacro(M0UpperBoundValue, double);
-    itkSetMacro(T2UpperBoundValue, double);
-    itkSetMacro(AverageSignalThreshold, double);
+    itkSetMacro(TRValue, double)
+    itkSetMacro(T2UpperBoundValue, double)
+    itkSetMacro(AverageSignalThreshold, double)
+    itkSetMacro(EchoSpacing, double)
+
+    itkSetMacro(MaximumOptimizerIterations, unsigned int)
+    itkSetMacro(OptimizerStopCondition, double)
 
 protected:
     T2RelaxometryEstimationImageFilter()
@@ -54,11 +56,13 @@ protected:
             this->SetNthOutput(i, this->MakeOutput(i));
 
         m_AverageSignalThreshold = 0;
-        m_EchoTime = std::vector<double>(0);
+        m_EchoSpacing = 10;
 
-        m_TRValue = 1;
-        m_M0UpperBoundValue = 5000;
+        m_TRValue = 5000;
         m_T2UpperBoundValue = 1000;
+
+        m_MaximumOptimizerIterations = 5000;
+        m_OptimizerStopCondition = 1.0e-4;
     }
 
     virtual ~T2RelaxometryEstimationImageFilter() {}
@@ -78,13 +82,12 @@ private:
 
     // T2 relaxometry specific values
     double m_TRValue;
-    std::vector<double> m_EchoTime;
+    double m_EchoSpacing;
 
-    double m_M0UpperBoundValue;
     double m_T2UpperBoundValue;
 
-    static double myfunc(const std::vector<double> &x, std::vector<double> &grad, void *my_func_data);
-    
+    unsigned int m_MaximumOptimizerIterations;
+    double m_OptimizerStopCondition;
 };
 
 }// end namespace anima

@@ -27,8 +27,8 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> resM0Arg("O","out-m0","Result M0 image",false,"","result M0 image",cmd);
     TCLAP::ValueArg<std::string> resB1Arg("","out-b1","B1 map",false,"","B1 map",cmd);
 
+    TCLAP::ValueArg<double> trArg("","tr","Repetition time for T2 relaxometry (default: 5000)",false,5000,"repetition time",cmd);
     TCLAP::ValueArg<double> upperBoundT2Arg("u","upper-bound-t2","T2 value upper bound (default: 1000)",false,1000,"T2 value upper bound",cmd);
-    TCLAP::ValueArg<double> upperBoundM0Arg("","upper-bound-m0","M0 value upper bound (default: 5000)",false,5000,"M0 value upper bound",cmd);
 
     TCLAP::ValueArg<double> echoSpacingArg("e","echo-spacing","Spacing between two successive echoes (default: 10)",false,10,"Spacing between echoes",cmd);
     TCLAP::ValueArg<double> excitationT2FlipAngleArg("","t2-ex-flip","Excitation flip angle for T2 (in degrees, default: 90)",false,90,"T2 excitation flip angle",cmd);
@@ -39,9 +39,8 @@ int main(int argc, char **argv)
 
     TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 	
-    TCLAP::ValueArg<unsigned int> numOptimizerIterArg("","opt-iter","Maximal number of optimizer iterations (default: 200)",false,200,"Maximal number of optimizer iterations",cmd);
+    TCLAP::ValueArg<unsigned int> numOptimizerIterArg("","opt-iter","Maximal number of optimizer iterations (default: 2000)",false,2000,"Maximal number of optimizer iterations",cmd);
     TCLAP::ValueArg<double> optimizerStopConditionArg("","opt-stop","Optimizer stopping threshold (default: 1.0e-4)",false,1.0e-4,"Optimizer stopping threshold",cmd);
-    TCLAP::ValueArg<double> optimizerInitialStepArg("i","opt-init","Optimizer initial step (default: 10)",false,10,"Optimizer initial step",cmd);
 
     try
     {
@@ -69,12 +68,11 @@ int main(int argc, char **argv)
     mainFilter->SetT2FlipAngles(t2FlipAngleArg.getValue() * M_PI / 180.0,numInputs);
     mainFilter->SetT2ExcitationFlipAngle(excitationT2FlipAngleArg.getValue() * M_PI / 180.0);
 
-    mainFilter->SetM0UpperBound(upperBoundM0Arg.getValue());
     mainFilter->SetT2UpperBound(upperBoundT2Arg.getValue());
+    mainFilter->SetTRValue(trArg.getValue());
     
     mainFilter->SetMaximumOptimizerIterations(numOptimizerIterArg.getValue());
     mainFilter->SetOptimizerStopCondition(optimizerStopConditionArg.getValue());
-    mainFilter->SetOptimizerInitialStep(optimizerInitialStepArg.getValue());
 
     if (t1MapArg.getValue() != "")
         mainFilter->SetT1Map(anima::readImage <InputImageType> (t1MapArg.getValue()));

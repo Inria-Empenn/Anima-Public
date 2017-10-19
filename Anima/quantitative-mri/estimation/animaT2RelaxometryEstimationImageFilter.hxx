@@ -3,7 +3,9 @@
 
 #include <itkImageRegionIterator.h>
 #include <itkImageRegionConstIterator.h>
-#include <nlopt.hpp>
+
+#include <animaNLOPTOptimizers.h>
+#include <animaT2RelaxometryCostFunction.h>
 
 namespace anima
 {
@@ -79,6 +81,20 @@ T2RelaxometryEstimationImageFilter <TInputImage,TOutputImage>
     if (m_T1Map)
         t1MapItr = OutImageIteratorType(m_T1Map,outputRegionForThread);
 
+    typedef anima::NLOPTOptimizers OptimizerType;
+    typedef anima::T2RelaxometryCostFunction CostFunctionType;
+
+    typename CostFunctionType::Pointer cost = CostFunctionType::New();
+    cost->SetT2EchoSpacing(m_EchoSpacing);
+    cost->SetTRValue(m_TRValue);
+
+    unsigned int dimension = cost->GetNumberOfParameters();
+    itk::Array<double> lowerBounds(dimension);
+    itk::Array<double> upperBounds(dimension);
+    OptimizerType::ParametersType p(dimension);
+
+    std::vector <double> relaxoT2Data(numInputs,0);
+
     while (!maskItr.IsAtEnd())
     {
         if (maskItr.Get() == 0)
@@ -99,68 +115,47 @@ T2RelaxometryEstimationImageFilter <TInputImage,TOutputImage>
             continue;
         }
 
-        double t1Value = 1;
+        double t1Value = 1000.0;
 
         if (m_T1Map)
             t1Value = t1MapItr.Get();
 
+        for (unsigned int i = 0;i < numInputs;++i)
+            relaxoT2Data[i] = inIterators[i].Get();
 
-        // must be computed here
-        nlopt::opt opt(nlopt::LN_BOBYQA, 2);
+        cost->SetT2RelaxometrySignals(relaxoT2Data);
 
-        double* echoTimeAndObservation=new double[numInputs*2+1];
-        echoTimeAndObservation[0]=numInputs;
-        for(unsigned int index=0;index<numInputs;++index)
-        {
-           echoTimeAndObservation[2*index+1]=this->m_EchoTime[index];
-           echoTimeAndObservation[2*index+2]=inIterators[index].Get();
-         }
+        OptimizerType::Pointer optimizer = OptimizerType::New();
+        optimizer->SetAlgorithm(NLOPT_LN_BOBYQA);
+        optimizer->SetXTolRel(m_OptimizerStopCondition);
+        optimizer->SetFTolRel(1.0e-2 * m_OptimizerStopCondition);
+        optimizer->SetMaxEval(5000);
+        optimizer->SetVectorStorageSize(2000);
 
-        std::vector<double>lowerBounds(2,1e-4);
-        opt.set_lower_bounds(lowerBounds);
-        std::vector<double>upperBounds(2);upperBounds[0]=m_T2UpperBoundValue;upperBounds[1]=m_M0UpperBoundValue;
-        opt.set_upper_bounds(upperBounds);
-        // one must also set upper bounds
-        opt.set_min_objective(T2RelaxometryEstimationImageFilter <TInputImage,TOutputImage>::myfunc, echoTimeAndObservation);
-        opt.set_xtol_rel(1e-4);
+        lowerBounds[0] = 1.0e-4;
+        upperBounds[0] = m_T2UpperBoundValue;
+        if (m_T1Map && (m_T2UpperBoundValue > t1Value))
+            upperBounds[0] = t1Value;
 
-        std::vector<double> optimizedValue(2);
-        optimizedValue[0] = 100; optimizedValue[1] = 600;
-        double minf;
+        p[0] = 100;
+        if (p[0] > upperBounds[0])
+            p[0] = (upperBounds[0] - lowerBounds[0]) / 2.0;
 
-        double t2Value=optimizedValue[0];
-        double m0Value=optimizedValue[1];
-        try
-        {
-            opt.optimize(optimizedValue, minf);
-        }
-        catch(nlopt::roundoff_limited& e)
-        {
-            std::cerr << "NLOPT optimization error, at: "<< inIterators[0].GetIndex() << std::endl;
-            for (unsigned int i = 0;i < numInputs;++i)
-                std::cerr << "inIterators[" <<  i << "]: " << inIterators[i].Get() << std::endl;
+        optimizer->SetLowerBoundParameters(lowerBounds);
+        optimizer->SetUpperBoundParameters(upperBounds);
+        optimizer->SetMaximize(false);
 
-            outT2Iterator.Set(lowerBounds[0]);
-            outM0Iterator.Set(lowerBounds[1]);
+        optimizer->SetCostFunction(cost);
 
-            ++maskItr;
-            ++outT2Iterator;
-            ++outM0Iterator;
+        optimizer->SetInitialPosition(p);
+        optimizer->StartOptimization();
 
-            for (unsigned int i = 0;i < numInputs;++i)
-                ++inIterators[i];
+        p = optimizer->GetCurrentPosition();
 
-            if (m_T1Map)
-                ++t1MapItr;
+        cost->GetValue(p);
 
-            continue;
-        }
-
-        t2Value=optimizedValue[0];
-        m0Value=optimizedValue[1]/(1-exp(-m_TRValue/t1Value));
-
-        outM0Iterator.Set(m0Value);
-        outT2Iterator.Set(t2Value);
+        outT2Iterator.Set(p[0]);
+        outM0Iterator.Set(cost->GetM0Value());
 
         ++maskItr;
         ++outT2Iterator;
@@ -172,32 +167,6 @@ T2RelaxometryEstimationImageFilter <TInputImage,TOutputImage>
         if (m_T1Map)
             ++t1MapItr;
     }
-}
-
-template <typename TInputImage, typename TOutputImage>
-double
-T2RelaxometryEstimationImageFilter <TInputImage,TOutputImage>::myfunc(const std::vector<double> &x, std::vector<double> &grad, void *data)
-{
-    double * my_func_data=static_cast<double*>(data);
-    grad.resize(0);
-    if (grad.size()==2) {
-        grad[0] = 0.0;
-        grad[1] = 0.5 / std::sqrt(x[1]);
-    }
-    unsigned int nbOfEchos=my_func_data[0];//
-    double res=0;
-    const double T2=x[0];
-    const double scale=x[1];
-    for(unsigned int index=0;index<nbOfEchos;++index)
-    {
-        const double echo=my_func_data[2*index+1];
-        const double simulatedSignal=scale*exp(-echo/T2);
-        const double observedSignal=my_func_data[2*index+2];
-        //std::cout<<observedSignal<<" "<<simulatedSignal<<std::endl;
-        res+=(simulatedSignal-observedSignal)*(simulatedSignal-observedSignal);
-    }
-    //std::cout<<res<<std::endl;
-    return res;
 }
 
 } // end namespace anima
