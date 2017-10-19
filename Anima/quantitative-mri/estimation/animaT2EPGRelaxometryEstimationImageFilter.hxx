@@ -79,6 +79,8 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
     initFilter->SetComputationMask(this->GetComputationMask());
     initFilter->SetTRValue(m_TRValue);
     initFilter->SetT2UpperBoundValue(m_T2UpperBound);
+    initFilter->SetOptimizerStopCondition(m_OptimizerStopCondition);
+    initFilter->SetMaximumOptimizerIterations(m_MaximumOptimizerIterations);
 
     initFilter->Update();
 
