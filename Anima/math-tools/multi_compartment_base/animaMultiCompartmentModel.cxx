@@ -1,4 +1,5 @@
 #include <animaMultiCompartmentModel.h>
+#include <animaLevenbergTools.h>
 
 namespace anima
 {
@@ -7,6 +8,9 @@ MultiCompartmentModel::MultiCompartmentModel()
 {
     m_OptimizeWeights = true;
     m_CommonDiffusivityParameters = false;
+    m_CommonConcentrationParameters = false;
+    m_CommonExtraAxonalFractionParameters = false;
+    m_UseBoundedWeightsOptimization = false;
 
     m_NumberOfIsotropicCompartments = 0;
 }
@@ -25,6 +29,12 @@ itk::LightObject::Pointer MultiCompartmentModel::InternalClone() const
         BaseCompartmentPointer tmpCompartment = dynamic_cast <anima::BaseCompartment *> (m_Compartments[i]->Clone().GetPointer());
         mcm->AddCompartment(m_CompartmentWeights[i],tmpCompartment);
     }
+
+    mcm->SetOptimizeWeights(m_OptimizeWeights);
+    mcm->SetCommonDiffusivityParameters(m_CommonDiffusivityParameters);
+    mcm->SetCommonConcentrationParameters(m_CommonConcentrationParameters);
+    mcm->SetCommonExtraAxonalFractionParameters(m_CommonExtraAxonalFractionParameters);
+    mcm->SetUseBoundedWeightsOptimization(m_UseBoundedWeightsOptimization);
 
     return outputValue;
 }
@@ -74,7 +84,11 @@ MultiCompartmentModel::ListType &MultiCompartmentModel::GetParametersAsVector()
     if (m_OptimizeWeights && (numWeightsToOptimize > 0))
     {
         for (unsigned int i = 0;i < numWeightsToOptimize;++i)
+        {
             m_ParametersVector[i] = m_CompartmentWeights[i+1];
+            if (m_UseBoundedWeightsOptimization)
+                m_ParametersVector[i] = levenberg::UnboundValue(m_ParametersVector[i], 0.0, 1.0);
+        }
 
         pos += numWeightsToOptimize;
     }
@@ -118,11 +132,28 @@ void MultiCompartmentModel::SetParametersFromVector(ListType &params)
     // Set compartment fractions if optimized
     if (m_OptimizeWeights && (numWeightsToOptimize > 0))
     {
+        if (m_UseBoundedWeightsOptimization)
+            m_BoundedWeightsSignVector.resize(numWeightsToOptimize);
+
         double sumWeights = 0;
         for (unsigned int i = 0;i < numWeightsToOptimize;++i)
         {
             m_CompartmentWeights[i+1] = params[i];
+            if (m_UseBoundedWeightsOptimization)
+            {
+                double inputSign = 1;
+                m_CompartmentWeights[i+1] = levenberg::ComputeBoundedValue(params[i], inputSign, 0.0, 1.0);
+                m_BoundedWeightsSignVector[i] = inputSign;
+            }
+
             sumWeights += params[i];
+        }
+
+        if ((sumWeights >= 1.0) && m_UseBoundedWeightsOptimization)
+        {
+            for (unsigned int i = 0;i < numWeightsToOptimize;++i)
+                m_CompartmentWeights[i+1] /= sumWeights;
+            sumWeights = 1.0;
         }
 
         pos = numWeightsToOptimize;
@@ -256,9 +287,7 @@ MultiCompartmentModel::ListType &MultiCompartmentModel::GetSignalJacobian(double
     unsigned int jacobianSize = 0;
     for (unsigned int i = 0;i < m_Compartments.size();++i)
         jacobianSize += m_Compartments[i]->GetNumberOfParameters();
-    
-    unsigned int numCompartments = this->GetNumberOfCompartments();
-    unsigned int numNonIsotropicCompartments = numCompartments - m_NumberOfIsotropicCompartments;
+
     int numWeightsToOptimize = this->GetNumberOfOptimizedWeights();
 
     jacobianSize += numWeightsToOptimize;
@@ -273,7 +302,11 @@ MultiCompartmentModel::ListType &MultiCompartmentModel::GetSignalJacobian(double
         double firstCompartmentSignal = m_Compartments[0]->GetFourierTransformedDiffusionProfile(bValue, gradient);
         
         for (unsigned int i = 0;i < numWeightsToOptimize;++i)
+        {
             m_JacobianVector[i] = m_Compartments[i+1]->GetFourierTransformedDiffusionProfile(bValue, gradient) - firstCompartmentSignal;
+            if (m_UseBoundedWeightsOptimization)
+                m_JacobianVector[i] *= levenberg::BoundedDerivativeAddOn(m_CompartmentWeights[i+1], m_BoundedWeightsSignVector[i], 0.0, 1.0);
+        }
 
         pos += numWeightsToOptimize;
     }
