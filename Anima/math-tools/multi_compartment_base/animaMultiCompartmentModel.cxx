@@ -146,7 +146,7 @@ void MultiCompartmentModel::SetParametersFromVector(ListType &params)
                 m_BoundedWeightsSignVector[i] = inputSign;
             }
 
-            sumWeights += params[i];
+            sumWeights += m_CompartmentWeights[i+1];
         }
 
         if ((sumWeights >= 1.0) && m_UseBoundedWeightsOptimization)
