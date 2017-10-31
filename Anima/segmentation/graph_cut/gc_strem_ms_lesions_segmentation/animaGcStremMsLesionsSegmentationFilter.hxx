@@ -81,6 +81,14 @@ void GcStremMsLesionsSegmentationFilter <TInputImage>::SetInputWMAtlas(const Ima
 }
 
 template <typename TInputImage>
+void GcStremMsLesionsSegmentationFilter <TInputImage>::SetInputLesionPrior(const ImageTypeD* image)
+{
+    this->SetNthInput(m_NbInputs, const_cast<ImageTypeD*>(image));
+    m_IndexLesionPrior = m_NbInputs;
+    m_NbInputs++;
+}
+
+template <typename TInputImage>
 void GcStremMsLesionsSegmentationFilter <TInputImage>::SetSourcesMask(const ImageTypeUC* image)
 {
     this->SetNthInput(m_NbInputs, const_cast<ImageTypeUC*>(image));
@@ -159,6 +167,12 @@ itk::Image <double,3>::ConstPointer GcStremMsLesionsSegmentationFilter <TInputIm
 {
     return static_cast< const ImageTypeD * >
             ( this->itk::ProcessObject::GetInput(m_IndexAtlasWM) );
+}
+
+template <typename TInputImage>
+itk::Image <double,3>::ConstPointer GcStremMsLesionsSegmentationFilter <TInputImage>::GetInputLesionPrior()
+{
+    return static_cast< const ImageTypeD * > (this->itk::ProcessObject::GetInput(m_IndexLesionPrior));
 }
 
 template <typename TInputImage>
@@ -379,19 +393,13 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::CheckInputImages()
     std::cout << "Check input entries..." << std::endl;
     if(m_LesionSegmentationType!=manualGC)
     {
-        if(m_Modalities<3)
-        {
-            std::cerr << "-- Error in anima::Gc_Strem_MS_Lesions_Segmentation: automatic segmentation requires 3 modalities, exiting..." << std::endl;
-            exit(-1);
-        }
+        if(m_Modalities < 3)
+            itkExceptionMacro("-- Error in anima::Gc_Strem_MS_Lesions_Segmentation: automatic segmentation requires 3 modalities, exiting...");
 
         if(this->GetInputImageT1().IsNull())
-        {
-            std::cerr << "-- Error in anima::Gc_Strem_MS_Lesions_Segmentation: automatic segmentation requires T1 image, exiting..." << std::endl;
-            exit(-1);
-        }
+            itkExceptionMacro("-- Error in anima::Gc_Strem_MS_Lesions_Segmentation: automatic segmentation requires T1 image, exiting...");
 
-        if(m_Modalities==3)
+        if(m_Modalities == 3)
         {
             m_UseT2 = false;
             m_UseDP = false;
@@ -405,19 +413,13 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::CheckInputImages()
         if(m_Modalities>3)
         {
             if( !( (m_UseT2 & m_UseDP & !m_UseFLAIR) || (m_UseT2 & !m_UseDP & m_UseFLAIR) || (!m_UseT2 & m_UseDP & m_UseFLAIR) ) )
-            {
-                std::cerr << "-- Error in anima::Gc_Strem_MS_Lesions_Segmentation: 2 images among T2, DP and FLAIR must be choosen for automatic segmentation, exiting..." << std::endl;
-                exit(-1);
-            }
+                itkExceptionMacro("-- Error in anima::Gc_Strem_MS_Lesions_Segmentation: 2 images among T2, DP and FLAIR must be choosen for automatic segmentation, exiting...");
         }
     }
     else
     {
         if(this->GetSourcesMask().IsNull() || this->GetSinksMask().IsNull())
-        {
-            std::cerr << "-- Error in anima::Gc_Strem_MS_Lesions_Segmentation: seed mask missing, exiting..." << std::endl;
-            exit(-1);
-        }
+            itkExceptionMacro("-- Error in anima::Gc_Strem_MS_Lesions_Segmentation: seed mask missing, exiting...");
     }
 }
 template <typename TInputImage>
@@ -738,8 +740,30 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::CreateFuzzyRuleImage()
     filtermin1->SetCoordinateTolerance( m_Tol );
     filtermin1->SetDirectionTolerance( m_Tol );
 
+    typename ImageTypeD::Pointer mahaMinimum = ImageTypeD::New();
+    mahaMinimum->Graft(m_MahalanobisFilter->GetOutputMahaMinimum());
+
+    if (this->GetInputLesionPrior().IsNotNull())
+    {
+        typedef itk::ImageRegionIterator <ImageTypeD> IteratorType;
+        IteratorType mahaMinimumIterator(m_MahalanobisFilter->GetOutputMahaMinimum(),m_MahalanobisFilter->GetOutputMahaMinimum()->GetLargestPossibleRegion());
+        typedef itk::ImageRegionConstIterator <ImageTypeD> ConstIteratorType;
+        ConstIteratorType lesionPriorIterator(this->GetInputLesionPrior(),m_MahalanobisFilter->GetOutputMahaMinimum()->GetLargestPossibleRegion());
+
+        while (!lesionPriorIterator.IsAtEnd())
+        {
+            double mahaValue = mahaMinimumIterator.Get();
+            double lesionPriorValue = lesionPriorIterator.Get();
+
+            mahaMinimumIterator.Set(std::sqrt(mahaValue * lesionPriorValue));
+
+            ++mahaMinimumIterator;
+            ++lesionPriorIterator;
+        }
+    }
+
     filtermin2->SetInput1( filtermin1->GetOutput() );
-    filtermin2->SetInput2( m_MahalanobisFilter->GetOutputMahaMinimum() );
+    filtermin2->SetInput2( mahaMinimum );
     filtermin2->SetNumberOfThreads( this->GetNumberOfThreads() );
     filtermin2->SetCoordinateTolerance( m_Tol );
     filtermin2->SetDirectionTolerance( m_Tol );
@@ -841,9 +865,32 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::GraphCut()
         {
             m_GraphCutFilter->SetInputSeedSinksProba( m_FilterMaxSinks->GetOutput() );
         }
+        else if (this->GetInputLesionPrior().IsNotNull())
+        {
+            typename ImageTypeD::Pointer sinkProbas = ImageTypeD::New();
+            sinkProbas->Graft(m_MahalanobisFilter->GetOutputMahaMaximum());
+
+            typedef itk::ImageRegionIterator <ImageTypeD> IteratorType;
+            IteratorType sinkProbasIterator(m_MahalanobisFilter->GetOutputMahaMaximum(),m_MahalanobisFilter->GetOutputMahaMaximum()->GetLargestPossibleRegion());
+            typedef itk::ImageRegionConstIterator <ImageTypeD> ConstIteratorType;
+            ConstIteratorType lesionPriorIterator(this->GetInputLesionPrior(),m_MahalanobisFilter->GetOutputMahaMaximum()->GetLargestPossibleRegion());
+
+            while (!lesionPriorIterator.IsAtEnd())
+            {
+                double mahaValue = sinkProbasIterator.Get();
+                double lesionPriorValue = lesionPriorIterator.Get();
+
+                sinkProbasIterator.Set(std::sqrt(mahaValue * (1.0 - lesionPriorValue)));
+
+                ++sinkProbasIterator;
+                ++lesionPriorIterator;
+            }
+
+            m_GraphCutFilter->SetInputSeedSinksProba(sinkProbas);
+        }
         else
         {
-            m_GraphCutFilter->SetInputSeedSinksProba( m_MahalanobisFilter->GetOutputMahaMaximum() );
+            m_GraphCutFilter->SetInputSeedSinksProba(m_MahalanobisFilter->GetOutputMahaMaximum());
         }
     }
     m_GraphCutFilter->GraftOutput( this->GetOutputGraphCut() );
@@ -1193,7 +1240,7 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::GenerateData()
     this->RescaleImages();
 
     // Compute NABT model estimation
-    if( m_LesionSegmentationType != manualGC )
+    if (m_LesionSegmentationType != manualGC)
     {
         this->ComputeAutomaticInitialization();
     }

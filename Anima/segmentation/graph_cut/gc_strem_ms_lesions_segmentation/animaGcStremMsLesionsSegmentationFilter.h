@@ -154,6 +154,7 @@ public:
     void SetInputCSFAtlas(const ImageTypeD* image);
     void SetInputGMAtlas(const ImageTypeD* image);
     void SetInputWMAtlas(const ImageTypeD* image);
+    void SetInputLesionPrior(const ImageTypeD* image);
 
     void SetMask(const TInputImage* MaskImage);
 
@@ -422,7 +423,7 @@ protected:
 
         m_NbInputs = 0;
         m_Modalities = 0;
-        m_MaxNumberOfInputs = 13;
+        m_MaxNumberOfInputs = 14;
 
         m_LesionSegmentationType = strem;
 
@@ -431,10 +432,21 @@ protected:
 
         m_Tol = 0.0001;
 
-        m_IndexImageT1 = m_MaxNumberOfInputs, m_IndexImageT2= m_MaxNumberOfInputs, m_IndexImageDP= m_MaxNumberOfInputs, m_IndexImageFLAIR= m_MaxNumberOfInputs,m_IndexImageT1Gd = m_MaxNumberOfInputs;
-        m_IndexMask= m_MaxNumberOfInputs;
-        m_IndexAtlasCSF= m_MaxNumberOfInputs, m_IndexAtlasGM= m_MaxNumberOfInputs, m_IndexAtlasWM= m_MaxNumberOfInputs;
-        m_IndexSourcesProba= m_MaxNumberOfInputs, m_IndexSinksProba= m_MaxNumberOfInputs, m_IndexSourcesMask= m_MaxNumberOfInputs, m_IndexSinksMask= m_MaxNumberOfInputs;
+        m_IndexImageT1 = m_MaxNumberOfInputs;
+        m_IndexImageT2 = m_MaxNumberOfInputs;
+        m_IndexImageDP = m_MaxNumberOfInputs;
+        m_IndexImageFLAIR = m_MaxNumberOfInputs;
+        m_IndexImageT1Gd = m_MaxNumberOfInputs;
+
+        m_IndexMask = m_MaxNumberOfInputs;
+        m_IndexAtlasCSF = m_MaxNumberOfInputs;
+        m_IndexAtlasGM = m_MaxNumberOfInputs;
+        m_IndexAtlasWM = m_MaxNumberOfInputs;
+        m_IndexLesionPrior = m_MaxNumberOfInputs;
+        m_IndexSourcesProba = m_MaxNumberOfInputs;
+        m_IndexSinksProba = m_MaxNumberOfInputs;
+        m_IndexSourcesMask = m_MaxNumberOfInputs;
+        m_IndexSinksMask = m_MaxNumberOfInputs;
 
         this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
     }
@@ -457,6 +469,7 @@ protected:
     ImageTypeD::ConstPointer GetInputCSFAtlas();
     ImageTypeD::ConstPointer GetInputGMAtlas();
     ImageTypeD::ConstPointer GetInputWMAtlas();
+    ImageTypeD::ConstPointer GetInputLesionPrior();
 
     ImageTypeUC::ConstPointer GetSourcesMask();
     ImageTypeUC::ConstPointer GetSinksMask();
@@ -482,7 +495,7 @@ private:
     unsigned int m_NbInputs, m_MaxNumberOfInputs, m_Modalities;
 
     unsigned int m_IndexImageT1, m_IndexImageT2, m_IndexImageDP, m_IndexImageFLAIR, m_IndexImageT1Gd, m_IndexMask;
-    unsigned int m_IndexAtlasCSF, m_IndexAtlasGM, m_IndexAtlasWM;
+    unsigned int m_IndexAtlasCSF, m_IndexAtlasGM, m_IndexAtlasWM, m_IndexLesionPrior;
     unsigned int m_IndexSourcesProba, m_IndexSinksProba, m_IndexSourcesMask, m_IndexSinksMask;
 
     LesionSegmentationType m_LesionSegmentationType;

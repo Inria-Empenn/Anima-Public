@@ -26,6 +26,7 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<std::string> atlasFileCSFArg("x","atlas-csf","CSF atlas image",false,"","csf atlas image",cmd);
     TCLAP::ValueArg<std::string> atlasFileGMArg("y","atlas-gm","GM atlas image",false,"","gm atlas image",cmd);
     TCLAP::ValueArg<std::string> atlasFileWMArg("z","atlas-wm","WM atlas image",false,"","wm atlas image",cmd);
+    TCLAP::ValueArg<std::string> lesionPriorArg("","lesion-prior","Lesions prior image",false,"","lesions prior image",cmd);
 
     TCLAP::ValueArg<std::string> maskFileArg("m","mask","Brain mask",true,"","brain mask",cmd);
 
@@ -108,35 +109,25 @@ int main(int argc, const char** argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
 
     FilterTypeSeg::Pointer segFilter = FilterTypeSeg::New();
 
-    if( inputFileT1Arg.getValue()!="" )
-    {
+    if (inputFileT1Arg.getValue() != "")
         segFilter->SetInputImageT1( anima::readImage<InputImageTypeD>( inputFileT1Arg.getValue() ) );
-    }
 
-    if( inputFileT2Arg.getValue()!="" )
-    {
+    if(inputFileT2Arg.getValue() != "")
         segFilter->SetInputImageT2( anima::readImage<InputImageTypeD>( inputFileT2Arg.getValue() ) );
-    }
 
-    if( inputFileDPArg.getValue()!="" )
-    {
+    if (inputFileDPArg.getValue() != "")
         segFilter->SetInputImageDP( anima::readImage<InputImageTypeD>( inputFileDPArg.getValue() ) );
-    }
 
-    if( inputFileFLAIRArg.getValue()!="" )
-    {
+    if (inputFileFLAIRArg.getValue() != "")
         segFilter->SetInputImageFLAIR( anima::readImage<InputImageTypeD>( inputFileFLAIRArg.getValue() ) );
-    }
 
-    if( inputFileT1GdArg.getValue()!="" )
-    {
+    if (inputFileT1GdArg.getValue() != "")
         segFilter->SetInputImageT1Gd( anima::readImage<InputImageTypeD>( inputFileT1GdArg.getValue() ) );
-    }
 
     if( atlasFileCSFArg.getValue()!="" )
     {
@@ -152,6 +143,9 @@ int main(int argc, const char** argv)
     {
         segFilter->SetInputWMAtlas( anima::readImage<InputImageTypeD>( atlasFileWMArg.getValue() ) );
     }
+
+    if (lesionPriorArg.getValue() != "")
+        segFilter->SetInputLesionPrior(anima::readImage<InputImageTypeD> (lesionPriorArg.getValue()));
 
     if( maskFileArg.getValue()!="" )
     {
