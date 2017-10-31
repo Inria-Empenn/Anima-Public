@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaFibersTransformSerie)
+project(animaFibersApplyTransformSerie)
 
 ## #############################################################################
 ## List Sources
