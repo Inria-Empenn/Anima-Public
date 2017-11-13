@@ -18,6 +18,7 @@ MTPairingCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTyp
     m_FixedImagePoints.clear();
     m_FixedImageCompartmentWeights.clear();
     m_FixedImageLogTensors.clear();
+    m_NumberOfFixedCompartments = 1;
 
     anima::MultiCompartmentModelCreator mcmCreator;
     mcmCreator.SetNumberOfCompartments(0);
@@ -120,7 +121,7 @@ MTPairingCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTyp
             else
             {
                 movingImageLogTensors[i].resize(1);
-                movingImageLogTensors[i][0] = m_ZeroDiffusionModel->GetCompartment(0)->GetDiffusionTensor();
+                anima::GetVectorRepresentation(m_ZeroDiffusionModel->GetCompartment(0)->GetDiffusionTensor().GetVnlMatrix().as_matrix(),movingImageLogTensors[i][0],6,true);
                 movingImageCompartmentWeights[i].resize(1);
                 movingImageCompartmentWeights[i][0] = 1.0;
             }
@@ -128,7 +129,7 @@ MTPairingCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTyp
         else
         {
             movingImageLogTensors[i].resize(1);
-            movingImageLogTensors[i][0] = m_ZeroDiffusionModel->GetCompartment(0)->GetDiffusionTensor();
+            anima::GetVectorRepresentation(m_ZeroDiffusionModel->GetCompartment(0)->GetDiffusionTensor().GetVnlMatrix().as_matrix(),movingImageLogTensors[i][0],6,true);
             movingImageCompartmentWeights[i].resize(1);
             movingImageCompartmentWeights[i][0] = 1.0;
         }
@@ -139,7 +140,7 @@ MTPairingCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTyp
     double mSS = this->ComputeMapping(movingImageCompartmentWeights,movingImageLogTensors,movingImageCompartmentWeights,movingImageLogTensors);
     double mRT = 0;
     double mST = 0;
-    double numMaxCompartments = std::max(movingImage->GetDescriptionModel()->GetNumberOfCompartments(),this->m_FixedImage->GetDescriptionModel()->GetNumberOfCompartments());
+    double numMaxCompartments = std::max(movingImage->GetDescriptionModel()->GetNumberOfCompartments(),m_NumberOfFixedCompartments);
     double epsilon = std::sqrt(numMaxCompartments / (3.0 * this->m_NumberOfPixelsCounted)) / numMaxCompartments;
 
     for (unsigned int i = 0;i < this->m_NumberOfPixelsCounted;++i)
@@ -293,6 +294,7 @@ MTPairingCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTyp
 
     InputPointType inputPoint;
     MCModelPointer fixedMCM = fixedImage->GetDescriptionModel()->Clone();
+    m_NumberOfFixedCompartments = fixedMCM->GetNumberOfCompartments();
 
     unsigned int pos = 0;
     PixelType fixedValue, workValue;
@@ -330,7 +332,7 @@ MTPairingCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTyp
         else
         {
             m_FixedImageLogTensors[pos].resize(1);
-            m_FixedImageLogTensors[pos][0] = m_ZeroDiffusionModel->GetCompartment(0)->GetDiffusionTensor();
+            anima::GetVectorRepresentation(m_ZeroDiffusionModel->GetCompartment(0)->GetDiffusionTensor().GetVnlMatrix().as_matrix(),m_FixedImageLogTensors[pos][0],6,true);
             m_FixedImageCompartmentWeights[pos].resize(1);
             m_FixedImageCompartmentWeights[pos][0] = 1.0;
         }

@@ -28,7 +28,7 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<double> percentageKeptArg("k","per-kept","Percentage of blocks with the highest variance kept (default: 0.8)",false,0.8,"percentage of blocks kept",cmd);
 
     TCLAP::ValueArg<unsigned int> blockTransfoArg("t","in-transform","Transformation computed between blocks (0: translation, 1: rigid, 2: affine, default: 0)",false,0,"transformation between blocks",cmd);
-    TCLAP::ValueArg<unsigned int> blockMetricArg("","metric","Similarity metric between blocks (0: basic mean squares, 1: one to on basic mean squares, 2: MCM mean squares, 3: MCM correlation, default: 1)",false,1,"similarity metric",cmd);
+    TCLAP::ValueArg<unsigned int> blockMetricArg("","metric","Similarity metric between blocks (0: basic mean squares, 1: one to on basic mean squares, 2: MCM mean squares, 3: MT pairing correlation, 4: MCM correlation, default: 1)",false,1,"similarity metric",cmd);
     TCLAP::ValueArg<unsigned int> blockOrientationArg("","bor","Re-orientation strategy when matching blocks (0: none, 1: finite strain, 2: PPD, default: 2)",false,2,"block re-orientation",cmd);
     TCLAP::ValueArg<std::string> bvalArg("b","bvals","B-values",false,"","b-values",cmd);
     TCLAP::ValueArg<std::string> bvecArg("v","bvec","Gradient direction",false,"","gradient directions",cmd);

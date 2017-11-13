@@ -19,6 +19,7 @@ public:
         MCMBasicMeanSquares = 0,
         MCMOneToOneBasicMeanSquares,
         MCMMeanSquares,
+        MTCorrelation, // multi-tensor correlation from M. Taquet
         MCMCorrelation
     };
 

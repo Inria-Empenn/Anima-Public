@@ -38,6 +38,7 @@ enum Metric
     MCMBasicMeanSquares = 0,
     MCMOneToOneBasicMeanSquares,
     MCMMeanSquares,
+    MTCorrelation,
     MCMCorrelation
 };
 

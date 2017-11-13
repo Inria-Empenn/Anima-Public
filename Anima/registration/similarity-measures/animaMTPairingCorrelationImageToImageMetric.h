@@ -73,6 +73,7 @@ private:
     std::vector <InputPointType> m_FixedImagePoints;
     std::vector < std::vector <double> > m_FixedImageCompartmentWeights;
     std::vector < std::vector <PixelType> > m_FixedImageLogTensors;
+    unsigned int m_NumberOfFixedCompartments;
 };
 
 } // end namespace anima
