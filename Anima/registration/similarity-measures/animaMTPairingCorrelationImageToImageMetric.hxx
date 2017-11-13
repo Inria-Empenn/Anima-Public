@@ -16,7 +16,8 @@ MTPairingCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTyp
 ::MTPairingCorrelationImageToImageMetric()
 {
     m_FixedImagePoints.clear();
-    m_FixedImageValues.clear();
+    m_FixedImageCompartmentWeights.clear();
+    m_FixedImageLogTensors.clear();
 
     anima::MultiCompartmentModelCreator mcmCreator;
     mcmCreator.SetNumberOfCompartments(0);
@@ -25,7 +26,6 @@ MTPairingCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTyp
     mcmCreator.SetStationaryWaterProportionFixedValue(1.0);
 
     m_ZeroDiffusionModel = mcmCreator.GetNewMultiCompartmentModel();
-    m_ZeroDiffusionVector = m_ZeroDiffusionModel->GetModelVector();
 }
 
 template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >
@@ -71,7 +71,7 @@ MTPairingCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTyp
 
     this->SetTransformParameters( parameters );
 
-    PixelType movingValue;
+    PixelType movingValue, workValue;
 
     OutputPointType transformedPoint;
     ContinuousIndexType transformedIndex;
@@ -79,8 +79,12 @@ MTPairingCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTyp
     MovingImageType *movingImage = const_cast <MovingImageType *> (this->GetMovingImage());
     MCModelPointer currentMovingValue = movingImage->GetDescriptionModel()->Clone();
 
-    double measure = 0;
+    std::vector < std::vector <double> > movingImageCompartmentWeights(this->m_NumberOfPixelsCounted);
+    std::vector < std::vector <PixelType> > movingImageLogTensors(this->m_NumberOfPixelsCounted);
+    std::vector <double> tmpWeights;
+    vnl_matrix <double> workLogMatrix(3,3);
 
+    // Getting moving values
     for (unsigned int i = 0;i < this->m_NumberOfPixelsCounted;++i)
     {
         transformedPoint = this->m_Transform->TransformPoint( m_FixedImagePoints[i] );
@@ -93,19 +97,89 @@ MTPairingCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTyp
             if (!isZero(movingValue))
             {
                 currentMovingValue->SetModelVector(movingValue);
-
                 if (this->GetModelRotation() != Superclass::NONE)
                     currentMovingValue->Reorient(this->m_OrientationMatrix, (this->GetModelRotation() == Superclass::PPD));
 
-                // Now compute actual measure, depends on model compartment types
-                measure += this->ComputeTensorBasedMetricPart(i,currentMovingValue);
+                tmpWeights = currentMovingValue->GetCompartmentWeights();
+                unsigned int internalCounter = 0;
+                for (unsigned int j = 0;j < currentMovingValue->GetNumberOfCompartments();++j)
+                {
+                    if (tmpWeights[internalCounter] <= 0)
+                        tmpWeights.erase(tmpWeights.begin() + internalCounter);
+                    else
+                    {
+                        ++internalCounter;
+                        anima::GetTensorLogarithm(currentMovingValue->GetCompartment(j)->GetDiffusionTensor().GetVnlMatrix().as_matrix(),workLogMatrix);
+                        anima::GetVectorRepresentation(workLogMatrix,workValue,6,true);
+                        movingImageLogTensors[i].push_back(workValue);
+                    }
+                }
+
+                movingImageCompartmentWeights[i] = tmpWeights;
             }
             else
-                measure += this->ComputeTensorBasedMetricPart(i,m_ZeroDiffusionModel);
+            {
+                movingImageLogTensors[i].resize(1);
+                movingImageLogTensors[i][0] = m_ZeroDiffusionModel->GetCompartment(0)->GetDiffusionTensor();
+                movingImageCompartmentWeights[i].resize(1);
+                movingImageCompartmentWeights[i][0] = 1.0;
+            }
         }
         else
-            measure += this->ComputeTensorBasedMetricPart(i,m_ZeroDiffusionModel);
+        {
+            movingImageLogTensors[i].resize(1);
+            movingImageLogTensors[i][0] = m_ZeroDiffusionModel->GetCompartment(0)->GetDiffusionTensor();
+            movingImageCompartmentWeights[i].resize(1);
+            movingImageCompartmentWeights[i][0] = 1.0;
+        }
     }
+
+    double mRS = this->ComputeMapping(m_FixedImageCompartmentWeights,m_FixedImageLogTensors,movingImageCompartmentWeights,movingImageLogTensors);
+    double mRR = this->ComputeMapping(m_FixedImageCompartmentWeights,m_FixedImageLogTensors,m_FixedImageCompartmentWeights,m_FixedImageLogTensors);
+    double mSS = this->ComputeMapping(movingImageCompartmentWeights,movingImageLogTensors,movingImageCompartmentWeights,movingImageLogTensors);
+    double mRT = 0;
+    double mST = 0;
+    double numMaxCompartments = std::max(movingImage->GetDescriptionModel()->GetNumberOfCompartments(),this->m_FixedImage->GetDescriptionModel()->GetNumberOfCompartments());
+    double epsilon = std::sqrt(numMaxCompartments / (3.0 * this->m_NumberOfPixelsCounted)) / numMaxCompartments;
+
+    for (unsigned int i = 0;i < this->m_NumberOfPixelsCounted;++i)
+    {
+        for (unsigned int k = 0;k < m_FixedImageCompartmentWeights[i].size();++k)
+        {
+            double dotProd = 0;
+            for (unsigned int l = 0;l < 3;++l)
+            {
+                unsigned int index = l * (l + 1) / 2 - 1;
+                dotProd += m_FixedImageLogTensors[i][k][index];
+            }
+
+            mRT += m_FixedImageCompartmentWeights[i][k] * dotProd;
+        }
+
+        for (unsigned int k = 0;k < movingImageCompartmentWeights[i].size();++k)
+        {
+            double dotProd = 0;
+            for (unsigned int l = 0;l < 3;++l)
+            {
+                unsigned int index = l * (l + 1) / 2 - 1;
+                dotProd += movingImageLogTensors[i][k][index];
+            }
+
+            mST += movingImageCompartmentWeights[i][k] * dotProd;
+        }
+    }
+
+    mRT *= epsilon;
+    mST *= epsilon;
+
+    // Now computing the measure itself, going for some one to one pairing
+    double measure = (mRS - mRT * mST) * (mRS - mRT * mST);
+    double denom = (mRR - mRT * mRT) * (mSS - mST * mST);
+
+    if (denom > 0)
+        measure /= denom;
+    else
+        measure = 0;
 
     return measure;
 }
@@ -113,137 +187,37 @@ MTPairingCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTyp
 template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >
 double
 MTPairingCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,ImageDimension>
-::ComputeTensorBasedMetricPart(unsigned int index, const MCModelPointer &movingValue) const
+::ComputeMapping(const std::vector < std::vector <double> > &refImageCompartmentWeights, const std::vector < std::vector <PixelType> > &refImageLogTensors,
+                 const std::vector < std::vector <double> > &movingImageCompartmentWeights, const std::vector < std::vector <PixelType> > &movingImageLogTensors) const
 {
-    unsigned int fixedNumCompartments = m_FixedImageValues[index]->GetNumberOfCompartments();
-    unsigned int movingNumCompartments = movingValue->GetNumberOfCompartments();
-
-    typedef itk::VariableLengthVector <double> LogVectorType;
-    std::vector <LogVectorType> fixedLogVectors(fixedNumCompartments);
-    std::vector <LogVectorType> movingLogVectors(movingNumCompartments);
-    std::vector <double> fixedWeights(fixedNumCompartments);
-    std::vector <double> movingWeights(movingNumCompartments);
-    vnl_matrix <double> workLogMatrix(3,3);
-
-    unsigned int pos = 0;
-    for (unsigned int i = 0;i < fixedNumCompartments;++i)
+    std::vector <unsigned int> currentPermutation;
+    double mappingDistanceValue = 0;
+    for (unsigned int i = 0;i < this->m_NumberOfPixelsCounted;++i)
     {
-        if (m_FixedImageValues[index]->GetCompartmentWeight(i) == 0)
-            continue;
+        double bestValue = 0.0;
+        unsigned int fixedNumCompartments = refImageCompartmentWeights[i].size();
+        unsigned int movingNumCompartments = movingImageCompartmentWeights[i].size();
 
-        anima::GetTensorLogarithm(m_FixedImageValues[index]->GetCompartment(i)->GetDiffusionTensor().GetVnlMatrix().as_matrix(),
-                                  workLogMatrix);
-        anima::GetVectorRepresentation(workLogMatrix,fixedLogVectors[pos],6,true);
-
-        fixedWeights[pos] = m_FixedImageValues[index]->GetCompartmentWeight(i);
-        ++pos;
-    }
-
-    fixedNumCompartments = pos;
-
-    if (fixedNumCompartments == 0)
-        return 0;
-    fixedLogVectors.resize(fixedNumCompartments);
-    fixedWeights.resize(fixedNumCompartments);
-
-    pos = 0;
-    for (unsigned int i = 0;i < movingNumCompartments;++i)
-    {
-        if (movingValue->GetCompartmentWeight(i) == 0)
-            continue;
-
-        anima::GetTensorLogarithm(movingValue->GetCompartment(i)->GetDiffusionTensor().GetVnlMatrix().as_matrix(),
-                                  workLogMatrix);
-        anima::GetVectorRepresentation(workLogMatrix,movingLogVectors[pos],6,true);
-
-        movingWeights[pos] = movingValue->GetCompartmentWeight(i);
-        ++pos;
-    }
-
-    movingNumCompartments = pos;
-
-    if (movingNumCompartments == 0)
-        return 0;
-    movingLogVectors.resize(movingNumCompartments);
-    movingWeights.resize(movingNumCompartments);
-
-    double bestMetricValue = -1;
-
-    unsigned int minCompartmentsNumber = fixedNumCompartments;
-    int rest = movingNumCompartments - minCompartmentsNumber;
-    bool fixedMin = true;
-    if (rest < 0)
-    {
-        fixedMin = false;
-        minCompartmentsNumber = movingNumCompartments;
-        rest *= -1;
-    }
-
-    unsigned int maxCompartmentsNumber = minCompartmentsNumber + rest;
-    unsigned int totalNumPairingVectors = 1;
-    if (!m_OneToOneMapping)
-        totalNumPairingVectors = boost::math::factorial<double>(maxCompartmentsNumber-1)
-                / (boost::math::factorial<double>(minCompartmentsNumber-1)
-                   * boost::math::factorial<double>(maxCompartmentsNumber - minCompartmentsNumber));
-
-    std::vector < std::vector <unsigned int> > numPairingsVectors(totalNumPairingVectors);
-
-    if (!m_OneToOneMapping)
-    {
-        std::vector <unsigned int> initialPairingsNumber(maxCompartmentsNumber-1,0);
-        std::vector <unsigned int> pairing(minCompartmentsNumber,1);
-        for (unsigned int i = minCompartmentsNumber-1;i < maxCompartmentsNumber-1;++i)
-            initialPairingsNumber[i] = 1;
-
-        unsigned int countVector = 0;
-        do
+        unsigned int minCompartmentsNumber = fixedNumCompartments;
+        int rest = movingNumCompartments - minCompartmentsNumber;
+        bool fixedMin = true;
+        if (rest < 0)
         {
-            unsigned int pos = 0;
-            std::fill(pairing.begin(),pairing.end(),1);
-            for (unsigned int i = 0;i < maxCompartmentsNumber-1;++i)
-            {
-                if (initialPairingsNumber[i] == 0)
-                {
-                    ++pos;
-                    continue;
-                }
+            fixedMin = false;
+            minCompartmentsNumber = movingNumCompartments;
+            rest *= -1;
+        }
 
-                ++pairing[pos];
-            }
+        unsigned int maxCompartmentsNumber = minCompartmentsNumber + rest;
 
-            numPairingsVectors[countVector] = pairing;
-            ++countVector;
-        } while (std::next_permutation(initialPairingsNumber.begin(),initialPairingsNumber.end()));
-    }
-    else
-    {
-        unsigned int numCompartmentUsed = minCompartmentsNumber;
-        if (rest > 0)
-            ++numCompartmentUsed;
-        std::vector <unsigned int> initialPairingsNumber(numCompartmentUsed,1);
-        if (rest > 0)
-            initialPairingsNumber[minCompartmentsNumber] = rest;
-        numPairingsVectors[0] = initialPairingsNumber;
-    }
-
-    // Loop on all possible numbers of pairings
-    std::vector <unsigned int> currentPermutation(maxCompartmentsNumber);
-
-    for (unsigned int l = 0;l < totalNumPairingVectors;++l)
-    {
         currentPermutation.resize(maxCompartmentsNumber);
+        for (unsigned int j = 0;j < maxCompartmentsNumber;++j)
+            currentPermutation[j] = j;
 
-        pos = 0;
-        for (unsigned int i = 0;i < numPairingsVectors[l].size();++i)
-            for (unsigned int j = 0;j < numPairingsVectors[l][i];++j)
-            {
-                currentPermutation[pos] = i;
-                ++pos;
-            }
-
+        // Test all permutations
         do
         {
-            double metricValue = 0;
+            double distValue = 0;
 
             for (unsigned int j = 0;j < maxCompartmentsNumber;++j)
             {
@@ -261,25 +235,25 @@ MTPairingCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTyp
                     secondIndex = currentPermutation[j];
                 }
 
-                if ((firstIndex >= fixedLogVectors.size())||(secondIndex >= movingLogVectors.size()))
+                if ((firstIndex >= refImageCompartmentWeights[i].size())||(secondIndex >= movingImageCompartmentWeights[i].size()))
                     continue;
 
                 double dist = 0;
-                for (unsigned int k = 0;k < fixedLogVectors[firstIndex].GetSize();++k)
-                    dist += (fixedLogVectors[firstIndex][k] - movingLogVectors[secondIndex][k]) * (fixedLogVectors[firstIndex][k] - movingLogVectors[secondIndex][k]);
+                for (unsigned int k = 0;k < refImageLogTensors[i][firstIndex].GetSize();++k)
+                    dist += refImageLogTensors[i][firstIndex][k] * movingImageLogTensors[i][secondIndex][k];
 
-                if (!m_OneToOneMapping)
-                    dist /= numPairingsVectors[l][currentPermutation[j]];
-
-                metricValue += fixedWeights[firstIndex] * movingWeights[secondIndex] * dist;
+                distValue += refImageCompartmentWeights[i][firstIndex] * movingImageCompartmentWeights[i][secondIndex] * dist;
             }
 
-            if ((metricValue < bestMetricValue)||(bestMetricValue < 0))
-                bestMetricValue = metricValue;
+            if (std::abs(distValue) > std::abs(bestValue))
+                bestValue = distValue;
+
         } while(std::next_permutation(currentPermutation.begin(),currentPermutation.end()));
+
+        mappingDistanceValue += bestValue;
     }
 
-    return bestMetricValue;
+    return mappingDistanceValue;
 }
 
 template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >
@@ -314,7 +288,8 @@ MTPairingCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTyp
     typename FixedImageType::IndexType index;
 
     m_FixedImagePoints.resize(this->m_NumberOfPixelsCounted);
-    m_FixedImageValues.resize(this->m_NumberOfPixelsCounted);
+    m_FixedImageCompartmentWeights.resize(this->m_NumberOfPixelsCounted);
+    m_FixedImageLogTensors.resize(this->m_NumberOfPixelsCounted);
 
     InputPointType inputPoint;
     MCModelPointer fixedMCM = fixedImage->GetDescriptionModel()->Clone();
@@ -334,32 +309,30 @@ MTPairingCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTyp
 
         if (!isZero(fixedValue))
         {
-            m_FixedImageValues[pos] = fixedImage->GetDescriptionModel()->Clone();
             fixedMCM->SetModelVector(fixedValue);
             tmpWeights = fixedMCM->GetCompartmentWeights();
             unsigned int internalCounter = 0;
             for (unsigned int i = 0;i < fixedMCM->GetNumberOfCompartments();++i)
             {
                 if (tmpWeights[internalCounter] <= 0)
-                    tmpWeights.erase(internalCounter);
+                    tmpWeights.erase(tmpWeights.begin() + internalCounter);
                 else
                 {
                     ++internalCounter;
-                    anima::GetTensorLogarithm(fixedMCM->GetCompartment(i)->GetDiffusionTensor(),workLogMatrix);
-                    anima::GetVectorRepresentation(workLogMatrix,fixedValue,6,true);
+                    anima::GetTensorLogarithm(fixedMCM->GetCompartment(i)->GetDiffusionTensor().GetVnlMatrix().as_matrix(),workLogMatrix);
+                    anima::GetVectorRepresentation(workLogMatrix,workValue,6,true);
                     m_FixedImageLogTensors[pos].push_back(workValue);
                 }
             }
+
+            m_FixedImageCompartmentWeights[pos] = tmpWeights;
         }
         else
         {
             m_FixedImageLogTensors[pos].resize(1);
             m_FixedImageLogTensors[pos][0] = m_ZeroDiffusionModel->GetCompartment(0)->GetDiffusionTensor();
             m_FixedImageCompartmentWeights[pos].resize(1);
-
-
-            = m_ZeroDiffusionModel->Clone();
-            m_FixedImageValues[pos]->SetModelVector(m_ZeroDiffusionVector);
+            m_FixedImageCompartmentWeights[pos][0] = 1.0;
         }
 
         ++ti;

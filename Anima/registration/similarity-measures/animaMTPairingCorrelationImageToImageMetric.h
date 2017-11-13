@@ -59,7 +59,8 @@ protected:
     virtual ~MTPairingCorrelationImageToImageMetric() {}
 
     bool CheckTensorCompatibility() const;
-    double ComputeTensorBasedMetricPart(unsigned int index, const MCModelPointer &movingValue) const;
+    double ComputeMapping(const std::vector < std::vector <double> > &refImageCompartmentWeights, const std::vector < std::vector <PixelType> > &refImageLogTensors,
+                          const std::vector < std::vector <double> > &movingImageCompartmentWeights, const std::vector < std::vector <PixelType> > &movingImageLogTensors) const;
 
     bool isZero(PixelType &vector) const;
 

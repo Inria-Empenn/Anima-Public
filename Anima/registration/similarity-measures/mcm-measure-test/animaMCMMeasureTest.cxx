@@ -2,6 +2,7 @@
 #include <animaMCMPairingMeanSquaresImageToImageMetric.h>
 #include <animaMCMMeanSquaresImageToImageMetric.h>
 #include <animaMCMCorrelationImageToImageMetric.h>
+#include <animaMTPairingCorrelationImageToImageMetric.h>
 #include <itkImageRegionIterator.h>
 #include <animaLogRigid3DTransform.h>
 #include <itkTimeProbe.h>
