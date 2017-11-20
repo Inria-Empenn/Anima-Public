@@ -210,7 +210,7 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
             
             continue;
         }
-        
+
         for (unsigned int i = 0;i < numInputs;++i)
         {
             dwi[i] = inIterators[i].Get();
@@ -238,14 +238,15 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
         if (std::abs(cThetaControl + 1.0) > 1.0e-5)
             anima::Get3DRotationLogarithm(data.rotationMatrix,optimizedValue);
 
+        double minValue = 1.0e-7;
+        double maxValue = 1.0e-2;
         for (unsigned int i = 0;i < 3;++i)
         {
             optimizedValue[i] += M_PI;
             int num2Pi = std::floor(optimizedValue[i] / (2.0 * M_PI));
             optimizedValue[i] -= 2.0 * M_PI * num2Pi + M_PI;
 
-            double tmpVal = std::log(std::max(1.0e-6,data.workEigenValues[i]));
-            optimizedValue[i + 3] = std::min(- 4.6, std::max(tmpVal,- 14.0));
+            optimizedValue[i + 3] = std::min(maxValue, std::max(data.workEigenValues[i], minValue));
         }
 
         // NLOPT optimization
@@ -253,16 +254,18 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
 
         std::vector <double> lowerBounds(m_NumberOfComponents, - M_PI);
         for (unsigned int i = 0;i < 3;++i)
-            lowerBounds[i + 3] = - 14.0;
+            lowerBounds[i + 3] = minValue;
 
         opt.set_lower_bounds(lowerBounds);
 
         std::vector <double> upperBounds(m_NumberOfComponents, M_PI);
         for (unsigned int i = 0;i < 3;++i)
-            upperBounds[i + 3] = - 4.6;
+            upperBounds[i + 3] = maxValue;
 
         opt.set_upper_bounds(upperBounds);
-        opt.set_xtol_rel(1e-4);
+        opt.set_xtol_rel(1e-8);
+        opt.set_ftol_rel(1e-6);
+        opt.set_maxeval(2500);
 
         double minf;
 
@@ -278,12 +281,25 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
         }
         catch(nlopt::roundoff_limited& e)
         {
-            itkExceptionMacro("NLOPT optimization error");
+            resVec.Fill(0.0);
+            outIterator.Set(resVec);
+            outB0Iterator.Set(0);
+            outVarianceIterator.Set(0);
+
+            for (unsigned int i = 0;i < numInputs;++i)
+                ++inIterators[i];
+
+            ++maskIterator;
+            ++outIterator;
+            ++outB0Iterator;
+            ++outVarianceIterator;
+
+            continue;
         }
 
         anima::Get3DRotationExponential(optimizedValue,data.rotationMatrix);
         for (unsigned int i = 0;i < 3;++i)
-            data.workEigenValues[i] = std::exp(optimizedValue[3 + i]);
+            data.workEigenValues[i] = optimizedValue[3 + i];
 
         anima::RecomposeTensor(data.workEigenValues,data.rotationMatrix,data.workTensor);
         anima::GetVectorRepresentation(data.workTensor,resVec);
@@ -365,7 +381,7 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
     anima::Get3DRotationExponential(x,rotationMatrix);
     workEigenValues.set_size(3);
     for (unsigned int i = 0;i < 3;++i)
-        workEigenValues[i] = std::exp(x[3 + i]);
+        workEigenValues[i] = x[3 + i];
 
     workTensor.set_size(3,3);
     anima::RecomposeTensor(workEigenValues,rotationMatrix,workTensor);
