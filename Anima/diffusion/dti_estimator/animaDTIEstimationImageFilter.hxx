@@ -263,8 +263,8 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
             upperBounds[i + 3] = maxValue;
 
         opt.set_upper_bounds(upperBounds);
-        opt.set_xtol_rel(1e-8);
-        opt.set_ftol_rel(1e-6);
+        opt.set_xtol_rel(1e-4);
+        opt.set_ftol_rel(1e-4);
         opt.set_maxeval(2500);
 
         double minf;
