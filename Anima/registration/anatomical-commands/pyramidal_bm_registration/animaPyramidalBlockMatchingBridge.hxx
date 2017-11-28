@@ -24,6 +24,7 @@ template <unsigned int ImageDimension>
 PyramidalBlockMatchingBridge<ImageDimension>::PyramidalBlockMatchingBridge()
 {
     m_InitialTransform = NULL;
+    m_DirectionTransform = NULL;
     m_ReferenceImage = NULL;
     m_FloatingImage = NULL;
 
@@ -107,6 +108,31 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetInitialTransform (std::str
         catch (itk::ExceptionObject &e)
         {
             std::cerr << "Unable to read initial transform... Exiting..." << std::endl;
+        }
+    }
+}
+
+template <unsigned int ImageDimension>
+void PyramidalBlockMatchingBridge<ImageDimension>::SetDirectionTransform(std::string directionTransformFile)
+{
+    if (directionTransformFile != "")
+    {
+        itk::TransformFileReader::Pointer tmpTrRead = itk::TransformFileReader::New();
+        tmpTrRead->SetFileName(directionTransformFile);
+
+        try
+        {
+            tmpTrRead->Update();
+
+            itk::TransformFileReader::TransformListType trsfList = *(tmpTrRead->GetTransformList());
+            itk::TransformFileReader::TransformListType::iterator tr_it = trsfList.begin();
+
+            m_DirectionTransform = dynamic_cast <AffineTransformType *> ((*tr_it).GetPointer());
+
+        }
+        catch (itk::ExceptionObject &e)
+        {
+            std::cerr << "Unable to read direction transform... Exiting..." << std::endl;
         }
     }
 }
@@ -284,6 +310,8 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
                 break;
             case outAnisotropic_Sim:
                 agreg->SetOutputTransformType(BaseAgreg::ANISOTROPIC_SIM);
+                if (m_DirectionTransform)
+                    agreg->SetOrthogonalDirectionMatrix(m_DirectionTransform->GetMatrix());
                 break;
             case outAffine:
             default:
@@ -456,11 +484,13 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
     if (!m_InitialTransform.IsNull())
         tmpTrsf->Compose(m_InitialTransform, false);
     
-    if (GetOutputTransformType() == outAnisotropic_Sim)
-        this->WriteClosestRigidTransform(estimationBarycenter, estimationPcaOriginPoints);
-    if (GetOutputTransformType() == outAffine)
-        this->WriteClosestRigidTransform(estimationBarycenter);
-
+    if (GetOutputTransformFile() != "")
+    {
+        if (GetOutputTransformType() == outAnisotropic_Sim)
+            this->WriteClosestRigidTransform(estimationBarycenter, estimationPcaOriginPoints);
+        if (GetOutputTransformType() == outAffine)
+            this->WriteClosestRigidTransform(estimationBarycenter);
+    }
     typedef typename anima::ResampleImageFilter<InputImageType, InputImageType,
             typename AgregatorType::ScalarType> ResampleFilterType;
     typename ResampleFilterType::Pointer tmpResample = ResampleFilterType::New();

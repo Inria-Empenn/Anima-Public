@@ -23,6 +23,7 @@ public:
     typedef itk::Transform<ScalarType,NDimensions,NDimensions> BaseOutputTransformType;
     typedef itk::Point <InternalScalarType,NDimensions> PointType;
     typedef itk::ImageRegion <NDimensions> RegionType;
+    typedef itk::Matrix <ScalarType,NDimensions,NDimensions> MatrixType;
 
     enum TRANSFORM_TYPE {
         TRANSLATION,
@@ -44,6 +45,10 @@ public:
     void SetCurrentLinearTransform(BaseInputTransformPointer &inputTransforms);
 
     BaseInputTransformPointer &GetCurrentLinearTransform() { return m_CurrentLinearTransform; }
+
+    void SetOrthogonalDirectionMatrix(const MatrixType &inputTransforms);
+
+    MatrixType &GetOrthogonalDirectionMatrix() { return m_OrthogonalDirectionMatrix; }
 
     void SetInputOrigins(const std::vector <PointType> &inputOrigins)
     {
@@ -101,6 +106,7 @@ private:
     std::vector <PointType> m_InputOrigins;
     std::vector <InternalScalarType> m_Weights;
     BaseInputTransformPointer m_CurrentLinearTransform;
+    MatrixType m_OrthogonalDirectionMatrix;
 
     bool m_UpToDate;
     bool m_VerboseAgregation;
