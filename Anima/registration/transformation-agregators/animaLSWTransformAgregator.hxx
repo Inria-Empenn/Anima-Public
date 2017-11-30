@@ -192,7 +192,6 @@ lswEstimateTranslationsToAnisotropSim()
     if (this->GetOrthogonalDirectionMatrix() != emptyMatrix)
     {
         m_EstimationPcaOriginPoints = this->GetOrthogonalDirectionMatrix().GetVnlMatrix().as_matrix();
-        std::cout << m_EstimationPcaOriginPoints << std::endl;
     }
     else
     {

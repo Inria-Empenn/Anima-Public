@@ -686,6 +686,35 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
         m_InitialTransform = AffineTransformType::New();
         m_InitialTransform->SetIdentity();
 
+        if ((GetOutputTransformType() == outAnisotropic_Sim) || (GetOutputTransformType() == outAffine))
+        {
+            typedef itk::ImageMomentsCalculator< InputImageType > ImageCalculatorType;
+
+            ImageCalculatorType::Pointer fixedCalculator = ImageCalculatorType::New();
+            fixedCalculator->SetImage(m_ReferenceImage);
+            fixedCalculator->Compute();
+            ImageCalculatorType::VectorType fixedPrincipalMom = fixedCalculator->GetPrincipalMoments();
+            ImageCalculatorType::ScalarType fixedMass = fixedCalculator->GetTotalMass();
+
+            ImageCalculatorType::Pointer movingCalculator = ImageCalculatorType::New();
+            movingCalculator->SetImage(m_FloatingImage);
+            movingCalculator->Compute();
+            ImageCalculatorType::VectorType movingPrincipalMom = movingCalculator->GetPrincipalMoments();
+            ImageCalculatorType::ScalarType movingMass = movingCalculator->GetTotalMass();
+
+            vnl_matrix<double> scalMatrix(ImageDimension, ImageDimension, 0);
+            double fixedScalFactor = 0;
+            double movingScalFactor = 0;
+            for (unsigned int i = 0; i < ImageDimension; ++i)
+            {
+                fixedScalFactor += pow(fixedPrincipalMom[i] / fixedMass, 0.5);
+                movingScalFactor += pow(movingPrincipalMom[i] / movingMass, 0.5);
+            }
+            scalMatrix.fill_diagonal(movingScalFactor / fixedScalFactor);
+            m_InitialTransform->SetMatrix(scalMatrix);
+
+        }
+
         if (m_InitializeOnCenterOfGravity)
         {
             typename TransformInitializerType::Pointer initializer = TransformInitializerType::New();
