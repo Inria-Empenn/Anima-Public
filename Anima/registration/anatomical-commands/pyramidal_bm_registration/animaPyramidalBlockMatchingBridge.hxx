@@ -686,43 +686,49 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
         m_InitialTransform = AffineTransformType::New();
         m_InitialTransform->SetIdentity();
 
-        if ((GetOutputTransformType() == outAnisotropic_Sim) || (GetOutputTransformType() == outAffine))
+        if (m_InitializeOnCenterOfGravity)
         {
             typedef itk::ImageMomentsCalculator< InputImageType > ImageCalculatorType;
 
-            ImageCalculatorType::Pointer fixedCalculator = ImageCalculatorType::New();
+            typename ImageCalculatorType::Pointer fixedCalculator = ImageCalculatorType::New();
             fixedCalculator->SetImage(m_ReferenceImage);
             fixedCalculator->Compute();
-            ImageCalculatorType::VectorType fixedPrincipalMom = fixedCalculator->GetPrincipalMoments();
-            ImageCalculatorType::ScalarType fixedMass = fixedCalculator->GetTotalMass();
+            ImageCalculatorType::VectorType fixedBar = fixedCalculator->GetCenterOfGravity();
 
-            ImageCalculatorType::Pointer movingCalculator = ImageCalculatorType::New();
+            typename ImageCalculatorType::Pointer movingCalculator = ImageCalculatorType::New();
             movingCalculator->SetImage(m_FloatingImage);
             movingCalculator->Compute();
-            ImageCalculatorType::VectorType movingPrincipalMom = movingCalculator->GetPrincipalMoments();
-            ImageCalculatorType::ScalarType movingMass = movingCalculator->GetTotalMass();
+            ImageCalculatorType::VectorType movingBar = movingCalculator->GetCenterOfGravity();
 
-            vnl_matrix<double> scalMatrix(ImageDimension, ImageDimension, 0);
-            double fixedScalFactor = 0;
-            double movingScalFactor = 0;
-            for (unsigned int i = 0; i < ImageDimension; ++i)
+            if ((GetOutputTransformType() == outAnisotropic_Sim) || (GetOutputTransformType() == outAffine))
             {
-                fixedScalFactor += pow(fixedPrincipalMom[i] / fixedMass, 0.5);
-                movingScalFactor += pow(movingPrincipalMom[i] / movingMass, 0.5);
+                ImageCalculatorType::VectorType fixedPrincipalMom = fixedCalculator->GetPrincipalMoments();
+                ImageCalculatorType::ScalarType fixedMass = fixedCalculator->GetTotalMass();
+
+                ImageCalculatorType::VectorType movingPrincipalMom = movingCalculator->GetPrincipalMoments();
+                ImageCalculatorType::ScalarType movingMass = movingCalculator->GetTotalMass();
+
+                vnl_matrix<double> scalMatrix(ImageDimension, ImageDimension, 0);
+                itk::Vector<double, ImageDimension> scalOffset;
+                double fixedScalFactor = 0;
+                double movingScalFactor = 0;
+                for (unsigned int i = 0; i < ImageDimension; ++i)
+                {
+                    fixedScalFactor += pow(fixedPrincipalMom[i] / fixedMass, 0.5);
+                    movingScalFactor += pow(movingPrincipalMom[i] / movingMass, 0.5);
+                }
+                scalMatrix.fill_diagonal(movingScalFactor / fixedScalFactor);
+                for (unsigned int i = 0; i < ImageDimension; ++i)
+                {
+                    scalOffset[i] = movingBar[i] - (movingScalFactor / fixedScalFactor)*fixedBar[i];
+                }
+                m_InitialTransform->SetMatrix(scalMatrix);
+                m_InitialTransform->SetOffset(scalOffset);
             }
-            scalMatrix.fill_diagonal(movingScalFactor / fixedScalFactor);
-            m_InitialTransform->SetMatrix(scalMatrix);
-
-        }
-
-        if (m_InitializeOnCenterOfGravity)
-        {
-            typename TransformInitializerType::Pointer initializer = TransformInitializerType::New();
-            initializer->SetTransform(m_InitialTransform);
-            initializer->SetFixedImage(m_ReferenceImage);
-            initializer->SetMovingImage(m_FloatingImage);
-            initializer->MomentsOn();
-            initializer->InitializeTransform();
+            else
+            {
+                m_InitialTransform->SetOffset(movingBar - fixedBar);
+            }
         }
 
         typename ResampleFilterType::Pointer tmpResample = ResampleFilterType::New();
@@ -738,6 +744,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
 
         initialFloatingImage = tmpResample->GetOutput();
         initialFloatingImage->DisconnectPipeline();
+
     }
 
     // Create pyramid for floating image
