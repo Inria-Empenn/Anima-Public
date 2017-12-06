@@ -6,3 +6,4 @@ project(ANIMA-SEGMENTATION)
 
 add_subdirectory(basic_tools)
 add_subdirectory(graph_cut)
+add_subdirectory(isosurface)
