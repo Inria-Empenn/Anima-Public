@@ -237,6 +237,7 @@ public:
 
     void WriteMCMOutput(std::string fileName);
 
+    itkSetMacro(SparseInitialization, bool)
     itkSetMacro(ExternalDTIParameters, bool)
     itkSetMacro(AxialDiffusivityFixedValue, double)
     itkSetMacro(RadialDiffusivity1FixedValue, double)
@@ -257,6 +258,7 @@ protected:
 
         m_BValuesList.clear();
         m_GradientDirections.clear();
+        m_SparseInitialization = false;
 
         m_NumberOfDictionaryEntries = 30;
         m_Optimizer = "bobyqa";
@@ -343,6 +345,11 @@ protected:
                                        std::vector <double> &observedSignals, SequenceGeneratorType &generator,
                                        itk::ThreadIdType threadId, double &aiccValue, double &b0Value, double &sigmaSqValue);
 
+    //! Doing estimation only of multiple orientations, this time from a dictionary
+    void InitialOrientationsEstimationFromSparseDictionary(MCMPointer &mcmValue, unsigned int currentNumberOfCompartments,
+                                                           std::vector <double> &observedSignals, itk::ThreadIdType threadId,
+                                                           double &aiccValue, double &b0Value, double &sigmaSqValue);
+
     //! Doing estimation, calling initialization procedure until ball and zeppelin, returns AICc value
     void ModelEstimation(MCMPointer &mcmValue, std::vector <double> &observedSignals, itk::ThreadIdType threadId,
                          double &aiccValue, double &b0Value, double &sigmaSqValue);
@@ -405,6 +412,7 @@ private:
     std::string m_Optimizer;
 
     //! Sparse dictionary for pre-, rough estimation of directions in sticks
+    bool m_SparseInitialization;
     vnl_matrix <double> m_SparseSticksDictionary;
     unsigned int m_NumberOfDictionaryEntries;
     std::vector < std::vector <double> > m_DictionaryDirections;
