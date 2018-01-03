@@ -1,5 +1,6 @@
 #pragma once
 
+#include <itkVectorImage.h>
 #include <animaBaseProbabilisticTractographyImageFilter.h>
 #include <animaODFSphericalHarmonicBasis.h>
 
@@ -8,19 +9,19 @@
 namespace anima
 {
 
-class ANIMATRACTOGRAPHY_EXPORT ODFProbabilisticTractographyImageFilter : public anima::BaseProbabilisticTractographyImageFilter
+class ANIMATRACTOGRAPHY_EXPORT ODFProbabilisticTractographyImageFilter : public anima::BaseProbabilisticTractographyImageFilter < itk::VectorImage <float, 3> >
 {
 public:
     /** SmartPointer typedef support  */
     typedef ODFProbabilisticTractographyImageFilter Self;
-    typedef BaseProbabilisticTractographyImageFilter Superclass;
+    typedef BaseProbabilisticTractographyImageFilter < itk::VectorImage <float, 3> > Superclass;
 
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self> ConstPointer;
 
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
-    itkTypeMacro(ODFProbabilisticTractographyImageFilter,BaseProbabilisticTractographyImageFilter);
+    itkTypeMacro(ODFProbabilisticTractographyImageFilter,BaseProbabilisticTractographyImageFilter)
 
     struct XYZ
     {
@@ -28,10 +29,9 @@ public:
     };
 
     void SetODFSHOrder(unsigned int num);
-    itkSetMacro(Lambda,double);
-    itkSetMacro(GFAThreshold,double);
-    itkSetMacro(CurvatureScale,double);
-    itkSetMacro(MinimalDiffusionProbability,double);
+    itkSetMacro(GFAThreshold,double)
+    itkSetMacro(CurvatureScale,double)
+    itkSetMacro(MinimalDiffusionProbability,double)
 
 protected:
     ODFProbabilisticTractographyImageFilter();
@@ -44,12 +44,10 @@ protected:
                                           Vector3DType &sampling_direction, double &log_prior,
                                           double &log_proposal, std::mt19937 &random_generator, unsigned int threadId) ITK_OVERRIDE;
 
-    virtual double ComputeLogWeightUpdate(double b0Value, double noiseValue, Vector3DType &newDirection, Vector3DType &sampling_direction,
-                                          VectorType &modelValue, VectorType &dwiValue,
+    virtual double ComputeLogWeightUpdate(double b0Value, double noiseValue, Vector3DType &newDirection, VectorType &modelValue,
                                           double &log_prior, double &log_proposal, unsigned int threadId) ITK_OVERRIDE;
 
-    virtual double ComputeModelEstimation(DWIInterpolatorPointerVectorType &dwiInterpolators, ContinuousIndexType &index,
-                                          VectorType &dwiValue, double &noiseValue, VectorType &modelValue) ITK_OVERRIDE;
+    virtual void ComputeModelValue(InterpolatorPointer &modelInterpolator, ContinuousIndexType &index, VectorType &modelValue) ITK_OVERRIDE;
 
     virtual Vector3DType InitializeFirstIterationFromModel(Vector3DType &colinearDir, VectorType &modelValue,
                                                            unsigned int threadId) ITK_OVERRIDE;
@@ -70,12 +68,6 @@ private:
 
     unsigned int m_ODFSHOrder;
     anima::ODFSphericalHarmonicBasis *m_ODFSHBasis;
-
-    //Estimation parameters
-    vnl_matrix <double> m_SignalCoefsMatrix;
-    vnl_matrix <double> m_TMatrix;
-    double m_Lambda;
-    double m_DeltaAganjRegularization;
 };
 
 } // end of namespace anima

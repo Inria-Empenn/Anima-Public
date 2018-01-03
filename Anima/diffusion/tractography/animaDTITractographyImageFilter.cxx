@@ -33,15 +33,7 @@ bool dtiTractographyImageFilter::CheckModelCompatibility(VectorType &modelValue,
     itk::SymmetricEigenAnalysis <MatrixType,vnl_diag_matrix <double>,MatrixType> EigenAnalysis(3);
     MatrixType tmpMat(3,3);
 
-    unsigned int pos = 0;
-    for (unsigned int i = 0;i < 3;++i)
-        for (unsigned int j = 0;j <= i;++j)
-        {
-            tmpMat(i,j) = modelValue[pos];
-            if (j != i)
-                tmpMat(j,i) = tmpMat(i,j);
-            ++pos;
-        }
+    anima::GetTensorFromVectorRepresentation(modelValue,tmpMat);
 
     vnl_diag_matrix <double> eVals(3);
     EigenAnalysis.ComputeEigenValues(tmpMat,eVals);
@@ -63,7 +55,7 @@ bool dtiTractographyImageFilter::CheckModelCompatibility(VectorType &modelValue,
         denom += eVals[i] * eVals[i];
     }
 
-    double FAValue = std::sqrt(num / (2 * denom));
+    double FAValue = std::sqrt(num / (2.0 * denom));
 
     if (FAValue < m_StopFAThreshold)
         return false;
@@ -76,12 +68,10 @@ bool dtiTractographyImageFilter::CheckIndexInImageBounds(ContinuousIndexType &in
     return m_DTIInterpolator->IsInsideBuffer(index);
 }
 
-dtiTractographyImageFilter::VectorType
-dtiTractographyImageFilter::GetModelValue(ContinuousIndexType &index)
+void
+dtiTractographyImageFilter::GetModelValue(ContinuousIndexType &index, VectorType &modelValue)
 {
-    VectorType outputValue = m_DTIInterpolator->EvaluateAtContinuousIndex(index);
-
-    return outputValue;
+    modelValue = m_DTIInterpolator->EvaluateAtContinuousIndex(index);
 }
 
 dtiTractographyImageFilter::PointType
@@ -95,15 +85,7 @@ dtiTractographyImageFilter::GetModelPrincipalDirection(VectorType &modelValue, b
     vnl_diag_matrix <double> eVals(3);
     MatrixType eVec(3,3);
 
-    unsigned int pos = 0;
-    for (unsigned int i = 0;i < 3;++i)
-        for (unsigned int j = 0;j <= i;++j)
-        {
-            tmpMat(i,j) = modelValue[pos];
-            if (j != i)
-                tmpMat(j,i) = tmpMat(i,j);
-            ++pos;
-        }
+    anima::GetTensorFromVectorRepresentation(modelValue,tmpMat);
 
     EigenAnalysis.ComputeEigenValuesAndVectors(tmpMat,eVals,eVec);
     PointType resDir;
@@ -202,7 +184,7 @@ void dtiTractographyImageFilter::ComputeAdditionalScalarMaps()
         this->GetInputImage()->TransformPhysicalPointToContinuousIndex(tmpPoint,tmpIndex);
         tensorValue.Fill(0.0);
         if (m_DTIInterpolator->IsInsideBuffer(tmpIndex))
-            tensorValue = this->GetModelValue(tmpIndex);
+            this->GetModelValue(tmpIndex,tensorValue);
 
         anima::GetTensorFromVectorRepresentation(tensorValue,tmpMat,3,false);
         anima::GetTensorExponential(tmpMat,tmpMat);
