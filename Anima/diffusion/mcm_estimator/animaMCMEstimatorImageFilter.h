@@ -260,7 +260,7 @@ protected:
         m_GradientDirections.clear();
         m_SparseInitialization = false;
 
-        m_NumberOfDictionaryEntries = 30;
+        m_NumberOfDictionaryEntries = 120;
         m_Optimizer = "bobyqa";
         m_NumberOfRandomRestarts = 1;
         m_AbsoluteCostChange = 0.01;

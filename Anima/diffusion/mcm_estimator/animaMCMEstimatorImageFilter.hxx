@@ -406,6 +406,10 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     countIsoComps = 0;
     MCMPointer mcm;
     MCMCreatorType *mcmCreator = m_MCMCreators[0];
+    mcmCreator->SetFreeWaterProportionFixedValue(m_FreeWaterProportionFixedValue);
+    mcmCreator->SetStationaryWaterProportionFixedValue(m_StationaryWaterProportionFixedValue);
+    mcmCreator->SetRestrictedWaterProportionFixedValue(m_RestrictedWaterProportionFixedValue);
+
     if (m_ModelWithFreeWaterComponent)
     {
         mcmCreator->SetModelWithFreeWaterComponent(true);
@@ -694,21 +698,21 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     double optimalSigmaSqValue = 0;
     double optimalAiccValue = 0;
 
-    std::vector <double> samplingLowerBounds;
-    std::vector <double> samplingUpperBounds;
-    MCMPointer mcmOptimizationValue;
-
     if (m_SparseInitialization)
     {
-        this->InitialOrientationsEstimationFromSparseDictionary(mcmOptimizationValue,currentNumberOfCompartments,observedSignals,
+        this->InitialOrientationsEstimationFromSparseDictionary(mcmValue,currentNumberOfCompartments,observedSignals,
                                                                 threadId,aiccValue,b0Value,sigmaSqValue);
 
-        this->TrunkModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
+        this->TrunkModelEstimation(mcmValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
         if ((m_CompartmentType != Stick)&&(m_CompartmentType != Zeppelin))
-            this->SpecificModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
+            this->SpecificModelEstimation(mcmValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
     }
     else
     {
+        std::vector <double> samplingLowerBounds;
+        std::vector <double> samplingUpperBounds;
+        MCMPointer mcmOptimizationValue;
+
         unsigned int restartTotalNumber = 1;
         if (currentNumberOfCompartments > 1)
             restartTotalNumber = m_NumberOfRandomRestarts;
@@ -1000,7 +1004,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     for (unsigned int i = 0;i < numIsoCompartments;++i)
         sparseWeights[i] = dictionaryWeights[i];
 
-    unsigned int pos = 0;
+    unsigned int pos = numIsoCompartments;
     for (unsigned int i = numIsoCompartments;i < dictionaryWeights.size();++i)
     {
         if (dictionaryWeights[i] > 0)

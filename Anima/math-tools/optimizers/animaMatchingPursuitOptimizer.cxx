@@ -26,9 +26,11 @@ void MatchingPursuitOptimizer::StartOptimization()
     {
         for (unsigned int j = 0;j < numEquations;++j)
             dictionaryNorms[i] += m_DataMatrix(j,i) * m_DataMatrix(j,i);
+
+        dictionaryNorms[i] = std::sqrt(dictionaryNorms[i]);
     }
 
-    while(numIndexesDone <= m_MaximalNumberOfWeights)
+    while(numIndexesDone < m_MaximalNumberOfWeights)
     {
         double maxDotProductDictionary = 0;
         int maxIndex = -1;
@@ -39,8 +41,9 @@ void MatchingPursuitOptimizer::StartOptimization()
 
             double dotProductDictionary = 0;
             for (unsigned int j = 0;j < numEquations;++j)
-                dotProductDictionary += m_DataMatrix(j,i) * m_CurrentResiduals[i];
+                dotProductDictionary += m_DataMatrix(j,i) * m_CurrentResiduals[j];
 
+            dotProductDictionary /= dictionaryNorms[i];
             if (dotProductDictionary > maxDotProductDictionary)
             {
                 maxDotProductDictionary = dotProductDictionary;
@@ -52,12 +55,7 @@ void MatchingPursuitOptimizer::StartOptimization()
             break;
 
         if (maxIndex >= m_IgnoredIndexesUpperBound)
-        {
-            if (numIndexesDone == m_MaximalNumberOfWeights)
-                break;
-
             ++numIndexesDone;
-        }
 
         indexesTaken.push_back((unsigned int)maxIndex);
         m_CurrentPosition[maxIndex] = maxDotProductDictionary / dictionaryNorms[maxIndex];
