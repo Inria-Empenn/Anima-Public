@@ -345,11 +345,6 @@ protected:
                                        std::vector <double> &observedSignals, SequenceGeneratorType &generator,
                                        itk::ThreadIdType threadId, double &aiccValue, double &b0Value, double &sigmaSqValue);
 
-    //! Doing estimation only of multiple orientations, this time from a dictionary
-    void InitialOrientationsEstimationFromSparseDictionary(MCMPointer &mcmValue, unsigned int currentNumberOfCompartments,
-                                                           std::vector <double> &observedSignals, itk::ThreadIdType threadId,
-                                                           double &aiccValue, double &b0Value, double &sigmaSqValue);
-
     //! Doing estimation, calling initialization procedure until ball and zeppelin, returns AICc value
     void ModelEstimation(MCMPointer &mcmValue, std::vector <double> &observedSignals, itk::ThreadIdType threadId,
                          double &aiccValue, double &b0Value, double &sigmaSqValue);
@@ -359,7 +354,8 @@ protected:
                                      itk::Array<double> &upperBounds);
 
     //! Performs initialization from single DTI
-    virtual void InitializeStickModelFromDTI(MCMPointer &simplifiedModel, MCMPointer &complexModel, SequenceGeneratorType &generator);
+    virtual void InitializeStickModelFromDTI(MCMPointer &simplifiedModel, MCMPointer &complexModel, std::vector <double> &observedSignals,
+                                             SequenceGeneratorType &generator);
 
     //! Performs initialization from simplified model with the same number of compartments
     virtual void InitializeModelFromSimplifiedOne(MCMPointer &simplifiedModel, MCMPointer &complexModel);

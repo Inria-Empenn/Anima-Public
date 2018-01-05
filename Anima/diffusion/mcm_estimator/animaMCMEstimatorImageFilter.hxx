@@ -698,59 +698,47 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     double optimalSigmaSqValue = 0;
     double optimalAiccValue = 0;
 
-    if (m_SparseInitialization)
+    std::vector <double> samplingLowerBounds;
+    std::vector <double> samplingUpperBounds;
+    MCMPointer mcmOptimizationValue;
+
+    unsigned int restartTotalNumber = 1;
+    if ((currentNumberOfCompartments > 1)&&(!m_SparseInitialization))
+        restartTotalNumber = m_NumberOfRandomRestarts;
+
+    SequenceGeneratorType generator(3*currentNumberOfCompartments);
+    samplingLowerBounds.resize(3*currentNumberOfCompartments);
+    std::fill(samplingLowerBounds.begin(),samplingLowerBounds.end(),0.0);
+    generator.SetLowerBounds(samplingLowerBounds);
+
+    samplingUpperBounds.resize(3*currentNumberOfCompartments);
+    for (unsigned int j = 0;j < currentNumberOfCompartments;++j)
     {
-        this->InitialOrientationsEstimationFromSparseDictionary(mcmValue,currentNumberOfCompartments,observedSignals,
-                                                                threadId,aiccValue,b0Value,sigmaSqValue);
-
-        this->TrunkModelEstimation(mcmValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
-        if ((m_CompartmentType != Stick)&&(m_CompartmentType != Zeppelin))
-            this->SpecificModelEstimation(mcmValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
+        samplingUpperBounds[j] = 1.0;
+        samplingUpperBounds[currentNumberOfCompartments+j] = M_PI;
+        samplingUpperBounds[2*currentNumberOfCompartments+j] = 2.0 * M_PI;
     }
-    else
+
+    generator.SetUpperBounds(samplingUpperBounds);
+    for (unsigned int restartNum = 0;restartNum < restartTotalNumber;++restartNum)
     {
-        std::vector <double> samplingLowerBounds;
-        std::vector <double> samplingUpperBounds;
-        MCMPointer mcmOptimizationValue;
+        this->InitialOrientationsEstimation(mcmOptimizationValue,currentNumberOfCompartments,initialDTI,observedSignals,
+                                            generator,threadId,aiccValue,b0Value,sigmaSqValue);
 
-        unsigned int restartTotalNumber = 1;
-        if (currentNumberOfCompartments > 1)
-            restartTotalNumber = m_NumberOfRandomRestarts;
+        this->ModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
 
-        SequenceGeneratorType generator(3*currentNumberOfCompartments);
-        samplingLowerBounds.resize(3*currentNumberOfCompartments);
-        std::fill(samplingLowerBounds.begin(),samplingLowerBounds.end(),0.0);
-        generator.SetLowerBounds(samplingLowerBounds);
-
-        samplingUpperBounds.resize(3*currentNumberOfCompartments);
-        for (unsigned int j = 0;j < currentNumberOfCompartments;++j)
+        if ((aiccValue < optimalAiccValue)||(restartNum == 0))
         {
-            samplingUpperBounds[j] = 1.0;
-            samplingUpperBounds[currentNumberOfCompartments+j] = M_PI;
-            samplingUpperBounds[2*currentNumberOfCompartments+j] = 2.0 * M_PI;
+            optimalB0Value = b0Value;
+            optimalAiccValue = aiccValue;
+            optimalSigmaSqValue = sigmaSqValue;
+            mcmValue = mcmOptimizationValue;
         }
-
-        generator.SetUpperBounds(samplingUpperBounds);
-        for (unsigned int restartNum = 0;restartNum < restartTotalNumber;++restartNum)
-        {
-            this->InitialOrientationsEstimation(mcmOptimizationValue,currentNumberOfCompartments,initialDTI,observedSignals,
-                                                generator,threadId,aiccValue,b0Value,sigmaSqValue);
-
-            this->ModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue)
-
-            if ((aiccValue < optimalAiccValue)||(restartNum == 0))
-            {
-                optimalB0Value = b0Value;
-                optimalAiccValue = aiccValue;
-                optimalSigmaSqValue = sigmaSqValue;
-                mcmValue = mcmOptimizationValue;
-            }
-        }
-
-        aiccValue = optimalAiccValue;
-        sigmaSqValue = optimalSigmaSqValue;
-        b0Value = optimalB0Value;
     }
+
+    aiccValue = optimalAiccValue;
+    sigmaSqValue = optimalSigmaSqValue;
+    b0Value = optimalB0Value;
 }
 
 template <class InputPixelType, class OutputPixelType>
@@ -936,115 +924,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     CostFunctionBasePointer cost = this->CreateCostFunction(observedSignals,mcmUpdateValue);
 
     // - Now the tricky part: initialize from previous model, handled somewhere else
-    this->InitializeStickModelFromDTI(mcmDTIValue,mcmUpdateValue,generator);
-
-    // - Update ball and stick model against observed signals
-    workVec = mcmUpdateValue->GetParametersAsVector();
-    for (unsigned int j = 0;j < dimension;++j)
-        p[j] = workVec[j];
-
-    double costValue = this->PerformSingleOptimization(p,cost,lowerBounds,upperBounds);
-
-    // - Get estimated data
-    for (unsigned int j = 0;j < dimension;++j)
-        workVec[j] = p[j];
-
-    mcmUpdateValue->SetParametersFromVector(workVec);
-
-    this->GetProfiledInformation(cost,mcmUpdateValue,b0Value,sigmaSqValue);
-
-    aiccValue = this->ComputeAICcValue(mcmUpdateValue,costValue);
-    mcmValue = mcmUpdateValue;
-}
-
-template <class InputPixelType, class OutputPixelType>
-void
-MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
-::InitialOrientationsEstimationFromSparseDictionary(MCMPointer &mcmValue, unsigned int currentNumberOfCompartments,
-                                                    std::vector <double> &observedSignals, itk::ThreadIdType threadId,
-                                                    double &aiccValue, double &b0Value, double &sigmaSqValue)
-{
-    MCMCreatorType *mcmCreator = m_MCMCreators[threadId];
-
-    mcmCreator->SetModelWithFreeWaterComponent(m_ModelWithFreeWaterComponent);
-    mcmCreator->SetModelWithStationaryWaterComponent(m_ModelWithStationaryWaterComponent);
-    mcmCreator->SetModelWithRestrictedWaterComponent(m_ModelWithRestrictedWaterComponent);
-    mcmCreator->SetCompartmentType(Stick);
-    mcmCreator->SetNumberOfCompartments(currentNumberOfCompartments);
-    mcmCreator->SetUseFixedWeights(m_UseFixedWeights || (m_MLEstimationStrategy == VariableProjection));
-    mcmCreator->SetFreeWaterProportionFixedValue(m_FreeWaterProportionFixedValue);
-    mcmCreator->SetStationaryWaterProportionFixedValue(m_StationaryWaterProportionFixedValue);
-    mcmCreator->SetRestrictedWaterProportionFixedValue(m_RestrictedWaterProportionFixedValue);
-    mcmCreator->SetUseConstrainedDiffusivity(true);
-    mcmCreator->SetUseConstrainedFreeWaterDiffusivity(m_UseConstrainedFreeWaterDiffusivity);
-    mcmCreator->SetUseConstrainedIRWDiffusivity(m_UseConstrainedIRWDiffusivity);
-    mcmCreator->SetUseCommonDiffusivities(m_UseCommonDiffusivities);
-
-    MCMPointer mcmUpdateValue = mcmCreator->GetNewMultiCompartmentModel();
-
-    unsigned int numIsoCompartments = mcmUpdateValue->GetNumberOfIsotropicCompartments();
-    anima::MatchingPursuitOptimizer::Pointer sparseOptimizer = anima::MatchingPursuitOptimizer::New();
-    sparseOptimizer->SetDataMatrix(m_SparseSticksDictionary);
-
-    ParametersType rightHandValues(observedSignals.size());
-    for (unsigned int i = 0;i < observedSignals.size();++i)
-        rightHandValues[i] = observedSignals[i];
-
-    sparseOptimizer->SetPoints(rightHandValues);
-    sparseOptimizer->SetMaximalNumberOfWeights(currentNumberOfCompartments);
-    sparseOptimizer->SetPositiveWeights(true);
-    sparseOptimizer->SetIgnoredIndexesUpperBound(numIsoCompartments);
-
-    sparseOptimizer->StartOptimization();
-
-    MCMType::ListType sparseWeights(mcmUpdateValue->GetNumberOfCompartments(),0.0);
-
-    ParametersType dictionaryWeights = sparseOptimizer->GetCurrentPosition();
-
-    for (unsigned int i = 0;i < numIsoCompartments;++i)
-        sparseWeights[i] = dictionaryWeights[i];
-
-    unsigned int pos = numIsoCompartments;
-    for (unsigned int i = numIsoCompartments;i < dictionaryWeights.size();++i)
-    {
-        if (dictionaryWeights[i] > 0)
-        {
-            sparseWeights[pos] = dictionaryWeights[i];
-
-            anima::BaseCompartment *currentCompartment = mcmUpdateValue->GetCompartment(pos);
-            currentCompartment->SetOrientationTheta(m_DictionaryDirections[i][0]);
-            currentCompartment->SetOrientationPhi(m_DictionaryDirections[i][1]);
-
-            ++pos;
-        }
-    }
-
-    // TO DO : handle wrong number of compartments
-
-    double sumWeights = 0;
-    for (unsigned int i = 0;i < mcmUpdateValue->GetNumberOfCompartments();++i)
-        sumWeights += sparseWeights[i];
-
-    for (unsigned int i = 0;i < mcmUpdateValue->GetNumberOfCompartments();++i)
-        sparseWeights[i] /= sumWeights;
-
-    mcmUpdateValue->SetCompartmentWeights(sparseWeights);
-
-    // Now do regular optimization from this initial point
-    unsigned int dimension = mcmUpdateValue->GetNumberOfParameters();
-    ParametersType p(dimension);
-    MCMType::ListType workVec(dimension);
-    itk::Array<double> lowerBounds(dimension), upperBounds(dimension);
-
-    workVec = mcmUpdateValue->GetParameterLowerBounds();
-    for (unsigned int j = 0;j < dimension;++j)
-        lowerBounds[j] = workVec[j];
-
-    workVec = mcmUpdateValue->GetParameterUpperBounds();
-    for (unsigned int j = 0;j < dimension;++j)
-        upperBounds[j] = workVec[j];
-
-    CostFunctionBasePointer cost = this->CreateCostFunction(observedSignals,mcmUpdateValue);
+    this->InitializeStickModelFromDTI(mcmDTIValue,mcmUpdateValue,observedSignals,generator);
 
     // - Update ball and stick model against observed signals
     workVec = mcmUpdateValue->GetParametersAsVector();
@@ -1584,7 +1464,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 template <class InputPixelType, class OutputPixelType>
 void
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
-::InitializeStickModelFromDTI(MCMPointer &dtiModel, MCMPointer &complexModel, SequenceGeneratorType &generator)
+::InitializeStickModelFromDTI(MCMPointer &dtiModel, MCMPointer &complexModel, std::vector<double> &observedSignals,
+                              SequenceGeneratorType &generator)
 {
     BaseCompartmentType *tensorCompartment = dtiModel->GetCompartment(0);
 
@@ -1596,6 +1477,54 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     {
         complexModel->GetCompartment(numIsotropicComponents)->SetOrientationTheta(tensorCompartment->GetOrientationTheta());
         complexModel->GetCompartment(numIsotropicComponents)->SetOrientationPhi(tensorCompartment->GetOrientationPhi());
+    }
+
+    if (m_SparseInitialization)
+    {
+        anima::MatchingPursuitOptimizer::Pointer sparseOptimizer = anima::MatchingPursuitOptimizer::New();
+        sparseOptimizer->SetDataMatrix(m_SparseSticksDictionary);
+
+        ParametersType rightHandValues(observedSignals.size());
+        for (unsigned int i = 0;i < observedSignals.size();++i)
+            rightHandValues[i] = observedSignals[i];
+
+        sparseOptimizer->SetPoints(rightHandValues);
+        sparseOptimizer->SetMaximalNumberOfWeights(numNonIsotropicComponents);
+        sparseOptimizer->SetPositiveWeights(true);
+        sparseOptimizer->SetIgnoredIndexesUpperBound(numIsotropicComponents);
+
+        sparseOptimizer->StartOptimization();
+
+        MCMType::ListType sparseWeights(complexModel->GetNumberOfCompartments(),0.0);
+
+        ParametersType dictionaryWeights = sparseOptimizer->GetCurrentPosition();
+
+        for (unsigned int i = 0;i < numIsotropicComponents;++i)
+            sparseWeights[i] = dictionaryWeights[i];
+
+        unsigned int pos = numIsotropicComponents;
+        for (unsigned int i = numIsotropicComponents;i < dictionaryWeights.size();++i)
+        {
+            if (dictionaryWeights[i] > 0)
+            {
+                sparseWeights[pos] = dictionaryWeights[i];
+
+                anima::BaseCompartment *currentCompartment = complexModel->GetCompartment(pos);
+                currentCompartment->SetOrientationTheta(m_DictionaryDirections[i][0]);
+                currentCompartment->SetOrientationPhi(m_DictionaryDirections[i][1]);
+
+                ++pos;
+            }
+        }
+
+        double sumWeights = 0;
+        for (unsigned int i = 0;i < complexModel->GetNumberOfCompartments();++i)
+            sumWeights += sparseWeights[i];
+
+        for (unsigned int i = 0;i < complexModel->GetNumberOfCompartments();++i)
+            sparseWeights[i] /= sumWeights;
+
+        complexModel->SetCompartmentWeights(sparseWeights);
     }
 }
 
