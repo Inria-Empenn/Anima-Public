@@ -57,20 +57,6 @@ protected:
     virtual ~VectorModelLinearInterpolateImageFunction() {}
     void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
 
-    virtual bool IsInsideBuffer(const ContinuousIndexType & index) const ITK_OVERRIDE
-    {
-        for ( unsigned int j = 0; j < ImageDimension; j++ )
-        {
-            /* Test for negative of a positive so we can catch NaN's. */
-            if ( ! (index[j] >= this->m_StartIndex[j] &&
-                    index[j] <= this->m_EndIndex[j] ) )
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
     template <class T> inline bool isZero(itk::VariableLengthVector <T> &value) const
     {
         for (unsigned int i = 0;i < value.GetNumberOfElements();++i)

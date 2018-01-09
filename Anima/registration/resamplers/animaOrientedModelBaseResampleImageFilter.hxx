@@ -5,8 +5,10 @@
 #include <itkImageRegionIteratorWithIndex.h>
 #include <animaVectorModelLinearInterpolateImageFunction.h>
 
+#include <itkTranslationTransform.h>
+#include <itkMatrixOffsetTransformBase.h>
+
 #include <animaBaseTensorTools.h>
-#include <animaLinearTransformEstimationTools.h>
 
 namespace anima
 {
@@ -198,42 +200,16 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 ::ComputeLinearJacobianMatrix()
 {
     vnl_matrix <double> reorientationMatrix(ImageDimension,ImageDimension);
+    reorientationMatrix.set_identity();
 
-    unsigned int neighbors = 1 << ImageDimension;
-    std::vector <InputPointType> inputPoints(neighbors);
-    std::vector <InputPointType> transformedPoints(neighbors);
-    std::vector <double> dataWeights(neighbors, 1.0);
+    typedef itk::TranslationTransform <TInterpolatorPrecisionType,ImageDimension> TranslationType;
+    if (dynamic_cast <TranslationType *> (m_Transform.GetPointer()))
+        return reorientationMatrix;
 
-    InputIndexType refIndex;
-    for (unsigned int i = 0;i < ImageDimension;++i)
-        refIndex[i] = std::floor((this->GetOutput()->GetLargestPossibleRegion().GetIndex()[i] + this->GetOutput()->GetLargestPossibleRegion().GetSize()[i]) / 2.0);
+    typedef itk::MatrixOffsetTransformBase <TInterpolatorPrecisionType,ImageDimension,ImageDimension> AffineTransformType;
 
-    ContinuousIndexType index;
-    unsigned int pos = 0;
-    for (unsigned int counter = 0;counter < neighbors;++counter)
-    {
-        unsigned int upper = counter;
-        for (unsigned int dim = 0;dim < ImageDimension;++dim)
-        {
-            if (upper & 1)
-                index[dim] = refIndex[dim] + 0.5;
-            else
-                index[dim] = refIndex[dim] - 0.5;
-
-            upper >>= 1;
-        }
-
-        this->GetOutput()->TransformContinuousIndexToPhysicalPoint(index,inputPoints[pos]);
-        transformedPoints[pos] = m_Transform->TransformPoint(inputPoints[pos]);
-
-        ++pos;
-    }
-
-    typedef itk::AffineTransform <TInterpolatorPrecisionType, ImageDimension> AffineTransformType;
-    typename AffineTransformType::Pointer affineTransform = AffineTransformType::New();
-    anima::computeAffineLSWFromTranslations <double,TInterpolatorPrecisionType,ImageDimension> (inputPoints,transformedPoints,dataWeights,affineTransform);
-
-    reorientationMatrix = affineTransform->GetMatrix().GetVnlMatrix().as_matrix();
+    AffineTransformType *tmpTrsf = dynamic_cast <AffineTransformType *> (m_Transform.GetPointer());
+    reorientationMatrix = tmpTrsf->GetMatrix().GetVnlMatrix().as_matrix();
 
     return reorientationMatrix;
 }
@@ -288,6 +264,29 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
         tmpPos = m_Transform->TransformPoint(tmpPosBef);
         for (unsigned int j = 0;j < ImageDimension;++j)
             resDiff(i,j) -= tmpPos[j];
+    }
+
+    bool identicalMatrices = true;
+    for (unsigned int i = 0;i < ImageDimension;++i)
+    {
+        for (unsigned int j = 0;j < ImageDimension;++j)
+        {
+            if (deltaMatrix(i,j) != resDiff(i,j))
+            {
+                identicalMatrices = false;
+                break;
+            }
+        }
+
+        if (!identicalMatrices)
+            break;
+    }
+
+    if (identicalMatrices)
+    {
+        jacMatrix.set_identity();
+        reorientationMatrix = jacMatrix;
+        return;
     }
 
     deltaMatrix = vnl_matrix_inverse <double> (deltaMatrix);

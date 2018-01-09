@@ -38,7 +38,7 @@ TensorMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,I
 
     MeasureType measure = itk::NumericTraits< MeasureType >::Zero;
 
-    this->m_NumberOfPixelsCounted = 0;
+    this->m_NumberOfPixelsCounted = this->GetFixedImageRegion().GetNumberOfPixels();
 
     this->SetTransformParameters( parameters );
 
@@ -55,6 +55,7 @@ TensorMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,I
     itk::SymmetricEigenAnalysis < EigVecMatrixType, EigValVectorType, EigVecMatrixType> eigenComputer(3);
     EigVecMatrixType eigVecs;
     EigValVectorType eigVals;
+    PixelType movingValue;
 
     while(!ti.IsAtEnd())
     {
@@ -66,7 +67,7 @@ TensorMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,I
 
         if( this->m_Interpolator->IsInsideBuffer( transformedIndex ) )
         {
-            PixelType movingValue = this->m_Interpolator->EvaluateAtContinuousIndex(transformedIndex);
+            movingValue = this->m_Interpolator->EvaluateAtContinuousIndex(transformedIndex);
 
             if (this->GetModelRotation() != Superclass::NONE)
             {
@@ -84,27 +85,24 @@ TensorMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,I
 
                 anima::GetVectorRepresentation(currentTensor,movingValue,vectorSize,true);
             }
+        }
+        else
+        {
+            movingValue.SetSize(vectorSize);
+            movingValue.Fill(0.0);
+        }
 
-            const PixelType fixedValue = ti.Get();
-            this->m_NumberOfPixelsCounted++;
-            for (unsigned int i = 0;i < vectorSize;++i)
-            {
-                const double diff = movingValue[i] - fixedValue[i];
-                measure += diff * diff;
-            }
+        const PixelType fixedValue = ti.Get();
+        for (unsigned int i = 0;i < vectorSize;++i)
+        {
+            double diff = movingValue[i] - fixedValue[i];
+            measure += diff * diff;
         }
 
         ++ti;
     }
 
-    if( !this->m_NumberOfPixelsCounted )
-    {
-        itkExceptionMacro(<<"All the points mapped to outside of the moving image");
-    }
-    else
-    {
-        measure /= this->m_NumberOfPixelsCounted;
-    }
+    measure /= this->m_NumberOfPixelsCounted;
 
     return measure;
 }

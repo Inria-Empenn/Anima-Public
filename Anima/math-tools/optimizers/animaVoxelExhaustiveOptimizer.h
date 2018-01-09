@@ -88,9 +88,6 @@ private:
     std::ostringstream m_StopConditionDescription;
 
     bool m_Maximize;
-
 };
 
 } // end of namespace anima
-
-

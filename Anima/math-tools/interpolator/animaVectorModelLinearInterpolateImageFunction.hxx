@@ -36,7 +36,6 @@ VectorModelLinearInterpolateImageFunction< TInputImage, TCoordRep >
     this->Superclass::PrintSelf(os,indent);
 }
 
-
 /**
      * Evaluate at image index position
      */
@@ -117,7 +116,7 @@ VectorModelLinearInterpolateImageFunction< TInputImage, TCoordRep >
 
     }
 
-    if (totalOverlap > 0.5)
+    if (totalOverlap >= 0.5)
         output /= totalOverlap;
     else
         this->InitializeZeroPixel(output);

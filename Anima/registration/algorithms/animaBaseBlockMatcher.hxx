@@ -232,7 +232,6 @@ BaseBlockMatcher <TInputImageType>
         }
         catch (itk::ExceptionObject & err)
         {
-            std::cout << "Exception caught in block match: " << err << std::endl;
             m_BlockWeights[block] = 0;
             continue;
         }

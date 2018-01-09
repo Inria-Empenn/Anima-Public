@@ -55,7 +55,6 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
 
     OutputPointType transformedPoint;
     ContinuousIndexType transformedIndex;
-    PixelType movingValue(vectorSize);
 
     unsigned int tensorDimension = 3;
     vnl_matrix <double> tmpMat(tensorDimension, tensorDimension);
@@ -67,6 +66,9 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
     EigVecMatrixType eigVecs;
     EigValVectorType eigVals;
 
+    std::vector <PixelType> movingValues(this->m_NumberOfPixelsCounted);
+    unsigned int numOutside = 0;
+
     for (unsigned int i = 0;i < this->m_NumberOfPixelsCounted;++i)
     {
         transformedPoint = this->m_Transform->TransformPoint( m_FixedImagePoints[i] );
@@ -74,12 +76,12 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
 
         if( this->m_Interpolator->IsInsideBuffer( transformedIndex ) )
         {
-            movingValue = this->m_Interpolator->EvaluateAtContinuousIndex( transformedIndex );
+            movingValues[i] = this->m_Interpolator->EvaluateAtContinuousIndex( transformedIndex );
 
             if (this->GetModelRotation() != Superclass::NONE)
             {
                 // Rotating tensor
-                anima::GetTensorFromVectorRepresentation(movingValue,tmpMat,tensorDimension,true);
+                anima::GetTensorFromVectorRepresentation(movingValues[i],tmpMat,tensorDimension,true);
 
                 if (this->GetModelRotation() == Superclass::FINITE_STRAIN)
                     anima::RotateSymmetricMatrix(tmpMat,this->m_OrientationMatrix,currentTensor);
@@ -90,25 +92,38 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
                     anima::RotateSymmetricMatrix(tmpMat,ppdOrientationMatrix,currentTensor);
                 }
 
-                anima::GetVectorRepresentation(currentTensor,movingValue,vectorSize,true);
+                anima::GetVectorRepresentation(currentTensor,movingValues[i],vectorSize,true);
             }
 
             for (unsigned int j = 0;j < vectorSize;++j)
-            {
-                movingMean[j] += movingValue[j];
-
-                for (unsigned int k = 0;k < vectorSize;++k)
-                    Sigma_XY(j,k) += m_FixedImageValues[i][j] * movingValue[k];
-
-                for (unsigned int k = j;k < vectorSize;++k)
-                    Sigma_YY(j,k) += movingValue[j] * movingValue[k];
-            }
+                movingMean[j] += movingValues[i][j];
+        }
+        else
+        {
+            ++numOutside;
+            movingValues[i] = PixelType(vectorSize);
+            movingValues[i].Fill(0.0);
         }
     }
 
-    for (unsigned int j = 0;j < vectorSize;++j)
-        for (unsigned int k = j;k < vectorSize;++k)
-            Sigma_YY(j,k) = (Sigma_YY(j,k) - movingMean[j]*movingMean[k]/this->m_NumberOfPixelsCounted)/(this->m_NumberOfPixelsCounted - 1.0);
+    if (this->m_NumberOfPixelsCounted / 2.0 < numOutside)
+        return 0.0;
+
+    movingMean /= this->m_NumberOfPixelsCounted;
+
+    for (unsigned int i = 0;i < this->m_NumberOfPixelsCounted;++i)
+    {
+        for (unsigned int j = 0;j < vectorSize;++j)
+        {
+            for (unsigned int k = 0;k < vectorSize;++k)
+                Sigma_XY(j,k) += (m_FixedImageValues[i][j] - m_FixedMean[j]) * (movingValues[i][k] - movingMean[k]);
+
+            for (unsigned int k = j;k < vectorSize;++k)
+                Sigma_YY(j,k) += (movingValues[i][j] - movingMean[j]) * (movingValues[i][k] - movingMean[k]);
+        }
+    }
+
+    Sigma_YY /= (this->m_NumberOfPixelsCounted - 1.0);
 
     bool isNull = true;
     for (unsigned int i = 0;i < vectorSize;++i)
@@ -143,9 +158,7 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
     if (movingVariance <= m_VarianceThreshold)
         return 0.0;
 
-    for (unsigned int j = 0;j < vectorSize;++j)
-        for (unsigned int k = 0;k < vectorSize;++k)
-            Sigma_XY(j,k) = (Sigma_XY(j,k) - m_FixedMean[j]*movingMean[k])/(this->m_NumberOfPixelsCounted - 1.0);
+    Sigma_XY /= (this->m_NumberOfPixelsCounted - 1.0);
 
     for (unsigned int j = 0;j < vectorSize;++j)
         for (unsigned int k = j + 1;k < vectorSize;++k)
@@ -170,8 +183,8 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
 
         for (unsigned int a = 0;a < tensorDimension;++a)
         {
-            tmpEigX[a] = exp(tmpEigX[a]);
-            tmpEigY[a] = exp(tmpEigY[a]);
+            tmpEigX[a] = std::exp(tmpEigX[a]);
+            tmpEigY[a] = std::exp(tmpEigY[a]);
         }
 
         ovlWeight = anima::ovlScore(tmpEigX,tmpXEVecs,tmpEigY,tmpYEVecs);
@@ -184,7 +197,7 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
     gccEigenComputer.ComputeEigenValuesAndVectors(Sigma_YY, eVals, eVec);
 
     for (unsigned int i = 0;i < vectorSize;++i)
-        eVals[i] = pow(eVals[i], -0.5);
+        eVals[i] = std::pow(eVals[i], -0.5);
 
     anima::RecomposeTensor(eVals,eVec,Sigma_YY);
 
@@ -239,25 +252,26 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
         m_FixedImageValues[pos] = ti.Get();
 
         for (unsigned int i = 0;i < vectorSize;++i)
-        {
             m_FixedMean[i] += m_FixedImageValues[pos][i];
-
-            for (unsigned int j = i;j < vectorSize;++j)
-                covarianceMatrix(i,j) += m_FixedImageValues[pos][i] * m_FixedImageValues[pos][j];
-        }
 
         ++ti;
         ++pos;
     }
 
-    for (unsigned int i = 0;i < vectorSize;++i)
-        for (unsigned int j = i;j < vectorSize;++j)
-            covarianceMatrix(i,j) = (covarianceMatrix(i,j) - m_FixedMean[i] * m_FixedMean[j] / this->m_NumberOfPixelsCounted) / (this->m_NumberOfPixelsCounted - 1.0);
+    m_FixedMean /= this->m_NumberOfPixelsCounted;
+    for (unsigned int k = 0;k < this->m_NumberOfPixelsCounted;++k)
+    {
+        for (unsigned int i = 0;i < vectorSize;++i)
+        {
+            for (unsigned int j = i;j < vectorSize;++j)
+                covarianceMatrix(i,j) += (m_FixedImageValues[k][i] - m_FixedMean[i]) * (m_FixedImageValues[k][j] - m_FixedMean[j]);
+        }
+    }
+
+    covarianceMatrix /= this->m_NumberOfPixelsCounted;
 
     for (unsigned int i = 0;i < vectorSize;++i)
     {
-        m_FixedMean[i] /= this->m_NumberOfPixelsCounted;
-
         for (unsigned int j = i+1;j < vectorSize;++j)
             covarianceMatrix(j,i) = covarianceMatrix(i,j);
     }

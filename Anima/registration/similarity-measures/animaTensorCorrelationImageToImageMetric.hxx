@@ -65,6 +65,7 @@ TensorCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,I
 
     double movingDenominator = 0;
     double measureNumerator = 0;
+    unsigned int numOutside = 0;
 
     for (unsigned int i = 0;i < this->m_NumberOfPixelsCounted;++i)
     {
@@ -105,12 +106,17 @@ TensorCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,I
                     ++pos_internal;
                 }
         }
+        else
+            ++numOutside;
     }
+
+    if (this->m_NumberOfPixelsCounted / 2.0 < numOutside)
+        return 0.0;
 
     movingDenominator = mSS + mST * mST * (3.0 * this->m_NumberOfPixelsCounted * m_LogEpsilon * m_LogEpsilon - 2.0);
 
     if (movingDenominator == 0)
-        return 0;
+        return 0.0;
 
     measureNumerator = mRS - mST * m_FixedTProduct;
 
