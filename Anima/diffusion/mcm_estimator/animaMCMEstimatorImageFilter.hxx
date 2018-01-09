@@ -1253,6 +1253,160 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 }
 
 template <class InputPixelType, class OutputPixelType>
+void
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
+::SparseInitializeTensorParameters(MCMPointer &mcmValue, std::vector <double> &observedSignals, double b0Value)
+{
+    unsigned int numIsoCompartments = mcmValue->GetNumberOfIsotropicCompartments();
+    unsigned int numNonIsoCompartments = mcmValue->GetNumberOfCompartments() - numIsoCompartments;
+    std::vector <unsigned int> usefulCompartmentsIndexes(numNonIsoCompartments);
+    for (unsigned int i = 0;i < numNonIsoCompartments;++i)
+        usefulCompartmentsIndexes[i] = i;
+
+    std::vector < vnl_matrix <double> > sparseTensorsDictionaries(numNonIsoCompartments);
+    std::vector < vnl_matrix <double> > sparseAtomsParametersValues(numNonIsoCompartments);
+
+    unsigned int numStepsAlpha = 21;
+    double stepLambda = 0.1;
+    double stepAlpha = M_PI / (numStepsAlpha - 1);
+    unsigned int numEquations = this->GetNumberOfIndexedInputs();
+
+    for (unsigned int i = 0;i < numNonIsoCompartments;++i)
+    {
+        anima::BaseCompartment::Pointer tmpCompartment = dynamic_cast <anima::BaseCompartment *> (mcmValue->GetCompartment(i)->Clone().GetPointer());
+
+        double axialDiffusivity = mcmValue->GetCompartment(i)->GetAxialDiffusivity();
+        double radialDiffusivity = mcmValue->GetCompartment(i)->GetRadialDiffusivity1();
+        unsigned int numStepsLambda = 0;
+        double testRadialDiffusivity2 = 1;
+        while ((numStepsLambda < 10) && (testRadialDiffusivity2 >= 1.0e-5))
+        {
+            double weight = numStepsLambda * stepLambda;
+            testRadialDiffusivity2 = 2.0 * radialDiffusivity - weight * radialDiffusivity - (1.0 - weight) * axialDiffusivity;
+
+            if (testRadialDiffusivity2 >= 1.0e-5)
+                ++numStepsLambda;
+        }
+
+        sparseTensorsDictionaries[i].set_size(numEquations,numStepsAlpha * numStepsLambda);
+        sparseAtomsParametersValues[i].set_size(numStepsAlpha * numStepsLambda,3);
+
+        for (unsigned int j = 0;j < numStepsAlpha;++j)
+        {
+            double alphaValue = M_PI * j * stepAlpha;
+            tmpCompartment->SetPerpendicularAngle(alphaValue);
+
+            for (unsigned int k = 0;k < numStepsLambda;++k)
+            {
+                double weight = k * stepLambda;
+                double radialDiffusivity1 = weight * radialDiffusivity - (1.0 - weight) * axialDiffusivity;
+                double radialDiffusivity2 = 2.0 * radialDiffusivity - radialDiffusivity1;
+
+                sparseAtomsParametersValues[i](j * numStepsLambda + k,0) = alphaValue;
+                sparseAtomsParametersValues[i](j * numStepsLambda + k,1) = radialDiffusivity1;
+                sparseAtomsParametersValues[i](j * numStepsLambda + k,2) = radialDiffusivity2;
+
+                tmpCompartment->SetRadialDiffusivity1(radialDiffusivity1);
+                tmpCompartment->SetRadialDiffusivity2(radialDiffusivity2);
+
+                for (unsigned int l = 0;l < numEquations;++l)
+                    sparseTensorsDictionaries[i](l,j * numStepsLambda + k) = tmpCompartment->GetFourierTransformedDiffusionProfile(m_BValuesList[l], m_GradientDirections[l]);
+            }
+        }
+    }
+
+    ParametersType currentSignalPoints(numEquations);
+    std::vector < std::vector <double> > currentTensorsSignals(numNonIsoCompartments);
+    std::vector <double> tmpVec(numEquations,0.0);
+    for (unsigned int i = 0;i < numNonIsoCompartments;++i)
+        currentTensorsSignals[i] = tmpVec;
+
+    for (unsigned int i = 0;i < numEquations;++i)
+    {
+        currentSignalPoints[i] = observedSignals[i];
+
+        for (unsigned int j = 0;j < numIsoCompartments;++j)
+            currentSignalPoints[i] -= mcmValue->GetCompartmentWeight(j) * b0Value * mcmValue->GetCompartment(j)->GetPredictedSignal(m_BValuesList[i],m_GradientDirections[i]);
+
+        for (unsigned int j = 0;j < numNonIsoCompartments;++j)
+            currentTensorsSignals[j][i] = mcmValue->GetCompartment(j + numIsoCompartments)->GetPredictedSignal(m_BValuesList[i],m_GradientDirections[i]);
+    }
+
+    MCMType::ListType finalSparseWeights = mcmValue->GetCompartmentWeights();
+    for (unsigned int i = 0;i < finalSparseWeights.size();++i)
+        finalSparseWeights[i] *= b0Value;
+
+    while (usefulCompartmentsIndexes.size() > 0)
+    {
+        int bestIndex = -1;
+        int selectedIndex = -1;
+        double dictionaryWeightSelected = 0;
+        double minResidual = 0;
+
+        for (unsigned int i = 0;i < usefulCompartmentsIndexes.size();++i)
+        {
+            anima::MatchingPursuitOptimizer::Pointer sparseOptimizer = anima::MatchingPursuitOptimizer::New();
+            sparseOptimizer->SetDataMatrix(sparseTensorsDictionaries[i]);
+
+            sparseOptimizer->SetPoints(currentSignalPoints);
+            sparseOptimizer->SetMaximalNumberOfWeights(1);
+            sparseOptimizer->SetPositiveWeights(true);
+            sparseOptimizer->SetIgnoredIndexesUpperBound(0);
+
+            sparseOptimizer->StartOptimization();
+
+            double residual = sparseOptimizer->GetCurrentResidual();
+
+            if ((residual <= minResidual)||(bestIndex < 0))
+            {
+                ParametersType dictionaryWeights = sparseOptimizer->GetCurrentPosition();
+                for (unsigned int j = 0;j < dictionaryWeights.GetSize();++j)
+                {
+                    if (dictionaryWeights[j] != 0)
+                    {
+                        selectedIndex = j;
+                        dictionaryWeightSelected = dictionaryWeights[j];
+                        break;
+                    }
+                }
+
+                bestIndex = i;
+            }
+        }
+
+        if (selectedIndex >= 0)
+        {
+            finalSparseWeights[numIsoCompartments + usefulCompartmentsIndexes[bestIndex]] = dictionaryWeightSelected;
+            mcmValue->GetCompartment(numIsoCompartments + usefulCompartmentsIndexes[bestIndex])->SetPerpendicularAngle(sparseAtomsParametersValues[bestIndex](selectedIndex,0));
+            mcmValue->GetCompartment(numIsoCompartments + usefulCompartmentsIndexes[bestIndex])->SetRadialDiffusivity1(sparseAtomsParametersValues[bestIndex](selectedIndex,1));
+            mcmValue->GetCompartment(numIsoCompartments + usefulCompartmentsIndexes[bestIndex])->SetRadialDiffusivity2(sparseAtomsParametersValues[bestIndex](selectedIndex,2));
+
+            for (unsigned int i = 0;i < numEquations;++i)
+                currentSignalPoints[i] -= finalSparseWeights[numIsoCompartments + usefulCompartmentsIndexes[bestIndex]] * sparseTensorsDictionaries[bestIndex](i,selectedIndex);
+        }
+        else
+        {
+            bestIndex = 0;
+            for (unsigned int i = 0;i < numEquations;++i)
+                currentSignalPoints[i] -= finalSparseWeights[numIsoCompartments + usefulCompartmentsIndexes[bestIndex]] * currentTensorsSignals[bestIndex][i];
+        }
+
+        usefulCompartmentsIndexes.erase(usefulCompartmentsIndexes.begin() + bestIndex);
+        sparseAtomsParametersValues.erase(sparseAtomsParametersValues.begin() + bestIndex);
+        sparseTensorsDictionaries.erase(sparseTensorsDictionaries.begin() + bestIndex);
+    }
+
+    double newB0Value = 0;
+    for (unsigned int i = 0;i < finalSparseWeights.size();++i)
+        newB0Value += finalSparseWeights[i];
+
+    for (unsigned int i = 0;i < finalSparseWeights.size();++i)
+        finalSparseWeights[i] /= newB0Value;
+
+    mcmValue->SetCompartmentWeights(finalSparseWeights);
+}
+
+template <class InputPixelType, class OutputPixelType>
 typename MCMEstimatorImageFilter<InputPixelType, OutputPixelType>::OptimizerPointer
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::CreateOptimizer(CostFunctionBasePointer &cost, itk::Array<double> &lowerBounds, itk::Array<double> &upperBounds)

@@ -364,6 +364,9 @@ protected:
     void SampleStickModelCompartmentsFromDTI(BaseCompartmentType *tensorCompartment, MCMPointer &complexModel,
                                              SequenceGeneratorType &generator);
 
+    //! Sparse initialization of multi-tensor model
+    void SparseInitializeTensorParameters(MCMPointer &mcmUpdateValue, std::vector <double> &observedSignals, double b0Value);
+
     //! Utility function to get a value from a cost function
     double GetCostValue(CostFunctionBasePointer &cost, ParametersType &p);
 
