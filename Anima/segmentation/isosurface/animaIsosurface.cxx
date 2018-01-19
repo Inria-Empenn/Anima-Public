@@ -12,15 +12,16 @@
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("Performs isosurface extraction followed by mesh decimation and surface smoothing. INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inArg("i","input","Input binary image",true,"","input binary image",cmd);
     TCLAP::ValueArg<std::string> outArg("o","output","Output surface (.vtk or .vtp)",true,"","output surface",cmd);
 
+    TCLAP::SwitchArg preSmoothArg("P", "pre-smooth", "Smoothes also before decimation", cmd, false);
     TCLAP::ValueArg<double> thrArg("t","thr","Threshold for isosurface generation (default: 0.5)",false,0.5,"generation threshold",cmd);
-    TCLAP::ValueArg<double> smoothIntensityArg("s","smooth","Smoothing intensity (default: 0.1)",false,0.1,"smoothing intensity",cmd);
-    TCLAP::ValueArg<unsigned int> smoothIterArg("I","iter","Number of smoothing iterations (default: 200)",false,200,"smoothing iterations",cmd);
-    TCLAP::ValueArg<double> decimateArg("d","dec","Fraction of surface point to decimate (default: 0.1)",false,0.1,"deicimation fraction",cmd);
+    TCLAP::ValueArg<double> smoothIntensityArg("s","smooth","Smoothing intensity (default: 0.2)",false,0.2,"smoothing intensity",cmd);
+    TCLAP::ValueArg<unsigned int> smoothIterArg("I","iter","Number of smoothing iterations (default: 50)",false,50,"smoothing iterations",cmd);
+    TCLAP::ValueArg<double> decimateArg("d","dec","Fraction of surface point to decimate (default: 0.75)",false,0.75,"deicimation fraction",cmd);
     
     try
     {
@@ -48,14 +49,20 @@ int main(int argc, char **argv)
     contourExtractor->ComputeNormalsOff();
     contourExtractor->ComputeScalarsOff();
 
-    vtkSmartPointer <vtkSmoothPolyDataFilter> smoothFilterPre = vtkSmoothPolyDataFilter::New();
-    smoothFilterPre->SetInputConnection(contourExtractor->GetOutputPort());
-    smoothFilterPre->SetFeatureAngle(90);
-    smoothFilterPre->SetNumberOfIterations(smoothIterArg.getValue());
-    smoothFilterPre->SetRelaxationFactor(smoothIntensityArg.getValue());
-
     vtkSmartPointer <vtkDecimatePro> decimateFilter = vtkDecimatePro::New();
-    decimateFilter->SetInputConnection(smoothFilterPre->GetOutputPort());
+    if (preSmoothArg.isSet())
+    {
+        vtkSmartPointer <vtkSmoothPolyDataFilter> smoothFilterPre = vtkSmoothPolyDataFilter::New();
+        smoothFilterPre->SetInputConnection(contourExtractor->GetOutputPort());
+        smoothFilterPre->SetFeatureAngle(90);
+        smoothFilterPre->SetNumberOfIterations(smoothIterArg.getValue());
+        smoothFilterPre->SetRelaxationFactor(smoothIntensityArg.getValue());
+
+        decimateFilter->SetInputConnection(smoothFilterPre->GetOutputPort());
+    }
+    else
+        decimateFilter->SetInputConnection(contourExtractor->GetOutputPort());
+
     decimateFilter->SetTargetReduction(decimateArg.getValue());
     decimateFilter->PreserveTopologyOn();
 
