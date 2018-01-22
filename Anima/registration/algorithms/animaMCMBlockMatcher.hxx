@@ -2,10 +2,11 @@
 #include <animaMCMBlockMatcher.h>
 
 /* Similarity measures */
-#include <animaMCMBasicMeanSquaresImageToImageMetric.h>
+#include <animaMCMPairingMeanSquaresImageToImageMetric.h>
 #include <animaMCMMeanSquaresImageToImageMetric.h>
 #include <animaMCMCorrelationImageToImageMetric.h>
 #include <animaBaseOrientedModelImageToImageMetric.h>
+#include <animaMTPairingCorrelationImageToImageMetric.h>
 
 #include <animaMCMBlockMatchInitializer.h>
 
@@ -89,11 +90,21 @@ MCMBlockMatcher<TInputImageType>
         case MCMBasicMeanSquares:
         case MCMOneToOneBasicMeanSquares:
         {
-            typedef anima::MCMBasicMeanSquaresImageToImageMetric<typename InputImageType::IOPixelType, typename InputImageType::IOPixelType,
-                                                                 InputImageType::ImageDimension > MetricType;
+            typedef anima::MCMPairingMeanSquaresImageToImageMetric<typename InputImageType::IOPixelType, typename InputImageType::IOPixelType,
+                                                                   InputImageType::ImageDimension > MetricType;
 
             typename MetricType::Pointer tmpMetric = MetricType::New();
             tmpMetric->SetOneToOneMapping(m_SimilarityType == MCMOneToOneBasicMeanSquares);
+            metric = tmpMetric;
+            break;
+        }
+
+        case MTCorrelation:
+        {
+            typedef anima::MTPairingCorrelationImageToImageMetric <typename InputImageType::IOPixelType, typename InputImageType::IOPixelType,
+                                                                   InputImageType::ImageDimension > MetricType;
+
+            typename MetricType::Pointer tmpMetric = MetricType::New();
             metric = tmpMetric;
             break;
         }
@@ -171,9 +182,13 @@ MCMBlockMatcher<TInputImageType>
     tmpMetric->SetTransform(this->GetBlockTransformPointer(block));
     tmpMetric->Initialize();
 
-    typedef anima::MCMBasicMeanSquaresImageToImageMetric <typename InputImageType::IOPixelType,
+    typedef anima::MCMPairingMeanSquaresImageToImageMetric <typename InputImageType::IOPixelType,
                                                           typename InputImageType::IOPixelType,
                                                           InputImageType::ImageDimension > MCMBasicMeanSquaresMetricType;
+
+    typedef anima::MTPairingCorrelationImageToImageMetric <typename InputImageType::IOPixelType,
+                                                           typename InputImageType::IOPixelType,
+                                                           InputImageType::ImageDimension > MTPairingCorrelationMetricType;
 
     typedef anima::MCMMeanSquaresImageToImageMetric <typename InputImageType::IOPixelType,
                                                      typename InputImageType::IOPixelType,
@@ -187,6 +202,9 @@ MCMBlockMatcher<TInputImageType>
     {
         case MCMMeanSquares:
             ((MCMMeanSquaresMetricType *)metric.GetPointer())->PreComputeFixedValues();
+            break;
+        case MTCorrelation:
+            ((MTPairingCorrelationMetricType *)metric.GetPointer())->PreComputeFixedValues();
             break;
         case MCMCorrelation:
             ((MCMCorrelationMetricType *)metric.GetPointer())->PreComputeFixedValues();

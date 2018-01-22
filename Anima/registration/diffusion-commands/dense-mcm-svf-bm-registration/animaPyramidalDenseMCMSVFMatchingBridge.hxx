@@ -323,6 +323,11 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
                 if (reverseMatcher)
                     reverseMatcher->SetSimilarityType(BlockMatcherType::MCMCorrelation);
                 break;
+            case MTCorrelation:
+                mainMatcher->SetSimilarityType(BlockMatcherType::MTCorrelation);
+                if (reverseMatcher)
+                    reverseMatcher->SetSimilarityType(BlockMatcherType::MTCorrelation);
+                break;
             case MCMMeanSquares:
             default:
                 mainMatcher->SetSimilarityType(BlockMatcherType::MCMMeanSquares);

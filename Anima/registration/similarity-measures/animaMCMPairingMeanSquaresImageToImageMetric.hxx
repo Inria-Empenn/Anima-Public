@@ -1,5 +1,5 @@
 #pragma once
-#include "animaMCMBasicMeanSquaresImageToImageMetric.h"
+#include "animaMCMPairingMeanSquaresImageToImageMetric.h"
 
 #include <vnl/vnl_matrix_fixed.h>
 #include <animaBaseTensorTools.h>
@@ -12,8 +12,8 @@ namespace anima
 {
 
 template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >
-MCMBasicMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,ImageDimension>
-::MCMBasicMeanSquaresImageToImageMetric()
+MCMPairingMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,ImageDimension>
+::MCMPairingMeanSquaresImageToImageMetric()
 {
     m_FixedImagePoints.clear();
     m_FixedImageValues.clear();
@@ -32,7 +32,7 @@ MCMBasicMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType
 
 template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >
 bool
-MCMBasicMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,ImageDimension>
+MCMPairingMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,ImageDimension>
 ::CheckTensorCompatibility() const
 {
     FixedImageType *fixedImage = const_cast <FixedImageType *> (this->GetFixedImage());
@@ -55,8 +55,8 @@ MCMBasicMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType
 }
 
 template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >
-typename MCMBasicMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,ImageDimension>::MeasureType
-MCMBasicMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,ImageDimension>
+typename MCMPairingMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,ImageDimension>::MeasureType
+MCMPairingMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,ImageDimension>
 ::GetValue(const TransformParametersType & parameters) const
 {
     FixedImageConstPointer fixedImage = this->m_FixedImage;
@@ -129,7 +129,7 @@ MCMBasicMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType
 
 template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >
 double
-MCMBasicMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,ImageDimension>
+MCMPairingMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,ImageDimension>
 ::ComputeTensorBasedMetricPart(unsigned int index, const MCModelPointer &movingValue) const
 {
     unsigned int fixedNumCompartments = m_FixedImageValues[index]->GetNumberOfCompartments();
@@ -301,7 +301,7 @@ MCMBasicMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType
 
 template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >
 double
-MCMBasicMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,ImageDimension>
+MCMPairingMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,ImageDimension>
 ::ComputeNonTensorBasedMetricPart(unsigned int index, const MCModelPointer &movingValue) const
 {
     itkExceptionMacro("DDI basic metric not implemented yet");
@@ -310,7 +310,7 @@ MCMBasicMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType
 
 template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >
 bool
-MCMBasicMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,ImageDimension>
+MCMPairingMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,ImageDimension>
 ::isZero(PixelType &vector) const
 {
     unsigned int ndim = vector.GetSize();
@@ -326,7 +326,7 @@ MCMBasicMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType
 
 template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >
 void
-MCMBasicMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,ImageDimension>
+MCMPairingMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,ImageDimension>
 ::PreComputeFixedValues()
 {
     if(!this->m_FixedImage)

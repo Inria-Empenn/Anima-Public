@@ -8,6 +8,12 @@
 namespace anima
 {
 
+/**
+ * @brief Tensor correlation similarity measure as defined by Taquet et al
+ *
+ * M. Taquet et al. "A Mathematical Framework for the Registration and Analysis of Multi-Fascicle Models
+ * for Population Studies of the Brain Microstructure". IEEE TMI 2014.
+ */
 template <class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension>
 class TensorCorrelationImageToImageMetric :
 public BaseOrientedModelImageToImageMetric < itk::VectorImage <TFixedImagePixelType, ImageDimension>, itk::VectorImage <TMovingImagePixelType, ImageDimension> >
