@@ -26,7 +26,7 @@ option(USE_ANIMA_PRIVATE "Use ANIMA private part, requires authorized access" OF
 
 # Use github SSH connection or https ?
 
-option(USE_GITHUB_SSH 
+option(USE_GITHUB_SSH
   "Use by default Git SSH addresses, requires public key set on github" OFF
   )
 mark_as_advanced(USE_GITHUB_SSH)
@@ -89,16 +89,6 @@ if (USE_NLOPT)
   endif()
 endif()
 
-# ITK
-option(USE_SYSTEM_ITK "Use system installed ITK" OFF)
-
-if (USE_SYSTEM_ITK)
-  find_package(ITK REQUIRED)
-  set(ITK_BUILD_DIR ${ITK_DIR})
-else()
-  include(ITK)
-endif()
-
 # VTK
 if (USE_VTK)
   option(USE_SYSTEM_VTK "Use system installed VTK" OFF)
@@ -109,6 +99,16 @@ if (USE_VTK)
   else()
     include(VTK)
   endif()
+endif()
+
+# ITK
+option(USE_SYSTEM_ITK "Use system installed ITK" OFF)
+
+if (USE_SYSTEM_ITK)
+  find_package(ITK REQUIRED)
+  set(ITK_BUILD_DIR ${ITK_DIR})
+else()
+  include(ITK)
 endif()
 
 # RPI

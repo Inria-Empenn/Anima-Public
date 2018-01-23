@@ -1,11 +1,21 @@
 set (proj ITK)
 
+set(VTK_DEP_ARGS "")
+
+if (USE_VTK)
+	set(VTK_DEP_ARGS
+		-DModule_ITKVtkGlue:BOOL=ON
+		-DVTK_DIR:PATH=${VTK_BUILD_DIR}
+	)
+endif()
+
 set (cmake_args
   ${common_cache_args}
   -DBUILD_EXAMPLES:BOOL=OFF
   -DBUILD_TESTING:BOOL=OFF
   -DModule_ITKReview:BOOL=ON
   -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+  ${VTK_DEP_ARGS}
   )
 
 set (location "")
