@@ -1,12 +1,17 @@
 set (proj ITK)
 
 set(VTK_DEP_ARGS "")
+set(VTK_PROJ_DEP "")
 
 if (USE_VTK)
-	set(VTK_DEP_ARGS
-		-DModule_ITKVtkGlue:BOOL=ON
-		-DVTK_DIR:PATH=${VTK_BUILD_DIR}
-	)
+  set(VTK_DEP_ARGS
+    -DModule_ITKVtkGlue:BOOL=ON
+    -DVTK_DIR:PATH=${VTK_BUILD_DIR}
+  )
+
+  set(VTK_PROJ_DEP
+    VTK
+  )
 endif()
 
 set (cmake_args
@@ -26,6 +31,7 @@ endif()
 
 ExternalProject_Add(${proj}
   ${location}
+  DEPENDS ${VTK_PROJ_DEP}
   PREFIX ${CMAKE_BINARY_DIR}/External-Projects/${proj}
   SOURCE_DIR ${CMAKE_SOURCE_DIR}/External-Projects/${proj}
   CMAKE_GENERATOR ${cmake_gen}
