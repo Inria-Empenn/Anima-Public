@@ -11,6 +11,7 @@
 #include <rpiDisplacementFieldTransform.h>
 #include <animaVelocityUtils.h>
 #include <animaResampleImageFilter.h>
+#include <animaGradientFileReader.h>
 
 int main(int argc, const char** argv)
 {
@@ -31,7 +32,9 @@ int main(int argc, const char** argv)
 
     // Setting up parameters
     TCLAP::ValueArg<std::string> inputArg("i","input","Input 4D image",true,"","input 4D image",cmd);
-    TCLAP::ValueArg<std::string> outArg("o","outputimage","Output (corrected) image",true,"","output image",cmd);
+    TCLAP::ValueArg<std::string> inBVecArg("I","input-bvec","Input gradient vectors file",true,"","input gradients",cmd);
+    TCLAP::ValueArg<std::string> outArg("o","output","Output (corrected) image",true,"","output image",cmd);
+    TCLAP::ValueArg<std::string> outBVecArg("O","output-bvec","Output gradient vectors (bvec format)",true,"","output gradients",cmd);
 
     TCLAP::ValueArg<unsigned int> directionArg("d","dir","Affine direction for directional transform output (default: 1 = Y axis)",false,1,"direction of directional affine",cmd);
     TCLAP::ValueArg<unsigned int> b0Arg("b","b0","Index of the B0 reference image",false,0,"reference image index",cmd);
@@ -90,6 +93,14 @@ int main(int argc, const char** argv)
     referenceExtractFilter->SetDirectionCollapseToGuess();
     referenceExtractFilter->Update();
 
+    typedef anima::GradientFileReader < vnl_vector_fixed <double,3>, double > GFReaderType;
+    GFReaderType gfReader;
+    gfReader.SetGradientFileName(inBVecArg.getValue());
+    gfReader.SetGradientIndependentNormalization(false);
+    gfReader.Update();
+
+    GFReaderType::GradientVectorType directions = gfReader.GetGradients();
+
     for (unsigned int i = 0;i < numberOfImages;++i)
     {
         if (i == b0Arg.getValue())
@@ -137,12 +148,12 @@ int main(int argc, const char** argv)
         matcher->SetPercentageKept( percentageKeptArg.getValue() );
         matcher->SetInitializeOnCenterOfGravity(false);
 
-        matcher->SetReferenceImage(referenceExtractFilter->GetOutput());
-        matcher->SetFloatingImage(extractFilter->GetOutput());
+        matcher->SetFloatingImage(referenceExtractFilter->GetOutput());
+        matcher->SetReferenceImage(extractFilter->GetOutput());
 
-        AffineTransformPointer tmpTrsf = AffineTransformType::New();
-        tmpTrsf->SetIdentity();
-        matcher->SetOutputTransform(tmpTrsf.GetPointer());
+        AffineTransformPointer rigidTrsf = AffineTransformType::New();
+        rigidTrsf->SetIdentity();
+        matcher->SetOutputTransform(rigidTrsf.GetPointer());
 
         try
         {
@@ -154,10 +165,13 @@ int main(int argc, const char** argv)
             return EXIT_FAILURE;
         }
 
-        tmpTrsf = dynamic_cast <AffineTransformType *> (matcher->GetOutputTransform().GetPointer());
+        rigidTrsf = dynamic_cast <AffineTransformType *> (matcher->GetOutputTransform().GetPointer());
+
+        InputSubImageType::Pointer rigidReference = matcher->GetOutputImage();
 
         // Then perform directional affine registration
-        matcher->SetInitialTransform(tmpTrsf);
+        matcher->SetReferenceImage(rigidReference.GetPointer());
+        matcher->SetFloatingImage(extractFilter->GetOutput());
         matcher->SetTransform(PyramidBMType::Directional_Affine);
         matcher->SetOutputTransformType(PyramidBMType::outAffine);
 
@@ -179,7 +193,7 @@ int main(int argc, const char** argv)
         typedef anima::PyramidalDenseSVFMatchingBridge <Dimension> NonLinearPyramidBMType;
         NonLinearPyramidBMType::Pointer nonLinearMatcher = NonLinearPyramidBMType::New();
 
-        nonLinearMatcher->SetReferenceImage(referenceExtractFilter->GetOutput());
+        nonLinearMatcher->SetReferenceImage(rigidReference.GetPointer());
         nonLinearMatcher->SetFloatingImage(matcher->GetOutputImage().GetPointer());
 
         // Setting matcher arguments
@@ -227,7 +241,7 @@ int main(int argc, const char** argv)
         // Finally, apply transform serie to image
         typedef itk::CompositeTransform <AgregatorType::ScalarType,Dimension> GeneralTransformType;
         GeneralTransformType::Pointer transformSerie = GeneralTransformType::New();
-        transformSerie->AddTransform(matcher->GetOutputTransform().GetPointer());
+        transformSerie->AddTransform(tmpTrsfDirectional);
 
         typedef itk::StationaryVelocityFieldTransform <AgregatorType::ScalarType,Dimension> SVFTransformType;
         typedef SVFTransformType::Pointer SVFTransformPointer;
@@ -241,6 +255,21 @@ int main(int argc, const char** argv)
         anima::GetSVFExponential(svfPointer.GetPointer(),dispTrsf.GetPointer(),0,numThreadsArg.getValue(),false);
 
         transformSerie->AddTransform(dispTrsf.GetPointer());
+
+        // Apply rigid matrix to gradient vectors
+        AffineTransformType::MatrixType rigidMatrix = rigidTrsf->GetMatrix();
+        vnl_vector_fixed <double,3> tmpDir(0.0);
+        for (unsigned int j = 0;j < 3;++j)
+        {
+            for (unsigned int k = 0;k < 3;++k)
+                tmpDir[j] += rigidMatrix(j,k) * directions[i][k];
+        }
+
+        directions[i] = tmpDir;
+
+        AffineTransformPointer rigidTrsfInverse = AffineTransformType::New();
+        rigidTrsf->GetInverse(rigidTrsfInverse);
+        transformSerie->AddTransform(rigidTrsfInverse.GetPointer());
 
         typedef anima::ResampleImageFilter<InputSubImageType, InputSubImageType> ResampleFilterType;
         ResampleFilterType::Pointer scalarResampler = ResampleFilterType::New();
@@ -279,6 +308,18 @@ int main(int argc, const char** argv)
     }
 
     anima::writeImage <InputImageType> (outArg.getValue(),inputImage);
+
+    // Writing output gradients
+    std::ofstream outputFile(outBVecArg.getValue());
+    for (unsigned int i = 0;i < 3;++i)
+    {
+        for (unsigned int j = 0;j < directions.size();++j)
+            outputFile << directions[j][i] << " ";
+
+        outputFile << std::endl;
+    }
+
+    outputFile.close();
 
     return EXIT_SUCCESS;
 }

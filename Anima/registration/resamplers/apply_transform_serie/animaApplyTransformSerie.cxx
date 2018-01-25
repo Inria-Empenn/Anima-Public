@@ -522,7 +522,7 @@ int main(int ac, const char** av)
     }
 
     if(badInterpolation)
-        std::cerr << "Interpolation method not suported, it must be one of [nearest, linear, bspline, sinc]." << std::endl;
+        std::cerr << "Interpolation method not supported, it must be one of [nearest, linear, bspline, sinc]." << std::endl;
 
     try
     {
