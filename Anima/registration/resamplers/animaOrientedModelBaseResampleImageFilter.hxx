@@ -7,6 +7,7 @@
 
 #include <itkTranslationTransform.h>
 #include <itkMatrixOffsetTransformBase.h>
+#include <itkCompositeTransform.h>
 
 #include <animaBaseTensorTools.h>
 
@@ -209,7 +210,22 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
     typedef itk::MatrixOffsetTransformBase <TInterpolatorPrecisionType,ImageDimension,ImageDimension> AffineTransformType;
 
     AffineTransformType *tmpTrsf = dynamic_cast <AffineTransformType *> (m_Transform.GetPointer());
-    reorientationMatrix = tmpTrsf->GetMatrix().GetVnlMatrix().as_matrix();
+
+    if (tmpTrsf)
+    {
+        reorientationMatrix = tmpTrsf->GetMatrix().GetVnlMatrix().as_matrix();
+        return reorientationMatrix;
+    }
+
+    typedef itk::CompositeTransform <TInterpolatorPrecisionType,ImageDimension> CompositeTransformType;
+    CompositeTransformType *compositeTrsf = dynamic_cast <CompositeTransformType *> (m_Transform.GetPointer());
+
+    for (unsigned int i = 0;i < compositeTrsf->GetNumberOfTransforms();++i)
+    {
+        tmpTrsf = dynamic_cast <AffineTransformType *> (compositeTrsf->GetNthTransform(i).GetPointer());
+        if (tmpTrsf)
+            reorientationMatrix *= tmpTrsf->GetMatrix().GetVnlMatrix().as_matrix();
+    }
 
     return reorientationMatrix;
 }
