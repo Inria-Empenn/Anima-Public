@@ -84,26 +84,39 @@ VectorModelLinearInterpolateImageFunction< TInputImage, TCoordRep >
         IndexType neighIndex;
 
         // get neighbor index and overlap fraction
+        bool okValue = true;
         for (unsigned int dim = 0; dim < ImageDimension; ++dim)
         {
-
-            if ( upper & 1 )
+            if (upper & 1)
             {
                 neighIndex[dim] = baseIndex[dim] + 1;
+
+                if (neighIndex[dim] > this->m_EndIndex[dim])
+                {
+                    okValue = false;
+                    break;
+                }
+
                 overlap *= distance[dim];
             }
             else
             {
                 neighIndex[dim] = baseIndex[dim];
+
+                if (neighIndex[dim] < this->m_StartIndex[dim])
+                {
+                    okValue = false;
+                    break;
+                }
+
                 overlap *= oppDistance[dim];
             }
 
             upper >>= 1;
-
         }
 
         // get neighbor value only if overlap is not zero
-        if( overlap )
+        if ((overlap > 0) && okValue)
         {
             VectorPixelType input = static_cast <VectorPixelType> (this->GetInputImage()->GetPixel(neighIndex));
 
