@@ -6,32 +6,32 @@
 * @param    [in] argv is the table  of command line arguments.
 * @return true if "About switch" is find on command line
 */
-bool detectAboutSwitch(int argc, char * *argv)
+bool detectAboutSwitch(int argc, char **argv)
 {
-   bool bFound = false;
-   for (int i = 0; (i < argc && !bFound); ++i)
-   {
-      if (argv[i] && argv[i][0])
-      {
-         if (!strcmp("--About", argv[i]))
-         {
-         }
-         else if (argv[i][0] == '-' && argv[i][1] != '-')
-         {
-            int iLen = strlen(argv[i]);
-            for (int j = 1; (j < iLen && !bFound); ++j)
+    bool bFound = false;
+    for (int i = 0; (i < argc && !bFound); ++i)
+    {
+        if (argv[i] && argv[i][0])
+        {
+            if (!strcmp("--About", argv[i]))
             {
-               bFound = argv[i][j] == 'A';
             }
-         }
-      }
-   }
-   if (bFound)
-   {
-      CSegPerfApp::about();
-   }
+            else if (argv[i][0] == '-' && argv[i][1] != '-')
+            {
+                int iLen = strlen(argv[i]);
+                for (int j = 1; (j < iLen && !bFound); ++j)
+                {
+                    bFound = argv[i][j] == 'A';
+                }
+            }
+        }
+    }
+    if (bFound)
+    {
+        CSegPerfApp::about();
+    }
 
-   return bFound;
+    return bFound;
 }
 
 /**
@@ -43,20 +43,20 @@ bool detectAboutSwitch(int argc, char * *argv)
  */
 int main(int argc, char * *argv)
 {
-   int iRes = -1;
-   if (!(detectAboutSwitch(argc, argv) && argc == 2))
-   {
-      CSegPerfApp oSegPerfApp;
-      if(oSegPerfApp.init(argc, argv))
-      {
-         if (oSegPerfApp.checkParamsChoerancy())
-         {
-            oSegPerfApp.checkOutputChoerancy();
-            oSegPerfApp.preparOutput();
-            iRes = (int)oSegPerfApp.play();
-         }
-      }
-   }
+    int iRes = -1;
+    if (!(detectAboutSwitch(argc, argv) && argc == 2))
+    {
+        CSegPerfApp oSegPerfApp;
+        if(oSegPerfApp.init(argc, argv))
+        {
+            if (oSegPerfApp.checkParamsChoerancy())
+            {
+                oSegPerfApp.checkOutputChoerancy();
+                oSegPerfApp.preparOutput();
+                iRes = (int)oSegPerfApp.play();
+            }
+        }
+    }
 
-   return iRes;
+    return iRes;
 }

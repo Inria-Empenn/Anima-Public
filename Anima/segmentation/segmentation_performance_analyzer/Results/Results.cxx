@@ -15,19 +15,19 @@
 
 char const*const CResults::m_ppchMeasureNameTable[eMesureLast] =
 {
-   "Jaccard",
-   "Dice",
-   "Sensitivity",
-   "Specificity",
-   "PPV",
-   "NPV",
-   "RelativeVolumeError",
-   "HausdorffDistance",
-   "ContourMeanDistance",
-   "SurfaceDistance",
-   "PPVL",
-   "SensL",
-   "F1_score"
+    "Jaccard",
+    "Dice",
+    "Sensitivity",
+    "Specificity",
+    "PPV",
+    "NPV",
+    "RelativeVolumeError",
+    "HausdorffDistance",
+    "ContourMeanDistance",
+    "SurfaceDistance",
+    "PPVL",
+    "SensL",
+    "F1_score"
 };
 
 
@@ -37,14 +37,14 @@ char const*const CResults::m_ppchMeasureNameTable[eMesureLast] =
 */
 CResults::CResults()
 {
-   for (int i=0; i<eMesureLast; ++i)
-   {
-      m_fResTab[i] = std::numeric_limits<float>::quiet_NaN();
-   }
-   m_bTxt = true;
-   m_bXml = false;
-   m_bScreen = false;
-   m_pchBaseOutputFileName = new char[4+1];
+    for (int i=0; i<eMesureLast; ++i)
+    {
+        m_fResTab[i] = std::numeric_limits<float>::quiet_NaN();
+    }
+    m_bTxt = true;
+    m_bXml = false;
+    m_bScreen = false;
+    m_pchBaseOutputFileName = new char[4+1];
 }
 
 /**
@@ -53,24 +53,24 @@ CResults::CResults()
 */
 CResults::CResults(char *pi_pchBaseFileName)
 {
-   for (int i=0; i<eMesureLast; ++i)
-   {
-      m_fResTab[i] = -1;
-      m_bResActiveTab[i] = false;
-   }
-   if (pi_pchBaseFileName && pi_pchBaseFileName[0])
-   {
-      m_pchBaseOutputFileName = new char[strlen(pi_pchBaseFileName)+4+1];
-      strncpy(m_pchBaseOutputFileName, pi_pchBaseFileName, strlen(pi_pchBaseFileName)+4+1);
-   }
-   else
-   {
-      m_pchBaseOutputFileName = new char[4+1];
-      m_pchBaseOutputFileName[0] = 0;
-   }
-   m_bTxt = true;
-   m_bXml = false;
-   m_bScreen = false;
+    for (int i=0; i<eMesureLast; ++i)
+    {
+        m_fResTab[i] = -1;
+        m_bResActiveTab[i] = false;
+    }
+    if (pi_pchBaseFileName && pi_pchBaseFileName[0])
+    {
+        m_pchBaseOutputFileName = new char[strlen(pi_pchBaseFileName)+4+1];
+        strncpy(m_pchBaseOutputFileName, pi_pchBaseFileName, strlen(pi_pchBaseFileName)+4+1);
+    }
+    else
+    {
+        m_pchBaseOutputFileName = new char[4+1];
+        m_pchBaseOutputFileName[0] = 0;
+    }
+    m_bTxt = true;
+    m_bXml = false;
+    m_bScreen = false;
 }
 
 /**
@@ -79,32 +79,32 @@ CResults::CResults(char *pi_pchBaseFileName)
 */
 CResults::~CResults()
 {
-   MDEL(m_pchBaseOutputFileName);
-   if(m_bScreen)
-   {
-      for (int i=0; i<eMesureLast; ++i)
-      {
-         printf("%s", m_ppchMeasureNameTable[i]);
-         for (int j=0; j<(20-strlen(m_ppchMeasureNameTable[i])); ++j)
-         {
-            printf(" ");
-         }
-      }
-      printf("\n");
-      for (int i=0; i<eMesureLast; ++i)
-      {
-         int iRest = 0;
-         if (m_bResActiveTab[i])
-         {
-            iRest = printf("%f", m_fResTab[i]);
-         }
-         for (int j=0; j<(20-iRest); ++j)
-         {
-            printf(" ");
-         }
-      }
-      printf("\n");
-   }
+    MDEL(m_pchBaseOutputFileName);
+    if(m_bScreen)
+    {
+        for (int i=0; i<eMesureLast; ++i)
+        {
+            printf("%s", m_ppchMeasureNameTable[i]);
+            for (int j=0; j<(20-strlen(m_ppchMeasureNameTable[i])); ++j)
+            {
+                printf(" ");
+            }
+        }
+        printf("\n");
+        for (int i=0; i<eMesureLast; ++i)
+        {
+            int iRest = 0;
+            if (m_bResActiveTab[i])
+            {
+                iRest = printf("%f", m_fResTab[i]);
+            }
+            for (int j=0; j<(20-iRest); ++j)
+            {
+                printf(" ");
+            }
+        }
+        printf("\n");
+    }
 }
 
 /**
@@ -113,86 +113,86 @@ CResults::~CResults()
 */
 bool CResults::save()
 {
-   bool bRes = true;
+    bool bRes = true;
 
-   FILE *fOut = NULL;
+    FILE *fOut = NULL;
 
-   if (m_bTxt)
-   {
-      size_t len = strlen(m_pchBaseOutputFileName);
-      sprintf(m_pchBaseOutputFileName+len, ".txt");
-      fOut = fopen(m_pchBaseOutputFileName, "wb");
-      m_pchBaseOutputFileName[len] = 0;
+    if (m_bTxt)
+    {
+        size_t len = strlen(m_pchBaseOutputFileName);
+        sprintf(m_pchBaseOutputFileName+len, ".txt");
+        fOut = fopen(m_pchBaseOutputFileName, "wb");
+        m_pchBaseOutputFileName[len] = 0;
 
-      if (fOut)
-      {
-         for (int i=0; i<eMesureLast; ++i)
-         {
-            if (m_bResActiveTab[i])
+        if (fOut)
+        {
+            for (int i=0; i<eMesureLast; ++i)
             {
-               bRes &= fprintf(fOut, "%f;\t", m_fResTab[i])>0;
+                if (m_bResActiveTab[i])
+                {
+                    bRes &= fprintf(fOut, "%f;\t", m_fResTab[i])>0;
+                }
+                else
+                {
+                    bRes &= fprintf(fOut, ";\t")>0;
+                }
+            }
+            bRes &= fprintf(fOut, "\r\n")>0;
+            fclose(fOut);
+        }
+        else
+        {
+            bRes = false;
+        }
+    }
+
+    if (m_bXml)
+    {
+        size_t len = strlen(m_pchBaseOutputFileName);
+        sprintf(m_pchBaseOutputFileName+len, ".xml");
+        fOut = fopen(m_pchBaseOutputFileName, "wb");
+        m_pchBaseOutputFileName[len] = 0;
+
+        if (fOut)
+        {
+            char *pchImgName = strrchr(m_pchBaseOutputFileName, '/');
+            if (!pchImgName)
+            {
+                pchImgName = strrchr(m_pchBaseOutputFileName, '\\');
+                if (pchImgName)
+                {
+                    pchImgName++;
+                }
             }
             else
             {
-               bRes &= fprintf(fOut, ";\t")>0;
+                pchImgName++;
             }
-         }
-         bRes &= fprintf(fOut, "\r\n")>0;
-         fclose(fOut);
-      }
-      else
-      {
-         bRes = false;
-      }
-   }
-
-   if (m_bXml)
-   {
-      size_t len = strlen(m_pchBaseOutputFileName);
-      sprintf(m_pchBaseOutputFileName+len, ".xml");
-      fOut = fopen(m_pchBaseOutputFileName, "wb");
-      m_pchBaseOutputFileName[len] = 0;
-
-      if (fOut)
-      {
-         char *pchImgName = strrchr(m_pchBaseOutputFileName, '/');
-         if (!pchImgName)
-         {
-            pchImgName = strrchr(m_pchBaseOutputFileName, '\\');
-            if (pchImgName)
+            if(!pchImgName)
             {
-               pchImgName++;
+                pchImgName = m_pchBaseOutputFileName;
             }
-         }
-         else
-         {
-            pchImgName++;
-         }
-         if(!pchImgName)
-         {
-            pchImgName = m_pchBaseOutputFileName;
-         }
 
-         fprintf(fOut, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n");
-         fprintf(fOut, "<image name=\"%s\">\r\n", pchImgName);
-         for (int i=0; i<eMesureLast; ++i)
-         {
-            if (m_bResActiveTab[i])
+            fprintf(fOut, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n");
+            fprintf(fOut, "<image name=\"%s\">\r\n", pchImgName);
+            for (int i=0; i<eMesureLast; ++i)
             {
-               fprintf(fOut, "\t<measure name=\"%s\">%f</measure>\r\n", m_ppchMeasureNameTable[i], m_fResTab[i]);
+                if (m_bResActiveTab[i])
+                {
+                    fprintf(fOut, "\t<measure name=\"%s\">%f</measure>\r\n", m_ppchMeasureNameTable[i], m_fResTab[i]);
+                }
             }
-         }
-         fprintf(fOut, "</image>\r\n");
-         fclose(fOut);
-      }
-      else
-      {
-         bRes = false;
-      }
-   }
+            fprintf(fOut, "</image>\r\n");
+            fclose(fOut);
+        }
+        else
+        {
+            bRes = false;
+        }
+    }
 
 
-   return bRes;
+    return bRes;
 }
 
 /**
@@ -201,15 +201,15 @@ bool CResults::save()
 */
 bool CResults::activeMeasurementOutput(eMesureName pi_eVal)
 {
-   bool bRes = false;
+    bool bRes = false;
 
-   if (pi_eVal < eMesureLast)
-   {
-      m_bResActiveTab[pi_eVal] = !m_bResActiveTab[pi_eVal];
-      bRes = m_bResActiveTab[pi_eVal];
-   }
+    if (pi_eVal < eMesureLast)
+    {
+        m_bResActiveTab[pi_eVal] = !m_bResActiveTab[pi_eVal];
+        bRes = m_bResActiveTab[pi_eVal];
+    }
 
-   return bRes;
+    return bRes;
 }
 
 /**
@@ -218,6 +218,6 @@ bool CResults::activeMeasurementOutput(eMesureName pi_eVal)
 */
 char const*const*const CResults::getMeasureNameTable()
 {
-   return m_ppchMeasureNameTable;
+    return m_ppchMeasureNameTable;
 }
 
