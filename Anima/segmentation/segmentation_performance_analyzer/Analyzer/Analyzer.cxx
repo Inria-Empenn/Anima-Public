@@ -34,9 +34,9 @@ CAnalyzer::CAnalyzer(char *pi_pchImageTestName, char *pi_pchImageRefName, bool b
 {
    m_ThreadNb = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
 
-   m_dfDetectionThresholdAlpha=0.05;
-   m_dfDetectionThresholdBeta=0.50;
-   m_dfDetectionThresholdGamma=0.50;
+   m_dfDetectionThresholdAlpha = 0.05;
+   m_dfDetectionThresholdBeta = 0.50;
+   m_dfDetectionThresholdGamma = 0.50;
    m_dfMinLesionVolumeDetection = 3.0;
 
    m_uiNbLabels = 0;

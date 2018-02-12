@@ -6,9 +6,8 @@
  * @date 13/04/2016
  * @version 2.0
  */
-#include "./Results/Results.h"
-#include "./Analyzer/Analyzer.h"
-
+#include <Results.h>
+#include <Analyzer.h>
 
 /**
 * @class CSegPerfApp
@@ -23,14 +22,12 @@ private:
    bool m_bXml;
    bool m_bScreen;
 
-
    //////////////////////////////////////////////////////////////////////////
    // Group of metrics enable
    bool m_bSegmentationEvaluation;
    bool m_bAdvancedEvaluation;
    bool m_bSurfaceEvaluation;
    bool m_bLesionsDetectionEvaluation;
-
 
    //////////////////////////////////////////////////////////////////////////
    // Lesions specific metrics
@@ -54,12 +51,10 @@ private:
    float m_fSensL;
    float m_fF1;
 
-
    //////////////////////////////////////////////////////////////////////////
    // general informations
    int m_iNbThreads;     /*<! number of thread used by processing. */
    char *m_pchOutBase;   /*<! base name used for output file. */
-
 
    //////////////////////////////////////////////////////////////////////////
    // Detection scores parameters
@@ -68,13 +63,9 @@ private:
    float m_fTPLMaxFalsePositiveRatio;
    float m_fTPLMaxFalsePositiveRatioModerator;
 
-
    std::string m_oStrInImage;   /*<! Path of Image to test. */
    std::string m_oStrRefImage;  /*<! Path of reference Image. */
    std::string m_oStrBaseOut;   /*<! Base name for output results file. */
-
-
-
 
 public:
    CSegPerfApp(void);
@@ -93,6 +84,3 @@ private:
    void storeMetricsAndMarks(CResults&pi_roRes);
    long writeStoredMetricsAndMarks(CResults&pi_roRes);
 };
-
-
-

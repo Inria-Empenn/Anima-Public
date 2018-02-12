@@ -203,7 +203,7 @@ bool CResults::activeMeasurementOutput(eMesureName pi_eVal)
 {
    bool bRes = false;
 
-   if (pi_eVal > -1 && pi_eVal < eMesureLast)
+   if (pi_eVal < eMesureLast)
    {
       m_bResActiveTab[pi_eVal] = !m_bResActiveTab[pi_eVal];
       bRes = m_bResActiveTab[pi_eVal];

@@ -1,12 +1,3 @@
-/**
- * @file main.cpp
- * @brief Contains the main function
- * @author Florent  LERAY
- * @author Baptiste LAURENT
- * @date 13/04/2016
- * @version 2.1
- */
-
 #include "SegPerfApp.h"
 
 /**

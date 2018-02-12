@@ -67,6 +67,27 @@ foreach(dir ${ARGV})
     ${${project_name}_CFILES}
     )
 
+## #############################################################################
+## Group files for visual studio
+## #############################################################################
+
+  if (WIN32)
+    if(${project_name}_HEADERS)
+      list(REMOVE_DUPLICATES ${project_name}_HEADERS)
+      source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Header Files" FILES ${${project_name}_HEADERS})
+    endif()
+  
+    if(${project_name}_SOURCES)
+      list(REMOVE_DUPLICATES ${project_name}_SOURCES)
+      source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES ${${project_name}_SOURCES})
+    endif()
+  
+    if(${project_name}_TEMPLATES)
+      list(REMOVE_DUPLICATES ${project_name}_TEMPLATES)
+      source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Template Files" FILES ${${project_name}_TEMPLATES})
+    endif()
+  endif()
+
 endforeach()
 
 endmacro()

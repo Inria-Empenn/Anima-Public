@@ -1,5 +1,5 @@
-#ifndef __RESULTS_H
-#define __RESULTS_H
+#pragma once
+
 /**
  * @file Results.h
  * @brief Description of CResults class. The class to format and saves results.
@@ -28,7 +28,6 @@ typedef enum
    eMesureLast
 }eMesureName;
 
-
 /**
 * @class CResults
 * @brief Class to format and saves results.
@@ -47,12 +46,6 @@ private:
 
    static char const*const m_ppchMeasureNameTable[eMesureLast];   /*!<Table to associate a measure name for each measure index defined into eMesureName */
 
-protected:
-
-public:
-
-//////////////////////////////////////////////////////////////////////////
-//  Les methodes
 public:
    CResults(char *pi_pchBaseFileName);
    ~CResults();
@@ -207,13 +200,6 @@ public:
       m_fResTab[eMesureF1Test] = pi_fVal;
    }
 
-protected:
-
-
 private:
    CResults();
 };
-
-
-
-#endif
