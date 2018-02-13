@@ -15,6 +15,7 @@
 #include <vnl/algo/vnl_matrix_inverse.h>
 
 #include <vtkPointData.h>
+#include <vtkCellData.h>
 #include <vtkDoubleArray.h>
 
 #include <animaKMeansFilter.h>
@@ -436,7 +437,9 @@ BaseProbabilisticTractographyImageFilter <TInputModelImageType>
 
     vtkSmartPointer <vtkPoints> myPoints = vtkPoints::New();
     vtkSmartPointer <vtkUnsignedCharArray> myColors = vtkUnsignedCharArray::New();
-    myColors->SetNumberOfComponents(3);
+    vtkSmartPointer <vtkUnsignedCharArray> myCellColors = vtkUnsignedCharArray::New();
+    myColors->SetNumberOfComponents (3);
+    myCellColors->SetNumberOfComponents (3);
 
     vtkSmartPointer <vtkDoubleArray> weights = vtkDoubleArray::New();
     weights->SetNumberOfComponents(1);
@@ -475,12 +478,27 @@ BaseProbabilisticTractographyImageFilter <TInputModelImageType>
 
                 for( unsigned int k = 0;k < 3;++k)
                 {
-                    double c = fabs (tmpDiff[k] / normDiff) * 255.0;
+                    double c = std::abs (tmpDiff[k] / normDiff) * 255.0;
                     myColors->InsertNextValue( (unsigned char)(c > 255.0 ? 255.0 : c) );
                 }
             }
 
             weights->InsertNextValue( filteredWeights[i] );
+        }
+
+        // cell color
+        double normDiff = 0;
+        for (unsigned int k = 0;k < 3;++k)
+        {
+            tmpDiff[k] = filteredFibers[i][0][k] - filteredFibers[i][npts-1][k];
+            normDiff += tmpDiff[k] * tmpDiff[k];
+        }
+
+        normDiff = std::sqrt(normDiff);
+        for (unsigned int i = 0;i < 3;++i)
+        {
+            double c = std::abs (tmpDiff[i] / normDiff) * 255.0;
+            myCellColors->InsertNextValue ((unsigned char)(c > 255.0 ? 255.0 : c));
         }
 
         m_Output->InsertNextCell (VTK_POLY_LINE, npts, ids);
@@ -491,6 +509,7 @@ BaseProbabilisticTractographyImageFilter <TInputModelImageType>
     if (m_ComputeLocalColors)
     {
         m_Output->GetPointData()->SetScalars(myColors);
+        m_Output->GetCellData()->SetScalars(myCellColors);
         this->ComputeAdditionalScalarMaps();
     }
 

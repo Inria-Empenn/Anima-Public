@@ -409,13 +409,22 @@ void DTIProbabilisticTractographyImageFilter::ComputeAdditionalScalarMaps()
     unsigned int numPoints = outputPtr->GetPoints()->GetNumberOfPoints();
     vtkPoints *myPoints = outputPtr->GetPoints();
 
-    vtkSmartPointer <vtkDoubleArray> tensorsArray = vtkDoubleArray::New();
-    tensorsArray->SetNumberOfComponents(6);
-    tensorsArray->SetName("Tensors");
+    vtkSmartPointer <vtkDoubleArray> faArray = vtkDoubleArray::New();
+    faArray->SetNumberOfComponents(1);
+    faArray->SetName("FA");
+
+    vtkSmartPointer <vtkDoubleArray> adcArray = vtkDoubleArray::New();
+    adcArray->SetNumberOfComponents(1);
+    adcArray->SetName("ADC");
 
     PointType tmpPoint;
     Superclass::InterpolatorType::ContinuousIndexType tmpIndex;
-    VectorType tensorValue(this->GetModelDimension());
+
+    typedef vnl_matrix <double> MatrixType;
+    MatrixType tmpMat(3,3);
+    vnl_diag_matrix <double> eVals(3);
+    itk::SymmetricEigenAnalysis <MatrixType,vnl_diag_matrix <double>,MatrixType> EigenAnalysis(3);
+    VectorType tensorValue(6);
 
     for (unsigned int i = 0;i < numPoints;++i)
     {
@@ -427,11 +436,30 @@ void DTIProbabilisticTractographyImageFilter::ComputeAdditionalScalarMaps()
         if (modelInterpolator->IsInsideBuffer(tmpIndex))
             this->ComputeModelValue(modelInterpolator,tmpIndex,tensorValue);
 
-        for (unsigned int j = 0;j < this->GetModelDimension();++j)
-            tensorsArray->InsertNextValue(tensorValue[j]);
+        anima::GetTensorFromVectorRepresentation(tensorValue,tmpMat,3,false);
+
+        double adcValue = 0;
+        for (unsigned int j = 0;j < 3;++j)
+            adcValue += tmpMat(j,j);
+
+        adcArray->InsertNextValue(adcValue / 3.0);
+
+        double faValue = 0;
+        double faValueDenom = 0;
+        EigenAnalysis.ComputeEigenValues(tmpMat,eVals);
+        for (unsigned int j = 0;j < 3;++j)
+        {
+            faValueDenom += eVals[j] * eVals[j];
+            for (unsigned int k = j + 1;k < 3;++k)
+                faValue += (eVals[j] - eVals[k]) * (eVals[j] - eVals[k]);
+        }
+
+        faValue = std::sqrt(faValue / (2.0 * faValueDenom));
+        faArray->InsertNextValue(faValue);
     }
 
-    outputPtr->GetPointData()->AddArray(tensorsArray);
+    outputPtr->GetPointData()->AddArray(faArray);
+    outputPtr->GetPointData()->AddArray(adcArray);
 }
 
 } // end of namespace anima

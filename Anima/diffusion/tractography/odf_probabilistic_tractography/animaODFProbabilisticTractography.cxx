@@ -128,7 +128,7 @@ int main(int argc,  char*  argv[])
     odfTracker->SetClusterDistance(clusterDistArg.getValue());
     odfTracker->SetCurvatureScale(curvScaleArg.getValue());
     
-    odfTracker->SetComputeLocalColors(fibersArg.getValue().find(".fds") == std::string::npos);
+    odfTracker->SetComputeLocalColors(fibersArg.getValue().find(".fds") != std::string::npos);
     odfTracker->SetMAPMergeFibers(averageClustersArg.getValue());
     
     itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();

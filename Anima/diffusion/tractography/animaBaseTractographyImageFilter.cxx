@@ -7,6 +7,7 @@
 #include <animaVectorOperations.h>
 
 #include <vtkPointData.h>
+#include <vtkCellData.h>
 
 namespace anima
 {
@@ -276,7 +277,9 @@ void BaseTractographyImageFilter::createVTKOutput(std::vector < FiberType > &fil
     
     vtkSmartPointer <vtkPoints> myPoints = vtkPoints::New();
     vtkSmartPointer <vtkUnsignedCharArray> myColors = vtkUnsignedCharArray::New();
+    vtkSmartPointer <vtkUnsignedCharArray> myCellColors = vtkUnsignedCharArray::New();
     myColors->SetNumberOfComponents (3);
+    myCellColors->SetNumberOfComponents (3);
     PointType tmpDiff;
     
     for (unsigned int i = 0;i < filteredFibers.size();++i)
@@ -315,6 +318,21 @@ void BaseTractographyImageFilter::createVTKOutput(std::vector < FiberType > &fil
                 }
             }
         }
+
+        // cell color
+        double normDiff = 0;
+        for (unsigned int k = 0;k < 3;++k)
+        {
+            tmpDiff[k] = filteredFibers[i][0][k] - filteredFibers[i][npts-1][k];
+            normDiff += tmpDiff[k] * tmpDiff[k];
+        }
+
+        normDiff = std::sqrt(normDiff);
+        for (unsigned int i = 0;i < 3;++i)
+        {
+            double c = std::abs (tmpDiff[i] / normDiff) * 255.0;
+            myCellColors->InsertNextValue ((unsigned char)(c > 255.0 ? 255.0 : c));
+        }
         
         m_Output->InsertNextCell (VTK_POLY_LINE, npts, ids);
         delete[] ids;
@@ -324,6 +342,7 @@ void BaseTractographyImageFilter::createVTKOutput(std::vector < FiberType > &fil
     if (m_ComputeLocalColors)
     {
         m_Output->GetPointData()->SetScalars (myColors);
+        m_Output->GetCellData()->SetScalars (myCellColors);
         this->ComputeAdditionalScalarMaps();
     }
 }

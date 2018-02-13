@@ -83,7 +83,9 @@ int main(int argc,  char*  argv[])
     dtiTracker->SetMaxFiberAngle(stopAngleArg.getValue());
     dtiTracker->SetMinLengthFiber(minLengthArg.getValue());
     dtiTracker->SetMaxLengthFiber(maxLengthArg.getValue());
-    dtiTracker->SetComputeLocalColors(!fibersArg.getValue().find(".fds"));
+
+    bool computeColors = (fibersArg.getValue().find(".fds") != std::string::npos);
+    dtiTracker->SetComputeLocalColors(computeColors);
 
     itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
     callback->SetCallback(eventCallback);

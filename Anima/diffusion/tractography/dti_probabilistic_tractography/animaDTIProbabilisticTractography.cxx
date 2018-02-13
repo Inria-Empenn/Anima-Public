@@ -145,7 +145,7 @@ int main(int argc,  char*  argv[])
     
     dtiTracker->SetClusterDistance(clusterDistArg.getValue());
     
-    dtiTracker->SetComputeLocalColors(fibersArg.getValue().find(".fds") == std::string::npos);
+    dtiTracker->SetComputeLocalColors(fibersArg.getValue().find(".fds") != std::string::npos);
     dtiTracker->SetMAPMergeFibers(averageClustersArg.isSet());
     dtiTracker->SetNumberOfThreads(nbThreadsArg.getValue());
 
