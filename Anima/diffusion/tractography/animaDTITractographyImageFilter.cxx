@@ -12,6 +12,7 @@ namespace anima
 dtiTractographyImageFilter::dtiTractographyImageFilter()
 {
     m_StopFAThreshold = 0.1;
+    m_StopADCThreshold = 2.0e-3;
 }
 
 dtiTractographyImageFilter::~dtiTractographyImageFilter()
@@ -46,6 +47,9 @@ bool dtiTractographyImageFilter::CheckModelCompatibility(VectorType &modelValue,
     }
 
     meanEvals /= 3.0;
+
+    if (meanEvals > m_StopADCThreshold)
+        return false;
 
     double num = 0;
     double denom = 0;

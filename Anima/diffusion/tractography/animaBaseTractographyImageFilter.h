@@ -56,7 +56,8 @@ public:
     virtual void SetInputImage(ModelImageType *input) {m_InputImage = input;}
     ModelImageType *GetInputImage() {return m_InputImage;}
 
-    void SetTrackingMask(MaskImageType *mask) {m_MaskImage = mask;}
+    void SetSeedingMask(MaskImageType *mask) {m_SeedingImage = mask;}
+    void SetFilteringMask(MaskImageType *mask) {m_FilteringImage = mask;}
     void SetForbiddenMask(MaskImageType *mask) {m_ForbiddenMaskImage = mask;}
     void SetCutMask(MaskImageType *mask) {m_CutMaskImage = mask;}
 
@@ -115,7 +116,7 @@ private:
     double m_MinimalModelWeight;
 
     ModelImagePointer m_InputImage;
-    MaskImagePointer m_MaskImage, m_ForbiddenMaskImage, m_CutMaskImage;
+    MaskImagePointer m_SeedingImage, m_FilteringImage, m_ForbiddenMaskImage, m_CutMaskImage;
     
     FiberProcessVectorType m_PointsToProcess;
     std::vector <unsigned int> m_FilteringValues;

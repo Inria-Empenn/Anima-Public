@@ -31,7 +31,8 @@ public:
     virtual void SetInputImage(ModelImageType *input) ITK_OVERRIDE;
 
     void SetStopFAThreshold(double num) {m_StopFAThreshold = num;}
-    
+    void SetStopADCThreshold(double num) {m_StopADCThreshold = num;}
+
 protected:
     dtiTractographyImageFilter();
     virtual ~dtiTractographyImageFilter();
@@ -47,6 +48,8 @@ protected:
 
 private:
     double m_StopFAThreshold;
+    double m_StopADCThreshold;
+
     DTIInterpolatorPointer m_DTIInterpolator;
 };
 

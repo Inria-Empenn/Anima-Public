@@ -25,10 +25,12 @@ int main(int argc,  char*  argv[])
     TCLAP::ValueArg<std::string> seedMaskArg("s","seed-mask","Seed mask",true,"","seed",cmd);
     TCLAP::ValueArg<std::string> fibersArg("o","fibers","Output fibers",true,"","fibers",cmd);
 
+    TCLAP::ValueArg<std::string> filterMaskArg("","filter-mask","Mask for filtering fibers (default: none)",false,"","filter mask",cmd);
     TCLAP::ValueArg<std::string> cutMaskArg("c","cut-mask","Mask for cutting fibers (default: none)",false,"","cut mask",cmd);
-    TCLAP::ValueArg<std::string> forbiddenMaskArg("f","forbidden-mask","Mask for removing fibers (default: none)",false,"","remove mask",cmd);
+    TCLAP::ValueArg<std::string> forbiddenMaskArg("","forbidden-mask","Mask for removing fibers (default: none)",false,"","remove mask",cmd);
 
-    TCLAP::ValueArg<double> faThrArg("","fa-thr","FA threshold (default: 0.1)",false,0.1,"fa threshold",cmd);
+    TCLAP::ValueArg<double> adcThrArg("A","adc-thr","ADC threshold (default: 2.0e-3)",false,2.0e-3,"ADC threshold",cmd);
+    TCLAP::ValueArg<double> faThrArg("","fa-thr","FA threshold (default: 0.1)",false,0.1,"FA threshold",cmd);
     TCLAP::ValueArg<double> minNewModelWeightArg("w","min-weight","Minimal model direction weight wrt previous (default: 0.25)",false,0.25,"minimal model direction weight",cmd);
 
     TCLAP::ValueArg<double> stopAngleArg("a","angle-max","Maximum angle for tracking (default: 60)",false,60.0,"maximum track angle",cmd);
@@ -67,7 +69,8 @@ int main(int argc,  char*  argv[])
 
     dtiTracker->SetInputImage(tensorLogger->GetOutput());
 
-    dtiTracker->SetTrackingMask(anima::readImage <MaskImageType> (seedMaskArg.getValue()));
+    dtiTracker->SetSeedingMask(anima::readImage <MaskImageType> (seedMaskArg.getValue()));
+    dtiTracker->SetFilteringMask(anima::readImage <MaskImageType> (filterMaskArg.getValue()));
 
     if (cutMaskArg.getValue() != "")
         dtiTracker->SetCutMask(anima::readImage <MaskImageType> (cutMaskArg.getValue()));
@@ -79,6 +82,7 @@ int main(int argc,  char*  argv[])
     dtiTracker->SetNumberOfFibersPerPixel(nbFibersArg.getValue());
     dtiTracker->SetStepProgression(stepLengthArg.getValue());
     dtiTracker->SetStopFAThreshold(faThrArg.getValue());
+    dtiTracker->SetStopADCThreshold(adcThrArg.getValue());
     dtiTracker->SetMinimalModelWeight(minNewModelWeightArg.getValue());
     dtiTracker->SetMaxFiberAngle(stopAngleArg.getValue());
     dtiTracker->SetMinLengthFiber(minLengthArg.getValue());
