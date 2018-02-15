@@ -70,7 +70,9 @@ int main(int argc,  char*  argv[])
     dtiTracker->SetInputImage(tensorLogger->GetOutput());
 
     dtiTracker->SetSeedingMask(anima::readImage <MaskImageType> (seedMaskArg.getValue()));
-    dtiTracker->SetFilteringMask(anima::readImage <MaskImageType> (filterMaskArg.getValue()));
+
+    if (filterMaskArg.getValue() != "")
+        dtiTracker->SetFilteringMask(anima::readImage <MaskImageType> (filterMaskArg.getValue()));
 
     if (cutMaskArg.getValue() != "")
         dtiTracker->SetCutMask(anima::readImage <MaskImageType> (cutMaskArg.getValue()));
