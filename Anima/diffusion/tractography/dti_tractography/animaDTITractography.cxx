@@ -27,7 +27,7 @@ int main(int argc,  char*  argv[])
 
     TCLAP::ValueArg<std::string> filterMaskArg("","filter-mask","Mask for filtering fibers (default: none)",false,"","filter mask",cmd);
     TCLAP::ValueArg<std::string> cutMaskArg("c","cut-mask","Mask for cutting fibers (default: none)",false,"","cut mask",cmd);
-    TCLAP::ValueArg<std::string> forbiddenMaskArg("","forbidden-mask","Mask for removing fibers (default: none)",false,"","remove mask",cmd);
+    TCLAP::ValueArg<std::string> forbiddenMaskArg("f","forbidden-mask","Mask for removing fibers (default: none)",false,"","remove mask",cmd);
 
     TCLAP::ValueArg<double> adcThrArg("A","adc-thr","ADC threshold (default: 2.0e-3)",false,2.0e-3,"ADC threshold",cmd);
     TCLAP::ValueArg<double> faThrArg("","fa-thr","FA threshold (default: 0.1)",false,0.1,"FA threshold",cmd);
