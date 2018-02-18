@@ -25,7 +25,7 @@ target_link_libraries(${PROJECT_NAME}
   AnimaSignalSimulation
   AnimaOptimizers
   ITKCommon
-  ) 
+  )
 
 
 ################################################################################
@@ -49,5 +49,6 @@ set_lib_install_rules(${PROJECT_NAME})
 ## #############################################################################
 
 add_subdirectory(t1_relaxometry_estimation)
+add_subdirectory(t1_se_relaxometry_estimation)
 add_subdirectory(t2_epg_relaxometry_estimation)
 add_subdirectory(t2_relaxometry_estimation)

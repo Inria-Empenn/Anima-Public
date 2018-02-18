@@ -1,4 +1,4 @@
-set(BINARY_TOOLS_LIST 
+set(BINARY_TOOLS_LIST
   animaApplyDistortionCorrection
   animaApplyTransformSerie
   animaAverageImages
@@ -21,6 +21,7 @@ set(BINARY_TOOLS_LIST
   animaDenseTransformArithmetic
   animaDiceMeasure
   animaDisplacementFieldJacobian
+  animaDistanceMap
   animaDistortionCorrection
   animaEddyCurrentCorrection
   animaExpTensors
@@ -77,6 +78,7 @@ set(BINARY_TOOLS_LIST
   animaSymmetryConstrainedRegistration
   animaSymmetryPlane
   animaT1RelaxometryEstimation
+  animaT1SERelaxometryEstimation
   animaT2EPGRelaxometryEstimation
   animaT2RelaxometryEstimation
   animaTensorApplyTransformSerie
