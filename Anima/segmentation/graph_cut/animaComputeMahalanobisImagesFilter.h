@@ -27,13 +27,10 @@ public:
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(ComputeMahalanobisImagesFilter, ImageToImageFilter);
-
-
-    /** Image typedef support */
+    itkTypeMacro(ComputeMahalanobisImagesFilter, ImageToImageFilter)
 
     /**  Type of the input image. */
     typedef TInputImage InputImageType;
@@ -53,7 +50,6 @@ public:
     /** Superclass typedefs. */
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
-    /**   */
     typedef unsigned char 	PixelTypeUC;
     typedef itk::Image <PixelTypeUC,3> ImageTypeUC;
     typedef ImageTypeUC::Pointer ImagePointerUC;
@@ -111,13 +107,10 @@ public:
         std::cout<<"\033[K\rProgression: "<<(int)(processObject->GetProgress() * 100)<<"%"<<std::flush;
     }
 
-    itkSetMacro(Verbose, bool);
-    itkGetMacro(Verbose, bool);
-
+    itkSetMacro(Verbose, bool)
+    itkGetMacro(Verbose, bool)
 
 protected:
-
-
     ComputeMahalanobisImagesFilter()
     {
         this->SetNumberOfRequiredOutputs(5);
@@ -157,8 +150,7 @@ protected:
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
-    ComputeMahalanobisImagesFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(ComputeMahalanobisImagesFilter);
 
     std::string m_SolutionReadFilename;
 
@@ -181,9 +173,8 @@ private:
     ImagePointerUC m_InputImage_1_UC;
     ImagePointerUC m_InputImage_2_UC;
     ImagePointerUC m_InputImage_3_UC;
-
-
 };
+
 } // end of namespace anima
 
 #include "animaComputeMahalanobisImagesFilter.hxx"

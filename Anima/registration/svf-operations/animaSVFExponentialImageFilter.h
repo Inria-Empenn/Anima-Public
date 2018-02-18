@@ -58,8 +58,7 @@ protected:
     void AfterThreadedGenerateData() ITK_OVERRIDE;
 
 private:
-    SVFExponentialImageFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(SVFExponentialImageFilter);
 
     //! Maximal voxel displacement amplitude to be achieved after scaling
     double m_MaximalDisplacementAmplitude;

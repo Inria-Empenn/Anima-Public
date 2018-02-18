@@ -20,10 +20,10 @@ public:
     typedef typename Superclass::VectorType VectorType;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(PatientToGroupODFComparisonImageFilter, PatientToGroupComparisonImageFilter);
+    itkTypeMacro(PatientToGroupODFComparisonImageFilter, PatientToGroupComparisonImageFilter)
 
     void SetSampleDirections (std::vector < std::vector < double > > &input) {m_SampleDirections = input;}
 
@@ -45,8 +45,7 @@ protected:
     unsigned int SampleFromDiffusionModels(std::vector <VectorType> &databaseValues, VectorType &patientVectorValue) ITK_OVERRIDE;
 
 private:
-    PatientToGroupODFComparisonImageFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(PatientToGroupODFComparisonImageFilter);
 
     std::vector < std::vector <double> > m_SampleDirections;
     unsigned int m_LOrder;

@@ -83,8 +83,7 @@ protected:
     double ComputeB0AndVarianceFromTensorVector(const vnl_matrix <double> &tensorValue, const std::vector <double> &dwiSignal, double &outVarianceValue);
 
 private:
-    DTIEstimationImageFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(DTIEstimationImageFilter);
 
     std::vector <double> m_BValuesList;
     std::vector< vnl_vector_fixed<double,3> > m_GradientDirections;

@@ -23,10 +23,10 @@ public:
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(ImageClassifierFilter, ImageToImageFilter);
+    itkTypeMacro(ImageClassifierFilter, ImageToImageFilter)
 
     /** Image typedef support */
     typedef typename TInput::ConstPointer InputImageConstPointer;
@@ -39,7 +39,7 @@ public:
     typedef typename TOutput::ConstPointer OutputImageConstPointer;
     typedef typename itk::ImageRegionIterator< TOutput > OutputIteratorType;
 
-    typedef double                    NumericType;
+    typedef double NumericType;
     typedef itk::VariableSizeMatrix<NumericType> DoubleVariableSizeMatrixType;
 
     typedef itk::VariableLengthVector<double> MeasurementVectorType;
@@ -50,7 +50,6 @@ public:
         this->SetCoordinateTolerance(tol);
         this->SetDirectionTolerance(tol);
     }
-
 
     /** The mri images.*/
     void SetInputImage1(const TInput* image);
@@ -63,12 +62,11 @@ public:
      */
     void SetMask(const TMask* mask);
 
-
     /** Superclass typedefs. */
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
-    itkSetMacro(Verbose, bool);
-    itkGetMacro(Verbose, bool);
+    itkSetMacro(Verbose, bool)
+    itkGetMacro(Verbose, bool)
 
     void WriteOutputs();
     void SetGaussianModel(std::vector<GaussianFunctionType::Pointer> &model) {m_GaussianModel=model;}
@@ -78,11 +76,8 @@ public:
     std::vector<GaussianFunctionType::Pointer> GetAlphas() {return m_Alphas;}
 
 protected:
-
-
     ImageClassifierFilter()
     {
-
         this->SetNumberOfRequiredOutputs(1);
         this->SetNumberOfRequiredInputs(2);
 
@@ -91,7 +86,6 @@ protected:
         m_IndexImage1=m_NbMaxImages, m_IndexImage2=m_NbMaxImages, m_IndexImage3=m_NbMaxImages, m_IndexImage4=m_NbMaxImages,m_IndexImage5=m_NbMaxImages, m_IndexImage6=m_NbMaxImages;
         m_Verbose=false;
         this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
-
     }
 
     virtual ~ImageClassifierFilter()
@@ -110,8 +104,7 @@ protected:
     double probability(DoubleVariableSizeMatrixType &point, GaussianFunctionType::Pointer model);
 
 private:
-    ImageClassifierFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(ImageClassifierFilter);
 
     std::vector<double> m_Alphas;
     std::vector<GaussianFunctionType::Pointer> m_GaussianModel;
@@ -123,9 +116,8 @@ private:
     unsigned int m_IndexImage1, m_IndexImage2, m_IndexImage3, m_IndexImage4,m_IndexImage5, m_IndexImage6;
 
     bool m_Verbose;
-
-
 };
+
 } // end of namespace anima
 
 #include "animaImageClassifierFilter.hxx"

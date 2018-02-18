@@ -57,6 +57,8 @@ protected:
     void ComputeAdditionalScalarMaps() ITK_OVERRIDE;
 
 private:
+    ITK_DISALLOW_COPY_AND_ASSIGN(DTIProbabilisticTractographyImageFilter);
+
     double m_ThresholdForProlateTensor;
     double m_FAThreshold;
 

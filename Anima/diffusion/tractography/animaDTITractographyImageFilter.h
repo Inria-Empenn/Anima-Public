@@ -47,6 +47,8 @@ protected:
     virtual void ComputeAdditionalScalarMaps() ITK_OVERRIDE;
 
 private:
+    ITK_DISALLOW_COPY_AND_ASSIGN(dtiTractographyImageFilter);
+
     double m_StopFAThreshold;
     double m_StopADCThreshold;
 

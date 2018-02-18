@@ -72,8 +72,7 @@ protected:
     bool CheckFaceConnectivity(const IndexType &internalIndex, const IndexType &currentIndex);
 
 private:
-    JacobianMatrixImageFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(JacobianMatrixImageFilter);
 
     //! Add identity to the obtained Jacobian matrix
     bool m_NoIdentity;

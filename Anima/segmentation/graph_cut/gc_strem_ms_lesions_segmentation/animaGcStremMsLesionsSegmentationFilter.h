@@ -31,7 +31,6 @@ enum InitializationType
     HierarchicalFLAIR
 };
 
-
 /** @brief Class performing lesion segmentation.
  *
  * The segmentation method has three steps:
@@ -64,7 +63,6 @@ enum InitializationType
  * Additionally to the lesions segmentation, the filter provides a segmentation of the healthy tissues based on the NABT estimation.
  *
  */
-
 namespace anima
 {
 
@@ -81,10 +79,10 @@ public:
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(GcStremMsLesionsSegmentationFilter, ImageToImageFilter);
+    itkTypeMacro(GcStremMsLesionsSegmentationFilter, ImageToImageFilter)
 
     /**  Type of the input images. */
     typedef TInputImage InputImageType;
@@ -191,89 +189,89 @@ public:
     /**
     * Setter/Getter for parameters
     * */
-    itkSetMacro(InitMethodType, unsigned int);
-    itkGetMacro(InitMethodType, unsigned int);
+    itkSetMacro(InitMethodType, unsigned int)
+    itkGetMacro(InitMethodType, unsigned int)
 
-    itkSetMacro(RejRatioHierar, double);
-    itkGetMacro(RejRatioHierar, double);
+    itkSetMacro(RejRatioHierar, double)
+    itkGetMacro(RejRatioHierar, double)
 
-    itkSetMacro(MinDistance, double);
-    itkGetMacro(MinDistance, double);
+    itkSetMacro(MinDistance, double)
+    itkGetMacro(MinDistance, double)
 
-    itkSetMacro(EmIter, int);
-    itkGetMacro(EmIter, int);
+    itkSetMacro(EmIter, int)
+    itkGetMacro(EmIter, int)
 
-    itkSetMacro(RejRatio, double);
-    itkGetMacro(RejRatio, double);
+    itkSetMacro(RejRatio, double)
+    itkGetMacro(RejRatio, double)
 
-    itkSetMacro(EmIter_concentration, int);
-    itkGetMacro(EmIter_concentration, int);
+    itkSetMacro(EmIter_concentration, int)
+    itkGetMacro(EmIter_concentration, int)
 
-    itkSetMacro(EM_before_concentration, bool);
-    itkGetMacro(EM_before_concentration, bool);
+    itkSetMacro(EM_before_concentration, bool)
+    itkGetMacro(EM_before_concentration, bool)
 
-    itkSetMacro(MahalanobisThCSF, double);
-    itkGetMacro(MahalanobisThCSF, double);
+    itkSetMacro(MahalanobisThCSF, double)
+    itkGetMacro(MahalanobisThCSF, double)
 
-    itkSetMacro(MahalanobisThGM, double);
-    itkGetMacro(MahalanobisThGM, double);
+    itkSetMacro(MahalanobisThGM, double)
+    itkGetMacro(MahalanobisThGM, double)
 
-    itkSetMacro(MahalanobisThWM, double);
-    itkGetMacro(MahalanobisThWM, double);
+    itkSetMacro(MahalanobisThWM, double)
+    itkGetMacro(MahalanobisThWM, double)
 
-    itkSetMacro(FuzzyRuleMin, double);
-    itkGetMacro(FuzzyRuleMin, double);
+    itkSetMacro(FuzzyRuleMin, double)
+    itkGetMacro(FuzzyRuleMin, double)
 
-    itkSetMacro(FuzzyRuleMax, double);
-    itkGetMacro(FuzzyRuleMax, double);
+    itkSetMacro(FuzzyRuleMax, double)
+    itkGetMacro(FuzzyRuleMax, double)
 
-    itkSetMacro(UseT2, bool);
-    itkGetMacro(UseT2, bool);
+    itkSetMacro(UseT2, bool)
+    itkGetMacro(UseT2, bool)
 
-    itkSetMacro(UseDP, bool);
-    itkGetMacro(UseDP, bool);
+    itkSetMacro(UseDP, bool)
+    itkGetMacro(UseDP, bool)
 
-    itkSetMacro(UseFLAIR, bool);
-    itkGetMacro(UseFLAIR, bool);
+    itkSetMacro(UseFLAIR, bool)
+    itkGetMacro(UseFLAIR, bool)
 
-    itkSetMacro(Alpha, double);
-    itkGetMacro(Alpha, double);
+    itkSetMacro(Alpha, double)
+    itkGetMacro(Alpha, double)
 
-    itkSetMacro(MultiVarSources, double);
-    itkGetMacro(MultiVarSources, double);
+    itkSetMacro(MultiVarSources, double)
+    itkGetMacro(MultiVarSources, double)
 
-    itkSetMacro(MultiVarSinks, double);
-    itkGetMacro(MultiVarSinks, double);
+    itkSetMacro(MultiVarSinks, double)
+    itkGetMacro(MultiVarSinks, double)
 
-    itkSetMacro(Sigma, double);
-    itkGetMacro(Sigma, double);
+    itkSetMacro(Sigma, double)
+    itkGetMacro(Sigma, double)
 
-    itkSetMacro(UseSpecGrad, bool);
-    itkGetMacro(UseSpecGrad, bool);
+    itkSetMacro(UseSpecGrad, bool)
+    itkGetMacro(UseSpecGrad, bool)
 
-    itkSetMacro(MinLesionsSize, double);
-    itkGetMacro(MinLesionsSize, double);
+    itkSetMacro(MinLesionsSize, double)
+    itkGetMacro(MinLesionsSize, double)
 
-    itkSetMacro(RemoveBorder, bool);
-    itkGetMacro(RemoveBorder, bool);
+    itkSetMacro(RemoveBorder, bool)
+    itkGetMacro(RemoveBorder, bool)
 
-    itkSetMacro(IntensityT2Factor, double);
-    itkGetMacro(IntensityT2Factor, double);
+    itkSetMacro(IntensityT2Factor, double)
+    itkGetMacro(IntensityT2Factor, double)
 
-    itkSetMacro(IntensityDPFactor, double);
-    itkGetMacro(IntensityDPFactor, double);
+    itkSetMacro(IntensityDPFactor, double)
+    itkGetMacro(IntensityDPFactor, double)
 
-    itkSetMacro(IntensityFLAIRFactor, double);
-    itkGetMacro(IntensityFLAIRFactor, double);
+    itkSetMacro(IntensityFLAIRFactor, double)
+    itkGetMacro(IntensityFLAIRFactor, double)
 
-    itkSetMacro(RatioContourWM, double);
-    itkGetMacro(RatioContourWM, double);
+    itkSetMacro(RatioContourWM, double)
+    itkGetMacro(RatioContourWM, double)
 
-    itkSetMacro(Verbose, bool);
-    itkGetMacro(Verbose, bool);
+    itkSetMacro(Verbose, bool)
+    itkGetMacro(Verbose, bool)
 
-    itkSetMacro(ThresoldWMmap, double);
-    itkGetMacro(ThresoldWMmap, double);
+    itkSetMacro(ThresoldWMmap, double)
+    itkGetMacro(ThresoldWMmap, double)
 
     LesionSegmentationType GetLesionSegmentationType() {return m_LesionSegmentationType;}
     void SetLesionSegmentationType(LesionSegmentationType type) {m_LesionSegmentationType=type;}
@@ -341,9 +339,7 @@ public:
     std::string GetMatrixGradFilename() {return m_MatrixGradFilename;}
     void SetMatrixGradFilename(std::string fn) {m_MatrixGradFilename=fn;}
 
-
 protected:
-
     typename GraphCutFilterType::Pointer m_GraphCutFilter;
     typename TLinksFilterType::Pointer m_TLinksFilter;
     MaximumFilterType::Pointer m_FilterMaxSources;
@@ -443,7 +439,6 @@ protected:
         this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
     }
 
-
     ~GcStremMsLesionsSegmentationFilter()
     {
     }
@@ -470,11 +465,8 @@ protected:
 
     static void ManageProgress( itk::Object* caller, const itk::EventObject& event, void* clientData );
 
-
 private:
-
-    GcStremMsLesionsSegmentationFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(GcStremMsLesionsSegmentationFilter);
 
     /**
     * Global Parameters

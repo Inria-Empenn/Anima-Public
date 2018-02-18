@@ -117,7 +117,6 @@ protected:
     void FilterDataArray(RealType *outs, const RealType *data, unsigned int ln,
                          RealType &sV0, RealType &sV1, RealType &sV2);
 
-protected:
     /** Utility function to compute causal part for any type */
     template <class T>
     inline void ComputeCausalPart(T &out, const T &data, T &V0, T &V1, T &V2)
@@ -256,8 +255,7 @@ protected:
     vnl_matrix <ScalarRealType> m_MMatrix;
 
 private:
-    RecursiveLineYvvGaussianImageFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(RecursiveLineYvvGaussianImageFilter);
 
     /** Direction in which the filter is to be applied
      * this should be in the range [0,ImageDimension-1]. */

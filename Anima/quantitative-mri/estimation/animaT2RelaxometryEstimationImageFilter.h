@@ -6,6 +6,7 @@
 
 namespace anima
 {
+
 template <typename TInputImage, typename TOutputImage>
 class T2RelaxometryEstimationImageFilter :
 public anima::MaskedImageToImageFilter<TInputImage,TOutputImage>
@@ -33,7 +34,6 @@ public:
     typedef typename Superclass::MaskImageType MaskImageType;
     typedef typename Superclass::InputImageRegionType InputImageRegionType;
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
-
 
     /** Setter */
     void SetT1Map(OutputImageType *map) {m_T1Map = map;}
@@ -72,8 +72,7 @@ protected:
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
-    T2RelaxometryEstimationImageFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(T2RelaxometryEstimationImageFilter);
 
     double m_AverageSignalThreshold;
 

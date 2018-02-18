@@ -85,10 +85,7 @@ protected:
                               itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
-    DTIScalarMapsImageFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
-
-
+    ITK_DISALLOW_COPY_AND_ASSIGN(DTIScalarMapsImageFilter);
 };
 
 } // end of namespace anima

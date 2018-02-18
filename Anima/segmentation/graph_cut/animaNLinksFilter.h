@@ -31,10 +31,10 @@ public:
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(NLinksFilter, ImageToImageFilter);
+    itkTypeMacro(NLinksFilter, ImageToImageFilter)
 
     /** Image typedef support */
     typedef typename TInput::Pointer InputImagePointer;
@@ -65,7 +65,7 @@ public:
 
     typedef Graph<double,double,double> GraphType;
 
-    typedef double                    NumericType;
+    typedef double NumericType;
     typedef itk::VariableSizeMatrix<NumericType> FloatVariableSizeMatrixType;
 
     /** The mri images.*/
@@ -100,24 +100,21 @@ public:
         m_Tol = tol;
     }
 
-    itkSetMacro(Sigma, float);
-    itkGetMacro(Sigma, float);
+    itkSetMacro(Sigma, float)
+    itkGetMacro(Sigma, float)
 
-    itkSetMacro(UseSpectralGradient, bool);
-    itkGetMacro(UseSpectralGradient, bool);
+    itkSetMacro(UseSpectralGradient, bool)
+    itkGetMacro(UseSpectralGradient, bool)
 
-    itkSetMacro(NbModalities, unsigned int);
-    itkGetMacro(NbModalities, unsigned int);
+    itkSetMacro(NbModalities, unsigned int)
+    itkGetMacro(NbModalities, unsigned int)
 
-    itkSetMacro(Verbose, bool);
-    itkGetMacro(Verbose, bool);
-
+    itkSetMacro(Verbose, bool)
+    itkGetMacro(Verbose, bool)
 
 protected:
-
     NLinksFilter()
     {
-
         this->SetNthOutput( 0, this->MakeOutput(0) );
         this->SetNthOutput( 1, this->MakeOutput(1) );
 
@@ -167,8 +164,7 @@ protected:
     double computeNLink(int i1, int j1, int k1, int i2, int j2, int k2);
 
 private:
-    NLinksFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(NLinksFilter);
 
     /** set to true to use the spectral gradient instead of a simple gradient
      */
@@ -205,8 +201,8 @@ private:
     unsigned int m_IndexImage1, m_IndexImage2, m_IndexImage3, m_IndexImage4,m_IndexImage5;
 
     double m_Tol;
-
 };
+
 } // end of namespace anima
 
 #include "animaNLinksFilter.hxx"

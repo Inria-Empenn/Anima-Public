@@ -9,26 +9,26 @@ class SimuBlochSPGRE:public itk::ImageToImageFilter< TImage, TImage >
 {
 public:
     /** Standard class typedefs. */
-    typedef SimuBlochSPGRE             Self;
-    typedef itk::ImageToImageFilter< TImage, TImage > Superclass;
-    typedef itk::SmartPointer< Self >        Pointer;
+    typedef SimuBlochSPGRE Self;
+    typedef itk::ImageToImageFilter <TImage, TImage> Superclass;
+    typedef itk::SmartPointer <Self> Pointer;
 
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(SimuBlochSPGRE, ImageToImageFilter);
+    itkTypeMacro(SimuBlochSPGRE, ImageToImageFilter)
 
-    itkSetMacro(TR, float);
-    itkGetMacro(TR, float);
+    itkSetMacro(TR, float)
+    itkGetMacro(TR, float)
 
-    itkSetMacro(TE, float);
-    itkGetMacro(TE, float);
+    itkSetMacro(TE, float)
+    itkGetMacro(TE, float)
 
-    itkSetMacro(FA, float);//changed for SP-GRE
-    itkGetMacro(FA, float);//changed for SP-GRE
+    itkSetMacro(FA, float)
+    itkGetMacro(FA, float)
 
     /** T1 map */
     void SetInputT1(const TImage* T1);
@@ -44,20 +44,18 @@ public:
 
 protected:
     SimuBlochSPGRE();
-    virtual ~SimuBlochSPGRE(){}
+    virtual ~SimuBlochSPGRE() {}
 
     /** Does the real work. */
     virtual void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread,
                                       itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
-    SimuBlochSPGRE(const Self &); //purposely not implemented
-    void operator=(const Self &);  //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(SimuBlochSPGRE);
 
     float m_TR;
     float m_TE;
-    float m_FA;//changed for SP-GRE
-
+    float m_FA;
 };
 
 } // end of namespace anima

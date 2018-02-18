@@ -23,7 +23,6 @@ enum OptimizerType
     Powell
 };
 
-
 namespace anima
 {
 
@@ -160,8 +159,7 @@ protected:
     void SetupPyramids();
 
 private:
-    PyramidalSymmetryBridge(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(PyramidalSymmetryBridge);
 
     InputImagePointer m_ReferenceImage, m_FloatingImage;
     PyramidPointer m_ReferencePyramid, m_FloatingPyramid;
@@ -188,8 +186,8 @@ private:
     std::string m_resultFile;
 
     itk::CStyleCommand::Pointer m_progressCallback;
-
 };
 
 }// end of namespace anima
+
 #include "animaPyramidalSymmetryBridge.hxx"

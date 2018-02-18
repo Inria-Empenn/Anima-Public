@@ -236,6 +236,8 @@ protected:
     static void ManageProgress( itk::Object* caller, const itk::EventObject& event, void* clientData );
 
 private:
+    ITK_DISALLOW_COPY_AND_ASSIGN(PyramidalDenseSVFMatchingBridge);
+
     BaseTransformPointer m_OutputTransform;
     InputImagePointer m_OutputImage;
 

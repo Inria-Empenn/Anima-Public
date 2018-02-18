@@ -43,10 +43,10 @@ public:
     typedef itk::SmartPointer <const Self> ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(HierarchicalInitializer, itk::ProcessObject);
+    itkTypeMacro(HierarchicalInitializer, itk::ProcessObject)
 
     typedef double 	PixelTypeD;
     typedef itk::Image <PixelTypeD,3> ImageTypeD;
@@ -150,19 +150,16 @@ public:
         std::cout<<"\033[K\rProgression: "<<(int)(processObject->GetProgress() * 100)<<"%"<<std::flush;
     }
 
-    itkSetMacro(Tol, double);
-    itkGetMacro(Tol, double);
+    itkSetMacro(Tol, double)
+    itkGetMacro(Tol, double)
 
-    itkSetMacro(ThirdIsFLAIR, bool);
-    itkGetMacro(ThirdIsFLAIR, bool);
+    itkSetMacro(ThirdIsFLAIR, bool)
+    itkGetMacro(ThirdIsFLAIR, bool)
 
-    itkSetMacro(Robust, float);
-    itkGetMacro(Robust, float);
+    itkSetMacro(Robust, float)
+    itkGetMacro(Robust, float)
 
 protected:
-    HierarchicalInitializer(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
-
     HierarchicalInitializer()
     {
         m_ThirdIsFLAIR = true;
@@ -174,6 +171,9 @@ protected:
         m_IndexImage1 = m_NbMaxImages, m_IndexImage2 = m_NbMaxImages, m_IndexImage3 = m_NbMaxImages, m_IndexImage4 = m_NbMaxImages, m_IndexImage5 = m_NbMaxImages, m_IndexImagem_NbMaxImages = m_NbMaxImages;
     }
     virtual ~HierarchicalInitializer(){}
+
+private:
+    ITK_DISALLOW_COPY_AND_ASSIGN(HierarchicalInitializer);
 
     std::vector<InputImageConstPointer> m_ImagesVector; //Order must be "T1","T2","FLAIR or PD"
     bool m_ThirdIsFLAIR;

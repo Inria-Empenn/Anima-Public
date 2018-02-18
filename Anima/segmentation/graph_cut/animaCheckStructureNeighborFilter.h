@@ -33,10 +33,10 @@ public:
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(CheckStructureNeighborFilter, ImageToImageFilter);
+    itkTypeMacro(CheckStructureNeighborFilter, ImageToImageFilter)
 
     /** Image typedef support */
 
@@ -58,7 +58,7 @@ public:
     typedef typename OutputImageType::PixelType OutputPixelType;
     typedef typename itk::ImageRegionIterator <OutputImageType> OutputIteratorType;
 
-    typedef int 	PixelTypeInt;
+    typedef int PixelTypeInt;
     typedef itk::Image <PixelTypeInt,3> ImageTypeInt;
     typedef itk::ImageRegionIterator <ImageTypeInt> ImageIteratorTypeInt;
 
@@ -83,23 +83,19 @@ public:
     /** Superclass typedefs. */
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
-    itkSetMacro(LabelToCheck, int);
-    itkGetMacro(LabelToCheck, int);
+    itkSetMacro(LabelToCheck, int)
+    itkGetMacro(LabelToCheck, int)
 
-    itkSetMacro(Verbose, bool);
-    itkGetMacro(Verbose, bool);
+    itkSetMacro(Verbose, bool)
+    itkGetMacro(Verbose, bool)
 
-    itkSetMacro(Ratio, float);
-    itkGetMacro(Ratio, float);
-
+    itkSetMacro(Ratio, float)
+    itkGetMacro(Ratio, float)
 
     std::string GetOutputFilename() {return m_OutputFilename;}
     void SetOutputFilename(std::string filename) {m_OutputFilename=filename;}
 
-
 protected:
-
-
     CheckStructureNeighborFilter()
     {
         this->SetNumberOfRequiredOutputs(1);
@@ -122,8 +118,7 @@ protected:
     void GenerateData() ITK_OVERRIDE;
 
 private:
-    CheckStructureNeighborFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(CheckStructureNeighborFilter);
 
     std::string m_OutputFilename;
     int m_LabelToCheck;
@@ -132,6 +127,7 @@ private:
     float m_Ratio;
 
 };
+
 } // end of namespace anima
 
 #include "animaCheckStructureNeighborFilter.hxx"

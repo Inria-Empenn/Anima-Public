@@ -61,8 +61,7 @@ protected:
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
-    LocalPatchCovarianceDistanceImageFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(LocalPatchCovarianceDistanceImageFilter);
 
     unsigned int m_PatchHalfSize;
 };

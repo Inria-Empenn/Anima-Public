@@ -58,8 +58,7 @@ protected:
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
-    SVFLieBracketImageFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(SVFLieBracketImageFilter);
 
     JacobianImagePointer m_FirstFieldJacobian, m_SecondFieldJacobian;
 };

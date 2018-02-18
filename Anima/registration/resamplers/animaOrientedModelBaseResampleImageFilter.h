@@ -160,8 +160,7 @@ protected:
                                            InputPixelType &orientedModel, itk::ThreadIdType threadId) = 0;
 
 private:
-    OrientedModelBaseResampleImageFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(OrientedModelBaseResampleImageFilter);
 
     TransformPointer m_Transform;
     bool m_FiniteStrainReorientation;

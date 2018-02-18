@@ -29,10 +29,10 @@ public:
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(RemoveTouchingBorderFilter, ImageToImageFilter);
+    itkTypeMacro(RemoveTouchingBorderFilter, ImageToImageFilter)
 
     /** Image typedef support */
 
@@ -92,21 +92,18 @@ public:
     /** Superclass typedefs. */
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
-    itkSetMacro(NoContour, bool);
-    itkGetMacro(NoContour, bool);
+    itkSetMacro(NoContour, bool)
+    itkGetMacro(NoContour, bool)
 
-    itkSetMacro(LabeledImage, bool);
-    itkGetMacro(LabeledImage, bool);
+    itkSetMacro(LabeledImage, bool)
+    itkGetMacro(LabeledImage, bool)
 
-    itkSetMacro(Verbose, bool);
-    itkGetMacro(Verbose, bool);
-
+    itkSetMacro(Verbose, bool)
+    itkGetMacro(Verbose, bool)
 
 protected:
-
     RemoveTouchingBorderFilter()
     {
-
         this->SetNumberOfRequiredOutputs(2);
         this->SetNumberOfRequiredInputs(2);
 
@@ -118,7 +115,6 @@ protected:
         m_Verbose=false;
         m_Tol = 0.0001;
         this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
-
     }
 
     virtual ~RemoveTouchingBorderFilter()
@@ -135,8 +131,7 @@ protected:
     virtual void GenerateData() ITK_OVERRIDE;
 
 private:
-    RemoveTouchingBorderFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(RemoveTouchingBorderFilter);
 
     bool m_LabeledImage;
     bool m_NoContour;
@@ -148,8 +143,8 @@ private:
     std::vector<int> m_labelsToRemove;
 
     double m_Tol;
-
 };
+
 } // end of namespace anima
 
 #include "animaRemoveTouchingBorderFilter.hxx"

@@ -170,6 +170,8 @@ public:
     void SetInitialTransformField(VectorFieldType *field);
 
 private:
+    ITK_DISALLOW_COPY_AND_ASSIGN(PyramidalDistortionCorrectionBlockMatchingBridge);
+
     void SetupPyramids();
 
     DisplacementFieldTransformPointer m_InitialTransform;

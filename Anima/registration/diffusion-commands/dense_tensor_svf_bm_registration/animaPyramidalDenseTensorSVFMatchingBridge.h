@@ -237,6 +237,8 @@ protected:
     void SetupPyramids();
 
 private:
+    ITK_DISALLOW_COPY_AND_ASSIGN(PyramidalDenseTensorSVFMatchingBridge);
+
     BaseTransformPointer m_OutputTransform;
     InputImagePointer m_OutputImage;
 

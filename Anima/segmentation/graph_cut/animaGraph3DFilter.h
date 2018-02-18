@@ -31,10 +31,10 @@ public:
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(Graph3DFilter, ImageToImageFilter);
+    itkTypeMacro(Graph3DFilter, ImageToImageFilter)
 
     /** Image typedef support */
     typedef typename TInput::Pointer InputImagePointer;
@@ -61,7 +61,7 @@ public:
 
     typedef Graph<double,double,double> GraphType;
 
-    typedef double                    NumericType;
+    typedef double NumericType;
     typedef itk::VariableSizeMatrix<NumericType> FloatVariableSizeMatrixType;
 
     typedef itk::IdentityTransform<double, 3> TransformType;
@@ -90,7 +90,6 @@ public:
     TMask::Pointer Upsample(const TMask* input, TMask::SizeType upSize, TMask::DirectionType outputDirection, TMask::PointType outputOrigin);
     TMask::Pointer Dilate(const TMask* input, const TMask* mask);
 
-
     /** Superclass typedefs. */
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
@@ -101,15 +100,14 @@ public:
         m_Tol = tol;
     }
 
-    itkSetMacro(Sigma, float);
-    itkGetMacro(Sigma, float);
+    itkSetMacro(Sigma, float)
+    itkGetMacro(Sigma, float)
 
-    itkSetMacro(UseSpectralGradient, bool);
-    itkGetMacro(UseSpectralGradient, bool);
+    itkSetMacro(UseSpectralGradient, bool)
+    itkGetMacro(UseSpectralGradient, bool)
 
-    itkSetMacro(Verbose, bool);
-    itkGetMacro(Verbose, bool);
-
+    itkSetMacro(Verbose, bool)
+    itkGetMacro(Verbose, bool)
 
 protected:
 
@@ -124,7 +122,6 @@ protected:
     ResampleImageFilterMaskType::Pointer m_ResampleMask;
     ResampleImageFilterFloatType::Pointer m_ResampleSources;
     ResampleImageFilterFloatType::Pointer m_ResampleSinks;
-
 
     Graph3DFilter()
     {
@@ -175,8 +172,7 @@ protected:
     void ProcessDownsampledGraphCut(int current_count);
 
 private:
-    Graph3DFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(Graph3DFilter);
 
     /** set to true to use the spectral gradient instead of a simple gradient
      */
@@ -209,8 +205,8 @@ private:
     typename TInput::SizeType m_InputSize;
     typename TInput::DirectionType m_OutputDirection;
     typename TInput::PointType m_OutputOrigin;
-
 };
+
 } // end of namespace anima
 
 #include "animaGraph3DFilter.hxx"

@@ -223,6 +223,8 @@ protected:
     virtual void ComputeAdditionalScalarMaps() {}
 
 private:
+    ITK_DISALLOW_COPY_AND_ASSIGN(BaseProbabilisticTractographyImageFilter);
+
     //Internal variable for model vector dimension, has to be set by child class !
     unsigned int m_ModelDimension;
 

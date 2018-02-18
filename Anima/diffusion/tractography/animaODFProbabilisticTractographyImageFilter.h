@@ -58,6 +58,8 @@ protected:
     double GetGeneralizedFractionalAnisotropy(VectorType &modelValue);
 
 private:
+    ITK_DISALLOW_COPY_AND_ASSIGN(ODFProbabilisticTractographyImageFilter);
+
     double m_GFAThreshold;
 
     //! User defined threshold for an ODF maximum to be considered a useful direction

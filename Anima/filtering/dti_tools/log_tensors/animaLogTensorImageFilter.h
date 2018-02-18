@@ -22,10 +22,10 @@ public:
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(LogTensorImageFilter, ImageToImageFilter);
+    itkTypeMacro(LogTensorImageFilter, ImageToImageFilter)
 
     typedef typename TOutputImage::PixelType OutputPixelType;
     typedef typename TInputImage::PixelType InputPixelType;
@@ -39,7 +39,7 @@ public:
     /** Superclass typedefs. */
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
-    itkSetMacro(ScaleNonDiagonal, bool);
+    itkSetMacro(ScaleNonDiagonal, bool)
 
 protected:
     LogTensorImageFilter()
@@ -57,8 +57,7 @@ protected:
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
-    LogTensorImageFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(LogTensorImageFilter);
 
     bool isZero(const InputPixelType &tensVec)
     {

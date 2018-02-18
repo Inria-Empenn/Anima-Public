@@ -34,13 +34,10 @@ public:
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(ComputeSolution, itk::ProcessObject);
-
-
-    /** Image typedef support */
+    itkTypeMacro(ComputeSolution, itk::ProcessObject)
 
     /**  Type of the input image. */
     typedef TInputImage InputImageType;
@@ -50,8 +47,7 @@ public:
     /**  Type of the output images. */
     typedef TMaskImage MaskImageType;
 
-    /**   */
-    typedef unsigned char 	PixelTypeUC;
+    typedef unsigned char PixelTypeUC;
     typedef itk::Image <PixelTypeUC,3> ImageTypeUC;
     typedef ImageTypeUC::Pointer ImagePointerUC;
 
@@ -63,10 +59,9 @@ public:
     /** Define filter types. */
     typedef typename itk::RescaleIntensityImageFilter<TInputImage,ImageTypeUC> RescaleFilterType;
 
-    typedef double                    NumericType;
+    typedef double NumericType;
     typedef itk::VariableLengthVector<NumericType> MeasurementVectorType;
     typedef itk::Statistics::GaussianMembershipFunction< MeasurementVectorType > GaussianFunctionType;
-
 
     /** The mri images.*/
     void SetInputImage1(const InputImageType* image);
@@ -107,41 +102,41 @@ public:
         std::cout<<"\033[K\rProgression: "<<(int)(processObject->GetProgress() * 100)<<"%"<<std::flush;
     }
 
-    itkSetMacro(InitMethodType, unsigned int);
-    itkGetMacro(InitMethodType, unsigned int);
+    itkSetMacro(InitMethodType, unsigned int)
+    itkGetMacro(InitMethodType, unsigned int)
 
-    itkSetMacro(RejRatioHierar, double);
-    itkGetMacro(RejRatioHierar, double);
+    itkSetMacro(RejRatioHierar, double)
+    itkGetMacro(RejRatioHierar, double)
 
-    itkSetMacro(MinDistance, double);
-    itkGetMacro(MinDistance, double);
+    itkSetMacro(MinDistance, double)
+    itkGetMacro(MinDistance, double)
 
-    itkSetMacro(EmIter, int);
-    itkGetMacro(EmIter, int);
+    itkSetMacro(EmIter, int)
+    itkGetMacro(EmIter, int)
 
-    itkSetMacro(RejRatio, double);
-    itkGetMacro(RejRatio, double);
+    itkSetMacro(RejRatio, double)
+    itkGetMacro(RejRatio, double)
 
-    itkSetMacro(EmIter_concentration, int);
-    itkGetMacro(EmIter_concentration, int);
+    itkSetMacro(EmIter_concentration, int)
+    itkGetMacro(EmIter_concentration, int)
 
-    itkSetMacro(EM_before_concentration, bool);
-    itkGetMacro(EM_before_concentration, bool);
+    itkSetMacro(EM_before_concentration, bool)
+    itkGetMacro(EM_before_concentration, bool)
 
-    itkSetMacro(UseT2, bool);
-    itkGetMacro(UseT2, bool);
+    itkSetMacro(UseT2, bool)
+    itkGetMacro(UseT2, bool)
 
-    itkSetMacro(UseDP, bool);
-    itkGetMacro(UseDP, bool);
+    itkSetMacro(UseDP, bool)
+    itkGetMacro(UseDP, bool)
 
-    itkSetMacro(UseFLAIR, bool);
-    itkGetMacro(UseFLAIR, bool);
+    itkSetMacro(UseFLAIR, bool)
+    itkGetMacro(UseFLAIR, bool)
 
-    itkSetMacro(Verbose, bool);
-    itkGetMacro(Verbose, bool);
+    itkSetMacro(Verbose, bool)
+    itkGetMacro(Verbose, bool)
 
-    itkSetMacro(Tol, double);
-    itkGetMacro(Tol, double);
+    itkSetMacro(Tol, double)
+    itkGetMacro(Tol, double)
 
 protected:
     ComputeSolution()
@@ -187,8 +182,7 @@ protected:
     void RescaleImages(void);
 
 private:
-    ComputeSolution(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(ComputeSolution);
 
     bool m_UseT2;
     bool m_UseDP;

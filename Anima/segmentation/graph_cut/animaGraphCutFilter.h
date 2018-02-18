@@ -40,7 +40,7 @@ public:
     typedef double 	PixelTypeD;
     typedef itk::Image <PixelTypeD,3> TSeedProba;
 
-    typedef double                    NumericType;
+    typedef double NumericType;
     typedef itk::VariableSizeMatrix<NumericType> FloatVariableSizeMatrixType;
 
     /** The MRI images.*/
@@ -72,7 +72,6 @@ public:
 
     void WriteOutputs();
 
-
     /** Superclass typedefs. */
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
@@ -83,27 +82,25 @@ public:
         m_Tol = tol;
     }
 
-    itkSetMacro(Alpha, float);
-    itkGetMacro(Alpha, float);
+    itkSetMacro(Alpha, float)
+    itkGetMacro(Alpha, float)
 
-    itkSetMacro(MultiVarSources, float);
-    itkGetMacro(MultiVarSources, float);
+    itkSetMacro(MultiVarSources, float)
+    itkGetMacro(MultiVarSources, float)
 
-    itkSetMacro(MultiVarSinks, float);
-    itkGetMacro(MultiVarSinks, float);
+    itkSetMacro(MultiVarSinks, float)
+    itkGetMacro(MultiVarSinks, float)
 
-    itkSetMacro(Sigma, float);
-    itkGetMacro(Sigma, float);
+    itkSetMacro(Sigma, float)
+    itkGetMacro(Sigma, float)
 
-    itkSetMacro(UseSpectralGradient, bool);
-    itkGetMacro(UseSpectralGradient, bool);
+    itkSetMacro(UseSpectralGradient, bool)
+    itkGetMacro(UseSpectralGradient, bool)
 
-    itkSetMacro(Verbose, bool);
-    itkGetMacro(Verbose, bool);
-
+    itkSetMacro(Verbose, bool)
+    itkGetMacro(Verbose, bool)
 
 protected:
-
     typedef Graph3DFilter< TInput,TOutput> Graph3DFilterType;
     typedef TLinksFilter<TInput,TSeedProba> TLinksFilterType;
 
@@ -160,8 +157,7 @@ protected:
     void GenerateData() ITK_OVERRIDE;
 
 private:
-    GraphCutFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(GraphCutFilter);
 
     /** set to true to use the spectral gradient instead of a simple gradient
      */
@@ -193,8 +189,8 @@ private:
     unsigned int m_IndexSourcesMask, m_IndexSourcesProba, m_IndexSinksMask, m_IndexSinksProba, m_IndexMask;
 
     double m_Tol;
-
 };
+
 } // end of namespace anima
 
 #include "animaGraphCutFilter.hxx"

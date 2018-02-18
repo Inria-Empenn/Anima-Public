@@ -97,6 +97,8 @@ protected:
     void SetupPyramids();
 
 private:
+    ITK_DISALLOW_COPY_AND_ASSIGN(PyramidalSymmetryConstrainedRegistrationBridge);
+
     //Symmetry constrained transform
     TransformPointer m_OutputTransform;
     BaseTransformPointer m_OutputRealignTransform;

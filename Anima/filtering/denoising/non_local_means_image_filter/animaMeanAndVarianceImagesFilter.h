@@ -40,16 +40,16 @@ public:
     typedef TOutputImage OutputImageType;
 
     /** Standard class typedefs. */
-    typedef MeanAndVarianceImagesFilter                                      Self;
+    typedef MeanAndVarianceImagesFilter Self;
     typedef itk::ImageToImageFilter< InputImageType, OutputImageType> Superclass;
-    typedef itk::SmartPointer<Self>                                   Pointer;
-    typedef itk::SmartPointer<const Self>                             ConstPointer;
+    typedef itk::SmartPointer<Self> Pointer;
+    typedef itk::SmartPointer<const Self> ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(MeanAndVarianceImagesFilter, ImageToImageFilter);
+    itkTypeMacro(MeanAndVarianceImagesFilter, ImageToImageFilter)
 
     /** Image typedef support. */
     typedef typename InputImageType::PixelType               InputPixelType;
@@ -61,10 +61,10 @@ public:
     typedef typename InputImageType::SizeType    InputSizeType;
 
     /** Set the radius of the neighborhood used to compute the Variance. */
-    itkSetMacro(Radius, InputSizeType);
+    itkSetMacro(Radius, InputSizeType)
 
     /** Get the radius of the neighborhood used to compute the MeanAndVariance */
-    itkGetConstReferenceMacro(Radius, InputSizeType);
+    itkGetConstReferenceMacro(Radius, InputSizeType)
 
     typename OutputImageType::Pointer GetMeanImage() {return this->GetOutput(0);}
     typename OutputImageType::Pointer GetVarImage() {return this->GetOutput(1);}
@@ -95,8 +95,7 @@ protected:
                               itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
-    MeanAndVarianceImagesFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(MeanAndVarianceImagesFilter);
 
     InputSizeType m_Radius;
 };

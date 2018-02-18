@@ -69,6 +69,8 @@ protected:
     virtual MCMAveragerPointer CreateAverager();
 
 private:
+    ITK_DISALLOW_COPY_AND_ASSIGN(MCMAverageImagesImageFilter);
+
     std::vector <MCModelPointer> m_ReferenceInputModels;
     MCModelPointer m_ReferenceOutputModel;
 };

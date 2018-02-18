@@ -105,6 +105,8 @@ protected:
     bool isZero(VectorType &value);
     
 private:
+    ITK_DISALLOW_COPY_AND_ASSIGN(BaseTractographyImageFilter);
+
     unsigned int m_NumberOfFibersPerPixel;
     
     double m_StepProgression;

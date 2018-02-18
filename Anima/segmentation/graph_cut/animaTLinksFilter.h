@@ -30,10 +30,10 @@ public:
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(TLinksFilter, ImageToImageFilter);
+    itkTypeMacro(TLinksFilter, ImageToImageFilter)
 
     /** Image typedef support */
     typedef typename TInput::PixelType InputPixelType;
@@ -50,16 +50,15 @@ public:
     typedef itk::Image <PixelTypeD,3> TSeedProba;
     typedef itk::ImageRegionConstIterator< TSeedProba > SeedProbaRegionConstIteratorType;
 
-    typedef unsigned char 	PixelTypeUC;
+    typedef unsigned char PixelTypeUC;
     typedef itk::Image <PixelTypeUC,3> TSeedMask;
     typedef TSeedMask::Pointer TSeedMaskPointer;
     typedef itk::ImageRegionIterator< TSeedMask > SeedMaskRegionIteratorType;
     typedef itk::ImageRegionConstIterator< TSeedMask > SeedMaskRegionConstIteratorType;
 
-    typedef double                    NumericType;
+    typedef double NumericType;
     typedef itk::VariableSizeMatrix<NumericType> DoubleVariableSizeMatrixType;
     typedef itk::Matrix<double, 1, 1> MatrixTypeRes;
-
 
     /** The mri images.*/
     void SetInputImage(unsigned int i, const TInput* image);
@@ -87,22 +86,20 @@ public:
     /** Superclass typedefs. */
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
+    itkSetMacro(Alpha, float)
+    itkGetMacro(Alpha, float)
 
-    itkSetMacro(Alpha, float);
-    itkGetMacro(Alpha, float);
+    itkSetMacro(MultiVarSources, float)
+    itkGetMacro(MultiVarSources, float)
 
-    itkSetMacro(MultiVarSources, float);
-    itkGetMacro(MultiVarSources, float);
+    itkSetMacro(MultiVarSinks, float)
+    itkGetMacro(MultiVarSinks, float)
 
-    itkSetMacro(MultiVarSinks, float);
-    itkGetMacro(MultiVarSinks, float);
+    itkSetMacro(NbModalities, unsigned int)
+    itkGetMacro(NbModalities, unsigned int)
 
-    itkSetMacro(NbModalities, unsigned int);
-    itkGetMacro(NbModalities, unsigned int);
-
-    itkSetMacro(Verbose, bool);
-    itkGetMacro(Verbose, bool);
-
+    itkSetMacro(Verbose, bool)
+    itkGetMacro(Verbose, bool)
 
 protected:
     TLinksFilter()
@@ -144,8 +141,7 @@ protected:
     itk::DataObject::Pointer MakeOutput(unsigned int idx);
 
 private:
-    TLinksFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(TLinksFilter);
 
     /** mixing energies parameters: E_region = m_Alpha * E_intensity
      */
@@ -162,8 +158,8 @@ private:
     std::vector<InIteratorType> m_imagesVectorIt2;
     std::vector<InputImageConstPointer> m_imagesVector;
     std::vector<InputImagePointer> m_imagesVector2;
-
 };
+
 } // end of namespace anima
 
 #include "animaTLinksFilter.hxx"

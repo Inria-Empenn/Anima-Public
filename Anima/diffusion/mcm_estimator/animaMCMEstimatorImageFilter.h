@@ -363,8 +363,7 @@ protected:
     double ComputeAICcValue(MCMPointer &mcmValue, double costValue);
 
 private:
-    MCMEstimatorImageFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(MCMEstimatorImageFilter);
 
     std::vector <double> m_BValuesList;
     std::vector< GradientType > m_GradientDirections;

@@ -41,8 +41,7 @@ protected:
                                            InputPixelType &rotatedModel, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
-    TensorResampleImageFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(TensorResampleImageFilter);
 
     unsigned int m_VectorSize;
     unsigned int m_TensorDimension;

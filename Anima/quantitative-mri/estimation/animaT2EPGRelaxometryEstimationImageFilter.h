@@ -82,8 +82,7 @@ protected:
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
-    T2EPGRelaxometryEstimationImageFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(T2EPGRelaxometryEstimationImageFilter);
 
     double m_AverageSignalThreshold;
 

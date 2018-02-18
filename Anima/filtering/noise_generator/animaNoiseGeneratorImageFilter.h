@@ -67,8 +67,7 @@ protected:
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
-    NoiseGeneratorImageFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(NoiseGeneratorImageFilter);
 
     unsigned int m_NumberOfReplicates;
     double m_StandardDeviation;

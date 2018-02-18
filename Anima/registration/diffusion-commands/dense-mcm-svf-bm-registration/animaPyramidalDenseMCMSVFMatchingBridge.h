@@ -244,6 +244,8 @@ protected:
     virtual BlockMatcherType *CreateBlockMatcher();
 
 private:
+    ITK_DISALLOW_COPY_AND_ASSIGN(PyramidalDenseMCMSVFMatchingBridge);
+
     BaseTransformPointer m_OutputTransform;
     InputImagePointer m_OutputImage;
 

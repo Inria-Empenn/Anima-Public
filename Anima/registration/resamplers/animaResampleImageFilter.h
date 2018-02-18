@@ -200,8 +200,7 @@ protected:
     virtual itk::LightObject::Pointer InternalClone() const ITK_OVERRIDE;
 
 private:
-    ResampleImageFilter( const Self& ); //purposely not implemented
-    void operator=( const Self& ); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(ResampleImageFilter);
 
     SizeType                m_Size;              // Size of the output image
     TransformPointerType    m_Transform;         // Coordinate transform to use

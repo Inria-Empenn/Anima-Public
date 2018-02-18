@@ -52,10 +52,9 @@ protected:
     virtual itk::LightObject::Pointer InternalClone() const ITK_OVERRIDE;
 
 private:
-    MCModelPointer m_ReferenceOutputModel;
+    ITK_DISALLOW_COPY_AND_ASSIGN(MCMResampleImageFilter);
 
-    MCMResampleImageFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    MCModelPointer m_ReferenceOutputModel;
 
     std::vector <MCModelPointer> m_WorkModels;
 };

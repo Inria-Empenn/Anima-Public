@@ -40,10 +40,10 @@ public:
     typedef itk::SmartPointer<const Self> ConstPointer;
 
     /** Method for creation through the object factory.  */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(NonLocalMeansImageFilter, ImageToImageFilter);
+    itkTypeMacro(NonLocalMeansImageFilter, ImageToImageFilter)
 
     /** Extract dimension from input image. */
     itkStaticConstMacro(InputImageDimension, unsigned int,
@@ -58,14 +58,14 @@ public:
         EXP, RICIAN
     };
 
-    itkSetMacro(PatchHalfSize, unsigned int);
-    itkSetMacro(SearchNeighborhood, unsigned int);
-    itkSetMacro(SearchStepSize, unsigned int);
-    itkSetMacro(WeightThreshold, double);
-    itkSetMacro(BetaParameter, double);
-    itkSetMacro(MeanMinThreshold, double);
-    itkSetMacro(VarMinThreshold, double);
-    itkSetMacro(WeightMethod, WEIGHT);
+    itkSetMacro(PatchHalfSize, unsigned int)
+    itkSetMacro(SearchNeighborhood, unsigned int)
+    itkSetMacro(SearchStepSize, unsigned int)
+    itkSetMacro(WeightThreshold, double)
+    itkSetMacro(BetaParameter, double)
+    itkSetMacro(MeanMinThreshold, double)
+    itkSetMacro(VarMinThreshold, double)
+    itkSetMacro(WeightMethod, WEIGHT)
 
 protected:
     NonLocalMeansImageFilter() :
@@ -80,8 +80,6 @@ protected:
         m_localNeighborhood(1)
 
     {}
-    NonLocalMeansImageFilter(const Self&);//purposely not implemented
-    void operator=(const Self&); //purposely not implemented
 
     virtual ~NonLocalMeansImageFilter() {}
 
@@ -106,6 +104,7 @@ protected:
     void BeforeThreadedGenerateData() ITK_OVERRIDE;
 
 private:
+    ITK_DISALLOW_COPY_AND_ASSIGN(NonLocalMeansImageFilter);
 
     void computeAverageLocalVariance();
     void computeMeanAndVarImages();
@@ -129,6 +128,6 @@ private:
     int m_maxAbsDisp;
 };
 
-}//end of namespace anima
+} //end of namespace anima
 
 #include "animaNonLocalMeansImageFilter.hxx"

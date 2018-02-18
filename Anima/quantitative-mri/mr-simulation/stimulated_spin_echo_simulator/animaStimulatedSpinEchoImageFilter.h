@@ -24,24 +24,24 @@ public:
     typedef std::vector <ComplexVectorType> MatrixType;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(StimulatedSpinEchoImageFilter, itk::ImageToImageFilter);
+    itkTypeMacro(StimulatedSpinEchoImageFilter, itk::ImageToImageFilter)
 
-    itkSetMacro(EchoSpacing, double);
-    itkGetMacro(EchoSpacing, double);
+    itkSetMacro(EchoSpacing, double)
+    itkGetMacro(EchoSpacing, double)
 
-    itkSetMacro(NumberOfEchoes, unsigned int);
-    itkGetMacro(NumberOfEchoes, unsigned int);
+    itkSetMacro(NumberOfEchoes, unsigned int)
+    itkGetMacro(NumberOfEchoes, unsigned int)
 
-    itkSetMacro(FlipAngle, double);
-    itkGetMacro(FlipAngle, double);
+    itkSetMacro(FlipAngle, double)
+    itkGetMacro(FlipAngle, double)
 
-    itkSetMacro(ExcitationFlipAngle, double);
-    itkGetMacro(ExcitationFlipAngle, double);
+    itkSetMacro(ExcitationFlipAngle, double)
+    itkGetMacro(ExcitationFlipAngle, double)
 
-    itkSetMacro(B1OnExcitationAngle, bool);
+    itkSetMacro(B1OnExcitationAngle, bool)
 
     /** T1 map */
     void SetInputT1(const TImage* T1);
@@ -68,8 +68,7 @@ protected:
     void GenerateOutputInformation() ITK_OVERRIDE;
 
 private:
-    StimulatedSpinEchoImageFilter(const Self &); //purposely not implemented
-    void operator=(const Self &);  //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(StimulatedSpinEchoImageFilter);
 
     double m_EchoSpacing;
     double m_ExcitationFlipAngle;
@@ -84,4 +83,3 @@ private:
 } // end of namespace anima
 
 #include "animaStimulatedSpinEchoImageFilter.hxx"
-
