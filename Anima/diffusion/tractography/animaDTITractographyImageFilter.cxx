@@ -59,7 +59,7 @@ bool dtiTractographyImageFilter::CheckModelCompatibility(VectorType &modelValue,
         denom += eVals[i] * eVals[i];
     }
 
-    double FAValue = std::sqrt(num / (2.0 * denom));
+    double FAValue = std::sqrt(3.0 * num / (2.0 * denom));
 
     if (FAValue < m_StopFAThreshold)
         return false;
@@ -148,7 +148,7 @@ dtiTractographyImageFilter::GetNextDirection(PointType &previousDirection, Vecto
         denom += eVals[i] * eVals[i];
     }
 
-    double FAValue = std::sqrt(num / (2 * denom));
+    double FAValue = std::sqrt(3.0 * num / (2.0 * denom));
 
     double modelWeight = (FAValue - m_StopFAThreshold) / (1.0 - m_StopFAThreshold);
     modelWeight = (1.0 - this->GetMinimalModelWeight()) * modelWeight + this->GetMinimalModelWeight();
