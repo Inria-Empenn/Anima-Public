@@ -38,6 +38,7 @@ public:
     typedef itk::VectorImage <float, 3> ModelImageType;
     typedef ModelImageType::Pointer ModelImagePointer;
     typedef ModelImageType::PixelType VectorType;
+    typedef ModelImageType::RegionType RegionType;
     typedef itk::ContinuousIndex <double, 3> ContinuousIndexType;
     
     typedef itk::Image <unsigned short, 3> MaskImageType;
@@ -93,6 +94,9 @@ protected:
     std::vector < FiberType > FilterOutputFibers(std::vector < FiberType > &fibers);
     
     virtual bool CheckModelCompatibility(VectorType &modelValue, itk::ThreadIdType threadId) = 0;
+
+    typedef itk::ImageBase <ModelImageType::ImageDimension> ImageBaseType;
+    bool CheckIndexInImageBounds(IndexType &index, ImageBaseType *testImage);
     virtual bool CheckIndexInImageBounds(ContinuousIndexType &index) = 0;
 
     //! Computes value of model from data. May use SNR and previous model value to perform smart interpolation. Replaces SNR and modelValue by the outputs

@@ -388,19 +388,26 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
 
         if (!m_CutMaskImage.IsNull())
         {
-            if (m_CutMaskImage->GetPixel(curNearestIndex) != 0)
+            if (!this->CheckIndexInImageBounds(curNearestIndex,m_CutMaskImage))
+                continueLoop = false;
+            else if (m_CutMaskImage->GetPixel(curNearestIndex) != 0)
                 continueLoop = false;
         }
 
         if (!m_ForbiddenMaskImage.IsNull())
         {
+            if (!this->CheckIndexInImageBounds(curNearestIndex,m_ForbiddenMaskImage))
+            {
+                fiber.clear();
+                return resVal;
+            }
             if (m_ForbiddenMaskImage->GetPixel(curNearestIndex) != 0)
             {
                 fiber.clear();
                 return resVal;
             }
         }
-        
+
         this->GetModelValue(curIndex,modelValue);
         if (isZero(modelValue))
             continueLoop = false;
@@ -435,15 +442,22 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
             
             m_SeedingImage->TransformPhysicalPointToContinuousIndex(curPoint,curIndex);
             m_SeedingImage->TransformPhysicalPointToIndex(curPoint,curNearestIndex);
-                        
+
             if (!m_CutMaskImage.IsNull())
             {
-                if (m_CutMaskImage->GetPixel(curNearestIndex) != 0)
+                if (!this->CheckIndexInImageBounds(curNearestIndex,m_CutMaskImage))
+                    continueLoop = false;
+                else if (m_CutMaskImage->GetPixel(curNearestIndex) != 0)
                     continueLoop = false;
             }
 
             if (!m_ForbiddenMaskImage.IsNull())
             {
+                if (!this->CheckIndexInImageBounds(curNearestIndex,m_ForbiddenMaskImage))
+                {
+                    fiber.clear();
+                    return resVal;
+                }
                 if (m_ForbiddenMaskImage->GetPixel(curNearestIndex) != 0)
                 {
                     fiber.clear();
@@ -492,12 +506,19 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
 
         if (!m_CutMaskImage.IsNull())
         {
-            if (m_CutMaskImage->GetPixel(curNearestIndex) != 0)
+            if (!this->CheckIndexInImageBounds(curNearestIndex,m_CutMaskImage))
+                continueLoop = false;
+            else if (m_CutMaskImage->GetPixel(curNearestIndex) != 0)
                 continueLoop = false;
         }
 
         if (!m_ForbiddenMaskImage.IsNull())
         {
+            if (!this->CheckIndexInImageBounds(curNearestIndex,m_ForbiddenMaskImage))
+            {
+                fiber.clear();
+                return resVal;
+            }
             if (m_ForbiddenMaskImage->GetPixel(curNearestIndex) != 0)
             {
                 fiber.clear();
@@ -546,12 +567,19 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
 
             if (!m_CutMaskImage.IsNull())
             {
-                if (m_CutMaskImage->GetPixel(curNearestIndex) != 0)
+                if (!this->CheckIndexInImageBounds(curNearestIndex,m_CutMaskImage))
+                    continueLoop = false;
+                else if (m_CutMaskImage->GetPixel(curNearestIndex) != 0)
                     continueLoop = false;
             }
 
             if (!m_ForbiddenMaskImage.IsNull())
             {
+                if (!this->CheckIndexInImageBounds(curNearestIndex,m_ForbiddenMaskImage))
+                {
+                    fiber.clear();
+                    return resVal;
+                }
                 if (m_ForbiddenMaskImage->GetPixel(curNearestIndex) != 0)
                 {
                     fiber.clear();
@@ -585,6 +613,19 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
     }
     
     return resVal;
+}
+
+bool BaseTractographyImageFilter::CheckIndexInImageBounds(IndexType &index, ImageBaseType *testImage)
+{
+    RegionType imageRegion = testImage->GetLargestPossibleRegion();
+    for (unsigned int i = 0;i < ImageBaseType::ImageDimension;++i)
+    {
+        if ((index[i] < imageRegion.GetIndex()[i]) ||
+            (index[i] >= imageRegion.GetIndex()[i] + imageRegion.GetSize()[i]))
+            return false;
+    }
+
+    return true;
 }
 
 bool BaseTractographyImageFilter::isZero(VectorType &value)
