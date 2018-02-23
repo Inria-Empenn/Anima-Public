@@ -77,10 +77,9 @@ private:
     void estimateSVFFromTranslations();
     void estimateSVFFromRigidTransforms();
     void estimateSVFFromAffineTransforms();
+
+    double m_ZeroWeight;
 };
-
-
-const double zeroWeight = 0;
 
 template <class ScalarType, unsigned int NDimensions, unsigned int NDegreesOfFreedom>
 void
@@ -88,7 +87,7 @@ filterInputs(itk::Image <ScalarType,NDimensions> *weights,
              typename itk::Image < itk::Vector <ScalarType, NDegreesOfFreedom>, NDimensions >::Pointer &output,
              std::vector < itk::Vector <ScalarType, NDegreesOfFreedom> > &curTrsfs,
              std::vector < typename itk::Image < itk::Vector <ScalarType, NDegreesOfFreedom>, NDimensions >::IndexType > &posIndexes,
-             BalooSVFTransformAgregator <NDimensions> *filterPtr);
+             BalooSVFTransformAgregator <NDimensions> *filterPtr, double zeroWeight);
 
 } // end of namespace anima
 

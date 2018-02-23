@@ -18,6 +18,7 @@ BalooSVFTransformAgregator() : Superclass()
 {
     m_ExtrapolationSigma = 4.0;
     m_OutlierRejectionSigma = 3.0;
+    m_ZeroWeight = 0.0;
 
     m_NumberOfThreads = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
 }
@@ -96,7 +97,7 @@ estimateSVFFromTranslations()
     weights->SetOrigin (m_Origin);
     weights->SetDirection (m_Direction);
     weights->Allocate();
-    weights->FillBuffer(anima::zeroWeight);
+    weights->FillBuffer(m_ZeroWeight);
 
     ParametersType tmpParams(NDimensions);
     std::vector <VelocityFieldPixelType> curDisps(nbPts);
@@ -123,7 +124,7 @@ estimateSVFFromTranslations()
         weights->SetPixel(posIndexes[i],tmpWeight);
     }
 
-    anima::filterInputs<ScalarType,NDimensions,NDimensions>(weights,velocityField,curDisps,posIndexes,this);
+    anima::filterInputs<ScalarType,NDimensions,NDimensions>(weights,velocityField,curDisps,posIndexes,this,m_ZeroWeight);
 
     // Create the final transform
     typename BaseOutputTransformType::Pointer resultTransform = BaseOutputTransformType::New();
@@ -170,7 +171,7 @@ estimateSVFFromRigidTransforms()
     weights->SetOrigin (m_Origin);
     weights->SetDirection (m_Direction);
     weights->Allocate();
-    weights->FillBuffer(anima::zeroWeight);
+    weights->FillBuffer(m_ZeroWeight);
 
     RigidVectorType curLog;
 
@@ -193,7 +194,7 @@ estimateSVFFromRigidTransforms()
         weights->SetPixel(posIndexes[i],tmpWeight);
     }
 
-    anima::filterInputs<ScalarType,NDimensions,NDegreesFreedom>(weights,rigidField,logVectors,posIndexes,this);
+    anima::filterInputs<ScalarType,NDimensions,NDegreesFreedom>(weights,rigidField,logVectors,posIndexes,this,m_ZeroWeight);
 
     VelocityFieldPointer velocityField = VelocityFieldType::New();
     velocityField->Initialize();
@@ -289,7 +290,7 @@ estimateSVFFromAffineTransforms()
     weights->SetOrigin (m_Origin);
     weights->SetDirection (m_Direction);
     weights->Allocate();
-    weights->FillBuffer(anima::zeroWeight);
+    weights->FillBuffer(m_ZeroWeight);
 
     AffineVectorType curLog;
     VelocityFieldPointType curPoint;
@@ -339,7 +340,7 @@ estimateSVFFromAffineTransforms()
         weights->SetPixel(posIndexes[i],tmpWeight);
     }
 
-    anima::filterInputs<ScalarType,NDimensions,NDegreesFreedom>(weights,affineField,logVectors,posIndexes,this);
+    anima::filterInputs<ScalarType,NDimensions,NDegreesFreedom>(weights,affineField,logVectors,posIndexes,this,m_ZeroWeight);
 
     VelocityFieldPointer velocityField = VelocityFieldType::New();
     velocityField->Initialize();
@@ -401,7 +402,7 @@ filterInputs(itk::Image <ScalarType,NDimensions> *weights,
              typename itk::Image < itk::Vector <ScalarType, NDegreesOfFreedom>, NDimensions >::Pointer &output,
              std::vector < itk::Vector <ScalarType, NDegreesOfFreedom> > &curTrsfs,
              std::vector < typename itk::Image < itk::Vector <ScalarType, NDegreesOfFreedom>, NDimensions >::IndexType > &posIndexes,
-             BalooSVFTransformAgregator <NDimensions> *filterPtr)
+             BalooSVFTransformAgregator <NDimensions> *filterPtr, double zeroWeight)
 {
     typedef itk::Image < itk::Vector <ScalarType, NDegreesOfFreedom>, NDimensions > FieldType;
     typedef itk::Vector <ScalarType, NDegreesOfFreedom> FieldPixelType;
@@ -476,7 +477,7 @@ filterInputs(itk::Image <ScalarType,NDimensions> *weights,
         if (residuals[i] > averageResidual + filterPtr->GetOutlierRejectionSigma() * varResidual)
         {
             output->SetPixel(posIndexes[i],zeroTrsf);
-            weights->SetPixel(posIndexes[i],anima::zeroWeight);
+            weights->SetPixel(posIndexes[i],zeroWeight);
         }
     }
 
