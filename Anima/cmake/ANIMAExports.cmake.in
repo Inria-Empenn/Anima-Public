@@ -1,4 +1,5 @@
 include_directories(@ANIMA_BINARY_DIR@)
+include_directories(@ANIMA_BINARY_DIR@/math-tools/arb_special_functions)
 include_directories(@ANIMA_BINARY_DIR@/math-tools/data_io)
 include_directories(@ANIMA_BINARY_DIR@/math-tools/optimizers)
 include_directories(@ANIMA_BINARY_DIR@/math-tools/multi_compartment_base)

@@ -9,19 +9,24 @@
 namespace anima
 {
 
+double scaled_bessel_i(unsigned int N, double x)
+{
+    double logValue = log_bessel_i(N, x) - x;
+    return std::exp(logValue);
+}
+
 double log_bessel_i(unsigned int N, double x)
 {
     if (x < std::sqrt((double)N+1) / 100)
     {
-        // tgamma(N) = factorial(N-1)
         if (N == 0)
             return -std::log(std::tgamma(N+1));
         else
             return -std::log(std::tgamma(N+1)) + N * std::log(x / 2.0);
     }
 
-    if (x <= std::max(9.23 * N + 15.934, 11.26 * N - 236.21)) // before was 600; now garantees an absolute error of maximum 1e-4 between true function and approximation
-        return std::log(boost::math::cyl_bessel_i(N,x));
+    if (x <= 600)
+        return std::log(boost::math::cyl_bessel_i(N, x));
 
 //        // Too big value, switching to approximation
 //        // Works less and less when orders go up but above that barrier we get non valid values

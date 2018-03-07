@@ -30,6 +30,46 @@ if(USE_NLOPT)
   find_package(NLOPT REQUIRED)
 endif()
 
+# GMP
+option(USE_GMP 
+  "Use GMP external library (necessary for some special functions)" 
+  OFF
+  )
+
+if(USE_GMP)
+  find_package(GMP REQUIRED)
+endif()
+
+# MPFR
+option(USE_MPFR 
+  "Use MPFR external library (necessary for some special functions)" 
+  OFF
+  )
+
+if(USE_MPFR)
+  find_package(MPFR REQUIRED)
+endif()
+
+# FLINT
+option(USE_FLINT 
+  "Use FLINT external library (necessary for some special functions)" 
+  OFF
+  )
+
+if(USE_FLINT)
+  find_package(FLINT REQUIRED)
+endif()
+
+# ARB
+option(USE_ARB 
+  "Use ARB external library (necessary for some special functions)" 
+  OFF
+  )
+
+if(USE_ARB)
+  find_package(ARB REQUIRED)
+endif()
+
 # TinyXML2
 if (BUILD_MODULE_REGISTRATION OR BUILD_MODULE_DIFFUSION)
 	find_package(TinyXML2 REQUIRED)

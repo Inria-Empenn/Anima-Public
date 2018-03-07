@@ -5,6 +5,9 @@
 namespace anima
 {
 
+//! Computes exp(-x) I_N(x)
+ANIMASPECIALFUNCTIONS_EXPORT double scaled_bessel_i(unsigned int N, double x);
+
 //! Computes a lower bound of the modified Bessel function of the first kind: I_{N} (N >= 0)
 ANIMASPECIALFUNCTIONS_EXPORT double bessel_i_lower_bound(unsigned int N, double x);
 

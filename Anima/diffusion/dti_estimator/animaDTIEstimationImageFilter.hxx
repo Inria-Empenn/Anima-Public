@@ -214,14 +214,12 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
         for (unsigned int i = 0;i < numInputs;++i)
         {
             dwi[i] = inIterators[i].Get();
-            lnDwi[i] = std::log(std::max(1.0e-6,dwi[i]));
+            lnDwi[i] = (dwi[i] <= 0) ? 0 : std::log(dwi[i]);
         }
 
         for (unsigned int i = 0;i < m_NumberOfComponents;++i)
-        {
             for (unsigned int j = 0;j < numInputs;++j)
                 resVec[i] += m_InitialMatrixSolver(i+1,j) * lnDwi[j];
-        }
 
         anima::GetTensorFromVectorRepresentation(resVec,data.workTensor);
 

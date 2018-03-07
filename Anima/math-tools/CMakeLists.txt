@@ -4,6 +4,10 @@ project(ANIMA-MATHS)
 # Here go the add_subdirectories, no code should be at the root of the project
 ################################################################################
 
+if (USE_GMP AND GMP_FOUND AND USE_MPFR AND MPFR_FOUND AND USE_FLINT AND FLINT_FOUND AND USE_ARB AND ARB_FOUND)
+  add_subdirectory(arb_special_functions)
+endif()
+
 add_subdirectory(arithmetic)
 add_subdirectory(common_tools)
 

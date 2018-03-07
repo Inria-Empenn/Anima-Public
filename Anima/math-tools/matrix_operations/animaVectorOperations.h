@@ -10,6 +10,22 @@
 namespace anima
 {
 
+//***** GetMedian() *****//
+// Main
+template <class VectorType> double GetMedian(const VectorType &data, const unsigned int NDimension);
+// For itkVector
+template <class ScalarType, unsigned int NDimension> double GetMedian(const itk::Vector <ScalarType,NDimension> &data);
+// For itkVariableLengthVector
+template <class ScalarType> double GetMedian(const itk::VariableLengthVector <ScalarType> &data);
+// For itkPoint
+template <class ScalarType, unsigned int NDimension> double GetMedian(const itk::Point <ScalarType,NDimension> &data);
+// For vnl_vector
+template <class ScalarType> double GetMedian(const vnl_vector <ScalarType> &data);
+// For vnl_vector_fixed
+template <class ScalarType, unsigned int NDimension> double GetMedian(const vnl_vector_fixed <ScalarType,NDimension> &data);
+// For std::vector
+template <class ScalarType> double GetMedian(const std::vector <ScalarType> &data);
+
 /******* Main function ComputeEuclideanDistance *******/
 // Main
 template <class VectorType> double ComputeEuclideanDistance(const VectorType &x1, const VectorType &x2, const unsigned int NDimension);

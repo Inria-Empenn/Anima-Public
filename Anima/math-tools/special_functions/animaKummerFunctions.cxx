@@ -1,5 +1,6 @@
 #include <animaKummerFunctions.h>
 #include <boost/math/quadrature/gauss.hpp>
+#include <cmath>
 
 namespace anima
 {
