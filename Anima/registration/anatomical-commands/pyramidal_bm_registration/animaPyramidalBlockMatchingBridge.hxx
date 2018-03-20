@@ -606,27 +606,40 @@ void PyramidalBlockMatchingBridge<ImageDimension>::WriteClosestRigidTransform(Po
     vnl_svd<typename AffineTransformType::MatrixType::ValueType> UWVLinearMatrixSVD(linearMatrix.GetVnlMatrix());
     vnl_matrix<typename AffineTransformType::MatrixType::ValueType> leftRot = UWVLinearMatrixSVD.U()*vnl_determinant(UWVLinearMatrixSVD.U());
     vnl_matrix<typename AffineTransformType::MatrixType::ValueType> rightRot = UWVLinearMatrixSVD.V()*vnl_determinant(UWVLinearMatrixSVD.V());
+    vnl_diag_matrix<typename AffineTransformType::MatrixType::ValueType> scal = UWVLinearMatrixSVD.W();
     PointType ybar;
+    float isoScal = 0;
     for (unsigned int i = 0; i < ImageDimension; ++i)
     {
+        isoScal += std::abs(scal(i, i)) / ImageDimension;
         ybar[i] = transformOffset[i];
         for (unsigned int j = 0; j < ImageDimension; ++j)
             ybar[i] += linearMatrix(i, j)*xbar[j];
     }
+
+    std::cout << "isoScal: " << isoScal << std::endl;
     typename AffineTransformType::OffsetType rigidOffset;
     typename AffineTransformType::MatrixType linearPartRigid;
+    typename AffineTransformType::OffsetType similarityOffset;
+    typename AffineTransformType::MatrixType linearPartSimilarity;
     typename AffineTransformType::OffsetType UOffset;
     linearPartRigid.Fill(0);
-    
+    linearPartSimilarity.Fill(0);
+
     for (unsigned int i = 0; i < ImageDimension; ++i)
     {
         rigidOffset[i] = ybar[i];
+        similarityOffset[i] = ybar[i];
         UOffset[i] = 0;
         for (unsigned int j = 0; j < ImageDimension; ++j)
         {
             for (unsigned int k = 0; k < ImageDimension; ++k)
+            {
                 linearPartRigid(i, j) += leftRot(i, k)*rightRot(j, k);
+                linearPartSimilarity(i, j) += isoScal*leftRot(i, k)*rightRot(j, k);
+            }
             rigidOffset[i] -= linearPartRigid(i, j)*xbar[j];
+            similarityOffset[i] -= linearPartSimilarity(i, j)*xbar[j];
         }
     }
 
@@ -640,6 +653,18 @@ void PyramidalBlockMatchingBridge<ImageDimension>::WriteClosestRigidTransform(Po
     rigidWriter->SetFileName(rigidFileName);
     std::cout << "Writing output nearest rigid transform to: " << rigidFileName << std::endl;
     rigidWriter->Update();
+
+    AffineTransformPointer similarityTransform = AffineTransformType::New();
+    similarityTransform->SetMatrix(linearPartSimilarity);
+    similarityTransform->SetOffset(similarityOffset);
+    itk::TransformFileWriter::Pointer similarityWriter = itk::TransformFileWriter::New();
+    similarityWriter->SetInput(similarityTransform);
+    std::string similarityFileName(GetOutputTransformFile());
+    similarityFileName.insert(similarityFileName.rfind("."), "_nearestSimilarity");
+    similarityWriter->SetFileName(similarityFileName);
+    std::cout << "Writing output nearest similarity transform to: " << similarityFileName << std::endl;
+    similarityWriter->Update();
+
 }
 
 template <unsigned int ImageDimension>
