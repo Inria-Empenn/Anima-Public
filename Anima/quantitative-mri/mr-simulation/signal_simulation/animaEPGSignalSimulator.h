@@ -15,8 +15,8 @@ public:
 
     typedef std::vector <double> RealVectorType;
 
-    RealVectorType GetValue(double t1Value, double t2Value,
-                            double b1Value, double m0Value);
+    RealVectorType &GetValue(double t1Value, double t2Value,
+                             double b1Value, double m0Value);
 
     void SetEchoSpacing(double val) {m_EchoSpacing = val;}
     void SetExcitationFlipAngle(double val) {m_ExcitationFlipAngle = val;}
@@ -41,6 +41,11 @@ private:
     RealVectorType m_FirstDiagonalElements, m_DiagonalElements, m_LastDiagonalElements;
     RealVectorType m_FirstLeftElements, m_FirstRightElements;
     double m_SecondLeftElement, m_SecondRightElement;
+
+    // Internal work variables. Because of this, not thread safe !
+    RealVectorType m_SimulatedT2Values;
+    RealVectorType m_WorkVector;
+    RealVectorType m_OutputVector;
 };
     
 } // end namespace of anima

@@ -23,12 +23,16 @@ EPGSignalSimulator::EPGSignalSimulator()
     m_FirstRightElements.resize(2);
 }
 
-EPGSignalSimulator::RealVectorType EPGSignalSimulator::GetValue(double t1Value, double t2Value,
+EPGSignalSimulator::RealVectorType &EPGSignalSimulator::GetValue(double t1Value, double t2Value,
                                                                 double b1Value, double m0Value)
 {
-    RealVectorType simulatedT2Values(3 * m_NumberOfEchoes + 1, 0);
-    RealVectorType workVector(3 * m_NumberOfEchoes + 1, 0);
-    RealVectorType outputVector(m_NumberOfEchoes,0);
+    m_SimulatedT2Values.resize(3 * m_NumberOfEchoes + 1);
+    m_WorkVector.resize(3 * m_NumberOfEchoes + 1);
+    m_OutputVector.resize(m_NumberOfEchoes);
+
+    std::fill(m_SimulatedT2Values.begin(),m_SimulatedT2Values.end(),0.0);
+    std::fill(m_OutputVector.begin(),m_OutputVector.end(),0.0);
+    std::fill(m_WorkVector.begin(),m_WorkVector.end(),0.0);
 
     this->ComputeT2SignalMatrixElements(t1Value,t2Value,b1Value);
 
@@ -38,71 +42,68 @@ EPGSignalSimulator::RealVectorType EPGSignalSimulator::GetValue(double t1Value, 
     else
         baseValue = m0Value * std::sin(m_ExcitationFlipAngle);
 
-    workVector[0] = baseValue;
+    m_WorkVector[0] = baseValue;
 
     // Loop on all signals to be generated
     for (unsigned int i = 0;i < m_NumberOfEchoes;++i)
     {
-        for (unsigned int j = 0;j < 3 * m_NumberOfEchoes + 1;++j)
-        {
-            simulatedT2Values[j] = workVector[j];
-            workVector[j] = 0;
-        }
+        std::copy(m_WorkVector.begin(),m_WorkVector.end(),m_SimulatedT2Values.begin());
+        std::fill(m_WorkVector.begin(),m_WorkVector.end(),0.0);
 
         // First line
-        workVector[0] = m_FirstLineElements[0] * simulatedT2Values[0] + m_FirstLineElements[1] * simulatedT2Values[3];
+        m_WorkVector[0] = m_FirstLineElements[0] * m_SimulatedT2Values[0] + m_FirstLineElements[1] * m_SimulatedT2Values[3];
         if (m_NumberOfEchoes > 1)
-            workVector[0] += m_FirstLineElements[2] * simulatedT2Values[5];
+            m_WorkVector[0] += m_FirstLineElements[2] * m_SimulatedT2Values[5];
 
         // First block
-        workVector[1] = m_FirstDiagonalElements[0] * simulatedT2Values[2];
-        workVector[2] = m_FirstDiagonalElements[1] * simulatedT2Values[1];
+        m_WorkVector[1] = m_FirstDiagonalElements[0] * m_SimulatedT2Values[2];
+        m_WorkVector[2] = m_FirstDiagonalElements[1] * m_SimulatedT2Values[1];
         if (m_NumberOfEchoes > 1)
-            workVector[2] += m_FirstRightElements[0] * simulatedT2Values[6];
+            m_WorkVector[2] += m_FirstRightElements[0] * m_SimulatedT2Values[6];
         if (m_NumberOfEchoes > 2)
-            workVector[2] += m_SecondRightElement * simulatedT2Values[8];
-        workVector[3] = m_FirstColumnElements[0] * simulatedT2Values[0] + m_FirstDiagonalElements[2] * simulatedT2Values[3];
+            m_WorkVector[2] += m_SecondRightElement * m_SimulatedT2Values[8];
+        m_WorkVector[3] = m_FirstColumnElements[0] * m_SimulatedT2Values[0] + m_FirstDiagonalElements[2] * m_SimulatedT2Values[3];
         if (m_NumberOfEchoes > 1)
-            workVector[3] += m_FirstRightElements[1] * simulatedT2Values[5];
+            m_WorkVector[3] += m_FirstRightElements[1] * m_SimulatedT2Values[5];
 
         //center blocks
         for (unsigned int j = 1;j < m_NumberOfEchoes - 1;++j)
         {
-            workVector[1 + j * 3] = m_FirstLeftElements[0] * simulatedT2Values[3 + (j - 1) * 3] + m_DiagonalElements[0] * simulatedT2Values[2 + j * 3];
+            m_WorkVector[1 + j * 3] = m_FirstLeftElements[0] * m_SimulatedT2Values[3 + (j - 1) * 3] + m_DiagonalElements[0] * m_SimulatedT2Values[2 + j * 3];
             if (j > 1)
-                workVector[1 + j * 3] += m_SecondLeftElement * simulatedT2Values[1 + (j - 2) * 3];
+                m_WorkVector[1 + j * 3] += m_SecondLeftElement * m_SimulatedT2Values[1 + (j - 2) * 3];
             else
-                workVector[1 + j * 3] += m_FirstColumnElements[1] * simulatedT2Values[0];
+                m_WorkVector[1 + j * 3] += m_FirstColumnElements[1] * m_SimulatedT2Values[0];
 
-            workVector[2 + j * 3] = m_DiagonalElements[1] * simulatedT2Values[1 + j * 3];
+            m_WorkVector[2 + j * 3] = m_DiagonalElements[1] * m_SimulatedT2Values[1 + j * 3];
 
             if ((j + 1) < m_NumberOfEchoes)
-                workVector [2 + j * 3] += m_FirstRightElements[0] * simulatedT2Values[3 + (j + 1) * 3];
+                m_WorkVector [2 + j * 3] += m_FirstRightElements[0] * m_SimulatedT2Values[3 + (j + 1) * 3];
 
             if ((j + 2) < m_NumberOfEchoes)
-                workVector [2 + j * 3] += m_SecondRightElement * simulatedT2Values[2 + (j + 2) * 3];
+                m_WorkVector [2 + j * 3] += m_SecondRightElement * m_SimulatedT2Values[2 + (j + 2) * 3];
 
-            workVector[3 + j * 3] = m_FirstLeftElements[1] * simulatedT2Values[1 + (j - 1) * 3] + m_DiagonalElements[2] * simulatedT2Values[3 + j * 3];
+            m_WorkVector[3 + j * 3] = m_FirstLeftElements[1] * m_SimulatedT2Values[1 + (j - 1) * 3] + m_DiagonalElements[2] * m_SimulatedT2Values[3 + j * 3];
 
             if ((j + 1) < m_NumberOfEchoes)
-                workVector [3 + j * 3] += m_FirstRightElements[1] * simulatedT2Values[2 + (j + 1) * 3];
+                m_WorkVector [3 + j * 3] += m_FirstRightElements[1] * m_SimulatedT2Values[2 + (j + 1) * 3];
         }
 
         // end block line
         unsigned int j = m_NumberOfEchoes - 1;
-        workVector[1 + j * 3] = m_FirstLeftElements[0] * simulatedT2Values[3 + (j - 1) * 3] + m_LastDiagonalElements[0] * simulatedT2Values[2 + j * 3];
+        m_WorkVector[1 + j * 3] = m_FirstLeftElements[0] * m_SimulatedT2Values[3 + (j - 1) * 3] + m_LastDiagonalElements[0] * m_SimulatedT2Values[2 + j * 3];
         if (j > 1)
-            workVector[1 + j * 3] += m_SecondLeftElement * simulatedT2Values[1 + (j - 2) * 3];
+            m_WorkVector[1 + j * 3] += m_SecondLeftElement * m_SimulatedT2Values[1 + (j - 2) * 3];
         else
-            workVector[1 + j * 3] += m_FirstColumnElements[1] * simulatedT2Values[0];
+            m_WorkVector[1 + j * 3] += m_FirstColumnElements[1] * m_SimulatedT2Values[0];
 
-        workVector[2 + j * 3] = 0;
-        workVector[3 + j * 3] = m_FirstLeftElements[1] * simulatedT2Values[1 + (j - 1) * 3] + m_LastDiagonalElements[1] * simulatedT2Values[3 + j * 3];
+        m_WorkVector[2 + j * 3] = 0;
+        m_WorkVector[3 + j * 3] = m_FirstLeftElements[1] * m_SimulatedT2Values[1 + (j - 1) * 3] + m_LastDiagonalElements[1] * m_SimulatedT2Values[3 + j * 3];
 
-        outputVector[i] = workVector[0];
+        m_OutputVector[i] = m_WorkVector[0];
     }
 
-    return outputVector;
+    return m_OutputVector;
 }
 
 void EPGSignalSimulator::ComputeT2SignalMatrixElements(double t1Value, double t2Value,
