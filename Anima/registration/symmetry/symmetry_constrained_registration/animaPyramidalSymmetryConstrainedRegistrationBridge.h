@@ -70,14 +70,11 @@ public:
     unsigned int GetOptimizerMaximumIterations() {return m_OptimizerMaximumIterations;}
     void SetOptimizerMaximumIterations(unsigned int OptimizerMaximumIterations) {m_OptimizerMaximumIterations=OptimizerMaximumIterations;}
 
-    double GetSearchRadius() {return m_SearchRadius;}
-    void SetSearchRadius(double SearchRadius) {m_SearchRadius=SearchRadius;}
+    double GetUpperBoundAngle() {return m_UpperBoundAngle;}
+    void SetUpperBoundAngle(double val) {m_UpperBoundAngle = val;}
 
-    double GetSearchAngleRadius() {return m_SearchAngleRadius;}
-    void SetSearchAngleRadius(double SearchAngleRadius) {m_SearchAngleRadius=SearchAngleRadius;}
-
-    double GetFinalRadius() {return m_FinalRadius;}
-    void SetFinalRadius(double FinalRadius) {m_FinalRadius=FinalRadius;}
+    double GetTranslateUpperBound() {return m_TranslateUpperBound;}
+    void SetTranslateUpperBound(double val) {m_TranslateUpperBound = val;}
 
     double GetHistogramSize() {return m_HistogramSize;}
     void SetHistogramSize(double HistogramSize) {m_HistogramSize = HistogramSize;}
@@ -110,9 +107,8 @@ private:
 
     Metric m_Metric;
 
-    double m_SearchRadius;
-    double m_SearchAngleRadius;
-    double m_FinalRadius;
+    double m_TranslateUpperBound;
+    double m_UpperBoundAngle;
     unsigned int m_OptimizerMaximumIterations;
     unsigned int m_HistogramSize;
     unsigned int m_NumberOfPyramidLevels;

@@ -3,7 +3,7 @@
 #include <random>
 
 #include <animaODFMaximaCostFunction.h>
-#include <animaNewuoaOptimizer.h>
+#include <animaNLOPTOptimizers.h>
 
 #include <animaVectorOperations.h>
 #include <animaMatrixOperations.h>
@@ -281,9 +281,15 @@ unsigned int ODFProbabilisticTractographyImageFilter::FindODFMaxima(const Vector
     }
 
     typedef anima::ODFMaximaCostFunction CostFunctionType;
-    typedef anima::NewuoaOptimizer OptimizerType;
+    typedef anima::NLOPTOptimizers OptimizerType;
 
     OptimizerType::Pointer opt = OptimizerType::New();
+    opt->SetAlgorithm(NLOPT_LN_BOBYQA);
+    opt->SetXTolRel(1.0e-4);
+    opt->SetFTolRel(1.0e-6);
+    opt->SetMaxEval(200);
+    opt->SetVectorStorageSize(2000);
+
     typedef std::map < double, Vector3DType > MapType;
     MapType dmap;
 
@@ -291,6 +297,16 @@ unsigned int ODFProbabilisticTractographyImageFilter::FindODFMaxima(const Vector
     OptimizerType::ParametersType tmpValue(2);
     Vector3DType tmpValueVector(1.0);
     Vector3DType cartesianVector(1.0);
+
+    itk::Array<double> lowerBounds(2);
+    itk::Array<double> upperBounds(2);
+
+    lowerBounds.fill(0.0);
+    upperBounds[0] = M_PI;
+    upperBounds[1] = 2.0 * M_PI;
+
+    opt->SetLowerBoundParameters(lowerBounds);
+    opt->SetUpperBoundParameters(upperBounds);
 
     for (unsigned int i = 0; i < initDirs.size();++i)
     {
@@ -303,11 +319,6 @@ unsigned int ODFProbabilisticTractographyImageFilter::FindODFMaxima(const Vector
         cost->SetBasisParameters(modelValueList);
 
         opt->SetCostFunction(cost);
-
-        opt->SetRhoBegin(M_PI/80);
-        opt->SetRhoEnd(M_PI/200);
-        opt->SetNumberSamplingPoints(cost->GetNumberOfParameters() + 2);
-        opt->SetMaximumIteration(100);
         opt->SetMaximize(true);
 
         opt->SetInitialPosition(tmpValue);

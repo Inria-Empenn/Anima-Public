@@ -2,14 +2,13 @@
 #include "animaPyramidalSymmetryConstrainedRegistrationBridge.h"
 
 #include <itkTransformFactoryBase.h>
-#include <itkTransformFileReader.h>
 #include <itkTransformFileWriter.h>
 #include <itkMultiResolutionPyramidImageFilter.h>
 #include <itkImageRegistrationMethod.h>
 #include <itkLinearInterpolateImageFunction.h>
 
 #include <animaReadWriteFunctions.h>
-#include <animaNewuoaOptimizer.h>
+#include <animaNLOPTOptimizers.h>
 #include <animaMatrixOperations.h>
 #include <animaResampleImageFilter.h>
 
@@ -42,9 +41,8 @@ PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::PyramidalSymmetryCon
     m_Metric = MutualInformation;
     m_OptimizerMaximumIterations = 100;
 
-    m_SearchRadius = 2;
-    m_SearchAngleRadius = 5;
-    m_FinalRadius = 0.001;
+    m_UpperBoundAngle = M_PI;
+    m_TranslateUpperBound = 10;
     m_HistogramSize = 128;
 
     m_NumberOfPyramidLevels = 3;
@@ -94,6 +92,13 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::Update()
     
     m_ReferenceImage->TransformContinuousIndexToPhysicalPoint(centralVoxIndex,centralPoint);
 
+    unsigned int dimension = m_OutputTransform->GetNumberOfParameters();
+    itk::Array<double> lowerBounds(dimension);
+    itk::Array<double> upperBounds(dimension);
+
+    lowerBounds[0] = - m_UpperBoundAngle;
+    upperBounds[0] = m_UpperBoundAngle;
+
     // Iterate over pyramid levels
     for (unsigned int i = 0;i < this->GetNumberOfPyramidLevels();++i)
     {
@@ -105,35 +110,29 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::Update()
 
         reg->SetNumberOfThreads(this->GetNumberOfThreads());
 
-        typedef anima::NewuoaOptimizer OptimizerType;
+        typedef anima::NLOPTOptimizers OptimizerType;
 
         typename OptimizerType::Pointer optimizer = OptimizerType::New();
 
-        if (m_Metric == MeanSquares)
-            optimizer->SetMaximize(false);
-        else
-            optimizer->SetMaximize(true);
+        optimizer->SetAlgorithm(NLOPT_LN_BOBYQA);
+        optimizer->SetXTolRel(1.0e-4);
+        optimizer->SetFTolRel(1.0e-6);
+        optimizer->SetMaxEval(m_OptimizerMaximumIterations);
+        optimizer->SetVectorStorageSize(2000);
+        optimizer->SetMaximize(m_Metric != MeanSquares);
 
-        optimizer->SetRhoBegin(m_SearchRadius);
-        optimizer->SetRhoEnd(m_FinalRadius);
-
-        optimizer->SetNumberSamplingPoints(m_OutputTransform->GetNumberOfParameters() + 2);
-        optimizer->SetMaximumIteration(m_OptimizerMaximumIterations);
-
-        OptimizerType::ScalesType tmpScales (TransformType::ParametersDimension);
-        tmpScales[0] = m_SearchRadius * 180.0 / (m_SearchAngleRadius * M_PI);
-        
-        unsigned int pos = 1;
+        double meanSpacing = 0;
         for (unsigned int j = 0;j < InputImageType::ImageDimension;++j)
+            meanSpacing += m_ReferencePyramid->GetOutput(i)->GetSpacing()[j];
+
+        for (unsigned int j = 0;j < 2;++j)
         {
-            if (j == indexAbsRefMax)
-                continue;
-            
-            tmpScales[pos] = 1.0 / m_ReferencePyramid->GetOutput(i)->GetSpacing()[j];
-            ++pos;
+            lowerBounds[j + 1] = m_OutputTransform->GetParameters()[j + 1] - m_TranslateUpperBound * meanSpacing;
+            upperBounds[j + 1] = m_OutputTransform->GetParameters()[j + 1] + m_TranslateUpperBound * meanSpacing;
         }
 
-        optimizer->SetScales(tmpScales);
+        optimizer->SetLowerBoundParameters(lowerBounds);
+        optimizer->SetUpperBoundParameters(upperBounds);
 
         reg->SetOptimizer(optimizer);
         reg->SetTransform(m_OutputTransform);

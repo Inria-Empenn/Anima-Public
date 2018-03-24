@@ -2,6 +2,7 @@
 
 #include <itkTimeProbe.h>
 #include <animaReadWriteFunctions.h>
+#include <itkTransformFileReader.h>
 
 #include <tclap/CmdLine.h>
 
@@ -26,9 +27,8 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<unsigned int> optimizerMaxIterationsArg("","oi","Maximum iterations for local optimizer (default: 100)",false,100,"maximum local optimizer iterations",cmd);
     TCLAP::ValueArg<unsigned int> histoSizeArg("","hs","Histogram size for mutual information (default: 128)",false,128,"histogram size",cmd);
 
-    TCLAP::ValueArg<double> searchRadiusArg("","sr","Search radius in pixels (exhaustive search window, rho start for bobyqa, default: 2)",false,2,"optimizer search radius",cmd);
-    TCLAP::ValueArg<double> searchAngleRadiusArg("","sar","Search angle radius in degrees (rho start for bobyqa, default: 5)",false,5,"optimizer search angle radius",cmd);
-    TCLAP::ValueArg<double> finalRadiusArg("","fr","Final radius (rho end for bobyqa, default: 0.001)",false,0.001,"optimizer final radius",cmd);
+    TCLAP::ValueArg<double> translateUpperBoundArg("","tub","Upper bound on translation for bobyqa (in voxels, default: 10)",false,10,"Bobyqa translate upper bound",cmd);
+    TCLAP::ValueArg<double> angleUpperBoundArg("","aub","Upper bound on angles for bobyqa (in degrees, default: 180)",false,180,"Bobyqa angle upper bound",cmd);
 
     TCLAP::ValueArg<unsigned int> numPyramidLevelsArg("p","pyr","Number of pyramid levels (default: 3)",false,3,"number of pyramid levels",cmd);
     TCLAP::ValueArg<unsigned int> numThreadsArg("T","threads","Number of execution threads (default: 0 = all cores)",false,0,"number of threads",cmd);
@@ -40,7 +40,7 @@ int main(int ac, const char** av)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
 
     typedef anima::PyramidalSymmetryConstrainedRegistrationBridge <double> BridgeType;
@@ -55,10 +55,9 @@ int main(int ac, const char** av)
     matcher->SetOutputTransformFile( outputTransformArg.getValue() );
 
     matcher->SetMetric( (Metric) metricArg.getValue() );
-    matcher->SetFinalRadius(finalRadiusArg.getValue());
     matcher->SetOptimizerMaximumIterations( optimizerMaxIterationsArg.getValue() );
-    matcher->SetSearchRadius( searchRadiusArg.getValue() );
-    matcher->SetSearchAngleRadius( searchAngleRadiusArg.getValue() );
+    matcher->SetUpperBoundAngle(angleUpperBoundArg.getValue() * M_PI / 180.0);
+    matcher->SetTranslateUpperBound(translateUpperBoundArg.getValue());
     matcher->SetHistogramSize(histoSizeArg.getValue());
     matcher->SetNumberOfPyramidLevels( numPyramidLevelsArg.getValue() );
     matcher->SetFastRegistration(fastRegArg.isSet());
