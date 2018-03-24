@@ -1,4 +1,4 @@
-if(BUILD_TOOLS)
+if(BUILD_TOOLS AND USE_NLOPT AND NLOPT_FOUND)
 
 project(animaSymmetryPlane)
 

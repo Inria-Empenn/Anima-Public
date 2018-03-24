@@ -1,15 +1,13 @@
 #pragma once
 #include "animaPyramidalSymmetryBridge.h"
 
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
-#include <itkTransformFileReader.h>
+#include <animaReadWriteFunctions.h>
 #include <itkTransformFileWriter.h>
 #include <itkMultiResolutionPyramidImageFilter.h>
 #include <itkImageRegistrationMethod.h>
 #include <itkLinearInterpolateImageFunction.h>
-#include <animaNewuoaOptimizer.h>
-#include <itkPowellOptimizer.h>
+#include <animaNLOPTOptimizers.h>
+
 #include <itkMeanSquaresImageToImageMetric.h>
 #include <itkMutualInformationHistogramImageToImageMetric.h>
 #include <itkImageMomentsCalculator.h>
@@ -59,6 +57,16 @@ void PyramidalSymmetryBridge<PixelType,ScalarType>::Update()
     m_OutputTransform->SetParameters(initialParams);
     m_OutputTransform->SetRotationCenter(centralPoint);
 
+    unsigned int dimension = m_OutputTransform->GetNumberOfParameters();
+    itk::Array<double> lowerBounds(dimension);
+    itk::Array<double> upperBounds(dimension);
+
+    for (unsigned int i = 0;i < 2;++i)
+    {
+        lowerBounds[i] = - GetUpperBoundAngle();
+        upperBounds[i] = GetUpperBoundAngle();
+    }
+
     // Iterate over pyramid levels
     for (int i = 0;i < GetNumberOfPyramidLevels();++i)
     {
@@ -70,63 +78,31 @@ void PyramidalSymmetryBridge<PixelType,ScalarType>::Update()
 
         reg->SetNumberOfThreads(GetNumberOfThreads());
 
-        typedef itk::SingleValuedNonLinearOptimizer OptimizerType;
-        typename OptimizerType::Pointer optimizer;
+        typedef anima::NLOPTOptimizers OptimizerType;
+        typename OptimizerType::Pointer optimizer = OptimizerType::New();
 
-        if (GetOptimizerType() == Newuoa)
-        {
-            typedef anima::NewuoaOptimizer LocalOptimizerType;
-            typename LocalOptimizerType::Pointer tmpOpt = LocalOptimizerType::New();
-
-            tmpOpt->SetRhoBegin(GetSearchRadius());
-            tmpOpt->SetRhoEnd(GetFinalRadius());
-            tmpOpt->SetNumberSamplingPoints(m_OutputTransform->GetNumberOfParameters() + 2);
-            tmpOpt->SetMaximumIteration(GetOptimizerMaxIterations());
-
-            if (GetMetric() == MeanSquares)
-                tmpOpt->SetMaximize(false);
-            else
-                tmpOpt->SetMaximize(true);
-
-            optimizer = tmpOpt;
-        }
-        else
-        {
-            typedef itk::PowellOptimizer LocalOptimizerType;
-            typename LocalOptimizerType::Pointer tmpOpt = LocalOptimizerType::New();
-
-            tmpOpt->SetStepLength(GetSearchRadius());
-            tmpOpt->SetStepTolerance(GetFinalRadius());
-            tmpOpt->SetValueTolerance(GetFinalRadius());
-            tmpOpt->SetMaximumLineIteration(GetOptimizerMaxIterations());
-            tmpOpt->SetMaximumIteration(GetOptimizerMaxIterations());
-
-            if (GetMetric() == MeanSquares)
-                tmpOpt->SetMaximize(false);
-            else
-                tmpOpt->SetMaximize(true);
-
-            optimizer = tmpOpt;
-        }
-
-        OptimizerType::ScalesType tmpScales( TransformType::ParametersDimension );
-        tmpScales[0] = GetSearchRadius() * 180.0 / (GetSearchAngleRadius() * M_PI);
-        tmpScales[1] = GetSearchRadius() * 180.0 / (GetSearchAngleRadius() * M_PI);
+        optimizer->SetAlgorithm(NLOPT_LN_BOBYQA);
+        optimizer->SetXTolRel(1.0e-4);
+        optimizer->SetFTolRel(1.0e-6);
+        optimizer->SetMaxEval(GetOptimizerMaxIterations());
+        optimizer->SetVectorStorageSize(2000);
+        optimizer->SetMaximize(GetMetric() != MeanSquares);
 
         double meanSpacing = 0;
         for (unsigned int j = 0;j < InputImageType::ImageDimension;++j)
             meanSpacing += m_ReferencePyramid->GetOutput(i)->GetSpacing()[j];
 
-        meanSpacing /= InputImageType::ImageDimension;
-        tmpScales[2] = 1.0 / meanSpacing;
+        lowerBounds[2] = m_OutputTransform->GetParameters()[2] - meanSpacing * GetUpperBoundDistance();
+        upperBounds[2] = m_OutputTransform->GetParameters()[2] + meanSpacing * GetUpperBoundDistance();
 
-        optimizer->SetScales(tmpScales);
+        optimizer->SetLowerBoundParameters(lowerBounds);
+        optimizer->SetUpperBoundParameters(upperBounds);
 
         reg->SetOptimizer(optimizer);
         reg->SetTransform(m_OutputTransform);
 
         typedef itk::LinearInterpolateImageFunction <OutputImageType, double> InterpolatorType;
-        typename InterpolatorType::Pointer interpolator  = InterpolatorType::New();
+        typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
 
         reg->SetInterpolator(interpolator);
 
@@ -160,7 +136,7 @@ void PyramidalSymmetryBridge<PixelType,ScalarType>::Update()
         reg->SetFixedImage(m_ReferencePyramid->GetOutput(i));
         reg->SetMovingImage(m_FloatingPyramid->GetOutput(i));
 
-        reg->SetFixedImageRegion( m_ReferencePyramid->GetOutput(i)->GetLargestPossibleRegion() );
+        reg->SetFixedImageRegion(m_ReferencePyramid->GetOutput(i)->GetLargestPossibleRegion());
         reg->SetInitialTransformParameters(m_OutputTransform->GetParameters());
 
         try
@@ -238,7 +214,7 @@ void PyramidalSymmetryBridge<PixelType,ScalarType>::Update()
 
 template <class PixelType, typename ScalarType>
 void PyramidalSymmetryBridge<PixelType,ScalarType>::ComputeRealignTransform(typename itk::Vector <double,InputImageType::ImageDimension> centralPoint,
-                                                                  typename InputImageType::PointType &centerReal, ParametersType &imageParams)
+                                                                            typename InputImageType::PointType &centerReal, ParametersType &imageParams)
 {
     TransformPointer imageMidPlaneTrsf = TransformType::New();
     imageMidPlaneTrsf->SetParameters(imageParams);
@@ -420,13 +396,7 @@ void PyramidalSymmetryBridge<PixelType,ScalarType>::SaveResultFile()
     if (GetResultfile() != "")
     {
         std::cout << "Writing output image to: " << GetResultfile() << std::endl;
-
-        typename itk::ImageFileWriter <InputImageType>::Pointer imageWriter = itk::ImageFileWriter <InputImageType>::New();
-        imageWriter->SetUseCompression(true);
-        imageWriter->SetInput(m_OutputImage);
-        imageWriter->SetFileName(GetResultfile());
-
-        imageWriter->Update();
+        anima::writeImage <InputImageType> (GetResultfile(),m_OutputImage);
     }
 }
 

@@ -8,19 +8,10 @@
 #include <animaSymmetryPlaneTransform.h>
 #include <itkAffineTransform.h>
 
-#include <iostream>
-#include <fstream>
-
 enum Metric
 {
     MutualInformation = 0,
     MeanSquares
-};
-
-enum OptimizerType
-{
-    Newuoa = 0,
-    Powell
 };
 
 namespace anima
@@ -30,7 +21,6 @@ template <class PixelType = float, typename ScalarType = double>
 class PyramidalSymmetryBridge : public itk::ProcessObject
 {
 public:
-
     typedef typename itk::Image <PixelType,3> InputImageType;
     typedef typename itk::Image <float,3> OutputImageType;
     typedef typename InputImageType::Pointer InputImagePointer;
@@ -71,23 +61,17 @@ public:
     Metric GetMetric() {return m_metric;}
     void SetMetric(Metric metric) {m_metric=metric;}
 
-    OptimizerType GetOptimizerType() {return m_optType;}
-    void SetOptimizerType(OptimizerType optType) {m_optType=optType;}
-
     int GetOptimizerMaxIterations() {return m_optMaxIterations;}
     void SetOptimizerMaxIterations(int optMaxIterations) {m_optMaxIterations=optMaxIterations;}
 
     int GetHistogramSize() {return m_histogramSize;}
     void SetHistogramSize(int histogramSize) {m_histogramSize=histogramSize;}
 
-    double GetSearchRadius() {return m_searchRadius;}
-    void SetSearchRadius(double searchRadius) {m_searchRadius=searchRadius;}
+    double GetUpperBoundDistance() {return m_UpperBoundDistance;}
+    void SetUpperBoundDistance(double val) {m_UpperBoundDistance = val;}
 
-    double GetSearchAngleRadius(void) {return m_searchAngleRadius;}
-    void SetSearchAngleRadius(double searchAngleRadius) {m_searchAngleRadius=searchAngleRadius;}
-
-    double GetFinalRadius(void) {return m_finalRadius;}
-    void SetFinalRadius(double finalRadius) {m_finalRadius=finalRadius;}
+    double GetUpperBoundAngle() {return m_UpperBoundAngle;}
+    void SetUpperBoundAngle(double val) {m_UpperBoundAngle = val;}
 
     int GetNumberOfPyramidLevels() {return m_numberOfPyramidLevels;}
     void SetNumberOfPyramidLevels(int numberOfPyramidLevels) {m_numberOfPyramidLevels=numberOfPyramidLevels;}
@@ -108,7 +92,7 @@ public:
 
     void SetFloatingImage(InputImagePointer floatingImage) {m_FloatingImage= floatingImage;}
 
-    void SetProgressCallback(itk::CStyleCommand::Pointer callback ) {m_progressCallback = callback;};
+    void SetProgressCallback(itk::CStyleCommand::Pointer callback ) {m_progressCallback = callback;}
 
     void SaveResultFile(void);
 
@@ -140,12 +124,10 @@ protected:
 
         //default values
         m_metric = MeanSquares;
-        m_optType = Newuoa;
+        m_UpperBoundDistance = 6;
+        m_UpperBoundAngle = M_PI;
         m_optMaxIterations = 100;
         m_histogramSize = 120;
-        m_searchRadius = 2;
-        m_searchAngleRadius = 5;
-        m_finalRadius = 0.001;
         m_numberOfPyramidLevels = 3;
         this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
         m_fixedfile = "";
@@ -173,13 +155,10 @@ private:
     OutputImagePointer m_OutputImage;
 
     Metric m_metric;
-    OptimizerType m_optType;
     int m_optMaxIterations;
     int m_histogramSize;
-    double m_searchRadius;
-    double m_searchAngleRadius;
-    double m_finalRadius;
     int m_numberOfPyramidLevels;
+    double m_UpperBoundDistance, m_UpperBoundAngle;
     std::string m_fixedfile;
     std::string m_outputRealignTransformFile;
     std::string m_outputTransformFile;

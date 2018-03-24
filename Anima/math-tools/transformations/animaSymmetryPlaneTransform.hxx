@@ -125,10 +125,10 @@ SymmetryPlaneTransform<TScalarType>
 {
     double cosa, sina, cosb, sinb;
 
-    cosa = cos(m_Theta);
-    sina = sin(m_Theta);
-    cosb = cos(m_Phi);
-    sinb = sin(m_Phi);
+    cosa = std::cos(m_Theta);
+    sina = std::sin(m_Theta);
+    cosb = std::cos(m_Phi);
+    sinb = std::sin(m_Phi);
 
     double d = m_Distance;
 
