@@ -5,7 +5,6 @@
 #include <itkImageRegionConstIterator.h>
 
 #include <animaNLOPTOptimizers.h>
-#include <animaBobyqaOptimizer.h>
 #include <animaT1SERelaxometryCostFunction.h>
 
 namespace anima
