@@ -21,7 +21,7 @@ void eventCallback (itk::Object* caller, const itk::EventObject& event, void* cl
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',ANIMA_PRIVATE_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);
 	
     TCLAP::ValueArg<std::string> t2Arg("i","t2","T2 relaxometry images (list or 4D volume)",true,"","T2 relaxometry images",cmd);
     TCLAP::ValueArg<std::string> maskArg("m","maskname","Computation mask",false,"","computation mask",cmd);

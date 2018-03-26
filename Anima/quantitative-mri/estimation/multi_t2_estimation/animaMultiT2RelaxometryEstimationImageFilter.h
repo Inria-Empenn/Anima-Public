@@ -10,6 +10,15 @@
 namespace anima
 {
 
+/**
+ * @brief Implements multi-peak T2 relaxometry estimation (with or without regularization)
+ *
+ * Multi-peak estimation is performed as discussed in several papers:
+ * Layton et al. Modelling and estimation of multicomponent T2 distributions. IEEE TMI, 32(8):1423-1434. 2013.
+ * Prasloski et al. Applications of stimulated echo correction to multicomponent T2 analysis. MRM, 67(6):1803-1814. 2012.
+ * Yoo et al. Non-local spatial regularization of MRI T2 relaxa- tion images for myelin water quantification. MICCAI, pp 614-621. 2013.
+ */
+
 template <class TPixelScalarType>
 class MultiT2RelaxometryEstimationImageFilter :
 public anima::MaskedImageToImageFilter<itk::Image <TPixelScalarType, 3>, itk::Image <TPixelScalarType, 3> >
