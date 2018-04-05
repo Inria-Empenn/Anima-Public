@@ -11,6 +11,12 @@ project(ANIMA VERSION 3.1)
 set(CMAKE_MACOSX_RPATH OFF)
 set(CMAKE_CXX_STANDARD 11)
 
+# Define default build type if needed
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose build type" FORCE)
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif()
+
 #Add definition for version number
 add_definitions(-D${PROJECT_NAME}_VERSION="${${PROJECT_NAME}_VERSION}")
 

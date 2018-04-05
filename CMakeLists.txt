@@ -24,6 +24,12 @@ option(BUILD_ANIMA_TESTING "Build ANIMA testing executables" OFF)
 option(BUILD_ANIMA_DOCUMENTATION "Build ANIMA doxygen" OFF)
 option(USE_ANIMA_PRIVATE "Use ANIMA private part, requires authorized access" OFF)
 
+# Define default build type if needed
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose build type" FORCE)
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif()
+
 # Use github SSH connection or https ?
 
 option(USE_GITHUB_SSH
