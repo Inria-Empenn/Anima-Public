@@ -76,7 +76,7 @@ Update()
             break;
     }
 
-    std::cerr << "Specific LSW agregation not handled yet..." << std::endl;
+    throw itk::ExceptionObject(__FILE__, __LINE__,"Specific LSW agregation not handled yet...",ITK_LOCATION);
     return false;
 }
 
@@ -112,10 +112,7 @@ lswEstimateTranslationsToRigid()
     unsigned int nbPts = this->GetInputOrigins().size();
 
     if (NDimensions > 3)
-    {
-        std::cerr << "Dimension not supported for quaternions" << std::endl;
-        return;
-    }
+        throw itk::ExceptionObject(__FILE__, __LINE__,"Dimension not supported for quaternions",ITK_LOCATION);
 
     std::vector <PointType> originPoints(nbPts);
     std::vector <PointType> transformedPoints(nbPts);

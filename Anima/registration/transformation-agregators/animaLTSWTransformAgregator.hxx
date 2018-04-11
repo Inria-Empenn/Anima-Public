@@ -5,7 +5,7 @@
 #include <animaLinearTransformEstimationTools.h>
 
 #include <algorithm>
-
+#include <itkExceptionObject.h>
 
 namespace anima
 {
@@ -47,8 +47,7 @@ Update()
             return returnValue;
 
         default:
-            std::cerr << "Specific LTSW agregation not handled yet..." << std::endl;
-            return false;
+            throw itk::ExceptionObject(__FILE__, __LINE__,"Specific LTSW agregation not handled yet...",ITK_LOCATION);
     }
 }
 
@@ -60,10 +59,7 @@ ltswEstimateTranslationsToAny()
     unsigned int nbPts = this->GetInputOrigins().size();
 
     if (NDimensions > 3)
-    {
-        std::cerr << "Dimension not supported" << std::endl;
-        return false;
-    }
+        throw itk::ExceptionObject(__FILE__, __LINE__,"Dimension not supported",ITK_LOCATION);
 
     std::vector <PointType> originPoints(nbPts);
     std::vector <PointType> transformedPoints(nbPts);
@@ -114,8 +110,7 @@ ltswEstimateTranslationsToAny()
                 break;
 
             default:
-                std::cerr << "Not implemented yet..." << std::endl;
-                return false;
+                throw itk::ExceptionObject(__FILE__, __LINE__,"Not implemented yet...",ITK_LOCATION);
         }
 
         continueLoop = endLTSCondition(resultTransformOld,resultTransform);
@@ -164,10 +159,7 @@ LTSWTransformAgregator <NDimensions>::
 ltswEstimateAnyToAffine()
 {
     if ((this->GetInputTransformType() == Superclass::AFFINE)&&(this->GetOutputTransformType() == Superclass::RIGID))
-    {
-        std::cerr << "Agregation from affine transforms to rigid is not supported yet..." << std::endl;
-        return false;
-    }
+        throw itk::ExceptionObject(__FILE__, __LINE__,"Agregation from affine transforms to rigid is not supported yet...",ITK_LOCATION);
 
     typedef itk::MatrixOffsetTransformBase <InternalScalarType, NDimensions> BaseMatrixTransformType;
     typedef anima::LogRigid3DTransform <InternalScalarType> LogRigidTransformType;
