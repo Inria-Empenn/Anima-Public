@@ -136,33 +136,14 @@ reorientImage(typename itk::SmartPointer<ImageType> input,
 }
 
 template <class ImageType, class GradientType>
-typename itk::SmartPointer<ImageType>
-reorientImageAndGradient(typename itk::SmartPointer<ImageType> input,
-              itk::SpatialOrientation::ValidCoordinateOrientationFlags orientation,
-              std::vector<GradientType> &gradients)
+void reorientGradients(typename itk::SmartPointer<ImageType> input, std::vector<GradientType> &gradients)
 {
-    // What we want to do here is reorient an image and then a list of gradient
-    // vectors in order to have them in real coordinates, oriented in the
-    // same way that the newly oriented image.
+    // What we want to do here is reorient a list of gradient
+    // vectors in order to have them in image coordinates from a set of gradients in real coordinates
 
-    // To do so we apply 'reorientedGrad = Dr o grad', with: 'Dr = D1^-1 o D0'
+    // To do so we apply 'reorientedGrad = D^-1 o grad'
 
-    // grad are the gradients oriented as given in input (in real coordinates repair of input image).
-    // D0 is the direction matrix of the image given as input to translate image coordinate in real coordinates
-    // D1 is the direction matrix of the reoriented image to translate image coordinate in real coordinates
-
-    typename ImageType::Pointer reorientedImage = reorientImage<ImageType>(input, orientation);
-
-    typename ImageType::DirectionType D0 = input->GetDirection();
-    typename ImageType::DirectionType inversedD1 = reorientedImage->GetInverseDirection();
-
-    typename ImageType::DirectionType Dr;
-    Dr.Fill(0);
-
-    for(unsigned int i = 0; i < 3; ++i)
-        for(unsigned int j = 0; j < 3; ++j)
-            for(unsigned int n = 0; n < 3; ++n)
-                Dr[i][j] += inversedD1[i][n] * D0[n][j];
+    typename ImageType::DirectionType inversedD1 = input->GetInverseDirection();
 
     for(unsigned int g = 0; g < gradients.size(); g++)
     {
@@ -170,13 +151,11 @@ reorientImageAndGradient(typename itk::SmartPointer<ImageType> input,
         for(unsigned int i = 0; i < 3; ++i)
         {
             for(unsigned int j = 0; j < 3; ++j)
-                reorientedGrad[i] += Dr[i][j] * gradients[g][j];
+                reorientedGrad[i] += inversedD1[i][j] * gradients[g][j];
         }
         gradients[g] = reorientedGrad;
     }
-    return reorientedImage;
 }
 
-
-}
+} // end namespace anima
 

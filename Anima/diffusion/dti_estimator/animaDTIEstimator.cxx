@@ -32,10 +32,10 @@ int main(int argc,  char **argv)
     TCLAP::ValueArg<unsigned int> b0ThrArg("t","b0thr","bot_treshold",false,0,"B0 threshold (default : 0)",cmd);
     TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","nb_thread",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"Number of threads to run on (default: all cores)",cmd);
     TCLAP::ValueArg<std::string> reorientArg("r","reorient","dwi_reoriented",false,"","Reorient DWI given as input",cmd);
-    TCLAP::ValueArg<std::string> reorientGradArg("R","reorient-G","dwi_reoriented output",false,"","Reorient DWI given as input and use reoriented gradients",cmd);
-    TCLAP::ValueArg<std::string> reorientGradVectorsArg("V","reo-vectors","output reoriented vectors",false,"","Output reoriented vectors if -R is used",cmd);
+    TCLAP::ValueArg<std::string> reorientGradArg("R","reorient-G","gradient reoriented output",false,"","Reorient gradients so that they are in MrTrix format (in image coordinates)",cmd);
 
-    try{
+    try
+    {
         cmd.parse(argc,argv);
     }
     catch (TCLAP::ArgException& e)
@@ -70,35 +70,28 @@ int main(int argc,  char **argv)
 
     Image4DType::Pointer input = anima::readImage<Image4DType>(inArg.getValue());
 
-    if(reorientGradArg.getValue() != "")
-    {
-        input = anima::reorientImageAndGradient<Image4DType, vnl_vector_fixed<double,3> >
-                (input, itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI, directions);
-
-        anima::writeImage<Image4DType>(reorientGradArg.getValue(), input);
-
-        if (reorientGradVectorsArg.getValue() != "")
-        {
-            std::ofstream outGrads(reorientGradVectorsArg.getValue().c_str());
-            outGrads.precision(15);
-            for (unsigned int i = 0;i < 3;++i)
-            {
-                for (unsigned int j = 0;j < directions.size();++j)
-                    outGrads << directions[j][i] << " ";
-                outGrads << std::endl;
-            }
-
-            outGrads.close();
-        }
-
-        inputFile = reorientGradArg.getValue();
-    }
-    else if(reorientArg.getValue() != "")
+    if (reorientArg.getValue() != "")
     {
         input = anima::reorientImage<Image4DType>(input, itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI);
         anima::writeImage<Image4DType>(reorientArg.getValue(), input);
 
         inputFile = reorientArg.getValue();
+    }
+
+    if(reorientGradArg.getValue() != "")
+    {
+        anima::reorientGradients <Image4DType, vnl_vector_fixed<double,3> > (input, directions);
+
+        std::ofstream outGrads(reorientGradArg.getValue().c_str());
+        outGrads.precision(15);
+        for (unsigned int i = 0;i < 3;++i)
+        {
+            for (unsigned int j = 0;j < directions.size();++j)
+                outGrads << directions[j][i] << " ";
+            outGrads << std::endl;
+        }
+
+        outGrads.close();
     }
 
     mainFilter->SetBValuesList(mb);

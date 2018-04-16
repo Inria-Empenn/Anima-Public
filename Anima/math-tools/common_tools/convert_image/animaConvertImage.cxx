@@ -42,17 +42,16 @@ convert(const arguments &args)
     }
 
     if(args.reorient == "AXIAL")
-        input = anima::reorientImageAndGradient(input,itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI,
-                                                gradients);
+        input = anima::reorientImage(input,itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI);
     else if(args.reorient == "CORONAL")
-        input = anima::reorientImageAndGradient(input,itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSA,
-                                                gradients);
+        input = anima::reorientImage(input,itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSA);
     else if(args.reorient == "SAGITTAL")
-        input = anima::reorientImageAndGradient(input,itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_ASL,
-                                                gradients);
+        input = anima::reorientImage(input,itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_ASL);
 
     if (args.gradientFileName != "")
     {
+        anima::reorientGradients(input,gradients);
+
         std::string outGradFileName = args.output;
         std::size_t pointLocation = outGradFileName.find_last_of('.');
         outGradFileName = outGradFileName.substr(0,pointLocation);
@@ -134,7 +133,7 @@ int main(int ac, const char** av)
             "Reorient the image in 'AXIAL' or 'CORONAL' or 'SAGITTAL' direction. [defalut: No reorientation]",
             cmd);
 
-    TCLAP::ValueArg<std::string> gradsArg("g","grad","input gradients (used in re-orientation mode)",false,"","Input gradients",cmd);
+    TCLAP::ValueArg<std::string> gradsArg("g","grad","input gradients (apply converted image orientation matrix to get to MrTrix compatible format (iamge coordinates)",false,"","Input gradients",cmd);
 
     TCLAP::ValueArg<std::string> spaceArg("s",
             "space",
