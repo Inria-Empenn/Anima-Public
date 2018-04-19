@@ -28,6 +28,7 @@ protected:
     void WriteFileAsVTKAscii();
     void WriteFileAsVTKXML();
     void WriteFileAsMedinriaFibers();
+    void WriteFileAsCSV();
 
 private:
     vtkSmartPointer <vtkPolyData> m_InputData;
