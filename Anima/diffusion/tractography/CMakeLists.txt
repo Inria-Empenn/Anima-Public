@@ -53,6 +53,7 @@ set_lib_install_rules(${PROJECT_NAME})
 
 add_subdirectory(dti_probabilistic_tractography)
 add_subdirectory(dti_tractography)
+add_subdirectory(fibers_csv_converter)
 add_subdirectory(fibers_filterer)
 add_subdirectory(odf_probabilistic_tractography)
 
