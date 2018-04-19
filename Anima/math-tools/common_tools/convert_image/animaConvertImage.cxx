@@ -41,21 +41,33 @@ convert(const arguments &args)
         gradients = gfReader.GetGradients();
     }
 
-    if(args.reorient == "AXIAL")
-        input = anima::reorientImage(input,itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI);
-    else if(args.reorient == "CORONAL")
-        input = anima::reorientImage(input,itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSA);
-    else if(args.reorient == "SAGITTAL")
-        input = anima::reorientImage(input,itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_ASL);
+    if (args.output != "")
+    {
+        if(args.reorient == "AXIAL")
+            input = anima::reorientImage(input,itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI);
+        else if(args.reorient == "CORONAL")
+            input = anima::reorientImage(input,itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSA);
+        else if(args.reorient == "SAGITTAL")
+            input = anima::reorientImage(input,itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_ASL);
+    }
 
     if (args.gradientFileName != "")
     {
         anima::reorientGradients(input,gradients);
 
-        std::string outGradFileName = args.output;
+        std::string outGradFileName = args.input;
+
+        if (args.output != "")
+            outGradFileName = args.output;
+
         std::size_t pointLocation = outGradFileName.find_last_of('.');
         outGradFileName = outGradFileName.substr(0,pointLocation);
-        std::string tmpStr = args.output.substr(pointLocation + 1);
+        std::string tmpStr;
+
+        if (args.output != "")
+            tmpStr = args.output.substr(pointLocation + 1);
+        else
+            tmpStr = args.input.substr(pointLocation + 1);
 
         if (tmpStr == "gz")
         {
@@ -75,8 +87,11 @@ convert(const arguments &args)
         outGrads.close();
     }
 
-    input->SetMetaDataDictionary(itk::MetaDataDictionary());
-    anima::writeImage<ImageType>(args.output, input);
+    if (args.output != "")
+    {
+        input->SetMetaDataDictionary(itk::MetaDataDictionary());
+        anima::writeImage<ImageType>(args.output, input);
+    }
 }
 
 template <class ComponentType, int dimension>
@@ -204,7 +219,7 @@ int main(int ac, const char** av)
         std::cout << "COMPONENT TYPE: "<< itk::ImageIOBase::GetComponentTypeAsString(imageIO->GetComponentType()) << std::endl;
     }
 
-    if(args.output != "")
+    if ((args.output != "")||(args.gradientFileName != ""))
     {
         try
         {
