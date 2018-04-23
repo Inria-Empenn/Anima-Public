@@ -1,11 +1,11 @@
 #include <tclap/CmdLine.h>
 
-#include <animaFibersReader.h>
-#include <animaFibersWriter.h>
+#include <animaShapesReader.h>
+#include <animaShapesWriter.h>
 
 int main(int ac, const char** av)
 {
-    TCLAP::CmdLine cmd("animaConvertSurface can be used to rewrite a VTK or FDS (fiber format) file into another format. It does not check though before writing fds that the file is "
+    TCLAP::CmdLine cmd("animaConverthapes can be used to rewrite a VTK, CSV or FDS (fiber format) file into another format. It does not check though before writing fds that the file is "
                        "actually made only of fibers.\n"
                        "INRIA / IRISA - VisAGeS Team",' ',ANIMA_VERSION);
 
@@ -22,11 +22,11 @@ int main(int ac, const char** av)
         return EXIT_FAILURE;
     }
 
-    anima::FibersReader fibersReader;
-    fibersReader.SetFileName(inputArg.getValue());
+    anima::ShapesReader shapesReader;
+    shapesReader.SetFileName(inputArg.getValue());
     try
     {
-        fibersReader.Update();
+        shapesReader.Update();
     }
     catch(std::exception &e)
     {
@@ -34,13 +34,13 @@ int main(int ac, const char** av)
         return EXIT_FAILURE;
     }
 
-    anima::FibersWriter fibersWriter;
-    fibersWriter.SetInputData(fibersReader.GetOutput());
-    fibersWriter.SetFileName(outputArg.getValue());
+    anima::ShapesWriter shapesWriter;
+    shapesWriter.SetInputData(shapesReader.GetOutput());
+    shapesWriter.SetFileName(outputArg.getValue());
 
     try
     {
-        fibersWriter.Update();
+        shapesWriter.Update();
     }
     catch(std::exception &e)
     {

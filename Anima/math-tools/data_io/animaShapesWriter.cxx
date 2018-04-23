@@ -1,4 +1,4 @@
-#include <animaFibersWriter.h>
+#include <animaShapesWriter.h>
 #include <itkMacro.h>
 
 #include <vtkPolyDataWriter.h>
@@ -12,7 +12,7 @@
 
 namespace anima {
 
-void FibersWriter::Update()
+void ShapesWriter::Update()
 {
     std::string extensionName = m_FileName.substr(m_FileName.find_last_of('.') + 1);
     if (extensionName == "vtk")
@@ -28,10 +28,10 @@ void FibersWriter::Update()
     else if (extensionName == "csv")
         this->WriteFileAsCSV();
     else
-        throw itk::ExceptionObject(__FILE__, __LINE__,"Unsupported fibers extension.",ITK_LOCATION);
+        throw itk::ExceptionObject(__FILE__, __LINE__,"Unsupported shapes extension.",ITK_LOCATION);
 }
 
-void FibersWriter::WriteFileAsVTKAscii()
+void ShapesWriter::WriteFileAsVTKAscii()
 {
     vtkSmartPointer <vtkPolyDataWriter> vtkWriter = vtkPolyDataWriter::New();
     vtkWriter->SetInputData(m_InputData);
@@ -39,7 +39,7 @@ void FibersWriter::WriteFileAsVTKAscii()
     vtkWriter->Update();
 }
 
-void FibersWriter::WriteFileAsVTKXML()
+void ShapesWriter::WriteFileAsVTKXML()
 {
     vtkSmartPointer <vtkXMLPolyDataWriter> vtkWriter = vtkXMLPolyDataWriter::New();
     vtkWriter->SetInputData(m_InputData);
@@ -50,7 +50,7 @@ void FibersWriter::WriteFileAsVTKXML()
     vtkWriter->Update();
 }
 
-void FibersWriter::WriteFileAsMedinriaFibers()
+void ShapesWriter::WriteFileAsMedinriaFibers()
 {
     std::replace(m_FileName.begin(),m_FileName.end(),'\\','/');
 
@@ -96,7 +96,7 @@ void FibersWriter::WriteFileAsMedinriaFibers()
     outputHeaderFile.close();
 }
 
-void FibersWriter::WriteFileAsCSV()
+void ShapesWriter::WriteFileAsCSV()
 {
     vtkSmartPointer<vtkPointData> inputData = m_InputData->GetPointData();
     

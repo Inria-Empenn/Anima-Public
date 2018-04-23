@@ -4,20 +4,20 @@
 #include <vtkPolyData.h>
 #include <string>
 
-#include "AnimaIODiffusionExport.h"
+#include "AnimaDataIOExport.h"
 
 namespace anima {
 
-class ANIMAIODIFFUSION_EXPORT FibersReader
+class ANIMADATAIO_EXPORT ShapesReader
 {
 public:
-    FibersReader()
+    ShapesReader()
     {
         m_FileName = "";
         m_OutputData = 0;
     }
 
-    ~FibersReader() {}
+    ~ShapesReader() {}
 
     void SetFileName(std::string &name) {m_FileName = name;}
     void Update();

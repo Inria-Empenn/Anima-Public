@@ -1,4 +1,4 @@
-#include <animaFibersReader.h>
+#include <animaShapesReader.h>
 #include <itkMacro.h>
 
 #include <vtkPolyDataReader.h>
@@ -15,7 +15,7 @@
 namespace anima
 {
 
-void FibersReader::Update()
+void ShapesReader::Update()
 {
     std::string extensionName = m_FileName.substr(m_FileName.find_last_of('.') + 1);
 
@@ -32,10 +32,10 @@ void FibersReader::Update()
     else if (extensionName == "csv")
         this->ReadFileAsCSV();
     else
-        throw itk::ExceptionObject(__FILE__, __LINE__,"Unsupported fibers extension.",ITK_LOCATION);
+        throw itk::ExceptionObject(__FILE__, __LINE__,"Unsupported shapes extension.",ITK_LOCATION);
 }
 
-void FibersReader::ReadFileAsVTKAscii()
+void ShapesReader::ReadFileAsVTKAscii()
 {
     vtkSmartPointer <vtkPolyDataReader> vtkReader = vtkPolyDataReader::New();
     vtkReader->SetFileName(m_FileName.c_str());
@@ -45,7 +45,7 @@ void FibersReader::ReadFileAsVTKAscii()
     m_OutputData->ShallowCopy(vtkReader->GetOutput());
 }
 
-void FibersReader::ReadFileAsVTKXML()
+void ShapesReader::ReadFileAsVTKXML()
 {
     vtkSmartPointer <vtkXMLPolyDataReader> vtkReader = vtkXMLPolyDataReader::New();
     vtkReader->SetFileName(m_FileName.c_str());
@@ -55,7 +55,7 @@ void FibersReader::ReadFileAsVTKXML()
     m_OutputData->ShallowCopy(vtkReader->GetOutput());
 }
 
-void FibersReader::ReadFileAsMedinriaFibers()
+void ShapesReader::ReadFileAsMedinriaFibers()
 {
     std::replace(m_FileName.begin(),m_FileName.end(),'\\','/');
 
@@ -105,7 +105,7 @@ void FibersReader::ReadFileAsMedinriaFibers()
         throw itk::ExceptionObject(__FILE__, __LINE__,"Unsupported fibers extension inside FDS files.",ITK_LOCATION);
 }
 
-void FibersReader::ReadFileAsCSV()
+void ShapesReader::ReadFileAsCSV()
 {
     std::string extension = vtksys::SystemTools::GetFilenameLastExtension(m_FileName);
     std::ifstream file(m_FileName);

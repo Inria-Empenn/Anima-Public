@@ -8,7 +8,7 @@ add_subdirectory(arithmetic)
 add_subdirectory(common_tools)
 
 if (USE_VTK AND VTK_FOUND)
-  add_subdirectory(diffusion_io)
+  add_subdirectory(data_io)
 endif()
 
 add_subdirectory(multi_compartment_base)
