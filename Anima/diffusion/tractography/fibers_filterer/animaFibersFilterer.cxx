@@ -1,9 +1,9 @@
 #include <tclap/CmdLine.h>
 
 #include <animaReadWriteFunctions.h>
-#include <animaFibersWriter.h>
+#include <animaShapesWriter.h>
 
-#include <animaFibersReader.h>
+#include <animaShapesReader.h>
 #include <vtkSmartPointer.h>
 #include <vtkPoints.h>
 #include <vtkPointData.h>
@@ -144,7 +144,7 @@ int main(int argc, char **argv)
     InterpolatorType::Pointer interpolator = InterpolatorType::New();
     interpolator->SetInputImage(roiImage);
 
-    anima::FibersReader trackReader;
+    anima::ShapesReader trackReader;
     trackReader.SetFileName(inArg.getValue());
     trackReader.Update();
 
@@ -179,7 +179,7 @@ int main(int argc, char **argv)
 
     std::cout << "Kept " << tracks->GetNumberOfCells() << " after filtering" << std::endl;
 
-    anima::FibersWriter writer;
+    anima::ShapesWriter writer;
     writer.SetInputData(tracks);
     writer.SetFileName(outArg.getValue());
     std::cout << "Writing tracks: " << outArg.getValue() << std::endl;
