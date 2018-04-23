@@ -8,7 +8,7 @@
 
 #include <tclap/CmdLine.h>
 
-#include <animaFibersWriter.h>
+#include <animaShapesWriter.h>
 
 //Update progression of the process
 void eventCallback (itk::Object* caller, const itk::EventObject& event, void* clientData)
@@ -106,7 +106,7 @@ int main(int argc,  char*  argv[])
     tmpTime.Stop();
     std::cout << "Tracking time: " << tmpTime.GetTotal() << "s" << std::endl;
 
-    anima::FibersWriter writer;
+    anima::ShapesWriter writer;
     writer.SetInputData(dtiTracker->GetOutput());
     writer.SetFileName(fibersArg.getValue());
     writer.Update();

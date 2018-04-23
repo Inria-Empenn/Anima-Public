@@ -8,7 +8,7 @@
 
 #include <itkCommand.h>
 
-#include <animaFibersWriter.h>
+#include <animaShapesWriter.h>
 
 void ComputeKappaPolynomialCoefficients(std::vector <double> &resVal)
 {
@@ -162,7 +162,7 @@ int main(int argc,  char*  argv[])
     tmpTime.Stop();
     std::cout << "Tracking time: " << tmpTime.GetTotal() << "s" << std::endl;
     
-    anima::FibersWriter writer;
+    anima::ShapesWriter writer;
     writer.SetInputData(dtiTracker->GetOutput());
     writer.SetFileName(fibersArg.getValue());
     writer.Update();

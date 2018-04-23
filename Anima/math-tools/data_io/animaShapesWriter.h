@@ -4,20 +4,20 @@
 #include <vtkPolyData.h>
 #include <string>
 
-#include "AnimaIODiffusionExport.h"
+#include "AnimaDataIOExport.h"
 
 namespace anima {
 
-class ANIMAIODIFFUSION_EXPORT FibersWriter
+class ANIMADATAIO_EXPORT ShapesWriter
 {
 public:
-    FibersWriter()
+    ShapesWriter()
     {
         m_FileName = "";
         m_InputData = 0;
     }
 
-    ~FibersWriter() {}
+    ~ShapesWriter() {}
 
     void SetInputData(vtkPolyData *data) {m_InputData = data;}
     void SetFileName(std::string &name) {m_FileName = name;}
@@ -28,6 +28,7 @@ protected:
     void WriteFileAsVTKAscii();
     void WriteFileAsVTKXML();
     void WriteFileAsMedinriaFibers();
+    void WriteFileAsCSV();
 
 private:
     vtkSmartPointer <vtkPolyData> m_InputData;

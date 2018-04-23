@@ -1,7 +1,7 @@
 #include <tclap/CmdLine.h>
 #include <animaTransformSeriesReader.h>
-#include <animaFibersReader.h>
-#include <animaFibersWriter.h>
+#include <animaShapesReader.h>
+#include <animaShapesWriter.h>
 
 #include <vtkPolyData.h>
 
@@ -55,14 +55,14 @@ int main(int ac, const char** av)
     trsfReader.SetNumberOfThreads(nbpArg.getValue());
     trsfReader.Update();
 
-    anima::FibersReader trackReader;
+    anima::ShapesReader trackReader;
     trackReader.SetFileName(inArg.getValue());
     trackReader.Update();
 
     vtkSmartPointer <vtkPolyData> tracks = trackReader.GetOutput();
     ApplyTransformToTracks(tracks->GetPoints(), trsfReader.GetOutputTransform());
 
-    anima::FibersWriter writer;
+    anima::ShapesWriter writer;
     writer.SetInputData(tracks);
     writer.SetFileName(outArg.getValue());
     std::cout << "Writing tracks: " << outArg.getValue() << std::endl;
