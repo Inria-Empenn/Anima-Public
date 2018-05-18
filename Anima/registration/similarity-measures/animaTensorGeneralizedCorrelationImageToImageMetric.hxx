@@ -34,10 +34,10 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
     FixedImageConstPointer fixedImage = this->m_FixedImage;
     MovingImageConstPointer movingImage = this->m_Interpolator->GetInputImage();
 
-    if( !fixedImage )
-        itkExceptionMacro( << "Fixed image has not been assigned" );
+    if(!fixedImage)
+        itkExceptionMacro("Fixed image has not been assigned");
 
-    if ( this->m_NumberOfPixelsCounted <= 1 )
+    if (this->m_NumberOfPixelsCounted <= 1)
         return 0;
 
     this->SetTransformParameters( parameters );
@@ -68,15 +68,17 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
 
     std::vector <PixelType> movingValues(this->m_NumberOfPixelsCounted);
     unsigned int numOutside = 0;
+    PixelType zeroVector(vectorSize);
+    zeroVector.Fill(0.0);
 
     for (unsigned int i = 0;i < this->m_NumberOfPixelsCounted;++i)
     {
-        transformedPoint = this->m_Transform->TransformPoint( m_FixedImagePoints[i] );
+        transformedPoint = this->m_Transform->TransformPoint(m_FixedImagePoints[i]);
         movingImage->TransformPhysicalPointToContinuousIndex(transformedPoint,transformedIndex);
 
-        if( this->m_Interpolator->IsInsideBuffer( transformedIndex ) )
+        if (this->m_Interpolator->IsInsideBuffer(transformedIndex))
         {
-            movingValues[i] = this->m_Interpolator->EvaluateAtContinuousIndex( transformedIndex );
+            movingValues[i] = this->m_Interpolator->EvaluateAtContinuousIndex(transformedIndex);
 
             if (this->GetModelRotation() != Superclass::NONE)
             {
@@ -101,8 +103,7 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
         else
         {
             ++numOutside;
-            movingValues[i] = PixelType(vectorSize);
-            movingValues[i].Fill(0.0);
+            movingValues[i] = zeroVector;
         }
     }
 
@@ -164,7 +165,7 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
         for (unsigned int k = j + 1;k < vectorSize;++k)
             Sigma_YY(k,j) = Sigma_YY(j,k);
 
-    long double ovlWeight = 1;
+    double ovlWeight = 1.0;
     if (m_OrientationPenalty)
     {
         vnl_matrix <double> tmpXEVecs(tensorDimension,tensorDimension), tmpYEVecs(tensorDimension,tensorDimension);
@@ -190,16 +191,7 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
         ovlWeight = anima::ovlScore(tmpEigX,tmpXEVecs,tmpEigY,tmpYEVecs);
     }
 
-    itk::SymmetricEigenAnalysis < vnl_matrix <double>, vnl_diag_matrix<double>, vnl_matrix <double> > gccEigenComputer(vectorSize);
-    vnl_matrix <double> eVec(vectorSize,vectorSize);
-    vnl_diag_matrix <double> eVals(vectorSize);
-
-    gccEigenComputer.ComputeEigenValuesAndVectors(Sigma_YY, eVals, eVec);
-
-    for (unsigned int i = 0;i < vectorSize;++i)
-        eVals[i] = std::pow(eVals[i], -0.5);
-
-    anima::RecomposeTensor(eVals,eVec,Sigma_YY);
+    anima::GetTensorPower(Sigma_YY,Sigma_YY,-0.5);
 
     tmpMat = m_FixedHalfInvCovarianceMatrix * Sigma_XY * Sigma_YY;
 
@@ -222,8 +214,8 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
 {
     FixedImageConstPointer fixedImage = this->m_FixedImage;
 
-    if( !fixedImage )
-        itkExceptionMacro( << "Fixed image has not been assigned" );
+    if (!fixedImage)
+        itkExceptionMacro("Fixed image has not been assigned");
 
     unsigned int vectorSize = fixedImage->GetNumberOfComponentsPerPixel();
     if (m_FixedMean.GetSize() != vectorSize)
@@ -244,7 +236,7 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
     InputPointType inputPoint;
 
     unsigned int pos = 0;
-    while(!ti.IsAtEnd())
+    while (!ti.IsAtEnd())
     {
         fixedImage->TransformIndexToPhysicalPoint( ti.GetIndex(), inputPoint );
 
@@ -276,15 +268,7 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
             covarianceMatrix(j,i) = covarianceMatrix(i,j);
     }
 
-    itk::SymmetricEigenAnalysis < vnl_matrix <double>, vnl_diag_matrix<double>, vnl_matrix <double> > eigenComputer(vectorSize);
-    vnl_matrix <double> eVec(vectorSize,vectorSize);
-    vnl_diag_matrix <double> eVals(vectorSize);
-
-    eigenComputer.ComputeEigenValuesAndVectors(covarianceMatrix, eVals, eVec);
-    for (unsigned int i = 0;i < vectorSize;++i)
-        eVals[i] = pow(eVals[i], -0.5);
-
-    anima::RecomposeTensor(eVals,eVec,m_FixedHalfInvCovarianceMatrix);
+    anima::GetTensorPower(covarianceMatrix,m_FixedHalfInvCovarianceMatrix,-0.5);
 }
 
 template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >

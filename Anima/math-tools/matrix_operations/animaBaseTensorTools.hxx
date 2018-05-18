@@ -24,9 +24,9 @@ GetTensorLogarithm(const vnl_matrix <T> &tensor, vnl_matrix <T> &log_tensor)
     for (unsigned int i = 0;i < tensDim;++i)
     {
         if (eigVals[i] <= 1.0e-16)
-            eigVals[i] = std::log(1.0e-16);
-        else
-            eigVals[i] = std::log(eigVals[i]);
+            eigVals[i] = 1.0e-16;
+
+        eigVals[i] = std::log(eigVals[i]);
     }
 
     RecomposeTensor(eigVals,eigVecs,log_tensor);
@@ -46,7 +46,12 @@ GetTensorPower(const vnl_matrix <T> &tensor, vnl_matrix <T> &outputTensor, doubl
     eigen.ComputeEigenValuesAndVectors(tensor,eigVals,eigVecs);
 
     for (unsigned int i = 0;i < tensDim;++i)
+    {
+        if (eigVals[i] <= 1.0e-16)
+            eigVals[i] = 1.0e-16;
+
         eigVals[i] = std::pow(eigVals[i],powerValue);
+    }
 
     RecomposeTensor(eigVals,eigVecs,outputTensor);
 }

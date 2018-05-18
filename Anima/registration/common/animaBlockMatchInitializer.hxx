@@ -611,39 +611,43 @@ bool BlockMatchingInitializer<PixelType,NDimensions>
 
     VectorType meanVal(vectorSize);
     meanVal.Fill(0);
-    vnl_matrix <double> blockCovariance(vectorSize,vectorSize);
-    blockCovariance.fill(0);
+    std::vector <double> blockCovariance(vectorSize, 0.0);
 
     while (!refItr.IsAtEnd())
     {
         VectorType tmpVal = refItr.Get();
         meanVal += tmpVal;
 
-        for (unsigned int j = 0;j < vectorSize;++j)
-            for (unsigned int k = j;k < vectorSize;++k)
-                blockCovariance(j,k) += tmpVal[j] * tmpVal[k];
-
         ++nbPts;
+        ++refItr;
+    }
+
+    meanVal /= nbPts;
+
+    refItr.GoToBegin();
+
+    while (!refItr.IsAtEnd())
+    {
+        VectorType tmpVal = refItr.Get();
+
+        for (unsigned int j = 0;j < vectorSize;++j)
+            blockCovariance[j] += (tmpVal[j] - meanVal[j]) * (tmpVal[j] - meanVal[j]);
 
         ++refItr;
     }
 
+    blockVariance = 0;
+
     if (nbPts <= 1)
         return false;
 
-    blockVariance = 0;
-
     for (unsigned int j = 0;j < vectorSize;++j)
-        for (unsigned int k = j;k < vectorSize;++k)
-        {
-            double tmp = (blockCovariance(j,k) - meanVal[j]*meanVal[k]/nbPts)/(nbPts - 1.0);
-            if (j == k)
-                blockVariance += tmp * tmp;
-            else
-                blockVariance += 2 * tmp * tmp;
-        }
+    {
+        double tmp = blockCovariance[j] / (nbPts - 1.0);
+        blockVariance += tmp;
+    }
 
-    blockVariance = std::sqrt(blockVariance);
+    blockVariance /= vectorSize;
 
     if (blockVariance > this->GetOrientedModelVarianceThreshold())
         return true;
@@ -663,18 +667,24 @@ bool BlockMatchingInitializer<PixelType,NDimensions>
     while (!refItr.IsAtEnd())
     {
         double tmpVal = refItr.Get();
-        blockVariance += tmpVal*tmpVal;
         meanVal += tmpVal;
 
         ++nbPts;
-
         ++refItr;
     }
 
     if (nbPts <= 1)
         return false;
 
-    blockVariance = (blockVariance - meanVal * meanVal / nbPts) / (nbPts - 1.0);
+    meanVal /= nbPts;
+    refItr.GoToBegin();
+    while (!refItr.IsAtEnd())
+    {
+        double tmpVal = refItr.Get();
+        blockVariance += (meanVal - tmpVal) * (meanVal - tmpVal);
+    }
+
+    blockVariance /= (nbPts - 1.0);
 
     if (blockVariance > this->GetScalarVarianceThreshold())
         return true;
