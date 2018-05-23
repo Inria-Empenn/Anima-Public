@@ -682,6 +682,8 @@ bool BlockMatchingInitializer<PixelType,NDimensions>
     {
         double tmpVal = refItr.Get();
         blockVariance += (meanVal - tmpVal) * (meanVal - tmpVal);
+
+        ++refItr;
     }
 
     blockVariance /= (nbPts - 1.0);
