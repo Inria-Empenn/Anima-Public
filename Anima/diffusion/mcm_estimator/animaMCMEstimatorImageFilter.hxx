@@ -281,7 +281,11 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
                     fa += (eigVals[i] - eigVals[j])*(eigVals[i] - eigVals[j]);
             }
 
-            fa = std::sqrt(fa / (2.0 * faDenom));
+            if (faDenom > 0)
+                fa = std::sqrt(fa / (2.0 * faDenom));
+            else
+                fa = 0.0;
+
             adc /= tensDim;
 
             if ((fa > 0.8) && (adc < 3.0e-3) && (adc > 1.0e-4))

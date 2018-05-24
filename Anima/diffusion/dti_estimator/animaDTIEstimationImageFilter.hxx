@@ -281,20 +281,33 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
         }
         catch(nlopt::roundoff_limited& e)
         {
-            resVec.Fill(0.0);
-            outIterator.Set(resVec);
-            outB0Iterator.Set(0);
-            outVarianceIterator.Set(0);
+            bool failedOpt = false;
+            for (unsigned int i = 0;i < 6;++i)
+            {
+                if (!std::isfinite(optimizedValue[i]))
+                {
+                    failedOpt = true;
+                    break;
+                }
+            }
 
-            for (unsigned int i = 0;i < numInputs;++i)
-                ++inIterators[i];
+            if (failedOpt)
+            {
+                resVec.Fill(0.0);
+                outIterator.Set(resVec);
+                outB0Iterator.Set(0);
+                outVarianceIterator.Set(0);
 
-            ++maskIterator;
-            ++outIterator;
-            ++outB0Iterator;
-            ++outVarianceIterator;
+                for (unsigned int i = 0;i < numInputs;++i)
+                    ++inIterators[i];
 
-            continue;
+                ++maskIterator;
+                ++outIterator;
+                ++outB0Iterator;
+                ++outVarianceIterator;
+
+                continue;
+            }
         }
 
         anima::Get3DRotationExponential(optimizedValue,data.rotationMatrix);
