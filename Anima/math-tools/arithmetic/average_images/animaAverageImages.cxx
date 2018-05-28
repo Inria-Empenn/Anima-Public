@@ -1,5 +1,7 @@
 #include <animaReadWriteFunctions.h>
 #include <itkImageRegionIterator.h>
+#include <itkMultiplyImageFilter.h>
+#include <itkDivideImageFilter.h>
 
 #include <tclap/CmdLine.h>
 
@@ -8,7 +10,8 @@ int main(int argc, char **argv)
     TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);
     
     TCLAP::ValueArg<std::string> inArg("i","inputfiles","Input image list in text file",true,"","input image list",cmd);
-    TCLAP::ValueArg<std::string> maskArg("m","maskfiles","Input masks list in text file",false,"","input masks list",cmd);
+    TCLAP::ValueArg<std::string> maskArg("m","maskfiles","Input masks list in text file (mask images should contain only zeros or ones)",false,"","input masks list",cmd);
+    TCLAP::ValueArg<std::string> weightsArg("w","weights","Weights list in text file",false,"","input weights list",cmd);
     TCLAP::ValueArg<std::string> outArg("o","outputfile","Output image",true,"","output image",cmd);
 	
     TCLAP::SwitchArg vecArg("V","isvec","Input image is a vector / tensor image (vdim = 6 -> data is considered as being log-tensors)",cmd,false);
@@ -23,21 +26,28 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
     
-	typedef itk::Image <float,3> floatImageType;
-	typedef itk::Image <unsigned short,3> UShortImageType;
+    typedef itk::Image <float,3> floatImageType;
 	typedef itk::VectorImage <float,3> VectorImageType;
-	
+    typedef itk::MultiplyImageFilter <floatImageType, floatImageType, floatImageType> MultiplyFilterType;
+    typedef itk::DivideImageFilter <floatImageType, floatImageType, floatImageType> DivideFilterType;
+    typedef itk::MultiplyImageFilter <VectorImageType, floatImageType, VectorImageType> MultiplyVectorFilterType;
+    typedef itk::DivideImageFilter <VectorImageType, floatImageType, VectorImageType> DivideVectorFilterType;
+
 	std::ifstream masksIn;
 	if (maskArg.getValue() != "")
 		masksIn.open(maskArg.getValue());
 	
-	unsigned int nbImages = 0;
+    std::ifstream weightsIn;
+    if (weightsArg.getValue() != "")
+        weightsIn.open(weightsArg.getValue());
+
+    double sumWeights = 0;
 	char refN[2048], maskN[2048];
 	
 	if (!vecArg.getValue())
 	{
 		floatImageType::Pointer tmpOutput;
-		UShortImageType::Pointer tmpSumMasks;
+        floatImageType::Pointer tmpSumMasks;
 		
 		std::ifstream imageIn(inArg.getValue());
 		
@@ -49,15 +59,50 @@ int main(int argc, char **argv)
                 masksIn.getline(maskN,2048);
             if (strcmp(refN,"") == 0)
                 continue;
-			
-			std::cout << "Adding image " << refN << "..." << std::endl;
-            
+			            
             tmpOutput = anima::readImage <floatImageType> (refN);
+            double imageWeight = 1.0;
+            if (weightsIn.is_open())
+                weightsIn >> imageWeight;
+
+            std::cout << "Adding image " << refN << " with weight " << imageWeight << "..." << std::endl;
+
+            sumWeights += imageWeight;
 			
+            if (imageWeight != 1.0)
+            {
+                MultiplyFilterType::Pointer multiplyFilter = MultiplyFilterType::New();
+                multiplyFilter->SetInput1(tmpOutput);
+                multiplyFilter->SetConstant(imageWeight);
+                multiplyFilter->Update();
+
+                tmpOutput = multiplyFilter->GetOutput();
+                tmpOutput->DisconnectPipeline();
+            }
+
 			if (masksIn.is_open())
-                tmpSumMasks = anima::readImage <UShortImageType> (maskN);
-			
-			nbImages++;
+            {
+                tmpSumMasks = anima::readImage <floatImageType> (maskN);
+
+                MultiplyFilterType::Pointer maskFilter = MultiplyFilterType::New();
+                maskFilter->SetInput1(tmpOutput);
+                maskFilter->SetInput2(tmpSumMasks);
+                maskFilter->Update();
+
+                tmpOutput = maskFilter->GetOutput();
+                tmpOutput->DisconnectPipeline();
+
+                if (imageWeight != 1.0)
+                {
+                    MultiplyFilterType::Pointer multiplyMaskFilter = MultiplyFilterType::New();
+                    multiplyMaskFilter->SetInput1(tmpSumMasks);
+                    multiplyMaskFilter->SetConstant(imageWeight);
+                    multiplyMaskFilter->Update();
+
+                    tmpSumMasks = multiplyMaskFilter->GetOutput();
+                    tmpSumMasks->DisconnectPipeline();
+                }
+            }
 		}
 		
 		while(!imageIn.eof())
@@ -69,7 +114,13 @@ int main(int argc, char **argv)
             if (strcmp(refN,"") == 0)
                 continue;
 
-			std::cout << "Adding image " << refN << "..." << std::endl;
+            double imageWeight = 1.0;
+            if (weightsIn.is_open())
+                weightsIn >> imageWeight;
+
+            sumWeights += imageWeight;
+
+            std::cout << "Adding image " << refN << " with weight " << imageWeight << "..." << std::endl;
 			
             floatImageType::Pointer tmpImage = anima::readImage <floatImageType> (refN);
 			itk::ImageRegionIterator <floatImageType> tmpIt(tmpImage,tmpImage->GetLargestPossibleRegion());
@@ -77,10 +128,10 @@ int main(int argc, char **argv)
 			
 			if (masksIn.is_open())
             {
-                UShortImageType::Pointer tmpMask = anima::readImage <UShortImageType> (maskN);
+                floatImageType::Pointer tmpMask = anima::readImage <floatImageType> (maskN);
                 
-				itk::ImageRegionIterator <UShortImageType> tmpMaskIt(tmpMask,tmpImage->GetLargestPossibleRegion());
-				itk::ImageRegionIterator <UShortImageType> sumMasksIt(tmpSumMasks,tmpImage->GetLargestPossibleRegion());
+                itk::ImageRegionIterator <floatImageType> tmpMaskIt(tmpMask,tmpImage->GetLargestPossibleRegion());
+                itk::ImageRegionIterator <floatImageType> sumMasksIt(tmpSumMasks,tmpImage->GetLargestPossibleRegion());
 				
 				while (!sumMasksIt.IsAtEnd())
 				{
@@ -93,8 +144,8 @@ int main(int argc, char **argv)
 						continue;
 					}
 					
-					sumMasksIt.Set(sumMasksIt.Get() + tmpMaskIt.Get());
-					resIt.Set(resIt.Get() + tmpIt.Get());
+                    sumMasksIt.Set(sumMasksIt.Get() + imageWeight * tmpMaskIt.Get());
+                    resIt.Set(resIt.Get() + imageWeight * tmpIt.Get());
 					
 					++tmpMaskIt;
 					++sumMasksIt;
@@ -106,42 +157,40 @@ int main(int argc, char **argv)
 			{
 				while (!resIt.IsAtEnd())
 				{
-					resIt.Set(resIt.Get() + tmpIt.Get());
+                    resIt.Set(resIt.Get() + imageWeight * tmpIt.Get());
 					++tmpIt;
 					++resIt;
 				}
-			}
-            
-			nbImages++;
+            }
 		}
 		
-		if (masksIn.is_open())
-			masksIn.close();
-		
+        if (masksIn.is_open())
+            masksIn.close();
+
+        if (weightsIn.is_open())
+            weightsIn.close();
+
 		imageIn.close();
 		
-		if (!tmpSumMasks.IsNull())
+        if (tmpSumMasks.IsNotNull())
 		{
-			itk::ImageRegionIterator <floatImageType> resIt(tmpOutput,tmpOutput->GetLargestPossibleRegion());
-			itk::ImageRegionIterator <UShortImageType> sumMasksIt(tmpSumMasks,tmpOutput->GetLargestPossibleRegion());
-			
-			while (!resIt.IsAtEnd())
-			{
-				if (sumMasksIt.Get() != 0)
-					resIt.Set(resIt.Get()/sumMasksIt.Get());
-				
-				++resIt;
-				++sumMasksIt;
-			}
+            DivideFilterType::Pointer divideFilter = DivideFilterType::New();
+            divideFilter->SetInput1(tmpOutput);
+            divideFilter->SetInput2(tmpSumMasks);
+            divideFilter->Update();
+
+            tmpOutput = divideFilter->GetOutput();
+            tmpOutput->DisconnectPipeline();
 		}
 		else
 		{
-			itk::ImageRegionIterator <floatImageType> resIt(tmpOutput,tmpOutput->GetLargestPossibleRegion());
-			while (!resIt.IsAtEnd())
-			{
-				resIt.Set(resIt.Get()/nbImages);
-				++resIt;
-			}
+            DivideFilterType::Pointer divideFilter = DivideFilterType::New();
+            divideFilter->SetInput1(tmpOutput);
+            divideFilter->SetConstant(sumWeights);
+            divideFilter->Update();
+
+            tmpOutput = divideFilter->GetOutput();
+            tmpOutput->DisconnectPipeline();
 		}
         
         anima::writeImage <floatImageType> (outArg.getValue(),tmpOutput);
@@ -149,7 +198,7 @@ int main(int argc, char **argv)
 	else // vecArg is activated
 	{		
         VectorImageType::Pointer outputData;
-        UShortImageType::Pointer tmpSumMasks;
+        floatImageType::Pointer tmpSumMasks;
         
 		std::ifstream imageIn(inArg.getValue());
 		
@@ -162,13 +211,49 @@ int main(int argc, char **argv)
             if (strcmp(refN,"") == 0)
                 continue;
 			
-			std::cout << "Adding image " << refN << "..." << std::endl;
             outputData = anima::readImage <VectorImageType> (refN);
-			
-			if (masksIn.is_open())
-                tmpSumMasks = anima::readImage <UShortImageType> (maskN);
-			
-			nbImages++;
+            double imageWeight = 1.0;
+            if (weightsIn.is_open())
+                weightsIn >> imageWeight;
+
+            std::cout << "Adding image " << refN << " with weight " << imageWeight << "..." << std::endl;
+
+            sumWeights += imageWeight;
+
+            if (imageWeight != 1.0)
+            {
+                MultiplyVectorFilterType::Pointer multiplyFilter = MultiplyVectorFilterType::New();
+                multiplyFilter->SetInput1(outputData);
+                multiplyFilter->SetConstant(imageWeight);
+                multiplyFilter->Update();
+
+                outputData = multiplyFilter->GetOutput();
+                outputData->DisconnectPipeline();
+            }
+
+            if (masksIn.is_open())
+            {
+                tmpSumMasks = anima::readImage <floatImageType> (maskN);
+
+                MultiplyVectorFilterType::Pointer maskFilter = MultiplyVectorFilterType::New();
+                maskFilter->SetInput1(outputData);
+                maskFilter->SetInput2(tmpSumMasks);
+                maskFilter->Update();
+
+                outputData = maskFilter->GetOutput();
+                outputData->DisconnectPipeline();
+
+                if (imageWeight != 1.0)
+                {
+                    MultiplyFilterType::Pointer multiplyMaskFilter = MultiplyFilterType::New();
+                    multiplyMaskFilter->SetInput1(tmpSumMasks);
+                    multiplyMaskFilter->SetConstant(imageWeight);
+                    multiplyMaskFilter->Update();
+
+                    tmpSumMasks = multiplyMaskFilter->GetOutput();
+                    tmpSumMasks->DisconnectPipeline();
+                }
+            }
 		}
 		
 		while(!imageIn.eof())
@@ -180,8 +265,14 @@ int main(int argc, char **argv)
             if (strcmp(refN,"") == 0)
                 continue;
 			
-			std::cout << "Adding image " << refN << "..." << std::endl;
-            
+            double imageWeight = 1.0;
+            if (weightsIn.is_open())
+                weightsIn >> imageWeight;
+
+            sumWeights += imageWeight;
+
+            std::cout << "Adding image " << refN << " with weight " << imageWeight << "..." << std::endl;
+
             VectorImageType::Pointer tmpImage = anima::readImage <VectorImageType> (refN);
             
 			itk::ImageRegionIterator <VectorImageType> tmpIt(tmpImage,tmpImage->GetLargestPossibleRegion());
@@ -189,10 +280,10 @@ int main(int argc, char **argv)
             
 			if (masksIn.is_open())
             {
-                UShortImageType::Pointer tmpMask = anima::readImage <UShortImageType> (maskN);
+                floatImageType::Pointer tmpMask = anima::readImage <floatImageType> (maskN);
                 
-				itk::ImageRegionIterator <UShortImageType> tmpMaskIt(tmpMask,tmpImage->GetLargestPossibleRegion());
-				itk::ImageRegionIterator <UShortImageType> sumMasksIt(tmpSumMasks,tmpImage->GetLargestPossibleRegion());
+                itk::ImageRegionIterator <floatImageType> tmpMaskIt(tmpMask,tmpImage->GetLargestPossibleRegion());
+                itk::ImageRegionIterator <floatImageType> sumMasksIt(tmpSumMasks,tmpImage->GetLargestPossibleRegion());
 				
 				while (!sumMasksIt.IsAtEnd())
 				{
@@ -205,8 +296,8 @@ int main(int argc, char **argv)
 						continue;
 					}
 					
-					sumMasksIt.Set(sumMasksIt.Get() + tmpMaskIt.Get());
-					resIt.Set(resIt.Get() + tmpIt.Get());
+                    sumMasksIt.Set(sumMasksIt.Get() + imageWeight * tmpMaskIt.Get());
+                    resIt.Set(resIt.Get() + imageWeight * tmpIt.Get());
 					
 					++tmpMaskIt;
 					++sumMasksIt;
@@ -218,43 +309,41 @@ int main(int argc, char **argv)
 			{
 				while (!resIt.IsAtEnd())
 				{
-					resIt.Set(resIt.Get() + tmpIt.Get());
+                    resIt.Set(resIt.Get() + imageWeight * tmpIt.Get());
 					++tmpIt;
 					++resIt;
 				}
 			}
-			
-			nbImages++;
 		}
-		
+
         if (masksIn.is_open())
-			masksIn.close();
-		
+            masksIn.close();
+
+        if (weightsIn.is_open())
+            weightsIn.close();
+
 		imageIn.close();
 		
-		if (!tmpSumMasks.IsNull())
-		{
-			itk::ImageRegionIterator <VectorImageType> resIt(outputData,outputData->GetLargestPossibleRegion());
-			itk::ImageRegionIterator <UShortImageType> sumMasksIt(tmpSumMasks,outputData->GetLargestPossibleRegion());
-			
-			while (!resIt.IsAtEnd())
-			{
-				if (sumMasksIt.Get() != 0)
-					resIt.Set(resIt.Get()/sumMasksIt.Get());
-				
-				++resIt;
-				++sumMasksIt;
-			}
-		}
-		else
-		{
-			itk::ImageRegionIterator <VectorImageType> resIt(outputData,outputData->GetLargestPossibleRegion());
-			while (!resIt.IsAtEnd())
-			{
-				resIt.Set(resIt.Get()/nbImages);
-				++resIt;
-			}
-		}
+        if (tmpSumMasks.IsNotNull())
+        {
+            DivideVectorFilterType::Pointer divideFilter = DivideVectorFilterType::New();
+            divideFilter->SetInput1(outputData);
+            divideFilter->SetInput2(tmpSumMasks);
+            divideFilter->Update();
+
+            outputData = divideFilter->GetOutput();
+            outputData->DisconnectPipeline();
+        }
+        else
+        {
+            DivideVectorFilterType::Pointer divideFilter = DivideVectorFilterType::New();
+            divideFilter->SetInput1(outputData);
+            divideFilter->SetConstant(sumWeights);
+            divideFilter->Update();
+
+            outputData = divideFilter->GetOutput();
+            outputData->DisconnectPipeline();
+        }
         
         anima::writeImage <VectorImageType> (outArg.getValue(),outputData);
 	}
