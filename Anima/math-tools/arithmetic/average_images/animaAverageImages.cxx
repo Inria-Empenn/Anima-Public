@@ -14,8 +14,6 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> weightsArg("w","weights","Weights list in text file",false,"","input weights list",cmd);
     TCLAP::ValueArg<std::string> outArg("o","outputfile","Output image",true,"","output image",cmd);
 	
-    TCLAP::SwitchArg vecArg("V","isvec","Input image is a vector / tensor image (vdim = 6 -> data is considered as being log-tensors)",cmd,false);
-	
     try
     {
         cmd.parse(argc,argv);
@@ -26,6 +24,20 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
     
+    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(inArg.getValue().c_str(),
+                                                                           itk::ImageIOFactory::ReadMode);
+
+    if (!imageIO)
+    {
+        std::cerr << "Unable to read input image " << inArg.getValue() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    imageIO->SetFileName(inArg.getValue());
+    imageIO->ReadImageInformation();
+
+    bool vectorImage = (imageIO->GetNumberOfComponents() > 1);
+
     typedef itk::Image <float,3> floatImageType;
 	typedef itk::VectorImage <float,3> VectorImageType;
     typedef itk::MultiplyImageFilter <floatImageType, floatImageType, floatImageType> MultiplyFilterType;
@@ -44,7 +56,7 @@ int main(int argc, char **argv)
     double sumWeights = 0;
 	char refN[2048], maskN[2048];
 	
-	if (!vecArg.getValue())
+    if (!vectorImage)
 	{
 		floatImageType::Pointer tmpOutput;
         floatImageType::Pointer tmpSumMasks;
