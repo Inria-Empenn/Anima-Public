@@ -10,12 +10,12 @@ double BaseIsotropicCompartment::GetFourierTransformedDiffusionProfile(double bV
     return std::exp(- bValue * this->GetAxialDiffusivity());
 }
 
-BaseIsotropicCompartment::ListType BaseIsotropicCompartment::GetSignalAttenuationJacobian(double bValue, const Vector3DType &gradient)
+BaseCompartment::ListType &BaseIsotropicCompartment::GetSignalAttenuationJacobian(double bValue, const Vector3DType &gradient)
 {
-    ListType jacobian(this->GetNumberOfParameters());
+    m_JacobianVector.resize(this->GetNumberOfParameters());
     
-    if (jacobian.size() == 0)
-        return jacobian;
+    if (m_JacobianVector.size() == 0)
+        return m_JacobianVector;
     
     double axDiffDeriv = 1.0;
     if (this->GetUseBoundedOptimization())
@@ -23,8 +23,8 @@ BaseIsotropicCompartment::ListType BaseIsotropicCompartment::GetSignalAttenuatio
 
     double signalAttenuation = this->GetFourierTransformedDiffusionProfile(bValue, gradient);
     
-    jacobian[0] = -bValue * signalAttenuation * axDiffDeriv;
-    return jacobian;
+    m_JacobianVector[0] = -bValue * signalAttenuation * axDiffDeriv;
+    return m_JacobianVector;
 }
     
 double BaseIsotropicCompartment::GetLogDiffusionProfile(const Vector3DType &sample)
@@ -41,32 +41,31 @@ void BaseIsotropicCompartment::SetParametersFromVector(const ListType &params)
     if (params.size() != this->GetNumberOfParameters())
         return;
 
-    ListType boundedParams;
     if (this->GetUseBoundedOptimization())
     {
         if (params.size() != this->GetBoundedSignVector().size())
             this->GetBoundedSignVector().resize(params.size());
 
-        boundedParams = this->BoundParameters(params);
+        this->BoundParameters(params);
     }
     else
-        boundedParams = params;
+        m_BoundedVector = params;
 
     if (m_EstimateAxialDiffusivity)
-        this->SetAxialDiffusivity(boundedParams[0]);
+        this->SetAxialDiffusivity(m_BoundedVector[0]);
 }
 
-BaseIsotropicCompartment::ListType BaseIsotropicCompartment::GetParametersAsVector()
+BaseCompartment::ListType &BaseIsotropicCompartment::GetParametersAsVector()
 {
-    ListType params(this->GetNumberOfParameters(),0);
+    m_ParametersVector.resize(this->GetNumberOfParameters());
 
     if (m_EstimateAxialDiffusivity)
-        params[0] = this->GetAxialDiffusivity();
+        m_ParametersVector[0] = this->GetAxialDiffusivity();
 
     if (this->GetUseBoundedOptimization())
-        this->UnboundParameters(params);
+        this->UnboundParameters(m_ParametersVector);
 
-    return params;
+    return m_ParametersVector;
 }
 
 void BaseIsotropicCompartment::SetEstimateAxialDiffusivity(bool arg)

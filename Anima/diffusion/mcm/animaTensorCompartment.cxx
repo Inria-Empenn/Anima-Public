@@ -23,11 +23,11 @@ double TensorCompartment::GetFourierTransformedDiffusionProfile(double bValue, c
     return std::exp(- bValue * quadForm);
 }
 
-TensorCompartment::ListType TensorCompartment::GetSignalAttenuationJacobian(double bValue, const Vector3DType &gradient)
+TensorCompartment::ListType &TensorCompartment::GetSignalAttenuationJacobian(double bValue, const Vector3DType &gradient)
 {
     this->UpdateDiffusionTensor();
-    
-    ListType jacobian(this->GetNumberOfParameters(),0.0);
+
+    m_JacobianVector.resize(this->GetNumberOfParameters());
     
     double signalAttenuation = this->GetFourierTransformedDiffusionProfile(bValue, gradient);
     double innerProd1 = anima::ComputeScalarProduct(gradient, m_EigenVector1);
@@ -40,13 +40,16 @@ TensorCompartment::ListType TensorCompartment::GetSignalAttenuationJacobian(doub
     double DgTe2DPhi = gradient[0] * (m_CosTheta * m_SinPhi * m_SinAlpha - m_CosPhi * m_CosAlpha) - gradient[1] * (m_SinPhi * m_CosAlpha + m_CosTheta * m_CosPhi * m_SinAlpha);
     double DgTe2DAlpha = gradient[0] * (m_SinPhi * m_SinAlpha - m_CosTheta * m_CosPhi * m_CosAlpha) - gradient[1] * (m_CosPhi * m_SinAlpha + m_CosTheta * m_SinPhi * m_CosAlpha) + gradient[2] * m_SinTheta * m_CosAlpha;
     
+    double diffAxialRadial2 = this->GetAxialDiffusivity() - this->GetRadialDiffusivity2();
+    double diffRadialDiffusivities = this->GetRadialDiffusivity1() - this->GetRadialDiffusivity2();
+
     // Derivative w.r.t. theta
     double thetaDeriv = 1.0;
     if (this->GetUseBoundedOptimization())
         thetaDeriv = levenberg::BoundedDerivativeAddOn(this->GetOrientationTheta(), this->GetBoundedSignVectorValue(0),
                                                        m_ZeroLowerBound, m_PolarAngleUpperBound);
 
-    jacobian[0] = -2.0 * bValue * ((this->GetAxialDiffusivity() - this->GetRadialDiffusivity2()) * innerProd1 * DgTe1DTheta + (this->GetRadialDiffusivity1() - this->GetRadialDiffusivity2()) * innerProd2 * DgTe2DTheta) * signalAttenuation * thetaDeriv;
+    m_JacobianVector[0] = -2.0 * bValue * (diffAxialRadial2 * innerProd1 * DgTe1DTheta + diffRadialDiffusivities * innerProd2 * DgTe2DTheta) * signalAttenuation * thetaDeriv;
     
     // Derivative w.r.t. phi
     double phiDeriv = 1.0;
@@ -54,7 +57,7 @@ TensorCompartment::ListType TensorCompartment::GetSignalAttenuationJacobian(doub
         phiDeriv = levenberg::BoundedDerivativeAddOn(this->GetOrientationPhi(), this->GetBoundedSignVectorValue(1),
                                                      m_ZeroLowerBound, m_AzimuthAngleUpperBound);
 
-    jacobian[1] = -2.0 * bValue * ((this->GetAxialDiffusivity() - this->GetRadialDiffusivity2()) * innerProd1 * DgTe1DPhi + (this->GetRadialDiffusivity1() - this->GetRadialDiffusivity2()) * innerProd2 * DgTe2DPhi) * signalAttenuation * phiDeriv;
+    m_JacobianVector[1] = -2.0 * bValue * (diffAxialRadial2 * innerProd1 * DgTe1DPhi + diffRadialDiffusivities * innerProd2 * DgTe2DPhi) * signalAttenuation * phiDeriv;
     
     // Derivative w.r.t. alpha
     double alphaDeriv = 1.0;
@@ -62,7 +65,7 @@ TensorCompartment::ListType TensorCompartment::GetSignalAttenuationJacobian(doub
         alphaDeriv = levenberg::BoundedDerivativeAddOn(this->GetPerpendicularAngle(), this->GetBoundedSignVectorValue(2),
                                                        m_ZeroLowerBound, m_AzimuthAngleUpperBound);
 
-    jacobian[2] = -2.0 * bValue * (this->GetRadialDiffusivity1() - this->GetRadialDiffusivity2()) * innerProd2 * DgTe2DAlpha * signalAttenuation * alphaDeriv;
+    m_JacobianVector[2] = -2.0 * bValue * diffRadialDiffusivities * innerProd2 * DgTe2DAlpha * signalAttenuation * alphaDeriv;
 
     if (m_EstimateDiffusivities)
     {
@@ -73,7 +76,7 @@ TensorCompartment::ListType TensorCompartment::GetSignalAttenuationJacobian(doub
                                                         this->GetBoundedSignVectorValue(3),
                                                         m_ZeroLowerBound, m_DiffusivityUpperBound);
         
-        jacobian[3] = -bValue * innerProd1 * innerProd1 * signalAttenuation * d1Deriv;
+        m_JacobianVector[3] = -bValue * innerProd1 * innerProd1 * signalAttenuation * d1Deriv;
         
         // Derivative w.r.t. to d2
         double d2Deriv = 1.0;
@@ -82,7 +85,7 @@ TensorCompartment::ListType TensorCompartment::GetSignalAttenuationJacobian(doub
                                                         this->GetBoundedSignVectorValue(4),
                                                         m_ZeroLowerBound, m_DiffusivityUpperBound);
 
-        jacobian[4] = -bValue * (innerProd1 * innerProd1 + innerProd2 * innerProd2) * signalAttenuation * d2Deriv;
+        m_JacobianVector[4] = -bValue * (innerProd1 * innerProd1 + innerProd2 * innerProd2) * signalAttenuation * d2Deriv;
         
         // Derivative w.r.t. to d3
         double d3Deriv = 1.0;
@@ -91,10 +94,10 @@ TensorCompartment::ListType TensorCompartment::GetSignalAttenuationJacobian(doub
                                                         this->GetBoundedSignVectorValue(5),
                                                         m_DiffusivityLowerBound, m_RadialDiffusivityUpperBound);
         
-        jacobian[5] = -bValue * signalAttenuation * d3Deriv;
+        m_JacobianVector[5] = -bValue * signalAttenuation * d3Deriv;
     }
     
-    return jacobian;
+    return m_JacobianVector;
 }
 
 double TensorCompartment::GetLogDiffusionProfile(const Vector3DType &sample)
@@ -215,101 +218,99 @@ void TensorCompartment::SetParametersFromVector(const ListType &params)
     if (params.size() != this->GetNumberOfParameters())
         return;
     
-    ListType boundedParams;
     if (this->GetUseBoundedOptimization())
     {
         if (params.size() != this->GetBoundedSignVector().size())
             this->GetBoundedSignVector().resize(params.size());
 
-        boundedParams = this->BoundParameters(params);
+        this->BoundParameters(params);
     }
     else
-        boundedParams = params;
+        m_BoundedVector = params;
 
-    this->SetOrientationTheta(boundedParams[0]);
-    this->SetOrientationPhi(boundedParams[1]);
-    this->SetPerpendicularAngle(boundedParams[2]);
+    this->SetOrientationTheta(m_BoundedVector[0]);
+    this->SetOrientationPhi(m_BoundedVector[1]);
+    this->SetPerpendicularAngle(m_BoundedVector[2]);
 
     if (m_EstimateDiffusivities)
     {
-        this->SetAxialDiffusivity(boundedParams[3] + boundedParams[4] + boundedParams[5]);
-        this->SetRadialDiffusivity1(boundedParams[4] + boundedParams[5]);
-        this->SetRadialDiffusivity2(boundedParams[5]);
+        this->SetAxialDiffusivity(m_BoundedVector[3] + m_BoundedVector[4] + m_BoundedVector[5]);
+        this->SetRadialDiffusivity1(m_BoundedVector[4] + m_BoundedVector[5]);
+        this->SetRadialDiffusivity2(m_BoundedVector[5]);
     }
 }
 
-TensorCompartment::ListType TensorCompartment::GetParametersAsVector()
+TensorCompartment::ListType &TensorCompartment::GetParametersAsVector()
 {
-    ListType params(this->GetNumberOfParameters(),0);
+    m_ParametersVector.resize(this->GetNumberOfParameters());
 
-    params[0] = this->GetOrientationTheta();
-    params[1] = this->GetOrientationPhi();
-    params[2] = this->GetPerpendicularAngle();
+    m_ParametersVector[0] = this->GetOrientationTheta();
+    m_ParametersVector[1] = this->GetOrientationPhi();
+    m_ParametersVector[2] = this->GetPerpendicularAngle();
     
     if (m_EstimateDiffusivities)
     {
-        params[3] = this->GetAxialDiffusivity() - this->GetRadialDiffusivity1();
-        params[4] = this->GetRadialDiffusivity1() - this->GetRadialDiffusivity2();
-        params[5] = this->GetRadialDiffusivity2();
+        m_ParametersVector[3] = this->GetAxialDiffusivity() - this->GetRadialDiffusivity1();
+        m_ParametersVector[4] = this->GetRadialDiffusivity1() - this->GetRadialDiffusivity2();
+        m_ParametersVector[5] = this->GetRadialDiffusivity2();
     }
 
     if (this->GetUseBoundedOptimization())
-        this->UnboundParameters(params);
+        this->UnboundParameters(m_ParametersVector);
 
-    return params;
+    return m_ParametersVector;
 }
 
-TensorCompartment::ListType TensorCompartment::GetParameterLowerBounds()
+TensorCompartment::ListType &TensorCompartment::GetParameterLowerBounds()
 {
-    ListType lowerBounds(this->GetNumberOfParameters(),m_ZeroLowerBound);
+    m_ParametersLowerBoundsVector.resize(this->GetNumberOfParameters());
+    std::fill(m_ParametersLowerBoundsVector.begin(),m_ParametersLowerBoundsVector.end(),m_ZeroLowerBound);
     
     if (m_EstimateDiffusivities)
-        lowerBounds[5] = m_DiffusivityLowerBound;
+        m_ParametersLowerBoundsVector[5] = m_DiffusivityLowerBound;
     
-    return lowerBounds;
+    return m_ParametersLowerBoundsVector;
 }
 
-TensorCompartment::ListType TensorCompartment::GetParameterUpperBounds()
+TensorCompartment::ListType &TensorCompartment::GetParameterUpperBounds()
 {
-    ListType upperBounds(this->GetNumberOfParameters(),0);
+    m_ParametersUpperBoundsVector.resize(this->GetNumberOfParameters());
 
-    upperBounds[0] = m_PolarAngleUpperBound;
-    upperBounds[1] = m_AzimuthAngleUpperBound;
-    upperBounds[2] = m_AzimuthAngleUpperBound;
+    m_ParametersUpperBoundsVector[0] = m_PolarAngleUpperBound;
+    m_ParametersUpperBoundsVector[1] = m_AzimuthAngleUpperBound;
+    m_ParametersUpperBoundsVector[2] = m_AzimuthAngleUpperBound;
 
     if (m_EstimateDiffusivities)
     {
-        upperBounds[3] = m_DiffusivityUpperBound;
-        upperBounds[4] = m_DiffusivityUpperBound;
-        upperBounds[5] = m_RadialDiffusivityUpperBound;
+        m_ParametersUpperBoundsVector[3] = m_DiffusivityUpperBound;
+        m_ParametersUpperBoundsVector[4] = m_DiffusivityUpperBound;
+        m_ParametersUpperBoundsVector[5] = m_RadialDiffusivityUpperBound;
     }
 
-    return upperBounds;
+    return m_ParametersUpperBoundsVector;
 }
 
-TensorCompartment::ListType TensorCompartment::BoundParameters(const ListType &params)
+void TensorCompartment::BoundParameters(const ListType &params)
 {
-    ListType boundedParams(params);
+    m_BoundedVector.resize(params.size());
     
     double inputSign = 1;
-    boundedParams[0] = levenberg::ComputeBoundedValue(params[0], inputSign, m_ZeroLowerBound, m_PolarAngleUpperBound);
+    m_BoundedVector[0] = levenberg::ComputeBoundedValue(params[0], inputSign, m_ZeroLowerBound, m_PolarAngleUpperBound);
     this->SetBoundedSignVectorValue(0,inputSign);
-    boundedParams[1] = levenberg::ComputeBoundedValue(params[1], inputSign, m_ZeroLowerBound, m_AzimuthAngleUpperBound);
+    m_BoundedVector[1] = levenberg::ComputeBoundedValue(params[1], inputSign, m_ZeroLowerBound, m_AzimuthAngleUpperBound);
     this->SetBoundedSignVectorValue(1,inputSign);
-    boundedParams[2] = levenberg::ComputeBoundedValue(params[2], inputSign, m_ZeroLowerBound, m_AzimuthAngleUpperBound);
+    m_BoundedVector[2] = levenberg::ComputeBoundedValue(params[2], inputSign, m_ZeroLowerBound, m_AzimuthAngleUpperBound);
     this->SetBoundedSignVectorValue(2,inputSign);
 
     if (m_EstimateDiffusivities)
     {
-        boundedParams[3] = levenberg::ComputeBoundedValue(params[3], inputSign, m_ZeroLowerBound, m_DiffusivityUpperBound);
+        m_BoundedVector[3] = levenberg::ComputeBoundedValue(params[3], inputSign, m_ZeroLowerBound, m_DiffusivityUpperBound);
         this->SetBoundedSignVectorValue(3,inputSign);
-        boundedParams[4] = levenberg::ComputeBoundedValue(params[4], inputSign, m_ZeroLowerBound, m_DiffusivityUpperBound);
+        m_BoundedVector[4] = levenberg::ComputeBoundedValue(params[4], inputSign, m_ZeroLowerBound, m_DiffusivityUpperBound);
         this->SetBoundedSignVectorValue(4,inputSign);
-        boundedParams[5] = levenberg::ComputeBoundedValue(params[5], inputSign, m_DiffusivityLowerBound, m_RadialDiffusivityUpperBound);
+        m_BoundedVector[5] = levenberg::ComputeBoundedValue(params[5], inputSign, m_DiffusivityLowerBound, m_RadialDiffusivityUpperBound);
         this->SetBoundedSignVectorValue(5,inputSign);
     }
-
-    return boundedParams;
 }
 
 void TensorCompartment::UnboundParameters(ListType &params)

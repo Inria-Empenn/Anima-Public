@@ -59,6 +59,7 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
 {
     MCMPointer outputMCM = MCMType::New();
     outputMCM->SetOptimizeWeights(!m_UseFixedWeights);
+    outputMCM->SetUseBoundedWeightsOptimization(m_UseBoundedOptimization);
     outputMCM->SetCommonDiffusivityParameters(m_UseCommonDiffusivities);
     outputMCM->SetCommonConcentrationParameters(m_UseCommonConcentrations);
     outputMCM->SetCommonExtraAxonalFractionParameters(m_UseCommonExtraAxonalFractions);

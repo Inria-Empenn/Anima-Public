@@ -7,9 +7,10 @@
 #include <animaNLOPTOptimizers.h>
 #include <itkLevenbergMarquardtOptimizer.h>
 
-#include <animaGaussianMCMCostFunction.h>
-#include <animaGaussianMCMVariableProjectionSingleValuedCostFunction.h>
-#include <animaGaussianMCMVariableProjectionMultipleValuedCostFunction.h>
+#include <animaMCMSingleValuedCostFunction.h>
+#include <animaMCMMultipleValuedCostFunction.h>
+#include <animaGaussianMCMCost.h>
+#include <animaGaussianMCMVariableProjectionCost.h>
 
 #include <animaVectorOperations.h>
 
@@ -124,7 +125,7 @@ void
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::BeforeThreadedGenerateData()
 {
-    if ((m_Optimizer == "levenberg")&&((m_MLEstimationStrategy != VariableProjection)||(m_NoiseType != Gaussian)))
+    if ((m_Optimizer == "levenberg")&&((m_MLEstimationStrategy == Marginal)||(m_NoiseType != Gaussian)))
         itkExceptionMacro("Levenberg Marquardt optimizer only working with Gaussian noise and variable projection");
 
     if ((m_Optimizer != "bobyqa")&&m_UseCommonDiffusivities)
@@ -640,51 +641,52 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>::CreateCostFunction(std
 {
     CostFunctionBasePointer returnCost;
 
-    if (m_NoiseType == Gaussian)
+    if (m_NoiseType != Gaussian)
+        itkExceptionMacro("Cost function type not supported");
+
+    anima::BaseMCMCost::Pointer baseCost;
+    if (m_MLEstimationStrategy != VariableProjection)
     {
-        if (m_MLEstimationStrategy != VariableProjection)
-        {
-            anima::GaussianMCMCostFunction::Pointer tmpCost = anima::GaussianMCMCostFunction::New();
-            tmpCost->SetMarginalEstimation(m_MLEstimationStrategy == Marginal);
-            tmpCost->SetObservedSignals(observedSignals);
-            tmpCost->SetGradients(m_GradientDirections);
-            tmpCost->SetBValues(m_BValuesList);
-            tmpCost->SetMCMStructure(mcmModel);
+        anima::GaussianMCMCost::Pointer internalCost = anima::GaussianMCMCost::New();
+        internalCost->SetMarginalEstimation(m_MLEstimationStrategy == Marginal);
 
-            returnCost = tmpCost;
-        }
-        else
-        {
-            anima::GaussianMCMVariableProjectionCost::Pointer internalCost = anima::GaussianMCMVariableProjectionCost::New();
-            internalCost->SetObservedSignals(observedSignals);
-            internalCost->SetGradients(m_GradientDirections);
-            internalCost->SetBValues(m_BValuesList);
-            internalCost->SetMCMStructure(mcmModel);
-
-            if (m_Optimizer == "levenberg")
-            {
-                anima::GaussianMCMVariableProjectionMultipleValuedCostFunction::Pointer tmpCost =
-                        anima::GaussianMCMVariableProjectionMultipleValuedCostFunction::New();
-
-                internalCost->SetUseDerivative(!m_VNLDerivativeComputation);
-                tmpCost->SetInternalCost(internalCost);
-
-                returnCost = tmpCost;
-            }
-            else
-            {
-                anima::GaussianMCMVariableProjectionSingleValuedCostFunction::Pointer tmpCost =
-                        anima::GaussianMCMVariableProjectionSingleValuedCostFunction::New();
-
-                internalCost->SetUseDerivative(m_Optimizer == "ccsaq");
-                tmpCost->SetInternalCost(internalCost);
-
-                returnCost = tmpCost;
-            }
-        }
+        baseCost = internalCost;
     }
     else
-        itkExceptionMacro("Cost function type not supported")
+    {
+        anima::GaussianMCMVariableProjectionCost::Pointer internalCost = anima::GaussianMCMVariableProjectionCost::New();
+
+        if (m_Optimizer == "levenberg")
+            internalCost->SetUseDerivative(!m_VNLDerivativeComputation);
+        else
+            internalCost->SetUseDerivative((m_Optimizer == "ccsaq")||(m_Optimizer == "bfgs"));
+
+        baseCost = internalCost;
+    }
+
+    baseCost->SetObservedSignals(observedSignals);
+    baseCost->SetGradients(m_GradientDirections);
+    baseCost->SetBValues(m_BValuesList);
+    baseCost->SetMCMStructure(mcmModel);
+
+    if (m_Optimizer == "levenberg")
+    {
+        anima::MCMMultipleValuedCostFunction::Pointer tmpCost =
+                anima::MCMMultipleValuedCostFunction::New();
+
+        tmpCost->SetInternalCost(baseCost);
+
+        returnCost = tmpCost;
+    }
+    else
+    {
+        anima::MCMSingleValuedCostFunction::Pointer tmpCost =
+                anima::MCMSingleValuedCostFunction::New();
+
+        tmpCost->SetInternalCost(baseCost);
+
+        returnCost = tmpCost;
+    }
 
     return returnCost;
 }
@@ -993,7 +995,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
         if (m_MLEstimationStrategy != VariableProjection)
         {
-            anima::BaseMCMCostFunction *costCast = dynamic_cast <anima::BaseMCMCostFunction *> (cost.GetPointer());
+            anima::MCMSingleValuedCostFunction *costCast =
+                    dynamic_cast <anima::MCMSingleValuedCostFunction *> (cost.GetPointer());
             tmpOpt->SetCostFunction(costCast);
             tmpOpt->SetAlgorithm(NLOPT_AUGLAG);
 
@@ -1005,6 +1008,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
             }
             else if (m_Optimizer == "ccsaq")
                 tmpOpt->SetLocalOptimizer(NLOPT_LD_CCSAQ);
+            else if (m_Optimizer == "bfgs")
+                tmpOpt->SetLocalOptimizer(NLOPT_LD_LBFGS);
 
             if (!m_UseFixedWeights)
             {
@@ -1027,9 +1032,11 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
             }
             else if (m_Optimizer == "ccsaq")
                 tmpOpt->SetAlgorithm(NLOPT_LD_CCSAQ);
+            else if (m_Optimizer == "bfgs")
+                tmpOpt->SetAlgorithm(NLOPT_LD_LBFGS);
 
-            anima::GaussianMCMVariableProjectionSingleValuedCostFunction *costCast =
-                    dynamic_cast <anima::GaussianMCMVariableProjectionSingleValuedCostFunction *> (cost.GetPointer());
+            anima::MCMSingleValuedCostFunction *costCast =
+                    dynamic_cast <anima::MCMSingleValuedCostFunction *> (cost.GetPointer());
             tmpOpt->SetCostFunction(costCast);
         }
 
@@ -1049,14 +1056,14 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     }
     else
     {
-        if (m_MLEstimationStrategy != VariableProjection)
-            itkExceptionMacro("Levenberg Marquardt optimizer only supported with variable projection");
+        if (m_MLEstimationStrategy == Marginal)
+            itkExceptionMacro("Levenberg Marquardt optimizer not supported with marginal optimization");
 
         typedef itk::LevenbergMarquardtOptimizer LevenbergMarquardtOptimizerType;
         LevenbergMarquardtOptimizerType::Pointer tmpOpt = LevenbergMarquardtOptimizerType::New();
 
-        anima::GaussianMCMVariableProjectionMultipleValuedCostFunction *costCast =
-                dynamic_cast <anima::GaussianMCMVariableProjectionMultipleValuedCostFunction *> (cost.GetPointer());
+        anima::MCMMultipleValuedCostFunction *costCast =
+                dynamic_cast <anima::MCMMultipleValuedCostFunction *> (cost.GetPointer());
         
         double gTol = m_GTolerance;
         if (m_GTolerance == 0)
@@ -1113,24 +1120,18 @@ double
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::GetCostValue(CostFunctionBasePointer &cost, ParametersType &p)
 {
-    if (m_MLEstimationStrategy == VariableProjection)
+    if (m_Optimizer == "levenberg")
     {
-        if (m_Optimizer == "levenberg")
-        {
-            anima::GaussianMCMVariableProjectionMultipleValuedCostFunction *costCast =
-                    dynamic_cast <anima::GaussianMCMVariableProjectionMultipleValuedCostFunction *> (cost.GetPointer());
+        anima::MCMMultipleValuedCostFunction *costCast =
+                dynamic_cast <anima::MCMMultipleValuedCostFunction *> (cost.GetPointer());
 
-            costCast->GetInternalCost()->GetValues(p);
-            return costCast->GetInternalCost()->GetCurrentCostValue();
-        }
-
-        anima::GaussianMCMVariableProjectionSingleValuedCostFunction *costCast =
-                dynamic_cast <anima::GaussianMCMVariableProjectionSingleValuedCostFunction *> (cost.GetPointer());
-
-        return costCast->GetValue(p);
+        costCast->GetInternalCost()->GetValues(p);
+        return costCast->GetInternalCost()->GetCurrentCostValue();
     }
 
-    anima::BaseMCMCostFunction *costCast = dynamic_cast <anima::BaseMCMCostFunction *> (cost.GetPointer());
+    anima::MCMSingleValuedCostFunction *costCast =
+            dynamic_cast <anima::MCMSingleValuedCostFunction *> (cost.GetPointer());
+
     return costCast->GetValue(p);
 }
 
@@ -1139,33 +1140,28 @@ void
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::GetProfiledInformation(CostFunctionBasePointer &cost, MCMPointer &mcm, double &b0Value, double &sigmaSqValue)
 {
-    if (m_MLEstimationStrategy == VariableProjection)
+    if (m_Optimizer == "levenberg")
     {
-        if (m_Optimizer == "levenberg")
-        {
-            anima::GaussianMCMVariableProjectionMultipleValuedCostFunction *costCast =
-                    dynamic_cast <anima::GaussianMCMVariableProjectionMultipleValuedCostFunction *> (cost.GetPointer());
-
-            b0Value = costCast->GetB0Value();
-            sigmaSqValue = costCast->GetSigmaSquare();
-            mcm->SetCompartmentWeights(costCast->GetOptimalWeights());
-
-            return;
-        }
-
-        anima::GaussianMCMVariableProjectionSingleValuedCostFunction *costCast =
-                dynamic_cast <anima::GaussianMCMVariableProjectionSingleValuedCostFunction *> (cost.GetPointer());
+        anima::MCMMultipleValuedCostFunction *costCast =
+                dynamic_cast <anima::MCMMultipleValuedCostFunction *> (cost.GetPointer());
 
         b0Value = costCast->GetB0Value();
         sigmaSqValue = costCast->GetSigmaSquare();
-        mcm->SetCompartmentWeights(costCast->GetOptimalWeights());
 
-        return;
+        if (m_MLEstimationStrategy == VariableProjection)
+            mcm->SetCompartmentWeights(costCast->GetMCMStructure()->GetCompartmentWeights());
     }
+    else
+    {
+        anima::MCMSingleValuedCostFunction *costCast =
+                dynamic_cast <anima::MCMSingleValuedCostFunction *> (cost.GetPointer());
 
-    anima::BaseMCMCostFunction *costCast = dynamic_cast <anima::BaseMCMCostFunction *> (cost.GetPointer());
-    b0Value = costCast->GetB0Value();
-    sigmaSqValue = costCast->GetSigmaSquare();
+        b0Value = costCast->GetB0Value();
+        sigmaSqValue = costCast->GetSigmaSquare();
+
+        if (m_MLEstimationStrategy == VariableProjection)
+            mcm->SetCompartmentWeights(costCast->GetMCMStructure()->GetCompartmentWeights());
+    }
 }
 
 template <class InputPixelType, class OutputPixelType>
