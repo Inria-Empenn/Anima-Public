@@ -39,7 +39,7 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    imageIO->SetFileName(inArg.getValue());
+    imageIO->SetFileName(refN);
     imageIO->ReadImageInformation();
 
     // Return to file start
