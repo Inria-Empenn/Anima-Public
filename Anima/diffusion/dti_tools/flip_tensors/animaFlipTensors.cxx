@@ -1,4 +1,4 @@
-#include <animaFlipTensorsImageFilter.h>
+#include <animaFlipTensorImageFilter.h>
 #include <tclap/CmdLine.h>
 #include <animaReadWriteFunctions.h>
 
@@ -14,14 +14,11 @@ int main(int argc, char **argv)
 
     TCLAP::CmdLine cmd("Flip tensors in a DTI volume.\nINRIA / IRISA - VisAGeS Team",' ',ANIMA_VERSION);
 
-    TCLAP::ValueArg<std::string> inArg("i", "input", "Input tensor image", true, "", "input tensor image", cmd);
-    TCLAP::ValueArg<std::string> outArg("o", "output", "Output flipped tensor image", true, "", "output image", cmd);
+    TCLAP::ValueArg<std::string> inArg("i", "input", "Input tensor image.", true, "", "input image", cmd);
+    TCLAP::ValueArg<std::string> outArg("o", "output", "Output tensor image.", true, "", "output image", cmd);
     
-    TCLAP::ValueArg<std::string> maskArg("m", "mask", "Computation mask", false, "", "mask", cmd);
-    
-    TCLAP::SwitchArg xDirArg("X", "xdir", "Flip X axis", cmd, false);
-    TCLAP::SwitchArg yDirArg("Y", "ydir", "Flip Y axis", cmd, false);
-    TCLAP::SwitchArg zDirArg("Z", "zdir", "Flip Z axis", cmd, false);
+    TCLAP::ValueArg<std::string> maskArg("m", "mask", "Computation mask", false, "", "mask image", cmd);
+    TCLAP::ValueArg<std::string> axisArg("a", "axis", "Axis to be flipped (Choices are none [default], X, Y or Z).", false, "", "axis name", cmd);
 
     TCLAP::ValueArg<unsigned int> nbpArg("p", "nthreads", "Number of thread to use (default: all)", false, itk::MultiThreader::GetGlobalDefaultNumberOfThreads(), "number of thread", cmd);
 
@@ -38,26 +35,35 @@ int main(int argc, char **argv)
     itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
     callback->SetCallback(eventCallback);
 
-    typedef anima::FlipTensorsImageFilter<3> FilterType;
+    typedef anima::FlipTensorImageFilter<3> FilterType;
     typedef FilterType::InputImageType InputImageType;
     typedef FilterType::OutputImageType OutputImageType;
     typedef FilterType::MaskImageType MaskImageType;
 
     FilterType::Pointer filter = FilterType::New();
     filter->SetInput(anima::readImage<InputImageType>(inArg.getValue()));
-    filter->SetFlipXAxis(xDirArg.isSet());
-    filter->SetFlipYAxis(yDirArg.isSet());
-    filter->SetFlipZAxis(zDirArg.isSet());
+    filter->SetFlippedAxis(axisArg.getValue());
 
     if (maskArg.getValue() != "")
         filter->SetComputationMask(anima::readImage<MaskImageType>(maskArg.getValue()));
 
     filter->SetNumberOfThreads(nbpArg.getValue());
     filter->AddObserver(itk::ProgressEvent(), callback );
-    filter->Update();
+    
+    try
+    {
+        filter->Update();
+    }
+    catch (itk::ExceptionObject &err)
+    {
+        std::cerr << err << std::endl;
+        return EXIT_FAILURE;
+    }
+    
     std::cout << std::endl;
 
     anima::writeImage<OutputImageType>(outArg.getValue(), filter->GetOutput());
     
     return EXIT_SUCCESS;
+    
 }// end of main
