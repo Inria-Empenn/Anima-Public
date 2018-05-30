@@ -24,8 +24,14 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
     
-    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(inArg.getValue().c_str(),
-                                                                           itk::ImageIOFactory::ReadMode);
+    std::ifstream imageIn(inArg.getValue());
+
+    char refN[2048];
+    imageIn.getline(refN,2048);
+    while ((strcmp(refN,"") == 0)&&(!imageIn.eof()))
+        imageIn.getline(refN,2048);
+
+    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(refN, itk::ImageIOFactory::ReadMode);
 
     if (!imageIO)
     {
@@ -35,6 +41,10 @@ int main(int argc, char **argv)
 
     imageIO->SetFileName(inArg.getValue());
     imageIO->ReadImageInformation();
+
+    // Return to file start
+    imageIn.clear();
+    imageIn.seekg(0, std::ios::beg);
 
     bool vectorImage = (imageIO->GetNumberOfComponents() > 1);
 
@@ -54,14 +64,12 @@ int main(int argc, char **argv)
         weightsIn.open(weightsArg.getValue());
 
     double sumWeights = 0;
-	char refN[2048], maskN[2048];
+    char maskN[2048];
 	
     if (!vectorImage)
 	{
 		floatImageType::Pointer tmpOutput;
         floatImageType::Pointer tmpSumMasks;
-		
-		std::ifstream imageIn(inArg.getValue());
 		
 		while (tmpOutput.IsNull())
 		{
@@ -181,8 +189,6 @@ int main(int argc, char **argv)
 
         if (weightsIn.is_open())
             weightsIn.close();
-
-		imageIn.close();
 		
         if (tmpSumMasks.IsNotNull())
 		{
@@ -211,8 +217,6 @@ int main(int argc, char **argv)
 	{		
         VectorImageType::Pointer outputData;
         floatImageType::Pointer tmpSumMasks;
-        
-		std::ifstream imageIn(inArg.getValue());
 		
 		while (outputData.IsNull())
 		{
@@ -333,8 +337,6 @@ int main(int argc, char **argv)
 
         if (weightsIn.is_open())
             weightsIn.close();
-
-		imageIn.close();
 		
         if (tmpSumMasks.IsNotNull())
         {
@@ -359,6 +361,8 @@ int main(int argc, char **argv)
         
         anima::writeImage <VectorImageType> (outArg.getValue(),outputData);
 	}
+
+    imageIn.close();
 	
 	return EXIT_SUCCESS;
 }
