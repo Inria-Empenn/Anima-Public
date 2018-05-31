@@ -2,6 +2,7 @@
 #include <animaVectorOperations.h>
 #include <animaErrorFunctions.h>
 #include <animaDistributionSampling.h>
+#include <animaLevenbergTools.h>
 
 namespace anima
 {
@@ -40,11 +41,11 @@ double NODDICompartment::GetFourierTransformedDiffusionProfile(double bValue, co
     return nuic * intraSignal + (1.0 - nuic) * extraSignal;
 }
     
-NODDICompartment::ListType NODDICompartment::GetSignalAttenuationJacobian(double bValue, const Vector3DType &gradient)
+NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(double bValue, const Vector3DType &gradient)
 {
-    ListType jacobian(this->GetNumberOfParameters(),0.0);
-    
-    return jacobian;
+    m_JacobianVector.resize(this->GetNumberOfParameters());
+    std::fill(m_JacobianVector.begin(),m_JacobianVector.end(),0.0);
+    return m_JacobianVector;
 }
 
 double NODDICompartment::GetLogDiffusionProfile(const Vector3DType &sample)
@@ -72,24 +73,23 @@ void NODDICompartment::SetParametersFromVector(const ListType &params)
     if (params.size() != this->GetNumberOfParameters())
         return;
     
-    ListType boundedParams;
     if (this->GetUseBoundedOptimization())
     {
         if (params.size() != this->GetBoundedSignVector().size())
             this->GetBoundedSignVector().resize(params.size());
 
-        boundedParams = this->BoundParameters(params);
+        this->BoundParameters(params);
     }
     else
-        boundedParams = params;
+        m_BoundedVector = params;
 
-    this->SetOrientationTheta(boundedParams[0]);
-    this->SetOrientationPhi(boundedParams[1]);
-    this->SetOrientationConcentration(boundedParams[2]);
-    this->SetExtraAxonalFraction(boundedParams[3]);
+    this->SetOrientationTheta(m_BoundedVector[0]);
+    this->SetOrientationPhi(m_BoundedVector[1]);
+    this->SetOrientationConcentration(m_BoundedVector[2]);
+    this->SetExtraAxonalFraction(m_BoundedVector[3]);
     
     if (m_EstimateAxialDiffusivity)
-        this->SetAxialDiffusivity(boundedParams[4]);
+        this->SetAxialDiffusivity(m_BoundedVector[4]);
     else
     {
         // Constraint as described in Zhang et al. 2012, Neuroimage.
@@ -100,83 +100,83 @@ void NODDICompartment::SetParametersFromVector(const ListType &params)
     this->SetRadialDiffusivity1(this->GetExtraAxonalFraction() * this->GetAxialDiffusivity());
 }
 
-NODDICompartment::ListType NODDICompartment::GetParametersAsVector()
+NODDICompartment::ListType &NODDICompartment::GetParametersAsVector()
 {
-    ListType params(this->GetNumberOfParameters(),0);
+    m_ParametersVector.resize(this->GetNumberOfParameters());
 
-    params[0] = this->GetOrientationTheta();
-    params[1] = this->GetOrientationPhi();
-    params[2] = this->GetOrientationConcentration();
-    params[3] = this->GetExtraAxonalFraction();
+    m_ParametersVector[0] = this->GetOrientationTheta();
+    m_ParametersVector[1] = this->GetOrientationPhi();
+    m_ParametersVector[2] = this->GetOrientationConcentration();
+    m_ParametersVector[3] = this->GetExtraAxonalFraction();
     
     if (m_EstimateAxialDiffusivity)
-        params[4] = this->GetAxialDiffusivity();
+        m_ParametersVector[4] = this->GetAxialDiffusivity();
     
     if (this->GetUseBoundedOptimization())
-        this->UnboundParameters(params);
+        this->UnboundParameters(m_ParametersVector);
 
-    return params;
+    return m_ParametersVector;
 }
 
-NODDICompartment::ListType NODDICompartment::GetParameterLowerBounds()
+NODDICompartment::ListType &NODDICompartment::GetParameterLowerBounds()
 {
-    ListType lowerBounds(this->GetNumberOfParameters(),m_ZeroLowerBound);
+    m_ParametersLowerBoundsVector.resize(this->GetNumberOfParameters());
     
-    lowerBounds[3] = m_EAFLowerBound;
+    std::fill(m_ParametersLowerBoundsVector.begin(),m_ParametersLowerBoundsVector.end(),m_ZeroLowerBound);
+    
+    m_ParametersLowerBoundsVector[3] = m_EAFLowerBound;
     
     if (m_EstimateAxialDiffusivity)
-        lowerBounds[4] = m_DiffusivityLowerBound;
+        m_ParametersLowerBoundsVector[4] = m_DiffusivityLowerBound;
     
-    return lowerBounds;
+    return m_ParametersLowerBoundsVector;
 }
 
-NODDICompartment::ListType NODDICompartment::GetParameterUpperBounds()
+NODDICompartment::ListType &NODDICompartment::GetParameterUpperBounds()
 {
-    ListType upperBounds(this->GetNumberOfParameters(),0);
+    m_ParametersUpperBoundsVector.resize(this->GetNumberOfParameters());
 
-    upperBounds[0] = m_PolarAngleUpperBound;
-    upperBounds[1] = m_AzimuthAngleUpperBound;
-    upperBounds[2] = m_WatsonKappaUpperBound;
-    upperBounds[3] = m_EAFUpperBound;
+    m_ParametersUpperBoundsVector[0] = m_PolarAngleUpperBound;
+    m_ParametersUpperBoundsVector[1] = m_AzimuthAngleUpperBound;
+    m_ParametersUpperBoundsVector[2] = m_WatsonKappaUpperBound;
+    m_ParametersUpperBoundsVector[3] = m_EAFUpperBound;
     
     if (m_EstimateAxialDiffusivity)
-        upperBounds[4] = m_DiffusivityUpperBound;
+        m_ParametersUpperBoundsVector[4] = m_DiffusivityUpperBound;
 
-    return upperBounds;
+    return m_ParametersUpperBoundsVector;
 }
     
-NODDICompartment::ListType NODDICompartment::BoundParameters(const ListType &params)
+void NODDICompartment::BoundParameters(const ListType &params)
 {
-    ListType boundedParams(params);
+    m_BoundedVector.resize(params.size());
     
     double inputSign = 1;
-    boundedParams[0] = mcm_utilities::ComputeBoundedValue(params[0], inputSign, m_ZeroLowerBound, m_PolarAngleUpperBound);
+    m_BoundedVector[0] = levenberg::ComputeBoundedValue(params[0], inputSign, m_ZeroLowerBound, m_PolarAngleUpperBound);
     this->SetBoundedSignVectorValue(0,inputSign);
-    boundedParams[1] = mcm_utilities::ComputeBoundedValue(params[1], inputSign, m_ZeroLowerBound, m_AzimuthAngleUpperBound);
+    m_BoundedVector[1] = levenberg::ComputeBoundedValue(params[1], inputSign, m_ZeroLowerBound, m_AzimuthAngleUpperBound);
     this->SetBoundedSignVectorValue(1,inputSign);
-    boundedParams[2] = mcm_utilities::ComputeBoundedValue(params[2], inputSign, m_ZeroLowerBound, m_WatsonKappaUpperBound);
+    m_BoundedVector[2] = levenberg::ComputeBoundedValue(params[2], inputSign, m_ZeroLowerBound, m_WatsonKappaUpperBound);
     this->SetBoundedSignVectorValue(2,inputSign);
-    boundedParams[3] = mcm_utilities::ComputeBoundedValue(params[3], inputSign, m_EAFLowerBound, m_EAFUpperBound);
+    m_BoundedVector[3] = levenberg::ComputeBoundedValue(params[3], inputSign, m_EAFLowerBound, m_EAFUpperBound);
     this->SetBoundedSignVectorValue(3,inputSign);
     
     if (m_EstimateAxialDiffusivity)
     {
-        boundedParams[4] = mcm_utilities::ComputeBoundedValue(params[4], inputSign, m_DiffusivityLowerBound, m_DiffusivityUpperBound);
+        m_BoundedVector[4] = levenberg::ComputeBoundedValue(params[4], inputSign, m_DiffusivityLowerBound, m_DiffusivityUpperBound);
         this->SetBoundedSignVectorValue(4,inputSign);
     }
-
-    return boundedParams;
 }
 
 void NODDICompartment::UnboundParameters(ListType &params)
 {
-    params[0] = mcm_utilities::UnboundValue(params[0], m_ZeroLowerBound, m_PolarAngleUpperBound);
-    params[1] = mcm_utilities::UnboundValue(params[1], m_ZeroLowerBound, m_AzimuthAngleUpperBound);
-    params[2] = mcm_utilities::UnboundValue(params[2], m_ZeroLowerBound, m_WatsonKappaUpperBound);
-    params[3] = mcm_utilities::UnboundValue(params[3], m_EAFLowerBound, m_EAFUpperBound);
+    params[0] = levenberg::UnboundValue(params[0], m_ZeroLowerBound, m_PolarAngleUpperBound);
+    params[1] = levenberg::UnboundValue(params[1], m_ZeroLowerBound, m_AzimuthAngleUpperBound);
+    params[2] = levenberg::UnboundValue(params[2], m_ZeroLowerBound, m_WatsonKappaUpperBound);
+    params[3] = levenberg::UnboundValue(params[3], m_EAFLowerBound, m_EAFUpperBound);
     
     if (m_EstimateAxialDiffusivity)
-        params[4] = mcm_utilities::UnboundValue(params[4], m_DiffusivityLowerBound, m_DiffusivityUpperBound);
+        params[4] = levenberg::UnboundValue(params[4], m_DiffusivityLowerBound, m_DiffusivityUpperBound);
 }
 
 void NODDICompartment::SetEstimateAxialDiffusivity(bool arg)

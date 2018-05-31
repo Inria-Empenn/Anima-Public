@@ -28,14 +28,14 @@ public:
     DiffusionModelCompartmentType GetCompartmentType() ITK_OVERRIDE {return NODDI;}
 
     virtual double GetFourierTransformedDiffusionProfile(double bValue, const Vector3DType &gradient) ITK_OVERRIDE;
-    virtual ListType GetSignalAttenuationJacobian(double bValue, const Vector3DType &gradient) ITK_OVERRIDE;
+    virtual ListType &GetSignalAttenuationJacobian(double bValue, const Vector3DType &gradient) ITK_OVERRIDE;
     virtual double GetLogDiffusionProfile(const Vector3DType &sample) ITK_OVERRIDE;
 
     virtual void SetParametersFromVector(const ListType &params) ITK_OVERRIDE;
-    virtual ListType GetParametersAsVector() ITK_OVERRIDE;
+    virtual ListType &GetParametersAsVector() ITK_OVERRIDE;
 
-    virtual ListType GetParameterLowerBounds() ITK_OVERRIDE;
-    virtual ListType GetParameterUpperBounds() ITK_OVERRIDE;
+    virtual ListType &GetParameterLowerBounds() ITK_OVERRIDE;
+    virtual ListType &GetParameterUpperBounds() ITK_OVERRIDE;
     
     // Set constraints
     void SetEstimateAxialDiffusivity(bool arg);
@@ -69,7 +69,7 @@ protected:
     //! Update Watson samples from parameters
     void UpdateWatsonSamples();
 
-    virtual ListType BoundParameters(const ListType &params) ITK_OVERRIDE;
+    virtual void BoundParameters(const ListType &params) ITK_OVERRIDE;
     virtual void UnboundParameters(ListType &params) ITK_OVERRIDE;
 
 private:

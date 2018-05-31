@@ -907,9 +907,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     MCMCreatorType *mcmCreator = m_MCMCreators[threadId];
     // Other params are supposed to be already initialized from trunk estimation
     mcmCreator->SetCompartmentType(m_CompartmentType);
-    
-    if (m_CompartmentType == NODDI)
-        mcmCreator->SetWatsonSamples(m_WatsonSamples);
 
     MCMPointer mcmUpdateValue = mcmCreator->GetNewMultiCompartmentModel();
     MCMPointer mcmOptimalModel = mcmCreator->GetNewMultiCompartmentModel();
@@ -942,9 +939,12 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     
     if (m_CompartmentType == NODDI)
     {
-        ldsSequence = SequenceGeneratorType(numNonIsoCompartments);
+        ldsSequence = SequenceGeneratorType(2 * numNonIsoCompartments);
         MCMType::ListType lowerBoundsSequenceSampling(numNonIsoCompartments,0.0);
-        MCMType::ListType upperBoundsSequenceSampling(numNonIsoCompartments,1000.0);
+        MCMType::ListType upperBoundsSequenceSampling(numNonIsoCompartments,128.0);
+        
+        for (unsigned int i = 0;i < numNonIsoCompartments;++i)
+            upperBoundsSequenceSampling[numNonIsoCompartments + i] = 1.0;
         
         ldsSequence.SetLowerBounds(lowerBoundsSequenceSampling);
         ldsSequence.SetUpperBounds(upperBoundsSequenceSampling);
@@ -983,11 +983,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
                 // Random kappa initialization
                 mcmUpdateValue->GetCompartment(i)->SetOrientationConcentration(sampledData[index]);
                 
-                // Following assumed tortuosity model in NODDI, the extra-axonal fraction can be initialized as the ratio d_perp_zep / d_para_zep
-                double zeppelinAxDiff = mcmUpdateValue->GetCompartment(i)->GetAxialDiffusivity();
-                double zeppelinRadDiff = mcmUpdateValue->GetCompartment(i)->GetRadialDiffusivity1();
-                
-                mcmUpdateValue->GetCompartment(i)->SetExtraAxonalFraction(zeppelinRadDiff / zeppelinAxDiff);
+                // Random EAF initialization
+                mcmUpdateValue->GetCompartment(i)->SetExtraAxonalFraction(sampledData[numNonIsoCompartments + index]);
             }
             else
             {
