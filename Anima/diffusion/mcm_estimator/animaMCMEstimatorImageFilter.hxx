@@ -917,8 +917,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     if (m_CompartmentType == NODDI)
     {
         ldsSequence = SequenceGeneratorType(2 * numNonIsoCompartments);
-        MCMType::ListType lowerBoundsSequenceSampling(numNonIsoCompartments,0.0);
-        MCMType::ListType upperBoundsSequenceSampling(numNonIsoCompartments,128.0);
+        MCMType::ListType lowerBoundsSequenceSampling(2 * numNonIsoCompartments,0.0);
+        MCMType::ListType upperBoundsSequenceSampling(2 * numNonIsoCompartments,128.0);
         
         for (unsigned int i = 0;i < numNonIsoCompartments;++i)
             upperBoundsSequenceSampling[numNonIsoCompartments + i] = 1.0;
