@@ -8,49 +8,102 @@ namespace anima
 {
 double NODDICompartment::GetFourierTransformedDiffusionProfile(double bValue, const Vector3DType &gradient)
 {
-    this->UpdateWatsonSamples();
-    
-    Vector3DType compartmentOrientation(0.0), tmpVec = m_NorthPole;
-    
-    anima::TransformSphericalToCartesianCoordinates(this->GetOrientationTheta(),this->GetOrientationPhi(),1.0,compartmentOrientation);
-    
-    Vector3DType rotationNormal;
-    anima::ComputeCrossProduct(compartmentOrientation, m_NorthPole, rotationNormal);
-    anima::Normalize(rotationNormal, rotationNormal);
-    anima::RotateAroundAxis(gradient, this->GetOrientationTheta(), rotationNormal, tmpVec);
-    
-    double axialDiff = this->GetAxialDiffusivity();
-    double radialDiff = this->GetRadialDiffusivity1();
+    this->UpdateIESignals(bValue, gradient);
     double nuic = 1.0 - this->GetExtraAxonalFraction();
-    double appAxialDiff = axialDiff - (axialDiff - radialDiff) * (1.0 - m_Tau1);
-    double appRadialDiff = axialDiff - (axialDiff - radialDiff) * (1.0 + m_Tau1) / 2.0;
-    
-    double intraSignal = 0;
-    
-    for (unsigned int i = 0;i < m_NumberOfSamples;++i)
-    {
-        double innerProd = anima::ComputeScalarProduct(m_WatsonSamples[i], tmpVec);
-        intraSignal += std::exp(-bValue * axialDiff * innerProd * innerProd);
-    }
-    
-    intraSignal /= m_NumberOfSamples;
-    
-    double scalProd = anima::ComputeScalarProduct(gradient, compartmentOrientation);
-    double extraSignal = std::exp(-bValue * (appRadialDiff + (appAxialDiff - appRadialDiff) * scalProd * scalProd));
-    
-    return nuic * intraSignal + (1.0 - nuic) * extraSignal;
+    return nuic * m_IntraAxonalSignal + (1.0 - nuic) * m_ExtraAxonalSignal;
 }
     
 NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(double bValue, const Vector3DType &gradient)
 {
+    this->UpdateIESignals(bValue, gradient);
+    
     m_JacobianVector.resize(this->GetNumberOfParameters());
-    std::fill(m_JacobianVector.begin(),m_JacobianVector.end(),0.0);
+    
+    double kappa = this->GetOrientationConcentration();
+    double nuic = 1.0 - this->GetExtraAxonalFraction();
+    double dpara = this->GetAxialDiffusivity();
+    double phi = this->GetOrientationPhi();
+    double theta = this->GetOrientationTheta();
+    Vector3DType compartmentOrientation(0.0);
+    anima::TransformSphericalToCartesianCoordinates(theta,phi,1.0,compartmentOrientation);
+    double innerProd = anima::ComputeScalarProduct(gradient, compartmentOrientation);
+    
+    // Derivative w.r.t. theta
+    double thetaDeriv = 1.0;
+    if (this->GetUseBoundedOptimization())
+        thetaDeriv = levenberg::BoundedDerivativeAddOn(theta, this->GetBoundedSignVectorValue(0),
+                                                       m_ZeroLowerBound, m_PolarAngleUpperBound);
+    
+    double innerProdThetaDeriv = (gradient[0] * std::cos(phi) + gradient[1] * std::sin(phi)) * std::cos(theta) - gradient[2] * std::sin(theta);
+    m_JacobianVector[0] = (kappa * nuic * m_IntegralForThetaDerivative - bValue * dpara * nuic * (1.0 - nuic) * (3.0 * m_Tau1 - 1.0) * innerProdThetaDeriv * innerProd * m_ExtraAxonalSignal) * thetaDeriv;
+    
+    // Derivative w.r.t. phi
+    double phiDeriv = 1.0;
+    if (this->GetUseBoundedOptimization())
+        phiDeriv = levenberg::BoundedDerivativeAddOn(phi, this->GetBoundedSignVectorValue(1),
+                                                     m_ZeroLowerBound, m_AzimuthAngleUpperBound);
+    
+    double innerProdPhiDeriv = std::sin(theta) * (gradient[1] * std::cos(phi) - gradient[0] * std::sin(phi));
+    m_JacobianVector[1] = (kappa * nuic * m_IntegralForPhiDerivative - bValue * dpara * nuic * (1.0 - nuic) * (3.0 * m_Tau1 - 1.0) * innerProdPhiDeriv * innerProd * m_ExtraAxonalSignal) * phiDeriv;
+    
+    // Derivative w.r.t. kappa
+    double kappaDeriv = 1.0;
+    if (this->GetUseBoundedOptimization())
+        kappaDeriv = levenberg::BoundedDerivativeAddOn(kappa, this->GetBoundedSignVectorValue(2),
+                                                       m_ZeroLowerBound, m_WatsonKappaUpperBound);
+    
+    double kummerNumerator = 1.0;
+    double kummerDenominator = 1.0;
+    double intraKappaDeriv = m_IntegralForKappaDerivative - kummerNumerator * m_IntraAxonalSignal / (3.0 * kummerDenominator);
+    double extraKappaDeriv = bValue * dpara * nuic * m_Tau1Deriv * (1.0 - 3.0 * innerProd * innerProd) * m_ExtraAxonalSignal / 2.0;
+    m_JacobianVector[2] = (nuic * intraKappaDeriv + (1.0 - nuic) * extraKappaDeriv) * kappaDeriv;
+    
+    // Derivative w.r.t. nu
+    double nuDeriv = -1.0;
+    if (this->GetUseBoundedOptimization())
+        nuDeriv *= levenberg::BoundedDerivativeAddOn(kappa, this->GetBoundedSignVectorValue(3),
+                                                       m_EAFLowerBound, m_EAFUpperBound);
+    
+    double tmpVal = 1.0 + m_Tau1 - (3.0 * m_Tau1 - 1.0) * innerProd * innerProd;
+    double extraNuicDeriv = bValue * dpara * tmpVal / 2.0;
+    m_JacobianVector[3] = (m_IntraAxonalSignal - m_ExtraAxonalSignal + (1.0 - nuic) * extraNuicDeriv) * nuDeriv;
+    
+    if (m_EstimateAxialDiffusivity)
+    {
+        // Derivative w.r.t. to dpara
+        double dparaDeriv = 1.0;
+        if (this->GetUseBoundedOptimization())
+            dparaDeriv = levenberg::BoundedDerivativeAddOn(dpara,
+                                                        this->GetBoundedSignVectorValue(4),
+                                                        m_ZeroLowerBound, m_DiffusivityUpperBound);
+        
+        m_JacobianVector[4] = -bValue * dparaDeriv * (nuic * m_IntegralForDparaDerivative + (1.0 - nuic) * m_ExtraAxonalSignal * (1.0 - nuic * tmpVal / 2.0));
+    }
+    
     return m_JacobianVector;
 }
 
 double NODDICompartment::GetLogDiffusionProfile(const Vector3DType &sample)
 {
     return 1;
+}
+
+void NODDICompartment::SetOrientationTheta(double num)
+{
+    if (num != this->GetOrientationTheta())
+    {
+        m_ModifiedTheta = true;
+        this->Superclass::SetOrientationTheta(num);
+    }
+}
+
+void NODDICompartment::SetOrientationPhi(double num)
+{
+    if (num != this->GetOrientationPhi())
+    {
+        m_ModifiedPhi = true;
+        this->Superclass::SetOrientationPhi(num);
+    }
 }
 
 void NODDICompartment::SetOrientationConcentration(double num)
@@ -61,7 +114,25 @@ void NODDICompartment::SetOrientationConcentration(double num)
         this->Superclass::SetOrientationConcentration(num);
     }
 }
-    
+
+void NODDICompartment::SetExtraAxonalFraction(double num)
+{
+    if (num != this->GetExtraAxonalFraction())
+    {
+        m_ModifiedEAF = true;
+        this->Superclass::SetExtraAxonalFraction(num);
+    }
+}
+
+void NODDICompartment::SetAxialDiffusivity(double num)
+{
+    if (num != this->GetAxialDiffusivity())
+    {
+        m_ModifiedAxialDiffusivity = true;
+        this->Superclass::SetAxialDiffusivity(num);
+    }
+}
+
 void NODDICompartment::SetRadialDiffusivity1(double num)
 {
     this->Superclass::SetRadialDiffusivity1(num);
@@ -92,11 +163,11 @@ void NODDICompartment::SetParametersFromVector(const ListType &params)
         this->SetAxialDiffusivity(m_BoundedVector[4]);
     else
     {
-        // Constraint as described in Zhang et al. 2012, Neuroimage.
+        // Constraint as in Zhang et al. 2012, Neuroimage.
         this->SetAxialDiffusivity(1.7e-3);
     }
     
-    // Tortuosity model (also described in Zhang et al. 2010, Neuroimage).
+    // Tortuosity model as in Zhang et al. 2012, Neuroimage
     this->SetRadialDiffusivity1(this->GetExtraAxonalFraction() * this->GetAxialDiffusivity());
 }
 
@@ -213,7 +284,11 @@ void NODDICompartment::SetCompartmentVector(ModelOutputVectorType &compartmentVe
     
     this->SetAxialDiffusivity(compartmentVector[currentPos]);
     
+    m_ModifiedTheta = false;
+    m_ModifiedPhi = false;
     m_ModifiedConcentration = false;
+    m_ModifiedEAF = false;
+    m_ModifiedAxialDiffusivity = false;
 }
 
 unsigned int NODDICompartment::GetCompartmentSize()
@@ -292,9 +367,12 @@ void NODDICompartment::UpdateWatsonSamples()
         return;
     
     double kappa = this->GetOrientationConcentration();
+    double kappaSqrt = std::sqrt(kappa);
+    double kappaSq = kappa * kappa;
     
-    double fVal = anima::EvaluateDawsonFunction(std::sqrt(kappa));
-    m_Tau1 = -1.0 / (2.0 * kappa) + 1.0 / (2.0 * fVal * std::sqrt(kappa));
+    double fVal = anima::EvaluateDawsonFunction(kappaSqrt);
+    m_Tau1 = -1.0 / (2.0 * kappa) + 1.0 / (2.0 * fVal * kappaSqrt);
+    m_Tau1Deriv = 1.0 / (2.0 * kappaSq) - (1.0 - kappaSqrt * fVal * (2.0 - 1.0 / kappaSq)) / (4.0 * kappa * fVal * fVal);
     
     m_WatsonSamples.resize(m_NumberOfSamples);
     std::mt19937 generator(time(0));
@@ -303,6 +381,65 @@ void NODDICompartment::UpdateWatsonSamples()
         anima::SampleFromWatsonDistribution(kappa, m_NorthPole, m_WatsonSamples[i], 3, generator);
     
     m_ModifiedConcentration = false;
+}
+
+void NODDICompartment::UpdateIESignals(double bValue, const Vector3DType &gradient)
+{
+    if (!m_ModifiedTheta && !m_ModifiedPhi && !m_ModifiedConcentration && !m_ModifiedEAF && !m_ModifiedAxialDiffusivity)
+        return;
+    
+    this->UpdateWatsonSamples();
+    
+    Vector3DType compartmentOrientation(0.0), tmpVec = m_NorthPole;
+    
+    anima::TransformSphericalToCartesianCoordinates(this->GetOrientationTheta(),this->GetOrientationPhi(),1.0,compartmentOrientation);
+    
+    Vector3DType rotationNormal;
+    anima::ComputeCrossProduct(compartmentOrientation, m_NorthPole, rotationNormal);
+    anima::Normalize(rotationNormal, rotationNormal);
+    anima::RotateAroundAxis(gradient, this->GetOrientationTheta(), rotationNormal, tmpVec);
+    
+    double axialDiff = this->GetAxialDiffusivity();
+    double radialDiff = this->GetRadialDiffusivity1();
+    double appAxialDiff = axialDiff - (axialDiff - radialDiff) * (1.0 - m_Tau1);
+    double appRadialDiff = axialDiff - (axialDiff - radialDiff) * (1.0 + m_Tau1) / 2.0;
+    
+    m_IntraAxonalSignal = 0;
+    m_IntegralForDparaDerivative = 0;
+    m_IntegralForKappaDerivative = 0;
+    m_IntegralForThetaDerivative = 0;
+    m_IntegralForPhiDerivative = 0;
+    
+    for (unsigned int i = 0;i < m_NumberOfSamples;++i)
+    {
+        double innerProd = anima::ComputeScalarProduct(m_WatsonSamples[i], tmpVec);
+        double expVal = std::exp(-bValue * axialDiff * innerProd * innerProd);
+        m_IntraAxonalSignal += expVal;
+        m_IntegralForDparaDerivative += expVal * innerProd * innerProd;
+        m_IntegralForKappaDerivative += expVal * m_WatsonSamples[i][2] * m_WatsonSamples[i][2];
+        // Apply inverse rotation to Watson sample
+        anima::RotateAroundAxis(m_WatsonSamples[i], -this->GetOrientationTheta(), rotationNormal, tmpVec);
+        double angleVal = 2.0 * m_WatsonSamples[i][2];
+        double thetaVal = angleVal * ((tmpVec[0] * std::cos(this->GetOrientationPhi()) + tmpVec[1] * std::sin(this->GetOrientationPhi())) * std::cos(this->GetOrientationTheta()) - tmpVec[2] * std::sin(this->GetOrientationTheta()));
+        double phiVal = angleVal * std::sin(this->GetOrientationTheta()) * (tmpVec[1] * std::cos(this->GetOrientationPhi()) - tmpVec[0] * std::sin(this->GetOrientationPhi()));
+        m_IntegralForThetaDerivative += expVal * thetaVal;
+        m_IntegralForPhiDerivative += expVal * phiVal;
+    }
+    
+    m_IntraAxonalSignal /= m_NumberOfSamples;
+    m_IntegralForDparaDerivative /= m_NumberOfSamples;
+    m_IntegralForKappaDerivative /= m_NumberOfSamples;
+    m_IntegralForThetaDerivative /= m_NumberOfSamples;
+    m_IntegralForPhiDerivative /= m_NumberOfSamples;
+    
+    double scalProd = anima::ComputeScalarProduct(gradient, compartmentOrientation);
+    m_ExtraAxonalSignal = std::exp(-bValue * (appRadialDiff + (appAxialDiff - appRadialDiff) * scalProd * scalProd));
+    
+    m_ModifiedTheta = false;
+    m_ModifiedPhi = false;
+    m_ModifiedConcentration = false;
+    m_ModifiedEAF = false;
+    m_ModifiedAxialDiffusivity = false;
 }
 
 } //end namespace anima
