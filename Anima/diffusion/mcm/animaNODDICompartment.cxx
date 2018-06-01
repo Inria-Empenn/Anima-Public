@@ -86,13 +86,29 @@ NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(doubl
 
 double NODDICompartment::GetLogDiffusionProfile(const Vector3DType &sample)
 {
-    return 1;
+    this->UpdateDiffusionTensor();
+    
+    double resVal = - 1.5 * std::log(2.0 * M_PI) - 0.5 * std::log(m_TensorDeterminant);
+    
+    double quadForm = 0;
+    
+    for (unsigned int i = 0;i < m_SpaceDimension;++i)
+    {
+        quadForm += m_InverseDiffusionTensor(i,i) * sample[i] * sample[i];
+        for (unsigned int j = i+1;j < m_SpaceDimension;++j)
+            quadForm += 2 * m_InverseDiffusionTensor(i,j) * sample[i] * sample[j];
+    }
+    
+    resVal -= quadForm / 2.0;
+    
+    return resVal;
 }
 
 void NODDICompartment::SetOrientationTheta(double num)
 {
     if (num != this->GetOrientationTheta())
     {
+        m_ModifiedTensor = true;
         m_ModifiedTheta = true;
         this->Superclass::SetOrientationTheta(num);
     }
@@ -102,6 +118,7 @@ void NODDICompartment::SetOrientationPhi(double num)
 {
     if (num != this->GetOrientationPhi())
     {
+        m_ModifiedTensor = true;
         m_ModifiedPhi = true;
         this->Superclass::SetOrientationPhi(num);
     }
@@ -111,6 +128,7 @@ void NODDICompartment::SetOrientationConcentration(double num)
 {
     if (num != this->GetOrientationConcentration())
     {
+        m_ModifiedTensor = true;
         m_ModifiedConcentration = true;
         this->Superclass::SetOrientationConcentration(num);
     }
@@ -120,6 +138,7 @@ void NODDICompartment::SetExtraAxonalFraction(double num)
 {
     if (num != this->GetExtraAxonalFraction())
     {
+        m_ModifiedTensor = true;
         m_ModifiedEAF = true;
         this->Superclass::SetExtraAxonalFraction(num);
     }
@@ -129,6 +148,7 @@ void NODDICompartment::SetAxialDiffusivity(double num)
 {
     if (num != this->GetAxialDiffusivity())
     {
+        m_ModifiedTensor = true;
         m_ModifiedAxialDiffusivity = true;
         this->Superclass::SetAxialDiffusivity(num);
     }
@@ -285,6 +305,7 @@ void NODDICompartment::SetCompartmentVector(ModelOutputVectorType &compartmentVe
     
     this->SetAxialDiffusivity(compartmentVector[currentPos]);
     
+    m_ModifiedTensor = false;
     m_ModifiedTheta = false;
     m_ModifiedPhi = false;
     m_ModifiedConcentration = false;
@@ -338,6 +359,15 @@ NODDICompartment::ModelOutputVectorType &NODDICompartment::GetCompartmentVector(
 
 const NODDICompartment::Matrix3DType &NODDICompartment::GetDiffusionTensor()
 {
+    this->UpdateDiffusionTensor();
+    return m_DiffusionTensor;
+}
+
+void NODDICompartment::UpdateDiffusionTensor()
+{
+    if (!m_ModifiedTensor)
+        return;
+    
     this->UpdateWatsonSamples();
     
     double axialDiff = this->GetAxialDiffusivity() * (1.0 - (1.0 - this->GetExtraAxonalFraction()) * (1.0 - m_Tau1));
@@ -359,7 +389,14 @@ const NODDICompartment::Matrix3DType &NODDICompartment::GetDiffusionTensor()
                 m_DiffusionTensor(j,i) = m_DiffusionTensor(i,j);
         }
     
-    return m_DiffusionTensor;
+    m_TensorDeterminant = this->GetAxialDiffusivity() * this->GetRadialDiffusivity1() * this->GetRadialDiffusivity2();
+    
+    m_WorkVnlMatrix1.set_size(m_SpaceDimension,m_SpaceDimension);
+    m_WorkVnlMatrix1 = m_DiffusionTensor.GetVnlMatrix();
+    anima::GetTensorPower(m_WorkVnlMatrix1, m_WorkVnlMatrix2, -1.0);
+    m_InverseDiffusionTensor = m_WorkVnlMatrix2;
+    
+    m_ModifiedTensor = false;
 }
     
 void NODDICompartment::UpdateWatsonSamples()
@@ -441,6 +478,24 @@ void NODDICompartment::UpdateIESignals(double bValue, const Vector3DType &gradie
     m_ModifiedConcentration = false;
     m_ModifiedEAF = false;
     m_ModifiedAxialDiffusivity = false;
+}
+
+double NODDICompartment::GetFractionalAnisotropy()
+{
+    double axialDiff = this->GetAxialDiffusivity();
+    double radialDiff = this->GetRadialDiffusivity1();
+    double l1 = axialDiff - (axialDiff - radialDiff) * (1.0 - m_Tau1);
+    double l2 = axialDiff - (axialDiff - radialDiff) * (1.0 + m_Tau1) / 2.0;
+    double l3 = l2;
+    
+    double numFA = std::sqrt ((l1 - l2) * (l1 - l2) + (l2 - l3) * (l2 - l3) + (l3 - l1) * (l3 - l1));
+    double denomFA = std::sqrt (l1 * l1 + l2 * l2 + l3 * l3);
+    
+    double fa = 0;
+    if (denomFA != 0)
+        fa = std::sqrt(0.5) * (numFA / denomFA);
+    
+    return fa;
 }
 
 } //end namespace anima

@@ -54,12 +54,15 @@ public:
     void SetRadialDiffusivity1(double num) ITK_OVERRIDE;
     
     const Matrix3DType &GetDiffusionTensor() ITK_OVERRIDE;
+    double GetFractionalAnisotropy() ITK_OVERRIDE;
 
 protected:
     NODDICompartment() : Superclass()
     {
         m_EstimateAxialDiffusivity = true;
         m_ChangedConstraints = true;
+        
+        m_ModifiedTensor = true;
         m_ModifiedTheta = true;
         m_ModifiedPhi = true;
         m_ModifiedConcentration = true;
@@ -75,6 +78,7 @@ protected:
         m_IntegralForPhiDerivative = 0;
         m_IntegralForKappaDerivative = 0;
         m_IntegralForDparaDerivative = 0;
+        m_TensorDeterminant = 0;
         
         m_NorthPole.fill(0.0);
         m_NorthPole[2] = 1.0;
@@ -84,6 +88,9 @@ protected:
     
     //! Update Watson samples from parameters
     void UpdateWatsonSamples();
+    
+    //! Update diffusion tensor value from parameters
+    void UpdateDiffusionTensor();
     
     //! Update intra- and extra-axonal signals + all Monte-Carlo integrals
     void UpdateIESignals(double bValue, const Vector3DType &gradient);
@@ -99,7 +106,11 @@ private:
     // Internal work variables for faster processing
     
     //! Optimization variable: set to true when the internal parameter has been modified requiring to recompute all quantities depending on it
-    bool m_ModifiedTheta, m_ModifiedPhi, m_ModifiedConcentration, m_ModifiedEAF, m_ModifiedAxialDiffusivity;
+    bool m_ModifiedTensor, m_ModifiedTheta, m_ModifiedPhi, m_ModifiedConcentration, m_ModifiedEAF, m_ModifiedAxialDiffusivity;
+    
+    vnl_matrix <double> m_WorkVnlMatrix1, m_WorkVnlMatrix2;
+    Matrix3DType m_DiffusionTensor;
+    Matrix3DType m_InverseDiffusionTensor;
     
     std::vector<Vector3DType> m_WatsonSamples;
     Vector3DType m_NorthPole;
@@ -109,6 +120,7 @@ private:
     double m_IntegralForPhiDerivative;
     double m_IntegralForKappaDerivative;
     double m_IntegralForDparaDerivative;
+    double m_TensorDeterminant;
     
     static const unsigned int m_NumberOfSamples = 1000;
 };
