@@ -53,9 +53,7 @@ NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(doubl
         kappaDeriv = levenberg::BoundedDerivativeAddOn(kappa, this->GetBoundedSignVectorValue(2),
                                                        m_ZeroLowerBound, m_WatsonKappaUpperBound);
     
-    double kummerNumerator = anima::KummerFunction(kappa, 1.5, 2.5);
-    double kummerDenominator = anima::KummerFunction(kappa, 0.5, 1.5);
-    double intraKappaDeriv = m_IntegralForKappaDerivative - kummerNumerator * m_IntraAxonalSignal / (3.0 * kummerDenominator);
+    double intraKappaDeriv = m_IntegralForKappaDerivative - m_KummerRatio * m_IntraAxonalSignal;
     double extraKappaDeriv = bValue * dpara * nuic * m_Tau1Deriv * (1.0 - 3.0 * innerProd * innerProd) * m_ExtraAxonalSignal / 2.0;
     m_JacobianVector[2] = (nuic * intraKappaDeriv + (1.0 - nuic) * extraKappaDeriv) * kappaDeriv;
     
@@ -411,6 +409,8 @@ void NODDICompartment::UpdateWatsonSamples()
     double fVal = anima::EvaluateDawsonFunction(kappaSqrt);
     m_Tau1 = -1.0 / (2.0 * kappa) + 1.0 / (2.0 * fVal * kappaSqrt);
     m_Tau1Deriv = 1.0 / (2.0 * kappaSq) - (1.0 - kappaSqrt * fVal * (2.0 - 1.0 / kappaSq)) / (4.0 * kappa * fVal * fVal);
+    double kummerVal = anima::KummerFunction(kappa, 0.5, 1.5);
+    m_KummerRatio = std::exp(kappa) * (1.0 - std::exp(-kappa) * kummerVal) / (2.0 * kappa * kummerVal);
     
     m_WatsonSamples.resize(m_NumberOfSamples);
     std::mt19937 generator(time(0));

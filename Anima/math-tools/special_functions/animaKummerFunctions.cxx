@@ -1,5 +1,6 @@
 #include <animaKummerFunctions.h>
 #include <boost/math/special_functions/gamma.hpp>
+#include <boost/math/quadrature/gauss.hpp>
 
 namespace anima
 {
@@ -95,6 +96,13 @@ KummerFunction(const double &x,
                const unsigned int maxIter,
                const double tol)
 {
+    if (std::abs(a - 0.5) < 1.0e-8 && std::abs(b - 1.5) < 1.0e-8)
+    {
+        KummerIntegrand integrand;
+        integrand.SetXValue(x);
+        return boost::math::quadrature::gauss<double, 15>::integrate(integrand, 0.0, 1.0);
+    }
+    
     if (std::abs(x) < 50.0)
         return KummerMethod1(x,a,b,maxIter,tol);
     else

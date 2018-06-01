@@ -70,6 +70,7 @@ protected:
         m_ModifiedAxialDiffusivity = true;
         m_Tau1 = 2.0 / 3.0;
         m_Tau1Deriv = 0.0;
+        m_KummerRatio = 1.0;
         m_WatsonSamples.clear();
         
         m_IntraAxonalSignal = 0;
@@ -114,7 +115,7 @@ private:
     
     std::vector<Vector3DType> m_WatsonSamples;
     Vector3DType m_NorthPole;
-    double m_Tau1, m_Tau1Deriv;
+    double m_Tau1, m_Tau1Deriv, m_KummerRatio;
     double m_ExtraAxonalSignal, m_IntraAxonalSignal;
     double m_IntegralForThetaDerivative;
     double m_IntegralForPhiDerivative;

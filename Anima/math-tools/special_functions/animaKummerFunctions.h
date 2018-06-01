@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AnimaSpecialFunctionsExport.h"
+#include <cmath>
 
 namespace anima
 {
@@ -35,5 +36,19 @@ KummerFunction(const double &x,
                const double &b,
                const unsigned int maxIter = 10000,
                const double tol = 1.0e-15);
+
+class KummerIntegrand
+{
+public:
+    void SetXValue(double val) {m_XValue = val;}
+    
+    double operator() (const double t)
+    {
+        return std::exp(m_XValue * t * t);
+    }
+    
+private:
+    double m_XValue;
+};
 
 } // end namespace anima
