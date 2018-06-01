@@ -350,34 +350,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
             m_MCMCreators[i]->SetConcentrationBounds(kappaLowerBound,kappaUpperBound);
     }
-    
-    if (m_CompartmentType == anima::NODDI)
-    {
-        unsigned int numberOfSamples = 1000;
-        unsigned int numberOfTabulatedKappas = 100;
-        
-        GradientType northPole(0.0);
-        northPole[2] = 1.0;
-        
-        m_WatsonSamples.resize(numberOfSamples);
-        std::mt19937 generator(time(0));
-        double step = 0.98 / (numberOfTabulatedKappas - 1.0);
-        
-        for (unsigned int i = 0;i < numberOfSamples;++i)
-        {
-            m_WatsonSamples[i].resize(numberOfTabulatedKappas);
-            double od = 0.01;
-            unsigned int pos = 0;
-            
-            while (od < 0.99)
-            {
-                double kappa = 1.0 / std::tan(M_PI / 2.0 * od);
-                anima::SampleFromWatsonDistribution(kappa, northPole, m_WatsonSamples[i][pos], 3, generator);
-                od += step;
-                ++pos;
-            }
-        }
-    }
 }
 
 template <class InputPixelType, class OutputPixelType>
@@ -578,10 +550,15 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     {
         this->InitialOrientationsEstimation(mcmOptimizationValue,currentNumberOfCompartments,initialDTI,observedSignals,
                                             generator,threadId,aiccValue,b0Value,sigmaSqValue);
-
-        this->TrunkModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
-        if ((m_CompartmentType != Stick)&&(m_CompartmentType != Zeppelin))
+        
+        if (m_CompartmentType == NODDI)
             this->SpecificModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
+        else
+        {
+            this->TrunkModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
+            if ((m_CompartmentType != Stick)&&(m_CompartmentType != Zeppelin))
+                this->SpecificModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
+        }
 
         if ((aiccValue < optimalAiccValue)||(restartNum == 0))
         {
@@ -1009,7 +986,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
             p[i] = workVec[i];
 
         double costValue = this->PerformSingleOptimization(p,cost,lowerBounds,upperBounds);
-
+        
         if ((costValue < optimalCostValue)||(restartNum == 0))
         {
             // - Get estimated data

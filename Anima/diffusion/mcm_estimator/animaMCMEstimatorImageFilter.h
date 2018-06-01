@@ -418,8 +418,6 @@ private:
     unsigned int m_MaxEval;
     double m_XTolerance;
     double m_GTolerance;
-    
-    std::vector < std::vector<GradientType> > m_WatsonSamples;
 };
 
 } // end namespace anima
