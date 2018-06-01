@@ -3,6 +3,7 @@
 #include <animaErrorFunctions.h>
 #include <animaDistributionSampling.h>
 #include <animaLevenbergTools.h>
+#include <animaKummerFunctions.h>
 
 namespace anima
 {
@@ -52,8 +53,8 @@ NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(doubl
         kappaDeriv = levenberg::BoundedDerivativeAddOn(kappa, this->GetBoundedSignVectorValue(2),
                                                        m_ZeroLowerBound, m_WatsonKappaUpperBound);
     
-    double kummerNumerator = 1.0;
-    double kummerDenominator = 1.0;
+    double kummerNumerator = anima::KummerFunction(kappa, 1.5, 2.5);
+    double kummerDenominator = anima::KummerFunction(kappa, 0.5, 1.5);
     double intraKappaDeriv = m_IntegralForKappaDerivative - kummerNumerator * m_IntraAxonalSignal / (3.0 * kummerDenominator);
     double extraKappaDeriv = bValue * dpara * nuic * m_Tau1Deriv * (1.0 - 3.0 * innerProd * innerProd) * m_ExtraAxonalSignal / 2.0;
     m_JacobianVector[2] = (nuic * intraKappaDeriv + (1.0 - nuic) * extraKappaDeriv) * kappaDeriv;
