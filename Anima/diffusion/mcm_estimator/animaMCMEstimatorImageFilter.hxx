@@ -551,14 +551,14 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         this->InitialOrientationsEstimation(mcmOptimizationValue,currentNumberOfCompartments,initialDTI,observedSignals,
                                             generator,threadId,aiccValue,b0Value,sigmaSqValue);
         
-        if (m_CompartmentType == NODDI)
-            this->SpecificModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
-        else
-        {
+//        if (m_CompartmentType == NODDI)
+//            this->SpecificModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
+//        else
+//        {
             this->TrunkModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
             if ((m_CompartmentType != Stick)&&(m_CompartmentType != Zeppelin))
                 this->SpecificModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
-        }
+//        }
 
         if ((aiccValue < optimalAiccValue)||(restartNum == 0))
         {
@@ -921,7 +921,10 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         MCMType::ListType upperBoundsSequenceSampling(2 * numNonIsoCompartments,128.0);
         
         for (unsigned int i = 0;i < numNonIsoCompartments;++i)
-            upperBoundsSequenceSampling[numNonIsoCompartments + i] = 1.0;
+        {
+            lowerBoundsSequenceSampling[numNonIsoCompartments + i] = 1.0 / 129.0;
+            upperBoundsSequenceSampling[numNonIsoCompartments + i] = 128.0 / 129.0;
+        }
         
         ldsSequence.SetLowerBounds(lowerBoundsSequenceSampling);
         ldsSequence.SetUpperBounds(upperBoundsSequenceSampling);
