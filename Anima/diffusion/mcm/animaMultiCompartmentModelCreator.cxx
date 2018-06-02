@@ -226,13 +226,13 @@ void MultiCompartmentModelCreator::CreateNODDICompartment(BaseCompartmentPointer
     noddiComp->SetOrientationConcentration(m_OrientationConcentration);
     noddiComp->SetExtraAxonalFraction(m_ExtraAxonalFraction);
     noddiComp->SetAxialDiffusivity(m_AxialDiffusivity);
-    noddiComp->SetRadialDiffusivity1((m_RadialDiffusivity1 + m_RadialDiffusivity2) / 2.0);
+//    noddiComp->SetRadialDiffusivity1((m_RadialDiffusivity1 + m_RadialDiffusivity2) / 2.0);
     
-    if (applyConstraints)
-    {
-        if (m_UseCommonDiffusivities)
-            noddiComp->SetEstimateAxialDiffusivity(false);
-    }
+//    if (applyConstraints)
+//    {
+//        if (m_UseCommonDiffusivities)
+//            noddiComp->SetEstimateAxialDiffusivity(false);
+//    }
     
     compartmentPointer = noddiComp;
 }

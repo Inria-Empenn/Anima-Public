@@ -154,8 +154,14 @@ void NODDICompartment::SetAxialDiffusivity(double num)
 
 void NODDICompartment::SetRadialDiffusivity1(double num)
 {
-    this->Superclass::SetRadialDiffusivity1(num);
-    this->SetRadialDiffusivity2(num);
+    if (num != this->GetRadialDiffusivity1())
+    {
+        m_ModifiedTensor = true;
+        m_ModifiedEAF = true;
+        m_ModifiedAxialDiffusivity = true;
+        this->Superclass::SetRadialDiffusivity1(num);
+        this->Superclass::SetRadialDiffusivity2(num);
+    }
 }
 
 void NODDICompartment::SetParametersFromVector(const ListType &params)

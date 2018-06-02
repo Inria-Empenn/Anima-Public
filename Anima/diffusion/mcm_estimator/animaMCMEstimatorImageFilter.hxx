@@ -984,6 +984,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         workVec = mcmUpdateValue->GetParametersAsVector();
         for (unsigned int i = 0;i < dimension;++i)
             p[i] = workVec[i];
+        
+        std::cout << p << std::endl;
 
         double costValue = this->PerformSingleOptimization(p,cost,lowerBounds,upperBounds);
         
