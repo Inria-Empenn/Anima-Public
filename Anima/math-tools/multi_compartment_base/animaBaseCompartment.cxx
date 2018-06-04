@@ -17,13 +17,6 @@ const double BaseCompartment::m_DefaultConcentrationUpperBound = 20;
 const double BaseCompartment::m_WatsonKappaUpperBound = 128.0;
 const double BaseCompartment::m_Epsilon = 1.0e-2;
 const double BaseCompartment::m_FractionUpperBound = 1.0;
-const double BaseCompartment::m_GyromagneticRatio = 267.513;
-
-double BaseCompartment::GetBValueFromAcquisitionParameters(double smallDelta, double largeDelta, double gradientStrength)
-{
-    double alpha = m_GyromagneticRatio * smallDelta * gradientStrength;
-    return alpha * alpha * (largeDelta - smallDelta / 3.0);
-}
 
 double BaseCompartment::GetPredictedSignal(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient)
 {

@@ -3,6 +3,7 @@
 
 #include <animaVectorOperations.h>
 #include <itkSymmetricEigenAnalysis.h>
+#include <animaMCMConstants.h>
 
 namespace anima
 {
@@ -13,7 +14,7 @@ double StickCompartment::GetFourierTransformedDiffusionProfile(double smallDelta
             + gradient[1] * std::sin(this->GetOrientationTheta()) * std::sin(this->GetOrientationPhi())
             + gradient[2] * std::cos(this->GetOrientationTheta());
     
-    double bValue = this->GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
+    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
     return std::exp(-bValue * (this->GetRadialDiffusivity1() + (this->GetAxialDiffusivity() - this->GetRadialDiffusivity1())
                                * m_GradientEigenvector1 * m_GradientEigenvector1));
 }
@@ -21,7 +22,7 @@ double StickCompartment::GetFourierTransformedDiffusionProfile(double smallDelta
 StickCompartment::ListType &StickCompartment::GetSignalAttenuationJacobian(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient)
 {
     m_JacobianVector.resize(this->GetNumberOfParameters());
-    double bValue = this->GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
+    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
     
     double signalAttenuation = this->GetFourierTransformedDiffusionProfile(smallDelta, largeDelta, gradientStrength, gradient);
     

@@ -3,6 +3,7 @@
 
 #include <animaVectorOperations.h>
 #include <itkSymmetricEigenAnalysis.h>
+#include <animaMCMConstants.h>
 
 namespace anima
 {
@@ -13,7 +14,7 @@ double ZeppelinCompartment::GetFourierTransformedDiffusionProfile(double smallDe
             + gradient[1] * std::sin(this->GetOrientationTheta()) * std::sin(this->GetOrientationPhi())
             + gradient[2] * std::cos(this->GetOrientationTheta());
     
-    double bValue = this->GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
+    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
     return std::exp(-bValue * (this->GetRadialDiffusivity1()
                                + (this->GetAxialDiffusivity() - this->GetRadialDiffusivity1())
                                * m_GradientEigenvector1 * m_GradientEigenvector1));
@@ -24,7 +25,7 @@ ZeppelinCompartment::ListType &ZeppelinCompartment::GetSignalAttenuationJacobian
     m_JacobianVector.resize(this->GetNumberOfParameters());
     
     double signalAttenuation = this->GetFourierTransformedDiffusionProfile(smallDelta, largeDelta, gradientStrength, gradient);
-    double bValue = this->GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
+    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
 
     // Derivative w.r.t. theta
     double thetaDeriv = 1.0;

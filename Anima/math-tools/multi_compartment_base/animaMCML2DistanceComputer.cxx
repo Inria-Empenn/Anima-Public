@@ -1,7 +1,7 @@
 #include <animaMCML2DistanceComputer.h>
 #include <animaSpectralClusteringFilter.h>
 #include <animaBaseTensorTools.h>
-#include <animaBaseCompartment.h>
+#include <animaMCMConstants.h>
 
 namespace anima
 {
@@ -12,8 +12,8 @@ MCML2DistanceComputer::MCML2DistanceComputer()
     m_ForceApproximation = false;
     m_SquaredDistance = true;
 
-    m_SmallDelta = 1.0 / anima::BaseCompartment::m_GyromagneticRatio;
-    m_LargeDelta = 1.0 + m_SmallDelta / 3.0;
+    m_SmallDelta = anima::DiffusionSmallDelta;
+    m_LargeDelta = anima::DiffusionLargeDelta;
 }
 
 void MCML2DistanceComputer::SetGradientStrengths(const std::vector <double> &val)
@@ -64,7 +64,7 @@ void MCML2DistanceComputer::UpdateSphereWeights()
 
     m_SphereWeights.resize(individualGradientStrengths.size());
     m_BValWeightsIndexes.resize(m_GradientStrengths.size());
-    double lastBValue = anima::BaseCompartment::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, individualGradientStrengths[individualGradientStrengths.size() - 1]);
+    double lastBValue = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, individualGradientStrengths[individualGradientStrengths.size() - 1]);
 
     for (unsigned int i = 0;i < individualGradientStrengths.size();++i)
     {
@@ -80,11 +80,11 @@ void MCML2DistanceComputer::UpdateSphereWeights()
 
         double lowerRadius = 0;
         double baseValue = 0;
-        double bValueCenter = anima::BaseCompartment::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, individualGradientStrengths[i]);
+        double bValueCenter = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, individualGradientStrengths[i]);
 
         if (i > 0)
         {
-            double bValueBefore = anima::BaseCompartment::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, individualGradientStrengths[i-1]);
+            double bValueBefore = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, individualGradientStrengths[i-1]);
             lowerRadius = (bValueCenter + bValueBefore) / 2.0;
             baseValue = bValueBefore;
         }
@@ -92,7 +92,7 @@ void MCML2DistanceComputer::UpdateSphereWeights()
         double upperRadius = lastBValue + lowerRadius - baseValue;
         if (i < individualGradientStrengths.size() - 1)
         {
-            double bValueAfter = anima::BaseCompartment::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, individualGradientStrengths[i+1]);
+            double bValueAfter = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, individualGradientStrengths[i+1]);
             upperRadius = (bValueCenter + bValueAfter) / 2.0;
         }
 

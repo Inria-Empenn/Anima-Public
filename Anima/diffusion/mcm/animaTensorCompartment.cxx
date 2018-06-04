@@ -3,6 +3,7 @@
 
 #include <itkSymmetricEigenAnalysis.h>
 #include <animaBaseTensorTools.h>
+#include <animaMCMConstants.h>
 
 namespace anima
 {
@@ -20,7 +21,7 @@ double TensorCompartment::GetFourierTransformedDiffusionProfile(double smallDelt
             quadForm += 2 * m_DiffusionTensor(i,j) * gradient[i] * gradient[j];
     }
 
-    double bValue = this->GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
+    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
 
     return std::exp(- bValue * quadForm);
 }
@@ -51,7 +52,7 @@ TensorCompartment::ListType &TensorCompartment::GetSignalAttenuationJacobian(dou
         thetaDeriv = levenberg::BoundedDerivativeAddOn(this->GetOrientationTheta(), this->GetBoundedSignVectorValue(0),
                                                        m_ZeroLowerBound, m_PolarAngleUpperBound);
 
-    double bValue = this->GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
+    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
     m_JacobianVector[0] = -2.0 * bValue * (diffAxialRadial2 * innerProd1 * DgTe1DTheta + diffRadialDiffusivities * innerProd2 * DgTe2DTheta) * signalAttenuation * thetaDeriv;
     
     // Derivative w.r.t. phi

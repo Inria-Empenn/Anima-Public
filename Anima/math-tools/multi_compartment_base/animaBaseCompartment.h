@@ -49,8 +49,6 @@ public:
     virtual ListType &GetSignalAttenuationJacobian(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient) = 0;
     virtual double GetLogDiffusionProfile(const Vector3DType &sample) = 0;
 
-    static double GetBValueFromAcquisitionParameters(double smallDelta, double largeDelta, double gradientStrength);
-
     //! Various methods for optimization parameters setting and getting
     virtual void SetParametersFromVector(const ListType &params) = 0;
     virtual ListType &GetParametersAsVector() = 0;
@@ -135,9 +133,6 @@ protected:
     virtual void UnboundParameters(ListType &params) = 0;
 
     static const unsigned int m_SpaceDimension = 3;
-
-    //! Gyromgnetic ratio (in 10^6 rad/s/T), from Nelson, J., Nuclear Magnetic Resonance Spectroscopy, Prentice Hall, Londres, 2003
-    static const double m_GyromagneticRatio;
 
     static const double m_ZeroLowerBound;
     static const double m_Epsilon;

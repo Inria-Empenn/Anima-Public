@@ -37,7 +37,7 @@ public:
 
     void SetObservedSignals(ListType &value) {m_ObservedSignals = value;}
     void SetGradients(std::vector<Vector3DType> &value) {m_Gradients = value;}
-    void SetBValues(ListType &value) {m_BValues = value;}
+    void SetGradientStrengths(ListType &value) {m_GradientStrengths = value;}
 
     void SetMCMStructure(MCMType *model) {m_MCMStructure = model;}
     MCMPointer &GetMCMStructure() {return m_MCMStructure;}
@@ -71,6 +71,9 @@ public:
     virtual double GetB0Value() {return m_B0Value;}
     virtual double GetSigmaSquare() {return m_SigmaSquare;}
 
+    void SetSmallDelta(double val) {m_SmallDelta = val;}
+    void SetLargeDelta(double val) {m_LargeDelta = val;}
+
 protected:
     BaseMCMCost();
     virtual ~BaseMCMCost() {}
@@ -83,7 +86,10 @@ protected:
 
     ListType m_ObservedSignals;
     std::vector<Vector3DType> m_Gradients;
-    ListType m_BValues;
+
+    double m_SmallDelta;
+    double m_LargeDelta;
+    ListType m_GradientStrengths;
 
     MCMPointer m_MCMStructure;
 

@@ -1,4 +1,5 @@
 #include <animaBaseIsotropicCompartment.h>
+#include <animaMCMConstants.h>
 
 #include <cmath>
 
@@ -7,7 +8,7 @@ namespace anima
 
 double BaseIsotropicCompartment::GetFourierTransformedDiffusionProfile(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient)
 {
-    double bValue = this->GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
+    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
     return std::exp(- bValue * this->GetAxialDiffusivity());
 }
 
@@ -23,7 +24,7 @@ BaseCompartment::ListType &BaseIsotropicCompartment::GetSignalAttenuationJacobia
         axDiffDeriv = this->GetAxialDiffusivityDerivativeFactor();
 
     double signalAttenuation = this->GetFourierTransformedDiffusionProfile(smallDelta, largeDelta, gradientStrength, gradient);
-    double bValue = this->GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
+    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
 
     m_JacobianVector[0] = - bValue * signalAttenuation * axDiffDeriv;
     return m_JacobianVector;
