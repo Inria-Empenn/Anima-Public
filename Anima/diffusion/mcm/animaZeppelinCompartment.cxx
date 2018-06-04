@@ -7,22 +7,24 @@
 namespace anima
 {
 
-double ZeppelinCompartment::GetFourierTransformedDiffusionProfile(double bValue, const Vector3DType &gradient)
+double ZeppelinCompartment::GetFourierTransformedDiffusionProfile(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient)
 {
     m_GradientEigenvector1 = gradient[0] * std::sin(this->GetOrientationTheta()) * std::cos(this->GetOrientationPhi())
             + gradient[1] * std::sin(this->GetOrientationTheta()) * std::sin(this->GetOrientationPhi())
             + gradient[2] * std::cos(this->GetOrientationTheta());
     
+    double bValue = this->GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
     return std::exp(-bValue * (this->GetRadialDiffusivity1()
                                + (this->GetAxialDiffusivity() - this->GetRadialDiffusivity1())
                                * m_GradientEigenvector1 * m_GradientEigenvector1));
 }
 
-ZeppelinCompartment::ListType &ZeppelinCompartment::GetSignalAttenuationJacobian(double bValue, const Vector3DType &gradient)
+ZeppelinCompartment::ListType &ZeppelinCompartment::GetSignalAttenuationJacobian(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient)
 {
     m_JacobianVector.resize(this->GetNumberOfParameters());
     
-    double signalAttenuation = this->GetFourierTransformedDiffusionProfile(bValue, gradient);
+    double signalAttenuation = this->GetFourierTransformedDiffusionProfile(smallDelta, largeDelta, gradientStrength, gradient);
+    double bValue = this->GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
 
     // Derivative w.r.t. theta
     double thetaDeriv = 1.0;
