@@ -1,6 +1,7 @@
 #include <animaMCML2DistanceComputer.h>
 #include <animaSpectralClusteringFilter.h>
 #include <animaBaseTensorTools.h>
+#include <animaBaseCompartment.h>
 
 namespace anima
 {
@@ -10,13 +11,16 @@ MCML2DistanceComputer::MCML2DistanceComputer()
     m_LowPassGaussianSigma = 2000;
     m_ForceApproximation = false;
     m_SquaredDistance = true;
+
+    m_SmallDelta = 1.0;
+    m_LargeDelta = 1.0;
 }
 
-void MCML2DistanceComputer::SetBValues(const std::vector <double> &val)
+void MCML2DistanceComputer::SetGradientStrengths(const std::vector <double> &val)
 {
-    m_BValues = val;
+    m_GradientStrengths = val;
 
-    if ((m_GradientDirections.size() == m_BValues.size())&&(m_BValues.size() != 0)&&(m_GradientDirections.size() != 0))
+    if ((m_GradientDirections.size() == m_GradientStrengths.size())&&(m_GradientStrengths.size() != 0)&&(m_GradientDirections.size() != 0))
         this->UpdateSphereWeights();
 }
 
@@ -24,19 +28,19 @@ void MCML2DistanceComputer::SetGradientDirections(const std::vector <GradientTyp
 {
     m_GradientDirections = val;
 
-    if ((m_GradientDirections.size() == m_BValues.size())&&(m_BValues.size() != 0)&&(m_GradientDirections.size() != 0))
+    if ((m_GradientDirections.size() == m_GradientStrengths.size())&&(m_GradientStrengths.size() != 0)&&(m_GradientDirections.size() != 0))
         this->UpdateSphereWeights();
 }
 
 void MCML2DistanceComputer::UpdateSphereWeights()
 {
-    std::vector <double> individualBValues;
-    for (unsigned int i = 0;i < m_BValues.size();++i)
+    std::vector <double> individualGradientStrengths;
+    for (unsigned int i = 0;i < m_GradientStrengths.size();++i)
     {
         bool alreadyIn = false;
-        for (unsigned int j = 0;j < individualBValues.size();++j)
+        for (unsigned int j = 0;j < individualGradientStrengths.size();++j)
         {
-            if (individualBValues[j] == m_BValues[i])
+            if (individualGradientStrengths[j] == m_GradientStrengths[i])
             {
                 alreadyIn = true;
                 break;
@@ -44,29 +48,30 @@ void MCML2DistanceComputer::UpdateSphereWeights()
         }
 
         if (!alreadyIn)
-            individualBValues.push_back(m_BValues[i]);
+            individualGradientStrengths.push_back(m_GradientStrengths[i]);
     }
 
-    std::sort(individualBValues.begin(),individualBValues.end());
+    std::sort(individualGradientStrengths.begin(),individualGradientStrengths.end());
 
-    if (individualBValues[0] != 0)
+    if (individualGradientStrengths[0] != 0)
     {
-        m_BValues.push_back(0);
+        m_GradientStrengths.push_back(0);
         GradientType tmpVec;
         tmpVec.fill(0);
         m_GradientDirections.push_back(tmpVec);
-        individualBValues.insert(individualBValues.begin(),0);
+        individualGradientStrengths.insert(individualGradientStrengths.begin(),0);
     }
 
-    m_SphereWeights.resize(individualBValues.size());
-    m_BValWeightsIndexes.resize(m_BValues.size());
+    m_SphereWeights.resize(individualGradientStrengths.size());
+    m_BValWeightsIndexes.resize(m_GradientStrengths.size());
+    double lastBValue = anima::BaseCompartment::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, individualGradientStrengths[individualGradientStrengths.size() - 1]);
 
-    for (unsigned int i = 0;i < individualBValues.size();++i)
+    for (unsigned int i = 0;i < individualGradientStrengths.size();++i)
     {
         unsigned int numValues = 0;
-        for (unsigned int j = 0;j < m_BValues.size();++j)
+        for (unsigned int j = 0;j < m_GradientStrengths.size();++j)
         {
-            if (m_BValues[j] == individualBValues[i])
+            if (m_GradientStrengths[j] == individualGradientStrengths[i])
             {
                 ++numValues;
                 m_BValWeightsIndexes[j] = i;
@@ -75,15 +80,21 @@ void MCML2DistanceComputer::UpdateSphereWeights()
 
         double lowerRadius = 0;
         double baseValue = 0;
+        double bValueCenter = anima::BaseCompartment::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, individualGradientStrengths[i]);
+
         if (i > 0)
         {
-            lowerRadius = (individualBValues[i] + individualBValues[i-1]) / 2.0;
-            baseValue = individualBValues[i-1];
+            double bValueBefore = anima::BaseCompartment::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, individualGradientStrengths[i-1]);
+            lowerRadius = (bValueCenter + bValueBefore) / 2.0;
+            baseValue = bValueBefore;
         }
 
-        double upperRadius = individualBValues[individualBValues.size() - 1] + lowerRadius - baseValue;
-        if (i < individualBValues.size() - 1)
-            upperRadius = (individualBValues[i] + individualBValues[i+1]) / 2.0;
+        double upperRadius = lastBValue + lowerRadius - baseValue;
+        if (i < individualGradientStrengths.size() - 1)
+        {
+            double bValueAfter = anima::BaseCompartment::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, individualGradientStrengths[i+1]);
+            upperRadius = (bValueCenter + bValueAfter) / 2.0;
+        }
 
         lowerRadius = std::sqrt(2.0 * lowerRadius);
         upperRadius = std::sqrt(2.0 * upperRadius);
@@ -265,14 +276,14 @@ double MCML2DistanceComputer::ComputeTensorDistance(const MCMPointer &firstModel
 
 double MCML2DistanceComputer::ComputeApproximateDistance(const MCMPointer &firstModel, const MCMPointer &secondModel) const
 {
-    if ((m_BValues.size() == 0)||(m_GradientDirections.size() == 0)||(m_BValues.size() != m_GradientDirections.size()))
+    if ((m_GradientStrengths.size() == 0)||(m_GradientDirections.size() == 0)||(m_GradientStrengths.size() != m_GradientDirections.size()))
         itkExceptionMacro("Problem in metric: b-values and gradient directions not correctly set");
 
     double metricValue = 0;
-    for (unsigned int i = 0;i < m_BValues.size();++i)
+    for (unsigned int i = 0;i < m_GradientStrengths.size();++i)
     {
-        double firstCFValue = firstModel->GetPredictedSignal(m_BValues[i],m_GradientDirections[i]);
-        double secondCFValue = secondModel->GetPredictedSignal(m_BValues[i],m_GradientDirections[i]);
+        double firstCFValue = firstModel->GetPredictedSignal(m_SmallDelta, m_LargeDelta, m_GradientStrengths[i], m_GradientDirections[i]);
+        double secondCFValue = secondModel->GetPredictedSignal(m_SmallDelta, m_LargeDelta, m_GradientStrengths[i], m_GradientDirections[i]);
 
         // We should weight these squared differences by their local volume
         metricValue += m_SphereWeights[m_BValWeightsIndexes[i]] * (firstCFValue - secondCFValue) * (firstCFValue - secondCFValue);

@@ -37,7 +37,10 @@ public:
 
     double ComputeDistance(const MCMPointer &firstModel, const MCMPointer &secondModel) const;
 
-    void SetBValues(const std::vector <double> &val);
+    void SetGradientStrengths(const std::vector <double> &val);
+    void SetSmallDelta(double val) {m_SmallDelta = val;}
+    void SetLargeDelta(double val) {m_LargeDelta = val;}
+
     void SetGradientDirections(const std::vector <GradientType> &val);
 
 protected:
@@ -56,7 +59,9 @@ private:
     bool m_SquaredDistance;
 
     // Optional parameters for the case when compartments are not tensor compatible
-    std::vector <double> m_BValues;
+    double m_SmallDelta;
+    double m_LargeDelta;
+    std::vector <double> m_GradientStrengths;
     std::vector <GradientType> m_GradientDirections;
 
     // Parameters for numerical integration on non tensor compatible models
