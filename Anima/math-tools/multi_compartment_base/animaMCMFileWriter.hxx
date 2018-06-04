@@ -125,6 +125,10 @@ MCMFileWriter <PixelType, ImageDimension>
             case Tensor:
                 outputHeaderFile << "<Type>Tensor</Type>" << std::endl;
                 break;
+                
+            case NODDI:
+                outputHeaderFile << "<Type>NODDI</Type>" << std::endl;
+                break;
 
             case DDI:
                 outputHeaderFile << "<Type>DDI</Type>" << std::endl;

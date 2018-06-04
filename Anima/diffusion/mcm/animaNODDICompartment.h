@@ -45,13 +45,12 @@ public:
     unsigned int GetNumberOfParameters() ITK_OVERRIDE;
     ModelOutputVectorType &GetCompartmentVector() ITK_OVERRIDE;
     
-    //Reimplement for handling modification flags
+    // Reimplement for handling modification flags
     void SetOrientationTheta(double num) ITK_OVERRIDE;
     void SetOrientationPhi(double num) ITK_OVERRIDE;
     void SetOrientationConcentration(double num) ITK_OVERRIDE;
     void SetExtraAxonalFraction(double num) ITK_OVERRIDE;
     void SetAxialDiffusivity(double num) ITK_OVERRIDE;
-    void SetRadialDiffusivity1(double num) ITK_OVERRIDE;
     
     const Matrix3DType &GetDiffusionTensor() ITK_OVERRIDE;
     double GetFractionalAnisotropy() ITK_OVERRIDE;

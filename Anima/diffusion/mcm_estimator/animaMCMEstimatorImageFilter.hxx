@@ -551,14 +551,14 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         this->InitialOrientationsEstimation(mcmOptimizationValue,currentNumberOfCompartments,initialDTI,observedSignals,
                                             generator,threadId,aiccValue,b0Value,sigmaSqValue);
         
-//        if (m_CompartmentType == NODDI)
-//            this->SpecificModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
-//        else
-//        {
+        if (m_CompartmentType == NODDI)
+            this->SpecificModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
+        else
+        {
             this->TrunkModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
             if ((m_CompartmentType != Stick)&&(m_CompartmentType != Zeppelin))
                 this->SpecificModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
-//        }
+        }
 
         if ((aiccValue < optimalAiccValue)||(restartNum == 0))
         {
@@ -983,11 +983,11 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
                 mcmUpdateValue->GetCompartment(i)->SetRadialDiffusivity2(w2 * zeppelinRadDiff + (1 - w2) * 1e-5);
             }
         }
-
+        
         workVec = mcmUpdateValue->GetParametersAsVector();
         for (unsigned int i = 0;i < dimension;++i)
             p[i] = workVec[i];
-
+        
         double costValue = this->PerformSingleOptimization(p,cost,lowerBounds,upperBounds);
         
         if ((costValue < optimalCostValue)||(restartNum == 0))
