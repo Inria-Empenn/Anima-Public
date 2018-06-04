@@ -1,5 +1,4 @@
 #include <animaKummerFunctions.h>
-#include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/quadrature/gauss.hpp>
 
 namespace anima
@@ -80,11 +79,11 @@ KummerMethod2(const double &x,
     }
     
     if (x > 0)
-        resVal *= std::exp(x) * std::pow(x,(double)(a-b)) / boost::math::tgamma(a);
+        resVal *= std::exp(x) * std::pow(x,(double)(a-b)) / std::tgamma(a);
     else
-        resVal *= std::pow(-x,-1.0 * a) / boost::math::tgamma(b-a);
+        resVal *= std::pow(-x,-1.0 * a) / std::tgamma(b-a);
     
-    resVal *= boost::math::tgamma(b);
+    resVal *= std::tgamma(b);
     
     return resVal;
 }
@@ -96,11 +95,13 @@ KummerFunction(const double &x,
                const unsigned int maxIter,
                const double tol)
 {
-    if (std::abs(a - 0.5) < 1.0e-8 && std::abs(b - 1.5) < 1.0e-8)
+    if (a > 0 && b > 0)
     {
         KummerIntegrand integrand;
         integrand.SetXValue(x);
-        return boost::math::quadrature::gauss<double, 15>::integrate(integrand, 0.0, 1.0);
+        integrand.SetAValue(a);
+        integrand.SetBValue(b);
+        return boost::math::quadrature::gauss<double, 15>::integrate(integrand, 0.0, 1.0) * std::tgamma(b) / (std::tgamma(a) * std::tgamma(b - a));
     }
     
     if (std::abs(x) < 50.0)

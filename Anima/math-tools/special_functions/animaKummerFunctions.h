@@ -41,14 +41,16 @@ class KummerIntegrand
 {
 public:
     void SetXValue(double val) {m_XValue = val;}
+    void SetAValue(double val) {m_AValue = val;}
+    void SetBValue(double val) {m_BValue = val;}
     
     double operator() (const double t)
     {
-        return std::exp(m_XValue * t * t);
+        return std::exp(m_XValue * t) * std::pow(t, m_AValue - 1.0) * std::pow(1.0 - t, m_BValue - m_AValue - 1.0);
     }
     
 private:
-    double m_XValue;
+    double m_XValue, m_AValue, m_BValue;
 };
 
 } // end namespace anima
