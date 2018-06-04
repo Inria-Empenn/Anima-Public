@@ -90,6 +90,9 @@ protected:
     //! Compute intra- and extra-axonal signals
     void GetIESignals(double bValue, const Vector3DType &gradient);
     
+    //! Update quantities that depend on kappa
+    void UpdateKappaValues();
+    
     //! Update Watson samples from parameters
     void UpdateWatsonSamples();
     

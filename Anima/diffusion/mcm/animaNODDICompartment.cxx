@@ -18,13 +18,12 @@ void NODDICompartment::GetIESignals(double bValue, const Vector3DType &gradient)
     double nuic = 1.0 - this->GetExtraAxonalFraction();
     double dpara = this->GetAxialDiffusivity();
     
-    // Deal first with intra-axonal signal
-    anima::GetStandardWatsonSHCoefficients(kappa,m_WatsonSHCoefficients);
-    
+    this->UpdateKappaValues();
     Vector3DType compartmentOrientation(0.0);
     anima::TransformSphericalToCartesianCoordinates(theta,phi,1.0,compartmentOrientation);
     double innerProd = anima::ComputeScalarProduct(gradient, compartmentOrientation);
     
+    // Deal first with intra-axonal signal
     m_IntraAxonalSignal = 0.0;
     
     for (unsigned int i = 0;i < m_WatsonSHCoefficients.size();++i)
@@ -35,9 +34,6 @@ void NODDICompartment::GetIESignals(double bValue, const Vector3DType &gradient)
     m_IntraAxonalSignal /= 2.0;
     
     // Now deal with extra-axonal signal
-    double kappaSqrt = std::sqrt(kappa);
-    double fVal = anima::EvaluateDawsonFunction(kappaSqrt);
-    m_Tau1 = -1.0 / (2.0 * kappa) + 1.0 / (2.0 * fVal * kappaSqrt);
     double appAxialDiff = dpara * (1.0 - nuic * (1.0 - m_Tau1));
     double appRadialDiff = dpara * (1.0 - nuic * (1.0 + m_Tau1) / 2.0);
     
@@ -450,6 +446,26 @@ void NODDICompartment::UpdateWatsonSamples()
     
     for (unsigned int i = 0;i < m_NumberOfSamples;++i)
         anima::SampleFromWatsonDistribution(kappa, m_NorthPole, m_WatsonSamples[i], 3, generator);
+    
+    m_ModifiedConcentration = false;
+}
+
+void NODDICompartment::UpdateKappaValues()
+{
+    if (!m_ModifiedConcentration)
+        return;
+    
+    double kappa = this->GetOrientationConcentration();
+    double kappaSqrt = std::sqrt(kappa);
+    double kappaSq = kappa * kappa;
+    
+    double fVal = anima::EvaluateDawsonFunction(kappaSqrt);
+    m_Tau1 = -1.0 / (2.0 * kappa) + 1.0 / (2.0 * fVal * kappaSqrt);
+    m_Tau1Deriv = 1.0 / (2.0 * kappaSq) - (1.0 - kappaSqrt * fVal * (2.0 - 1.0 / kappaSq)) / (4.0 * kappa * fVal * fVal);
+    double kummerVal = anima::KummerFunction(kappa, 0.5, 1.5);
+    m_KummerRatio = std::exp(kappa) * (1.0 - std::exp(-kappa) * kummerVal) / (2.0 * kappa * kummerVal);
+    
+    anima::GetStandardWatsonSHCoefficients(kappa,m_WatsonSHCoefficients);
     
     m_ModifiedConcentration = false;
 }
