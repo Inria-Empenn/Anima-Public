@@ -223,7 +223,12 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     m_InitialDTImage = dtiEstimator->GetOutput();
     m_InitialDTImage->DisconnectPipeline();
 
-    if (!m_ExternalDTIParameters)
+    // Use default known values for diffusivities (would be nice to store those values somewhere else)
+    m_AxialDiffusivityFixedValue = 1.71e-3;
+    m_RadialDiffusivity1FixedValue = 1.5e-4;
+    m_RadialDiffusivity2FixedValue = 1.5e-4;
+
+    if ((!m_ExternalDTIParameters)&&(!m_AbsoluteInitialDiffusivities))
     {
         m_AxialDiffusivityFixedValue = 0;
         m_RadialDiffusivity1FixedValue = 0;
@@ -305,12 +310,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
             m_AxialDiffusivityFixedValue /= numValues;
             m_RadialDiffusivity1FixedValue /= numValues;
             m_RadialDiffusivity2FixedValue /= numValues;
-        }
-        else
-        {
-            m_AxialDiffusivityFixedValue = 1.7e-3;
-            m_RadialDiffusivity1FixedValue = 1.5e-4;
-            m_RadialDiffusivity2FixedValue = 1.5e-4;
         }
     }
     

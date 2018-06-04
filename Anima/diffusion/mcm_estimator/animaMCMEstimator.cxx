@@ -56,6 +56,7 @@ int main(int argc,  char **argv)
     TCLAP::SwitchArg optIRWDiffArg("", "opt-ir-water-diff", "Optimize isotropic restricted water diffusivity value", cmd, false);
 
     TCLAP::SwitchArg commonDiffusivitiesArg("", "common-diffusivities", "Share diffusivity values among compartments", cmd, false);
+    TCLAP::SwitchArg diffInitAbsoluteArg("", "diff-init-abs", "Do not compute initial stick diffusivities from DTI (take absolute values)", cmd, false);
 
     TCLAP::ValueArg<std::string> optimizerArg("", "optimizer", "Optimizer for estimation: bobyqa (default), ccsaq, bfgs or levenberg", false, "bobyqa", "optimizer", cmd);
     TCLAP::ValueArg<unsigned int> nbRandomRestartsArg("", "random-restarts", "Number of random restarts when searching for more than 2 fascicles (default: 6)", false, 6, "number of random restarts", cmd);
@@ -74,7 +75,7 @@ int main(int argc,  char **argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
 
     typedef anima::MCMEstimatorImageFilter <float, double> FilterType;
@@ -118,6 +119,7 @@ int main(int argc,  char **argv)
     filter->SetB0Threshold(b0thrArg.getValue());
     
     filter->SetVNLDerivativeComputation(vnlDerivArg.isSet());
+    filter->SetAbsoluteInitialDiffusivities(diffInitAbsoluteArg.isSet());
 
     filter->SetModelWithFreeWaterComponent(freeWaterCompartmentArg.isSet());
     filter->SetModelWithStationaryWaterComponent(stationaryWaterCompartmentArg.isSet());

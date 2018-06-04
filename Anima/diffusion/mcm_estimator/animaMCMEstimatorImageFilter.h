@@ -236,6 +236,7 @@ public:
     itkSetMacro(AxialDiffusivityFixedValue, double)
     itkSetMacro(RadialDiffusivity1FixedValue, double)
     itkSetMacro(RadialDiffusivity2FixedValue, double)
+    itkSetMacro(AbsoluteInitialDiffusivities, bool)
 
     itkSetMacro(XTolerance, double)
     itkSetMacro(GTolerance, double)
@@ -289,6 +290,7 @@ protected:
         m_NumberOfImages = 0;
         m_ExternalDTIParameters = false;
         m_ExternalMoseVolume = false;
+        m_AbsoluteInitialDiffusivities = false;
 
         m_MaxEval = 0;
         m_XTolerance = 0;
@@ -411,6 +413,7 @@ private:
 
     bool m_ExternalDTIParameters;
     bool m_ExternalMoseVolume;
+    bool m_AbsoluteInitialDiffusivities;
 
     unsigned int m_MaxEval;
     double m_XTolerance;
