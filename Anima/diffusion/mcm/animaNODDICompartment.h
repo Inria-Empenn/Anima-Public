@@ -70,6 +70,7 @@ protected:
         m_Tau1 = 2.0 / 3.0;
         m_Tau1Deriv = 0.0;
         m_KummerRatio = 1.0;
+        m_WatsonSHCoefficients.clear();
         m_WatsonSamples.clear();
         
         m_IntraAxonalSignal = 0;
@@ -85,6 +86,9 @@ protected:
     }
     
     virtual ~NODDICompartment() {}
+    
+    //! Compute intra- and extra-axonal signals
+    void GetIESignals(double bValue, const Vector3DType &gradient);
     
     //! Update Watson samples from parameters
     void UpdateWatsonSamples();
@@ -112,6 +116,7 @@ private:
     Matrix3DType m_DiffusionTensor;
     Matrix3DType m_InverseDiffusionTensor;
     
+    std::vector<double> m_WatsonSHCoefficients;
     std::vector<Vector3DType> m_WatsonSamples;
     Vector3DType m_NorthPole;
     double m_Tau1, m_Tau1Deriv, m_KummerRatio;

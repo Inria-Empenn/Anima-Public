@@ -5,11 +5,49 @@
 #include <animaLevenbergTools.h>
 #include <animaKummerFunctions.h>
 
+#include <animaWatsonDistribution.h>
+#include <boost/math/special_functions/legendre.hpp>
+
 namespace anima
 {
+void NODDICompartment::GetIESignals(double bValue, const Vector3DType &gradient)
+{
+    double theta = this->GetOrientationTheta();
+    double phi = this->GetOrientationPhi();
+    double kappa = this->GetOrientationConcentration();
+    double nuic = 1.0 - this->GetExtraAxonalFraction();
+    double dpara = this->GetAxialDiffusivity();
+    
+    // Deal first with intra-axonal signal
+    anima::GetStandardWatsonSHCoefficients(kappa,m_WatsonSHCoefficients);
+    
+    Vector3DType compartmentOrientation(0.0);
+    anima::TransformSphericalToCartesianCoordinates(theta,phi,1.0,compartmentOrientation);
+    double innerProd = anima::ComputeScalarProduct(gradient, compartmentOrientation);
+    
+    m_IntraAxonalSignal = 0.0;
+    
+    for (unsigned int i = 0;i < m_WatsonSHCoefficients.size();++i)
+    {
+        m_IntraAxonalSignal += m_WatsonSHCoefficients[i] * boost::math::legendre_p(2 * i, innerProd) * std::pow(-bValue * dpara, (double)i) * std::tgamma(i + 0.5) / std::tgamma(2.0 * i + 1.5) * anima::KummerFunction(-bValue * dpara, i + 0.5, 2.0 * i + 1.5);
+    }
+    
+    m_IntraAxonalSignal /= 2.0;
+    
+    // Now deal with extra-axonal signal
+    double kappaSqrt = std::sqrt(kappa);
+    double fVal = anima::EvaluateDawsonFunction(kappaSqrt);
+    m_Tau1 = -1.0 / (2.0 * kappa) + 1.0 / (2.0 * fVal * kappaSqrt);
+    double appAxialDiff = dpara * (1.0 - nuic * (1.0 - m_Tau1));
+    double appRadialDiff = dpara * (1.0 - nuic * (1.0 + m_Tau1) / 2.0);
+    
+    m_ExtraAxonalSignal = std::exp(-bValue * (appRadialDiff + (appAxialDiff - appRadialDiff) * innerProd * innerProd));
+}
+
 double NODDICompartment::GetFourierTransformedDiffusionProfile(double bValue, const Vector3DType &gradient)
 {
-    this->UpdateIESignals(bValue, gradient);
+//    this->UpdateIESignals(bValue, gradient);
+    this->GetIESignals(bValue, gradient);
     double nuic = 1.0 - this->GetExtraAxonalFraction();
     double signal = nuic * m_IntraAxonalSignal + (1.0 - nuic) * m_ExtraAxonalSignal;
     return signal;
