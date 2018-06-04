@@ -28,7 +28,7 @@ void NODDICompartment::GetIESignals(double bValue, const Vector3DType &gradient)
     
     for (unsigned int i = 0;i < m_WatsonSHCoefficients.size();++i)
     {
-        m_IntraAxonalSignal += m_WatsonSHCoefficients[i] * boost::math::legendre_p(2 * i, innerProd) * std::pow(-bValue * dpara, (double)i) * std::tgamma(i + 0.5) / std::tgamma(2.0 * i + 1.5) * anima::KummerFunction(-bValue * dpara, i + 0.5, 2.0 * i + 1.5);
+        m_IntraAxonalSignal += m_WatsonSHCoefficients[i] * std::sqrt((4.0 * i + 1.0) / (4.0 * M_PI)) * boost::math::legendre_p(2 * i, innerProd) * std::pow(-bValue * dpara, (double)i) * std::tgamma(i + 0.5) / std::tgamma(2.0 * i + 1.5) * anima::KummerFunction(-bValue * dpara, i + 0.5, 2.0 * i + 1.5);
     }
     
     m_IntraAxonalSignal /= 2.0;
