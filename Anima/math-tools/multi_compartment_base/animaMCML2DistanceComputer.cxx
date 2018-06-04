@@ -12,8 +12,8 @@ MCML2DistanceComputer::MCML2DistanceComputer()
     m_ForceApproximation = false;
     m_SquaredDistance = true;
 
-    m_SmallDelta = 1.0;
-    m_LargeDelta = 1.0;
+    m_SmallDelta = 1.0 / anima::BaseCompartment::m_GyromagneticRatio;
+    m_LargeDelta = 1.0 + m_SmallDelta / 3.0;
 }
 
 void MCML2DistanceComputer::SetGradientStrengths(const std::vector <double> &val)
