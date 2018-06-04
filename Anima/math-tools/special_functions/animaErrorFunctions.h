@@ -5,6 +5,23 @@
 namespace anima
 {
 
+class DawsonIntegrand
+{
+public:
+    void SetXValue(double val) {m_XValue = val;}
+    
+    double operator() (const double t)
+    {
+        double inexpValue = m_XValue * m_XValue * (t * t - 1.0);
+        return std::exp(inexpValue);
+    }
+    
+private:
+    double m_XValue;
+};
+
+ANIMASPECIALFUNCTIONS_EXPORT double EvaluateDawsonIntegral(const double x, const bool normalized = false);
+
 ANIMASPECIALFUNCTIONS_EXPORT double EvaluateDawsonFunctionNR(double x);
 
 ANIMASPECIALFUNCTIONS_EXPORT double EvaluateDawsonFunction(double x);
