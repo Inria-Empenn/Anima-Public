@@ -31,16 +31,7 @@ void MCMWeightedAverager::ResetNumberOfOutputDirectionalCompartments()
 
 bool MCMWeightedAverager::CheckTensorCompatibility(MCMCompartmentPointer &compartment)
 {
-    anima::DiffusionModelCompartmentType compartmentType = compartment->GetCompartmentType();
-    if ((compartmentType == anima::FreeWater) ||
-            (compartmentType == anima::StationaryWater) ||
-            (compartmentType == anima::IsotropicRestrictedWater) ||
-            (compartmentType == anima::Stick) ||
-            (compartmentType == anima::Zeppelin) ||
-            (compartmentType == anima::Tensor))
-        return true;
-
-    return false;
+    return compartment->GetTensorCompatible();
 }
 
 MCMWeightedAverager::MCMPointer &MCMWeightedAverager::GetOutputModel()
@@ -89,6 +80,7 @@ void MCMWeightedAverager::Update()
     for (unsigned int i = 0;i < numIsoCompartments;++i)
     {
         double outputLogDiffusivity = 0;
+        double outputRadius = 0.0;
         double sumWeights = 0;
         for (unsigned int j = 0;j < numInputs;++j)
         {
@@ -101,11 +93,15 @@ void MCMWeightedAverager::Update()
 
             m_InternalOutputWeights[i] += m_InputWeights[j] * tmpWeight;
             outputLogDiffusivity += m_InputWeights[j] * std::log(m_InputModels[j]->GetCompartment(i)->GetAxialDiffusivity());
+            outputRadius += m_InputWeights[j] * m_InputModels[j]->GetCompartment(i)->GetTissuesRadius();
             sumWeights += m_InputWeights[j];
         }
 
         if (sumWeights > 0)
+        {
             m_OutputModel->GetCompartment(i)->SetAxialDiffusivity(std::exp(outputLogDiffusivity / sumWeights));
+            m_OutputModel->GetCompartment(i)->SetTissuesRadius(outputRadius / sumWeights);
+        }
     }
 
     unsigned int maxNumOutputCompartments = m_OutputModel->GetNumberOfCompartments() - m_OutputModel->GetNumberOfIsotropicCompartments();

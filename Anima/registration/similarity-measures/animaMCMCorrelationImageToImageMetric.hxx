@@ -53,7 +53,7 @@ MCMCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,Imag
     MCModelPointer val = fixedImage->GetDescriptionModel();
     for (unsigned int i = 0;i < val->GetNumberOfCompartments();++i)
     {
-        if (val->GetCompartment(i)->GetCompartmentType() == anima::DDI)
+        if (!val->GetCompartment(i)->GetTensorCompatible())
             return false;
     }
 
@@ -61,7 +61,7 @@ MCMCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,Imag
     val = movingImage->GetDescriptionModel();
     for (unsigned int i = 0;i < val->GetNumberOfCompartments();++i)
     {
-        if (val->GetCompartment(i)->GetCompartmentType() == anima::DDI)
+        if (!val->GetCompartment(i)->GetTensorCompatible())
             return false;
     }
 

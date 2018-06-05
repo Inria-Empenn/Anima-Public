@@ -6,6 +6,7 @@
 #include <animaFreeWaterCompartment.h>
 #include <animaIsotropicRestrictedWaterCompartment.h>
 #include <animaStationaryWaterCompartment.h>
+#include <animaStaniszCompartment.h>
 #include <animaStickCompartment.h>
 #include <animaZeppelinCompartment.h>
 #include <animaTensorCompartment.h>
@@ -170,6 +171,8 @@ MCMFileReader <PixelType, ImageDimension>
         additionalCompartment = anima::StationaryWaterCompartment::New();
     else if (compartmentType == "IRWater")
         additionalCompartment = anima::IsotropicRestrictedWaterCompartment::New();
+    else if (compartmentType == "Stanisz")
+        additionalCompartment = anima::StaniszCompartment::New();
     else if (compartmentType == "Stick")
         additionalCompartment = anima::StickCompartment::New();
     else if (compartmentType == "Zeppelin")

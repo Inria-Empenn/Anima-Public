@@ -39,7 +39,7 @@ MCMPairingMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTy
     MCModelPointer val = fixedImage->GetDescriptionModel();
     for (unsigned int i = 0;i < val->GetNumberOfCompartments();++i)
     {
-        if (val->GetCompartment(i)->GetCompartmentType() == anima::DDI)
+        if (!val->GetCompartment(i)->GetTensorCompatible())
             return false;
      }
 
@@ -47,7 +47,7 @@ MCMPairingMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTy
     val = movingImage->GetDescriptionModel();
     for (unsigned int i = 0;i < val->GetNumberOfCompartments();++i)
     {
-        if (val->GetCompartment(i)->GetCompartmentType() == anima::DDI)
+        if (!val->GetCompartment(i)->GetTensorCompatible())
             return false;
     }
 
