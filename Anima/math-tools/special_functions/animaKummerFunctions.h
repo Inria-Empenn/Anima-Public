@@ -34,6 +34,7 @@ double
 KummerFunction(const double &x,
                const double &a,
                const double &b,
+               const bool scaled = false,
                const unsigned int maxIter = 10000,
                const double tol = 1.0e-15);
 
@@ -46,7 +47,7 @@ public:
     
     double operator() (const double t)
     {
-        return std::exp(m_XValue * t) * std::pow(t, m_AValue - 1.0) * std::pow(1.0 - t, m_BValue - m_AValue - 1.0);
+        return std::exp(m_XValue * (t - 1.0)) * std::pow(t, m_AValue - 1.0) * std::pow(1.0 - t, m_BValue - m_AValue - 1.0);
     }
     
 private:

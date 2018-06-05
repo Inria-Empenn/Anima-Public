@@ -92,6 +92,7 @@ double
 KummerFunction(const double &x,
                const double &a,
                const double &b,
+               const bool scaled,
                const unsigned int maxIter,
                const double tol)
 {
@@ -101,7 +102,8 @@ KummerFunction(const double &x,
         integrand.SetXValue(x);
         integrand.SetAValue(a);
         integrand.SetBValue(b);
-        return boost::math::quadrature::gauss<double, 15>::integrate(integrand, 0.0, 1.0) * std::tgamma(b) / (std::tgamma(a) * std::tgamma(b - a));
+        double resVal = boost::math::quadrature::gauss<double, 15>::integrate(integrand, 0.0, 1.0) * std::tgamma(b) / (std::tgamma(a) * std::tgamma(b - a));
+        return (scaled) ? resVal : std::exp(x) * resVal ;
     }
     
     if (std::abs(x) < 50.0)
