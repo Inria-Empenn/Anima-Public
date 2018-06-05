@@ -16,6 +16,24 @@ MCML2DistanceComputer::MCML2DistanceComputer()
     m_LargeDelta = anima::DiffusionLargeDelta;
 }
 
+void MCML2DistanceComputer::SetSmallDelta(double val)
+{
+    double oldVal = m_SmallDelta;
+    m_SmallDelta = val;
+
+    if (oldVal != val)
+        this->UpdateSphereWeights();
+}
+
+void MCML2DistanceComputer::SetLargeDelta(double val)
+{
+    double oldVal = m_LargeDelta;
+    m_LargeDelta = val;
+
+    if (oldVal != val)
+        this->UpdateSphereWeights();
+}
+
 void MCML2DistanceComputer::SetGradientStrengths(const std::vector <double> &val)
 {
     m_GradientStrengths = val;

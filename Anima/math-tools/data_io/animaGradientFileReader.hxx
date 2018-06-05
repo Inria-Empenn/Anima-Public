@@ -8,6 +8,7 @@
 #include <itkExceptionObject.h>
 
 #include <animaVectorOperations.h>
+#include <animaMCMConstants.h>
 
 namespace anima
 {
@@ -21,6 +22,9 @@ GradientFileReader()
 
     m_B0ValueThreshold = 0;
     m_TotalNumberOfDirections = 0;
+
+    m_SmallDelta = anima::DiffusionSmallDelta;
+    m_LargeDelta = anima::DiffusionLargeDelta;
 
     m_GradientIndependentNormalization = true;
     m_Modified = false;
@@ -65,6 +69,17 @@ GetBValues()
         this->Update();
 
     return m_BValues;
+}
+
+template <class GradientType, class BValueScalarType>
+typename GradientFileReader<GradientType,BValueScalarType>::BValueVectorType &
+GradientFileReader<GradientType,BValueScalarType>::
+GetGradientStrengths()
+{
+    if (m_Modified)
+        this->Update();
+
+    return m_GradientStrengths;
 }
 
 template <class GradientType, class BValueScalarType>
@@ -123,6 +138,11 @@ Update()
                 m_BValues[i] *= norm;
         }
     }
+
+    // Finally get gradient strengths from bvalues and small/large delta
+    m_GradientStrengths.resize(m_TotalNumberOfDirections);
+    for (unsigned int i = 0;i < m_TotalNumberOfDirections;++i)
+        m_GradientStrengths[i] = anima::GetGradientStrengthFromBValue(m_BValues[i], m_SmallDelta, m_LargeDelta);
 
     m_Modified = false;
 }

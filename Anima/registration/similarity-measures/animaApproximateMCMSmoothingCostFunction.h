@@ -3,6 +3,7 @@
 #include <itkSingleValuedCostFunction.h>
 #include <AnimaMCMSimilarityExport.h>
 #include <animaMultiCompartmentModel.h>
+#include <animaMCMConstants.h>
 
 namespace anima
 {
@@ -35,17 +36,19 @@ public:
     virtual void GetDerivative(const ParametersType &parameters, DerivativeType &derivative) const ITK_OVERRIDE;
 
     void SetReferenceModels(const std::vector <MCMPointer> &refModels, const std::vector <GradientType> &gradients,
-                            const std::vector <double> &bValues);
+                            const double &smallDelta, const double &largeDelta, const std::vector <double> &gradientStrengths);
     void SetMovingModels(const std::vector<MCMPointer> &movingModels, const std::vector <GradientType> &gradients,
-                         const std::vector <double> &bValues);
+                         const double &smallDelta, const double &largeDelta, const std::vector <double> &gradientStrengths);
 
-    void SetBValues(const std::vector <double> &val);
+    void SetGradientStrengths(const std::vector <double> &val);
     void SetGradientDirections(const std::vector <GradientType> &val);
 
     void SetBValueWeightIndexes(const std::vector <unsigned int> &val);
     void SetSphereWeights(const std::vector <double> &val);
 
     itkSetMacro(ParameterScale, double)
+    void SetSmallDelta(double val);
+    void SetLargeDelta(double val);
 
     unsigned int GetNumberOfParameters() const ITK_OVERRIDE {return 1;}
 
@@ -55,6 +58,8 @@ protected:
         m_UpdatedData = false;
         m_ConstantTerm = 0;
         m_ParameterScale = 1.0e-3;
+        m_SmallDelta = anima::DiffusionSmallDelta;
+        m_LargeDelta = anima::DiffusionLargeDelta;
     }
 
     virtual ~ApproximateMCMSmoothingCostFunction() {}
@@ -67,12 +72,13 @@ private:
     std::vector < std::vector <double> > m_MovingModelSignalValues;
 
     std::vector <unsigned int> m_BValueWeightIndexes;
-    std::vector <double> m_BValues, m_SphereWeights;
+    std::vector <double> m_GradientStrengths, m_SphereWeights;
     std::vector <GradientType> m_GradientDirections;
 
     mutable bool m_UpdatedData;
     mutable double m_ConstantTerm;
     double m_ParameterScale;
+    double m_SmallDelta, m_LargeDelta;
 };
 
 } // end namespace anima

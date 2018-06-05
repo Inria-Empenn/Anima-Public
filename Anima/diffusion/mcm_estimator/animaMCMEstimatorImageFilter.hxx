@@ -99,8 +99,12 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     typedef itk::ImageRegionIterator <MaskImageType> MaskIteratorType;
 
     unsigned int firstB0Index = 0;
-    while (m_BValuesList[firstB0Index] > 10)
+    double bValueFirstB0Index = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, m_GradientStrengths[firstB0Index]);
+    while (bValueFirstB0Index > 10)
+    {
         ++firstB0Index;
+        bValueFirstB0Index = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, m_GradientStrengths[firstB0Index]);
+    }
 
     B0IteratorType b0Itr(this->GetInput(firstB0Index),this->GetOutput()->GetLargestPossibleRegion());
 
@@ -137,7 +141,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     m_NumberOfImages = this->GetNumberOfIndexedInputs();
 
-    if (m_BValuesList.size() != m_NumberOfImages)
+    if (m_GradientStrengths.size() != m_NumberOfImages)
         itkExceptionMacro("There should be the same number of input images and input b-values...");
 
     itk::ImageRegionIterator <OutputImageType> fillOut(this->GetOutput(),this->GetOutput()->GetLargestPossibleRegion());
@@ -683,7 +687,9 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>::CreateCostFunction(std
 
     baseCost->SetObservedSignals(observedSignals);
     baseCost->SetGradients(m_GradientDirections);
-    baseCost->SetBValues(m_BValuesList);
+    baseCost->SetSmallDelta(m_SmallDelta);
+    baseCost->SetLargeDelta(m_LargeDelta);
+    baseCost->SetGradientStrengths(m_GradientStrengths);
     baseCost->SetMCMStructure(mcmModel);
 
     if (m_Optimizer == "levenberg")

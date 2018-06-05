@@ -1,3 +1,5 @@
+#pragma once
+
 namespace anima
 {
 
@@ -8,6 +10,12 @@ inline double GetBValueFromAcquisitionParameters(double smallDelta, double large
 {
     double alpha = DiffusionGyromagneticRatio * smallDelta * gradientStrength;
     return alpha * alpha * (largeDelta - smallDelta / 3.0);
+}
+
+inline double GetGradientStrengthFromBValue(double bValue, double smallDelta, double largeDelta)
+{
+    double gradientStrength = std::sqrt(largeDelta - smallDelta / 3.0) / (smallDelta * DiffusionGyromagneticRatio);
+    return gradientStrength;
 }
 
 //! Default small delta value to get bval = G^2

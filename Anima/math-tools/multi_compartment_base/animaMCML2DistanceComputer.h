@@ -38,8 +38,8 @@ public:
     double ComputeDistance(const MCMPointer &firstModel, const MCMPointer &secondModel) const;
 
     void SetGradientStrengths(const std::vector <double> &val);
-    void SetSmallDelta(double val) {m_SmallDelta = val;}
-    void SetLargeDelta(double val) {m_LargeDelta = val;}
+    void SetSmallDelta(double val);
+    void SetLargeDelta(double val);
 
     void SetGradientDirections(const std::vector <GradientType> &val);
 

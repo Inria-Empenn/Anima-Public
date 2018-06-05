@@ -6,7 +6,7 @@ namespace anima
 void
 ApproximateMCMSmoothingCostFunction
 ::SetReferenceModels(const std::vector <MCMPointer> &refModels, const std::vector <GradientType> &gradients,
-                     const std::vector <double> &bValues)
+                     const double &smallDelta, const double &largeDelta, const std::vector <double> &gradientStrengths)
 {
     unsigned int numRefModels = refModels.size();
     m_ReferenceModelSignalValues.resize(numRefModels);
@@ -16,7 +16,8 @@ ApproximateMCMSmoothingCostFunction
     for (unsigned int i = 0;i < numRefModels;++i)
     {
         for (unsigned int j = 0;j < numSamples;++j)
-            modelSignalValues[j] = refModels[i]->GetPredictedSignal(bValues[j],gradients[j]);
+            modelSignalValues[j] = refModels[i]->GetPredictedSignal(smallDelta, largeDelta,
+                                                                    gradientStrengths[j], gradients[j]);
 
         m_ReferenceModelSignalValues[i] = modelSignalValues;
     }
@@ -27,7 +28,7 @@ ApproximateMCMSmoothingCostFunction
 void
 ApproximateMCMSmoothingCostFunction
 ::SetMovingModels(const std::vector<MCMPointer> &movingModels, const std::vector <GradientType> &gradients,
-                  const std::vector <double> &bValues)
+                  const double &smallDelta, const double &largeDelta, const std::vector <double> &gradientStrengths)
 {
     unsigned int numMovingModels = movingModels.size();
     m_MovingModelSignalValues.resize(numMovingModels);
@@ -37,7 +38,8 @@ ApproximateMCMSmoothingCostFunction
     for (unsigned int i = 0;i < numMovingModels;++i)
     {
         for (unsigned int j = 0;j < numSamples;++j)
-            modelSignalValues[j] = movingModels[i]->GetPredictedSignal(bValues[j],gradients[j]);
+            modelSignalValues[j] = movingModels[i]->GetPredictedSignal(smallDelta, largeDelta,
+                                                                       gradientStrengths[j], gradients[j]);
 
         m_MovingModelSignalValues[i] = modelSignalValues;
     }
@@ -47,9 +49,25 @@ ApproximateMCMSmoothingCostFunction
 
 void
 ApproximateMCMSmoothingCostFunction
-::SetBValues(const std::vector <double> &val)
+::SetSmallDelta(double val)
 {
-    m_BValues = val;
+    m_SmallDelta = val;
+    m_UpdatedData = true;
+}
+
+void
+ApproximateMCMSmoothingCostFunction
+::SetLargeDelta(double val)
+{
+    m_LargeDelta = val;
+    m_UpdatedData = true;
+}
+
+void
+ApproximateMCMSmoothingCostFunction
+::SetGradientStrengths(const std::vector <double> &val)
+{
+    m_GradientStrengths = val;
     m_UpdatedData = true;
 }
 
@@ -105,11 +123,12 @@ ApproximateMCMSmoothingCostFunction
 
     for (unsigned int j = 0;j < m_GradientDirections.size();++j)
     {
+        double bValue = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, m_GradientStrengths[j]);
         double gaussianValue = 0;
         for (unsigned int i = 0;i < m_GradientDirections[j].size();++i)
             gaussianValue += m_GradientDirections[j][i] * m_GradientDirections[j][i];
 
-        gaussianValue = std::exp (- m_BValues[j] * gaussianSigma * gaussianValue);
+        gaussianValue = std::exp (- bValue * gaussianSigma * gaussianValue);
 
         double addonValue = 0;
         for (unsigned int l = 0;l < numDataPoints;++l)
@@ -142,11 +161,12 @@ ApproximateMCMSmoothingCostFunction
 
     for (unsigned int j = 0;j < m_GradientDirections.size();++j)
     {
+        double bValue = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, m_GradientStrengths[j]);
         double addonValue = 0;
         double gaussianDotProduct = 0;
         for (unsigned int i = 0;i < m_GradientDirections[j].size();++i)
             gaussianDotProduct += m_GradientDirections[j][i] * m_GradientDirections[j][i];
-        gaussianDotProduct *= m_BValues[j];
+        gaussianDotProduct *= bValue;
 
         double gaussianDerivativeValue = - gaussianDotProduct * std::exp (- gaussianSigma * gaussianDotProduct);
         double gaussianSqDerivativeValue = - 2.0 * gaussianDotProduct * std::exp (- 2.0 * gaussianSigma * gaussianDotProduct);

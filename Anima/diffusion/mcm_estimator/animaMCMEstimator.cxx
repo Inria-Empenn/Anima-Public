@@ -24,6 +24,8 @@ int main(int argc,  char **argv)
     TCLAP::ValueArg<std::string> gradsArg("g", "grads", "Gradient table", true, "", "gradients", cmd);
     TCLAP::ValueArg<std::string> bvalsArg("b", "bvals", "B-value list", true, "", "b-values", cmd);
     TCLAP::SwitchArg bvalueScaleArg("B","b-no-scale","Do not scale b-values according to gradient norm",cmd);
+    TCLAP::ValueArg<double> smallDeltaArg("", "small-delta", "Diffusion small delta", false, anima::DiffusionSmallDelta, "small delta", cmd);
+    TCLAP::ValueArg<double> largeDeltaArg("", "large-delta", "Diffusion large delta", false, anima::DiffusionLargeDelta, "large delta", cmd);
 
     // Outputs
     TCLAP::ValueArg<std::string> outArg("o", "out-mcm", "MCM output volume", true, "", "MCM output", cmd);
@@ -115,14 +117,19 @@ int main(int argc,  char **argv)
     gfReader.SetGradientFileName(gradsArg.getValue());
     gfReader.SetBValueBaseString(bvalsArg.getValue());
     gfReader.SetGradientIndependentNormalization(bvalueScaleArg.isSet());
+    gfReader.SetSmallDelta(smallDeltaArg.getValue());
+    gfReader.SetLargeDelta(largeDeltaArg.getValue());
     gfReader.Update();
 
     GFReaderType::GradientVectorType directions = gfReader.GetGradients();
     for(unsigned int i = 0;i < directions.size();++i)
         filter->AddGradientDirection(i,directions[i]);
 
-    GFReaderType::BValueVectorType mb = gfReader.GetBValues();
-    filter->SetBValuesList(mb);
+    GFReaderType::BValueVectorType mb = gfReader.GetGradientStrengths();
+
+    filter->SetGradientStrengths(mb);
+    filter->SetSmallDelta(smallDeltaArg.getValue());
+    filter->SetLargeDelta(largeDeltaArg.getValue());
 
     if (computationMaskArg.getValue() != "")
         filter->SetComputationMask(anima::readImage<MaskImageType>(computationMaskArg.getValue()));

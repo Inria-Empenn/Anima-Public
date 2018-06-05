@@ -55,7 +55,9 @@ public:
     /**  Get the value for single valued optimizers. */
     MeasureType GetValue(const TransformParametersType & parameters) const ITK_OVERRIDE;
 
-    void SetBValues(std::vector <double> &val) {m_L2DistanceComputer->SetBValues(val);}
+    void SetSmallDelta(double val) {m_L2DistanceComputer->SetSmallDelta(val);}
+    void SetLargeDelta(double val) {m_L2DistanceComputer->SetLargeDelta(val);}
+    void SetGradientStrengths(std::vector <double> &val) {m_L2DistanceComputer->SetGradientStrengths(val);}
     void SetGradientDirections(std::vector <GradientType> &val) {m_L2DistanceComputer->SetGradientDirections(val);}
 
     void SetForceApproximation(bool val) {m_L2DistanceComputer->SetForceApproximation(val);}

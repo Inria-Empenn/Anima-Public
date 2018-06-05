@@ -52,7 +52,9 @@ public:
     /**  Get the value for single valued optimizers. */
     MeasureType GetValue(const TransformParametersType & parameters) const ITK_OVERRIDE;
 
-    void SetBValues(std::vector <double> &val);
+    void SetSmallDelta(double val);
+    void SetLargeDelta(double val);
+    void SetGradientStrengths(std::vector <double> &val);
     void SetGradientDirections(std::vector <GradientType> &val);
 
     itkSetMacro(ForceApproximation, bool)
@@ -82,7 +84,8 @@ private:
     std::vector <MCModelPointer> m_FixedImageValues;
 
     // Optional parameters for the case when compartments are not tensor compatible
-    std::vector <double> m_BValues;
+    std::vector <double> m_GradientStrengths;
+    double m_SmallDelta, m_LargeDelta;
     std::vector <GradientType> m_GradientDirections;
 
     // Parameters for numerical integration on non tensor compatible models

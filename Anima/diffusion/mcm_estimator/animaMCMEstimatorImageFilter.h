@@ -13,6 +13,7 @@
 #include <animaNLOPTParametersConstraintFunction.h>
 
 #include <animaHyperbolicFunctions.h>
+#include <animaMCMConstants.h>
 
 namespace anima
 {
@@ -172,7 +173,9 @@ public:
     typedef vnl_vector_fixed <double,3> GradientType;
 
     // Acquisition-related parameters
-    void SetBValuesList(std::vector <double> &mb){m_BValuesList = mb;}
+    void SetGradientStrengths(std::vector <double> &mb) {m_GradientStrengths = mb;}
+    itkSetMacro(SmallDelta, double)
+    itkSetMacro(LargeDelta, double)
     void AddGradientDirection(unsigned int i, GradientType &grad);
     itkSetMacro(B0Threshold, double)
 
@@ -218,7 +221,10 @@ public:
     itkSetMacro(UseConcentrationBoundsFromDTI,bool)
 
     std::string GetOptimizer() {return m_Optimizer;}
-    std::vector <double> & GetBValuesList() {return m_BValuesList;}
+
+    std::vector <double> & GetGradientStrengths() {return m_GradientStrengths;}
+    itkGetMacro(SmallDelta, double)
+    itkGetMacro(LargeDelta, double)
     std::vector< GradientType > &GetGradientDirections() {return m_GradientDirections;}
 
     MCMCreatorType *GetMCMCreator(unsigned int i) {return m_MCMCreators[i];}
@@ -250,7 +256,7 @@ protected:
         m_SigmaSquareVolume = 0;
         m_MoseVolume = 0;
 
-        m_BValuesList.clear();
+        m_GradientStrengths.clear();
         m_GradientDirections.clear();
 
         m_NumberOfDictionaryEntries = 120;
@@ -298,6 +304,9 @@ protected:
         m_MaxEval = 0;
         m_XTolerance = 0;
         m_GTolerance = 0;
+
+        m_SmallDelta = anima::DiffusionSmallDelta;
+        m_LargeDelta = anima::DiffusionLargeDelta;
     }
 
     virtual ~MCMEstimatorImageFilter()
@@ -376,7 +385,8 @@ private:
     //! Utility function to initialize dictionary of sticks for initial sparse estimation
     void InitializeDictionary();
 
-    std::vector <double> m_BValuesList;
+    double m_SmallDelta, m_LargeDelta;
+    std::vector <double> m_GradientStrengths;
     std::vector< GradientType > m_GradientDirections;
 
     OutputScalarImagePointer m_B0Volume;
