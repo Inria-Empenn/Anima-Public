@@ -4,6 +4,7 @@
 #include <animaIsotropicRestrictedWaterCompartment.h>
 #include <animaNODDICompartment.h>
 #include <animaStationaryWaterCompartment.h>
+#include <animaStaniszCompartment.h>
 #include <animaStickCompartment.h>
 #include <animaTensorCompartment.h>
 #include <animaZeppelinCompartment.h>
@@ -17,10 +18,12 @@ MultiCompartmentModelCreator::MultiCompartmentModelCreator()
     m_ModelWithFreeWaterComponent = true;
     m_ModelWithStationaryWaterComponent = false;
     m_ModelWithRestrictedWaterComponent = false;
+    m_ModelWithStaniszComponent = false;
 
     m_FreeWaterProportionFixedValue = 0;
     m_StationaryWaterProportionFixedValue = 0;
     m_RestrictedWaterProportionFixedValue = 0;
+    m_StaniszProportionFixedValue = 0;
 
     m_NumberOfCompartments = 1;
 
@@ -28,6 +31,7 @@ MultiCompartmentModelCreator::MultiCompartmentModelCreator()
     m_UseConstrainedDiffusivity = false;
     m_UseConstrainedFreeWaterDiffusivity = true;
     m_UseConstrainedIRWDiffusivity = false;
+    m_UseConstrainedStaniszParameters = false;
     m_UseConstrainedOrientationConcentration = false;
     m_UseConstrainedExtraAxonalFraction = false;
     m_UseBoundedOptimization = false;
@@ -75,6 +79,9 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
     if (m_ModelWithRestrictedWaterComponent)
         sumIsotropicWeights += m_RestrictedWaterProportionFixedValue;
 
+    if (m_ModelWithStaniszComponent)
+        sumIsotropicWeights += m_StaniszProportionFixedValue;
+
     double compartmentWeight = (1.0 - sumIsotropicWeights) / m_NumberOfCompartments;
 
     if (m_ModelWithFreeWaterComponent)
@@ -113,6 +120,19 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
             outputMCM->AddCompartment(m_RestrictedWaterProportionFixedValue,restComp);
         else
             outputMCM->AddCompartment(m_RestrictedWaterProportionFixedValue / sumIsotropicWeights,restComp);
+    }
+
+    if (m_ModelWithStaniszComponent)
+    {
+        typedef anima::StaniszCompartment StaniszType;
+        StaniszType::Pointer restComp = StaniszType::New();
+        restComp->SetEstimateParameters(!m_UseConstrainedStaniszParameters);
+        restComp->SetUseBoundedOptimization(m_UseBoundedOptimization);
+
+        if (m_NumberOfCompartments != 0)
+            outputMCM->AddCompartment(m_StaniszProportionFixedValue,restComp);
+        else
+            outputMCM->AddCompartment(m_StaniszProportionFixedValue / sumIsotropicWeights,restComp);
     }
 
     for (unsigned int i = 0;i < m_NumberOfCompartments;++i)
