@@ -1,10 +1,8 @@
 #include <animaNODDICompartment.h>
 #include <animaVectorOperations.h>
 #include <animaErrorFunctions.h>
-#include <animaDistributionSampling.h>
 #include <animaLevenbergTools.h>
 #include <animaKummerFunctions.h>
-
 #include <animaWatsonDistribution.h>
 #include <boost/math/special_functions/legendre.hpp>
 
@@ -42,7 +40,6 @@ void NODDICompartment::GetIESignals(double bValue, const Vector3DType &gradient)
 
 double NODDICompartment::GetFourierTransformedDiffusionProfile(double bValue, const Vector3DType &gradient)
 {
-//    this->UpdateIESignals(bValue, gradient);
     this->GetIESignals(bValue, gradient);
     double nuic = 1.0 - this->GetExtraAxonalFraction();
     double signal = nuic * m_IntraAxonalSignal + (1.0 - nuic) * m_ExtraAxonalSignal;
@@ -51,7 +48,7 @@ double NODDICompartment::GetFourierTransformedDiffusionProfile(double bValue, co
     
 NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(double bValue, const Vector3DType &gradient)
 {
-    this->UpdateIESignals(bValue, gradient);
+    this->GetIESignals(bValue, gradient);
     
     m_JacobianVector.resize(this->GetNumberOfParameters());
     
@@ -120,71 +117,30 @@ NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(doubl
 
 double NODDICompartment::GetLogDiffusionProfile(const Vector3DType &sample)
 {
-    this->UpdateDiffusionTensor();
+    this->UpdateKappaValues();
     
-    double resVal = - 1.5 * std::log(2.0 * M_PI) - 0.5 * std::log(m_TensorDeterminant);
+    double intraFraction = 1.0 - this->GetExtraAxonalFraction();
+    double axialDiff = this->GetAxialDiffusivity();
+    double appAxialDiff = axialDiff * (1.0 - intraFraction * (1.0 - m_Tau1));
+    double appRadialDiff = axialDiff * (1.0 - intraFraction * (1.0 + m_Tau1) / 2.0);
     
-    double quadForm = 0;
+    Vector3DType compartmentOrientation(0.0);
+    anima::TransformSphericalToCartesianCoordinates(this->GetOrientationTheta(),this->GetOrientationPhi(),1.0,compartmentOrientation);
     
-    for (unsigned int i = 0;i < m_SpaceDimension;++i)
-    {
-        quadForm += m_InverseDiffusionTensor(i,i) * sample[i] * sample[i];
-        for (unsigned int j = i+1;j < m_SpaceDimension;++j)
-            quadForm += 2 * m_InverseDiffusionTensor(i,j) * sample[i] * sample[j];
-    }
+    double innerProd = anima::ComputeScalarProduct(compartmentOrientation,sample);
     
-    resVal -= quadForm / 2.0;
+    double resVal = - 1.5 * std::log(2.0 * M_PI) - 0.5 * std::log(appAxialDiff) - std::log(appRadialDiff);
+    resVal -= (sample.squared_magnitude() - (1.0 - appRadialDiff / appAxialDiff) * innerProd * innerProd) / (2.0 * appRadialDiff);
     
     return resVal;
-}
-
-void NODDICompartment::SetOrientationTheta(double num)
-{
-    if (num != this->GetOrientationTheta())
-    {
-        m_ModifiedTensor = true;
-        m_ModifiedTheta = true;
-        this->Superclass::SetOrientationTheta(num);
-    }
-}
-
-void NODDICompartment::SetOrientationPhi(double num)
-{
-    if (num != this->GetOrientationPhi())
-    {
-        m_ModifiedTensor = true;
-        m_ModifiedPhi = true;
-        this->Superclass::SetOrientationPhi(num);
-    }
 }
 
 void NODDICompartment::SetOrientationConcentration(double num)
 {
     if (num != this->GetOrientationConcentration())
     {
-        m_ModifiedTensor = true;
         m_ModifiedConcentration = true;
         this->Superclass::SetOrientationConcentration(num);
-    }
-}
-
-void NODDICompartment::SetExtraAxonalFraction(double num)
-{
-    if (num != this->GetExtraAxonalFraction())
-    {
-        m_ModifiedTensor = true;
-        m_ModifiedEAF = true;
-        this->Superclass::SetExtraAxonalFraction(num);
-    }
-}
-
-void NODDICompartment::SetAxialDiffusivity(double num)
-{
-    if (num != this->GetAxialDiffusivity())
-    {
-        m_ModifiedTensor = true;
-        m_ModifiedAxialDiffusivity = true;
-        this->Superclass::SetAxialDiffusivity(num);
     }
 }
 
@@ -330,12 +286,7 @@ void NODDICompartment::SetCompartmentVector(ModelOutputVectorType &compartmentVe
     
     this->SetAxialDiffusivity(compartmentVector[currentPos]);
     
-    m_ModifiedTensor = false;
-    m_ModifiedTheta = false;
-    m_ModifiedPhi = false;
     m_ModifiedConcentration = false;
-    m_ModifiedEAF = false;
-    m_ModifiedAxialDiffusivity = false;
 }
 
 unsigned int NODDICompartment::GetCompartmentSize()
@@ -384,16 +335,7 @@ NODDICompartment::ModelOutputVectorType &NODDICompartment::GetCompartmentVector(
 
 const NODDICompartment::Matrix3DType &NODDICompartment::GetDiffusionTensor()
 {
-    this->UpdateDiffusionTensor();
-    return m_DiffusionTensor;
-}
-
-void NODDICompartment::UpdateDiffusionTensor()
-{
-    if (!m_ModifiedTensor)
-        return;
-    
-    this->UpdateWatsonSamples();
+    this->UpdateKappaValues();
     
     double intraFraction = 1.0 - this->GetExtraAxonalFraction();
     double axialDiff = this->GetAxialDiffusivity();
@@ -416,38 +358,7 @@ void NODDICompartment::UpdateDiffusionTensor()
                 m_DiffusionTensor(j,i) = m_DiffusionTensor(i,j);
         }
     
-    m_TensorDeterminant = appAxialDiff * appRadialDiff * appRadialDiff;
-    
-    m_WorkVnlMatrix1.set_size(m_SpaceDimension,m_SpaceDimension);
-    m_WorkVnlMatrix1 = m_DiffusionTensor.GetVnlMatrix();
-    anima::GetTensorPower(m_WorkVnlMatrix1, m_WorkVnlMatrix2, -1.0);
-    m_InverseDiffusionTensor = m_WorkVnlMatrix2;
-    
-    m_ModifiedTensor = false;
-}
-    
-void NODDICompartment::UpdateWatsonSamples()
-{
-    if (!m_ModifiedConcentration)
-        return;
-    
-    double kappa = this->GetOrientationConcentration();
-    double kappaSqrt = std::sqrt(kappa);
-    double kappaSq = kappa * kappa;
-    
-    double fVal = anima::EvaluateDawsonIntegral(kappaSqrt);
-    m_Tau1 = -1.0 / (2.0 * kappa) + 1.0 / (2.0 * fVal * kappaSqrt);
-    m_Tau1Deriv = 1.0 / (2.0 * kappaSq) - (1.0 - kappaSqrt * fVal * (2.0 - 1.0 / kappaSq)) / (4.0 * kappa * fVal * fVal);
-    double kummerVal = anima::KummerFunction(kappa, 0.5, 1.5);
-    m_KummerRatio = std::exp(kappa) * (1.0 - std::exp(-kappa) * kummerVal) / (2.0 * kappa * kummerVal);
-    
-    m_WatsonSamples.resize(m_NumberOfSamples);
-    std::mt19937 generator(time(0));
-    
-    for (unsigned int i = 0;i < m_NumberOfSamples;++i)
-        anima::SampleFromWatsonDistribution(kappa, m_NorthPole, m_WatsonSamples[i], 3, generator);
-    
-    m_ModifiedConcentration = false;
+    return m_DiffusionTensor;
 }
 
 void NODDICompartment::UpdateKappaValues()
@@ -468,67 +379,6 @@ void NODDICompartment::UpdateKappaValues()
     anima::GetStandardWatsonSHCoefficients(kappa,m_WatsonSHCoefficients);
     
     m_ModifiedConcentration = false;
-}
-
-void NODDICompartment::UpdateIESignals(double bValue, const Vector3DType &gradient)
-{
-    if (!m_ModifiedTheta && !m_ModifiedPhi && !m_ModifiedConcentration && !m_ModifiedEAF && !m_ModifiedAxialDiffusivity)
-        return;
-    
-    this->UpdateWatsonSamples();
-    
-    double theta = this->GetOrientationTheta();
-    double phi = this->GetOrientationPhi();
-    double intraFraction = 1.0 - this->GetExtraAxonalFraction();
-    double axialDiff = this->GetAxialDiffusivity();
-    double appAxialDiff = axialDiff * (1.0 - intraFraction * (1.0 - m_Tau1));
-    double appRadialDiff = axialDiff * (1.0 - intraFraction * (1.0 + m_Tau1) / 2.0);
-    
-    Vector3DType compartmentOrientation(0.0), rotatedGradient = m_NorthPole, rotatedSample = m_NorthPole;
-    
-    anima::TransformSphericalToCartesianCoordinates(theta,phi,1.0,compartmentOrientation);
-    
-    Vector3DType rotationNormal;
-    anima::ComputeCrossProduct(compartmentOrientation, m_NorthPole, rotationNormal);
-    anima::Normalize(rotationNormal, rotationNormal);
-    anima::RotateAroundAxis(gradient, theta, rotationNormal, rotatedGradient);
-    
-    m_IntraAxonalSignal = 0;
-    m_IntegralForDparaDerivative = 0;
-    m_IntegralForKappaDerivative = 0;
-    m_IntegralForThetaDerivative = 0;
-    m_IntegralForPhiDerivative = 0;
-    
-    for (unsigned int i = 0;i < m_NumberOfSamples;++i)
-    {
-        double innerProd = anima::ComputeScalarProduct(m_WatsonSamples[i], rotatedGradient);
-        double expVal = std::exp(-bValue * axialDiff * innerProd * innerProd);
-        m_IntraAxonalSignal += expVal;
-        m_IntegralForDparaDerivative += expVal * innerProd * innerProd;
-        m_IntegralForKappaDerivative += expVal * m_WatsonSamples[i][2] * m_WatsonSamples[i][2];
-        // Apply inverse rotation to Watson sample
-        anima::RotateAroundAxis(m_WatsonSamples[i], -theta, rotationNormal, rotatedSample);
-        double angleVal = 2.0 * m_WatsonSamples[i][2];
-        double thetaVal = angleVal * ((rotatedSample[0] * std::cos(phi) + rotatedSample[1] * std::sin(phi)) * std::cos(theta) - rotatedSample[2] * std::sin(theta));
-        double phiVal = angleVal * std::sin(theta) * (rotatedSample[1] * std::cos(phi) - rotatedSample[0] * std::sin(phi));
-        m_IntegralForThetaDerivative += expVal * thetaVal;
-        m_IntegralForPhiDerivative += expVal * phiVal;
-    }
-    
-    m_IntraAxonalSignal /= m_NumberOfSamples;
-    m_IntegralForDparaDerivative /= m_NumberOfSamples;
-    m_IntegralForKappaDerivative /= m_NumberOfSamples;
-    m_IntegralForThetaDerivative /= m_NumberOfSamples;
-    m_IntegralForPhiDerivative /= m_NumberOfSamples;
-    
-    double scalProd = anima::ComputeScalarProduct(gradient, compartmentOrientation);
-    m_ExtraAxonalSignal = std::exp(-bValue * (appRadialDiff + (appAxialDiff - appRadialDiff) * scalProd * scalProd));
-    
-//    m_ModifiedTheta = false;
-//    m_ModifiedPhi = false;
-//    m_ModifiedConcentration = false;
-//    m_ModifiedEAF = false;
-//    m_ModifiedAxialDiffusivity = false;
 }
 
 double NODDICompartment::GetFractionalAnisotropy()

@@ -46,11 +46,7 @@ public:
     ModelOutputVectorType &GetCompartmentVector() ITK_OVERRIDE;
     
     // Reimplement for handling modification flags
-    void SetOrientationTheta(double num) ITK_OVERRIDE;
-    void SetOrientationPhi(double num) ITK_OVERRIDE;
     void SetOrientationConcentration(double num) ITK_OVERRIDE;
-    void SetExtraAxonalFraction(double num) ITK_OVERRIDE;
-    void SetAxialDiffusivity(double num) ITK_OVERRIDE;
     
     const Matrix3DType &GetDiffusionTensor() ITK_OVERRIDE;
     double GetFractionalAnisotropy() ITK_OVERRIDE;
@@ -61,17 +57,12 @@ protected:
         m_EstimateAxialDiffusivity = true;
         m_ChangedConstraints = true;
         
-        m_ModifiedTensor = true;
-        m_ModifiedTheta = true;
-        m_ModifiedPhi = true;
         m_ModifiedConcentration = true;
-        m_ModifiedEAF = true;
-        m_ModifiedAxialDiffusivity = true;
+        
         m_Tau1 = 2.0 / 3.0;
         m_Tau1Deriv = 0.0;
         m_KummerRatio = 1.0;
         m_WatsonSHCoefficients.clear();
-        m_WatsonSamples.clear();
         
         m_IntraAxonalSignal = 0;
         m_ExtraAxonalSignal = 0;
@@ -79,10 +70,6 @@ protected:
         m_IntegralForPhiDerivative = 0;
         m_IntegralForKappaDerivative = 0;
         m_IntegralForDparaDerivative = 0;
-        m_TensorDeterminant = 0;
-        
-        m_NorthPole.fill(0.0);
-        m_NorthPole[2] = 1.0;
     }
     
     virtual ~NODDICompartment() {}
@@ -92,15 +79,6 @@ protected:
     
     //! Update quantities that depend on kappa
     void UpdateKappaValues();
-    
-    //! Update Watson samples from parameters
-    void UpdateWatsonSamples();
-    
-    //! Update diffusion tensor value from parameters
-    void UpdateDiffusionTensor();
-    
-    //! Update intra- and extra-axonal signals + all Monte-Carlo integrals
-    void UpdateIESignals(double bValue, const Vector3DType &gradient);
 
     virtual void BoundParameters(const ListType &params) ITK_OVERRIDE;
     virtual void UnboundParameters(ListType &params) ITK_OVERRIDE;
@@ -113,24 +91,15 @@ private:
     // Internal work variables for faster processing
     
     //! Optimization variable: set to true when the internal parameter has been modified requiring to recompute all quantities depending on it
-    bool m_ModifiedTensor, m_ModifiedTheta, m_ModifiedPhi, m_ModifiedConcentration, m_ModifiedEAF, m_ModifiedAxialDiffusivity;
-    
-    vnl_matrix <double> m_WorkVnlMatrix1, m_WorkVnlMatrix2;
-    Matrix3DType m_DiffusionTensor;
-    Matrix3DType m_InverseDiffusionTensor;
+    bool m_ModifiedConcentration;
     
     std::vector<double> m_WatsonSHCoefficients;
-    std::vector<Vector3DType> m_WatsonSamples;
-    Vector3DType m_NorthPole;
     double m_Tau1, m_Tau1Deriv, m_KummerRatio;
     double m_ExtraAxonalSignal, m_IntraAxonalSignal;
     double m_IntegralForThetaDerivative;
     double m_IntegralForPhiDerivative;
     double m_IntegralForKappaDerivative;
     double m_IntegralForDparaDerivative;
-    double m_TensorDeterminant;
-    
-    static const unsigned int m_NumberOfSamples = 1000;
 };
 
 } //end namespace anima
