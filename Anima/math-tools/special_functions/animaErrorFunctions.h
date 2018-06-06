@@ -20,7 +20,7 @@ private:
     double m_XValue;
 };
 
-ANIMASPECIALFUNCTIONS_EXPORT double EvaluateDawsonIntegral(const double x, const bool normalized = false);
+ANIMASPECIALFUNCTIONS_EXPORT double EvaluateDawsonIntegral(const double x, const bool scaled = false);
 
 ANIMASPECIALFUNCTIONS_EXPORT double EvaluateDawsonFunctionNR(double x);
 

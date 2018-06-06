@@ -62,7 +62,9 @@ protected:
         m_Tau1 = 2.0 / 3.0;
         m_Tau1Deriv = 0.0;
         m_KummerRatio = 1.0;
+        
         m_WatsonSHCoefficients.clear();
+        m_WatsonSHCoefficientDerivatives.clear();
         
         m_IntraAxonalSignal = 0;
         m_ExtraAxonalSignal = 0;
@@ -93,7 +95,7 @@ private:
     //! Optimization variable: set to true when the internal parameter has been modified requiring to recompute all quantities depending on it
     bool m_ModifiedConcentration;
     
-    std::vector<double> m_WatsonSHCoefficients;
+    std::vector<double> m_WatsonSHCoefficients, m_WatsonSHCoefficientDerivatives;
     double m_Tau1, m_Tau1Deriv, m_KummerRatio;
     double m_ExtraAxonalSignal, m_IntraAxonalSignal;
     double m_IntegralForThetaDerivative;

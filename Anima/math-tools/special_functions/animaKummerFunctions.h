@@ -35,6 +35,7 @@ KummerFunction(const double &x,
                const double &a,
                const double &b,
                const bool scaled = false,
+               const bool normalized = false,
                const unsigned int maxIter = 10000,
                const double tol = 1.0e-15);
 

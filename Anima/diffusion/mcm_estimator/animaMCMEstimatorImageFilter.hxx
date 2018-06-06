@@ -551,15 +551,10 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         this->InitialOrientationsEstimation(mcmOptimizationValue,currentNumberOfCompartments,initialDTI,observedSignals,
                                             generator,threadId,aiccValue,b0Value,sigmaSqValue);
         
-        if (m_CompartmentType == NODDI)
+        this->TrunkModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
+        if ((m_CompartmentType != Stick)&&(m_CompartmentType != Zeppelin))
             this->SpecificModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
-        else
-        {
-            this->TrunkModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
-            if ((m_CompartmentType != Stick)&&(m_CompartmentType != Zeppelin))
-                this->SpecificModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
-        }
-
+        
         if ((aiccValue < optimalAiccValue)||(restartNum == 0))
         {
             optimalB0Value = b0Value;
@@ -910,28 +905,11 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     unsigned int numIsoCompartments = mcmUpdateValue->GetNumberOfIsotropicCompartments();
     unsigned int numCompartments = mcmUpdateValue->GetNumberOfCompartments();
-
     unsigned int numNonIsoCompartments = numCompartments - numIsoCompartments;
-    SequenceGeneratorType ldsSequence(numNonIsoCompartments);
     
-    if (m_CompartmentType == NODDI)
+    if (m_CompartmentType == Tensor)
     {
-        ldsSequence = SequenceGeneratorType(2 * numNonIsoCompartments);
-        MCMType::ListType lowerBoundsSequenceSampling(2 * numNonIsoCompartments,0.0);
-        MCMType::ListType upperBoundsSequenceSampling(2 * numNonIsoCompartments,128.0);
-        
-        for (unsigned int i = 0;i < numNonIsoCompartments;++i)
-        {
-            lowerBoundsSequenceSampling[numNonIsoCompartments + i] = 1.0 / 129.0;
-            upperBoundsSequenceSampling[numNonIsoCompartments + i] = 128.0 / 129.0;
-        }
-        
-        ldsSequence.SetLowerBounds(lowerBoundsSequenceSampling);
-        ldsSequence.SetUpperBounds(upperBoundsSequenceSampling);
-    }
-    else
-    {
-        ldsSequence = SequenceGeneratorType(3 * numNonIsoCompartments);
+        SequenceGeneratorType ldsSequence(3 * numNonIsoCompartments);
         MCMType::ListType lowerBoundsSequenceSampling(3 * numNonIsoCompartments,0.0);
         MCMType::ListType upperBoundsSequenceSampling(3 * numNonIsoCompartments,2.0 * M_PI);
         
@@ -943,31 +921,20 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         
         ldsSequence.SetLowerBounds(lowerBoundsSequenceSampling);
         ldsSequence.SetUpperBounds(upperBoundsSequenceSampling);
-    }
-    
-    std::vector <double> sampledData;
-    
-    for (unsigned int restartNum = 0;restartNum < 3 * m_NumberOfRandomRestarts;++restartNum)
-    {
-        // - Now the tricky part: initialize from previous model, handled somewhere else
-        this->InitializeModelFromSimplifiedOne(mcmValue,mcmUpdateValue);
         
-        sampledData = ldsSequence.GetNextSequenceValue();
+        std::vector <double> sampledData;
         
-        for (unsigned int i = numIsoCompartments;i < numCompartments;++i)
+        for (unsigned int restartNum = 0;restartNum < 3 * m_NumberOfRandomRestarts;++restartNum)
         {
-            unsigned int index = i - numIsoCompartments;
+            // - Now the tricky part: initialize from previous model, handled somewhere else
+            this->InitializeModelFromSimplifiedOne(mcmValue,mcmUpdateValue);
             
-            if (m_CompartmentType == NODDI)
+            sampledData = ldsSequence.GetNextSequenceValue();
+            
+            for (unsigned int i = numIsoCompartments;i < numCompartments;++i)
             {
-                // Random kappa initialization
-                mcmUpdateValue->GetCompartment(i)->SetOrientationConcentration(sampledData[index]);
+                unsigned int index = i - numIsoCompartments;
                 
-                // Random EAF initialization
-                mcmUpdateValue->GetCompartment(i)->SetExtraAxonalFraction(sampledData[numNonIsoCompartments + index]);
-            }
-            else
-            {
                 // Random alpha initialization
                 mcmUpdateValue->GetCompartment(i)->SetPerpendicularAngle(sampledData[index]);
                 
@@ -982,25 +949,80 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
                 double w2 = sampledData[2 * numNonIsoCompartments + index];
                 mcmUpdateValue->GetCompartment(i)->SetRadialDiffusivity2(w2 * zeppelinRadDiff + (1 - w2) * 1e-5);
             }
+            
+            workVec = mcmUpdateValue->GetParametersAsVector();
+            for (unsigned int i = 0;i < dimension;++i)
+                p[i] = workVec[i];
+            
+            double costValue = this->PerformSingleOptimization(p,cost,lowerBounds,upperBounds);
+            
+            if ((costValue < optimalCostValue)||(restartNum == 0))
+            {
+                // - Get estimated data
+                for (unsigned int i = 0;i < dimension;++i)
+                    workVec[i] = p[i];
+                
+                mcmOptimalModel->SetParametersFromVector(workVec);
+                
+                this->GetProfiledInformation(cost,mcmOptimalModel,optimalB0Value,optimalSigmaSqValue);
+                optimalCostValue = costValue;
+            }
+        }
+    }
+    else
+    {
+        // For now essentially NODDI
+        
+        double initAxialDiff = 1.7e-3;
+        
+        // - Now the tricky part: initialize from previous model, handled somewhere else
+        this->InitializeModelFromSimplifiedOne(mcmValue,mcmUpdateValue);
+        
+        for (unsigned int i = numIsoCompartments;i < numCompartments;++i)
+        {
+            double zeppelinAxialDiff = mcmUpdateValue->GetCompartment(i)->GetAxialDiffusivity();
+            double zeppelinRadialDiff = mcmUpdateValue->GetCompartment(i)->GetRadialDiffusivity1();
+            double zeppelinMD = (zeppelinAxialDiff + 2.0 * zeppelinRadialDiff) / 3.0;
+            
+            // Deal with extra-axonal fractio initialization first
+            double extraFraction = 0.5;
+            if (zeppelinMD >= initAxialDiff / 3.0 && zeppelinMD <= initAxialDiff)
+                extraFraction = 1.0 - 1.5 * (1.0 - zeppelinMD / initAxialDiff);
+            
+            mcmUpdateValue->GetCompartment(i)->SetExtraAxonalFraction(extraFraction);
+            
+            // Next, deal with kappa initialization
+            double denom = 3.0 * (initAxialDiff - 3.0 * zeppelinMD);
+            double tau1 = (denom <= 1.0e-4) ? 0.0 : (initAxialDiff + zeppelinAxialDiff - 2.0 * zeppelinRadialDiff) / denom;
+            
+            double kappa = 64.0;
+            if (tau1 >= 1.0 / 3.0 && tau1 <= 1.0)
+            {
+                InitialWatsonKappaCostFunction initKappaCost;
+                initKappaCost.SetAxialDiffusivity(zeppelinAxialDiff);
+                initKappaCost.SetRadialDiffusivity(zeppelinRadialDiff);
+                initKappaCost.SetFreeDiffusivity(initAxialDiff);
+                
+                boost::uintmax_t max_iter = 500;
+                boost::math::tools::eps_tolerance<double> tol(30);
+                std::pair <double,double> kappaInterval = boost::math::tools::toms748_solve(initKappaCost, 1.0e-4, 128.0, tol, max_iter);
+                kappa = std::min(kappaInterval.first,kappaInterval.second);
+            }
+            
+            mcmUpdateValue->GetCompartment(i)->SetOrientationConcentration(extraFraction);
         }
         
         workVec = mcmUpdateValue->GetParametersAsVector();
         for (unsigned int i = 0;i < dimension;++i)
             p[i] = workVec[i];
         
-        double costValue = this->PerformSingleOptimization(p,cost,lowerBounds,upperBounds);
+        double optimalCostValue = this->PerformSingleOptimization(p,cost,lowerBounds,upperBounds);
         
-        if ((costValue < optimalCostValue)||(restartNum == 0))
-        {
-            // - Get estimated data
-            for (unsigned int i = 0;i < dimension;++i)
-                workVec[i] = p[i];
-
-            mcmOptimalModel->SetParametersFromVector(workVec);
-
-            this->GetProfiledInformation(cost,mcmOptimalModel,optimalB0Value,optimalSigmaSqValue);
-            optimalCostValue = costValue;
-        }
+        for (unsigned int i = 0;i < dimension;++i)
+            workVec[i] = p[i];
+        
+        mcmOptimalModel->SetParametersFromVector(workVec);
+        this->GetProfiledInformation(cost,mcmOptimalModel,optimalB0Value,optimalSigmaSqValue);
     }
 
     aiccValue = this->ComputeAICcValue(mcmOptimalModel,optimalCostValue);
