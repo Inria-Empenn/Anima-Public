@@ -31,6 +31,7 @@ public:
     void SetFreeWaterProportionFixedValue(double arg) {m_FreeWaterProportionFixedValue = arg;}
     void SetStationaryWaterProportionFixedValue(double arg) {m_StationaryWaterProportionFixedValue = arg;}
     void SetRestrictedWaterProportionFixedValue(double arg) {m_RestrictedWaterProportionFixedValue = arg;}
+    void SetStaniszProportionFixedValue(double arg) {m_StaniszProportionFixedValue = arg;}
 
     void SetCompartmentType(CompartmentType arg) {m_CompartmentType = arg;}
     void SetNumberOfCompartments(unsigned int num) {m_NumberOfCompartments = num;}

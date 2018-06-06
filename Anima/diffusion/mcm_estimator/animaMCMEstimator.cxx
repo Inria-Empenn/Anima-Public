@@ -48,16 +48,19 @@ int main(int argc,  char **argv)
     TCLAP::SwitchArg freeWaterCompartmentArg("F", "free-water", "Model with free water", cmd, false);
     TCLAP::SwitchArg stationaryWaterCompartmentArg("S", "stationary-water", "Model with stationary water", cmd, false);
     TCLAP::SwitchArg restrictedWaterCompartmentArg("R", "restricted-water", "Model with restricted water", cmd, false);
+    TCLAP::SwitchArg staniszCompartmentArg("Z", "stanisz", "Model with stanisz isotropic compartment", cmd, false);
 
     TCLAP::SwitchArg fixWeightsArg("", "fix-weights", "Fix compartment weights", cmd, false);
     TCLAP::ValueArg<double> freeWaterWeightArg("f", "fw-weight", "Free water weight, used if free water compartment (default: 0.1)", false, 0.1, "free water weight", cmd);
     TCLAP::ValueArg<double> stationaryWaterWeightArg("s", "sw-weight", "Stationary water weight, used if stationary water compartment (default: 0.05)", false, 0.05, "stationary water weight", cmd);
     TCLAP::ValueArg<double> restrictedWaterWeightArg("r", "rw-weight", "Restricted water weight, used if restricted water compartment (default: 0.1)", false, 0.1, "restricted water weight", cmd);
+    TCLAP::ValueArg<double> staniszWeightArg("z", "z-weight", "Stanisz compartment weight, used if restricted water compartment (default: 0.1)", false, 0.1, "Stanisz weight", cmd);
     TCLAP::SwitchArg fixDiffArg("", "fix-diff", "Fix diffusivity value", cmd, false);
     TCLAP::SwitchArg optFWDiffArg("", "opt-free-water-diff", "Optimize free water diffusivity value", cmd, false);
     TCLAP::SwitchArg optIRWDiffArg("", "opt-ir-water-diff", "Optimize isotropic restricted water diffusivity value", cmd, false);
     TCLAP::SwitchArg fixKappaArg("", "fix-kappa", "Fix orientation concentration values", cmd, false);
     TCLAP::SwitchArg fixEAFArg("", "fix-eaf", "Fix extra axonal fraction values", cmd, false);
+    TCLAP::SwitchArg optStaniszArg("", "opt-stanisz", "Optimize Stanisz parameters", cmd, false);
 
     TCLAP::SwitchArg commonDiffusivitiesArg("", "common-diffusivities", "Share diffusivity values among compartments", cmd, false);
     TCLAP::SwitchArg commonKappaArg("", "common-kappa", "Share orientation concentration values among compartments", cmd, false);
@@ -144,6 +147,7 @@ int main(int argc,  char **argv)
     filter->SetModelWithFreeWaterComponent(freeWaterCompartmentArg.isSet());
     filter->SetModelWithStationaryWaterComponent(stationaryWaterCompartmentArg.isSet());
     filter->SetModelWithRestrictedWaterComponent(restrictedWaterCompartmentArg.isSet());
+    filter->SetModelWithStaniszComponent(staniszCompartmentArg.isSet());
 
     switch (compartmentTypeArg.getValue())
     {
@@ -187,10 +191,12 @@ int main(int argc,  char **argv)
     filter->SetFreeWaterProportionFixedValue(freeWaterWeightArg.getValue());
     filter->SetStationaryWaterProportionFixedValue(stationaryWaterWeightArg.getValue());
     filter->SetRestrictedWaterProportionFixedValue(restrictedWaterWeightArg.getValue());
+    filter->SetStaniszProportionFixedValue(staniszWeightArg.getValue());
 
     filter->SetUseConstrainedDiffusivity(fixDiffArg.isSet());
     filter->SetUseConstrainedFreeWaterDiffusivity(!optFWDiffArg.isSet());
     filter->SetUseConstrainedIRWDiffusivity(!optIRWDiffArg.isSet());
+    filter->SetUseConstrainedStaniszParameters(!optStaniszArg.isSet());
 
     if (!fixDiffArg.isSet())
         filter->SetUseCommonDiffusivities(commonDiffusivitiesArg.isSet());

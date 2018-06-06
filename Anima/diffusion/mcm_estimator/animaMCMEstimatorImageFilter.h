@@ -193,10 +193,12 @@ public:
     itkSetMacro(ModelWithFreeWaterComponent, bool)
     itkSetMacro(ModelWithStationaryWaterComponent, bool)
     itkSetMacro(ModelWithRestrictedWaterComponent, bool)
+    itkSetMacro(ModelWithStaniszComponent, bool)
 
     itkSetMacro(FreeWaterProportionFixedValue, double)
     itkSetMacro(StationaryWaterProportionFixedValue, double)
     itkSetMacro(RestrictedWaterProportionFixedValue, double)
+    itkSetMacro(StaniszProportionFixedValue, double)
 
     itkSetMacro(NoiseType, SignalNoiseType)
     itkGetMacro(NoiseType, SignalNoiseType)
@@ -211,6 +213,7 @@ public:
     itkSetMacro(UseConstrainedDiffusivity, bool)
     itkSetMacro(UseConstrainedFreeWaterDiffusivity, bool)
     itkSetMacro(UseConstrainedIRWDiffusivity, bool)
+    itkSetMacro(UseConstrainedStaniszParameters, bool)
 
     itkSetMacro(UseConstrainedOrientationConcentration, bool)
     itkSetMacro(UseConstrainedExtraAxonalFraction, bool)
@@ -269,10 +272,12 @@ protected:
         m_ModelWithFreeWaterComponent = true;
         m_ModelWithStationaryWaterComponent = true;
         m_ModelWithRestrictedWaterComponent = true;
+        m_ModelWithStaniszComponent = true;
 
         m_FreeWaterProportionFixedValue = 0.1;
         m_StationaryWaterProportionFixedValue = 0.05;
         m_RestrictedWaterProportionFixedValue = 0.1;
+        m_StaniszProportionFixedValue = 0.1;
 
         m_NoiseType = Gaussian;
         m_CompartmentType = anima::Tensor;
@@ -285,6 +290,7 @@ protected:
         m_UseConstrainedDiffusivity = false;
         m_UseConstrainedFreeWaterDiffusivity = true;
         m_UseConstrainedIRWDiffusivity = true;
+        m_UseConstrainedStaniszParameters = true;
         m_UseConcentrationBoundsFromDTI = false;
         m_UseBoundedOptimization = false;
         m_UseCommonDiffusivities = false;
@@ -410,8 +416,8 @@ private:
     MaximumLikelihoodEstimationMode m_MLEstimationStrategy;
     bool m_VNLDerivativeComputation;
 
-    bool m_ModelWithFreeWaterComponent, m_ModelWithStationaryWaterComponent, m_ModelWithRestrictedWaterComponent;
-    double m_FreeWaterProportionFixedValue, m_StationaryWaterProportionFixedValue, m_RestrictedWaterProportionFixedValue;
+    bool m_ModelWithFreeWaterComponent, m_ModelWithStationaryWaterComponent, m_ModelWithRestrictedWaterComponent, m_ModelWithStaniszComponent;
+    double m_FreeWaterProportionFixedValue, m_StationaryWaterProportionFixedValue, m_RestrictedWaterProportionFixedValue, m_StaniszProportionFixedValue;
 
     SignalNoiseType m_NoiseType;
     CompartmentType m_CompartmentType;
@@ -424,6 +430,7 @@ private:
     bool m_UseConstrainedDiffusivity;
     bool m_UseConstrainedFreeWaterDiffusivity;
     bool m_UseConstrainedIRWDiffusivity;
+    bool m_UseConstrainedStaniszParameters;
     bool m_UseConcentrationBoundsFromDTI;
     bool m_UseBoundedOptimization;
     bool m_UseCommonDiffusivities;

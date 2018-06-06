@@ -63,6 +63,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     tmpMCMCreator->SetModelWithFreeWaterComponent(m_ModelWithFreeWaterComponent);
     tmpMCMCreator->SetModelWithStationaryWaterComponent(m_ModelWithStationaryWaterComponent);
     tmpMCMCreator->SetModelWithRestrictedWaterComponent(m_ModelWithRestrictedWaterComponent);
+    tmpMCMCreator->SetModelWithStaniszComponent(m_ModelWithStaniszComponent);
     tmpMCMCreator->SetCompartmentType(m_CompartmentType);
     tmpMCMCreator->SetNumberOfCompartments(m_NumberOfCompartments);
 
@@ -505,7 +506,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
                 minimalNumberOfCompartments = 1;
                 moseValue = 0;
 
-                if (m_ModelWithFreeWaterComponent || m_ModelWithRestrictedWaterComponent || m_ModelWithStationaryWaterComponent)
+                if (m_ModelWithFreeWaterComponent || m_ModelWithRestrictedWaterComponent || m_ModelWithStationaryWaterComponent || m_ModelWithStaniszComponent)
                     this->EstimateFreeWaterModel(mcmData,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
             }
             else if (moseValue != -1)
@@ -534,7 +535,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
                 }
             }
         }
-        else if (m_ModelWithFreeWaterComponent || m_ModelWithRestrictedWaterComponent || m_ModelWithStationaryWaterComponent)
+        else if (m_ModelWithFreeWaterComponent || m_ModelWithRestrictedWaterComponent || m_ModelWithStationaryWaterComponent || m_ModelWithStaniszComponent)
             this->EstimateFreeWaterModel(mcmData,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
         else
             itkExceptionMacro("Nothing to estimate...");
@@ -601,13 +602,16 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     mcmCreator->SetModelWithFreeWaterComponent(m_ModelWithFreeWaterComponent);
     mcmCreator->SetModelWithStationaryWaterComponent(m_ModelWithStationaryWaterComponent);
     mcmCreator->SetModelWithRestrictedWaterComponent(m_ModelWithRestrictedWaterComponent);
+    mcmCreator->SetModelWithStaniszComponent(m_ModelWithStaniszComponent);
     mcmCreator->SetNumberOfCompartments(0);
     mcmCreator->SetUseFixedWeights(m_UseFixedWeights || (m_MLEstimationStrategy == VariableProjection));
     mcmCreator->SetUseConstrainedFreeWaterDiffusivity(m_UseConstrainedFreeWaterDiffusivity);
     mcmCreator->SetUseConstrainedIRWDiffusivity(m_UseConstrainedIRWDiffusivity);
+    mcmCreator->SetUseConstrainedStaniszParameters(m_UseConstrainedStaniszParameters);
     mcmCreator->SetFreeWaterProportionFixedValue(m_FreeWaterProportionFixedValue);
     mcmCreator->SetStationaryWaterProportionFixedValue(m_StationaryWaterProportionFixedValue);
     mcmCreator->SetRestrictedWaterProportionFixedValue(m_RestrictedWaterProportionFixedValue);
+    mcmCreator->SetStaniszProportionFixedValue(m_StaniszProportionFixedValue);
 
     mcmValue = mcmCreator->GetNewMultiCompartmentModel();
 
@@ -733,15 +737,18 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     mcmCreator->SetModelWithFreeWaterComponent(m_ModelWithFreeWaterComponent);
     mcmCreator->SetModelWithStationaryWaterComponent(m_ModelWithStationaryWaterComponent);
     mcmCreator->SetModelWithRestrictedWaterComponent(m_ModelWithRestrictedWaterComponent);
+    mcmCreator->SetModelWithStaniszComponent(m_ModelWithStaniszComponent);
     mcmCreator->SetCompartmentType(Stick);
     mcmCreator->SetNumberOfCompartments(currentNumberOfCompartments);
     mcmCreator->SetUseFixedWeights(m_UseFixedWeights || (m_MLEstimationStrategy == VariableProjection));
     mcmCreator->SetFreeWaterProportionFixedValue(m_FreeWaterProportionFixedValue);
     mcmCreator->SetStationaryWaterProportionFixedValue(m_StationaryWaterProportionFixedValue);
     mcmCreator->SetRestrictedWaterProportionFixedValue(m_RestrictedWaterProportionFixedValue);
+    mcmCreator->SetStaniszProportionFixedValue(m_StaniszProportionFixedValue);
     mcmCreator->SetUseConstrainedDiffusivity(true);
     mcmCreator->SetUseConstrainedFreeWaterDiffusivity(m_UseConstrainedFreeWaterDiffusivity);
     mcmCreator->SetUseConstrainedIRWDiffusivity(m_UseConstrainedIRWDiffusivity);
+    mcmCreator->SetUseConstrainedStaniszParameters(m_UseConstrainedStaniszParameters);
     mcmCreator->SetUseCommonDiffusivities(m_UseCommonDiffusivities);
 
     MCMPointer mcmUpdateValue = mcmCreator->GetNewMultiCompartmentModel();
