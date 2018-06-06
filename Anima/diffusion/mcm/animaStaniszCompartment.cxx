@@ -12,7 +12,7 @@ double StaniszCompartment::GetFourierTransformedDiffusionProfile(double smallDel
 {
     double alpha = anima::DiffusionGyromagneticRatio * smallDelta * gradientStrength;
     double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
-    double alphaRs = alpha * this->GetTissuesRadius();
+    double alphaRs = alpha * this->GetTissueRadius();
 
     double signalValue = 2.0 * (1.0 - std::cos(alphaRs)) / (alphaRs * alphaRs);
     double sumValue = 0.0;
@@ -45,7 +45,7 @@ StaniszCompartment::ListType &StaniszCompartment::GetSignalAttenuationJacobian(d
 
     double alpha = anima::DiffusionGyromagneticRatio * smallDelta * gradientStrength;
     double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
-    double alphaRs = alpha * this->GetTissuesRadius();
+    double alphaRs = alpha * this->GetTissueRadius();
 
     double derivativeSum2Value = 0.0;
     if (this->GetNumberOfParameters() > 0)
@@ -74,7 +74,7 @@ StaniszCompartment::ListType &StaniszCompartment::GetSignalAttenuationJacobian(d
     m_JacobianVector[0] = - 4.0 * bValue * M_PI * M_PI * derivativeSum2Value * aDiffDeriv;
 
     // Derivative w.r.t. R_S
-    m_JacobianVector[1] = 2.0 * (alphaRs * std::sin(alphaRs) - 2.0 * (1.0 - std::cos(alphaRs))) / (alphaRs * alphaRs * this->GetTissuesRadius());
+    m_JacobianVector[1] = 2.0 * (alphaRs * std::sin(alphaRs) - 2.0 * (1.0 - std::cos(alphaRs))) / (alphaRs * alphaRs * this->GetTissueRadius());
     double derivativeSum1Value = 0.0;
     double derivativeSum3Value = 0.0;
     double derivativeSum4Value = 0.0;
@@ -105,14 +105,14 @@ StaniszCompartment::ListType &StaniszCompartment::GetSignalAttenuationJacobian(d
     }
 
     m_JacobianVector[1] += 8.0 * alpha * alphaRs * derivativeSum1Value;
-    m_JacobianVector[1] += 8.0 * M_PI * M_PI * bValue * this->GetAxialDiffusivity() * derivativeSum2Value / this->GetTissuesRadius();
+    m_JacobianVector[1] += 8.0 * M_PI * M_PI * bValue * this->GetAxialDiffusivity() * derivativeSum2Value / this->GetTissueRadius();
     m_JacobianVector[1] += 4.0 * alpha * alphaRs * alphaRs * derivativeSum3Value;
     m_JacobianVector[1] -= 16.0 * alpha * alphaRs * alphaRs * alphaRs * derivativeSum4Value;
 
     double rsDeriv = 1.0;
     if (this->GetUseBoundedOptimization())
-        rsDeriv = levenberg::BoundedDerivativeAddOn(this->GetTissuesRadius(), this->GetBoundedSignVectorValue(1),
-                                                    m_TissuesRadiusLowerBound, m_TissuesRadiusUpperBound);
+        rsDeriv = levenberg::BoundedDerivativeAddOn(this->GetTissueRadius(), this->GetBoundedSignVectorValue(1),
+                                                    m_TissueRadiusLowerBound, m_TissueRadiusUpperBound);
 
     m_JacobianVector[1] *= rsDeriv;
 
@@ -143,7 +143,7 @@ void StaniszCompartment::SetParametersFromVector(const ListType &params)
         m_BoundedVector = params;
 
     this->SetAxialDiffusivity(m_BoundedVector[0]);
-    this->SetTissuesRadius(m_BoundedVector[1]);
+    this->SetTissueRadius(m_BoundedVector[1]);
 }
 
 StaniszCompartment::ListType &StaniszCompartment::GetParametersAsVector()
@@ -154,7 +154,7 @@ StaniszCompartment::ListType &StaniszCompartment::GetParametersAsVector()
         return m_ParametersVector;
 
     m_ParametersVector[0] = this->GetAxialDiffusivity();
-    m_ParametersVector[1] = this->GetTissuesRadius();
+    m_ParametersVector[1] = this->GetTissueRadius();
     
     if (this->GetUseBoundedOptimization())
         this->UnboundParameters(m_ParametersVector);
@@ -170,7 +170,7 @@ StaniszCompartment::ListType &StaniszCompartment::GetParameterLowerBounds()
         return m_ParametersLowerBoundsVector;
 
     m_ParametersLowerBoundsVector[0] = m_DiffusivityLowerBound;
-    m_ParametersLowerBoundsVector[1] = m_TissuesRadiusLowerBound;
+    m_ParametersLowerBoundsVector[1] = m_TissueRadiusLowerBound;
 
     return m_ParametersLowerBoundsVector;
 }
@@ -183,7 +183,7 @@ StaniszCompartment::ListType &StaniszCompartment::GetParameterUpperBounds()
         return m_ParametersUpperBoundsVector;
 
     m_ParametersUpperBoundsVector[0] = m_DiffusivityUpperBound;
-    m_ParametersUpperBoundsVector[1] = m_TissuesRadiusUpperBound;
+    m_ParametersUpperBoundsVector[1] = m_TissueRadiusUpperBound;
 
     return m_ParametersUpperBoundsVector;
 }
@@ -200,7 +200,7 @@ void StaniszCompartment::BoundParameters(const ListType &params)
     m_BoundedVector[0] = levenberg::ComputeBoundedValue(params[0],inputSign, m_DiffusivityLowerBound, m_DiffusivityUpperBound);
     this->SetBoundedSignVectorValue(0,inputSign);
 
-    m_BoundedVector[1] = levenberg::ComputeBoundedValue(params[1],inputSign, m_TissuesRadiusLowerBound, m_TissuesRadiusUpperBound);
+    m_BoundedVector[1] = levenberg::ComputeBoundedValue(params[1],inputSign, m_TissueRadiusLowerBound, m_TissueRadiusUpperBound);
     this->SetBoundedSignVectorValue(1,inputSign);
 }
 
@@ -210,7 +210,7 @@ void StaniszCompartment::UnboundParameters(ListType &params)
         return;
 
     params[0] = levenberg::UnboundValue(params[0], m_DiffusivityLowerBound, m_DiffusivityUpperBound);
-    params[1] = levenberg::UnboundValue(params[1], m_TissuesRadiusLowerBound, m_TissuesRadiusUpperBound);
+    params[1] = levenberg::UnboundValue(params[1], m_TissueRadiusLowerBound, m_TissueRadiusUpperBound);
 }
 
 void StaniszCompartment::SetEstimateParameters(bool arg)
@@ -228,7 +228,7 @@ void StaniszCompartment::SetCompartmentVector(ModelOutputVectorType &compartment
         itkExceptionMacro("The input vector size does not match the size of the compartment");
 
     this->SetAxialDiffusivity(compartmentVector[0]);
-    this->SetTissuesRadius(compartmentVector[1]);
+    this->SetTissueRadius(compartmentVector[1]);
 }
 
 unsigned int StaniszCompartment::GetCompartmentSize()
@@ -254,7 +254,7 @@ StaniszCompartment::ModelOutputVectorType &StaniszCompartment::GetCompartmentVec
         m_CompartmentVector.SetSize(this->GetCompartmentSize());
 
     m_CompartmentVector[0] = this->GetAxialDiffusivity();
-    m_CompartmentVector[1] = this->GetTissuesRadius();
+    m_CompartmentVector[1] = this->GetTissueRadius();
 
     return m_CompartmentVector;
 }

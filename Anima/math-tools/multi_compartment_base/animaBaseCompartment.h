@@ -89,7 +89,7 @@ public:
     virtual double GetRadialDiffusivity2() {return m_RadialDiffusivity2;}
     virtual double GetOrientationConcentration() {return m_OrientationConcentration;}
     virtual double GetExtraAxonalFraction() {return m_ExtraAxonalFraction;}
-    virtual double GetTissuesRadius() {return m_TissuesRadius;}
+    virtual double GetTissueRadius() {return m_TissueRadius;}
 
     // Can be re-implemented, always re-use this implementation though
     virtual void SetOrientationTheta(double num) {m_OrientationTheta = num;}
@@ -100,7 +100,7 @@ public:
     virtual void SetRadialDiffusivity2(double num) {m_RadialDiffusivity2 = num;}
     virtual void SetOrientationConcentration(double num) {m_OrientationConcentration = num;}
     virtual void SetExtraAxonalFraction(double num) {m_ExtraAxonalFraction = num;}
-    virtual void SetTissuesRadius(double num) {m_TissuesRadius = num;}
+    virtual void SetTissueRadius(double num) {m_TissueRadius = num;}
 
     double GetPredictedSignal(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient);
 
@@ -124,7 +124,7 @@ protected:
         m_RadialDiffusivity2 = 1.5e-4;
         m_OrientationConcentration = 5.0;
         m_ExtraAxonalFraction = 0.1;
-        m_TissuesRadius = 1.0e-6;
+        m_TissueRadius = 1.0e-6;
 
         m_DiffusionTensor.SetIdentity();
         m_UseBoundedOptimization = false;
@@ -150,8 +150,8 @@ protected:
     static const double m_DefaultConcentrationUpperBound;
     static const double m_WatsonKappaUpperBound;
     static const double m_FractionUpperBound;
-    static const double m_TissuesRadiusLowerBound;
-    static const double m_TissuesRadiusUpperBound;
+    static const double m_TissueRadiusLowerBound;
+    static const double m_TissueRadiusUpperBound;
 
     //! Matrix to hold working value of diffusion tensor approximation to the model
     Matrix3DType m_DiffusionTensor;
@@ -181,7 +181,7 @@ private:
     double m_RadialDiffusivity1, m_RadialDiffusivity2;
     double m_OrientationConcentration;
     double m_ExtraAxonalFraction;
-    double m_TissuesRadius;
+    double m_TissueRadius;
 
     //! Boolean to tell whether parameters to be optimized are bounded or not
     bool m_UseBoundedOptimization;

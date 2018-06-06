@@ -65,7 +65,7 @@ bool BaseCompartment::IsEqual(Self *rhs, double tolerance)
         return false;
     if (std::abs(this->GetExtraAxonalFraction() - rhs->GetExtraAxonalFraction()) > tolerance)
         return false;
-    if (std::abs(this->GetTissuesRadius() - rhs->GetTissuesRadius()) > tolerance)
+    if (std::abs(this->GetTissueRadius() - rhs->GetTissueRadius()) > tolerance)
         return false;
 
     return true;
@@ -81,7 +81,7 @@ void BaseCompartment::CopyFromOther(Self *rhs)
     this->SetRadialDiffusivity2(rhs->GetRadialDiffusivity2());
     this->SetOrientationConcentration(rhs->GetOrientationConcentration());
     this->SetExtraAxonalFraction(rhs->GetExtraAxonalFraction());
-    this->SetTissuesRadius(rhs->GetTissuesRadius());
+    this->SetTissueRadius(rhs->GetTissueRadius());
 }
 
 void BaseCompartment::Reorient(vnl_matrix <double> &orientationMatrix, bool affineTransform)

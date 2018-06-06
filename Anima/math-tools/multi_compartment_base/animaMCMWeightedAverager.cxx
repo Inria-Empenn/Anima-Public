@@ -93,14 +93,14 @@ void MCMWeightedAverager::Update()
 
             m_InternalOutputWeights[i] += m_InputWeights[j] * tmpWeight;
             outputLogDiffusivity += m_InputWeights[j] * std::log(m_InputModels[j]->GetCompartment(i)->GetAxialDiffusivity());
-            outputRadius += m_InputWeights[j] * m_InputModels[j]->GetCompartment(i)->GetTissuesRadius();
+            outputRadius += m_InputWeights[j] * m_InputModels[j]->GetCompartment(i)->GetTissueRadius();
             sumWeights += m_InputWeights[j];
         }
 
         if (sumWeights > 0)
         {
             m_OutputModel->GetCompartment(i)->SetAxialDiffusivity(std::exp(outputLogDiffusivity / sumWeights));
-            m_OutputModel->GetCompartment(i)->SetTissuesRadius(outputRadius / sumWeights);
+            m_OutputModel->GetCompartment(i)->SetTissueRadius(outputRadius / sumWeights);
         }
     }
 
