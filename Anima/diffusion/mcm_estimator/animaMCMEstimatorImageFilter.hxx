@@ -1009,7 +1009,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
                 kappa = std::min(kappaInterval.first,kappaInterval.second);
             }
             
-            mcmUpdateValue->GetCompartment(i)->SetOrientationConcentration(extraFraction);
+            mcmUpdateValue->GetCompartment(i)->SetOrientationConcentration(kappa);
         }
         
         workVec = mcmUpdateValue->GetParametersAsVector();
