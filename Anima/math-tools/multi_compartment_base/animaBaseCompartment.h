@@ -135,6 +135,7 @@ protected:
 
     static const double m_ZeroLowerBound;
     static const double m_Epsilon;
+    static const double m_AxialDiffusivityAddonLowerBound;
     static const double m_DiffusivityLowerBound;
     static const double m_PolarAngleUpperBound;
     static const double m_AzimuthAngleUpperBound;

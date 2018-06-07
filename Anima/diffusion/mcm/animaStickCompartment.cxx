@@ -51,7 +51,7 @@ StickCompartment::ListType &StickCompartment::GetSignalAttenuationJacobian(doubl
         if (this->GetUseBoundedOptimization())
             d1Deriv = levenberg::BoundedDerivativeAddOn(this->GetAxialDiffusivity() - this->GetRadialDiffusivity1(),
                                                         this->GetBoundedSignVectorValue(2),
-                                                        m_ZeroLowerBound, m_DiffusivityUpperBound);
+                                                        m_AxialDiffusivityAddonLowerBound, m_DiffusivityUpperBound);
 
         m_JacobianVector[2] = -bValue * m_GradientEigenvector1 * m_GradientEigenvector1 * signalAttenuation * d1Deriv;
     }
@@ -104,7 +104,7 @@ StickCompartment::ListType &StickCompartment::GetParametersAsVector()
 
     if (m_EstimateAxialDiffusivity)
         m_ParametersVector[2] = this->GetAxialDiffusivity() - this->GetRadialDiffusivity1();
-    
+
     if (this->GetUseBoundedOptimization())
         this->UnboundParameters(m_ParametersVector);
 
@@ -115,6 +115,9 @@ StickCompartment::ListType &StickCompartment::GetParameterLowerBounds()
 {
     m_ParametersLowerBoundsVector.resize(this->GetNumberOfParameters());
     std::fill(m_ParametersLowerBoundsVector.begin(),m_ParametersLowerBoundsVector.end(),m_ZeroLowerBound);
+
+    if (m_EstimateAxialDiffusivity)
+        m_ParametersLowerBoundsVector[2] = m_AxialDiffusivityAddonLowerBound;
 
     return m_ParametersLowerBoundsVector;
 }
@@ -144,7 +147,7 @@ void StickCompartment::BoundParameters(const ListType &params)
 
     if (m_EstimateAxialDiffusivity)
     {
-        m_BoundedVector[2] = levenberg::ComputeBoundedValue(params[2],inputSign, m_ZeroLowerBound, m_DiffusivityUpperBound);
+        m_BoundedVector[2] = levenberg::ComputeBoundedValue(params[2],inputSign, m_AxialDiffusivityAddonLowerBound, m_DiffusivityUpperBound);
         this->SetBoundedSignVectorValue(2,inputSign);
     }
 }
@@ -155,7 +158,7 @@ void StickCompartment::UnboundParameters(ListType &params)
     params[1] = levenberg::UnboundValue(params[1], m_ZeroLowerBound, m_AzimuthAngleUpperBound);
     
     if (m_EstimateAxialDiffusivity)
-        params[2] = levenberg::UnboundValue(params[2], m_ZeroLowerBound, m_DiffusivityUpperBound);
+        params[2] = levenberg::UnboundValue(params[2], m_AxialDiffusivityAddonLowerBound, m_DiffusivityUpperBound);
 }
 
 void StickCompartment::SetEstimateAxialDiffusivity(bool arg)
@@ -215,8 +218,8 @@ unsigned int StickCompartment::GetNumberOfParameters()
     if (!m_ChangedConstraints)
         return m_NumberOfParameters;
 
-    // The number of parameters before constraints is the compartment size - 1 because the orientation is stored in cartesian coordinates
-    m_NumberOfParameters = this->GetCompartmentSize() - 1;
+    // The number of parameters is three: two orientations plus one axial diffusivity
+    m_NumberOfParameters = 3;
 
     if (!m_EstimateAxialDiffusivity)
         --m_NumberOfParameters;

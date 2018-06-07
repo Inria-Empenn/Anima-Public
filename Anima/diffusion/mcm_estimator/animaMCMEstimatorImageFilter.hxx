@@ -382,7 +382,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     typename OutputImageType::PixelType resVec(this->GetOutput()->GetNumberOfComponentsPerPixel());
 
-    MCMPointer mcmData = 0, mcmValue = 0;
+    MCMPointer mcmData = 0;
     MCMPointer outputMCMData = this->GetOutput()->GetDescriptionModel()->Clone();
     MCMType::ListType outputWeights(outputMCMData->GetNumberOfCompartments(),0);
 
@@ -821,7 +821,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         workVec[i] = p[i];
 
     mcmUpdateValue->SetParametersFromVector(workVec);
-    
+
     mcmValue = mcmUpdateValue;
     aiccValue = this->ComputeAICcValue(mcmValue,costValue);
 

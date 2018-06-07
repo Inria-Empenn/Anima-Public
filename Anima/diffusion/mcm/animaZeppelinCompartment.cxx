@@ -53,7 +53,7 @@ ZeppelinCompartment::ListType &ZeppelinCompartment::GetSignalAttenuationJacobian
         if (this->GetUseBoundedOptimization())
             d1Deriv = levenberg::BoundedDerivativeAddOn(this->GetAxialDiffusivity() - this->GetRadialDiffusivity1(),
                                                         this->GetBoundedSignVectorValue(2),
-                                                        m_ZeroLowerBound, m_DiffusivityUpperBound);
+                                                        m_AxialDiffusivityAddonLowerBound, m_DiffusivityUpperBound);
         
         m_JacobianVector[2] = -bValue * m_GradientEigenvector1 * m_GradientEigenvector1 * signalAttenuation * d1Deriv;
         
@@ -139,7 +139,10 @@ ZeppelinCompartment::ListType &ZeppelinCompartment::GetParameterLowerBounds()
     std::fill(m_ParametersLowerBoundsVector.begin(),m_ParametersLowerBoundsVector.end(),m_ZeroLowerBound);
     
     if (m_EstimateDiffusivities)
+    {
+        m_ParametersLowerBoundsVector[2] = m_AxialDiffusivityAddonLowerBound;
         m_ParametersLowerBoundsVector[3] = m_DiffusivityLowerBound;
+    }
     
     return m_ParametersLowerBoundsVector;
 }
@@ -172,7 +175,7 @@ void ZeppelinCompartment::BoundParameters(const ListType &params)
 
     if (m_EstimateDiffusivities)
     {
-        m_BoundedVector[2] = levenberg::ComputeBoundedValue(params[2], inputSign, m_ZeroLowerBound, m_DiffusivityUpperBound);
+        m_BoundedVector[2] = levenberg::ComputeBoundedValue(params[2], inputSign, m_AxialDiffusivityAddonLowerBound, m_DiffusivityUpperBound);
         this->SetBoundedSignVectorValue(2,inputSign);
         m_BoundedVector[3] = levenberg::ComputeBoundedValue(params[3], inputSign, m_DiffusivityLowerBound, m_RadialDiffusivityUpperBound);
         this->SetBoundedSignVectorValue(3,inputSign);
@@ -186,7 +189,7 @@ void ZeppelinCompartment::UnboundParameters(ListType &params)
     
     if (m_EstimateDiffusivities)
     {
-        params[2] = levenberg::UnboundValue(params[2], m_ZeroLowerBound, m_DiffusivityUpperBound);
+        params[2] = levenberg::UnboundValue(params[2], m_AxialDiffusivityAddonLowerBound, m_DiffusivityUpperBound);
         params[3] = levenberg::UnboundValue(params[3], m_DiffusivityLowerBound, m_RadialDiffusivityUpperBound);
     }
 }

@@ -8,6 +8,7 @@ namespace anima
 
 const double BaseCompartment::m_ZeroLowerBound = 0.0;
 const double BaseCompartment::m_DiffusivityLowerBound = 1e-5;
+const double BaseCompartment::m_AxialDiffusivityAddonLowerBound = 5.0e-4;
 const double BaseCompartment::m_PolarAngleUpperBound = M_PI;
 const double BaseCompartment::m_AzimuthAngleUpperBound = 2.0 * M_PI;
 const double BaseCompartment::m_DiffusivityUpperBound = 3e-3;
