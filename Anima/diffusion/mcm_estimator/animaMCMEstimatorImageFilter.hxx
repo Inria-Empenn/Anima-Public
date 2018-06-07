@@ -934,7 +934,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
             mcmUpdateValue->GetCompartment(i)->SetPerpendicularAngle(sampledData[index]);
             
             // Takes care of initializing d2=l2-l3 (which is 0 in Zeppelin) to a positive realistic value
-            double zeppelinAxDiff = mcmUpdateValue->GetCompartment(i)->GetAxialDiffusivity();
+            // 5.0e-4 is here to ensure the axial diff is above its lower bound
+            double zeppelinAxDiff = mcmUpdateValue->GetCompartment(i)->GetAxialDiffusivity() - 5.0e-4;
             double zeppelinRadDiff = mcmUpdateValue->GetCompartment(i)->GetRadialDiffusivity1();
             
             double w1 = sampledData[numNonIsoCompartments + index];
