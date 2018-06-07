@@ -106,7 +106,7 @@ KummerFunction(const double &x,
         double resVal = boost::math::quadrature::gauss<double, 15>::integrate(integrand, 0.0, 1.0) / std::tgamma(b - a);
         if (!normalized)
             resVal *= (std::tgamma(b) / std::tgamma(a));
-        return (scaled) ? resVal : std::exp(x) * resVal ;
+        return (scaled || x <= 0) ? resVal : std::exp(x) * resVal;
     }
     
     if (std::abs(x) < 50.0)

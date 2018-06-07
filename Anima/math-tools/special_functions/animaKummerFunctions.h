@@ -48,7 +48,7 @@ public:
     
     double operator() (const double t)
     {
-        return std::exp(m_XValue * (t - 1.0)) * std::pow(t, m_AValue - 1.0) * std::pow(1.0 - t, m_BValue - m_AValue - 1.0);
+        return std::exp(m_XValue * (t - (double)(m_XValue > 0))) * std::pow(t, m_AValue - 1.0) * std::pow(1.0 - t, m_BValue - m_AValue - 1.0);
     }
     
 private:

@@ -22,6 +22,7 @@
 #include <animaMCMFileWriter.h>
 
 #include <boost/math/tools/toms748_solve.hpp>
+#include <boost/math/tools/minima.hpp>
 #include <ctime>
 
 namespace anima
@@ -978,38 +979,91 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         // - Now the tricky part: initialize from previous model, handled somewhere else
         this->InitializeModelFromSimplifiedOne(mcmValue,mcmUpdateValue);
         
+        // Brute-force initial search
+        std::vector<double> kappaValues(7);
+        for (unsigned int i = 0;i < kappaValues.size();++i)
+            kappaValues[i] = std::pow(2.0, (double)i);
+        std::vector<double> nuValues(9);
+        for (unsigned int i = 0;i < nuValues.size();++i)
+            nuValues[i] = (i + 1.0) / 10.0;
+        
+//        double baseAxialDiff = 0.0;
+//        double baseRadialDiff = 0.0;
+//        for (unsigned int i = 0;i < numIsoCompartments;++i)
+//        {
+//            double compartmentWeight = mcmUpdateValue->GetCompartmentWeight(i);
+//            baseAxialDiff += compartmentWeight * mcmUpdateValue->GetCompartment(i)->GetAxialDiffusivity();
+//            baseRadialDiff += compartmentWeight * mcmUpdateValue->GetCompartment(i)->GetRadialDiffusivity1();
+//        }
+        
         for (unsigned int i = numIsoCompartments;i < numCompartments;++i)
         {
-            double zeppelinAxialDiff = mcmUpdateValue->GetCompartment(i)->GetAxialDiffusivity();
-            double zeppelinRadialDiff = mcmUpdateValue->GetCompartment(i)->GetRadialDiffusivity1();
-            double zeppelinMD = (zeppelinAxialDiff + 2.0 * zeppelinRadialDiff) / 3.0;
+//            double compartmentWeight = mcmUpdateValue->GetCompartmentWeight(i);
+//            double zeppelinAxialDiff = baseAxialDiff + compartmentWeight * mcmUpdateValue->GetCompartment(i)->GetAxialDiffusivity();
+//            double zeppelinRadialDiff = baseRadialDiff + compartmentWeight * mcmUpdateValue->GetCompartment(i)->GetRadialDiffusivity1();
+//            double zeppelinMD = (zeppelinAxialDiff + 2.0 * zeppelinRadialDiff) / 3.0;
+//
+//            // Deal with extra-axonal fractio initialization first
+//            double extraFraction = 0.5;
+//            if (zeppelinMD >= initAxialDiff / 3.0 && zeppelinMD <= initAxialDiff)
+//                extraFraction = 1.0 - 1.5 * (1.0 - zeppelinMD / initAxialDiff);
+//
+//            mcmUpdateValue->GetCompartment(i)->SetExtraAxonalFraction(extraFraction);
+//
+//            // Next, deal with kappa initialization
+//            double denom = 3.0 * (initAxialDiff - 3.0 * zeppelinMD);
+//            double tau1 = (denom <= 1.0e-4) ? 0.0 : (initAxialDiff + zeppelinAxialDiff - 2.0 * zeppelinRadialDiff) / denom;
+//
+//            double kappa = 16.0;
+//            if (tau1 >= 1.0 / 3.0 && tau1 <= 1.0)
+//            {
+//                InitialWatsonKappaCostFunction initKappaCost;
+//                initKappaCost.SetAxialDiffusivity(zeppelinAxialDiff);
+//                initKappaCost.SetRadialDiffusivity(zeppelinRadialDiff);
+//                initKappaCost.SetFreeDiffusivity(initAxialDiff);
+//
+//                boost::uintmax_t max_iter = 500;
+//                boost::math::tools::eps_tolerance<double> tol(30);
+//                int bits = std::numeric_limits<double>::digits;
+////                std::pair <double,double> kappaInterval = boost::math::tools::toms748_solve(initKappaCost, 1.0e-4, 128.0, tol, max_iter);
+//                std::pair <double,double> optimalValue = boost::math::tools::brent_find_minima(initKappaCost, 1.0e-4, 128.0, bits);
+//                kappa = optimalValue.first;
+//
+////                std::cout << extraFraction << " " << kappa << std::endl;
+//            }
+//
+//            mcmUpdateValue->GetCompartment(i)->SetOrientationConcentration(kappa);
             
-            // Deal with extra-axonal fractio initialization first
-            double extraFraction = 0.5;
-            if (zeppelinMD >= initAxialDiff / 3.0 && zeppelinMD <= initAxialDiff)
-                extraFraction = 1.0 - 1.5 * (1.0 - zeppelinMD / initAxialDiff);
-            
-            mcmUpdateValue->GetCompartment(i)->SetExtraAxonalFraction(extraFraction);
-            
-            // Next, deal with kappa initialization
-            double denom = 3.0 * (initAxialDiff - 3.0 * zeppelinMD);
-            double tau1 = (denom <= 1.0e-4) ? 0.0 : (initAxialDiff + zeppelinAxialDiff - 2.0 * zeppelinRadialDiff) / denom;
-            
-            double kappa = 64.0;
-            if (tau1 >= 1.0 / 3.0 && tau1 <= 1.0)
+            double optNu = 0;
+            double optKappa = 0;
+            double optValue = 0;
+            for (unsigned int j = 0;j < kappaValues.size();++j)
             {
-                InitialWatsonKappaCostFunction initKappaCost;
-                initKappaCost.SetAxialDiffusivity(zeppelinAxialDiff);
-                initKappaCost.SetRadialDiffusivity(zeppelinRadialDiff);
-                initKappaCost.SetFreeDiffusivity(initAxialDiff);
+                double tmpKappa = kappaValues[j];
+                mcmUpdateValue->GetCompartment(i)->SetOrientationConcentration(tmpKappa);
                 
-                boost::uintmax_t max_iter = 500;
-                boost::math::tools::eps_tolerance<double> tol(30);
-                std::pair <double,double> kappaInterval = boost::math::tools::toms748_solve(initKappaCost, 1.0e-4, 128.0, tol, max_iter);
-                kappa = std::min(kappaInterval.first,kappaInterval.second);
+                for (unsigned int k = 0;k < nuValues.size();++k)
+                {
+                    double tmpNu = nuValues[k];
+                    mcmUpdateValue->GetCompartment(i)->SetExtraAxonalFraction(tmpNu);
+                    
+                    workVec = mcmUpdateValue->GetParametersAsVector();
+                    for (unsigned int i = 0;i < dimension;++i)
+                        p[i] = workVec[i];
+                    
+                    double tmpValue = this->GetCostValue(cost,p);
+                    
+                    if (tmpValue < optValue || (j==0&&k==0))
+                    {
+                        optValue = tmpValue;
+                        optKappa = tmpKappa;
+                        optNu = tmpNu;
+                    }
+                }
             }
             
-            mcmUpdateValue->GetCompartment(i)->SetOrientationConcentration(kappa);
+            mcmUpdateValue->GetCompartment(i)->SetOrientationConcentration(optKappa);
+            mcmUpdateValue->GetCompartment(i)->SetExtraAxonalFraction(optNu);
         }
         
         workVec = mcmUpdateValue->GetParametersAsVector();

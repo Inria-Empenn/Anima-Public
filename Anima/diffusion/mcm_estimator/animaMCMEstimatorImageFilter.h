@@ -31,7 +31,7 @@ public:
         double scaledDawsonValue = anima::EvaluateDawsonIntegral(std::sqrt(k), true);
         double lhs = (3.0 * m_FreeDiffusivity - (m_AxialDiffusivity + 2.0 * m_RadialDiffusivity)) * (1.0 - scaledDawsonValue);
         double rhs = (m_FreeDiffusivity + m_AxialDiffusivity - 2.0 * m_RadialDiffusivity) * 2.0 * k * scaledDawsonValue;
-        return lhs - rhs;
+        return (lhs - rhs) * (lhs - rhs);
     }
     
 private:
