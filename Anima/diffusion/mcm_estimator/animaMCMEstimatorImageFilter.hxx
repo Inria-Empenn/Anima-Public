@@ -351,6 +351,16 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
             m_MCMCreators[i]->SetConcentrationBounds(kappaLowerBound,kappaUpperBound);
     }
+    
+    // Setting up coarse grids for kappa and nu initial search (useful for NODDI)
+    m_FractionCoarseGrid.resize(m_CoarseGridSize);
+    m_KappaCoarseGrid.resize(m_CoarseGridSize);
+    for (unsigned int i = 0;i < m_CoarseGridSize;++i)
+    {
+        double tmpVal = (i + 1.0) / (m_CoarseGridSize + 1.0);
+        m_FractionCoarseGrid[i] = tmpVal;
+        m_KappaCoarseGrid[i] = 1.0 / std::tan(M_PI * tmpVal / 2.0);
+    }
 }
 
 template <class InputPixelType, class OutputPixelType>
@@ -552,9 +562,14 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         this->InitialOrientationsEstimation(mcmOptimizationValue,currentNumberOfCompartments,initialDTI,observedSignals,
                                             generator,threadId,aiccValue,b0Value,sigmaSqValue);
         
-        this->TrunkModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
-        if ((m_CompartmentType != Stick)&&(m_CompartmentType != Zeppelin))
+        if (m_CompartmentType == NODDI)
             this->SpecificModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
+        else
+        {
+            this->TrunkModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
+            if ((m_CompartmentType != Stick)&&(m_CompartmentType != Zeppelin))
+                this->SpecificModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
+        }
         
         if ((aiccValue < optimalAiccValue)||(restartNum == 0))
         {
@@ -974,94 +989,44 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     {
         // For now essentially NODDI
         
-        double initAxialDiff = 1.7e-3;
-        
-        // - Now the tricky part: initialize from previous model, handled somewhere else
+        // Initialize from previous model, handled somewhere else
         this->InitializeModelFromSimplifiedOne(mcmValue,mcmUpdateValue);
         
-        // Brute-force initial search
-        std::vector<double> kappaValues(7);
-        for (unsigned int i = 0;i < kappaValues.size();++i)
-            kappaValues[i] = std::pow(2.0, (double)i);
-        std::vector<double> nuValues(9);
-        for (unsigned int i = 0;i < nuValues.size();++i)
-            nuValues[i] = (i + 1.0) / 10.0;
+        double optNu = 0;
+        double optKappa = 0;
+        double optValue = 0;
         
-//        double baseAxialDiff = 0.0;
-//        double baseRadialDiff = 0.0;
-//        for (unsigned int i = 0;i < numIsoCompartments;++i)
-//        {
-//            double compartmentWeight = mcmUpdateValue->GetCompartmentWeight(i);
-//            baseAxialDiff += compartmentWeight * mcmUpdateValue->GetCompartment(i)->GetAxialDiffusivity();
-//            baseRadialDiff += compartmentWeight * mcmUpdateValue->GetCompartment(i)->GetRadialDiffusivity1();
-//        }
+        for (unsigned int j = 0;j < m_CoarseGridSize;++j)
+        {
+            double tmpKappa = m_KappaCoarseGrid[j];
+            
+            for (unsigned int k = 0;k < m_CoarseGridSize;++k)
+            {
+                double tmpNu = m_FractionCoarseGrid[k];
+                
+                for (unsigned int i = numIsoCompartments;i < numCompartments;++i)
+                {
+                    mcmUpdateValue->GetCompartment(i)->SetOrientationConcentration(tmpKappa);
+                    mcmUpdateValue->GetCompartment(i)->SetExtraAxonalFraction(tmpNu);
+                }
+                
+                workVec = mcmUpdateValue->GetParametersAsVector();
+                for (unsigned int i = 0;i < dimension;++i)
+                    p[i] = workVec[i];
+                
+                double tmpValue = this->GetCostValue(cost,p);
+                
+                if (tmpValue < optValue || (j == 0 && k == 0))
+                {
+                    optValue = tmpValue;
+                    optKappa = tmpKappa;
+                    optNu = tmpNu;
+                }
+            }
+        }
         
         for (unsigned int i = numIsoCompartments;i < numCompartments;++i)
         {
-//            double compartmentWeight = mcmUpdateValue->GetCompartmentWeight(i);
-//            double zeppelinAxialDiff = baseAxialDiff + compartmentWeight * mcmUpdateValue->GetCompartment(i)->GetAxialDiffusivity();
-//            double zeppelinRadialDiff = baseRadialDiff + compartmentWeight * mcmUpdateValue->GetCompartment(i)->GetRadialDiffusivity1();
-//            double zeppelinMD = (zeppelinAxialDiff + 2.0 * zeppelinRadialDiff) / 3.0;
-//
-//            // Deal with extra-axonal fractio initialization first
-//            double extraFraction = 0.5;
-//            if (zeppelinMD >= initAxialDiff / 3.0 && zeppelinMD <= initAxialDiff)
-//                extraFraction = 1.0 - 1.5 * (1.0 - zeppelinMD / initAxialDiff);
-//
-//            mcmUpdateValue->GetCompartment(i)->SetExtraAxonalFraction(extraFraction);
-//
-//            // Next, deal with kappa initialization
-//            double denom = 3.0 * (initAxialDiff - 3.0 * zeppelinMD);
-//            double tau1 = (denom <= 1.0e-4) ? 0.0 : (initAxialDiff + zeppelinAxialDiff - 2.0 * zeppelinRadialDiff) / denom;
-//
-//            double kappa = 16.0;
-//            if (tau1 >= 1.0 / 3.0 && tau1 <= 1.0)
-//            {
-//                InitialWatsonKappaCostFunction initKappaCost;
-//                initKappaCost.SetAxialDiffusivity(zeppelinAxialDiff);
-//                initKappaCost.SetRadialDiffusivity(zeppelinRadialDiff);
-//                initKappaCost.SetFreeDiffusivity(initAxialDiff);
-//
-//                boost::uintmax_t max_iter = 500;
-//                boost::math::tools::eps_tolerance<double> tol(30);
-//                int bits = std::numeric_limits<double>::digits;
-////                std::pair <double,double> kappaInterval = boost::math::tools::toms748_solve(initKappaCost, 1.0e-4, 128.0, tol, max_iter);
-//                std::pair <double,double> optimalValue = boost::math::tools::brent_find_minima(initKappaCost, 1.0e-4, 128.0, bits);
-//                kappa = optimalValue.first;
-//
-////                std::cout << extraFraction << " " << kappa << std::endl;
-//            }
-//
-//            mcmUpdateValue->GetCompartment(i)->SetOrientationConcentration(kappa);
-            
-            double optNu = 0;
-            double optKappa = 0;
-            double optValue = 0;
-            for (unsigned int j = 0;j < kappaValues.size();++j)
-            {
-                double tmpKappa = kappaValues[j];
-                mcmUpdateValue->GetCompartment(i)->SetOrientationConcentration(tmpKappa);
-                
-                for (unsigned int k = 0;k < nuValues.size();++k)
-                {
-                    double tmpNu = nuValues[k];
-                    mcmUpdateValue->GetCompartment(i)->SetExtraAxonalFraction(tmpNu);
-                    
-                    workVec = mcmUpdateValue->GetParametersAsVector();
-                    for (unsigned int i = 0;i < dimension;++i)
-                        p[i] = workVec[i];
-                    
-                    double tmpValue = this->GetCostValue(cost,p);
-                    
-                    if (tmpValue < optValue || (j==0&&k==0))
-                    {
-                        optValue = tmpValue;
-                        optKappa = tmpKappa;
-                        optNu = tmpNu;
-                    }
-                }
-            }
-            
             mcmUpdateValue->GetCompartment(i)->SetOrientationConcentration(optKappa);
             mcmUpdateValue->GetCompartment(i)->SetExtraAxonalFraction(optNu);
         }

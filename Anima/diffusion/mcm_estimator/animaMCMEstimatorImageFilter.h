@@ -315,6 +315,9 @@ protected:
         m_MaxEval = 0;
         m_XTolerance = 0;
         m_GTolerance = 0;
+        
+        m_KappaCoarseGrid.clear();
+        m_FractionCoarseGrid.clear();
     }
 
     virtual ~MCMEstimatorImageFilter()
@@ -438,6 +441,9 @@ private:
     unsigned int m_MaxEval;
     double m_XTolerance;
     double m_GTolerance;
+    
+    const unsigned int m_CoarseGridSize = 10;
+    std::vector<double> m_KappaCoarseGrid, m_FractionCoarseGrid;
 };
 
 } // end namespace anima
