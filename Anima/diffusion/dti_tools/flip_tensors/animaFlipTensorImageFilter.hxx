@@ -6,9 +6,9 @@
 namespace anima
 {
 
-template <unsigned int ImageDimension>
+template <class TPixelType, unsigned int TImageDimension>
 void
-FlipTensorImageFilter<ImageDimension>
+FlipTensorImageFilter<TPixelType,TImageDimension>
 ::GenerateOutputInformation()
 {
     // Override the method in itkImageSource, so we can set the vector length of
@@ -20,9 +20,9 @@ FlipTensorImageFilter<ImageDimension>
     output->SetVectorLength(m_NumberOfComponents);
 }
 
-template <unsigned int ImageDimension>
+template <class TPixelType, unsigned int TImageDimension>
 void
-FlipTensorImageFilter<ImageDimension>
+FlipTensorImageFilter<TPixelType,TImageDimension>
 ::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
                        itk::ThreadIdType threadId)
 {

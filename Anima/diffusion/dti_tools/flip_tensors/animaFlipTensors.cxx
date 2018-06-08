@@ -1,12 +1,54 @@
 #include <animaFlipTensorImageFilter.h>
 #include <tclap/CmdLine.h>
 #include <animaReadWriteFunctions.h>
+#include <animaRetrieveImageTypeMacros.h>
 
 //Update progression of the process
-void eventCallback (itk::Object* caller, const itk::EventObject& event, void* clientData)
+void eventCallback(itk::Object* caller, const itk::EventObject& event, void* clientData)
 {
-    itk::ProcessObject * processObject = (itk::ProcessObject*) caller;
-    std::cout<<"\033[K\rProgression: "<<(int)(processObject->GetProgress() * 100)<<"%"<<std::flush;
+    itk::ProcessObject *processObject = (itk::ProcessObject*) caller;
+    std::cout << "\033[K\rProgression: " << (int)(processObject->GetProgress() * 100) << "%" << std::flush;
+}
+
+struct arguments
+{
+    std::string input, output, mask, axis;
+    unsigned int nthreads;
+};
+
+template <class ComponentType, unsigned int ImageDimension>
+void
+flipTensors(itk::ImageIOBase::Pointer imageIO, const arguments &args)
+{
+    itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
+    callback->SetCallback(eventCallback);
+    
+    typedef anima::FlipTensorImageFilter<ComponentType,ImageDimension> FilterType;
+    typedef typename FilterType::InputImageType InputImageType;
+    typedef typename FilterType::OutputImageType OutputImageType;
+    typedef typename FilterType::MaskImageType MaskImageType;
+    
+    typename FilterType::Pointer filter = FilterType::New();
+    filter->SetInput(anima::readImage<InputImageType>(args.input));
+    filter->SetFlippedAxis(args.axis);
+    
+    if (args.mask != "")
+        filter->SetComputationMask(anima::readImage<MaskImageType>(args.mask));
+    
+    filter->SetNumberOfThreads(args.nthreads);
+    filter->AddObserver(itk::ProgressEvent(), callback);
+    filter->Update();
+    
+    std::cout << std::endl;
+    
+    anima::writeImage<OutputImageType>(args.output, filter->GetOutput());
+}
+
+template <class ComponentType>
+void
+retrieveNbDimensions(itk::ImageIOBase::Pointer imageIO, const arguments &args)
+{
+    ANIMA_RETRIEVE_NUMBER_OF_DIMENSIONS(imageIO, ComponentType, flipTensors, imageIO, args)
 }
 
 int main(int argc, char **argv)
@@ -18,7 +60,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> outArg("o", "output", "Output tensor image.", true, "", "output image", cmd);
     
     TCLAP::ValueArg<std::string> maskArg("m", "mask", "Computation mask", false, "", "mask image", cmd);
-    TCLAP::ValueArg<std::string> axisArg("a", "axis", "Axis to be flipped (Choices are none [default], X, Y or Z).", false, "", "axis name", cmd);
+    TCLAP::ValueArg<std::string> axisArg("a", "axis", "Axis to be flipped (choices are X, Y [default] or Z).", false, "Y", "axis name", cmd);
 
     TCLAP::ValueArg<unsigned int> nbpArg("p", "nthreads", "Number of thread to use (default: all)", false, itk::MultiThreader::GetGlobalDefaultNumberOfThreads(), "number of thread", cmd);
 
@@ -31,38 +73,39 @@ int main(int argc, char **argv)
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
         return EXIT_FAILURE;
     }
-
-    itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
-    callback->SetCallback(eventCallback);
-
-    typedef anima::FlipTensorImageFilter<3> FilterType;
-    typedef FilterType::InputImageType InputImageType;
-    typedef FilterType::OutputImageType OutputImageType;
-    typedef FilterType::MaskImageType MaskImageType;
-
-    FilterType::Pointer filter = FilterType::New();
-    filter->SetInput(anima::readImage<InputImageType>(inArg.getValue()));
-    filter->SetFlippedAxis(axisArg.getValue());
-
-    if (maskArg.getValue() != "")
-        filter->SetComputationMask(anima::readImage<MaskImageType>(maskArg.getValue()));
-
-    filter->SetNumberOfThreads(nbpArg.getValue());
-    filter->AddObserver(itk::ProgressEvent(), callback );
+    
+    // Retrieve image info
+    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(inArg.getValue().c_str(),
+                                                                           itk::ImageIOFactory::ReadMode);
+    if (!imageIO)
+    {
+        std::cerr << "Itk could not find suitable IO factory for the input" << std::endl;
+        return EXIT_FAILURE;
+    }
+    
+    // Now that we found the appropriate ImageIO class, ask it to read the meta data from the image file.
+    imageIO->SetFileName(inArg.getValue());
+    imageIO->ReadImageInformation();
+    
+    arguments args;
+    args.input = inArg.getValue();
+    args.output = outArg.getValue();
+    args.mask = maskArg.getValue();
+    
+    std::string axisStr = axisArg.getValue();
+    std::transform(axisStr.begin(),axisStr.end(),axisStr.begin(),[](unsigned char c){ return std::tolower(c); });
+    args.axis = axisStr;
+    args.nthreads = nbpArg.getValue();
     
     try
     {
-        filter->Update();
+        ANIMA_RETRIEVE_COMPONENT_TYPE(imageIO, retrieveNbDimensions, imageIO, args);
     }
     catch (itk::ExceptionObject &err)
     {
         std::cerr << err << std::endl;
         return EXIT_FAILURE;
     }
-    
-    std::cout << std::endl;
-
-    anima::writeImage<OutputImageType>(outArg.getValue(), filter->GetOutput());
     
     return EXIT_SUCCESS;
     

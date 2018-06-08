@@ -6,19 +6,19 @@
 namespace anima
 {
 
-template <unsigned int ImageDimension = 3>
+template <class TPixelType, unsigned int TImageDimension = 3>
 class FlipTensorImageFilter :
-    public anima::MaskedImageToImageFilter< itk::VectorImage <float, ImageDimension>,
-                                    itk::VectorImage <float, ImageDimension> >
+    public anima::MaskedImageToImageFilter< itk::VectorImage <TPixelType,TImageDimension>,
+                                    itk::VectorImage <TPixelType,TImageDimension> >
 {
 public:
     /** Standard class typedefs. */
     typedef FlipTensorImageFilter Self;
     
-    typedef itk::VectorImage<float,ImageDimension> InputImageType;
+    typedef itk::VectorImage<TPixelType,TImageDimension> InputImageType;
     typedef typename InputImageType::PixelType InputPixelType;
     
-    typedef itk::VectorImage<float,ImageDimension> OutputImageType;
+    typedef itk::VectorImage<TPixelType,TImageDimension> OutputImageType;
     typedef typename OutputImageType::PixelType OutputPixelType;
     
     typedef anima::MaskedImageToImageFilter<InputImageType, OutputImageType> Superclass;
@@ -47,6 +47,7 @@ protected:
     {
         m_FlippedAxis = "";
     }
+    
     virtual ~FlipTensorImageFilter() {}
 
     void GenerateOutputInformation() ITK_OVERRIDE;
