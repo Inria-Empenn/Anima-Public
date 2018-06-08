@@ -47,17 +47,17 @@ FlipTensorImageFilter<TPixelType,TImageDimension>
         
         outTensor = inItr.Get();
         
-        if (m_FlippedAxis == "X")
+        if (m_FlippedAxis == "x")
         {
             outTensor[1] *= -1.0;
             outTensor[3] *= -1.0;
         }
-        else if (m_FlippedAxis == "Y")
+        else if (m_FlippedAxis == "y")
         {
             outTensor[1] *= -1.0;
             outTensor[4] *= -1.0;
         }
-        else if (m_FlippedAxis == "Z")
+        else if (m_FlippedAxis == "z")
         {
             outTensor[3] *= -1.0;
             outTensor[4] *= -1.0;
