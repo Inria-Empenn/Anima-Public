@@ -38,7 +38,7 @@ MaskedImageToImageFilter < TInputImage, TOutputImage >
     MaskRegionIteratorType maskItr(m_ComputationMask,m_ComputationMask->GetLargestPossibleRegion());
     maskItr.GoToBegin();
 
-    MaskImageType::IndexType minPos, maxPos;
+    MaskIndexType minPos, maxPos;
 
     for (unsigned int i = 0;i < m_ComputationMask->GetImageDimension();++i)
     {
@@ -50,7 +50,7 @@ MaskedImageToImageFilter < TInputImage, TOutputImage >
     {
         if (maskItr.Get() != 0)
         {
-            MaskImageType::IndexType tmpInd = maskItr.GetIndex();
+            MaskIndexType tmpInd = maskItr.GetIndex();
 
             for (unsigned int i = 0;i < m_ComputationMask->GetImageDimension();++i)
             {
@@ -67,7 +67,7 @@ MaskedImageToImageFilter < TInputImage, TOutputImage >
 
     m_ComputationRegion.SetIndex(minPos);
 
-    MaskImageType::SizeType tmpSize;
+    MaskSizeType tmpSize;
     for (unsigned int i = 0;i < m_ComputationMask->GetImageDimension();++i)
         tmpSize[i] = maxPos[i] - minPos[i] + 1;
 
