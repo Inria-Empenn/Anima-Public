@@ -9,12 +9,16 @@
 
 namespace anima
 {
-void NODDICompartment::GetIESignals(double bValue, const Vector3DType &gradient)
+void NODDICompartment::UpdateSignals(double bValue, const Vector3DType &gradient)
 {
+    if (std::abs(bValue - m_CurrentBValue) < 1.0e-6 && anima::ComputeNorm(gradient - m_CurrentGradient) < 1.0e-6)
+        return;
+    
     this->UpdateKappaValues();
     
     double theta = this->GetOrientationTheta();
     double phi = this->GetOrientationPhi();
+    double kappa = this->GetOrientationConcentration();
     double nuic = 1.0 - this->GetExtraAxonalFraction();
     double dpara = this->GetAxialDiffusivity();
     
@@ -22,34 +26,68 @@ void NODDICompartment::GetIESignals(double bValue, const Vector3DType &gradient)
     anima::TransformSphericalToCartesianCoordinates(theta,phi,1.0,compartmentOrientation);
     double innerProd = anima::ComputeScalarProduct(gradient, compartmentOrientation);
     
-    // Deal first with intra-axonal signal
-    m_IntraAxonalSignal = 0.0;
+    // Aic and its derivatives w.r.t. params
+    m_IntraAxonalSignal = 0;
+    m_IntraAngleDerivative = 0;
+    m_IntraKappaDerivative = 0;
+    m_IntraAxialDerivative = 0;
+    double x = bValue * dpara;
     
     for (unsigned int i = 0;i < m_WatsonSHCoefficients.size();++i)
     {
-        m_IntraAxonalSignal += m_WatsonSHCoefficients[i] * std::sqrt((4.0 * i + 1.0) / (4.0 * M_PI)) * boost::math::legendre_p(2 * i, innerProd) * std::pow(-bValue * dpara, (double)i) * anima::KummerFunction(-bValue * dpara, i + 0.5, 2.0 * i + 1.5, false, true);
+        double coefVal = m_WatsonSHCoefficients[i];
+        double sqrtVal = std::sqrt((4.0 * i + 1.0) / (4.0 * M_PI));
+        double legendreVal = boost::math::legendre_p(2 * i, innerProd);
+        double kummerVal = anima::KummerFunction(-x, i + 0.5, 2.0 * i + 1.5, false, true);
+        double xPowVal = std::pow(-x, (double)i);
+        double cVal = xPowVal * kummerVal;
+        
+        // Signal
+        m_IntraAxonalSignal += coefVal * sqrtVal * legendreVal * cVal;
+        
+        // Derivatives
+        double coefDerivVal = m_WatsonSHCoefficientDerivatives[i];
+        double legendreDerivVal = (i == 0) ? 0.0 : legendre_first_derivative(2 * i, 0, innerProd);
+        
+        double cDerivVal = 0.0;
+        if (m_EstimateAxialDiffusivity)
+        {
+            cDerivVal = -xPowVal * anima::KummerFunction(-x, i + 1.5, 2.0 * i + 2.5, false, true);
+            if (i > 0)
+                cDerivVal += xPowVal * i * kummerVal / x;
+        }
+        
+        m_IntraAngleDerivative += coefVal * sqrtVal * legendreDerivVal * cVal;
+        m_IntraKappaDerivative += coefDerivVal * sqrtVal * legendreVal * cVal;
+        m_IntraAxialDerivative += coefVal * sqrtVal * legendreVal * cDerivVal;
     }
     
     m_IntraAxonalSignal /= 2.0;
+    m_IntraAngleDerivative /= 2.0;
+    m_IntraKappaDerivative /= 2.0;
+    m_IntraAxialDerivative /= 2.0;
     
-    // Now deal with extra-axonal signal
+    // Aec
     double appAxialDiff = dpara * (1.0 - nuic * (1.0 - m_Tau1));
     double appRadialDiff = dpara * (1.0 - nuic * (1.0 + m_Tau1) / 2.0);
     
     m_ExtraAxonalSignal = std::exp(-bValue * (appRadialDiff + (appAxialDiff - appRadialDiff) * innerProd * innerProd));
+    
+    m_CurrentBValue = bValue;
+    m_CurrentGradient = gradient;
 }
 
 double NODDICompartment::GetFourierTransformedDiffusionProfile(double bValue, const Vector3DType &gradient)
 {
-    this->GetIESignals(bValue, gradient);
-    double nuic = 1.0 - this->GetExtraAxonalFraction();
-    double signal = nuic * m_IntraAxonalSignal + (1.0 - nuic) * m_ExtraAxonalSignal;
+    this->UpdateSignals(bValue, gradient);
+    double nuec = this->GetExtraAxonalFraction();
+    double signal = (1.0 - nuec) * m_IntraAxonalSignal + nuec * m_ExtraAxonalSignal;
     return signal;
 }
     
 NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(double bValue, const Vector3DType &gradient)
 {
-    this->UpdateKappaValues();
+    this->UpdateSignals(bValue, gradient);
     
     m_JacobianVector.resize(this->GetNumberOfParameters());
     
@@ -63,47 +101,8 @@ NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(doubl
     anima::TransformSphericalToCartesianCoordinates(theta,phi,1.0,compartmentOrientation);
     double innerProd = anima::ComputeScalarProduct(gradient, compartmentOrientation);
     
-    // Aic and its derivatives w.r.t. params
-    double intraSignal = 0;
-    double intraAngleDerivative = 0;
-    double intraKappaDerivative = 0;
-    double intraAxialDerivative = 0;
-    double x = bValue * dpara;
-    
-    for (unsigned int i = 0;i < m_WatsonSHCoefficients.size();++i)
-    {
-        double coefVal = m_WatsonSHCoefficients[i];
-        double coefDerivVal = m_WatsonSHCoefficientDerivatives[i];
-        double sqrtVal = std::sqrt((4.0 * i + 1.0) / (4.0 * M_PI));
-        double legendreVal = boost::math::legendre_p(2 * i, innerProd);
-        double legendreDerivVal = (i == 0) ? 0.0 : legendre_first_derivative(2 * i, 0, innerProd);
-        double kummerVal = anima::KummerFunction(-x, i + 0.5, 2.0 * i + 1.5, false, true);
-        double xPowVal = std::pow(-x, i - 1.0);
-        double cVal = -x * xPowVal * kummerVal;
-        
-        double cDerivVal = 0.0;
-        if (m_EstimateAxialDiffusivity)
-        {
-            cDerivVal = -x * xPowVal * anima::KummerFunction(-x, i + 1.5, 2.0 * i + 2.5, false, true);
-            if (i > 0)
-                cDerivVal += xPowVal * i * kummerVal;
-        }
-        
-        intraSignal += coefVal * sqrtVal * legendreVal * cVal;
-        intraAngleDerivative += coefVal * sqrtVal * legendreDerivVal * cVal;
-        intraKappaDerivative += coefDerivVal * sqrtVal * legendreVal * cVal;
-        intraAxialDerivative += coefVal * sqrtVal * legendreVal * cDerivVal;
-    }
-    
-    intraSignal /= 2.0;
-    intraAngleDerivative /= 2.0;
-    intraKappaDerivative /= 2.0;
-    intraAxialDerivative /= 2.0;
-    
-    // Aec
-    double appAxialDiff = dpara * (1.0 - nuic * (1.0 - m_Tau1));
-    double appRadialDiff = dpara * (1.0 - nuic * (1.0 + m_Tau1) / 2.0);
-    double extraSignal = std::exp(-bValue * (appRadialDiff + (appAxialDiff - appRadialDiff) * innerProd * innerProd));
+    // Base extra angle derivative
+    double extraAngleDerivative = -bValue * dpara * nuic * (3.0 * m_Tau1 - 1.0) * innerProd * m_ExtraAxonalSignal;
     
     //------------------------
     // Derivative w.r.t. theta
@@ -116,9 +115,12 @@ NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(doubl
     double innerProdThetaDeriv = (gradient[0] * std::cos(phi) + gradient[1] * std::sin(phi)) * std::cos(theta) - gradient[2] * std::sin(theta);
     
     // Derivative of Aic w.r.t. theta
-    double intraThetaDerivative = intraAngleDerivative * innerProdThetaDeriv;
+    double intraThetaDerivative = m_IntraAngleDerivative * innerProdThetaDeriv;
     
-    m_JacobianVector[0] = (nuic * intraThetaDerivative - bValue * dpara * nuic * (1.0 - nuic) * (3.0 * m_Tau1 - 1.0) * innerProdThetaDeriv * innerProd * extraSignal) * thetaDeriv;
+    // Derivative of Aec w.r.t. theta
+    double extraThetaDerivative = extraAngleDerivative * innerProdThetaDeriv;
+    
+    m_JacobianVector[0] = (nuic * intraThetaDerivative + (1.0 - nuic) * extraThetaDerivative) * thetaDeriv;
     
     //----------------------
     // Derivative w.r.t. phi
@@ -131,9 +133,12 @@ NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(doubl
     double innerProdPhiDeriv = std::sin(theta) * (gradient[1] * std::cos(phi) - gradient[0] * std::sin(phi));
     
     // Derivative of Aic w.r.t. phi
-    double intraPhiDerivative = intraAngleDerivative * innerProdPhiDeriv;
+    double intraPhiDerivative = m_IntraAngleDerivative * innerProdPhiDeriv;
     
-    m_JacobianVector[1] = (nuic * intraPhiDerivative - bValue * dpara * nuic * (1.0 - nuic) * (3.0 * m_Tau1 - 1.0) * innerProdPhiDeriv * innerProd * extraSignal) * phiDeriv;
+    // Derivative of Aec w.r.t. phi
+    double extraPhiDerivative = extraAngleDerivative * innerProdPhiDeriv;
+    
+    m_JacobianVector[1] = (nuic * intraPhiDerivative + (1.0 - nuic) * extraPhiDerivative) * phiDeriv;
     
     //------------------------
     // Derivative w.r.t. kappa
@@ -144,22 +149,22 @@ NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(doubl
                                                        m_ZeroLowerBound, m_WatsonKappaUpperBound);
     
     // Derivative of Aec w.r.t. kappa
-    double extraKappaDerivative = bValue * dpara * nuic * m_Tau1Deriv * (1.0 - 3.0 * innerProd * innerProd) * extraSignal / 2.0;
+    double extraKappaDerivative = bValue * dpara * nuic * m_Tau1Deriv * (1.0 - 3.0 * innerProd * innerProd) * m_ExtraAxonalSignal / 2.0;
     
-    m_JacobianVector[2] = (nuic * intraKappaDerivative + (1.0 - nuic) * extraKappaDerivative) * kappaDeriv;
+    m_JacobianVector[2] = (nuic * m_IntraKappaDerivative + (1.0 - nuic) * extraKappaDerivative) * kappaDeriv;
     
     //---------------------
     // Derivative w.r.t. nu
     //---------------------
     double nuDeriv = -1.0;
     if (this->GetUseBoundedOptimization())
-        nuDeriv *= levenberg::BoundedDerivativeAddOn(kappa, this->GetBoundedSignVectorValue(3),
+        nuDeriv *= levenberg::BoundedDerivativeAddOn(nuic, this->GetBoundedSignVectorValue(3),
                                                        m_EAFLowerBound, m_EAFUpperBound);
     
     double tmpVal = 1.0 + m_Tau1 - (3.0 * m_Tau1 - 1.0) * innerProd * innerProd;
-    double extraNuicDeriv = bValue * dpara * tmpVal / 2.0 * extraSignal;
+    double extraNuicDeriv = bValue * dpara * tmpVal * m_ExtraAxonalSignal / 2.0;
     
-    m_JacobianVector[3] = (intraSignal - extraSignal + (1.0 - nuic) * extraNuicDeriv) * nuDeriv;
+    m_JacobianVector[3] = (m_IntraAxonalSignal - m_ExtraAxonalSignal + (1.0 - nuic) * extraNuicDeriv) * nuDeriv;
     
     if (m_EstimateAxialDiffusivity)
     {
@@ -172,7 +177,7 @@ NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(doubl
                                                         this->GetBoundedSignVectorValue(4),
                                                         m_ZeroLowerBound, m_DiffusivityUpperBound);
         
-        m_JacobianVector[4] = bValue * dparaDeriv * (nuic * intraAxialDerivative - (1.0 - nuic) * extraSignal * (1.0 - nuic * tmpVal / 2.0));
+        m_JacobianVector[4] = bValue * dparaDeriv * (nuic * m_IntraAxialDerivative - (1.0 - nuic) * m_ExtraAxonalSignal * (1.0 - nuic * tmpVal / 2.0));
     }
     
     return m_JacobianVector;

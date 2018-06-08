@@ -61,23 +61,24 @@ protected:
         
         m_Tau1 = 2.0 / 3.0;
         m_Tau1Deriv = 0.0;
-        m_KummerRatio = 1.0;
         
         m_WatsonSHCoefficients.clear();
         m_WatsonSHCoefficientDerivatives.clear();
         
         m_IntraAxonalSignal = 0;
+        m_IntraAngleDerivative = 0;
+        m_IntraKappaDerivative = 0;
+        m_IntraAxialDerivative = 0;
         m_ExtraAxonalSignal = 0;
-        m_IntegralForThetaDerivative = 0;
-        m_IntegralForPhiDerivative = 0;
-        m_IntegralForKappaDerivative = 0;
-        m_IntegralForDparaDerivative = 0;
+        
+        double m_CurrentBValue = -1.0;
+        m_CurrentGradient.fill(0.0);
     }
     
     virtual ~NODDICompartment() {}
     
-    //! Compute intra- and extra-axonal signals
-    void GetIESignals(double bValue, const Vector3DType &gradient);
+    //! Compute intra- and extra-axonal signals and useful signals for derivatives
+    void UpdateSignals(double bValue, const Vector3DType &gradient);
     
     //! Update quantities that depend on kappa
     void UpdateKappaValues();
@@ -95,13 +96,14 @@ private:
     //! Optimization variable: set to true when the internal parameter has been modified requiring to recompute all quantities depending on it
     bool m_ModifiedConcentration;
     
+    //! Store last used bvalue and gradient to avoid computing expensive values twice
+    double m_CurrentBValue;
+    Vector3DType m_CurrentGradient;
+    
     std::vector<double> m_WatsonSHCoefficients, m_WatsonSHCoefficientDerivatives;
-    double m_Tau1, m_Tau1Deriv, m_KummerRatio;
+    double m_Tau1, m_Tau1Deriv;
     double m_ExtraAxonalSignal, m_IntraAxonalSignal;
-    double m_IntegralForThetaDerivative;
-    double m_IntegralForPhiDerivative;
-    double m_IntegralForKappaDerivative;
-    double m_IntegralForDparaDerivative;
+    double m_IntraAngleDerivative, m_IntraKappaDerivative, m_IntraAxialDerivative;
 };
 
 } //end namespace anima
