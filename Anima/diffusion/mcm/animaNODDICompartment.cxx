@@ -158,8 +158,7 @@ NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(doubl
     //---------------------
     double nuDeriv = -1.0;
     if (this->GetUseBoundedOptimization())
-        nuDeriv *= levenberg::BoundedDerivativeAddOn(nuic, this->GetBoundedSignVectorValue(3),
-                                                       m_EAFLowerBound, m_EAFUpperBound);
+        nuDeriv *= levenberg::BoundedDerivativeAddOn(1.0 - nuic, this->GetBoundedSignVectorValue(3), m_EAFLowerBound, m_EAFUpperBound);
     
     double tmpVal = 1.0 + m_Tau1 - (3.0 * m_Tau1 - 1.0) * innerProd * innerProd;
     double extraNuicDeriv = bValue * dpara * tmpVal * m_ExtraAxonalSignal / 2.0;
