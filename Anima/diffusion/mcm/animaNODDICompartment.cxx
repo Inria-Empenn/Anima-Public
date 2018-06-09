@@ -11,7 +11,7 @@ namespace anima
 {
 void NODDICompartment::UpdateSignals(double bValue, const Vector3DType &gradient)
 {
-    if (std::abs(bValue - m_CurrentBValue) < 1.0e-6 && anima::ComputeNorm(gradient - m_CurrentGradient) < 1.0e-6)
+    if (std::abs(bValue - m_CurrentBValue) < 1.0e-6 && anima::ComputeNorm(gradient - m_CurrentGradient) < 1.0e-6 && !m_ModifiedTheta && !m_ModifiedPhi && !m_ModifiedConcentration && !m_ModifiedFraction && !m_ModifiedDiffusivity)
         return;
     
     this->UpdateKappaValues();
@@ -75,6 +75,11 @@ void NODDICompartment::UpdateSignals(double bValue, const Vector3DType &gradient
     
     m_CurrentBValue = bValue;
     m_CurrentGradient = gradient;
+    m_ModifiedTheta = false;
+    m_ModifiedPhi = false;
+    m_ModifiedConcentration = false;
+    m_ModifiedFraction = false;
+    m_ModifiedDiffusivity = false;
 }
 
 double NODDICompartment::GetFourierTransformedDiffusionProfile(double bValue, const Vector3DType &gradient)
@@ -202,12 +207,48 @@ double NODDICompartment::GetLogDiffusionProfile(const Vector3DType &sample)
     return resVal;
 }
 
+void NODDICompartment::SetOrientationTheta(double num)
+{
+    if (num != this->GetOrientationTheta())
+    {
+        m_ModifiedTheta = true;
+        this->Superclass::SetOrientationTheta(num);
+    }
+}
+
+void NODDICompartment::SetOrientationPhi(double num)
+{
+    if (num != this->GetOrientationPhi())
+    {
+        m_ModifiedPhi = true;
+        this->Superclass::SetOrientationPhi(num);
+    }
+}
+
 void NODDICompartment::SetOrientationConcentration(double num)
 {
     if (num != this->GetOrientationConcentration())
     {
         m_ModifiedConcentration = true;
         this->Superclass::SetOrientationConcentration(num);
+    }
+}
+
+void NODDICompartment::SetExtraAxonalFraction(double num)
+{
+    if (num != this->GetExtraAxonalFraction())
+    {
+        m_ModifiedFraction = true;
+        this->Superclass::SetExtraAxonalFraction(num);
+    }
+}
+
+void NODDICompartment::SetAxialDiffusivity(double num)
+{
+    if (num != this->GetAxialDiffusivity())
+    {
+        m_ModifiedDiffusivity = true;
+        this->Superclass::SetAxialDiffusivity(num);
     }
 }
 
@@ -353,7 +394,11 @@ void NODDICompartment::SetCompartmentVector(ModelOutputVectorType &compartmentVe
     
     this->SetAxialDiffusivity(compartmentVector[currentPos]);
     
+    m_ModifiedTheta = false;
+    m_ModifiedPhi = false;
     m_ModifiedConcentration = false;
+    m_ModifiedFraction = false;
+    m_ModifiedDiffusivity = false;
 }
 
 unsigned int NODDICompartment::GetCompartmentSize()
