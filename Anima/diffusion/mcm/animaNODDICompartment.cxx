@@ -479,12 +479,9 @@ void NODDICompartment::UpdateKappaValues()
         return;
     
     double kappa = this->GetOrientationConcentration();
-    double kappaSqrt = std::sqrt(kappa);
-    double kappaSq = kappa * kappa;
-    
-    double fVal = anima::EvaluateDawsonIntegral(kappaSqrt);
-    m_Tau1 = -1.0 / (2.0 * kappa) + 1.0 / (2.0 * fVal * kappaSqrt);
-    m_Tau1Deriv = 1.0 / (2.0 * kappaSq) - (1.0 - kappaSqrt * fVal * (2.0 - 1.0 / kappaSq)) / (4.0 * kappa * fVal * fVal);
+    double fVal = anima::EvaluateDawsonIntegral(std::sqrt(kappa), true);
+    m_Tau1 = (1.0 / fVal - 1.0) / (2.0 * kappa);
+    m_Tau1Deriv = (1.0 - (1.0 - fVal * (2.0 * kappa - 1.0)) / (2.0 * fVal * fVal)) / (2.0 * kappa * kappa);
     anima::GetStandardWatsonSHCoefficients(kappa,m_WatsonSHCoefficients,m_WatsonSHCoefficientDerivatives);
     
     m_ModifiedConcentration = false;
