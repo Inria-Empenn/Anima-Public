@@ -1,1 +1,2 @@
 add_subdirectory(compute_dti_scalar_maps)
+add_subdirectory(flip_tensors)

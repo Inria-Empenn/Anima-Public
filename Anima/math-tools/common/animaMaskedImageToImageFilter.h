@@ -33,9 +33,11 @@ public:
     typedef typename itk::ImageSource<TOutputImage>::ThreadStruct ThreadStruct;
 
     /** Mask typedefs */
-    typedef itk::Image <unsigned char, 3> MaskImageType;
-    typedef MaskImageType::RegionType MaskRegionType;
-    typedef MaskImageType::Pointer MaskImagePointer;
+    typedef itk::Image <unsigned char,TInputImage::ImageDimension> MaskImageType;
+    typedef typename MaskImageType::RegionType MaskRegionType;
+    typedef typename MaskImageType::Pointer MaskImagePointer;
+    typedef typename MaskImageType::IndexType MaskIndexType;
+    typedef typename MaskImageType::SizeType MaskSizeType;
 
     /** Set/Get the mask on which to compute estimates. */
     itkSetMacro(ComputationMask, MaskImagePointer)
