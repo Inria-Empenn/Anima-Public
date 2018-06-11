@@ -4,7 +4,6 @@
 #include <animaLevenbergTools.h>
 #include <animaKummerFunctions.h>
 #include <animaWatsonDistribution.h>
-#include <animaLegendreDerivatives.h>
 #include <boost/math/special_functions/legendre.hpp>
 
 namespace anima
@@ -47,7 +46,7 @@ void NODDICompartment::UpdateSignals(double bValue, const Vector3DType &gradient
         
         // Derivatives
         double coefDerivVal = m_WatsonSHCoefficientDerivatives[i];
-        double legendreDerivVal = (i == 0) ? 0.0 : legendre_first_derivative(2 * i, 0, innerProd);
+        double legendreDerivVal = boost::math::legendre_p_prime(2 * i, innerProd);
         
         double cDerivVal = 0.0;
         if (m_EstimateAxialDiffusivity)
