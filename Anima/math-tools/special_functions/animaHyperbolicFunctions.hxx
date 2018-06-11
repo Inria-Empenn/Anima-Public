@@ -17,6 +17,19 @@ template <class T> double ShOverId(const T &x)
     return resVal;
 }
 
+template <class ScalarType> std::complex<double> ComplexShRatio(const ScalarType &k, const ScalarType &alpha, const ScalarType &beta)
+{
+    double ss = alpha * alpha + beta * beta;
+    
+    double constant = k * std::exp(alpha - k) / ss / (1 - std::exp(- 2.0 * k));
+    
+    double realVal = constant * (alpha * (1.0 - std::exp(- 2.0 * alpha)) * std::cos(beta) + beta * (1.0 + std::exp(- 2.0 * alpha)) * std::sin(beta));
+    
+    double imagVal = constant * (alpha * (1.0 + std::exp(- 2.0 * alpha)) * std::sin(beta) - beta * (1.0 - std::exp(- 2.0 * alpha)) * std::cos(beta));
+    
+    return std::complex<double>(realVal, imagVal);
+}
+    
 template <class T1, class T2, class T3> double ShRatio(const T1 &k, const T2 &alpha, const T3 &beta)
 {
     double ss = alpha * alpha + beta * beta;
