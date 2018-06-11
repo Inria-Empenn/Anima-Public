@@ -11,7 +11,7 @@ namespace anima
 {
 void NODDICompartment::UpdateSignals(double bValue, const Vector3DType &gradient)
 {
-    if (std::abs(bValue - m_CurrentBValue) < 1.0e-6 && anima::ComputeNorm(gradient - m_CurrentGradient) < 1.0e-6 && !m_ModifiedTheta && !m_ModifiedPhi && !m_ModifiedConcentration && !m_ModifiedFraction && !m_ModifiedDiffusivity)
+    if (std::abs(bValue - m_CurrentBValue) < 1.0e-6 && anima::ComputeNorm(gradient - m_CurrentGradient) < 1.0e-6 && !m_ModifiedParameters)
         return;
     
     this->UpdateKappaValues();
@@ -75,11 +75,7 @@ void NODDICompartment::UpdateSignals(double bValue, const Vector3DType &gradient
     
     m_CurrentBValue = bValue;
     m_CurrentGradient = gradient;
-    m_ModifiedTheta = false;
-    m_ModifiedPhi = false;
-    m_ModifiedConcentration = false;
-    m_ModifiedFraction = false;
-    m_ModifiedDiffusivity = false;
+    m_ModifiedParameters = false;
 }
 
 double NODDICompartment::GetFourierTransformedDiffusionProfile(double bValue, const Vector3DType &gradient)
@@ -163,7 +159,7 @@ NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(doubl
     //---------------------
     double nuDeriv = -1.0;
     if (this->GetUseBoundedOptimization())
-        nuDeriv *= levenberg::BoundedDerivativeAddOn(1.0 - nuic, this->GetBoundedSignVectorValue(3), m_EAFLowerBound, m_EAFUpperBound);
+        nuDeriv *= levenberg::BoundedDerivativeAddOn(1.0 - nuic, this->GetBoundedSignVectorValue(3), m_ZeroLowerBound, m_FractionUpperBound);
     
     double tmpVal = 1.0 + m_Tau1 - (3.0 * m_Tau1 - 1.0) * innerProd * innerProd;
     double extraNuicDeriv = bValue * dpara * tmpVal * m_ExtraAxonalSignal / 2.0;
@@ -211,7 +207,7 @@ void NODDICompartment::SetOrientationTheta(double num)
 {
     if (num != this->GetOrientationTheta())
     {
-        m_ModifiedTheta = true;
+        m_ModifiedParameters = true;
         this->Superclass::SetOrientationTheta(num);
     }
 }
@@ -220,7 +216,7 @@ void NODDICompartment::SetOrientationPhi(double num)
 {
     if (num != this->GetOrientationPhi())
     {
-        m_ModifiedPhi = true;
+        m_ModifiedParameters = true;
         this->Superclass::SetOrientationPhi(num);
     }
 }
@@ -229,6 +225,7 @@ void NODDICompartment::SetOrientationConcentration(double num)
 {
     if (num != this->GetOrientationConcentration())
     {
+        m_ModifiedParameters = true;
         m_ModifiedConcentration = true;
         this->Superclass::SetOrientationConcentration(num);
     }
@@ -238,7 +235,7 @@ void NODDICompartment::SetExtraAxonalFraction(double num)
 {
     if (num != this->GetExtraAxonalFraction())
     {
-        m_ModifiedFraction = true;
+        m_ModifiedParameters = true;
         this->Superclass::SetExtraAxonalFraction(num);
     }
 }
@@ -247,7 +244,7 @@ void NODDICompartment::SetAxialDiffusivity(double num)
 {
     if (num != this->GetAxialDiffusivity())
     {
-        m_ModifiedDiffusivity = true;
+        m_ModifiedParameters = true;
         this->Superclass::SetAxialDiffusivity(num);
     }
 }
@@ -305,8 +302,6 @@ NODDICompartment::ListType &NODDICompartment::GetParameterLowerBounds()
     
     std::fill(m_ParametersLowerBoundsVector.begin(),m_ParametersLowerBoundsVector.end(),m_ZeroLowerBound);
     
-    m_ParametersLowerBoundsVector[3] = m_EAFLowerBound;
-    
     if (m_EstimateAxialDiffusivity)
         m_ParametersLowerBoundsVector[4] = m_DiffusivityLowerBound;
     
@@ -320,7 +315,7 @@ NODDICompartment::ListType &NODDICompartment::GetParameterUpperBounds()
     m_ParametersUpperBoundsVector[0] = m_PolarAngleUpperBound;
     m_ParametersUpperBoundsVector[1] = m_AzimuthAngleUpperBound;
     m_ParametersUpperBoundsVector[2] = m_WatsonKappaUpperBound;
-    m_ParametersUpperBoundsVector[3] = m_EAFUpperBound;
+    m_ParametersUpperBoundsVector[3] = m_FractionUpperBound;
     
     if (m_EstimateAxialDiffusivity)
         m_ParametersUpperBoundsVector[4] = m_DiffusivityUpperBound;
@@ -339,7 +334,7 @@ void NODDICompartment::BoundParameters(const ListType &params)
     this->SetBoundedSignVectorValue(1,inputSign);
     m_BoundedVector[2] = levenberg::ComputeBoundedValue(params[2], inputSign, m_ZeroLowerBound, m_WatsonKappaUpperBound);
     this->SetBoundedSignVectorValue(2,inputSign);
-    m_BoundedVector[3] = levenberg::ComputeBoundedValue(params[3], inputSign, m_EAFLowerBound, m_EAFUpperBound);
+    m_BoundedVector[3] = levenberg::ComputeBoundedValue(params[3], inputSign, m_ZeroLowerBound, m_FractionUpperBound);
     this->SetBoundedSignVectorValue(3,inputSign);
     
     if (m_EstimateAxialDiffusivity)
@@ -354,7 +349,7 @@ void NODDICompartment::UnboundParameters(ListType &params)
     params[0] = levenberg::UnboundValue(params[0], m_ZeroLowerBound, m_PolarAngleUpperBound);
     params[1] = levenberg::UnboundValue(params[1], m_ZeroLowerBound, m_AzimuthAngleUpperBound);
     params[2] = levenberg::UnboundValue(params[2], m_ZeroLowerBound, m_WatsonKappaUpperBound);
-    params[3] = levenberg::UnboundValue(params[3], m_EAFLowerBound, m_EAFUpperBound);
+    params[3] = levenberg::UnboundValue(params[3], m_ZeroLowerBound, m_FractionUpperBound);
     
     if (m_EstimateAxialDiffusivity)
         params[4] = levenberg::UnboundValue(params[4], m_DiffusivityLowerBound, m_DiffusivityUpperBound);
@@ -394,11 +389,8 @@ void NODDICompartment::SetCompartmentVector(ModelOutputVectorType &compartmentVe
     
     this->SetAxialDiffusivity(compartmentVector[currentPos]);
     
-    m_ModifiedTheta = false;
-    m_ModifiedPhi = false;
+    m_ModifiedParameters = false;
     m_ModifiedConcentration = false;
-    m_ModifiedFraction = false;
-    m_ModifiedDiffusivity = false;
 }
 
 unsigned int NODDICompartment::GetCompartmentSize()
@@ -479,9 +471,9 @@ void NODDICompartment::UpdateKappaValues()
         return;
     
     double kappa = this->GetOrientationConcentration();
-    double fVal = anima::EvaluateDawsonIntegral(std::sqrt(kappa), true);
-    m_Tau1 = (1.0 / fVal - 1.0) / (2.0 * kappa);
-    m_Tau1Deriv = (1.0 - (1.0 - fVal * (2.0 * kappa - 1.0)) / (2.0 * fVal * fVal)) / (2.0 * kappa * kappa);
+    double dawsonValue = anima::EvaluateDawsonIntegral(std::sqrt(kappa), true);
+    m_Tau1 = (1.0 / dawsonValue - 1.0) / (2.0 * kappa);
+    m_Tau1Deriv = (1.0 - (1.0 - dawsonValue * (2.0 * kappa - 1.0)) / (2.0 * dawsonValue * dawsonValue)) / (2.0 * kappa * kappa);
     anima::GetStandardWatsonSHCoefficients(kappa,m_WatsonSHCoefficients,m_WatsonSHCoefficientDerivatives);
     
     m_ModifiedConcentration = false;

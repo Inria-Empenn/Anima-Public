@@ -61,11 +61,8 @@ protected:
         m_EstimateAxialDiffusivity = true;
         m_ChangedConstraints = true;
         
-        m_ModifiedTheta = true;
-        m_ModifiedPhi = true;
+        m_ModifiedParameters = true;
         m_ModifiedConcentration = true;
-        m_ModifiedFraction = true;
-        m_ModifiedDiffusivity = true;
         
         m_Tau1 = 2.0 / 3.0;
         m_Tau1Deriv = 0.0;
@@ -102,11 +99,8 @@ private:
     // Internal work variables for faster processing
     
     //! Optimization variable: set to true when the internal parameter has been modified requiring to recompute all quantities depending on it
-    bool m_ModifiedTheta;
-    bool m_ModifiedPhi;
+    bool m_ModifiedParameters;
     bool m_ModifiedConcentration;
-    bool m_ModifiedFraction;
-    bool m_ModifiedDiffusivity;
     
     //! Store last used bvalue and gradient to avoid computing expensive values twice
     double m_CurrentBValue;
