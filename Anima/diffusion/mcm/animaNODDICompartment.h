@@ -76,7 +76,7 @@ protected:
         m_IntraAxialDerivative = 0;
         m_ExtraAxonalSignal = 0;
         
-        double m_CurrentBValue = -1.0;
+        m_CurrentBValue = -1.0;
         m_CurrentGradient.fill(0.0);
     }
     
