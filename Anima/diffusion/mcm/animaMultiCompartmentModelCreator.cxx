@@ -221,7 +221,7 @@ void MultiCompartmentModelCreator::CreateNODDICompartment(BaseCompartmentPointer
     typedef anima::NODDICompartment NODDIType;
     
     NODDIType::Pointer noddiComp = NODDIType::New();
-    noddiComp->SetEstimateAxialDiffusivity(false); // As in Zhang et al. 2012, Neuroimage.
+    noddiComp->SetEstimateAxialDiffusivity(!m_UseConstrainedDiffusivity);
     
     noddiComp->SetOrientationConcentration(m_OrientationConcentration);
     noddiComp->SetExtraAxonalFraction(m_ExtraAxonalFraction);
