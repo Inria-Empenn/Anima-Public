@@ -12,9 +12,6 @@
 #include <animaGaussianMCMCost.h>
 #include <animaGaussianMCMVariableProjectionCost.h>
 
-#include <animaVectorOperations.h>
-#include <animaDistributionSampling.h>
-
 #include <animaDTIEstimationImageFilter.h>
 #include <animaBaseTensorTools.h>
 
@@ -22,7 +19,6 @@
 #include <animaMCMFileWriter.h>
 
 #include <boost/math/tools/toms748_solve.hpp>
-#include <boost/math/tools/minima.hpp>
 #include <ctime>
 
 namespace anima
