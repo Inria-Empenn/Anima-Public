@@ -442,7 +442,7 @@ private:
     double m_XTolerance;
     double m_GTolerance;
     
-    const unsigned int m_CoarseGridSize = 10;
+    const unsigned int m_CoarseGridSize = 8;
     std::vector<double> m_KappaCoarseGrid, m_FractionCoarseGrid;
 };
 

@@ -355,11 +355,18 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     // Setting up coarse grids for kappa and nu initial search (useful for NODDI)
     m_FractionCoarseGrid.resize(m_CoarseGridSize);
     m_KappaCoarseGrid.resize(m_CoarseGridSize);
+    // The anisotropy index suggested by NODDI signal expression is not the ODI
+    // index defined in Zhang et al., 2012, Neuroimage. Instead, it amounts to
+    // (3 * tau1(k) - 1) / 2 \in [0,1] which is not analytically invertible.
+    // However it is well approximated by k^power / (halfLife + k^power) where
+    // power and halfLife are given by:
+    double power = 1.385829;
+    double halfLife = 5.312364;
     for (unsigned int i = 0;i < m_CoarseGridSize;++i)
     {
         double tmpVal = (i + 1.0) / (m_CoarseGridSize + 1.0);
         m_FractionCoarseGrid[i] = tmpVal;
-        m_KappaCoarseGrid[i] = 1.0 / std::tan(M_PI * tmpVal / 2.0);
+        m_KappaCoarseGrid[i] = std::pow(tmpVal * halfLife / (1.0 - tmpVal), 1.0 / power);
     }
 }
 
