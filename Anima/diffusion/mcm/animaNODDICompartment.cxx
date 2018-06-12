@@ -13,6 +13,19 @@ void NODDICompartment::UpdateSignals(double bValue, const Vector3DType &gradient
     if (std::abs(bValue - m_CurrentBValue) < 1.0e-6 && anima::ComputeNorm(gradient - m_CurrentGradient) < 1.0e-6 && !m_ModifiedParameters)
         return;
     
+    // This implementation of NODDI signal expression follows three papers:
+    // 1) Zhang et al., 2012, Neuroimage: paper that introduces NODDI, with
+    // integral representation of the signal in terms of NODDI parameters
+    // (Eqs 1-8).
+    // 2) Zhang et al., 2011, Neuroimage: it shows how the integral
+    // representation of the NODDI intra-axonal signal (Eq. A2 with L_\perp
+    // = 0 and L_// = d) can be written in series expansion using the
+    // spherical harmonic expansion of the Watson probability density (Eq.
+    // A4).
+    // 3) Jespersen et al., 2007, Neuroimage: it gives the analytic
+    // expression of the C function involved in the SH series expansion of
+    // NODDI intra-axonal signal (Eq. 14).
+    
     this->UpdateKappaValues();
     
     double theta = this->GetOrientationTheta();
@@ -184,6 +197,10 @@ NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(doubl
 
 double NODDICompartment::GetLogDiffusionProfile(const Vector3DType &sample)
 {
+    // The PDF of the intra-axonal space is not well defined (degenerated from 3D to 1D).
+    // So we use here the extra-axonal diffusion tensor to define a zero-mean 3D Gaussian
+    // diffusion profile.
+    
     this->UpdateKappaValues();
     
     double intraFraction = 1.0 - this->GetExtraAxonalFraction();
@@ -379,10 +396,14 @@ void NODDICompartment::SetCompartmentVector(ModelOutputVectorType &compartmentVe
     
     unsigned int currentPos = m_SpaceDimension;
     
+    // Display OD map (Zhang et al., 2012, Neuroimage, Eq. 9) to stay consistent
+    // with the authors' original work but Would be better to show (3 tau1 - 1) / 2.
     double odi = compartmentVector[currentPos];
     this->SetOrientationConcentration(1.0 / std::tan(M_PI / 2.0 * odi));
     ++currentPos;
     
+    // Display intra-axonal fraction map to stay consistent with NODDI
+    // parametrization as in Zhang et al., 2012, Neuroimage.
     this->SetExtraAxonalFraction(1.0 - compartmentVector[currentPos]);
     ++currentPos;
     
@@ -425,9 +446,13 @@ NODDICompartment::ModelOutputVectorType &NODDICompartment::GetCompartmentVector(
     
     unsigned int currentPos = m_SpaceDimension;
     
+    // Display OD map (Zhang et al., 2012, Neuroimage, Eq. 9) to stay consistent
+    // with the authors' original work but Would be better to show (3 tau1 - 1) / 2.
     m_CompartmentVector[currentPos] = 2.0 / M_PI * std::atan(1.0 / this->GetOrientationConcentration());
     ++currentPos;
     
+    // Display intra-axonal fraction map to stay consistent with NODDI
+    // parametrization as in Zhang et al., 2012, Neuroimage.
     m_CompartmentVector[currentPos] = 1.0 - this->GetExtraAxonalFraction();
     ++currentPos;
     
@@ -438,6 +463,8 @@ NODDICompartment::ModelOutputVectorType &NODDICompartment::GetCompartmentVector(
 
 const NODDICompartment::Matrix3DType &NODDICompartment::GetDiffusionTensor()
 {
+    // Get an apparent diffusion tensor based on the extra-axonal space.
+    
     this->UpdateKappaValues();
     
     double intraFraction = 1.0 - this->GetExtraAxonalFraction();
