@@ -5,4 +5,5 @@ if (USE_RPI AND RPI_FOUND)
 endif()
 
 add_subdirectory(image_arithmetic)
+add_subdirectory(linearTransform2SVF)
 add_subdirectory(linear_transform_arithmetic)
