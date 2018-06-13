@@ -17,8 +17,8 @@ const double BaseCompartment::m_DefaultConcentrationUpperBound = 20;
 const double BaseCompartment::m_WatsonKappaUpperBound = 128.0;
 const double BaseCompartment::m_Epsilon = 1.0e-2;
 const double BaseCompartment::m_FractionUpperBound = 1.0;
-const double BaseCompartment::m_TissuesRadiusLowerBound = 1.0e-7;
-const double BaseCompartment::m_TissuesRadiusUpperBound = 40.1e-6;
+const double BaseCompartment::m_TissueRadiusLowerBound = 0.1e-3;
+const double BaseCompartment::m_TissueRadiusUpperBound = 40.1e-3;
 
 double BaseCompartment::GetPredictedSignal(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient)
 {

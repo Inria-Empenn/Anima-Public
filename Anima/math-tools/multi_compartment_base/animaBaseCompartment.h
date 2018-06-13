@@ -124,7 +124,7 @@ protected:
         m_RadialDiffusivity2 = 1.5e-4;
         m_OrientationConcentration = 5.0;
         m_ExtraAxonalFraction = 0.1;
-        m_TissueRadius = 1.0e-6;
+        m_TissueRadius = 0.01;
 
         m_DiffusionTensor.SetIdentity();
         m_UseBoundedOptimization = false;
