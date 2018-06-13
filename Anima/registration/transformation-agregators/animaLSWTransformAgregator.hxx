@@ -13,8 +13,6 @@ LSWTransformAgregator <NDimensions>::
 LSWTransformAgregator() : Superclass()
 {
     m_EstimationBarycenter.Fill(0);
-    m_EstimationPcaOriginPoints.set_size(NDimensions, NDimensions);
-    m_EstimationPcaOriginPoints.fill(0);
 }
 
 template <unsigned int NDimensions>
@@ -23,14 +21,6 @@ LSWTransformAgregator <NDimensions>::
 GetEstimationBarycenter()
 {
     return m_EstimationBarycenter;
-}
-
-template <unsigned int NDimensions>
-vnl_matrix <double>
-LSWTransformAgregator <NDimensions>::
-GetEstimationPcaOriginPoints()
-{
-    return m_EstimationPcaOriginPoints;
 }
 
 template <unsigned int NDimensions>
@@ -189,9 +179,10 @@ lswEstimateTranslationsToAnisotropSim()
     itk::Matrix<ScalarType, NDimensions, NDimensions> emptyMatrix;
     emptyMatrix.Fill(0);
 
+    vnl_matrix <ScalarType> covPcaOriginPoints(NDimensions, NDimensions, 0);
     if (this->GetOrthogonalDirectionMatrix() != emptyMatrix)
     {
-        m_EstimationPcaOriginPoints = this->GetOrthogonalDirectionMatrix().GetVnlMatrix().as_matrix();
+        covPcaOriginPoints = this->GetOrthogonalDirectionMatrix().GetVnlMatrix().as_matrix();
     }
     else
     {
@@ -213,15 +204,14 @@ lswEstimateTranslationsToAnisotropSim()
         itk::SymmetricEigenAnalysis < vnl_matrix <ScalarType>, vnl_diag_matrix<ScalarType>, vnl_matrix <ScalarType> > eigenSystem(3);
         vnl_diag_matrix <double> eValsCov(NDimensions);
         eigenSystem.SetOrderEigenValues(true);
-        eigenSystem.ComputeEigenValuesAndVectors(covOriginPoints, eValsCov, m_EstimationPcaOriginPoints);
+        eigenSystem.ComputeEigenValuesAndVectors(covOriginPoints, eValsCov, covPcaOriginPoints);
         /* return eigen vectors in row !!!!!!! */
-        m_EstimationPcaOriginPoints = m_EstimationPcaOriginPoints.transpose();
-        std::cout << eValsCov << std::endl;
-        if (vnl_determinant(m_EstimationPcaOriginPoints) < 0)
-            m_EstimationPcaOriginPoints *= -1;
+        covPcaOriginPoints = covPcaOriginPoints.transpose();
+        if (vnl_determinant(covPcaOriginPoints) < 0)
+            covPcaOriginPoints *= -1.0;
     }
 
-    m_EstimationBarycenter=anima::computeAnisotropSimLSWFromTranslations<InternalScalarType, ScalarType, NDimensions>(originPoints, transformedPoints, this->GetInputWeights(), resultTransform, m_EstimationPcaOriginPoints);
+    m_EstimationBarycenter = anima::computeAnisotropSimLSWFromTranslations<InternalScalarType, ScalarType, NDimensions>(originPoints, transformedPoints, this->GetInputWeights(), resultTransform, covPcaOriginPoints);
     this->SetOutput(resultTransform);
 }
 

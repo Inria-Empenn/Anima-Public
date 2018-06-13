@@ -15,8 +15,6 @@ MEstTransformAgregator() : Superclass()
     m_MEstimateFactor = 0.5;
     m_StoppingThreshold = 1.0e-2;
     m_EstimationBarycenter.Fill(0);
-    m_EstimationPcaOriginPoints.set_size(NDimensions, NDimensions);
-    m_EstimationPcaOriginPoints.fill(0);
 }
 
 template <unsigned int NDimensions>
@@ -25,14 +23,6 @@ MEstTransformAgregator <NDimensions>::
 GetEstimationBarycenter()
 {
     return m_EstimationBarycenter;
-}
-
-template <unsigned int NDimensions>
-vnl_matrix <double>
-MEstTransformAgregator <NDimensions>::
-GetEstimationPcaOriginPoints()
-{
-    return m_EstimationPcaOriginPoints;
 }
 
 template <unsigned int NDimensions>
@@ -99,6 +89,7 @@ mestEstimateTranslationsToAny()
             transformedPoints[i] = tmpDisp;
     }
 
+    vnl_matrix <ScalarType> covPcaOriginPoints(NDimensions, NDimensions, 0);
     if (this->GetOutputTransformType() == Superclass::ANISOTROPIC_SIM)
     {
         itk::Matrix<ScalarType, NDimensions, NDimensions> emptyMatrix;
@@ -106,7 +97,7 @@ mestEstimateTranslationsToAny()
 
         if (this->GetOrthogonalDirectionMatrix() != emptyMatrix)
         {
-            m_EstimationPcaOriginPoints = this->GetOrthogonalDirectionMatrix().GetVnlMatrix().as_matrix();
+            covPcaOriginPoints = this->GetOrthogonalDirectionMatrix().GetVnlMatrix().as_matrix();
         }
         else
         {
@@ -128,11 +119,11 @@ mestEstimateTranslationsToAny()
             itk::SymmetricEigenAnalysis < vnl_matrix <ScalarType>, vnl_diag_matrix<ScalarType>, vnl_matrix <ScalarType> > eigenSystem(3);
             vnl_diag_matrix <double> eValsCov(NDimensions);
             eigenSystem.SetOrderEigenValues(true);
-            eigenSystem.ComputeEigenValuesAndVectors(covOriginPoints, eValsCov, m_EstimationPcaOriginPoints);
+            eigenSystem.ComputeEigenValuesAndVectors(covOriginPoints, eValsCov, covPcaOriginPoints);
             /* return eigen vectors in row !!!!!!! */
-            m_EstimationPcaOriginPoints = m_EstimationPcaOriginPoints.transpose();
-            if (vnl_determinant(m_EstimationPcaOriginPoints) < 0)
-                m_EstimationPcaOriginPoints *= -1;
+            covPcaOriginPoints = covPcaOriginPoints.transpose();
+            if (vnl_determinant(covPcaOriginPoints) < 0)
+                covPcaOriginPoints *= -1.0;
         }
     }
 
@@ -169,7 +160,7 @@ mestEstimateTranslationsToAny()
 
             case Superclass::ANISOTROPIC_SIM:
                 m_EstimationBarycenter = anima::computeAnisotropSimLSWFromTranslations<InternalScalarType, ScalarType, NDimensions>
-                    (originPoints, transformedPoints, weightsFiltered, resultTransform, m_EstimationPcaOriginPoints);
+                    (originPoints, transformedPoints, weightsFiltered, resultTransform, covPcaOriginPoints);
                 break;
 
             case Superclass::AFFINE:

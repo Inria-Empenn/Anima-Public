@@ -21,8 +21,7 @@ public:
     MEstTransformAgregator();
     virtual ~MEstTransformAgregator() {}
     PointType GetEstimationBarycenter() ITK_OVERRIDE;
-    vnl_matrix <double> GetEstimationPcaOriginPoints();
-    virtual bool Update();
+    virtual bool Update() ITK_OVERRIDE;
 
     void SetMEstimateFactor(double mestFactor) {m_MEstimateFactor = mestFactor;this->SetUpToDate(false);}
     void SeStoppingThreshold(double stopThr) {m_StoppingThreshold = stopThr;this->SetUpToDate(false);}
@@ -37,8 +36,6 @@ private:
     double m_StoppingThreshold;
 
     PointType m_EstimationBarycenter;
-    vnl_matrix <double> m_EstimationPcaOriginPoints;
-
 };
 
 } // end of namespace anima

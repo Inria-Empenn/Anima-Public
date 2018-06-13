@@ -50,6 +50,13 @@ public:
     itkNewMacro(Self)
     itkTypeMacro(PyramidalBlockMatchingBridge,itk::ProcessObject)
 
+    enum InitializationType
+    {
+        Identity = 0,
+        GravityCenters,
+        ClosestTransform
+    };
+
     enum SymmetryType
     {
         Asymmetric = 0,
@@ -96,8 +103,6 @@ public:
     void Update() ITK_OVERRIDE;
     void Abort();
     void WriteOutputs();
-    void WriteClosestRigidTransform(PointType& xbar, vnl_matrix <double>& UMatrix);
-    void WriteClosestRigidTransform(PointType& xbar);
 
     /**
     * Setter for images
@@ -130,6 +135,12 @@ public:
 
     std::string GetOutputTransformFile() {return m_outputTransformFile;}
     void SetOutputTransformFile(std::string outputTransformFile) {m_outputTransformFile=outputTransformFile;}
+
+    std::string GetOutputNearestRigidTransformFile() {return m_outputNearestRigidTransformFile;}
+    void SetOutputNearestRigidTransformFile(std::string outputNRTransformFile) {m_outputNearestRigidTransformFile = outputNRTransformFile;}
+
+    std::string GetOutputNearestSimilarityTransformFile() {return m_outputNearestSimilarityTransformFile;}
+    void SetOutputNearestSimilarityTransformFile(std::string outputNearestSimilarityTransformFile) {m_outputNearestSimilarityTransformFile = outputNearestSimilarityTransformFile;}
 
     unsigned int GetBlockSize() {return m_BlockSize;}
     void SetBlockSize(int blockSize) {m_BlockSize=blockSize;}
@@ -209,8 +220,8 @@ public:
     double GetPercentageKept() {return m_PercentageKept;}
     void SetPercentageKept(double PercentageKept) {m_PercentageKept=PercentageKept;}
 
-    bool GetInitializeOnCenterOfGravity() {return m_InitializeOnCenterOfGravity;}
-    void SetInitializeOnCenterOfGravity(bool initOnCenterOfGravity) {m_InitializeOnCenterOfGravity=initOnCenterOfGravity;}
+    InitializationType GetTransformInitializationType() {return m_TransformInitializationType;}
+    void SetTransformInitializationType (InitializationType transformInitializationType) {m_TransformInitializationType = transformInitializationType;}
 
     void SetBlockGenerationMask(MaskImageType *mask) {m_BlockGenerationMask = mask;}
 
@@ -242,6 +253,11 @@ private:
     std::string m_outputTransformFile;
     std::string m_resultFile;
 
+    // Nearest rigid and anisotropic similarity specific variables
+    itk::Point<double, ImageDimension> m_EstimationBarycenter;
+    std::string m_outputNearestRigidTransformFile;
+    std::string m_outputNearestSimilarityTransformFile;
+
     unsigned int m_BlockSize;
     unsigned int m_BlockSpacing;
     float m_StDevThreshold;
@@ -270,7 +286,7 @@ private:
     unsigned int m_NumberOfPyramidLevels;
     unsigned int m_LastPyramidLevel;
     double m_PercentageKept;
-    bool m_InitializeOnCenterOfGravity;
+    InitializationType m_TransformInitializationType;
 
     bool m_Abort;
     bool m_Verbose;

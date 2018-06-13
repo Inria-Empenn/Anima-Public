@@ -12,6 +12,7 @@
 
 namespace anima
 {
+
 template <class TInput, class TScalarType, unsigned int NDimensions>
 void computeTranslationLSWFromTranslations(std::vector < itk::Point<TInput,NDimensions> > &inputOrigins,
                                            std::vector < itk::Point<TInput,NDimensions> > &inputTransformed,
@@ -128,10 +129,10 @@ void computeRigidLSWFromTranslations(std::vector < itk::Point<TInput,NDimensions
 
 template <class TInput, class TScalarType, unsigned int NDimensions>
 itk::Point <TInput, NDimensions> computeAnisotropSimLSWFromTranslations(std::vector < itk::Point<TInput, NDimensions> > &inputOrigins,
-    std::vector < itk::Point<TInput, NDimensions> > &inputTransformed,
-    std::vector <TInput> &weights,
-    typename itk::AffineTransform<TScalarType, NDimensions>::Pointer &resultTransform,
-    vnl_matrix <double> &UMatrix)
+                                                                        std::vector < itk::Point<TInput, NDimensions> > &inputTransformed,
+                                                                        std::vector <TInput> &weights,
+                                                                        typename itk::AffineTransform<TScalarType, NDimensions>::Pointer &resultTransform,
+                                                                        vnl_matrix <double> &UMatrix)
 {
     unsigned int nbPts = inputOrigins.size();
     itk::Point <TInput, NDimensions> barX, barY;
@@ -165,7 +166,7 @@ itk::Point <TInput, NDimensions> computeAnisotropSimLSWFromTranslations(std::vec
 
     vnl_vector_fixed <TInput, NDimensions> xVector, xiVector, yVector;
     unsigned int iter = 0;
-    double eps = std::pow(10, -8);
+    double eps = 1.0e-8;
     double diffRot = eps + 1;
     double diffScal = eps + 1;
     vnl_diag_matrix <double> scal(NDimensions);
@@ -181,12 +182,13 @@ itk::Point <TInput, NDimensions> computeAnisotropSimLSWFromTranslations(std::vec
     vnl_diag_matrix <double> eVals(4);
     eigenSystem2.SetOrderEigenValues(true);
 
-    while ((diffRot > eps || diffScal>eps) && iter<100)
+    // Loop over rotation and scalings optimization
+    while (((diffRot > eps) || (diffScal > eps)) && (iter < 100))
     {
-        // opti rotation
+        // optimize rotation
         AMatrix.fill(0);
 
-        for (unsigned int i = 0; i < nbPts; ++i)
+        for (unsigned int i = 0;i < nbPts;++i)
         {
             xiVector = scal*UMatrix.transpose()*(inputOrigins[i].GetVnlVector() - barX.GetVnlVector());
             yVector = inputTransformed[i].GetVnlVector() - barY.GetVnlVector();
@@ -202,30 +204,30 @@ itk::Point <TInput, NDimensions> computeAnisotropSimLSWFromTranslations(std::vec
             diffRot = (q - oldq).two_norm();
         oldq = q;
 
-        // opti scaling
-        for (unsigned int j = 0; j < NDimensions; ++j)
+        // optimize scalings
+        for (unsigned int j = 0;j < NDimensions;++j)
             sumdScal[j].fill(0);
-        sumx2.fill(0);       
+        sumx2.fill(0);
 
-        for (unsigned int i = 0; i < nbPts; ++i)
+        for (unsigned int i = 0;i < nbPts;++i)
         {
             yVector = inputTransformed[i].GetVnlVector() - barY.GetVnlVector();
             xVector = UMatrix.transpose()*(inputOrigins[i].GetVnlVector() - barX.GetVnlVector());
-            for (unsigned int j = 0; j < NDimensions; ++j)
+            for (unsigned int j = 0;j < NDimensions;++j)
             {
-                anima::pairingToQuaternionScalDerivative(xVector, yVector, tmpMatrix, j);
+                anima::pairingToQuaternionScalingsDerivative(xVector, yVector, tmpMatrix, j);
                 sumdScal[j] += weights[i] * tmpMatrix;
                 sumx2[j] += weights[i] * xVector[j] * xVector[j] ;
             }
         }
 
         scal.fill(0);
-        for (unsigned int j = 0; j < NDimensions; ++j)
+        for (unsigned int j = 0;j < NDimensions;++j)
         {
-            for (unsigned int k = 0; k < NDimensions+1; ++k)
+            for (unsigned int k = 0;k < NDimensions + 1;++k)
             {
-                for (unsigned int l = 0; l < NDimensions+1; ++l)
-                    scal[j] += (1 / sumx2[j])*q(k)*sumdScal[j](k, l) * q(l);
+                for (unsigned int l = 0;l < NDimensions + 1;++l)
+                    scal[j] += (1 / sumx2[j]) * q[k] * sumdScal[j](k, l) * q[l];
             }
         }
 
@@ -237,17 +239,17 @@ itk::Point <TInput, NDimensions> computeAnisotropSimLSWFromTranslations(std::vec
     }
     
     vnl_matrix <TScalarType> rotationMatrix = anima::computeRotationFromQuaternion<TInput, TScalarType>(q);
-    vnl_matrix <TScalarType> linearPartMatrix = rotationMatrix*scal*UMatrix.transpose();
+    vnl_matrix <TScalarType> linearPartMatrix = rotationMatrix * scal * UMatrix.transpose();
 
     itk::Vector <TScalarType, NDimensions> translationPart;
-    for (unsigned int i = 0; i < NDimensions; ++i)
+    for (unsigned int i = 0;i < NDimensions;++i)
     {
         translationPart[i] = barY[i];
-        for (unsigned int j = 0; j < NDimensions; ++j)
+        for (unsigned int j = 0;j < NDimensions;++j)
             translationPart[i] -= linearPartMatrix(i,j)*barX[j];
     }
 
-    resultTransform = itk::AffineTransform<TScalarType, NDimensions>::New();
+    resultTransform = itk::AffineTransform <TScalarType, NDimensions>::New();
 
     resultTransform->SetMatrix(linearPartMatrix);
     resultTransform->SetOffset(translationPart);
@@ -292,9 +294,9 @@ void computeLogEuclideanAverage(std::vector < vnl_matrix <TInput> > &inputTransf
 
 template <class TInput, class TScalarType, unsigned int NDimensions>
 itk::Point <TInput, NDimensions> computeAffineLSWFromTranslations(std::vector < itk::Point<TInput,NDimensions> > &inputOrigins,
-                                      std::vector < itk::Point<TInput,NDimensions> > &inputTransformed,
-                                      std::vector <TInput> &weights,
-                                      typename itk::AffineTransform<TScalarType,NDimensions>::Pointer &resultTransform)
+                                                                  std::vector < itk::Point<TInput,NDimensions> > &inputTransformed,
+                                                                  std::vector <TInput> &weights,
+                                                                  typename itk::AffineTransform<TScalarType,NDimensions>::Pointer &resultTransform)
 {
     unsigned int nbPts = inputOrigins.size();
     itk::Point <TInput,NDimensions> barX, barY;
@@ -434,68 +436,68 @@ void pairingToQuaternion(const PointType &inputPoint, const PointType &inputTran
 }
 
 template <class TInput, class TOutput, unsigned int NDimensions>
-void pairingToQuaternionScalDerivative(const vnl_vector_fixed <TInput, NDimensions> &inputPoint, const vnl_vector_fixed <TInput, NDimensions> &inputTransformedPoint,
-    vnl_matrix <TOutput> &outputMatrix, const int &dimScal)
+void pairingToQuaternionScalingsDerivative(const vnl_vector_fixed <TInput, NDimensions> &inputPoint, const vnl_vector_fixed <TInput, NDimensions> &inputTransformedPoint,
+                                           vnl_matrix <TOutput> &outputMatrix, const int &dimScal)
 {
-    return pairingToQuaternionScalDerivative(inputPoint, inputTransformedPoint, outputMatrix, NDimensions, dimScal);
+    return pairingToQuaternionScalingsDerivative(inputPoint, inputTransformedPoint, outputMatrix, NDimensions, dimScal);
 }
 
 template <class TInput, class TOutput, unsigned int NDimensions>
-void pairingToQuaternionScalDerivative(const itk::Vector <TInput, NDimensions> &inputPoint, const itk::Vector <TInput, NDimensions> &inputTransformedPoint,
-    vnl_matrix <TOutput> &outputMatrix, const int &dimScal)
+void pairingToQuaternionScalingsDerivative(const itk::Vector <TInput, NDimensions> &inputPoint, const itk::Vector <TInput, NDimensions> &inputTransformedPoint,
+                                           vnl_matrix <TOutput> &outputMatrix, const int &dimScal)
 {
-    return pairingToQuaternionScalDerivative(inputPoint, inputTransformedPoint, outputMatrix, NDimensions, dimScal);
+    return pairingToQuaternionScalingsDerivative(inputPoint, inputTransformedPoint, outputMatrix, NDimensions, dimScal);
 }
 
 template <class PointType, class TOutput>
-void pairingToQuaternionScalDerivative(const PointType &inputPoint, const PointType &inputTransformedPoint, vnl_matrix <TOutput> &outputMatrix, unsigned int ndim, const int &dimScal)
+void pairingToQuaternionScalingsDerivative(const PointType &inputPoint, const PointType &inputTransformedPoint, vnl_matrix <TOutput> &outputMatrix, unsigned int ndim, const int &dimScal)
 {
     outputMatrix.set_size(ndim + 1, ndim + 1);
     outputMatrix.fill(0);
 
     switch (dimScal)
     {
-    case 0:
-        outputMatrix(0, 2) = -inputTransformedPoint[2];
-        outputMatrix(0, 3) = inputTransformedPoint[1];
-        outputMatrix(1, 2) = inputTransformedPoint[1];
-        outputMatrix(1, 3) = inputTransformedPoint[2];
-        outputMatrix += outputMatrix.transpose();
-        outputMatrix(0, 0) = inputTransformedPoint[0];
-        outputMatrix(1, 1) = inputTransformedPoint[0];
-        outputMatrix(2, 2) = -inputTransformedPoint[0];
-        outputMatrix(3, 3) = -inputTransformedPoint[0];
-        outputMatrix *= inputPoint[0];
-        break;
+        case 0:
+            outputMatrix(0, 2) = -inputTransformedPoint[2];
+            outputMatrix(0, 3) = inputTransformedPoint[1];
+            outputMatrix(1, 2) = inputTransformedPoint[1];
+            outputMatrix(1, 3) = inputTransformedPoint[2];
+            outputMatrix += outputMatrix.transpose();
+            outputMatrix(0, 0) = inputTransformedPoint[0];
+            outputMatrix(1, 1) = inputTransformedPoint[0];
+            outputMatrix(2, 2) = -inputTransformedPoint[0];
+            outputMatrix(3, 3) = -inputTransformedPoint[0];
+            outputMatrix *= inputPoint[0];
+            break;
 
-    case 1:
-        outputMatrix(0, 1) = inputTransformedPoint[2];
-        outputMatrix(0, 3) = -inputTransformedPoint[0];
-        outputMatrix(1, 2) = inputTransformedPoint[0];
-        outputMatrix(2, 3) = inputTransformedPoint[2];
-        outputMatrix += outputMatrix.transpose();
-        outputMatrix(0, 0) = inputTransformedPoint[1];
-        outputMatrix(1, 1) = -inputTransformedPoint[1];
-        outputMatrix(2, 2) = inputTransformedPoint[1];
-        outputMatrix(3, 3) = -inputTransformedPoint[1];
-        outputMatrix *= inputPoint[1];
-        break;
+        case 1:
+            outputMatrix(0, 1) = inputTransformedPoint[2];
+            outputMatrix(0, 3) = -inputTransformedPoint[0];
+            outputMatrix(1, 2) = inputTransformedPoint[0];
+            outputMatrix(2, 3) = inputTransformedPoint[2];
+            outputMatrix += outputMatrix.transpose();
+            outputMatrix(0, 0) = inputTransformedPoint[1];
+            outputMatrix(1, 1) = -inputTransformedPoint[1];
+            outputMatrix(2, 2) = inputTransformedPoint[1];
+            outputMatrix(3, 3) = -inputTransformedPoint[1];
+            outputMatrix *= inputPoint[1];
+            break;
 
-    case 2:
-        outputMatrix(0, 1) = -inputTransformedPoint[1];
-        outputMatrix(0, 2) = inputTransformedPoint[0];
-        outputMatrix(1, 3) = inputTransformedPoint[0];
-        outputMatrix(2, 3) = inputTransformedPoint[1];
-        outputMatrix += outputMatrix.transpose();
-        outputMatrix(0, 0) = inputTransformedPoint[2];
-        outputMatrix(1, 1) = -inputTransformedPoint[2];
-        outputMatrix(2, 2) = -inputTransformedPoint[2];
-        outputMatrix(3, 3) = inputTransformedPoint[2];
-        outputMatrix *= inputPoint[2];
-        break;
+        case 2:
+            outputMatrix(0, 1) = -inputTransformedPoint[1];
+            outputMatrix(0, 2) = inputTransformedPoint[0];
+            outputMatrix(1, 3) = inputTransformedPoint[0];
+            outputMatrix(2, 3) = inputTransformedPoint[1];
+            outputMatrix += outputMatrix.transpose();
+            outputMatrix(0, 0) = inputTransformedPoint[2];
+            outputMatrix(1, 1) = -inputTransformedPoint[2];
+            outputMatrix(2, 2) = -inputTransformedPoint[2];
+            outputMatrix(3, 3) = inputTransformedPoint[2];
+            outputMatrix *= inputPoint[2];
+            break;
 
-    default:
-        break;
+        default:
+            break;
     }
     
 }
