@@ -1,4 +1,3 @@
 add_subdirectory(jacobian)
 add_subdirectory(image_mosaicing)
 add_subdirectory(transform_serie_xml_generator)
-add_subdirectory(apply_similarity_transform_without_resampling)
