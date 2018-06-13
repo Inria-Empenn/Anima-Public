@@ -12,26 +12,44 @@ double StaniszCompartment::GetFourierTransformedDiffusionProfile(double smallDel
 {
     double alpha = anima::DiffusionGyromagneticRatio * smallDelta * gradientStrength;
     double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
-    double alphaRs = alpha * this->GetTissueRadius();
+    double tissueRadius = this->GetTissueRadius();
+    double axialDiff = this->GetAxialDiffusivity();
+    double alphaRs = alpha * tissueRadius;
+    double piSquare = M_PI * M_PI;
+    double alphaRsSquare = alphaRs * alphaRs;
+    double deltaDiff = largeDelta - smallDelta / 3.0;
 
-    double signalValue = 2.0 * (1.0 - std::cos(alphaRs)) / (alphaRs * alphaRs);
+    double signalValue = (alphaRs < 1.0e-6) ? 1.0 - alphaRsSquare / 12.0 : 2.0 * (1.0 - std::cos(alphaRs)) / (alphaRsSquare);
+    
     double sumValue = 0.0;
-
     for (unsigned int i = 0;i < m_NumberOfSumIterations;++i)
     {
-        double internalTerm = - i * i * M_PI * M_PI * bValue * this->GetAxialDiffusivity() / (alphaRs * alphaRs);
+        double n = i + 1.0;
+        double npiSquare = n * n * piSquare;
+        double denomValue = alphaRsSquare - npiSquare;
+        
+        if (std::abs(denomValue) < 1.0e-6)
+            continue;
+        
+        double internalTerm = std::exp(-npiSquare * deltaDiff * axialDiff / (tissueRadius * tissueRadius));
 
-        if (i % 2 == 0)
-            internalTerm += std::log(1.0 - std::cos(alphaRs));
+        if ((i+1) % 2 == 0)
+            internalTerm *= 1.0 - std::cos(alphaRs);
         else
-            internalTerm += std::log(1.0 + std::cos(alphaRs));
+            internalTerm *= 1.0 + std::cos(alphaRs);
 
-        internalTerm -= 2.0 * std::log(alphaRs * alphaRs - i * i * M_PI * M_PI);
+        internalTerm /= denomValue * denomValue;
+        
+        if (internalTerm < std::numeric_limits<double>::epsilon() * sumValue)
+            break;
 
-        sumValue += std::exp(internalTerm);
+        sumValue += internalTerm;
     }
 
-    signalValue += 4.0 * alphaRs * alphaRs * sumValue;
+    signalValue += 4.0 * alphaRsSquare * sumValue;
+    
+//    std::cout << smallDelta << " " << largeDelta << " " << gradientStrength << " " << bValue << " " << signalValue << " " << alphaRs << " " << std::cos(alphaRs) << " " << this->GetTissueRadius() << " " << sumValue << std::endl;
+//    exit(-1);
 
     return signalValue;
 }
@@ -45,21 +63,36 @@ StaniszCompartment::ListType &StaniszCompartment::GetSignalAttenuationJacobian(d
 
     double alpha = anima::DiffusionGyromagneticRatio * smallDelta * gradientStrength;
     double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
-    double alphaRs = alpha * this->GetTissueRadius();
+    double tissueRadius = this->GetTissueRadius();
+    double axialDiff = this->GetAxialDiffusivity();
+    double alphaRs = alpha * tissueRadius;
+    double piSquare = M_PI * M_PI;
+    double alphaRsSquare = alphaRs * alphaRs;
+    double deltaDiff = largeDelta - smallDelta / 3.0;
 
     double derivativeSum2Value = 0.0;
     if (this->GetNumberOfParameters() > 0)
     {
         for (unsigned int i = 0;i < m_NumberOfSumIterations;++i)
         {
-            double internalTerm = i * i * std::exp(- i * i * M_PI * M_PI * bValue * this->GetAxialDiffusivity() / (alphaRs * alphaRs));
+            double n = i + 1.0;
+            double npiSquare = n * n * piSquare;
+            double denomValue = alphaRsSquare - npiSquare;
+            
+            if (std::abs(denomValue) < 1.0e-6)
+                continue;
+            
+            double internalTerm = n * n * std::exp(-npiSquare * deltaDiff * axialDiff / (tissueRadius * tissueRadius));
 
-            if (i % 2 == 0)
+            if ((i+1) % 2 == 0)
                 internalTerm *= 1.0 - std::cos(alphaRs);
             else
                 internalTerm *= 1.0 + std::cos(alphaRs);
 
-            internalTerm /= (alphaRs * alphaRs - i * i * M_PI * M_PI) * (alphaRs * alphaRs - i * i * M_PI * M_PI);
+            internalTerm /= denomValue * denomValue;
+            
+            if (internalTerm < std::numeric_limits<double>::epsilon() * derivativeSum2Value)
+                break;
 
             derivativeSum2Value += internalTerm;
         }
@@ -68,24 +101,30 @@ StaniszCompartment::ListType &StaniszCompartment::GetSignalAttenuationJacobian(d
     // Derivative w.r.t. D_I
     double aDiffDeriv = 1.0;
     if (this->GetUseBoundedOptimization())
-        aDiffDeriv = levenberg::BoundedDerivativeAddOn(this->GetAxialDiffusivity(), this->GetBoundedSignVectorValue(0),
+        aDiffDeriv = levenberg::BoundedDerivativeAddOn(axialDiff, this->GetBoundedSignVectorValue(0),
                                                        m_DiffusivityLowerBound, m_DiffusivityUpperBound);
 
-    m_JacobianVector[0] = - 4.0 * bValue * M_PI * M_PI * derivativeSum2Value * aDiffDeriv;
+    m_JacobianVector[0] = - 4.0 * bValue * piSquare * derivativeSum2Value * aDiffDeriv;
 
     // Derivative w.r.t. R_S
-    m_JacobianVector[1] = 2.0 * (alphaRs * std::sin(alphaRs) - 2.0 * (1.0 - std::cos(alphaRs))) / (alphaRs * alphaRs * this->GetTissueRadius());
+    m_JacobianVector[1] = (alphaRs < 1.0e-6) ? -alphaRsSquare / (6.0 * tissueRadius) : 2.0 * (alphaRs * std::sin(alphaRs) - 2.0 * (1.0 - std::cos(alphaRs))) / (alphaRsSquare * tissueRadius);
+    
     double derivativeSum1Value = 0.0;
     double derivativeSum3Value = 0.0;
     double derivativeSum4Value = 0.0;
-
     for (unsigned int i = 0;i < m_NumberOfSumIterations;++i)
     {
-        double internalTermCos = std::exp(- i * i * M_PI * M_PI * bValue * this->GetAxialDiffusivity() / (alphaRs * alphaRs));
+        double n = i + 1.0;
+        double npiSquare = n * n * piSquare;
+        double alphaRsNPI = alphaRsSquare - npiSquare;
+        
+        if (std::abs(alphaRsNPI) < 1.0e-6)
+            continue;
+        
+        double internalTermCos = std::exp(-npiSquare * deltaDiff * axialDiff / (tissueRadius * tissueRadius));
         double internalTermSine = internalTermCos;
-        double alphaRsNPI = alphaRs * alphaRs - i * i * M_PI * M_PI;
 
-        if (i % 2 == 0)
+        if ((i+1) % 2 == 0)
         {
             internalTermCos *= 1.0 - std::cos(alphaRs);
             internalTermSine *= std::sin(alphaRs);
@@ -98,6 +137,15 @@ StaniszCompartment::ListType &StaniszCompartment::GetSignalAttenuationJacobian(d
 
         internalTermCos /= alphaRsNPI * alphaRsNPI;
         internalTermSine /= alphaRsNPI * alphaRsNPI;
+        
+        if (internalTermCos < std::numeric_limits<double>::epsilon() * derivativeSum1Value)
+            break;
+        
+        if (internalTermSine < std::numeric_limits<double>::epsilon() * derivativeSum3Value)
+            break;
+        
+        if (internalTermCos < std::numeric_limits<double>::epsilon() * derivativeSum4Value * alphaRsNPI)
+            break;
 
         derivativeSum1Value += internalTermCos;
         derivativeSum3Value += internalTermSine;
@@ -105,13 +153,13 @@ StaniszCompartment::ListType &StaniszCompartment::GetSignalAttenuationJacobian(d
     }
 
     m_JacobianVector[1] += 8.0 * alpha * alphaRs * derivativeSum1Value;
-    m_JacobianVector[1] += 8.0 * M_PI * M_PI * bValue * this->GetAxialDiffusivity() * derivativeSum2Value / this->GetTissueRadius();
-    m_JacobianVector[1] += 4.0 * alpha * alphaRs * alphaRs * derivativeSum3Value;
-    m_JacobianVector[1] -= 16.0 * alpha * alphaRs * alphaRs * alphaRs * derivativeSum4Value;
+    m_JacobianVector[1] += 8.0 * piSquare * bValue * axialDiff * derivativeSum2Value / tissueRadius;
+    m_JacobianVector[1] += 4.0 * alpha * alphaRsSquare * derivativeSum3Value;
+    m_JacobianVector[1] -= 16.0 * alpha * alphaRs * alphaRsSquare * derivativeSum4Value;
 
     double rsDeriv = 1.0;
     if (this->GetUseBoundedOptimization())
-        rsDeriv = levenberg::BoundedDerivativeAddOn(this->GetTissueRadius(), this->GetBoundedSignVectorValue(1),
+        rsDeriv = levenberg::BoundedDerivativeAddOn(tissueRadius, this->GetBoundedSignVectorValue(1),
                                                     m_TissueRadiusLowerBound, m_TissueRadiusUpperBound);
 
     m_JacobianVector[1] *= rsDeriv;
