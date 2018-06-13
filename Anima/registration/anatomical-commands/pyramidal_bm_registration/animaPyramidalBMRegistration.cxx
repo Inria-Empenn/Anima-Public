@@ -28,8 +28,11 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<unsigned int> outTrTypeArg("","ot","Output transformation type (0: rigid, 1: translation, 2: affine, 3: anisotropic_sim, default: 0)",false,0,"output transformation type",cmd);
 
     TCLAP::ValueArg<std::string> initialTransformArg("i","inittransform","Initial transformation",false,"","initial transform",cmd);
-    TCLAP::ValueArg<std::string> directionTransformArg("U", "dirtransform", "Direction transformation for anisotropic similarity", false, "", "direction transform", cmd);
+    TCLAP::ValueArg<std::string> directionTransformArg("U", "dirtransform", "Input direction transformation for anisotropic similarity", false, "", "input direction transform", cmd);
+
     TCLAP::ValueArg<std::string> outputTransformArg("O","outtransform","Output transformation",false,"","output transform",cmd);
+    TCLAP::ValueArg<std::string> outputNRTransformArg("","out-rigid","Output nearest rigid transformation",false,"","output nearest rigid transform",cmd);
+    TCLAP::ValueArg<std::string> outputNSTransformArg("","out-sim","Output nearest similarity transformation",false,"","output nearest similarity transform",cmd);
 
     TCLAP::ValueArg<std::string> blockMaskArg("M","mask-im","Mask image for block generation",false,"","block mask image",cmd);
     TCLAP::ValueArg<unsigned int> blockSizeArg("","bs","Block size (default: 5)",false,5,"block size",cmd);
@@ -115,8 +118,10 @@ int main(int argc, const char** argv)
 
     matcher->SetTransformInitializationType((PyramidBMType::InitializationType)initTypeArg.getValue());
 
-    matcher->SetResultFile( outArg.getValue() );
-    matcher->SetOutputTransformFile( outputTransformArg.getValue() );
+    matcher->SetResultFile(outArg.getValue());
+    matcher->SetOutputTransformFile(outputTransformArg.getValue());
+    matcher->SetOutputNearestRigidTransformFile(outputNRTransformArg.getValue());
+    matcher->SetOutputNearestSimilarityTransformFile(outputNSTransformArg.getValue());
 
     typedef itk::ImageFileReader<InputImageType> ReaderType;
 

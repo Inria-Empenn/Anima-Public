@@ -705,7 +705,6 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
 
         initialFloatingImage = tmpResample->GetOutput();
         initialFloatingImage->DisconnectPipeline();
-
     }
 
     // Create pyramid for floating image
