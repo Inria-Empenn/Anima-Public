@@ -32,6 +32,7 @@ set(BINARY_TOOLS_LIST
   animaGammaMixtureT2RelaxometryEstimation
   animaGcStremMsLesionsSegmentation
   animaGeneralizedFA
+  animaGMMT2RelaxometryEstimation
   animaGraphCut
   animaImageArithmetic
   animaImageSmoother
