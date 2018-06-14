@@ -212,6 +212,11 @@ public:
     itkSetMacro(UseConstrainedFreeWaterDiffusivity, bool)
     itkSetMacro(UseConstrainedIRWDiffusivity, bool)
 
+    itkSetMacro(UseConstrainedOrientationConcentration, bool)
+    itkSetMacro(UseConstrainedExtraAxonalFraction, bool)
+    itkSetMacro(UseCommonConcentrations, bool)
+    itkSetMacro(UseCommonExtraAxonalFractions, bool)
+
     itkSetMacro(UseCommonDiffusivities, bool)
     itkSetMacro(UseConcentrationBoundsFromDTI,bool)
 
@@ -283,7 +288,12 @@ protected:
         m_UseBoundedOptimization = false;
         m_UseCommonDiffusivities = false;
 
-        m_AxialDiffusivityFixedValue = 1.7e-3;
+        m_UseConstrainedOrientationConcentration = false;
+        m_UseConstrainedExtraAxonalFraction = false;
+        m_UseCommonConcentrations = false;
+        m_UseCommonExtraAxonalFractions = false;
+
+        m_AxialDiffusivityFixedValue = 1.71e-3;
         m_RadialDiffusivity1FixedValue = 1.5e-4;
         m_RadialDiffusivity2FixedValue = 1.5e-4;
 
@@ -415,6 +425,11 @@ private:
     bool m_UseConcentrationBoundsFromDTI;
     bool m_UseBoundedOptimization;
     bool m_UseCommonDiffusivities;
+
+    bool m_UseConstrainedOrientationConcentration;
+    bool m_UseConstrainedExtraAxonalFraction;
+    bool m_UseCommonConcentrations;
+    bool m_UseCommonExtraAxonalFractions;
 
     double m_AxialDiffusivityFixedValue;
     double m_RadialDiffusivity1FixedValue;

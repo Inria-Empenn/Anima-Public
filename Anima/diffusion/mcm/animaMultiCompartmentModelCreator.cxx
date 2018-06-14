@@ -230,6 +230,12 @@ void MultiCompartmentModelCreator::CreateNODDICompartment(BaseCompartmentPointer
     {
         if (m_UseCommonDiffusivities)
             noddiComp->SetEstimateAxialDiffusivity(false);
+
+        if (this->GetUseCommonConcentrations())
+            noddiComp->SetEstimateOrientationConcentration(false);
+
+        if (this->GetUseCommonExtraAxonalFractions())
+            noddiComp->SetEstimateExtraAxonalFraction(false);
     }
     
     compartmentPointer = noddiComp;

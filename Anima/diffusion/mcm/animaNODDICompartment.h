@@ -38,7 +38,10 @@ public:
     virtual ListType &GetParameterUpperBounds() ITK_OVERRIDE;
     
     // Set constraints
+    void SetEstimateOrientationConcentration(bool arg);
     void SetEstimateAxialDiffusivity(bool arg);
+    void SetEstimateExtraAxonalFraction(bool arg);
+
     void SetCompartmentVector(ModelOutputVectorType &compartmentVector) ITK_OVERRIDE;
 
     unsigned int GetCompartmentSize() ITK_OVERRIDE;
@@ -58,7 +61,9 @@ public:
 protected:
     NODDICompartment() : Superclass()
     {
+        m_EstimateOrientationConcentration = true;
         m_EstimateAxialDiffusivity = true;
+        m_EstimateExtraAxonalFraction = true;
         m_ChangedConstraints = true;
         
         m_ModifiedParameters = true;
@@ -92,7 +97,7 @@ protected:
     virtual void UnboundParameters(ListType &params) ITK_OVERRIDE;
 
 private:
-    bool m_EstimateAxialDiffusivity;
+    bool m_EstimateOrientationConcentration, m_EstimateAxialDiffusivity, m_EstimateExtraAxonalFraction;
     bool m_ChangedConstraints;
     unsigned int m_NumberOfParameters;
     

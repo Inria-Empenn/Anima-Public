@@ -126,7 +126,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     if ((m_Optimizer == "levenberg")&&((m_MLEstimationStrategy == Marginal)||(m_NoiseType != Gaussian)))
         itkExceptionMacro("Levenberg Marquardt optimizer only working with Gaussian noise and variable projection");
 
-    if ((m_Optimizer != "bobyqa")&&m_UseCommonDiffusivities)
+    if ((m_Optimizer != "bobyqa")&&(m_UseCommonDiffusivities||m_UseCommonExtraAxonalFractions||m_UseCommonConcentrations))
         itkExceptionMacro("Derivative based optimizers not supported yet for common parameters, use Bobyqa instead");
 
     if ((m_NoiseType == NCC)&&(m_MLEstimationStrategy != Profile))
@@ -935,6 +935,11 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     // Finally, we're done with ball and zeppelin, an example of what's next up with multi-tensor
     // - First create model
     mcmCreator->SetCompartmentType(m_CompartmentType);
+    mcmCreator->SetUseConstrainedExtraAxonalFraction(m_UseConstrainedExtraAxonalFraction);
+    mcmCreator->SetUseConstrainedOrientationConcentration(m_UseConstrainedOrientationConcentration);
+    mcmCreator->SetUseCommonConcentrations(m_UseCommonConcentrations);
+    mcmCreator->SetUseCommonExtraAxonalFractions(m_UseCommonExtraAxonalFractions);
+
     mcmUpdateValue = mcmCreator->GetNewMultiCompartmentModel();
 
     // - Now the tricky part: initialize from previous model, handled somewhere else
