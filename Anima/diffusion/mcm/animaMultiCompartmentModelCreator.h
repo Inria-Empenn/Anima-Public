@@ -75,6 +75,7 @@ private:
     void CreateStickCompartment(BaseCompartmentPointer &compartmentPointer, bool applyConstraints);
     void CreateZeppelinCompartment(BaseCompartmentPointer &compartmentPointer, bool applyConstraints);
     void CreateTensorCompartment(BaseCompartmentPointer &compartmentPointer, bool applyConstraints);
+    void CreateNODDICompartment(BaseCompartmentPointer &compartmentPointer, bool applyConstraints);
     virtual void CreateDDICompartment(BaseCompartmentPointer &compartmentPointer, bool applyConstraints);
 
     CompartmentType m_CompartmentType;
@@ -93,7 +94,7 @@ private:
     bool m_UseCommonDiffusivities;
     bool m_UseCommonConcentrations;
     bool m_UseCommonExtraAxonalFractions;
-
+    
     bool m_UserDefinedConcentrationBounds;
     double m_ConcentrationLowerBound;
     double m_ConcentrationUpperBound;

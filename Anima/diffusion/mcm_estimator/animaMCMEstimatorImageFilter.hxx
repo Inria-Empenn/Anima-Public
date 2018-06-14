@@ -12,8 +12,6 @@
 #include <animaGaussianMCMCost.h>
 #include <animaGaussianMCMVariableProjectionCost.h>
 
-#include <animaVectorOperations.h>
-
 #include <animaDTIEstimationImageFilter.h>
 #include <animaBaseTensorTools.h>
 
@@ -71,7 +69,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     output->SetVectorLength(tmpMCM->GetSize());
     output->SetDescriptionModel(tmpMCM);
-
+    
     delete tmpMCMCreator;
 }
 
@@ -128,7 +126,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     if ((m_Optimizer == "levenberg")&&((m_MLEstimationStrategy == Marginal)||(m_NoiseType != Gaussian)))
         itkExceptionMacro("Levenberg Marquardt optimizer only working with Gaussian noise and variable projection");
 
-    if ((m_Optimizer != "bobyqa")&&m_UseCommonDiffusivities)
+    if ((m_Optimizer != "bobyqa")&&(m_UseCommonDiffusivities||m_UseCommonExtraAxonalFractions||m_UseCommonConcentrations))
         itkExceptionMacro("Derivative based optimizers not supported yet for common parameters, use Bobyqa instead");
 
     if ((m_NoiseType == NCC)&&(m_MLEstimationStrategy != Profile))
@@ -349,6 +347,73 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
             m_MCMCreators[i]->SetConcentrationBounds(kappaLowerBound,kappaUpperBound);
     }
+    
+    // Switch over compartment types to setup coarse grid initialization
+    switch (m_CompartmentType)
+    {
+        case NODDI:
+        case DDI:
+            this->ComputeExtraAxonalAndKappaCoarseGrids();
+            break;
+
+        case Tensor:
+            this->ComputeTensorRadialDiffsAndAzimuthCoarseGrids();
+            break;
+
+        default:
+            // No coarse grid initialization for simple models
+            break;
+    }
+}
+
+template <class InputPixelType, class OutputPixelType>
+void
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
+::ComputeExtraAxonalAndKappaCoarseGrids()
+{
+    // m_ValuesCoarseGrid[0] -> extra axonal fractions, m_ValuesCoarseGrid[1] -> kappa
+    m_ValuesCoarseGrid.resize(2);
+
+    unsigned int coarseGridSize = 8;
+    m_ValuesCoarseGrid[0].resize(coarseGridSize);
+    m_ValuesCoarseGrid[1].resize(coarseGridSize);
+
+    // The anisotropy index suggested by NODDI signal expression is not the ODI
+    // index defined in Zhang et al., 2012, Neuroimage. Instead, it amounts to
+    // (3 * tau1(k) - 1) / 2 \in [0,1] which is not analytically invertible.
+    // However it is well approximated by k^power / (halfLife + k^power) where
+    // power and halfLife are given by:
+
+    double power = 1.385829;
+    double halfLife = 5.312364;
+    for (unsigned int i = 0;i < coarseGridSize;++i)
+    {
+        double tmpVal = (i + 1.0) / (coarseGridSize + 1.0);
+        m_ValuesCoarseGrid[0][i] = tmpVal;
+        m_ValuesCoarseGrid[1][i] = std::pow(tmpVal * halfLife / (1.0 - tmpVal), 1.0 / power);
+    }
+}
+
+template <class InputPixelType, class OutputPixelType>
+void
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
+::ComputeTensorRadialDiffsAndAzimuthCoarseGrids()
+{
+    // m_ValuesCoarseGrid[0] -> azimuth
+    // m_ValuesCoarseGrid[1] -> radial diff 1 vs axial diff weight
+    // m_ValuesCoarseGrid[2] -> radial diff 2 vs radial diff 1 weight
+    m_ValuesCoarseGrid.resize(3);
+
+    unsigned int coarseGridSize = 8;
+    for (unsigned int i = 0;i < 3;++i)
+        m_ValuesCoarseGrid[i].resize(coarseGridSize);
+
+    for (unsigned int i = 0;i < coarseGridSize;++i)
+    {
+        m_ValuesCoarseGrid[0][i] = 2.0 * (i + 1) * M_PI / (coarseGridSize + 1.0);
+        m_ValuesCoarseGrid[1][i] = i / (coarseGridSize - 1.0);
+        m_ValuesCoarseGrid[2][i] = i / (coarseGridSize - 1.0);
+    }
 }
 
 template <class InputPixelType, class OutputPixelType>
@@ -549,11 +614,9 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     {
         this->InitialOrientationsEstimation(mcmOptimizationValue,currentNumberOfCompartments,initialDTI,observedSignals,
                                             generator,threadId,aiccValue,b0Value,sigmaSqValue);
-
-        this->TrunkModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
-        if ((m_CompartmentType != Stick)&&(m_CompartmentType != Zeppelin))
-            this->SpecificModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
-
+        
+        this->ModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
+        
         if ((aiccValue < optimalAiccValue)||(restartNum == 0))
         {
             optimalB0Value = b0Value;
@@ -775,8 +838,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 template <class InputPixelType, class OutputPixelType>
 void
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
-::TrunkModelEstimation(MCMPointer &mcmValue, std::vector <double> &observedSignals, itk::ThreadIdType threadId,
-                       double &aiccValue, double &b0Value, double &sigmaSqValue)
+::ModelEstimation(MCMPointer &mcmValue, std::vector <double> &observedSignals, itk::ThreadIdType threadId,
+                  double &aiccValue, double &b0Value, double &sigmaSqValue)
 {
     unsigned int optimalNumberOfCompartments = mcmValue->GetNumberOfCompartments() - mcmValue->GetNumberOfIsotropicCompartments();
 
@@ -865,30 +928,29 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     
     mcmValue = mcmUpdateValue;
     aiccValue = this->ComputeAICcValue(mcmValue,costValue);
-}
 
-template <class InputPixelType, class OutputPixelType>
-void
-MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
-::SpecificModelEstimation(MCMPointer &mcmValue, std::vector <double> &observedSignals, itk::ThreadIdType threadId,
-                          double &aiccValue, double &b0Value, double &sigmaSqValue)
-{
+    if (m_CompartmentType == Zeppelin)
+        return;
+
     // Finally, we're done with ball and zeppelin, an example of what's next up with multi-tensor
     // - First create model
-    MCMCreatorType *mcmCreator = m_MCMCreators[threadId];
-    // Other params are supposed to be already initialized from trunk estimation
-    mcmCreator->SetCompartmentType(Tensor);
+    mcmCreator->SetCompartmentType(m_CompartmentType);
+    mcmCreator->SetUseConstrainedExtraAxonalFraction(m_UseConstrainedExtraAxonalFraction);
+    mcmCreator->SetUseConstrainedOrientationConcentration(m_UseConstrainedOrientationConcentration);
+    mcmCreator->SetUseCommonConcentrations(m_UseCommonConcentrations);
+    mcmCreator->SetUseCommonExtraAxonalFractions(m_UseCommonExtraAxonalFractions);
 
-    MCMPointer mcmUpdateValue = mcmCreator->GetNewMultiCompartmentModel();
-    MCMPointer mcmOptimalModel = mcmCreator->GetNewMultiCompartmentModel();
+    mcmUpdateValue = mcmCreator->GetNewMultiCompartmentModel();
 
-    CostFunctionBasePointer cost = this->CreateCostFunction(observedSignals,mcmUpdateValue);
+    // - Now the tricky part: initialize from previous model, handled somewhere else
+    this->InitializeModelFromSimplifiedOne(mcmValue,mcmUpdateValue);
 
-    // - Update multi-tensor model against observed signals
-    unsigned int dimension = mcmUpdateValue->GetNumberOfParameters();
-    ParametersType p(dimension);
-    MCMType::ListType workVec(dimension);
-    itk::Array<double> lowerBounds(dimension), upperBounds(dimension);
+    // - Update complex model against observed signals
+    cost = this->CreateCostFunction(observedSignals,mcmUpdateValue);
+    dimension = mcmUpdateValue->GetNumberOfParameters();
+    p.SetSize(dimension);
+    lowerBounds.SetSize(dimension);
+    upperBounds.SetSize(dimension);
 
     workVec = mcmUpdateValue->GetParameterLowerBounds();
     for (unsigned int i = 0;i < dimension;++i)
@@ -897,77 +959,187 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     workVec = mcmUpdateValue->GetParameterUpperBounds();
     for (unsigned int i = 0;i < dimension;++i)
         upperBounds[i] = workVec[i];
+    
+    switch (m_CompartmentType)
+    {
+        case NODDI:
+        case DDI:
+            this->ExtraAxonalAndKappaCoarseGridInitialization(mcmUpdateValue, cost, workVec, p);
+            break;
 
-    double optimalCostValue = 0;
-    double optimalB0Value = 0;
-    double optimalSigmaSqValue = 0;
+        case Tensor:
+            this->TensorCoarseGridInitialization(mcmUpdateValue, cost, workVec, p);
+            break;
+
+        default:
+            itkExceptionMacro("No coarse grid initialization for simple models, shouldn't be here");
+            break;
+    }
+
+    workVec = mcmUpdateValue->GetParametersAsVector();
+    for (unsigned int i = 0;i < dimension;++i)
+        p[i] = workVec[i];
+
+    costValue = this->PerformSingleOptimization(p,cost,lowerBounds,upperBounds);
+    this->GetProfiledInformation(cost,mcmUpdateValue,b0Value,sigmaSqValue);
+
+    for (unsigned int i = 0;i < dimension;++i)
+        workVec[i] = p[i];
+
+    mcmUpdateValue->SetParametersFromVector(workVec);
+
+    mcmValue = mcmUpdateValue;
+    aiccValue = this->ComputeAICcValue(mcmValue,costValue);
+}
+
+template <class InputPixelType, class OutputPixelType>
+void
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
+::ExtraAxonalAndKappaCoarseGridInitialization(MCMPointer &mcmUpdateValue, CostFunctionBasePointer &cost,
+                                              MCMType::ListType &workVec,ParametersType &p)
+{
+    unsigned int dimension = p.GetSize();
+    double optNu = 0;
+    double optKappa = 0;
+    double optValue = -1.0;
 
     unsigned int numIsoCompartments = mcmUpdateValue->GetNumberOfIsotropicCompartments();
     unsigned int numCompartments = mcmUpdateValue->GetNumberOfCompartments();
 
-    unsigned int numNonIsoCompartments = numCompartments - numIsoCompartments;
-    SequenceGeneratorType ldsAngles(3 * numNonIsoCompartments);
-    MCMType::ListType lowerBoundsAngleSampling(3 * numNonIsoCompartments,0.0);
-    MCMType::ListType upperBoundsAngleSampling(3 * numNonIsoCompartments,2.0 * M_PI);
-    
-    for (unsigned int i = 0;i < numNonIsoCompartments;++i)
+    for (unsigned int j = 0;j < m_ValuesCoarseGrid[1].size();++j)
     {
-        upperBoundsAngleSampling[numNonIsoCompartments + i] = 1.0;
-        upperBoundsAngleSampling[2 * numNonIsoCompartments + i] = 1.0;
-    }
-    
-    ldsAngles.SetLowerBounds(lowerBoundsAngleSampling);
-    ldsAngles.SetUpperBounds(upperBoundsAngleSampling);
-    std::vector <double> sampledData;
-    
-    for (unsigned int restartNum = 0;restartNum < 3 * m_NumberOfRandomRestarts;++restartNum)
-    {
-        // - Now the tricky part: initialize from previous model, handled somewhere else
-        this->InitializeModelFromSimplifiedOne(mcmValue,mcmUpdateValue);
-        
-        sampledData = ldsAngles.GetNextSequenceValue();
-        
-        for (unsigned int i = numIsoCompartments;i < numCompartments;++i)
+        double tmpKappa = m_ValuesCoarseGrid[1][j];
+
+        for (unsigned int k = 0;k < m_ValuesCoarseGrid[0].size();++k)
         {
-            unsigned int index = i - numIsoCompartments;
-            // Random alpha initialization
-            mcmUpdateValue->GetCompartment(i)->SetPerpendicularAngle(sampledData[index]);
-            
-            // Takes care of initializing d2=l2-l3 (which is 0 in Zeppelin) to a positive realistic value
-            // 5.0e-4 is here to ensure the axial diff is above its lower bound
-            double zeppelinAxDiff = mcmUpdateValue->GetCompartment(i)->GetAxialDiffusivity() - 5.0e-4;
-            double zeppelinRadDiff = mcmUpdateValue->GetCompartment(i)->GetRadialDiffusivity1();
-            
-            double w1 = sampledData[numNonIsoCompartments + index];
-            mcmUpdateValue->GetCompartment(i)->SetRadialDiffusivity1(w1 * zeppelinRadDiff + (1 - w1) *  zeppelinAxDiff);
-            
-            double w2 = sampledData[2 * numNonIsoCompartments + index];
-            mcmUpdateValue->GetCompartment(i)->SetRadialDiffusivity2(w2 * zeppelinRadDiff + (1 - w2) *  1e-5);
-        }
+            double tmpNu = m_ValuesCoarseGrid[0][k];
 
-        workVec = mcmUpdateValue->GetParametersAsVector();
-        for (unsigned int i = 0;i < dimension;++i)
-            p[i] = workVec[i];
+            for (unsigned int i = numIsoCompartments;i < numCompartments;++i)
+            {
+                mcmUpdateValue->GetCompartment(i)->SetOrientationConcentration(tmpKappa);
+                mcmUpdateValue->GetCompartment(i)->SetExtraAxonalFraction(tmpNu);
+            }
 
-        double costValue = this->PerformSingleOptimization(p,cost,lowerBounds,upperBounds);
-
-        if ((costValue < optimalCostValue)||(restartNum == 0))
-        {
-            // - Get estimated data
+            workVec = mcmUpdateValue->GetParametersAsVector();
             for (unsigned int i = 0;i < dimension;++i)
-                workVec[i] = p[i];
+                p[i] = workVec[i];
 
-            mcmOptimalModel->SetParametersFromVector(workVec);
+            double tmpValue = this->GetCostValue(cost,p);
 
-            this->GetProfiledInformation(cost,mcmOptimalModel,optimalB0Value,optimalSigmaSqValue);
-            optimalCostValue = costValue;
+            if ((tmpValue < optValue) || (optValue < 0))
+            {
+                optValue = tmpValue;
+                optKappa = tmpKappa;
+                optNu = tmpNu;
+            }
         }
     }
 
-    aiccValue = this->ComputeAICcValue(mcmOptimalModel,optimalCostValue);
-    mcmValue = mcmOptimalModel;
-    b0Value = optimalB0Value;
-    sigmaSqValue = optimalSigmaSqValue;
+    for (unsigned int i = numIsoCompartments;i < numCompartments;++i)
+    {
+        mcmUpdateValue->GetCompartment(i)->SetOrientationConcentration(optKappa);
+        mcmUpdateValue->GetCompartment(i)->SetExtraAxonalFraction(optNu);
+    }
+}
+
+template <class InputPixelType, class OutputPixelType>
+void
+MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
+::TensorCoarseGridInitialization(MCMPointer &mcmUpdateValue, CostFunctionBasePointer &cost,
+                                 MCMType::ListType &workVec,ParametersType &p)
+{
+    unsigned int dimension = p.GetSize();
+    unsigned int numIsoCompartments = mcmUpdateValue->GetNumberOfIsotropicCompartments();
+    unsigned int numCompartments = mcmUpdateValue->GetNumberOfCompartments();
+
+    double optRadialDiff1 = 0.0;
+    double optRadialDiff2 = 0.0;
+    double optAzimuth = 0.0;
+    double optValue = - 1.0;
+
+    double meanAxialDiff = 0.0;
+    double meanRadialDiff = 0.0;
+    unsigned int numUsefulCompartments = 0;
+
+    for (unsigned int i = numIsoCompartments;i < numCompartments;++i)
+    {
+        if (mcmUpdateValue->GetCompartmentWeight(i) > 0)
+        {
+            meanAxialDiff += mcmUpdateValue->GetCompartment(i)->GetAxialDiffusivity();
+            meanRadialDiff += mcmUpdateValue->GetCompartment(i)->GetRadialDiffusivity1();
+
+            ++numUsefulCompartments;
+        }
+    }
+
+    if (numUsefulCompartments > 0)
+    {
+        meanAxialDiff /= numUsefulCompartments;
+        meanRadialDiff /= numUsefulCompartments;
+    }
+    else
+    {
+        meanAxialDiff = m_AxialDiffusivityFixedValue;
+        meanRadialDiff = (m_RadialDiffusivity1FixedValue + m_RadialDiffusivity2FixedValue) / 2.0;
+
+    }
+
+    if (meanAxialDiff - meanRadialDiff < 5.0e-4)
+        meanAxialDiff = meanRadialDiff + 5.0e-4;
+
+    for (unsigned int i = numIsoCompartments;i < numCompartments;++i)
+        mcmUpdateValue->GetCompartment(i)->SetAxialDiffusivity(meanAxialDiff);
+
+    for (unsigned int l = 0;l < m_ValuesCoarseGrid[2].size();++l)
+    {
+        double tmpWeight2 = m_ValuesCoarseGrid[2][l];
+
+        // In between meanRD and (meanRD + e-5) / 2
+        double tmpRadialDiffusivity2 = 0.5 * ((1.0 + tmpWeight2) * meanRadialDiff + (1.0 - tmpWeight2) * 1.0e-5);
+
+        for (unsigned int k = 0;k < m_ValuesCoarseGrid[1].size();++k)
+        {
+            double tmpWeight1 = m_ValuesCoarseGrid[1][k];
+
+            // In between meanRD and (meanRD + meanAD) / 2
+            double tmpRadialDiffusivity1 = 0.5 * ((1.0 + tmpWeight1) * meanRadialDiff + (1.0 - tmpWeight1) * meanAxialDiff);
+            if (meanAxialDiff - tmpRadialDiffusivity1 < 5.0e-4)
+                continue;
+
+            for (unsigned int j = 0;j < m_ValuesCoarseGrid[0].size();++j)
+            {
+                double tmpAzimuth = m_ValuesCoarseGrid[0][j];
+
+                for (unsigned int i = numIsoCompartments;i < numCompartments;++i)
+                {
+                    mcmUpdateValue->GetCompartment(i)->SetPerpendicularAngle(tmpAzimuth);
+                    mcmUpdateValue->GetCompartment(i)->SetRadialDiffusivity1(tmpRadialDiffusivity1);
+                    mcmUpdateValue->GetCompartment(i)->SetRadialDiffusivity2(tmpRadialDiffusivity2);
+                }
+
+                workVec = mcmUpdateValue->GetParametersAsVector();
+                for (unsigned int i = 0;i < dimension;++i)
+                    p[i] = workVec[i];
+
+                double tmpValue = this->GetCostValue(cost,p);
+
+                if ((tmpValue < optValue) || (optValue < 0))
+                {
+                    optValue = tmpValue;
+                    optRadialDiff1 = tmpRadialDiffusivity1;
+                    optRadialDiff2 = tmpRadialDiffusivity2;
+                    optAzimuth = tmpAzimuth;
+                }
+            }
+        }
+    }
+
+    for (unsigned int i = numIsoCompartments;i < numCompartments;++i)
+    {
+        mcmUpdateValue->GetCompartment(i)->SetPerpendicularAngle(optAzimuth);
+        mcmUpdateValue->GetCompartment(i)->SetRadialDiffusivity1(optRadialDiff1);
+        mcmUpdateValue->GetCompartment(i)->SetRadialDiffusivity2(optRadialDiff2);
+    }
 }
 
 template <class InputPixelType, class OutputPixelType>
@@ -983,7 +1155,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         defaultTol = true;
         xTol = 1.0e-4;
     }
-
 
     double maxEvals = m_MaxEval;
     if (m_MaxEval == 0)

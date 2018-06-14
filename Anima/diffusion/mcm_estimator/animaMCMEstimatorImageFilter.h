@@ -212,6 +212,11 @@ public:
     itkSetMacro(UseConstrainedFreeWaterDiffusivity, bool)
     itkSetMacro(UseConstrainedIRWDiffusivity, bool)
 
+    itkSetMacro(UseConstrainedOrientationConcentration, bool)
+    itkSetMacro(UseConstrainedExtraAxonalFraction, bool)
+    itkSetMacro(UseCommonConcentrations, bool)
+    itkSetMacro(UseCommonExtraAxonalFractions, bool)
+
     itkSetMacro(UseCommonDiffusivities, bool)
     itkSetMacro(UseConcentrationBoundsFromDTI,bool)
 
@@ -283,7 +288,12 @@ protected:
         m_UseBoundedOptimization = false;
         m_UseCommonDiffusivities = false;
 
-        m_AxialDiffusivityFixedValue = 1.7e-3;
+        m_UseConstrainedOrientationConcentration = false;
+        m_UseConstrainedExtraAxonalFraction = false;
+        m_UseCommonConcentrations = false;
+        m_UseCommonExtraAxonalFractions = false;
+
+        m_AxialDiffusivityFixedValue = 1.71e-3;
         m_RadialDiffusivity1FixedValue = 1.5e-4;
         m_RadialDiffusivity2FixedValue = 1.5e-4;
 
@@ -333,13 +343,8 @@ protected:
                                        itk::ThreadIdType threadId, double &aiccValue, double &b0Value, double &sigmaSqValue);
 
     //! Doing estimation, calling initialization procedure until ball and zeppelin, returns AICc value
-    void TrunkModelEstimation(MCMPointer &mcmValue, std::vector <double> &observedSignals, itk::ThreadIdType threadId,
-                              double &aiccValue, double &b0Value, double &sigmaSqValue);
-
-    //! Perform additional estimation after ball and zeppelin if needed
-    // Input should be the previous ball and zeppelin model, will be replaced by result
-    virtual void SpecificModelEstimation(MCMPointer &mcmValue, std::vector <double> &observedSignals, itk::ThreadIdType threadId,
-                                         double &aiccValue, double &b0Value, double &sigmaSqValue);
+    void ModelEstimation(MCMPointer &mcmValue, std::vector <double> &observedSignals, itk::ThreadIdType threadId,
+                         double &aiccValue, double &b0Value, double &sigmaSqValue);
     
     //! Performs an optimization of the supplied cost function and parameters using the specified optimizer(s). Returns the optimized parameters.
     double PerformSingleOptimization(ParametersType &p, CostFunctionBasePointer &cost, itk::Array<double> &lowerBounds,
@@ -363,6 +368,20 @@ protected:
 
     //! Compute AICc value from a cost function value and model
     double ComputeAICcValue(MCMPointer &mcmValue, double costValue);
+
+    //! Computes extra axonal and kappa coarse grids (used for NODDI and DDI initialization)
+    void ComputeExtraAxonalAndKappaCoarseGrids();
+
+    //! Computes extra axonal and kappa coarse grids (used for tensor final initaialization)
+    void ComputeTensorRadialDiffsAndAzimuthCoarseGrids();
+
+    //! Coarse grid initialization of NODDI and DDI models
+    void ExtraAxonalAndKappaCoarseGridInitialization(MCMPointer &mcmUpdateValue, CostFunctionBasePointer &cost,
+                                                     MCMType::ListType &workVec,ParametersType &p);
+
+    //! Coarse grid initialization of tensor model
+    void TensorCoarseGridInitialization(MCMPointer &mcmUpdateValue, CostFunctionBasePointer &cost,
+                                        MCMType::ListType &workVec,ParametersType &p);
 
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(MCMEstimatorImageFilter);
@@ -407,6 +426,11 @@ private:
     bool m_UseBoundedOptimization;
     bool m_UseCommonDiffusivities;
 
+    bool m_UseConstrainedOrientationConcentration;
+    bool m_UseConstrainedExtraAxonalFraction;
+    bool m_UseCommonConcentrations;
+    bool m_UseCommonExtraAxonalFractions;
+
     double m_AxialDiffusivityFixedValue;
     double m_RadialDiffusivity1FixedValue;
     double m_RadialDiffusivity2FixedValue;
@@ -418,6 +442,9 @@ private:
     unsigned int m_MaxEval;
     double m_XTolerance;
     double m_GTolerance;
+    
+    //! Coarse grid values for complex model initialization
+    std::vector < std::vector <double> > m_ValuesCoarseGrid;
 };
 
 } // end namespace anima

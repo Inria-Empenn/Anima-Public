@@ -9,6 +9,7 @@
 #include <animaStickCompartment.h>
 #include <animaZeppelinCompartment.h>
 #include <animaTensorCompartment.h>
+#include <animaNODDICompartment.h>
 
 #include <itkImageRegionIterator.h>
 #include <tinyxml2.h>
@@ -175,6 +176,8 @@ MCMFileReader <PixelType, ImageDimension>
         additionalCompartment = anima::ZeppelinCompartment::New();
     else if (compartmentType == "Tensor")
         additionalCompartment = anima::TensorCompartment::New();
+    else if (compartmentType == "NODDI")
+        additionalCompartment = anima::NODDICompartment::New();
     else
     {
         std::string error("Unsupported compartment type: ");

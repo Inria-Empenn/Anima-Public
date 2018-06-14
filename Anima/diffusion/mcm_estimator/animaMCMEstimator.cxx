@@ -38,7 +38,7 @@ int main(int argc,  char **argv)
     TCLAP::ValueArg<double> b0thrArg("", "b0-thr", "Background threshold on B0 value (default: 10)", false, 10.0, "B0 theshold", cmd);
 
     TCLAP::ValueArg<unsigned int> nbFasciclesArg("n", "nb-fascicles", "Number of computed fascicles (default: 2)", false, 2, "number of fascicles", cmd);
-    TCLAP::ValueArg<unsigned int> compartmentTypeArg("c", "comp-type", "Compartment type for fascicles: 1: stick, 2: zeppelin, 3: tensor (default: 3)", false, 3, "fascicles type", cmd);
+    TCLAP::ValueArg<unsigned int> compartmentTypeArg("c", "comp-type", "Compartment type for fascicles: 1: stick, 2: zeppelin, 3: tensor, 4: noddi (default: 3)", false, 3, "fascicles type", cmd);
     TCLAP::SwitchArg aicSelectNbCompartmentsArg("M", "opt-nb-comp", "Activate AICC-based number of compartments selection", cmd, false);
 
     TCLAP::SwitchArg vnlDerivArg("D", "vnl-deriv", "Compute derivative by forward difference (used only with levenberg-marquardt algorithm)", cmd, false);
@@ -54,9 +54,13 @@ int main(int argc,  char **argv)
     TCLAP::SwitchArg fixDiffArg("", "fix-diff", "Fix diffusivity value", cmd, false);
     TCLAP::SwitchArg optFWDiffArg("", "opt-free-water-diff", "Optimize free water diffusivity value", cmd, false);
     TCLAP::SwitchArg optIRWDiffArg("", "opt-ir-water-diff", "Optimize isotropic restricted water diffusivity value", cmd, false);
+    TCLAP::SwitchArg fixKappaArg("", "fix-kappa", "Fix orientation concentration values", cmd, false);
+    TCLAP::SwitchArg fixEAFArg("", "fix-eaf", "Fix extra axonal fraction values", cmd, false);
 
     TCLAP::SwitchArg commonDiffusivitiesArg("", "common-diffusivities", "Share diffusivity values among compartments", cmd, false);
     TCLAP::SwitchArg diffInitAbsoluteArg("", "diff-init-abs", "Do not compute initial stick diffusivities from DTI (take absolute values)", cmd, false);
+    TCLAP::SwitchArg commonKappaArg("", "common-kappa", "Share orientation concentration values among compartments", cmd, false);
+    TCLAP::SwitchArg commonEAFArg("", "common-eaf", "Share extra axonal fraction values among compartments", cmd, false);
 
     TCLAP::ValueArg<std::string> optimizerArg("", "optimizer", "Optimizer for estimation: bobyqa (default), ccsaq, bfgs or levenberg", false, "bobyqa", "optimizer", cmd);
     TCLAP::ValueArg<unsigned int> nbRandomRestartsArg("", "random-restarts", "Number of random restarts when searching for more than 2 fascicles (default: 6)", false, 6, "number of random restarts", cmd);
@@ -88,6 +92,18 @@ int main(int argc,  char **argv)
     callback->SetCallback(eventCallback);
 
     FilterPointer filter = FilterType::New();
+
+    filter->SetUseConstrainedOrientationConcentration(fixKappaArg.isSet());
+    if (!fixKappaArg.isSet())
+        filter->SetUseCommonConcentrations(commonKappaArg.isSet());
+    else
+        filter->SetUseCommonConcentrations(false);
+
+    filter->SetUseConstrainedExtraAxonalFraction(fixEAFArg.isSet());
+    if (!fixEAFArg.isSet())
+        filter->SetUseCommonExtraAxonalFractions(commonEAFArg.isSet());
+    else
+        filter->SetUseCommonExtraAxonalFractions(false);
 
     std::cout << "Loading input DWI image..." << std::endl;
 
@@ -137,6 +153,10 @@ int main(int argc,  char **argv)
 
         case 3:
             filter->SetCompartmentType(anima::Tensor);
+            break;
+            
+        case 4:
+            filter->SetCompartmentType(anima::NODDI);
             break;
 
         default:

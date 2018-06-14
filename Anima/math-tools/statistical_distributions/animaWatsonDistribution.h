@@ -19,6 +19,9 @@ namespace anima
     template <class ScalarType>
     double EvaluateWatsonPDF(const itk::Vector <ScalarType,3> &v, const itk::Vector <ScalarType,3> &meanAxis, const ScalarType &kappa);
     
+    template <class ScalarType>
+    void GetStandardWatsonSHCoefficients(const ScalarType k, std::vector<ScalarType> &coefficients, std::vector<ScalarType> &derivatives);
+    
 } // end of namespace anima
 
 #include "animaWatsonDistribution.hxx"

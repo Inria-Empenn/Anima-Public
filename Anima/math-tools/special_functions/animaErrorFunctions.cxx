@@ -3,9 +3,18 @@
 #include <animaErrorFunctions.h>
 #include <vector>
 #include <limits>
+#include <boost/math/quadrature/gauss.hpp>
 
 namespace anima
 {
+
+double EvaluateDawsonIntegral(const double x, const bool scaled)
+{
+    DawsonIntegrand integrand;
+    integrand.SetXValue(x);
+    double resVal = boost::math::quadrature::gauss<double, 15>::integrate(integrand, 0.0, 1.0);
+    return (scaled) ? resVal : x * resVal;
+}
 
 //! Numerical recipes implementation of Dawson integral
 double EvaluateDawsonFunctionNR(double x)

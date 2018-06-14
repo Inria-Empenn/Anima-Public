@@ -2,6 +2,7 @@
 
 #include <animaFreeWaterCompartment.h>
 #include <animaIsotropicRestrictedWaterCompartment.h>
+#include <animaNODDICompartment.h>
 #include <animaStationaryWaterCompartment.h>
 #include <animaStickCompartment.h>
 #include <animaTensorCompartment.h>
@@ -132,6 +133,10 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
             case Tensor:
                 this->CreateTensorCompartment(tmpPointer,applyCommonConstraints);
                 break;
+                
+            case NODDI:
+                this->CreateNODDICompartment(tmpPointer,applyCommonConstraints);
+                break;
 
             case DDI:
                 this->CreateDDICompartment(tmpPointer,applyCommonConstraints);
@@ -161,7 +166,7 @@ void MultiCompartmentModelCreator::CreateStickCompartment(BaseCompartmentPointer
 
     stickComp->SetAxialDiffusivity(m_AxialDiffusivity);
     stickComp->SetRadialDiffusivity1((m_RadialDiffusivity1 + m_RadialDiffusivity2) / 2.0);
-
+    
     if (applyConstraints)
     {
         if (m_UseCommonDiffusivities)
@@ -180,7 +185,6 @@ void MultiCompartmentModelCreator::CreateZeppelinCompartment(BaseCompartmentPoin
 
     zepComp->SetAxialDiffusivity(m_AxialDiffusivity);
     zepComp->SetRadialDiffusivity1((m_RadialDiffusivity1 + m_RadialDiffusivity2) / 2.0);
-    zepComp->SetRadialDiffusivity2(m_RadialDiffusivity2);
 
     if (applyConstraints)
     {
@@ -209,6 +213,32 @@ void MultiCompartmentModelCreator::CreateTensorCompartment(BaseCompartmentPointe
     }
 
     compartmentPointer = tensComp;
+}
+
+void MultiCompartmentModelCreator::CreateNODDICompartment(BaseCompartmentPointer &compartmentPointer, bool applyConstraints)
+{
+    typedef anima::NODDICompartment NODDIType;
+    
+    NODDIType::Pointer noddiComp = NODDIType::New();
+    noddiComp->SetEstimateAxialDiffusivity(!m_UseConstrainedDiffusivity);
+    
+    noddiComp->SetOrientationConcentration(m_OrientationConcentration);
+    noddiComp->SetExtraAxonalFraction(m_ExtraAxonalFraction);
+    noddiComp->SetAxialDiffusivity(m_AxialDiffusivity);
+    
+    if (applyConstraints)
+    {
+        if (m_UseCommonDiffusivities)
+            noddiComp->SetEstimateAxialDiffusivity(false);
+
+        if (this->GetUseCommonConcentrations())
+            noddiComp->SetEstimateOrientationConcentration(false);
+
+        if (this->GetUseCommonExtraAxonalFractions())
+            noddiComp->SetEstimateExtraAxonalFraction(false);
+    }
+    
+    compartmentPointer = noddiComp;
 }
 
 void MultiCompartmentModelCreator::CreateDDICompartment(BaseCompartmentPointer &compartmentPointer, bool applyConstraints)
