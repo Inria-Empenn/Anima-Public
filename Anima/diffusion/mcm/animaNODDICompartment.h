@@ -96,8 +96,6 @@ private:
     bool m_ChangedConstraints;
     unsigned int m_NumberOfParameters;
     
-    // Internal work variables for faster processing
-    
     //! Optimization variable: set to true when the internal parameter has been modified requiring to recompute all quantities depending on it
     bool m_ModifiedParameters;
     bool m_ModifiedConcentration;
@@ -106,6 +104,7 @@ private:
     double m_CurrentBValue;
     Vector3DType m_CurrentGradient;
     
+    // Internal work variables for faster processing
     std::vector<double> m_WatsonSHCoefficients, m_WatsonSHCoefficientDerivatives;
     double m_Tau1, m_Tau1Deriv;
     double m_ExtraAxonalSignal, m_IntraAxonalSignal;

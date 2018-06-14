@@ -185,7 +185,6 @@ void MultiCompartmentModelCreator::CreateZeppelinCompartment(BaseCompartmentPoin
 
     zepComp->SetAxialDiffusivity(m_AxialDiffusivity);
     zepComp->SetRadialDiffusivity1((m_RadialDiffusivity1 + m_RadialDiffusivity2) / 2.0);
-    zepComp->SetRadialDiffusivity2(m_RadialDiffusivity2); // TO DO (Aymeric): I think it should be removed
 
     if (applyConstraints)
     {

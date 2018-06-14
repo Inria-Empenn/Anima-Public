@@ -1038,7 +1038,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         for (unsigned int i = 0;i < dimension;++i)
             p[i] = workVec[i];
         
-        double optimalCostValue = this->PerformSingleOptimization(p,cost,lowerBounds,upperBounds);
+        optimalCostValue = this->PerformSingleOptimization(p,cost,lowerBounds,upperBounds);
         
         for (unsigned int i = 0;i < dimension;++i)
             workVec[i] = p[i];
@@ -1066,7 +1066,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         defaultTol = true;
         xTol = 1.0e-4;
     }
-
 
     double maxEvals = m_MaxEval;
     if (m_MaxEval == 0)
