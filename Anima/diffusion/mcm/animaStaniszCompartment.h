@@ -45,6 +45,9 @@ public:
     unsigned int GetNumberOfParameters() ITK_OVERRIDE;
     ModelOutputVectorType &GetCompartmentVector() ITK_OVERRIDE;
 
+    void SetTissueRadius(double num) ITK_OVERRIDE;
+    void SetAxialDiffusivity(double num) ITK_OVERRIDE;
+
     bool GetTensorCompatible() ITK_OVERRIDE {return false;}
     double GetFractionalAnisotropy() ITK_OVERRIDE;
 
@@ -53,6 +56,18 @@ protected:
     {
         m_EstimateAxialDiffusivity = true;
         m_ChangedConstraints = true;
+
+        m_FirstSummation = 0.0;
+        m_SecondSummation = 0.0;
+        m_ThirdSummation = 0.0;
+        m_FourthSummation = 0.0;
+
+        m_CurrentSmallDelta = 0.0;
+        m_CurrentLargeDelta = 0.0;
+        m_CurrentGradientStrength = 0.0;
+        m_CurrentGradient.fill(0.0);
+
+        m_ModifiedParameters = true;
     }
 
     virtual ~StaniszCompartment() {}
@@ -60,10 +75,24 @@ protected:
     virtual void BoundParameters(const ListType &params) ITK_OVERRIDE;
     virtual void UnboundParameters(ListType &params) ITK_OVERRIDE;
 
+    void UpdateSignals(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient);
+
 private:
     bool m_EstimateAxialDiffusivity;
     bool m_ChangedConstraints;
     unsigned int m_NumberOfParameters;
+
+    double m_FirstSummation;
+    double m_SecondSummation;
+    double m_ThirdSummation;
+    double m_FourthSummation;
+
+    double m_CurrentSmallDelta;
+    double m_CurrentLargeDelta;
+    double m_CurrentGradientStrength;
+    Vector3DType m_CurrentGradient;
+
+    bool m_ModifiedParameters;
 
     const unsigned int m_MaximumNumberOfSumElements = 2000;
 };
