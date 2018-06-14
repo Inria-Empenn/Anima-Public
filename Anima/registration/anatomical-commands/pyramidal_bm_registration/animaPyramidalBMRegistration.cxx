@@ -49,7 +49,7 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<float> minErrorArg("","me","Minimal distance between consecutive estimated transforms (default: 0.01)",false,0.01,"minimal distance between transforms",cmd);
 
     TCLAP::ValueArg<unsigned int> optimizerMaxIterationsArg("","oi","Maximum iterations for local optimizer (default: 100)",false,100,"maximum local optimizer iterations",cmd);
-    TCLAP::SwitchArg initTypeArg("I","init-type", "If no input transformation is given, initialization type (0: identity, 1: align gravity centers, 2: gravity PCA closest transform, default: 2)", cmd, false);
+    TCLAP::ValueArg<unsigned int> initTypeArg("I","init-type", "If no input transformation is given, initialization type (0: identity, 1: align gravity centers, 2: gravity PCA closest transform, default: 1)",false,1,"initialization type",cmd);
 
     TCLAP::ValueArg<double> searchRadiusArg("","sr","Search radius in pixels (exhaustive search window, rho start for bobyqa, default: 2)",false,2,"optimizer search radius",cmd);
     TCLAP::ValueArg<double> searchAngleRadiusArg("","sar","Search angle radius in degrees (rho start for bobyqa, default: 5)",false,5,"optimizer search angle radius",cmd);
