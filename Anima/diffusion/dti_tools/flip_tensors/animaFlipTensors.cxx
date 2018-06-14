@@ -2,6 +2,7 @@
 #include <tclap/CmdLine.h>
 #include <animaReadWriteFunctions.h>
 #include <animaRetrieveImageTypeMacros.h>
+#include <cctype>
 
 //Update progression of the process
 void eventCallback(itk::Object* caller, const itk::EventObject& event, void* clientData)
