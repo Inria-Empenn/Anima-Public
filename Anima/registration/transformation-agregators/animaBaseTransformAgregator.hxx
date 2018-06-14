@@ -17,6 +17,8 @@ BaseTransformAgregator()
     m_InputTransforms.clear();
     m_InputOrigins.clear();
     m_Weights.clear();
+
+    m_OrthogonalDirectionMatrix.Fill(0);
 }
 
 template <unsigned int NDimensions>
@@ -92,4 +94,24 @@ SetInputTransforms(std::vector <BaseInputTransformPointer> &inputTransforms)
     m_UpToDate = false;
 }
 
+
+template <unsigned int NDimensions>
+void
+BaseTransformAgregator <NDimensions>::
+SetCurrentLinearTransform(BaseInputTransformPointer &inputTransform)
+{
+    m_CurrentLinearTransform = inputTransform;
+
+    m_UpToDate = false;
+}
+
+template <unsigned int NDimensions>
+void
+BaseTransformAgregator <NDimensions>::
+SetOrthogonalDirectionMatrix(const MatrixType &inputTransform)
+{
+    m_OrthogonalDirectionMatrix = inputTransform;
+
+    m_UpToDate = false;
+}
 } // end of namespace anima

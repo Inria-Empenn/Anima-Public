@@ -25,10 +25,14 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<std::string> fixedArg("r","refimage","Fixed image",true,"","fixed image",cmd);
     TCLAP::ValueArg<std::string> movingArg("m","movingimage","Moving image",true,"","moving image",cmd);
     TCLAP::ValueArg<std::string> outArg("o","outputimage","Output (registered) image",true,"","output image",cmd);
-    TCLAP::ValueArg<unsigned int> outTrTypeArg("","ot","Output transformation type (0: rigid, 1: translation, 2: affine, default: 0)",false,0,"output transformation type",cmd);
+    TCLAP::ValueArg<unsigned int> outTrTypeArg("","ot","Output transformation type (0: rigid, 1: translation, 2: affine, 3: anisotropic_sim, default: 0)",false,0,"output transformation type",cmd);
 
     TCLAP::ValueArg<std::string> initialTransformArg("i","inittransform","Initial transformation",false,"","initial transform",cmd);
+    TCLAP::ValueArg<std::string> directionTransformArg("U", "dirtransform", "Input direction transformation for anisotropic similarity", false, "", "input direction transform", cmd);
+
     TCLAP::ValueArg<std::string> outputTransformArg("O","outtransform","Output transformation",false,"","output transform",cmd);
+    TCLAP::ValueArg<std::string> outputNRTransformArg("","out-rigid","Output nearest rigid transformation",false,"","output nearest rigid transform",cmd);
+    TCLAP::ValueArg<std::string> outputNSTransformArg("","out-sim","Output nearest similarity transformation",false,"","output nearest similarity transform",cmd);
 
     TCLAP::ValueArg<std::string> blockMaskArg("M","mask-im","Mask image for block generation",false,"","block mask image",cmd);
     TCLAP::ValueArg<unsigned int> blockSizeArg("","bs","Block size (default: 5)",false,5,"block size",cmd);
@@ -45,7 +49,7 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<float> minErrorArg("","me","Minimal distance between consecutive estimated transforms (default: 0.01)",false,0.01,"minimal distance between transforms",cmd);
 
     TCLAP::ValueArg<unsigned int> optimizerMaxIterationsArg("","oi","Maximum iterations for local optimizer (default: 100)",false,100,"maximum local optimizer iterations",cmd);
-    TCLAP::SwitchArg initIdentityArg("I","init-identity", "If no input transformation is given, initialize to identity (otherwise uses center of mass alignment)", cmd, false);
+    TCLAP::SwitchArg initTypeArg("I","init-type", "If no input transformation is given, initialization type (0: identity, 1: align gravity centers, 2: gravity PCA closest transform, default: 2)", cmd, false);
 
     TCLAP::ValueArg<double> searchRadiusArg("","sr","Search radius in pixels (exhaustive search window, rho start for bobyqa, default: 2)",false,2,"optimizer search radius",cmd);
     TCLAP::ValueArg<double> searchAngleRadiusArg("","sar","Search angle radius in degrees (rho start for bobyqa, default: 5)",false,5,"optimizer search angle radius",cmd);
@@ -111,10 +115,13 @@ int main(int argc, const char** argv)
         matcher->SetNumberOfThreads( numThreadsArg.getValue() );
 
     matcher->SetPercentageKept( percentageKeptArg.getValue() );
-    matcher->SetInitializeOnCenterOfGravity( !initIdentityArg.isSet() );
 
-    matcher->SetResultFile( outArg.getValue() );
-    matcher->SetOutputTransformFile( outputTransformArg.getValue() );
+    matcher->SetTransformInitializationType((PyramidBMType::InitializationType)initTypeArg.getValue());
+
+    matcher->SetResultFile(outArg.getValue());
+    matcher->SetOutputTransformFile(outputTransformArg.getValue());
+    matcher->SetOutputNearestRigidTransformFile(outputNRTransformArg.getValue());
+    matcher->SetOutputNearestSimilarityTransformFile(outputNSTransformArg.getValue());
 
     typedef itk::ImageFileReader<InputImageType> ReaderType;
 
@@ -132,6 +139,9 @@ int main(int argc, const char** argv)
 
     if (initialTransformArg.getValue() != "")
         matcher->SetInitialTransform(initialTransformArg.getValue());
+
+    if (directionTransformArg.getValue() != "")
+        matcher->SetDirectionTransform(directionTransformArg.getValue());
 
     AffineTransformPointer tmpTrsf = AffineTransformType::New();
     tmpTrsf->SetIdentity();

@@ -24,11 +24,14 @@ template <unsigned int ImageDimension>
 PyramidalBlockMatchingBridge<ImageDimension>::PyramidalBlockMatchingBridge()
 {
     m_InitialTransform = NULL;
+    m_DirectionTransform = NULL;
     m_ReferenceImage = NULL;
     m_FloatingImage = NULL;
 
     m_OutputTransform = NULL;
     m_outputTransformFile = "";
+    m_outputNearestRigidTransformFile = "";
+    m_outputNearestSimilarityTransformFile = "";
 
     m_OutputImage = NULL;
 
@@ -60,7 +63,7 @@ PyramidalBlockMatchingBridge<ImageDimension>::PyramidalBlockMatchingBridge()
     m_NumberOfPyramidLevels = 3;
     m_LastPyramidLevel = 0;
     m_PercentageKept = 0.8;
-    m_InitializeOnCenterOfGravity = true;
+    m_TransformInitializationType = ClosestTransform;
 
     this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
 
@@ -107,6 +110,31 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetInitialTransform (std::str
         catch (itk::ExceptionObject &e)
         {
             std::cerr << "Unable to read initial transform... Exiting..." << std::endl;
+        }
+    }
+}
+
+template <unsigned int ImageDimension>
+void PyramidalBlockMatchingBridge<ImageDimension>::SetDirectionTransform(std::string directionTransformFile)
+{
+    if (directionTransformFile != "")
+    {
+        itk::TransformFileReader::Pointer tmpTrRead = itk::TransformFileReader::New();
+        tmpTrRead->SetFileName(directionTransformFile);
+
+        try
+        {
+            tmpTrRead->Update();
+
+            itk::TransformFileReader::TransformListType trsfList = *(tmpTrRead->GetTransformList());
+            itk::TransformFileReader::TransformListType::iterator tr_it = trsfList.begin();
+
+            m_DirectionTransform = dynamic_cast <AffineTransformType *> ((*tr_it).GetPointer());
+
+        }
+        catch (itk::ExceptionObject &e)
+        {
+            std::cerr << "Unable to read direction transform... Exiting..." << std::endl;
         }
     }
 }
@@ -280,6 +308,11 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
             case outRigid:
                 agreg->SetOutputTransformType(BaseAgreg::RIGID);
                 break;
+            case outAnisotropic_Sim:
+                agreg->SetOutputTransformType(BaseAgreg::ANISOTROPIC_SIM);
+                if (m_DirectionTransform)
+                    agreg->SetOrthogonalDirectionMatrix(m_DirectionTransform->GetMatrix());
+                break;
             case outAffine:
             default:
                 agreg->SetOutputTransformType(BaseAgreg::AFFINE);
@@ -413,6 +446,9 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
             exit(-1);
         }
 
+        if ((GetOutputTransformType() == outAnisotropic_Sim)||(GetOutputTransformType() == outAffine))
+            m_EstimationBarycenter = agreg->GetEstimationBarycenter();
+
         // Polyrigid will have to be handled here
         AffineTransformType *tmpTrsf = dynamic_cast<AffineTransformType *>(m_OutputTransform.GetPointer());
         tmpTrsf->SetParameters(m_bmreg->GetOutput()->Get()->GetParameters());
@@ -441,9 +477,8 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
 
     if (!m_InitialTransform.IsNull())
         tmpTrsf->Compose(m_InitialTransform, false);
-
-    typedef typename anima::ResampleImageFilter<InputImageType, InputImageType,
-            typename AgregatorType::ScalarType> ResampleFilterType;
+    
+    typedef typename anima::ResampleImageFilter<InputImageType, InputImageType, typename AgregatorType::ScalarType> ResampleFilterType;
     typename ResampleFilterType::Pointer tmpResample = ResampleFilterType::New();
     tmpResample->SetTransform(m_OutputTransform);
     tmpResample->SetInput(m_FloatingImage);
@@ -489,6 +524,79 @@ void PyramidalBlockMatchingBridge<ImageDimension>::WriteOutputs()
         writer->SetFileName(GetOutputTransformFile());
         writer->Update();
     }
+
+    if ((m_outputNearestRigidTransformFile == "")&&(m_outputNearestSimilarityTransformFile == ""))
+        return;
+
+    AffineTransformType *tmpTrsf = dynamic_cast<AffineTransformType *>(m_OutputTransform.GetPointer());
+
+    typename AffineTransformType::MatrixType linearMatrix = tmpTrsf->GetMatrix();
+    typename AffineTransformType::OffsetType transformOffset = tmpTrsf->GetOffset();
+    vnl_svd<typename AffineTransformType::MatrixType::ValueType> UWVLinearMatrixSVD(linearMatrix.GetVnlMatrix());
+    vnl_matrix<typename AffineTransformType::MatrixType::ValueType> leftRot = UWVLinearMatrixSVD.U()*vnl_determinant(UWVLinearMatrixSVD.U());
+    vnl_matrix<typename AffineTransformType::MatrixType::ValueType> rightRot = UWVLinearMatrixSVD.V()*vnl_determinant(UWVLinearMatrixSVD.V());
+    vnl_diag_matrix<typename AffineTransformType::MatrixType::ValueType> scal = UWVLinearMatrixSVD.W();
+
+    PointType ybar;
+    float isoScal = 0;
+    for (unsigned int i = 0;i < ImageDimension;++i)
+    {
+        isoScal += std::abs(scal(i, i)) / ImageDimension;
+        ybar[i] = transformOffset[i];
+
+        for (unsigned int j = 0;j < ImageDimension;++j)
+            ybar[i] += linearMatrix(i, j) * m_EstimationBarycenter[j];
+    }
+
+    typename AffineTransformType::OffsetType rigidOffset;
+    typename AffineTransformType::MatrixType linearPartRigid;
+    typename AffineTransformType::OffsetType similarityOffset;
+    typename AffineTransformType::MatrixType linearPartSimilarity;
+    typename AffineTransformType::OffsetType UOffset;
+    linearPartRigid.Fill(0);
+    linearPartSimilarity.Fill(0);
+
+    for (unsigned int i = 0;i < ImageDimension;++i)
+    {
+        rigidOffset[i] = ybar[i];
+        similarityOffset[i] = ybar[i];
+        UOffset[i] = 0;
+        for (unsigned int j = 0;j < ImageDimension; ++j)
+        {
+            for (unsigned int k = 0;k < ImageDimension;++k)
+            {
+                linearPartRigid(i, j) += leftRot(i, k) * rightRot(j, k);
+                linearPartSimilarity(i, j) += isoScal * leftRot(i, k) * rightRot(j, k);
+            }
+
+            rigidOffset[i] -= linearPartRigid(i, j) * m_EstimationBarycenter[j];
+            similarityOffset[i] -= linearPartSimilarity(i, j) * m_EstimationBarycenter[j];
+        }
+    }
+
+    if (m_outputNearestRigidTransformFile != "")
+    {
+        AffineTransformPointer rigidTransform = AffineTransformType::New();
+        rigidTransform->SetMatrix(linearPartRigid);
+        rigidTransform->SetOffset(rigidOffset);
+        itk::TransformFileWriter::Pointer rigidWriter = itk::TransformFileWriter::New();
+        rigidWriter->SetInput(rigidTransform);
+        rigidWriter->SetFileName(GetOutputNearestRigidTransformFile());
+        std::cout << "Writing output nearest rigid transform to: " << GetOutputNearestRigidTransformFile() << std::endl;
+        rigidWriter->Update();
+    }
+
+    if (m_outputNearestSimilarityTransformFile != "")
+    {
+        AffineTransformPointer similarityTransform = AffineTransformType::New();
+        similarityTransform->SetMatrix(linearPartSimilarity);
+        similarityTransform->SetOffset(similarityOffset);
+        itk::TransformFileWriter::Pointer similarityWriter = itk::TransformFileWriter::New();
+        similarityWriter->SetInput(similarityTransform);
+        similarityWriter->SetFileName(GetOutputNearestSimilarityTransformFile());
+        std::cout << "Writing output nearest similarity transform to: " << GetOutputNearestSimilarityTransformFile() << std::endl;
+        similarityWriter->Update();
+    }
 }
 
 template <unsigned int ImageDimension>
@@ -512,7 +620,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
     InputImagePointer initialFloatingImage = const_cast <InputImageType *> (m_FloatingImage.GetPointer());
 
     // Compute initial transform if needed to get a decent initial floating image
-    if (!m_InitialTransform.IsNull())
+    if (m_InitialTransform.IsNotNull())
     {
         typename ResampleFilterType::Pointer tmpResample = ResampleFilterType::New();
         tmpResample->SetTransform(m_InitialTransform);
@@ -535,14 +643,53 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
         m_InitialTransform = AffineTransformType::New();
         m_InitialTransform->SetIdentity();
 
-        if (m_InitializeOnCenterOfGravity)
+        if (m_TransformInitializationType != Identity)
         {
-            typename TransformInitializerType::Pointer initializer = TransformInitializerType::New();
-            initializer->SetTransform(m_InitialTransform);
-            initializer->SetFixedImage(m_ReferenceImage);
-            initializer->SetMovingImage(m_FloatingImage);
-            initializer->MomentsOn();
-            initializer->InitializeTransform();
+            typedef itk::ImageMomentsCalculator <InputImageType> ImageCalculatorType;
+
+            typename ImageCalculatorType::Pointer fixedCalculator = ImageCalculatorType::New();
+            fixedCalculator->SetImage(m_ReferenceImage);
+            fixedCalculator->Compute();
+            typename ImageCalculatorType::VectorType fixedBar = fixedCalculator->GetCenterOfGravity();
+
+            typename ImageCalculatorType::Pointer movingCalculator = ImageCalculatorType::New();
+            movingCalculator->SetImage(m_FloatingImage);
+            movingCalculator->Compute();
+            typename ImageCalculatorType::VectorType movingBar = movingCalculator->GetCenterOfGravity();
+
+            m_InitialTransform->SetOffset(movingBar - fixedBar);
+
+            if ((m_TransformInitializationType == ClosestTransform)&&(m_OutputTransformType != outTranslation))
+            {
+                typename ImageCalculatorType::VectorType fixedPrincipalMom = fixedCalculator->GetPrincipalMoments();
+                typename ImageCalculatorType::ScalarType fixedMass = fixedCalculator->GetTotalMass();
+
+                typename ImageCalculatorType::VectorType movingPrincipalMom = movingCalculator->GetPrincipalMoments();
+                typename ImageCalculatorType::ScalarType movingMass = movingCalculator->GetTotalMass();
+
+                vnl_matrix<double> scalMatrix(ImageDimension, ImageDimension, 0);
+                itk::Vector<double, ImageDimension> scalOffset;
+                double fixedScalFactor = 0;
+                double movingScalFactor = 0;
+
+                for (unsigned int i = 0; i < ImageDimension; ++i)
+                {
+                    fixedScalFactor += pow(fixedPrincipalMom[i] / fixedMass, 0.5);
+                    movingScalFactor += pow(movingPrincipalMom[i] / movingMass, 0.5);
+                }
+
+                double scalingFactor = 1.0;
+                if ((m_OutputTransformType == outAnisotropic_Sim)||(m_OutputTransformType == outAffine))
+                    scalingFactor = movingScalFactor / fixedScalFactor;
+
+                scalMatrix.fill_diagonal(scalingFactor);
+
+                for (unsigned int i = 0; i < ImageDimension; ++i)
+                    scalOffset[i] = movingBar[i] - scalingFactor * fixedBar[i];
+
+                m_InitialTransform->SetMatrix(scalMatrix);
+                m_InitialTransform->SetOffset(scalOffset);
+            }
         }
 
         typename ResampleFilterType::Pointer tmpResample = ResampleFilterType::New();

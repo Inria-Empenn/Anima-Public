@@ -23,10 +23,12 @@ public:
     typedef itk::Transform<ScalarType,NDimensions,NDimensions> BaseOutputTransformType;
     typedef itk::Point <InternalScalarType,NDimensions> PointType;
     typedef itk::ImageRegion <NDimensions> RegionType;
+    typedef itk::Matrix <ScalarType,NDimensions,NDimensions> MatrixType;
 
     enum TRANSFORM_TYPE {
         TRANSLATION,
         RIGID,
+        ANISOTROPIC_SIM,
         AFFINE,
         DIRECTIONAL_AFFINE,
         SVF
@@ -39,6 +41,14 @@ public:
 
     std::vector <BaseInputTransformPointer> &GetInputTransforms() {return m_InputTransforms;}
     BaseInputTransformType *GetInputTransform(unsigned int i) {return m_InputTransforms[i].GetPointer();}
+
+    void SetCurrentLinearTransform(BaseInputTransformPointer &inputTransforms);
+
+    BaseInputTransformPointer &GetCurrentLinearTransform() { return m_CurrentLinearTransform; }
+
+    void SetOrthogonalDirectionMatrix(const MatrixType &inputTransforms);
+
+    MatrixType &GetOrthogonalDirectionMatrix() { return m_OrthogonalDirectionMatrix; }
 
     void SetInputOrigins(const std::vector <PointType> &inputOrigins)
     {
@@ -78,6 +88,8 @@ public:
     void SetVerboseAgregation(bool value) {m_VerboseAgregation = value;}
     bool GetVerboseAgregation() {return m_VerboseAgregation;}
 
+    virtual PointType GetEstimationBarycenter() { return PointType(); }
+
     TRANSFORM_TYPE GetInputTransformType() {return m_InputTransformType;}
     TRANSFORM_TYPE GetOutputTransformType() {return m_OutputTransformType;}
 
@@ -92,6 +104,8 @@ private:
     std::vector <BaseInputTransformPointer> m_InputTransforms;
     std::vector <PointType> m_InputOrigins;
     std::vector <InternalScalarType> m_Weights;
+    BaseInputTransformPointer m_CurrentLinearTransform;
+    MatrixType m_OrthogonalDirectionMatrix;
 
     bool m_UpToDate;
     bool m_VerboseAgregation;

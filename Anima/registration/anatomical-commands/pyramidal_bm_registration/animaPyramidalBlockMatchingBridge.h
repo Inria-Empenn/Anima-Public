@@ -20,6 +20,8 @@ public:
     typedef typename InputImageType::Pointer InputImagePointer;
     typedef typename InputImageType::ConstPointer InputImageConstPointer;
 
+    typedef typename InputImageType::PointType PointType;
+
     typedef itk::Image <unsigned char, ImageDimension> MaskImageType;
     typedef typename MaskImageType::Pointer MaskImagePointer;
     typedef anima::PyramidImageFilter <MaskImageType,MaskImageType> MaskPyramidType;
@@ -47,6 +49,13 @@ public:
 
     itkNewMacro(Self)
     itkTypeMacro(PyramidalBlockMatchingBridge,itk::ProcessObject)
+
+    enum InitializationType
+    {
+        Identity = 0,
+        GravityCenters,
+        ClosestTransform
+    };
 
     enum SymmetryType
     {
@@ -87,7 +96,8 @@ public:
     {
         outRigid = 0,
         outTranslation,
-        outAffine
+        outAffine,
+        outAnisotropic_Sim
     };
 
     void Update() ITK_OVERRIDE;
@@ -108,6 +118,9 @@ public:
     void SetInitialTransform(AffineTransformPointer initialTransform) {m_InitialTransform=initialTransform;}
     void SetInitialTransform(std::string initialTransformFile);
 
+    void SetDirectionTransform(AffineTransformPointer directionTransform) { m_DirectionTransform = directionTransform;}
+    void SetDirectionTransform(std::string directionTransformFile);
+
     BaseTransformPointer GetOutputTransform() {return m_OutputTransform;}
     void SetOutputTransform(BaseTransformPointer outputTransform) {m_OutputTransform=outputTransform;}
 
@@ -122,6 +135,12 @@ public:
 
     std::string GetOutputTransformFile() {return m_outputTransformFile;}
     void SetOutputTransformFile(std::string outputTransformFile) {m_outputTransformFile=outputTransformFile;}
+
+    std::string GetOutputNearestRigidTransformFile() {return m_outputNearestRigidTransformFile;}
+    void SetOutputNearestRigidTransformFile(std::string outputNRTransformFile) {m_outputNearestRigidTransformFile = outputNRTransformFile;}
+
+    std::string GetOutputNearestSimilarityTransformFile() {return m_outputNearestSimilarityTransformFile;}
+    void SetOutputNearestSimilarityTransformFile(std::string outputNearestSimilarityTransformFile) {m_outputNearestSimilarityTransformFile = outputNearestSimilarityTransformFile;}
 
     unsigned int GetBlockSize() {return m_BlockSize;}
     void SetBlockSize(int blockSize) {m_BlockSize=blockSize;}
@@ -201,8 +220,8 @@ public:
     double GetPercentageKept() {return m_PercentageKept;}
     void SetPercentageKept(double PercentageKept) {m_PercentageKept=PercentageKept;}
 
-    bool GetInitializeOnCenterOfGravity() {return m_InitializeOnCenterOfGravity;}
-    void SetInitializeOnCenterOfGravity(bool initOnCenterOfGravity) {m_InitializeOnCenterOfGravity=initOnCenterOfGravity;}
+    InitializationType GetTransformInitializationType() {return m_TransformInitializationType;}
+    void SetTransformInitializationType (InitializationType transformInitializationType) {m_TransformInitializationType = transformInitializationType;}
 
     void SetBlockGenerationMask(MaskImageType *mask) {m_BlockGenerationMask = mask;}
 
@@ -221,6 +240,7 @@ private:
     ITK_DISALLOW_COPY_AND_ASSIGN(PyramidalBlockMatchingBridge);
 
     AffineTransformPointer m_InitialTransform;
+    AffineTransformPointer m_DirectionTransform;
     BaseTransformPointer m_OutputTransform;
     InputImagePointer m_OutputImage;
 
@@ -232,6 +252,11 @@ private:
 
     std::string m_outputTransformFile;
     std::string m_resultFile;
+
+    // Nearest rigid and anisotropic similarity specific variables
+    itk::Point<double, ImageDimension> m_EstimationBarycenter;
+    std::string m_outputNearestRigidTransformFile;
+    std::string m_outputNearestSimilarityTransformFile;
 
     unsigned int m_BlockSize;
     unsigned int m_BlockSpacing;
@@ -261,7 +286,7 @@ private:
     unsigned int m_NumberOfPyramidLevels;
     unsigned int m_LastPyramidLevel;
     double m_PercentageKept;
-    bool m_InitializeOnCenterOfGravity;
+    InitializationType m_TransformInitializationType;
 
     bool m_Abort;
     bool m_Verbose;

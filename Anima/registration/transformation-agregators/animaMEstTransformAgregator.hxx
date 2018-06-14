@@ -2,7 +2,7 @@
 
 #include <animaLogRigid3DTransform.h>
 #include <animaLinearTransformEstimationTools.h>
-
+#include "animaMEstTransformAgregator.h"
 #include <algorithm>
 
 namespace anima
@@ -14,6 +14,15 @@ MEstTransformAgregator() : Superclass()
 {
     m_MEstimateFactor = 0.5;
     m_StoppingThreshold = 1.0e-2;
+    m_EstimationBarycenter.Fill(0);
+}
+
+template <unsigned int NDimensions>
+typename MEstTransformAgregator <NDimensions>::PointType
+MEstTransformAgregator <NDimensions>::
+GetEstimationBarycenter()
+{
+    return m_EstimationBarycenter;
 }
 
 template <unsigned int NDimensions>
@@ -64,13 +73,58 @@ mestEstimateTranslationsToAny()
     std::vector <PointType> transformedPoints(nbPts);
     std::vector <double> weights = this->GetInputWeights();
 
+    BaseInputTransformType * currTrsf = 0;
+    if (this->GetOutputTransformType() == Superclass::ANISOTROPIC_SIM)
+        currTrsf = this->GetCurrentLinearTransform();
+
     for (unsigned int i = 0;i < nbPts;++i)
     {
         PointType tmpOrig = this->GetInputOrigin(i);
         BaseInputTransformType * tmpTrsf = this->GetInputTransform(i);
         PointType tmpDisp = tmpTrsf->TransformPoint(tmpOrig);
         originPoints[i] = tmpOrig;
-        transformedPoints[i] = tmpDisp;
+        if (this->GetOutputTransformType() == Superclass::ANISOTROPIC_SIM)
+            transformedPoints[i] = currTrsf->TransformPoint(tmpDisp);
+        else
+            transformedPoints[i] = tmpDisp;
+    }
+
+    vnl_matrix <ScalarType> covPcaOriginPoints(NDimensions, NDimensions, 0);
+    if (this->GetOutputTransformType() == Superclass::ANISOTROPIC_SIM)
+    {
+        itk::Matrix<ScalarType, NDimensions, NDimensions> emptyMatrix;
+        emptyMatrix.Fill(0);
+
+        if (this->GetOrthogonalDirectionMatrix() != emptyMatrix)
+        {
+            covPcaOriginPoints = this->GetOrthogonalDirectionMatrix().GetVnlMatrix().as_matrix();
+        }
+        else
+        {
+            itk::Point <ScalarType, NDimensions> unweightedBarX;
+            vnl_matrix <ScalarType> covOriginPoints(NDimensions, NDimensions, 0);
+            for (unsigned int i = 0; i < nbPts; ++i)
+            {
+                for (unsigned int j = 0; j < NDimensions; ++j)
+                    unweightedBarX[j] += originPoints[i][j] / nbPts;
+            }
+            for (unsigned int i = 0; i < nbPts; ++i)
+            {
+                for (unsigned int j = 0; j < NDimensions; ++j)
+                {
+                    for (unsigned int k = 0; k < NDimensions; ++k)
+                        covOriginPoints(j, k) += (originPoints[i][j] - unweightedBarX[j])*(originPoints[i][k] - unweightedBarX[k]);
+                }
+            }
+            itk::SymmetricEigenAnalysis < vnl_matrix <ScalarType>, vnl_diag_matrix<ScalarType>, vnl_matrix <ScalarType> > eigenSystem(3);
+            vnl_diag_matrix <double> eValsCov(NDimensions);
+            eigenSystem.SetOrderEigenValues(true);
+            eigenSystem.ComputeEigenValuesAndVectors(covOriginPoints, eValsCov, covPcaOriginPoints);
+            /* return eigen vectors in row !!!!!!! */
+            covPcaOriginPoints = covPcaOriginPoints.transpose();
+            if (vnl_determinant(covPcaOriginPoints) < 0)
+                covPcaOriginPoints *= -1.0;
+        }
     }
 
     std::vector <double> weightsFiltered = weights;
@@ -104,8 +158,13 @@ mestEstimateTranslationsToAny()
                         (originPoints,transformedPoints,weightsFiltered,resultTransform);
                 break;
 
+            case Superclass::ANISOTROPIC_SIM:
+                m_EstimationBarycenter = anima::computeAnisotropSimLSWFromTranslations<InternalScalarType, ScalarType, NDimensions>
+                    (originPoints, transformedPoints, weightsFiltered, resultTransform, covPcaOriginPoints);
+                break;
+
             case Superclass::AFFINE:
-                anima::computeAffineLSWFromTranslations<InternalScalarType,ScalarType,NDimensions>
+                m_EstimationBarycenter = anima::computeAffineLSWFromTranslations<InternalScalarType,ScalarType,NDimensions>
                         (originPoints,transformedPoints,weightsFiltered,resultTransform);
                 break;
 

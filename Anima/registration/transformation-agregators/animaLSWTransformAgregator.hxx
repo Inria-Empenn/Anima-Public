@@ -12,6 +12,15 @@ template <unsigned int NDimensions>
 LSWTransformAgregator <NDimensions>::
 LSWTransformAgregator() : Superclass()
 {
+    m_EstimationBarycenter.Fill(0);
+}
+
+template <unsigned int NDimensions>
+typename LSWTransformAgregator <NDimensions>::PointType
+LSWTransformAgregator <NDimensions>::
+GetEstimationBarycenter()
+{
+    return m_EstimationBarycenter;
 }
 
 template <unsigned int NDimensions>
@@ -42,6 +51,11 @@ Update()
 
                 case Superclass::RIGID:
                     this->lswEstimateTranslationsToRigid();
+                    this->SetUpToDate(true);
+                    return true;
+
+                case Superclass::ANISOTROPIC_SIM:
+                    this->lswEstimateTranslationsToAnisotropSim();
                     this->SetUpToDate(true);
                     return true;
 
@@ -134,6 +148,76 @@ lswEstimateTranslationsToRigid()
 template <unsigned int NDimensions>
 void
 LSWTransformAgregator <NDimensions>::
+lswEstimateTranslationsToAnisotropSim()
+{
+    unsigned int nbPts = this->GetInputOrigins().size();
+
+    if (NDimensions > 3)
+    {
+        std::cerr << "Dimension not supported for quaternions" << std::endl;
+        return;
+    }
+
+    std::vector <PointType> originPoints(nbPts);
+    std::vector <PointType> transformedPoints(nbPts);
+
+    BaseInputTransformType * currTrsf = this->GetCurrentLinearTransform();
+
+    for (unsigned int i = 0; i < nbPts; ++i)
+    {
+        PointType tmpOrig = this->GetInputOrigin(i);
+        BaseInputTransformType * tmpTrsf = this->GetInputTransform(i);
+        
+        PointType tmpDisp = tmpTrsf->TransformPoint(tmpOrig);
+        originPoints[i] = tmpOrig;
+        transformedPoints[i] = currTrsf->TransformPoint(tmpDisp);
+
+    }
+
+    typename BaseOutputTransformType::Pointer resultTransform;
+
+    itk::Matrix<ScalarType, NDimensions, NDimensions> emptyMatrix;
+    emptyMatrix.Fill(0);
+
+    vnl_matrix <ScalarType> covPcaOriginPoints(NDimensions, NDimensions, 0);
+    if (this->GetOrthogonalDirectionMatrix() != emptyMatrix)
+    {
+        covPcaOriginPoints = this->GetOrthogonalDirectionMatrix().GetVnlMatrix().as_matrix();
+    }
+    else
+    {
+        itk::Point <ScalarType, NDimensions> unweightedBarX;
+        vnl_matrix <ScalarType> covOriginPoints(NDimensions, NDimensions, 0);
+        for (unsigned int i = 0; i < nbPts; ++i)
+        {
+            for (unsigned int j = 0; j < NDimensions; ++j)
+                unweightedBarX[j] += originPoints[i][j] / nbPts;
+        }
+        for (unsigned int i = 0; i < nbPts; ++i)
+        {
+            for (unsigned int j = 0; j < NDimensions; ++j)
+            {
+                for (unsigned int k = 0; k < NDimensions; ++k)
+                    covOriginPoints(j, k) += (originPoints[i][j] - unweightedBarX[j])*(originPoints[i][k] - unweightedBarX[k]);
+            }
+        }
+        itk::SymmetricEigenAnalysis < vnl_matrix <ScalarType>, vnl_diag_matrix<ScalarType>, vnl_matrix <ScalarType> > eigenSystem(3);
+        vnl_diag_matrix <double> eValsCov(NDimensions);
+        eigenSystem.SetOrderEigenValues(true);
+        eigenSystem.ComputeEigenValuesAndVectors(covOriginPoints, eValsCov, covPcaOriginPoints);
+        /* return eigen vectors in row !!!!!!! */
+        covPcaOriginPoints = covPcaOriginPoints.transpose();
+        if (vnl_determinant(covPcaOriginPoints) < 0)
+            covPcaOriginPoints *= -1.0;
+    }
+
+    m_EstimationBarycenter = anima::computeAnisotropSimLSWFromTranslations<InternalScalarType, ScalarType, NDimensions>(originPoints, transformedPoints, this->GetInputWeights(), resultTransform, covPcaOriginPoints);
+    this->SetOutput(resultTransform);
+}
+
+template <unsigned int NDimensions>
+void
+LSWTransformAgregator <NDimensions>::
 lswEstimateTranslationsToAffine()
 {
     unsigned int nbPts = this->GetInputOrigins().size();
@@ -151,7 +235,7 @@ lswEstimateTranslationsToAffine()
     }
 
     typename BaseOutputTransformType::Pointer resultTransform;
-    anima::computeAffineLSWFromTranslations<InternalScalarType,ScalarType,NDimensions>(originPoints,transformedPoints,this->GetInputWeights(),resultTransform);
+    m_EstimationBarycenter=anima::computeAffineLSWFromTranslations<InternalScalarType,ScalarType,NDimensions>(originPoints,transformedPoints,this->GetInputWeights(),resultTransform);
     this->SetOutput(resultTransform);
 }
 

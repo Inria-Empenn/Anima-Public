@@ -146,7 +146,7 @@ int main(int argc, const char** argv)
             matcher->SetNumberOfThreads( numThreadsArg.getValue() );
 
         matcher->SetPercentageKept( percentageKeptArg.getValue() );
-        matcher->SetInitializeOnCenterOfGravity(false);
+        matcher->SetTransformInitializationType(PyramidBMType::GravityCenters);
 
         matcher->SetFloatingImage(referenceExtractFilter->GetOutput());
         matcher->SetReferenceImage(extractFilter->GetOutput());

@@ -25,8 +25,9 @@ public:
 
     LTSWTransformAgregator();
     virtual ~LTSWTransformAgregator() {}
-
-    virtual bool Update();
+    
+    PointType GetEstimationBarycenter() ITK_OVERRIDE;
+    virtual bool Update() ITK_OVERRIDE;
 
     void SetLTSCut(double ltsCut) {m_LTSCut = ltsCut;this->SetUpToDate(false);}
     void SeStoppingThreshold(double stopThr) {m_StoppingThreshold = stopThr;this->SetUpToDate(false);}
@@ -39,6 +40,8 @@ private:
 
     double m_LTSCut;
     double m_StoppingThreshold;
+
+    PointType m_EstimationBarycenter;
 };
 
 } // end of namespace anima
