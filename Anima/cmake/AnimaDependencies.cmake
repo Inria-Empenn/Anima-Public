@@ -11,7 +11,7 @@ else()
 endif()
 
 # Boost
-find_package(Boost 1.40.0 REQUIRED)
+find_package(Boost 1.66.0 REQUIRED)
 
 # TCLAP
 option(BUILD_TOOLS "Build command line executables" ON)

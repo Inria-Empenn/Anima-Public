@@ -2,7 +2,7 @@ set (proj Boost)
 
 set (location "")
 if (NOT DEFINED ${proj}_SRC_DIR)
-  set(location URL http://freefr.dl.sourceforge.net/project/boost/boost/1.63.0/boost_1_63_0.tar.gz)
+  set(location URL http://freefr.dl.sourceforge.net/project/boost/boost/1.66.0/boost_1_66_0.tar.gz)
 endif()
 
 ExternalProject_Add(${proj}
