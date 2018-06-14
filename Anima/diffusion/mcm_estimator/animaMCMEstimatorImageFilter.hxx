@@ -352,11 +352,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     switch (m_CompartmentType)
     {
         case NODDI:
-            this->ComputeNODDIExtraAxonalAndKappaCoarseGrids();
-            break;
-
         case DDI:
-            itkExceptionMacro("DDI coarse grid not implemented yet");
+            this->ComputeExtraAxonalAndKappaCoarseGrids();
             break;
 
         case Tensor:
@@ -372,7 +369,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 template <class InputPixelType, class OutputPixelType>
 void
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
-::ComputeNODDIExtraAxonalAndKappaCoarseGrids()
+::ComputeExtraAxonalAndKappaCoarseGrids()
 {
     // m_ValuesCoarseGrid[0] -> extra axonal fractions, m_ValuesCoarseGrid[1] -> kappa
     m_ValuesCoarseGrid.resize(2);
@@ -413,7 +410,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     for (unsigned int i = 0;i < coarseGridSize;++i)
     {
-        m_ValuesCoarseGrid[0][i] = i * M_PI / (coarseGridSize - 1.0);
+        m_ValuesCoarseGrid[0][i] = 2.0 * (i + 1) * M_PI / (coarseGridSize + 1.0);
         m_ValuesCoarseGrid[1][i] = i / (coarseGridSize - 1.0);
         m_ValuesCoarseGrid[2][i] = i / (coarseGridSize - 1.0);
     }
@@ -961,11 +958,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     switch (m_CompartmentType)
     {
         case NODDI:
-            this->NODDICoarseGridInitialization(mcmUpdateValue, cost, workVec, p);
-            break;
-
         case DDI:
-            itkExceptionMacro("No coarse grid initialization for DDI yet");
+            this->ExtraAxonalAndKappaCoarseGridInitialization(mcmUpdateValue, cost, workVec, p);
             break;
 
         case Tensor:
@@ -996,8 +990,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 template <class InputPixelType, class OutputPixelType>
 void
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
-::NODDICoarseGridInitialization(MCMPointer &mcmUpdateValue, CostFunctionBasePointer &cost,
-                                MCMType::ListType &workVec,ParametersType &p)
+::ExtraAxonalAndKappaCoarseGridInitialization(MCMPointer &mcmUpdateValue, CostFunctionBasePointer &cost,
+                                              MCMType::ListType &workVec,ParametersType &p)
 {
     unsigned int dimension = p.GetSize();
     double optNu = 0;

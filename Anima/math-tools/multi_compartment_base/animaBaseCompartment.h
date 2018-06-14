@@ -144,8 +144,6 @@ protected:
     static const double m_RadialDiffusivityUpperBound;
     static const double m_DefaultConcentrationUpperBound;
     static const double m_WatsonKappaUpperBound;
-    static const double m_EAFLowerBound;
-    static const double m_EAFUpperBound;
     static const double m_FractionUpperBound;
 
     //! Matrix to hold working value of diffusion tensor approximation to the model

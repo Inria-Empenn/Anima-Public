@@ -359,15 +359,15 @@ protected:
     //! Compute AICc value from a cost function value and model
     double ComputeAICcValue(MCMPointer &mcmValue, double costValue);
 
-    //! Computes extra axonal and kappa coarse grids (used for NODDI initialization)
-    void ComputeNODDIExtraAxonalAndKappaCoarseGrids();
+    //! Computes extra axonal and kappa coarse grids (used for NODDI and DDI initialization)
+    void ComputeExtraAxonalAndKappaCoarseGrids();
 
     //! Computes extra axonal and kappa coarse grids (used for tensor final initaialization)
     void ComputeTensorRadialDiffsAndAzimuthCoarseGrids();
 
-    //! Coarse grid initialization of NODDI model
-    void NODDICoarseGridInitialization(MCMPointer &mcmUpdateValue, CostFunctionBasePointer &cost,
-                                       MCMType::ListType &workVec,ParametersType &p);
+    //! Coarse grid initialization of NODDI and DDI models
+    void ExtraAxonalAndKappaCoarseGridInitialization(MCMPointer &mcmUpdateValue, CostFunctionBasePointer &cost,
+                                                     MCMType::ListType &workVec,ParametersType &p);
 
     //! Coarse grid initialization of tensor model
     void TensorCoarseGridInitialization(MCMPointer &mcmUpdateValue, CostFunctionBasePointer &cost,
