@@ -1053,8 +1053,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     unsigned int numIsoCompartments = mcmUpdateValue->GetNumberOfIsotropicCompartments();
     unsigned int numCompartments = mcmUpdateValue->GetNumberOfCompartments();
 
-    double optWeight1 = 0.0;
-    double optWeight2 = 0.0;
+    double optRadialDiff1 = 0.0;
+    double optRadialDiff2 = 0.0;
     double optAzimuth = 0.0;
     double optValue = - 1.0;
 
@@ -1085,22 +1085,27 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     }
 
-    meanAxialDiff -= 5.0e-4;
-    if (meanAxialDiff - meanRadialDiff < 0)
-        meanAxialDiff = meanRadialDiff;
+    if (meanAxialDiff - meanRadialDiff < 5.0e-4)
+        meanAxialDiff = meanRadialDiff + 5.0e-4;
 
     for (unsigned int i = numIsoCompartments;i < numCompartments;++i)
-        mcmUpdateValue->GetCompartment(i)->SetAxialDiffusivity(meanAxialDiff + 5.0e-4);
+        mcmUpdateValue->GetCompartment(i)->SetAxialDiffusivity(meanAxialDiff);
 
     for (unsigned int l = 0;l < m_ValuesCoarseGrid[2].size();++l)
     {
         double tmpWeight2 = m_ValuesCoarseGrid[2][l];
-        double tmpRadialDiffusivity2 = tmpWeight2 * meanRadialDiff + (1.0 - tmpWeight2) * 1.0e-5;
+
+        // In between meanRD and (meanRD + e-5) / 2
+        double tmpRadialDiffusivity2 = 0.5 * ((1.0 + tmpWeight2) * meanRadialDiff + (1.0 - tmpWeight2) * 1.0e-5);
 
         for (unsigned int k = 0;k < m_ValuesCoarseGrid[1].size();++k)
         {
             double tmpWeight1 = m_ValuesCoarseGrid[1][k];
-            double tmpRadialDiffusivity1 = tmpWeight1 * meanRadialDiff + (1.0 - tmpWeight1) * meanAxialDiff;
+
+            // In between meanRD and (meanRD + meanAD) / 2
+            double tmpRadialDiffusivity1 = 0.5 * ((1.0 + tmpWeight1) * meanRadialDiff + (1.0 - tmpWeight1) * meanAxialDiff);
+            if (meanAxialDiff - tmpRadialDiffusivity1 < 5.0e-4)
+                continue;
 
             for (unsigned int j = 0;j < m_ValuesCoarseGrid[0].size();++j)
             {
@@ -1122,8 +1127,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
                 if ((tmpValue < optValue) || (optValue < 0))
                 {
                     optValue = tmpValue;
-                    optWeight1 = tmpWeight1;
-                    optWeight2 = tmpWeight2;
+                    optRadialDiff1 = tmpRadialDiffusivity1;
+                    optRadialDiff2 = tmpRadialDiffusivity2;
                     optAzimuth = tmpAzimuth;
                 }
             }
@@ -1133,8 +1138,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     for (unsigned int i = numIsoCompartments;i < numCompartments;++i)
     {
         mcmUpdateValue->GetCompartment(i)->SetPerpendicularAngle(optAzimuth);
-        mcmUpdateValue->GetCompartment(i)->SetRadialDiffusivity1(optWeight1 * meanRadialDiff + (1.0 - optWeight1) * meanAxialDiff);
-        mcmUpdateValue->GetCompartment(i)->SetRadialDiffusivity2(optWeight2 * meanRadialDiff + (1.0 - optWeight2) * 1.0e-5);
+        mcmUpdateValue->GetCompartment(i)->SetRadialDiffusivity1(optRadialDiff1);
+        mcmUpdateValue->GetCompartment(i)->SetRadialDiffusivity2(optRadialDiff2);
     }
 }
 
