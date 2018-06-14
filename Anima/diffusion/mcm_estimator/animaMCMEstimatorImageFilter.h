@@ -213,7 +213,6 @@ public:
     itkSetMacro(UseConstrainedDiffusivity, bool)
     itkSetMacro(UseConstrainedFreeWaterDiffusivity, bool)
     itkSetMacro(UseConstrainedIRWDiffusivity, bool)
-    itkSetMacro(UseConstrainedStaniszParameters, bool)
 
     itkSetMacro(UseConstrainedOrientationConcentration, bool)
     itkSetMacro(UseConstrainedExtraAxonalFraction, bool)
@@ -290,7 +289,6 @@ protected:
         m_UseConstrainedDiffusivity = false;
         m_UseConstrainedFreeWaterDiffusivity = true;
         m_UseConstrainedIRWDiffusivity = true;
-        m_UseConstrainedStaniszParameters = true;
         m_UseConcentrationBoundsFromDTI = false;
         m_UseBoundedOptimization = false;
         m_UseCommonDiffusivities = false;
@@ -430,7 +428,6 @@ private:
     bool m_UseConstrainedDiffusivity;
     bool m_UseConstrainedFreeWaterDiffusivity;
     bool m_UseConstrainedIRWDiffusivity;
-    bool m_UseConstrainedStaniszParameters;
     bool m_UseConcentrationBoundsFromDTI;
     bool m_UseBoundedOptimization;
     bool m_UseCommonDiffusivities;

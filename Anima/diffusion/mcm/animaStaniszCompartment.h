@@ -38,7 +38,7 @@ public:
     virtual ListType &GetParameterUpperBounds() ITK_OVERRIDE;
 
     // Set constraints
-    void SetEstimateParameters(bool arg);
+    void SetEstimateAxialDiffusivity(bool arg);
     void SetCompartmentVector(ModelOutputVectorType &compartmentVector) ITK_OVERRIDE;
 
     unsigned int GetCompartmentSize() ITK_OVERRIDE;
@@ -51,7 +51,7 @@ public:
 protected:
     StaniszCompartment() : Superclass()
     {
-        m_EstimateParameters = true;
+        m_EstimateAxialDiffusivity = true;
         m_ChangedConstraints = true;
     }
 
@@ -61,12 +61,11 @@ protected:
     virtual void UnboundParameters(ListType &params) ITK_OVERRIDE;
 
 private:
-    bool m_EstimateParameters;
+    bool m_EstimateAxialDiffusivity;
     bool m_ChangedConstraints;
     unsigned int m_NumberOfParameters;
-    double m_GradientEigenvector1;
 
-    const unsigned int m_NumberOfSumIterations = 2000;
+    const unsigned int m_MaximumNumberOfSumElements = 2000;
 };
 
 } //end namespace anima

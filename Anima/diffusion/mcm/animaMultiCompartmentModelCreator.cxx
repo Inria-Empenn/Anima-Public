@@ -31,7 +31,6 @@ MultiCompartmentModelCreator::MultiCompartmentModelCreator()
     m_UseConstrainedDiffusivity = false;
     m_UseConstrainedFreeWaterDiffusivity = true;
     m_UseConstrainedIRWDiffusivity = false;
-    m_UseConstrainedStaniszParameters = false;
     m_UseConstrainedOrientationConcentration = false;
     m_UseConstrainedExtraAxonalFraction = false;
     m_UseBoundedOptimization = false;
@@ -126,7 +125,7 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
     {
         typedef anima::StaniszCompartment StaniszType;
         StaniszType::Pointer restComp = StaniszType::New();
-        restComp->SetEstimateParameters(!m_UseConstrainedStaniszParameters);
+        restComp->SetEstimateAxialDiffusivity(!m_UseConstrainedDiffusivity);
         restComp->SetUseBoundedOptimization(m_UseBoundedOptimization);
 
         if (m_NumberOfCompartments != 0)

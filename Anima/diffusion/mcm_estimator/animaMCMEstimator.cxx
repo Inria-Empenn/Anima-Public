@@ -60,7 +60,6 @@ int main(int argc,  char **argv)
     TCLAP::SwitchArg optIRWDiffArg("", "opt-ir-water-diff", "Optimize isotropic restricted water diffusivity value", cmd, false);
     TCLAP::SwitchArg fixKappaArg("", "fix-kappa", "Fix orientation concentration values", cmd, false);
     TCLAP::SwitchArg fixEAFArg("", "fix-eaf", "Fix extra axonal fraction values", cmd, false);
-    TCLAP::SwitchArg optStaniszArg("", "opt-stanisz", "Optimize Stanisz parameters", cmd, false);
 
     TCLAP::SwitchArg commonDiffusivitiesArg("", "common-diffusivities", "Share diffusivity values among compartments", cmd, false);
     TCLAP::SwitchArg commonKappaArg("", "common-kappa", "Share orientation concentration values among compartments", cmd, false);
@@ -196,7 +195,6 @@ int main(int argc,  char **argv)
     filter->SetUseConstrainedDiffusivity(fixDiffArg.isSet());
     filter->SetUseConstrainedFreeWaterDiffusivity(!optFWDiffArg.isSet());
     filter->SetUseConstrainedIRWDiffusivity(!optIRWDiffArg.isSet());
-    filter->SetUseConstrainedStaniszParameters(!optStaniszArg.isSet());
 
     if (!fixDiffArg.isSet())
         filter->SetUseCommonDiffusivities(commonDiffusivitiesArg.isSet());

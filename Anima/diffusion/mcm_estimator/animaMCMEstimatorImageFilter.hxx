@@ -607,7 +607,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     mcmCreator->SetUseFixedWeights(m_UseFixedWeights || (m_MLEstimationStrategy == VariableProjection));
     mcmCreator->SetUseConstrainedFreeWaterDiffusivity(m_UseConstrainedFreeWaterDiffusivity);
     mcmCreator->SetUseConstrainedIRWDiffusivity(m_UseConstrainedIRWDiffusivity);
-    mcmCreator->SetUseConstrainedStaniszParameters(m_UseConstrainedStaniszParameters);
+    mcmCreator->SetUseConstrainedDiffusivity(m_UseConstrainedDiffusivity);
     mcmCreator->SetFreeWaterProportionFixedValue(m_FreeWaterProportionFixedValue);
     mcmCreator->SetStationaryWaterProportionFixedValue(m_StationaryWaterProportionFixedValue);
     mcmCreator->SetRestrictedWaterProportionFixedValue(m_RestrictedWaterProportionFixedValue);
@@ -748,7 +748,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     mcmCreator->SetUseConstrainedDiffusivity(true);
     mcmCreator->SetUseConstrainedFreeWaterDiffusivity(m_UseConstrainedFreeWaterDiffusivity);
     mcmCreator->SetUseConstrainedIRWDiffusivity(m_UseConstrainedIRWDiffusivity);
-    mcmCreator->SetUseConstrainedStaniszParameters(m_UseConstrainedStaniszParameters);
     mcmCreator->SetUseCommonDiffusivities(m_UseCommonDiffusivities);
 
     MCMPointer mcmUpdateValue = mcmCreator->GetNewMultiCompartmentModel();

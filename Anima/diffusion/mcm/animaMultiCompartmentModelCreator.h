@@ -42,7 +42,6 @@ public:
     void SetUseConstrainedExtraAxonalFraction(bool arg) {m_UseConstrainedExtraAxonalFraction = arg;}
     void SetUseConstrainedFreeWaterDiffusivity(bool arg) {m_UseConstrainedFreeWaterDiffusivity = arg;}
     void SetUseConstrainedIRWDiffusivity(bool arg) {m_UseConstrainedIRWDiffusivity = arg;}
-    void SetUseConstrainedStaniszParameters(bool arg) {m_UseConstrainedStaniszParameters = arg;}
     void SetUseBoundedOptimization(bool arg) {m_UseBoundedOptimization = arg;}
 
     bool GetUseConstrainedDiffusivity() {return m_UseConstrainedDiffusivity;}
@@ -95,7 +94,6 @@ private:
     bool m_UseConstrainedExtraAxonalFraction;
     bool m_UseConstrainedFreeWaterDiffusivity;
     bool m_UseConstrainedIRWDiffusivity;
-    bool m_UseConstrainedStaniszParameters;
     bool m_UseBoundedOptimization;
 
     bool m_UseCommonDiffusivities;
