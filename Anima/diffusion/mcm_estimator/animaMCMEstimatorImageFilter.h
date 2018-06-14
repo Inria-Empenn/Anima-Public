@@ -295,9 +295,6 @@ protected:
         m_MaxEval = 0;
         m_XTolerance = 0;
         m_GTolerance = 0;
-        
-        m_KappaCoarseGrid.clear();
-        m_FractionCoarseGrid.clear();
     }
 
     virtual ~MCMEstimatorImageFilter()
@@ -336,13 +333,8 @@ protected:
                                        itk::ThreadIdType threadId, double &aiccValue, double &b0Value, double &sigmaSqValue);
 
     //! Doing estimation, calling initialization procedure until ball and zeppelin, returns AICc value
-    void TrunkModelEstimation(MCMPointer &mcmValue, std::vector <double> &observedSignals, itk::ThreadIdType threadId,
-                              double &aiccValue, double &b0Value, double &sigmaSqValue);
-
-    //! Perform additional estimation after ball and zeppelin if needed
-    // Input should be the previous ball and zeppelin model, will be replaced by result
-    virtual void SpecificModelEstimation(MCMPointer &mcmValue, std::vector <double> &observedSignals, itk::ThreadIdType threadId,
-                                         double &aiccValue, double &b0Value, double &sigmaSqValue);
+    void ModelEstimation(MCMPointer &mcmValue, std::vector <double> &observedSignals, itk::ThreadIdType threadId,
+                         double &aiccValue, double &b0Value, double &sigmaSqValue);
     
     //! Performs an optimization of the supplied cost function and parameters using the specified optimizer(s). Returns the optimized parameters.
     double PerformSingleOptimization(ParametersType &p, CostFunctionBasePointer &cost, itk::Array<double> &lowerBounds,
@@ -366,6 +358,20 @@ protected:
 
     //! Compute AICc value from a cost function value and model
     double ComputeAICcValue(MCMPointer &mcmValue, double costValue);
+
+    //! Computes extra axonal and kappa coarse grids (used for NODDI initialization)
+    void ComputeNODDIExtraAxonalAndKappaCoarseGrids();
+
+    //! Computes extra axonal and kappa coarse grids (used for tensor final initaialization)
+    void ComputeTensorRadialDiffsAndAzimuthCoarseGrids();
+
+    //! Coarse grid initialization of NODDI model
+    void NODDICoarseGridInitialization(MCMPointer &mcmUpdateValue, CostFunctionBasePointer &cost,
+                                       MCMType::ListType &workVec,ParametersType &p);
+
+    //! Coarse grid initialization of tensor model
+    void TensorCoarseGridInitialization(MCMPointer &mcmUpdateValue, CostFunctionBasePointer &cost,
+                                        MCMType::ListType &workVec,ParametersType &p);
 
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(MCMEstimatorImageFilter);
@@ -422,8 +428,8 @@ private:
     double m_XTolerance;
     double m_GTolerance;
     
-    const unsigned int m_CoarseGridSize = 8;
-    std::vector<double> m_KappaCoarseGrid, m_FractionCoarseGrid;
+    //! Coarse grid values for complex model initialization
+    std::vector < std::vector <double> > m_ValuesCoarseGrid;
 };
 
 } // end namespace anima
