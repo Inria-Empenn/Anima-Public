@@ -4,10 +4,12 @@
 #include <animaLevenbergTools.h>
 #include <animaKummerFunctions.h>
 #include <animaWatsonDistribution.h>
+#include <animaMCMConstants.h>
 #include <boost/math/special_functions/legendre.hpp>
 
 namespace anima
 {
+
 void NODDICompartment::UpdateSignals(double bValue, const Vector3DType &gradient)
 {
     if (std::abs(bValue - m_CurrentBValue) < 1.0e-6 && anima::ComputeNorm(gradient - m_CurrentGradient) < 1.0e-6 && !m_ModifiedParameters)
@@ -90,16 +92,18 @@ void NODDICompartment::UpdateSignals(double bValue, const Vector3DType &gradient
     m_ModifiedParameters = false;
 }
 
-double NODDICompartment::GetFourierTransformedDiffusionProfile(double bValue, const Vector3DType &gradient)
+double NODDICompartment::GetFourierTransformedDiffusionProfile(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient)
 {
+    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
     this->UpdateSignals(bValue, gradient);
     double nuec = this->GetExtraAxonalFraction();
     double signal = (1.0 - nuec) * m_IntraAxonalSignal + nuec * m_ExtraAxonalSignal;
     return signal;
 }
     
-NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(double bValue, const Vector3DType &gradient)
+NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient)
 {
+    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
     this->UpdateSignals(bValue, gradient);
     
     m_JacobianVector.resize(this->GetNumberOfParameters());
