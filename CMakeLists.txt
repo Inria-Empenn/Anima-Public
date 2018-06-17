@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1.0)
 
 cmake_policy(SET CMP0048 NEW)
-project(ANIMA_SUPERBUILD VERSION 3.1)
+project(ANIMA_SUPERBUILD VERSION 3.2)
 
 set(${PROJECT_NAME}_CMAKE_DIRS
   ${CMAKE_SOURCE_DIR}/Anima/cmake
