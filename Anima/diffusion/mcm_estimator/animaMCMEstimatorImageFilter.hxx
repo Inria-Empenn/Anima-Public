@@ -6,7 +6,7 @@
 
 #include <animaNLOPTOptimizers.h>
 #include <itkLevenbergMarquardtOptimizer.h>
-#include <animaMatchingPursuitOptimizer.h>
+#include <animaNNOrthogonalMatchingPursuitOptimizer.h>
 
 #include <animaMCMSingleValuedCostFunction.h>
 #include <animaMCMMultipleValuedCostFunction.h>
@@ -16,10 +16,7 @@
 #include <animaVectorOperations.h>
 #include <animaSphereOperations.h>
 
-#include <animaDTIEstimationImageFilter.h>
 #include <animaBaseTensorTools.h>
-
-#include <animaTensorCompartment.h>
 #include <animaMCMFileWriter.h>
 
 #include <boost/math/tools/toms748_solve.hpp>
@@ -206,116 +203,12 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
         m_MCMCreators[i] = this->GetNewMCMCreatorInstance();
 
-    typedef anima::DTIEstimationImageFilter <InputPixelType, OutputPixelType> DTIEstimationFilterType;
-    typename DTIEstimationFilterType::Pointer dtiEstimator = DTIEstimationFilterType::New();
-
-    dtiEstimator->SetBValuesList(m_BValuesList);
-    dtiEstimator->SetNumberOfThreads(this->GetNumberOfThreads());
-    dtiEstimator->SetComputationMask(this->GetComputationMask());
-    dtiEstimator->SetVerboseProgression(false);
-
-    for(unsigned int i = 0;i < this->GetNumberOfIndexedInputs();++i)
-    {
-        dtiEstimator->AddGradientDirection(i,m_GradientDirections[i]);
-        dtiEstimator->SetInput(i,this->GetInput(i));
-    }
-
-    dtiEstimator->Update();
-
-    m_InitialDTImage = dtiEstimator->GetOutput();
-    m_InitialDTImage->DisconnectPipeline();
-
     // Use default known values for diffusivities (would be nice to store those values somewhere else)
     m_AxialDiffusivityFixedValue = 1.71e-3;
     m_RadialDiffusivity1FixedValue = 1.5e-4;
     m_RadialDiffusivity2FixedValue = 1.5e-4;
-
-    if ((!m_ExternalDTIParameters)&&(!m_AbsoluteInitialDiffusivities))
-    {
-        m_AxialDiffusivityFixedValue = 0;
-        m_RadialDiffusivity1FixedValue = 0;
-        m_RadialDiffusivity2FixedValue = 0;
-        unsigned int numValues = 0;
-
-        typedef itk::ImageRegionConstIterator <VectorImageType> DTImageIteratorType;
-        unsigned int tensDim = 3;
-        vnl_matrix <double> tmpTensor(tensDim,tensDim);
-
-        typedef itk::SymmetricEigenAnalysis < vnl_matrix <double>, vnl_diag_matrix<double>, vnl_matrix <double> > EigenAnalysisType;
-
-        EigenAnalysisType eigenAnalysis(tensDim);
-        vnl_diag_matrix <double> eigVals(tensDim);
-
-        VariableLengthVectorType dataDTI(6);
-        DTImageIteratorType dtiIterator (m_InitialDTImage,m_InitialDTImage->GetLargestPossibleRegion());
-        while (!dtiIterator.IsAtEnd())
-        {
-            dataDTI = dtiIterator.Get();
-
-            bool zeroTensor = true;
-            for (unsigned int i = 0;i < 6;++i)
-            {
-                if (dataDTI[i] != 0)
-                {
-                    zeroTensor = false;
-                    break;
-                }
-            }
-
-            if (zeroTensor)
-            {
-                ++dtiIterator;
-                continue;
-            }
-
-            anima::GetTensorFromVectorRepresentation(dataDTI,tmpTensor,tensDim);
-            eigenAnalysis.ComputeEigenValues(tmpTensor,eigVals);
-
-            if (eigVals[0] <= 0)
-            {
-                ++dtiIterator;
-                continue;
-            }
-
-            double fa = 0;
-            double adc = 0;
-            double faDenom = 0;
-
-            for (unsigned int i = 0;i < tensDim;++i)
-            {
-                faDenom += eigVals[i] * eigVals[i];
-                adc += eigVals[i];
-                for (unsigned int j = i+1;j < tensDim;++j)
-                    fa += (eigVals[i] - eigVals[j])*(eigVals[i] - eigVals[j]);
-            }
-
-            if (faDenom > 0)
-                fa = std::sqrt(fa / (2.0 * faDenom));
-            else
-                fa = 0.0;
-
-            adc /= tensDim;
-
-            if ((fa > 0.8) && (adc < 3.0e-3) && (adc > 1.0e-4))
-            {
-                m_AxialDiffusivityFixedValue += eigVals[2];
-                m_RadialDiffusivity1FixedValue += eigVals[1];
-                m_RadialDiffusivity2FixedValue += eigVals[0];
-                ++numValues;
-            }
-
-            ++dtiIterator;
-        }
-
-        if (numValues > 0)
-        {
-            m_AxialDiffusivityFixedValue /= numValues;
-            m_RadialDiffusivity1FixedValue /= numValues;
-            m_RadialDiffusivity2FixedValue /= numValues;
-        }
-    }
     
-    std::cout << "Stick diffusivities derived from DTI:" << std::endl;
+    std::cout << "Stick initial diffusivities:" << std::endl;
     std::cout << " - Axial diffusivity: " << m_AxialDiffusivityFixedValue << " mm2/s," << std::endl;
     std::cout << " - First radial diffusivity: " << m_RadialDiffusivity1FixedValue << " mm2/s," << std::endl;
     std::cout << " - Second radial diffusivity: " << m_RadialDiffusivity2FixedValue << " mm2/s." << std::endl;
@@ -540,7 +433,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     typedef itk::ImageRegionIterator <OutputImageType> OutImageIteratorType;
     typedef itk::ImageRegionConstIterator <VectorImageType> VectorImageIteratorType;
     OutImageIteratorType outIterator(this->GetOutput(),outputRegionForThread);
-    VectorImageIteratorType initDTIterator(m_InitialDTImage,outputRegionForThread);
 
     typedef itk::ImageRegionIterator <MaskImageType> MaskIteratorType;
     MaskIteratorType maskItr(this->GetComputationMask(),outputRegionForThread);
@@ -562,7 +454,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     MCMType::ListType outputWeights(outputMCMData->GetNumberOfCompartments(),0);
 
     double aiccValue, b0Value, sigmaSqValue;
-    anima::BaseCompartment::ModelOutputVectorType initDTIValue;
 
     while (!outIterator.IsAtEnd())
     {
@@ -580,7 +471,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
             ++aiccIterator;
             ++b0Iterator;
             ++sigmaIterator;
-            ++initDTIterator;
             ++moseIterator;
 
             continue;
@@ -603,8 +493,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
         if (estimateNonIsoCompartments)
         {
-            initDTIValue = initDTIterator.Get();
-
             // If model selection, handle it here
             unsigned int minimalNumberOfCompartments = m_NumberOfCompartments;
             unsigned int maximalNumberOfCompartments = m_NumberOfCompartments;
@@ -629,7 +517,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
                 double tmpAiccValue = 0;
                 MCMPointer mcmValue;
 
-                this->OptimizeNonIsotropicCompartments(mcmValue,i,initDTIValue,observedSignals,threadId,tmpAiccValue,tmpB0Value,tmpSigmaSqValue);
+                this->OptimizeNonIsotropicCompartments(mcmValue,i,observedSignals,threadId,tmpAiccValue,tmpB0Value,tmpSigmaSqValue);
 
                 if ((tmpAiccValue < aiccValue)||(!m_FindOptimalNumberOfCompartments))
                 {
@@ -677,7 +565,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         ++aiccIterator;
         ++b0Iterator;
         ++sigmaIterator;
-        ++initDTIterator;
         ++moseIterator;
     }
 }
@@ -686,7 +573,6 @@ template <class InputPixelType, class OutputPixelType>
 void
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::OptimizeNonIsotropicCompartments(MCMPointer &mcmValue, unsigned int currentNumberOfCompartments,
-                                   BaseCompartment::ModelOutputVectorType &initialDTI,
                                    std::vector <double> &observedSignals, itk::ThreadIdType threadId,
                                    double &aiccValue, double &b0Value, double &sigmaSqValue)
 {
@@ -694,51 +580,10 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     sigmaSqValue = 1;
     aiccValue = -1;
 
-    double optimalB0Value = 0;
-    double optimalSigmaSqValue = 0;
-    double optimalAiccValue = 0;
+    this->InitialOrientationsEstimation(mcmValue,currentNumberOfCompartments,observedSignals,threadId,
+                                        aiccValue,b0Value,sigmaSqValue);
 
-    std::vector <double> samplingLowerBounds;
-    std::vector <double> samplingUpperBounds;
-    MCMPointer mcmOptimizationValue;
-
-    unsigned int restartTotalNumber = 1;
-    if ((currentNumberOfCompartments > 1)&&(!m_SparseInitialization))
-        restartTotalNumber = m_NumberOfRandomRestarts;
-
-    SequenceGeneratorType generator(3*currentNumberOfCompartments);
-    samplingLowerBounds.resize(3*currentNumberOfCompartments);
-    std::fill(samplingLowerBounds.begin(),samplingLowerBounds.end(),0.0);
-    generator.SetLowerBounds(samplingLowerBounds);
-
-    samplingUpperBounds.resize(3*currentNumberOfCompartments);
-    for (unsigned int j = 0;j < currentNumberOfCompartments;++j)
-    {
-        samplingUpperBounds[j] = 1.0;
-        samplingUpperBounds[currentNumberOfCompartments+j] = M_PI;
-        samplingUpperBounds[2*currentNumberOfCompartments+j] = 2.0 * M_PI;
-    }
-
-    generator.SetUpperBounds(samplingUpperBounds);
-    for (unsigned int restartNum = 0;restartNum < restartTotalNumber;++restartNum)
-    {
-        this->InitialOrientationsEstimation(mcmOptimizationValue,currentNumberOfCompartments,initialDTI,observedSignals,
-                                            generator,threadId,aiccValue,b0Value,sigmaSqValue);
-
-        this->ModelEstimation(mcmOptimizationValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
-
-        if ((aiccValue < optimalAiccValue)||(restartNum == 0))
-        {
-            optimalB0Value = b0Value;
-            optimalAiccValue = aiccValue;
-            optimalSigmaSqValue = sigmaSqValue;
-            mcmValue = mcmOptimizationValue;
-        }
-    }
-
-    aiccValue = optimalAiccValue;
-    sigmaSqValue = optimalSigmaSqValue;
-    b0Value = optimalB0Value;
+    this->ModelEstimation(mcmValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
 }
 
 template <class InputPixelType, class OutputPixelType>
@@ -867,29 +712,16 @@ template <class InputPixelType, class OutputPixelType>
 void
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::InitialOrientationsEstimation(MCMPointer &mcmValue, unsigned int currentNumberOfCompartments,
-                                BaseCompartment::ModelOutputVectorType &initialDTI,
-                                std::vector <double> &observedSignals, SequenceGeneratorType &generator,
-                                itk::ThreadIdType threadId, double &aiccValue, double &b0Value, double &sigmaSqValue)
+                                std::vector <double> &observedSignals, itk::ThreadIdType threadId,
+                                double &aiccValue, double &b0Value, double &sigmaSqValue)
 {
-    // Single DTI is already estimated, get it to use in next step
-    // - First create output object
-    MCMCreatorType *mcmCreator = m_MCMCreators[threadId];
-    mcmCreator->SetModelWithFreeWaterComponent(false);
-    mcmCreator->SetModelWithStationaryWaterComponent(false);
-    mcmCreator->SetModelWithRestrictedWaterComponent(false);
-    mcmCreator->SetCompartmentType(Tensor);
-    mcmCreator->SetNumberOfCompartments(1);
-    mcmCreator->SetUseFixedWeights(true);
-    mcmCreator->SetUseConstrainedFreeWaterDiffusivity(false);
-    mcmCreator->SetUseConstrainedIRWDiffusivity(false);
-    mcmCreator->SetUseConstrainedDiffusivity(false);
-
-    MCMPointer mcmDTIValue = mcmCreator->GetNewMultiCompartmentModel();
-    mcmDTIValue->GetCompartment(0)->SetCompartmentVector(initialDTI);
-
     b0Value = 0;
     sigmaSqValue = 1;
     aiccValue = -1;
+
+    // Single DTI is already estimated, get it to use in next step
+    // - First create output object
+    MCMCreatorType *mcmCreator = m_MCMCreators[threadId];
 
     // - First create model
     mcmCreator->SetModelWithFreeWaterComponent(m_ModelWithFreeWaterComponent);
@@ -923,8 +755,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     CostFunctionBasePointer cost = this->CreateCostFunction(observedSignals,mcmUpdateValue);
 
-    // - Now the tricky part: initialize from previous model, handled somewhere else
-    this->InitializeStickModelFromDTI(mcmDTIValue,mcmUpdateValue,observedSignals,generator);
+    // - Now initialize sticks from dictionary
+    this->SparseInitializeSticks(mcmUpdateValue,observedSignals);
 
     // - Update ball and stick model against observed signals
     workVec = mcmUpdateValue->GetParametersAsVector();
@@ -1464,68 +1296,53 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 template <class InputPixelType, class OutputPixelType>
 void
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
-::InitializeStickModelFromDTI(MCMPointer &dtiModel, MCMPointer &complexModel, std::vector<double> &observedSignals,
-                              SequenceGeneratorType &generator)
+::SparseInitializeSticks(MCMPointer &complexModel, std::vector<double> &observedSignals)
 {
-    BaseCompartmentType *tensorCompartment = dtiModel->GetCompartment(0);
-
     unsigned int numIsotropicComponents = m_ModelWithFreeWaterComponent + m_ModelWithRestrictedWaterComponent + m_ModelWithStationaryWaterComponent;
     unsigned int numNonIsotropicComponents = complexModel->GetNumberOfCompartments() - numIsotropicComponents;
-    if (numNonIsotropicComponents > 1)
-        this->SampleStickModelCompartmentsFromDTI(tensorCompartment,complexModel,generator);
-    else
+
+    anima::NNOrthogonalMatchingPursuitOptimizer::Pointer sparseOptimizer = anima::NNOrthogonalMatchingPursuitOptimizer::New();
+    sparseOptimizer->SetDataMatrix(m_SparseSticksDictionary);
+
+    ParametersType rightHandValues(observedSignals.size());
+    for (unsigned int i = 0;i < observedSignals.size();++i)
+        rightHandValues[i] = observedSignals[i];
+
+    sparseOptimizer->SetPoints(rightHandValues);
+    sparseOptimizer->SetMaximalNumberOfWeights(numNonIsotropicComponents);
+    sparseOptimizer->SetIgnoredIndexesUpperBound(numIsotropicComponents);
+
+    sparseOptimizer->StartOptimization();
+
+    MCMType::ListType sparseWeights(complexModel->GetNumberOfCompartments(),0.0);
+    ParametersType dictionaryWeights = sparseOptimizer->GetCurrentPosition();
+
+    for (unsigned int i = 0;i < numIsotropicComponents;++i)
+        sparseWeights[i] = dictionaryWeights[i];
+
+    unsigned int pos = numIsotropicComponents;
+    for (unsigned int i = numIsotropicComponents;i < dictionaryWeights.size();++i)
     {
-        complexModel->GetCompartment(numIsotropicComponents)->SetOrientationTheta(tensorCompartment->GetOrientationTheta());
-        complexModel->GetCompartment(numIsotropicComponents)->SetOrientationPhi(tensorCompartment->GetOrientationPhi());
-    }
-
-    if (m_SparseInitialization)
-    {
-        anima::MatchingPursuitOptimizer::Pointer sparseOptimizer = anima::MatchingPursuitOptimizer::New();
-        sparseOptimizer->SetDataMatrix(m_SparseSticksDictionary);
-
-        ParametersType rightHandValues(observedSignals.size());
-        for (unsigned int i = 0;i < observedSignals.size();++i)
-            rightHandValues[i] = observedSignals[i];
-
-        sparseOptimizer->SetPoints(rightHandValues);
-        sparseOptimizer->SetMaximalNumberOfWeights(numNonIsotropicComponents);
-        sparseOptimizer->SetPositiveWeights(true);
-        sparseOptimizer->SetIgnoredIndexesUpperBound(numIsotropicComponents);
-
-        sparseOptimizer->StartOptimization();
-
-        MCMType::ListType sparseWeights(complexModel->GetNumberOfCompartments(),0.0);
-
-        ParametersType dictionaryWeights = sparseOptimizer->GetCurrentPosition();
-
-        for (unsigned int i = 0;i < numIsotropicComponents;++i)
-            sparseWeights[i] = dictionaryWeights[i];
-
-        unsigned int pos = numIsotropicComponents;
-        for (unsigned int i = numIsotropicComponents;i < dictionaryWeights.size();++i)
+        if (dictionaryWeights[i] > 0)
         {
-            if (dictionaryWeights[i] > 0)
-            {
-                sparseWeights[pos] = dictionaryWeights[i];
+            sparseWeights[pos] = dictionaryWeights[i];
 
-                anima::BaseCompartment *currentCompartment = complexModel->GetCompartment(pos);
-                currentCompartment->SetOrientationTheta(m_DictionaryDirections[i][0]);
-                currentCompartment->SetOrientationPhi(m_DictionaryDirections[i][1]);
+            anima::BaseCompartment *currentCompartment = complexModel->GetCompartment(pos);
+            currentCompartment->SetOrientationTheta(m_DictionaryDirections[i][0]);
+            currentCompartment->SetOrientationPhi(m_DictionaryDirections[i][1]);
 
-                ++pos;
-            }
+            ++pos;
         }
-
-        double sumWeights = 0;
-        for (unsigned int i = 0;i < complexModel->GetNumberOfCompartments();++i)
-            sumWeights += sparseWeights[i];
-
-        for (unsigned int i = 0;i < complexModel->GetNumberOfCompartments();++i)
-            sparseWeights[i] /= sumWeights;
-
-        complexModel->SetCompartmentWeights(sparseWeights);
     }
+
+    double sumWeights = 0;
+    for (unsigned int i = 0;i < complexModel->GetNumberOfCompartments();++i)
+        sumWeights += sparseWeights[i];
+
+    for (unsigned int i = 0;i < complexModel->GetNumberOfCompartments();++i)
+        sparseWeights[i] /= sumWeights;
+
+    complexModel->SetCompartmentWeights(sparseWeights);
 }
 
 template <class InputPixelType, class OutputPixelType>
@@ -1543,87 +1360,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     // Now we're talking about weights
     complexModel->SetCompartmentWeights(simplifiedModel->GetCompartmentWeights());
-}
-
-template <class InputPixelType, class OutputPixelType>
-void
-MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
-::SampleStickModelCompartmentsFromDTI(BaseCompartmentType *tensorCompartment, MCMPointer &complexModel,
-                                      SequenceGeneratorType &generator)
-{
-    unsigned int posFirstNonFree = complexModel->GetNumberOfIsotropicCompartments();
-    unsigned int numCompartmentsComplex = complexModel->GetNumberOfCompartments() - posFirstNonFree;
-
-    typedef anima::TensorCompartment TensorCompartmentType;
-    typedef itk::Matrix<double,3,3> MatrixType;
-    TensorCompartmentType *tensorSimplifiedCompartment = dynamic_cast <TensorCompartmentType *> (tensorCompartment);
-    if (!tensorSimplifiedCompartment)
-        itkExceptionMacro("Simplified model should be DTI, nothing else handled yet");
-
-    MatrixType diffusionTensor = tensorSimplifiedCompartment->GetDiffusionTensor();
-    itk::SymmetricEigenAnalysis <MatrixType, vnl_diag_matrix<double>, MatrixType> eigenComputer(3);
-    vnl_diag_matrix <double> eigValsTensor(3,0);
-    MatrixType eigVecsTensor;
-
-    eigenComputer.ComputeEigenValuesAndVectors(diffusionTensor, eigValsTensor, eigVecsTensor);
-
-    // Correction in case eigen values are less than 0 (degenerated tensor)
-    if (eigValsTensor[0] <= 0)
-    {
-        for (unsigned int i = 0;i < 3;++i)
-            eigValsTensor[i] = std::abs(eigValsTensor[i]);
-
-        vnl_matrix <double> tmpEigVecs = eigVecsTensor.GetVnlMatrix().as_matrix();
-        vnl_matrix <double> tmpTensor(3,3);
-        MatrixType correctedTensor;
-        anima::RecomposeTensor(eigValsTensor,tmpEigVecs,tmpTensor);
-        correctedTensor = tmpTensor;
-
-        eigenComputer.ComputeEigenValuesAndVectors(correctedTensor, eigValsTensor, eigVecsTensor);
-    }
-
-    double linearCoefficient = (eigValsTensor[2] - eigValsTensor[1]) / eigValsTensor[2];
-    double planarCoefficient = (eigValsTensor[1] - eigValsTensor[0]) / eigValsTensor[2];
-    double sphericalCoefficient = eigValsTensor[0] / eigValsTensor[2];
-
-    std::vector <double> sampledValues = generator.GetNextSequenceValue();
-
-    MatrixType dcmDirection;
-    typedef vnl_vector_fixed<double,3> GradientType;
-    GradientType orient_sph, resOrient;
-    itk::SymmetricEigenAnalysis <MatrixType, vnl_diag_matrix<double>, MatrixType> dcmComputer(3);
-    vnl_diag_matrix <double> eigValsDcm(3,0);
-    MatrixType eigVecsDcm;
-
-    for (unsigned int k = 0;k < numCompartmentsComplex;++k)
-    {
-        dcmDirection.Fill(0);
-        anima::TransformSphericalToCartesianCoordinates(sampledValues[numCompartmentsComplex + k],sampledValues[2 * numCompartmentsComplex + k],1.0,orient_sph);
-
-        for (unsigned int i = 0;i < 3;++i)
-        {
-            for (unsigned int j = i;j < 3;++j)
-            {
-                dcmDirection(i,j) += (linearCoefficient + planarCoefficient * sampledValues[k]) * eigVecsTensor(2,i) * eigVecsTensor(2,j);
-                dcmDirection(i,j) += planarCoefficient * (1.0 - sampledValues[k]) * eigVecsTensor(1,i) * eigVecsTensor(1,j);
-                dcmDirection(i,j) += sphericalCoefficient * orient_sph[i] * orient_sph[j];
-            }
-        }
-
-        for (unsigned int i = 0;i < 3;++i)
-            for (unsigned int j = i+1;j < 3;++j)
-                dcmDirection(j,i) = dcmDirection(i,j);
-
-        dcmComputer.ComputeEigenValuesAndVectors(dcmDirection, eigValsDcm, eigVecsDcm);
-
-        for (unsigned int i = 0;i < 3;++i)
-            resOrient[i] = eigVecsDcm(2,i);
-
-        anima::TransformCartesianToSphericalCoordinates(resOrient, orient_sph);
-
-        complexModel->GetCompartment(posFirstNonFree+k)->SetOrientationTheta(orient_sph[0]);
-        complexModel->GetCompartment(posFirstNonFree+k)->SetOrientationPhi(orient_sph[1]);
-    }
 }
 
 } // end namespace anima
