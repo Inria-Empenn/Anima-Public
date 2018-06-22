@@ -740,6 +740,9 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     MCMPointer mcmUpdateValue = mcmCreator->GetNewMultiCompartmentModel();
 
+    // - Now initialize sticks from dictionary
+    this->SparseInitializeSticks(mcmUpdateValue,observedSignals,threadId);
+
     unsigned int dimension = mcmUpdateValue->GetNumberOfParameters();
     ParametersType p(dimension);
     MCMType::ListType workVec(dimension);
@@ -754,9 +757,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         upperBounds[j] = workVec[j];
 
     CostFunctionBasePointer cost = this->CreateCostFunction(observedSignals,mcmUpdateValue);
-
-    // - Now initialize sticks from dictionary
-    this->SparseInitializeSticks(mcmUpdateValue,observedSignals);
 
     // - Update ball and stick model against observed signals
     workVec = mcmUpdateValue->GetParametersAsVector();
@@ -1296,7 +1296,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 template <class InputPixelType, class OutputPixelType>
 void
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
-::SparseInitializeSticks(MCMPointer &complexModel, std::vector<double> &observedSignals)
+::SparseInitializeSticks(MCMPointer &complexModel, std::vector<double> &observedSignals, itk::ThreadIdType threadId)
 {
     unsigned int numIsotropicComponents = m_ModelWithFreeWaterComponent + m_ModelWithRestrictedWaterComponent + m_ModelWithStationaryWaterComponent;
     unsigned int numNonIsotropicComponents = complexModel->GetNumberOfCompartments() - numIsotropicComponents;
@@ -1319,6 +1319,21 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     for (unsigned int i = 0;i < numIsotropicComponents;++i)
         sparseWeights[i] = dictionaryWeights[i];
+
+    unsigned int numRealAnisotropicCompartments = 0;
+    for (unsigned int i = numIsotropicComponents;i < dictionaryWeights.size();++i)
+    {
+        if (dictionaryWeights[i] > 0)
+            ++numRealAnisotropicCompartments;
+    }
+
+    if (numRealAnisotropicCompartments != numNonIsotropicComponents)
+    {
+        MCMCreatorType *mcmCreator = m_MCMCreators[threadId];
+        mcmCreator->SetNumberOfCompartments(numRealAnisotropicCompartments);
+        complexModel = mcmCreator->GetNewMultiCompartmentModel();
+        sparseWeights.resize(complexModel->GetNumberOfCompartments());
+    }
 
     unsigned int pos = numIsotropicComponents;
     for (unsigned int i = numIsotropicComponents;i < dictionaryWeights.size();++i)

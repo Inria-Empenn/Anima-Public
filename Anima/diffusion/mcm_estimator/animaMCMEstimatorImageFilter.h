@@ -342,7 +342,7 @@ protected:
                                      itk::Array<double> &upperBounds);
 
     //! Performs initialization from single DTI
-    virtual void SparseInitializeSticks(MCMPointer &complexModel, std::vector <double> &observedSignals);
+    virtual void SparseInitializeSticks(MCMPointer &complexModel, std::vector<double> &observedSignals, itk::ThreadIdType threadId);
 
     //! Performs initialization from simplified model with the same number of compartments
     virtual void InitializeModelFromSimplifiedOne(MCMPointer &simplifiedModel, MCMPointer &complexModel);
