@@ -325,7 +325,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         mcm = mcmCreator->GetNewMultiCompartmentModel();
 
         for (unsigned int i = 0;i < m_NumberOfImages;++i)
-            m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_BValuesList[i], m_GradientDirections[i]);
+            m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_SmallDelta, m_LargeDelta, m_GradientStrengths[i], m_GradientDirections[i]);
 
         ++countIsoComps;
     }
@@ -341,7 +341,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         mcm = mcmCreator->GetNewMultiCompartmentModel();
 
         for (unsigned int i = 0;i < m_NumberOfImages;++i)
-            m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_BValuesList[i], m_GradientDirections[i]);
+            m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_SmallDelta, m_LargeDelta, m_GradientStrengths[i], m_GradientDirections[i]);
 
         ++countIsoComps;
     }
@@ -357,7 +357,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         mcm = mcmCreator->GetNewMultiCompartmentModel();
 
         for (unsigned int i = 0;i < m_NumberOfImages;++i)
-            m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_BValuesList[i], m_GradientDirections[i]);
+            m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_SmallDelta, m_LargeDelta, m_GradientStrengths[i], m_GradientDirections[i]);
 
         ++countIsoComps;
     }
@@ -373,7 +373,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         mcm = mcmCreator->GetNewMultiCompartmentModel();
 
         for (unsigned int i = 0;i < m_NumberOfImages;++i)
-            m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_BValuesList[i], m_GradientDirections[i]);
+            m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_SmallDelta, m_LargeDelta, m_GradientStrengths[i], m_GradientDirections[i]);
 
         ++countIsoComps;
     }
@@ -396,7 +396,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         mcm->GetCompartment(0)->SetOrientationPhi(m_DictionaryDirections[i + countIsoComps][1]);
 
         for (unsigned int j = 0;j < m_NumberOfImages;++j)
-            m_SparseSticksDictionary(j,countIsoComps + i) = mcm->GetPredictedSignal(m_BValuesList[j], m_GradientDirections[j]);
+            m_SparseSticksDictionary(j,countIsoComps + i) = mcm->GetPredictedSignal(m_SmallDelta, m_LargeDelta, m_GradientStrengths[i], m_GradientDirections[j]);
     }
 }
 
