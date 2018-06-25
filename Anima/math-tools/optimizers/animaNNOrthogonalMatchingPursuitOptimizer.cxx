@@ -1,5 +1,6 @@
 #include <animaNNOrthogonalMatchingPursuitOptimizer.h>
 #include <limits>
+#include <algorithm>
 
 namespace anima
 {
@@ -256,17 +257,6 @@ double NNOrthogonalMatchingPursuitOptimizer::GetCurrentResidual()
         sqResidual += m_CurrentResiduals[i] * m_CurrentResiduals[i];
 
     return sqResidual;
-}
-
-bool NNOrthogonalMatchingPursuitOptimizer::CheckIndex(std::vector <unsigned int> &indexesTaken, unsigned int index)
-{
-    for (unsigned int i = 0;i < indexesTaken.size();++i)
-    {
-        if (index == indexesTaken[i])
-            return false;
-    }
-
-    return true;
 }
 
 }
