@@ -298,6 +298,12 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         ++countIsoComps;
     }
 
+    if (m_ModelWithStaniszComponent)
+    {
+        m_DictionaryDirections.insert(m_DictionaryDirections.begin(),fakeIsotropicDirection);
+        ++countIsoComps;
+    }
+
     m_SparseSticksDictionary.set_size(m_NumberOfImages,countIsoComps + m_NumberOfDictionaryEntries);
     m_SparseSticksDictionary.fill(0.0);
 
@@ -313,6 +319,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         mcmCreator->SetModelWithFreeWaterComponent(true);
         mcmCreator->SetModelWithStationaryWaterComponent(false);
         mcmCreator->SetModelWithRestrictedWaterComponent(false);
+        mcmCreator->SetModelWithStaniszComponent(false);
         mcmCreator->SetNumberOfCompartments(0);
 
         mcm = mcmCreator->GetNewMultiCompartmentModel();
@@ -328,6 +335,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         mcmCreator->SetModelWithFreeWaterComponent(false);
         mcmCreator->SetModelWithStationaryWaterComponent(true);
         mcmCreator->SetModelWithRestrictedWaterComponent(false);
+        mcmCreator->SetModelWithStaniszComponent(false);
         mcmCreator->SetNumberOfCompartments(0);
 
         mcm = mcmCreator->GetNewMultiCompartmentModel();
@@ -343,6 +351,23 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         mcmCreator->SetModelWithFreeWaterComponent(false);
         mcmCreator->SetModelWithStationaryWaterComponent(false);
         mcmCreator->SetModelWithRestrictedWaterComponent(true);
+        mcmCreator->SetModelWithStaniszComponent(false);
+        mcmCreator->SetNumberOfCompartments(0);
+
+        mcm = mcmCreator->GetNewMultiCompartmentModel();
+
+        for (unsigned int i = 0;i < m_NumberOfImages;++i)
+            m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_BValuesList[i], m_GradientDirections[i]);
+
+        ++countIsoComps;
+    }
+
+    if (m_ModelWithRestrictedWaterComponent)
+    {
+        mcmCreator->SetModelWithFreeWaterComponent(false);
+        mcmCreator->SetModelWithStationaryWaterComponent(false);
+        mcmCreator->SetModelWithRestrictedWaterComponent(false);
+        mcmCreator->SetModelWithStaniszComponent(true);
         mcmCreator->SetNumberOfCompartments(0);
 
         mcm = mcmCreator->GetNewMultiCompartmentModel();
@@ -356,6 +381,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     mcmCreator->SetModelWithFreeWaterComponent(false);
     mcmCreator->SetModelWithStationaryWaterComponent(false);
     mcmCreator->SetModelWithRestrictedWaterComponent(false);
+    mcmCreator->SetModelWithStaniszComponent(false);
     mcmCreator->SetNumberOfCompartments(1);
     mcmCreator->SetCompartmentType(Stick);
 
@@ -1310,7 +1336,8 @@ void
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::SparseInitializeSticks(MCMPointer &complexModel, std::vector<double> &observedSignals, itk::ThreadIdType threadId)
 {
-    unsigned int numIsotropicComponents = m_ModelWithFreeWaterComponent + m_ModelWithRestrictedWaterComponent + m_ModelWithStationaryWaterComponent;
+    unsigned int numIsotropicComponents = m_ModelWithFreeWaterComponent + m_ModelWithRestrictedWaterComponent
+            + m_ModelWithStaniszComponent + m_ModelWithStationaryWaterComponent;
     unsigned int numNonIsotropicComponents = complexModel->GetNumberOfCompartments() - numIsotropicComponents;
 
     anima::NNOrthogonalMatchingPursuitOptimizer::Pointer sparseOptimizer = anima::NNOrthogonalMatchingPursuitOptimizer::New();
