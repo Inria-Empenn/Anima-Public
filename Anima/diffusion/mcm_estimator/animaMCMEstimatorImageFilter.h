@@ -13,7 +13,6 @@
 #include <animaNLOPTParametersConstraintFunction.h>
 
 #include <animaHyperbolicFunctions.h>
-#include <animaNDHaltonSequenceGenerator.h>
 
 namespace anima
 {
@@ -137,7 +136,6 @@ public:
     typedef OptimizerType::ParametersType ParametersType;
     typedef itk::CostFunction CostFunctionBaseType;
     typedef CostFunctionBaseType::Pointer CostFunctionBasePointer;
-    typedef anima::NDHaltonSequenceGenerator SequenceGeneratorType;
 
     //! Denotes noise type on input signal. Based on this, a different cost function should be created
     enum SignalNoiseType
@@ -180,7 +178,6 @@ public:
 
     // Optimizer-related parameters
     void SetOptimizer(std::string &opt) {m_Optimizer = opt;}
-    itkSetMacro(NumberOfRandomRestarts, unsigned int)
     itkSetMacro(AbsoluteCostChange, double)
 
     itkSetMacro(MLEstimationStrategy, MaximumLikelihoodEstimationMode)
@@ -237,11 +234,9 @@ public:
 
     void WriteMCMOutput(std::string fileName);
 
-    itkSetMacro(ExternalDTIParameters, bool)
     itkSetMacro(AxialDiffusivityFixedValue, double)
     itkSetMacro(RadialDiffusivity1FixedValue, double)
     itkSetMacro(RadialDiffusivity2FixedValue, double)
-    itkSetMacro(AbsoluteInitialDiffusivities, bool)
 
     itkSetMacro(XTolerance, double)
     itkSetMacro(GTolerance, double)
@@ -257,9 +252,9 @@ protected:
 
         m_BValuesList.clear();
         m_GradientDirections.clear();
-        m_Optimizer = "bobyqa";
 
-        m_NumberOfRandomRestarts = 1;
+        m_NumberOfDictionaryEntries = 120;
+        m_Optimizer = "bobyqa";
         m_AbsoluteCostChange = 0.01;
         m_B0Threshold = 0;
         m_MLEstimationStrategy = Marginal;
@@ -298,9 +293,7 @@ protected:
         m_RadialDiffusivity2FixedValue = 1.5e-4;
 
         m_NumberOfImages = 0;
-        m_ExternalDTIParameters = false;
         m_ExternalMoseVolume = false;
-        m_AbsoluteInitialDiffusivities = false;
 
         m_MaxEval = 0;
         m_XTolerance = 0;
@@ -332,15 +325,13 @@ protected:
 
     //! Doing estimation of non isotropic compartments (for a given number of anisotropic compartments)
     void OptimizeNonIsotropicCompartments(MCMPointer &mcmValue, unsigned int currentNumberOfCompartments,
-                                          BaseCompartment::ModelOutputVectorType &initialDTI,
                                           std::vector <double> &observedSignals, itk::ThreadIdType threadId,
                                           double &aiccValue, double &b0Value, double &sigmaSqValue);
 
     //! Doing estimation only of multiple orientations
     void InitialOrientationsEstimation(MCMPointer &mcmValue, unsigned int currentNumberOfCompartments,
-                                       BaseCompartment::ModelOutputVectorType &initialDTI,
-                                       std::vector <double> &observedSignals, SequenceGeneratorType &generator,
-                                       itk::ThreadIdType threadId, double &aiccValue, double &b0Value, double &sigmaSqValue);
+                                       std::vector <double> &observedSignals, itk::ThreadIdType threadId,
+                                       double &aiccValue, double &b0Value, double &sigmaSqValue);
 
     //! Doing estimation, calling initialization procedure until ball and zeppelin, returns AICc value
     void ModelEstimation(MCMPointer &mcmValue, std::vector <double> &observedSignals, itk::ThreadIdType threadId,
@@ -351,14 +342,10 @@ protected:
                                      itk::Array<double> &upperBounds);
 
     //! Performs initialization from single DTI
-    virtual void InitializeStickModelFromDTI(MCMPointer &simplifiedModel, MCMPointer &complexModel, SequenceGeneratorType &generator);
+    virtual void SparseInitializeSticks(MCMPointer &complexModel, std::vector<double> &observedSignals, itk::ThreadIdType threadId);
 
     //! Performs initialization from simplified model with the same number of compartments
     virtual void InitializeModelFromSimplifiedOne(MCMPointer &simplifiedModel, MCMPointer &complexModel);
-
-    //! Performs direction sampling initialization from simplified model (handles only DTI right now)
-    void SampleStickModelCompartmentsFromDTI(BaseCompartmentType *tensorCompartment, MCMPointer &complexModel,
-                                             SequenceGeneratorType &generator);
 
     //! Utility function to get a value from a cost function
     double GetCostValue(CostFunctionBasePointer &cost, ParametersType &p);
@@ -386,6 +373,9 @@ protected:
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(MCMEstimatorImageFilter);
 
+    //! Utility function to initialize dictionary of sticks for initial sparse estimation
+    void InitializeDictionary();
+
     std::vector <double> m_BValuesList;
     std::vector< GradientType > m_GradientDirections;
 
@@ -394,16 +384,18 @@ private:
     OutputScalarImagePointer m_AICcVolume;
     MoseImagePointer m_MoseVolume;
 
-    VectorImagePointer m_InitialDTImage;
-
     std::vector <MCMCreatorType *> m_MCMCreators;
 
     std::string m_Optimizer;
 
+    //! Sparse dictionary for pre-, rough estimation of directions in sticks
+    vnl_matrix <double> m_SparseSticksDictionary;
+    unsigned int m_NumberOfDictionaryEntries;
+    std::vector < std::vector <double> > m_DictionaryDirections;
+
     double m_B0Threshold;
     unsigned int m_NumberOfImages;
 
-    unsigned int m_NumberOfRandomRestarts;
     double m_AbsoluteCostChange;
     MaximumLikelihoodEstimationMode m_MLEstimationStrategy;
     bool m_VNLDerivativeComputation;
@@ -435,9 +427,7 @@ private:
     double m_RadialDiffusivity1FixedValue;
     double m_RadialDiffusivity2FixedValue;
 
-    bool m_ExternalDTIParameters;
     bool m_ExternalMoseVolume;
-    bool m_AbsoluteInitialDiffusivities;
 
     unsigned int m_MaxEval;
     double m_XTolerance;
