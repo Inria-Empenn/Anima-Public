@@ -522,6 +522,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         else if (m_NumberOfCompartments > 0)
             estimateNonIsoCompartments = true;
 
+        bool hasIsoCompartment = m_ModelWithFreeWaterComponent || m_ModelWithRestrictedWaterComponent || m_ModelWithStationaryWaterComponent || m_ModelWithStaniszComponent;
         if (estimateNonIsoCompartments)
         {
             // If model selection, handle it here
@@ -532,7 +533,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
                 minimalNumberOfCompartments = 1;
                 moseValue = 0;
 
-                if (m_ModelWithFreeWaterComponent || m_ModelWithRestrictedWaterComponent || m_ModelWithStationaryWaterComponent || m_ModelWithStaniszComponent)
+                if (hasIsoCompartment)
                     this->EstimateFreeWaterModel(mcmData,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
             }
             else if (moseValue != -1)
@@ -561,7 +562,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
                 }
             }
         }
-        else if (m_ModelWithFreeWaterComponent || m_ModelWithRestrictedWaterComponent || m_ModelWithStationaryWaterComponent || m_ModelWithStaniszComponent)
+        else if (hasIsoCompartment)
             this->EstimateFreeWaterModel(mcmData,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
         else
             itkExceptionMacro("Nothing to estimate...");

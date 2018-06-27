@@ -58,8 +58,6 @@ protected:
     void ComputeOutputTensorModel();
     virtual void ComputeOutputNonTensorModel();
 
-    bool CheckTensorCompatibility(MCMCompartmentPointer &compartment);
-
 private:
     std::vector <MCMPointer> m_InputModels;
     std::vector <double> m_InputWeights;

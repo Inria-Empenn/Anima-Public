@@ -29,11 +29,6 @@ void MCMWeightedAverager::ResetNumberOfOutputDirectionalCompartments()
     m_UpToDate = false;
 }
 
-bool MCMWeightedAverager::CheckTensorCompatibility(MCMCompartmentPointer &compartment)
-{
-    return compartment->GetTensorCompatible();
-}
-
 MCMWeightedAverager::MCMPointer &MCMWeightedAverager::GetOutputModel()
 {
     if (!m_UpToDate)
@@ -144,7 +139,7 @@ void MCMWeightedAverager::Update()
         return;
     }
 
-    bool tensorCompatibility = this->CheckTensorCompatibility(m_WorkCompartmentsVector[0]);
+    bool tensorCompatibility = m_WorkCompartmentsVector[0]->GetTensorCompatible();
     if (tensorCompatibility)
         this->ComputeTensorDistanceMatrix();
     else
