@@ -10,10 +10,10 @@ namespace anima
 
 void StaniszCompartment::UpdateSignals(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient)
 {
-	if (std::abs(smallDelta - m_CurrentSmallDelta) < 1.0e-6 && std::abs(largeDelta - m_CurrentLargeDelta) && std::abs(gradientStrength - m_CurrentGradientStrength) < 1.0e-6 && anima::ComputeNorm(gradient - m_CurrentGradient) < 1.0e-6 && !m_ModifiedParameters)
-		return;
+    if (std::abs(smallDelta - m_CurrentSmallDelta) < 1.0e-6 && std::abs(largeDelta - m_CurrentLargeDelta) && std::abs(gradientStrength - m_CurrentGradientStrength) < 1.0e-6 && anima::ComputeNorm(gradient - m_CurrentGradient) < 1.0e-6 && !m_ModifiedParameters)
+        return;
 
-	double alpha = anima::DiffusionGyromagneticRatio * smallDelta * gradientStrength;
+    double alpha = anima::DiffusionGyromagneticRatio * smallDelta * gradientStrength;
     double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
     double tissueRadius = this->GetTissueRadius();
     double axialDiff = this->GetAxialDiffusivity();
@@ -67,16 +67,16 @@ void StaniszCompartment::UpdateSignals(double smallDelta, double largeDelta, dou
             break;
     }
 
-	m_CurrentSmallDelta = smallDelta;
-	m_CurrentLargeDelta = largeDelta;
-	m_CurrentGradientStrength = gradientStrength;
-	m_CurrentGradient = gradient;
-	m_ModifiedParameters = false;
+    m_CurrentSmallDelta = smallDelta;
+    m_CurrentLargeDelta = largeDelta;
+    m_CurrentGradientStrength = gradientStrength;
+    m_CurrentGradient = gradient;
+    m_ModifiedParameters = false;
 }
 
 double StaniszCompartment::GetFourierTransformedDiffusionProfile(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient)
 {
-	this->UpdateSignals(smallDelta, largeDelta, gradientStrength, gradient);
+    this->UpdateSignals(smallDelta, largeDelta, gradientStrength, gradient);
 
     double alpha = anima::DiffusionGyromagneticRatio * smallDelta * gradientStrength;
     double alphaRs = alpha * this->GetTissueRadius();
@@ -90,7 +90,7 @@ double StaniszCompartment::GetFourierTransformedDiffusionProfile(double smallDel
 
 StaniszCompartment::ListType &StaniszCompartment::GetSignalAttenuationJacobian(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient)
 {
-	this->UpdateSignals(smallDelta, largeDelta, gradientStrength, gradient);
+    this->UpdateSignals(smallDelta, largeDelta, gradientStrength, gradient);
 
     m_JacobianVector.resize(this->GetNumberOfParameters());
 
@@ -118,13 +118,13 @@ StaniszCompartment::ListType &StaniszCompartment::GetSignalAttenuationJacobian(d
 
     if (m_EstimateAxialDiffusivity)
     {
-    	// Derivative w.r.t. D_I
-	    double aDiffDeriv = 1.0;
-	    if (this->GetUseBoundedOptimization())
-	        aDiffDeriv = levenberg::BoundedDerivativeAddOn(axialDiff, this->GetBoundedSignVectorValue(1),
-	                                                       m_DiffusivityLowerBound, m_DiffusivityUpperBound);
+        // Derivative w.r.t. D_I
+        double aDiffDeriv = 1.0;
+        if (this->GetUseBoundedOptimization())
+            aDiffDeriv = levenberg::BoundedDerivativeAddOn(axialDiff, this->GetBoundedSignVectorValue(1),
+                                                           m_DiffusivityLowerBound, m_DiffusivityUpperBound);
 
-	    m_JacobianVector[1] = - 4.0 * bValue * piSquare * m_SecondSummation * aDiffDeriv;
+        m_JacobianVector[1] = - 4.0 * bValue * piSquare * m_SecondSummation * aDiffDeriv;
     }
 
     return m_JacobianVector;
@@ -181,7 +181,7 @@ StaniszCompartment::ListType &StaniszCompartment::GetParametersAsVector()
     m_ParametersVector[0] = this->GetTissueRadius();
 
     if (m_EstimateAxialDiffusivity)
-    	m_ParametersVector[1] = this->GetAxialDiffusivity() - this->GetRadialDiffusivity1();
+        m_ParametersVector[1] = this->GetAxialDiffusivity() - this->GetRadialDiffusivity1();
     
     if (this->GetUseBoundedOptimization())
         this->UnboundParameters(m_ParametersVector);
@@ -196,7 +196,7 @@ StaniszCompartment::ListType &StaniszCompartment::GetParameterLowerBounds()
     m_ParametersLowerBoundsVector[0] = m_TissueRadiusLowerBound;
 
     if (m_EstimateAxialDiffusivity)
-    	m_ParametersLowerBoundsVector[1] = m_ZeroLowerBound;
+        m_ParametersLowerBoundsVector[1] = m_ZeroLowerBound;
 
     return m_ParametersLowerBoundsVector;
 }
@@ -208,7 +208,7 @@ StaniszCompartment::ListType &StaniszCompartment::GetParameterUpperBounds()
     m_ParametersUpperBoundsVector[0] = m_TissueRadiusUpperBound;
 
     if (m_EstimateAxialDiffusivity)
-    	m_ParametersUpperBoundsVector[1] = m_DiffusivityUpperBound;
+        m_ParametersUpperBoundsVector[1] = m_DiffusivityUpperBound;
 
     return m_ParametersUpperBoundsVector;
 }
