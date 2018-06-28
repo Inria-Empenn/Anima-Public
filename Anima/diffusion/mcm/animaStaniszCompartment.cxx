@@ -8,6 +8,8 @@
 namespace anima
 {
 
+const double StaniszCompartment::m_StaniszAxialDiffusivityLowerBound = 1.5e-4;
+
 void StaniszCompartment::UpdateSignals(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient)
 {
     if (std::abs(smallDelta - m_CurrentSmallDelta) < 1.0e-6 && std::abs(largeDelta - m_CurrentLargeDelta) && std::abs(gradientStrength - m_CurrentGradientStrength) < 1.0e-6 && anima::ComputeNorm(gradient - m_CurrentGradient) < 1.0e-6 && !m_ModifiedParameters)
@@ -171,7 +173,7 @@ void StaniszCompartment::SetParametersFromVector(const ListType &params)
     this->SetTissueRadius(m_BoundedVector[0]);
 
     if (m_EstimateAxialDiffusivity)
-        this->SetAxialDiffusivity(m_BoundedVector[1] + this->GetRadialDiffusivity1());
+        this->SetAxialDiffusivity(m_BoundedVector[1]);
 }
 
 StaniszCompartment::ListType &StaniszCompartment::GetParametersAsVector()
@@ -181,7 +183,7 @@ StaniszCompartment::ListType &StaniszCompartment::GetParametersAsVector()
     m_ParametersVector[0] = this->GetTissueRadius();
 
     if (m_EstimateAxialDiffusivity)
-        m_ParametersVector[1] = this->GetAxialDiffusivity() - this->GetRadialDiffusivity1();
+        m_ParametersVector[1] = this->GetAxialDiffusivity();
     
     if (this->GetUseBoundedOptimization())
         this->UnboundParameters(m_ParametersVector);
@@ -196,7 +198,7 @@ StaniszCompartment::ListType &StaniszCompartment::GetParameterLowerBounds()
     m_ParametersLowerBoundsVector[0] = m_TissueRadiusLowerBound;
 
     if (m_EstimateAxialDiffusivity)
-        m_ParametersLowerBoundsVector[1] = m_ZeroLowerBound;
+        m_ParametersLowerBoundsVector[1] = m_StaniszAxialDiffusivityLowerBound;
 
     return m_ParametersLowerBoundsVector;
 }
@@ -223,7 +225,7 @@ void StaniszCompartment::BoundParameters(const ListType &params)
     
     if (m_EstimateAxialDiffusivity)
     {
-        m_BoundedVector[1] = levenberg::ComputeBoundedValue(params[1],inputSign, m_ZeroLowerBound, m_DiffusivityUpperBound);
+        m_BoundedVector[1] = levenberg::ComputeBoundedValue(params[1],inputSign, m_StaniszAxialDiffusivityLowerBound, m_DiffusivityUpperBound);
         this->SetBoundedSignVectorValue(1,inputSign);
     }
 }
@@ -233,7 +235,7 @@ void StaniszCompartment::UnboundParameters(ListType &params)
     params[0] = levenberg::UnboundValue(params[0], m_TissueRadiusLowerBound, m_TissueRadiusUpperBound);
     
     if (m_EstimateAxialDiffusivity)
-        params[1] = levenberg::UnboundValue(params[1], m_ZeroLowerBound, m_DiffusivityUpperBound);
+        params[1] = levenberg::UnboundValue(params[1], m_StaniszAxialDiffusivityLowerBound, m_DiffusivityUpperBound);
 }
 
 void StaniszCompartment::SetEstimateAxialDiffusivity(bool arg)
