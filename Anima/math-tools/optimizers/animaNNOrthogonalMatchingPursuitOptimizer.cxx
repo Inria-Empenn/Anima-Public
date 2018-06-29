@@ -46,6 +46,9 @@ void NNOrthogonalMatchingPursuitOptimizer::PerformMatchingPursuit(bool workOnIgn
         numAtoms = m_IgnoredIndexesUpperBound;
     }
 
+    if (dictionarySize == 0)
+        return;
+
     unsigned int currentPos = m_OptimalIndexes.size();
     bool continueMainLoop = true;
     unsigned int numIndexesDone = 0;
