@@ -80,7 +80,7 @@ bool SegPerfApp::init(int argc, char *argv[])
     TCLAP::ValueArg<std::string> oArgRefImg("r", "ref", "Reference image to compare input image.", true, "", "string", cmd);
 
     // Define a value argument and add it to the command line.
-    TCLAP::ValueArg<std::string> oArgBaseOutputName("o", "outputBase", "Base name for output files", false, "", "string", cmd);
+    TCLAP::ValueArg<std::string> oArgBaseOutputName("o", "outputBase", "Base name for output files", true, "", "string", cmd);
 
     // Define a value argument and add it to the command line.
     TCLAP::ValueArg<int> oArgNbThreads("t", "threads", "Number of threads", false, 0, "int", cmd);
