@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <itkImageFileReader.h>
 #include <itkImageRegionConstIterator.h>
-#include "SegmentationMeasuresImageFilter.h"
+#include <SegmentationMeasuresImageFilter.h>
 #include <itkLabelContourImageFilter.h>
 #include <itkBinaryContourImageFilter.h>
 #include <itkSimpleFilterWatcher.h>
@@ -16,25 +16,16 @@
 #include <itkImageDuplicator.h>
 
 /**
-* @file Analyzer.h
-* @brief Description of CAnalyzer class. The class to compute various metrics to evaluate segmentation results.
-* @author Baptiste LAURENT
-* @author Florent  LERAY
-* @date 12/04/2016
-* @version 2.0
-*/
-
-/**
 * @class CAnalyzer Analyzer.h "Class to compute various metrics to evaluate segmentation results."
 * @brief Class to compute various metrics to evaluate segmentation results.
 */
 class CAnalyzer
 {    
 public:
-    CAnalyzer(char *pi_pchImageTestName, char *pi_pchImageRefName, bool advancedEvaluation);
+    CAnalyzer(std::string &pi_pchImageTestName, std::string &pi_pchImageRefName, bool advancedEvaluation);
     ~CAnalyzer();
 
-    bool checkImagesMatixAndVolumes();
+    bool checkImagesMatrixAndVolumes();
 
     void setNbThreads(int pi_iNbThreads);
     void selectCluster(unsigned int);
@@ -83,14 +74,14 @@ protected:
     void contourDectection();
     void checkNumberOfLabels(int, int);
 
-    int getTruePositiveLesions(int pi_iNbLabelsRef, int pi_iNbLabelsTest, int * *pi_ppiOverlapTab);
-    bool falsePositiveRatioTester(int pi_iLessionReference, int pi_iNbLabelsTest, int pi_iNbLabelsRef, int * *pi_ppiOverlapTab, int *pi_piTPRowSumTab, int *pi_piColumnSumTab, double pi_dfBeta, double pi_dfGamma);
-    void getOverlapTab(int&po_iNbLabelsRef, int&po_iNbLabelsTest, int* *&po_ppiOverlapTab);
+    int getTruePositiveLesions(int pi_iNbLabelsRef, int pi_iNbLabelsTest, int **pi_ppiOverlapTab);
+    bool falsePositiveRatioTester(int pi_iLessionReference, int pi_iNbLabelsTest, int pi_iNbLabelsRef, int **pi_ppiOverlapTab, int *pi_piTPRowSumTab, int *pi_piColumnSumTab, double pi_dfBeta, double pi_dfGamma);
+    void getOverlapTab(int&po_iNbLabelsRef, int&po_iNbLabelsTest, int **&po_ppiOverlapTab);
 
 private:
-    CAnalyzer();
+    CAnalyzer() {}
     void transposer(int pi_iNbLabelsRef, int pi_iNbLabelsTest, int * *pi_ppiOverlapTab, int* *&po_rppiOverlapTabTransposed);
-    void removeOverlapTab(int * *pi_ppiOverlapTab, int pi_iNbLabelsRef);
+    void removeOverlapTab(int **pi_ppiOverlapTab, int pi_iNbLabelsRef);
 
     unsigned int m_uiNbLabels;   /*!<Number of Labels. */
     bool m_bValuesComputed;      /*!<Boolean to check if values have been computed. */
@@ -105,7 +96,7 @@ private:
     typedef itk::Image <unsigned short, 3> ImageType;
     typedef itk::ImageFileReader <ImageType> ImageReaderType;
     typedef itk::ImageRegionConstIterator <ImageType> ImageIteratorType;
-    typedef itk::SegmentationMeasuresImageFilter<ImageType> FilterType;
+    typedef anima::SegmentationMeasuresImageFilter<ImageType> FilterType;
 
     ImageType::Pointer m_imageTest;
     ImageType::Pointer m_imageRef;

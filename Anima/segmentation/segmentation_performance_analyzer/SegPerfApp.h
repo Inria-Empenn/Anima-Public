@@ -1,11 +1,5 @@
 #pragma once
-/**
- * @file SegPerfApp.h
- * @brief Description of CSegPerfApp class, the main class. It structures application and application progress.
- * @author Florent Leray
- * @date 13/04/2016
- * @version 2.0
- */
+
 #include <Results.h>
 #include <Analyzer.h>
 
@@ -54,7 +48,7 @@ private:
     //////////////////////////////////////////////////////////////////////////
     // general informations
     int m_iNbThreads;     /*<! number of thread used by processing. */
-    char *m_pchOutBase;   /*<! base name used for output file. */
+    std::string m_pchOutBase;   /*<! base name used for output file. */
 
     //////////////////////////////////////////////////////////////////////////
     // Detection scores parameters
@@ -72,10 +66,10 @@ public:
     ~CSegPerfApp(void);
 
     bool init(int argc, char *argv[]);
-    bool checkParamsChoerancy();
-    void checkOutputChoerancy();
-    void preparOutput();
-    long play();
+    bool checkParamsCoherence();
+    void checkOutputCoherence();
+    void prepareOutput();
+    void play();
 
     static void about();
 

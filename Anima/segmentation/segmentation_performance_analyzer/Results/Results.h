@@ -1,32 +1,5 @@
 #pragma once
-
-/**
- * @file Results.h
- * @brief Description of CResults class. The class to format and saves results.
- * @author Florent Leray
- * @date 13/04/2016
- * @version 2.0
- */
-#define DEL(x)  {if (x) delete(x); }
-#define MDEL(x) {if (x) delete[] (x); }
-
-typedef enum
-{
-    eMesureJaccard = 0,
-    eMesureDice,
-    eMesureSensibility,
-    eMesureSpecificity,
-    eMesurePPV,
-    eMesureNPV,
-    eMesureRelativeVolumeError,
-    eMesureDistHausdorff,
-    eMesureDistMean,
-    eMesureDistAverage,
-    eMesurePPVL,
-    eMesureSensL,
-    eMesureF1Test,
-    eMesureLast
-}eMesureName;
+#include <string>
 
 /**
 * @class CResults
@@ -34,18 +7,26 @@ typedef enum
 */
 class CResults
 {
-private:
-    float m_fResTab[eMesureLast];       /*!<Table of measurements results. */
-    bool m_bResActiveTab[eMesureLast];  /*!<Table of measurements present in outputs*/
-    bool m_bTxt;                        /*!<Enable txt output results format. */
-    bool m_bXml;                        /*!<Enable Xml output results format. */
-    bool m_bScreen;                     /*!<Enable screen output results format. */
-    char *m_pchBaseOutputFileName;      /*!<Base name for output results file. */
-
-    static char const*const m_ppchMeasureNameTable[eMesureLast];   /*!<Table to associate a measure name for each measure index defined into eMesureName */
-
 public:
-    CResults(char *pi_pchBaseFileName);
+    typedef enum
+    {
+        eMesureJaccard = 0,
+        eMesureDice,
+        eMesureSensibility,
+        eMesureSpecificity,
+        eMesurePPV,
+        eMesureNPV,
+        eMesureRelativeVolumeError,
+        eMesureDistHausdorff,
+        eMesureDistMean,
+        eMesureDistAverage,
+        eMesurePPVL,
+        eMesureSensL,
+        eMesureF1Test,
+        eMesureLast
+    }eMesureName;
+
+    CResults(std::string &pi_pchBaseFileName);
     ~CResults();
 
     bool save();
@@ -200,4 +181,13 @@ public:
 
 private:
     CResults();
+
+    float m_fResTab[eMesureLast];       /*!<Table of measurements results. */
+    bool m_bResActiveTab[eMesureLast];  /*!<Table of measurements present in outputs*/
+    bool m_bTxt;                        /*!<Enable txt output results format. */
+    bool m_bXml;                        /*!<Enable Xml output results format. */
+    bool m_bScreen;                     /*!<Enable screen output results format. */
+    std::string m_pchBaseOutputFileName; /*!<Base name for output results file. */
+
+    static char const*const m_ppchMeasureNameTable[eMesureLast];   /*!<Table to associate a measure name for each measure index defined into eMesureName */
 };

@@ -1,11 +1,3 @@
-/**
-* @file Analyzer.cpp
-* @brief Implementation of CAnalyzer class. The class to compute various metrics to evaluate segmentation results.
-* @author Baptiste LAURENT
-* @author Florent LERAY
-* @date 30/09/2014
-* @version 2.0
-*/
 #include "Analyzer.h"
 #include <vector>
 #include <algorithm>
@@ -17,12 +9,6 @@
 #include <itkMultiThreader.h>
 #include <itkImageDuplicator.h>
 
-using namespace std;
-
-CAnalyzer::CAnalyzer()
-{
-}
-
 /**
    @brief    Constructor.
    @details  Read input images
@@ -30,7 +16,7 @@ CAnalyzer::CAnalyzer()
    @param	[in] pi_pchImageRefName Name of the ground truth image
    @param	[in] bAdvancedEvaluation
 */
-CAnalyzer::CAnalyzer(char *pi_pchImageTestName, char *pi_pchImageRefName, bool bAdvancedEvaluation)
+CAnalyzer::CAnalyzer(std::string &pi_pchImageTestName, std::string &pi_pchImageRefName, bool bAdvancedEvaluation)
 {
     m_ThreadNb = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
 
@@ -61,7 +47,6 @@ CAnalyzer::CAnalyzer(char *pi_pchImageTestName, char *pi_pchImageRefName, bool b
     ImageReaderType::Pointer imageRefReader = ImageReaderType::New();
     imageRefReader->SetFileName(pi_pchImageRefName);
 
-
     try
     {
         imageRefReader->Update();
@@ -74,19 +59,16 @@ CAnalyzer::CAnalyzer(char *pi_pchImageTestName, char *pi_pchImageRefName, bool b
         return;
     }
 
-
-
     m_imageRef = imageRefReader->GetOutput();
 
-    if (!checkImagesMatixAndVolumes())
-    {
+    if (!checkImagesMatrixAndVolumes())
         throw std::runtime_error("Images are incompatible");
-    }
 
     this->formatLabels();
 
     if(bAdvancedEvaluation && m_uiNbLabels > 2)
-    { //TO DO : attention si pas meme nombre de labels
+    {
+        //TO DO : attention si pas meme nombre de labels
         typedef itk::ImageDuplicator< ImageType > DuplicatorType;
         DuplicatorType::Pointer duplicator = DuplicatorType::New();
         duplicator->SetInputImage(m_imageRef);
@@ -105,10 +87,10 @@ CAnalyzer::CAnalyzer(char *pi_pchImageTestName, char *pi_pchImageRefName, bool b
 }
 
 /**
-@brief   Check if the 2 inputs images are compatible.
+@brief Check if the 2 inputs images are compatible.
 @return	true if image are compatible else false.
 */
-bool CAnalyzer::checkImagesMatixAndVolumes()
+bool CAnalyzer::checkImagesMatrixAndVolumes()
 {
     bool bRes = true;
 
@@ -422,14 +404,14 @@ void CAnalyzer::checkNumberOfLabels(int iNbLabelsImageTest, int iNbLabelsImageRe
     if(iNbLabelsImageTest<=1)
     {
         m_uiNbLabels = 1;
-        cout<<"ERROR : Number of labels for ground truth is 0 !"<<endl;
+        std::cerr << "ERROR : Number of labels for ground truth is 0 !" << std::endl;
         return;
     }
 
     if(iNbLabelsImageRef<=1)
     {
         m_uiNbLabels = 1;
-        cout<<"ERROR : Number of labels for reference image is 0 !"<<endl;
+        std::cerr << "ERROR : Number of labels for reference image is 0 !"<< std::endl;
         return;
     }
 
@@ -465,7 +447,7 @@ void CAnalyzer::checkNumberOfLabels(int iNbLabelsImageTest, int iNbLabelsImageRe
             }
 
             m_uiNbLabels = 2;
-            cout<<"WARNING : Segmented image have not the same number of labels as ground truth, it have been binarized for segmentation evaluation"<<endl;
+            std::cout << "WARNING : Segmented image have not the same number of labels as ground truth, it have been binarized for segmentation evaluation" << std::endl;
         }
 
         if(iNbLabelsImageRef > 2)
@@ -495,7 +477,7 @@ void CAnalyzer::checkNumberOfLabels(int iNbLabelsImageTest, int iNbLabelsImageRe
             }
 
             m_uiNbLabels = 2;
-            cout<<"WARNING : Ground truth have not the same number of labels as segmented image, both images have been binarized for segmentation evaluation"<<endl;
+            std::cout << "WARNING : Ground truth have not the same number of labels as segmented image, both images have been binarized for segmentation evaluation" << std::endl;
         }
     }
 }
@@ -703,7 +685,7 @@ float CAnalyzer::computeAverageSurfaceDistance()
 
         for (int i = 1; i < m_uiNbLabels; i++)
         {
-            vector<ImageType::PointType> coordRef;
+            std::vector <ImageType::PointType> coordRef;
             coordRef.clear();
             ImageIteratorType refContourIt(m_imageRefContour, m_imageRefContour->GetLargestPossibleRegion());
 
@@ -719,7 +701,7 @@ float CAnalyzer::computeAverageSurfaceDistance()
                 ++refContourIt;
             }
 
-            vector<ImageType::PointType> coordTest;
+            std::vector <ImageType::PointType> coordTest;
             coordTest.clear();
 
             ImageIteratorType testContourIt(m_imageTestContour, m_imageTestContour->GetLargestPossibleRegion());
@@ -736,7 +718,7 @@ float CAnalyzer::computeAverageSurfaceDistance()
                 ++testContourIt;
             }
 
-            vector<float> distance1, distance2;
+            std::vector <float> distance1, distance2;
             float fDistanceTemp1 = 1000000, fDistanceTemp2 = 1000000;
             float distanceValue = 0;
             for (int m = 0; m < coordRef.size(); m++)
@@ -748,10 +730,8 @@ float CAnalyzer::computeAverageSurfaceDistance()
                         fDistanceTemp1 = distanceValue;
                 }
 
-
                 distance1.push_back(fDistanceTemp1);
             }
-
 
             for (int m = 0; m < coordTest.size(); m++)
             {

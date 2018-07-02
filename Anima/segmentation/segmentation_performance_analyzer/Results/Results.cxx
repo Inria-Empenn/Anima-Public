@@ -1,17 +1,9 @@
-/**
- * @file Results.cpp
- * @brief Implementation of CResults class. The class to format and saves results.
- * @author Florent Leray
- * @date 13/04/2016
- * @version 2.0
- */
 #include "Results.h"
 
 #include <string.h>
 #include <stdio.h>
 #include <cmath>
 #include <limits>
-
 
 char const*const CResults::m_ppchMeasureNameTable[eMesureLast] =
 {
@@ -29,7 +21,6 @@ char const*const CResults::m_ppchMeasureNameTable[eMesureLast] =
     "SensL",
     "F1_score"
 };
-
 
 /**
    @brief    It is The default constructor.
@@ -51,23 +42,17 @@ CResults::CResults()
    @brief    It is the constructor to used.
    @param    [in] pi_pchBaseFileName Name of the file to evaluate.
 */
-CResults::CResults(char *pi_pchBaseFileName)
+CResults::CResults(std::string &pi_pchBaseFileName)
 {
     for (int i=0; i<eMesureLast; ++i)
     {
         m_fResTab[i] = -1;
         m_bResActiveTab[i] = false;
     }
-    if (pi_pchBaseFileName && pi_pchBaseFileName[0])
-    {
-        m_pchBaseOutputFileName = new char[strlen(pi_pchBaseFileName)+4+1];
-        strncpy(m_pchBaseOutputFileName, pi_pchBaseFileName, strlen(pi_pchBaseFileName)+4+1);
-    }
-    else
-    {
-        m_pchBaseOutputFileName = new char[4+1];
-        m_pchBaseOutputFileName[0] = 0;
-    }
+
+    if (pi_pchBaseFileName != "")
+        m_pchBaseOutputFileName = pi_pchBaseFileName;
+
     m_bTxt = true;
     m_bXml = false;
     m_bScreen = false;
@@ -79,29 +64,24 @@ CResults::CResults(char *pi_pchBaseFileName)
 */
 CResults::~CResults()
 {
-    MDEL(m_pchBaseOutputFileName);
     if(m_bScreen)
     {
         for (int i=0; i<eMesureLast; ++i)
         {
             printf("%s", m_ppchMeasureNameTable[i]);
             for (int j=0; j<(20-strlen(m_ppchMeasureNameTable[i])); ++j)
-            {
                 printf(" ");
-            }
         }
         printf("\n");
+
         for (int i=0; i<eMesureLast; ++i)
         {
             int iRest = 0;
             if (m_bResActiveTab[i])
-            {
                 iRest = printf("%f", m_fResTab[i]);
-            }
+
             for (int j=0; j<(20-iRest); ++j)
-            {
                 printf(" ");
-            }
         }
         printf("\n");
     }
@@ -119,23 +99,17 @@ bool CResults::save()
 
     if (m_bTxt)
     {
-        size_t len = strlen(m_pchBaseOutputFileName);
-        sprintf(m_pchBaseOutputFileName+len, ".txt");
-        fOut = fopen(m_pchBaseOutputFileName, "wb");
-        m_pchBaseOutputFileName[len] = 0;
+        std::string outFileName = m_pchBaseOutputFileName + ".txt";
+        fOut = fopen(outFileName.c_str(), "wb");
 
         if (fOut)
         {
             for (int i=0; i<eMesureLast; ++i)
             {
                 if (m_bResActiveTab[i])
-                {
                     bRes &= fprintf(fOut, "%f;\t", m_fResTab[i])>0;
-                }
                 else
-                {
                     bRes &= fprintf(fOut, ";\t")>0;
-                }
             }
             bRes &= fprintf(fOut, "\r\n")>0;
             fclose(fOut);
@@ -148,39 +122,31 @@ bool CResults::save()
 
     if (m_bXml)
     {
-        size_t len = strlen(m_pchBaseOutputFileName);
-        sprintf(m_pchBaseOutputFileName+len, ".xml");
-        fOut = fopen(m_pchBaseOutputFileName, "wb");
-        m_pchBaseOutputFileName[len] = 0;
+        std::string outFileName = m_pchBaseOutputFileName + ".xml";
+        fOut = fopen(outFileName.c_str(), "wb");
 
         if (fOut)
         {
-            char *pchImgName = strrchr(m_pchBaseOutputFileName, '/');
+            char *tmpStr = const_cast <char *> (m_pchBaseOutputFileName.c_str());
+            char *pchImgName = strrchr(tmpStr, '/');
             if (!pchImgName)
             {
-                pchImgName = strrchr(m_pchBaseOutputFileName, '\\');
+                pchImgName = strrchr(tmpStr, '\\');
                 if (pchImgName)
-                {
                     pchImgName++;
-                }
             }
             else
-            {
                 pchImgName++;
-            }
+
             if(!pchImgName)
-            {
-                pchImgName = m_pchBaseOutputFileName;
-            }
+                pchImgName = tmpStr;
 
             fprintf(fOut, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n");
             fprintf(fOut, "<image name=\"%s\">\r\n", pchImgName);
             for (int i=0; i<eMesureLast; ++i)
             {
                 if (m_bResActiveTab[i])
-                {
                     fprintf(fOut, "\t<measure name=\"%s\">%f</measure>\r\n", m_ppchMeasureNameTable[i], m_fResTab[i]);
-                }
             }
             fprintf(fOut, "</image>\r\n");
             fclose(fOut);
@@ -190,7 +156,6 @@ bool CResults::save()
             bRes = false;
         }
     }
-
 
     return bRes;
 }
