@@ -1,11 +1,14 @@
-#include "Results.h"
+#include "animaSegPerfResults.h"
 
 #include <string.h>
 #include <stdio.h>
 #include <cmath>
 #include <limits>
 
-char const*const CResults::m_ppchMeasureNameTable[eMesureLast] =
+namespace anima
+{
+
+char const*const SegPerfResults::m_ppchMeasureNameTable[eMesureLast] =
 {
     "Jaccard",
     "Dice",
@@ -26,7 +29,7 @@ char const*const CResults::m_ppchMeasureNameTable[eMesureLast] =
    @brief    It is The default constructor.
    @details  It is private because it must be never used.
 */
-CResults::CResults()
+SegPerfResults::SegPerfResults()
 {
     for (int i=0; i<eMesureLast; ++i)
     {
@@ -42,7 +45,7 @@ CResults::CResults()
    @brief    It is the constructor to used.
    @param    [in] pi_pchBaseFileName Name of the file to evaluate.
 */
-CResults::CResults(std::string &pi_pchBaseFileName)
+SegPerfResults::SegPerfResults(std::string &pi_pchBaseFileName)
 {
     for (int i=0; i<eMesureLast; ++i)
     {
@@ -62,7 +65,7 @@ CResults::CResults(std::string &pi_pchBaseFileName)
    @brief    Destructor.
    @details  It prints the result on screen if necessary.
 */
-CResults::~CResults()
+SegPerfResults::~SegPerfResults()
 {
     if(m_bScreen)
     {
@@ -91,7 +94,7 @@ CResults::~CResults()
    @brief    It saves results on text file or xml file in function of class default settings.
    @return   True if file(s) recording are success.
 */
-bool CResults::save()
+bool SegPerfResults::save()
 {
     bool bRes = true;
 
@@ -164,7 +167,7 @@ bool CResults::save()
 @brief    It active the saving of one specific measure. If it set twice time the effect is inverted.
 @return   True if file(s) recording are success.
 */
-bool CResults::activeMeasurementOutput(eMesureName pi_eVal)
+bool SegPerfResults::activeMeasurementOutput(eMesureName pi_eVal)
 {
     bool bRes = false;
 
@@ -181,8 +184,9 @@ bool CResults::activeMeasurementOutput(eMesureName pi_eVal)
 @brief    Get the list of all Measures available.
 @return   A constant ordered list of measures names.
 */
-char const*const*const CResults::getMeasureNameTable()
+char const*const*const SegPerfResults::getMeasureNameTable()
 {
     return m_ppchMeasureNameTable;
 }
 
+} // end namespace anima

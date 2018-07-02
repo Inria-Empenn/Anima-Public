@@ -1,5 +1,5 @@
 #pragma once
-#include "SegmentationMeasuresImageFilter.h"
+#include "animaSegmentationMeasuresImageFilter.h"
 
 #include "itkImageRegionConstIterator.h"
 #include "itkProgressReporter.h"

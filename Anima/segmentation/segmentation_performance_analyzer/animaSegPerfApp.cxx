@@ -1,11 +1,14 @@
-#include "SegPerfApp.h"
+#include "animaSegPerfApp.h"
 
 #include <tclap/CmdLine.h>
 #include <iostream>
 #include <cmath>
 #include <limits>
 
-CSegPerfApp::CSegPerfApp(void)
+namespace anima
+{
+
+SegPerfApp::SegPerfApp(void)
 {
     //////////////////////////////////////////////////////////////////////////
     // Output way
@@ -55,7 +58,7 @@ CSegPerfApp::CSegPerfApp(void)
     m_fTPLMaxFalsePositiveRatioModerator = 0.65;
 }
 
-CSegPerfApp::~CSegPerfApp(void)
+SegPerfApp::~SegPerfApp(void)
 {
 }
 
@@ -65,7 +68,7 @@ CSegPerfApp::~CSegPerfApp(void)
    @param    [in] argv is the table  of command line arguments.
    @details  The main function must delegate to it command line arguments. this method will parse and set different option values.
 */
-bool CSegPerfApp::init(int argc, char *argv[])
+bool SegPerfApp::init(int argc, char *argv[])
 {
     // Define the command line object.
     TCLAP::CmdLine cmd("Tools to analyze segmentation performances by comparison", ' ', ANIMA_VERSION);
@@ -154,7 +157,7 @@ bool CSegPerfApp::init(int argc, char *argv[])
    @brief    This method check if command line arguments are coherent between us.
    @details  If an incoherence is detected into command line arguments a message will be displayed to user and in better cases consistency will be restored.
 */
-bool CSegPerfApp::checkParamsCoherence()
+bool SegPerfApp::checkParamsCoherence()
 {
     bool bFault = false;
 
@@ -209,7 +212,7 @@ bool CSegPerfApp::checkParamsCoherence()
    @brief    This method define an output way if none are defined by command line.
    @details  For the moment the default output way is text file.
 */
-void CSegPerfApp::checkOutputCoherence()
+void SegPerfApp::checkOutputCoherence()
 {
     if (!(m_bTxt || m_bXml || m_bScreen))
     {
@@ -220,7 +223,7 @@ void CSegPerfApp::checkOutputCoherence()
 /**
    @brief    This method define the base file name for output way.
 */
-void CSegPerfApp::prepareOutput()
+void SegPerfApp::prepareOutput()
 {
     if (m_oStrBaseOut.empty())
     {
@@ -257,11 +260,11 @@ void CSegPerfApp::prepareOutput()
 /**
    @brief    This method execute images filter to obtain desired measures, marks and scores.
 */
-void CSegPerfApp::play()
+void SegPerfApp::play()
 {
     long lRes = 0;
 
-    CAnalyzer oAnalyzer(m_oStrInImage, m_oStrRefImage, m_bAdvancedEvaluation);
+    anima::SegPerfCAnalyzer oAnalyzer(m_oStrInImage, m_oStrRefImage, m_bAdvancedEvaluation);
 
     if(!oAnalyzer.checkImagesMatrixAndVolumes())
         throw itk::ExceptionObject(__FILE__, __LINE__, "Orientation matrices and volumes do not match");
@@ -290,7 +293,7 @@ void CSegPerfApp::play()
 
         sOut = outBaseTemp.str();
 
-        CResults oRes(sOut);
+        SegPerfResults oRes(sOut);
 
         processAnalyze(oAnalyzer, i);
         storeMetricsAndMarks(oRes);
@@ -306,7 +309,7 @@ void CSegPerfApp::play()
    @param    [in] pi_iIndex is label index.
    @details  This method is called by play method.
 */
-void CSegPerfApp::processAnalyze(CAnalyzer&pi_roAnalyzer, int pi_iIndex)
+void SegPerfApp::processAnalyze(SegPerfCAnalyzer &pi_roAnalyzer, int pi_iIndex)
 {
     pi_roAnalyzer.selectCluster(pi_iIndex);
 
@@ -343,11 +346,11 @@ void CSegPerfApp::processAnalyze(CAnalyzer&pi_roAnalyzer, int pi_iIndex)
 }
 
 /**
-   @brief    This method store results into CResults class instance.
+   @brief    This method store results into SegPerfResults class instance.
    @param    [in] pi_roRes is the reference output writer class instance.
    @details  This method is called by play method after processAnalyze method.
 */
-void CSegPerfApp::storeMetricsAndMarks(CResults&pi_roRes)
+void SegPerfApp::storeMetricsAndMarks(SegPerfResults&pi_roRes)
 {
     //////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////
@@ -360,51 +363,51 @@ void CSegPerfApp::storeMetricsAndMarks(CResults&pi_roRes)
     //Segmentation
     if(m_bSegmentationEvaluation)
     {
-        pi_roRes.activeMeasurementOutput(CResults::eMesureDice);
+        pi_roRes.activeMeasurementOutput(SegPerfResults::eMesureDice);
         pi_roRes.setDice(m_fDice);
-        pi_roRes.activeMeasurementOutput(CResults::eMesureJaccard);
+        pi_roRes.activeMeasurementOutput(SegPerfResults::eMesureJaccard);
         pi_roRes.setJaccard(m_fJaccard);
-        pi_roRes.activeMeasurementOutput(CResults::eMesureSensibility);
+        pi_roRes.activeMeasurementOutput(SegPerfResults::eMesureSensibility);
         pi_roRes.setSensibility(m_fSensitivity);
-        pi_roRes.activeMeasurementOutput(CResults::eMesureSpecificity);
+        pi_roRes.activeMeasurementOutput(SegPerfResults::eMesureSpecificity);
         pi_roRes.setSpecificity(m_fSpecificity);
-        pi_roRes.activeMeasurementOutput(CResults::eMesureNPV);
+        pi_roRes.activeMeasurementOutput(SegPerfResults::eMesureNPV);
         pi_roRes.setNPV(m_fNPV);
-        pi_roRes.activeMeasurementOutput(CResults::eMesurePPV);
+        pi_roRes.activeMeasurementOutput(SegPerfResults::eMesurePPV);
         pi_roRes.setPPV(m_fPPV);
-        pi_roRes.activeMeasurementOutput(CResults::eMesureRelativeVolumeError);
+        pi_roRes.activeMeasurementOutput(SegPerfResults::eMesureRelativeVolumeError);
         pi_roRes.setRVE(m_fRVE*100);
     }
 
     //Surfaces distances
     if(m_bSurfaceEvaluation)
     {
-        pi_roRes.activeMeasurementOutput(CResults::eMesureDistHausdorff);
+        pi_roRes.activeMeasurementOutput(SegPerfResults::eMesureDistHausdorff);
         pi_roRes.setHausdorffDist(m_fHausdorffDist);
-        pi_roRes.activeMeasurementOutput(CResults::eMesureDistMean);
+        pi_roRes.activeMeasurementOutput(SegPerfResults::eMesureDistMean);
         pi_roRes.setContourMeanDist(m_fMeanDist);
-        pi_roRes.activeMeasurementOutput(CResults::eMesureDistAverage);
+        pi_roRes.activeMeasurementOutput(SegPerfResults::eMesureDistAverage);
         pi_roRes.setAverageSurfaceDist(m_fAverageDist);
     }
 
     //Lesion detection
     if(m_bLesionsDetectionEvaluation)
     {
-        pi_roRes.activeMeasurementOutput(CResults::eMesurePPVL);
+        pi_roRes.activeMeasurementOutput(SegPerfResults::eMesurePPVL);
         pi_roRes.setPPVL(m_fPPVL);
-        pi_roRes.activeMeasurementOutput(CResults::eMesureSensL);
+        pi_roRes.activeMeasurementOutput(SegPerfResults::eMesureSensL);
         pi_roRes.setSensL(m_fSensL);
-        pi_roRes.activeMeasurementOutput(CResults::eMesureF1Test);
+        pi_roRes.activeMeasurementOutput(SegPerfResults::eMesureF1Test);
         pi_roRes.setF1test(m_fF1);
     }
 }
 
 /**
-   @brief    This method flush CResults class instance.
+   @brief    This method flush SegPerfResults class instance.
    @param    [in] pi_roRes is the reference output writer class instance.
    @details  This method is called by play method after storeMetricsAndMarks method.
 */
-long CSegPerfApp::writeStoredMetricsAndMarks(CResults&pi_roRes)
+long SegPerfApp::writeStoredMetricsAndMarks(SegPerfResults&pi_roRes)
 {
     long lRes = (long) !pi_roRes.save();
     return lRes;
@@ -413,7 +416,7 @@ long CSegPerfApp::writeStoredMetricsAndMarks(CResults&pi_roRes)
 /**
    @brief    This method display information about SegPerfAnalyzer results.
 */
-void CSegPerfApp::about()
+void SegPerfApp::about()
 {
     std::cout << std::endl;
     std::cout << "********************************************************************************" << std::endl;
@@ -442,8 +445,8 @@ void CSegPerfApp::about()
 
 
     std::cout << "Results are provided as follows: " << std::endl;
-    char const*const*const ppchNameTab = CResults::getMeasureNameTable();
-    for (int i=0;i < CResults::eMesureLast;++i)
+    char const*const*const ppchNameTab = SegPerfResults::getMeasureNameTable();
+    for (int i=0;i < SegPerfResults::eMesureLast;++i)
         std::cout << ppchNameTab[i]<<";\t";
 
     std::cout << std::endl;
@@ -451,3 +454,4 @@ void CSegPerfApp::about()
     std::cout << "********************************************************************************" << std::endl;
 }
 
+} // end namespace anima

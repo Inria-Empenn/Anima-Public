@@ -8,8 +8,6 @@ PROJECT (animaSegPerfAnalyzer)
 
 list_source_files(${PROJECT_NAME}
 	${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_CURRENT_SOURCE_DIR}/Analyzer
-	${CMAKE_CURRENT_SOURCE_DIR}/Results
 	)
 
 ## #############################################################################

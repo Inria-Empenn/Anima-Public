@@ -1,11 +1,14 @@
 #pragma once
 #include <string>
 
+namespace anima
+{
+
 /**
-* @class CResults
+* @class SegPerfResults
 * @brief Class to format and saves results.
 */
-class CResults
+class SegPerfResults
 {
 public:
     typedef enum
@@ -26,8 +29,8 @@ public:
         eMesureLast
     }eMesureName;
 
-    CResults(std::string &pi_pchBaseFileName);
-    ~CResults();
+    SegPerfResults(std::string &pi_pchBaseFileName);
+    ~SegPerfResults();
 
     bool save();
 
@@ -180,7 +183,7 @@ public:
     }
 
 private:
-    CResults();
+    SegPerfResults();
 
     float m_fResTab[eMesureLast];       /*!<Table of measurements results. */
     bool m_bResActiveTab[eMesureLast];  /*!<Table of measurements present in outputs*/
@@ -191,3 +194,5 @@ private:
 
     static char const*const m_ppchMeasureNameTable[eMesureLast];   /*!<Table to associate a measure name for each measure index defined into eMesureName */
 };
+
+} // end namespace anima

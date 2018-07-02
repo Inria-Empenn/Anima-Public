@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <itkImageFileReader.h>
 #include <itkImageRegionConstIterator.h>
-#include <SegmentationMeasuresImageFilter.h>
+#include <animaSegmentationMeasuresImageFilter.h>
 #include <itkLabelContourImageFilter.h>
 #include <itkBinaryContourImageFilter.h>
 #include <itkSimpleFilterWatcher.h>
@@ -15,15 +15,18 @@
 #include <itkFlipImageFilter.h>
 #include <itkImageDuplicator.h>
 
+namespace anima
+{
+
 /**
-* @class CAnalyzer Analyzer.h "Class to compute various metrics to evaluate segmentation results."
+* @class SegPerfCAnalyzer Analyzer.h "Class to compute various metrics to evaluate segmentation results."
 * @brief Class to compute various metrics to evaluate segmentation results.
 */
-class CAnalyzer
+class SegPerfCAnalyzer
 {    
 public:
-    CAnalyzer(std::string &pi_pchImageTestName, std::string &pi_pchImageRefName, bool advancedEvaluation);
-    ~CAnalyzer();
+    SegPerfCAnalyzer(std::string &pi_pchImageTestName, std::string &pi_pchImageRefName, bool advancedEvaluation);
+    ~SegPerfCAnalyzer();
 
     bool checkImagesMatrixAndVolumes();
 
@@ -79,7 +82,7 @@ protected:
     void getOverlapTab(int&po_iNbLabelsRef, int&po_iNbLabelsTest, int **&po_ppiOverlapTab);
 
 private:
-    CAnalyzer() {}
+    SegPerfCAnalyzer() {}
     void transposer(int pi_iNbLabelsRef, int pi_iNbLabelsTest, int * *pi_ppiOverlapTab, int* *&po_rppiOverlapTabTransposed);
     void removeOverlapTab(int **pi_ppiOverlapTab, int pi_iNbLabelsRef);
 
@@ -108,3 +111,5 @@ private:
     FilterType::Pointer m_oFilter;
     itk::ThreadIdType m_ThreadNb;
 };
+
+} // end namespace anima

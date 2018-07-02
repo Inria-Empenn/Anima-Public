@@ -182,4 +182,4 @@ private:
 
 } // end namespace anima
 
-#include "SegmentationMeasuresImageFilter.hxx"
+#include "animaSegmentationMeasuresImageFilter.hxx"

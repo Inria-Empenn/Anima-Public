@@ -1,9 +1,9 @@
-#include "SegPerfApp.h"
+#include <animaSegPerfApp.h>
 #include <tclap/CmdLine.h>
 
 int main(int argc, char **argv)
 {
-    CSegPerfApp oSegPerfApp;
+    anima::SegPerfApp oSegPerfApp;
 
     bool needWork = false;
     try

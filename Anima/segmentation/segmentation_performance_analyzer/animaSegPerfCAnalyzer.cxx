@@ -1,4 +1,5 @@
-#include "Analyzer.h"
+#include "animaSegPerfCAnalyzer.h"
+
 #include <vector>
 #include <algorithm>
 #include <numeric>
@@ -9,6 +10,9 @@
 #include <itkMultiThreader.h>
 #include <itkImageDuplicator.h>
 
+namespace anima
+{
+
 /**
    @brief    Constructor.
    @details  Read input images
@@ -16,7 +20,7 @@
    @param	[in] pi_pchImageRefName Name of the ground truth image
    @param	[in] bAdvancedEvaluation
 */
-CAnalyzer::CAnalyzer(std::string &pi_pchImageTestName, std::string &pi_pchImageRefName, bool bAdvancedEvaluation)
+SegPerfCAnalyzer::SegPerfCAnalyzer(std::string &pi_pchImageTestName, std::string &pi_pchImageRefName, bool bAdvancedEvaluation)
 {
     m_ThreadNb = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
 
@@ -90,7 +94,7 @@ CAnalyzer::CAnalyzer(std::string &pi_pchImageTestName, std::string &pi_pchImageR
 @brief Check if the 2 inputs images are compatible.
 @return	true if image are compatible else false.
 */
-bool CAnalyzer::checkImagesMatrixAndVolumes()
+bool SegPerfCAnalyzer::checkImagesMatrixAndVolumes()
 {
     bool bRes = true;
 
@@ -153,7 +157,7 @@ bool CAnalyzer::checkImagesMatrixAndVolumes()
     return bRes;
 }
 
-CAnalyzer::~CAnalyzer()
+SegPerfCAnalyzer::~SegPerfCAnalyzer()
 {
 }
 
@@ -161,7 +165,7 @@ CAnalyzer::~CAnalyzer()
    @brief    Return the number of clusters.
    @return	Number of clusters
 */
-int CAnalyzer::getNumberOfClusters()
+int SegPerfCAnalyzer::getNumberOfClusters()
 {
     return this->m_uiNbLabels;
 }
@@ -170,7 +174,7 @@ int CAnalyzer::getNumberOfClusters()
    @brief    Select the cluster we want to use to compute evaluation results.
    @param	[in] iCluster
 */
-void CAnalyzer::selectCluster(unsigned int iCluster)
+void SegPerfCAnalyzer::selectCluster(unsigned int iCluster)
 {
     //cout << "select cluster : "<< iCluster<<endl;
     if(iCluster!=0)
@@ -225,7 +229,7 @@ void CAnalyzer::selectCluster(unsigned int iCluster)
 /**
    @brief    Extract the contour of the image to evaluate and the ground truth
 */
-void CAnalyzer::contourDectection()
+void SegPerfCAnalyzer::contourDectection()
 {
     //cout<<"****** CONTOUR DETECTION ******"<<endl;
     //cout<<"nbLabels = "<<this->m_uiNbLabels<<endl;
@@ -281,7 +285,7 @@ void CAnalyzer::contourDectection()
 /**
    @brief    Compute different measures with ITK to evaluate segmentation
 */
-void CAnalyzer::computeITKMeasures()
+void SegPerfCAnalyzer::computeITKMeasures()
 {
 #ifdef _DEBUG
     cout<<endl<<"****** COMPUTE ITK MEASURES ******"<<endl;
@@ -319,7 +323,7 @@ void CAnalyzer::computeITKMeasures()
    @brief  Getter of Union overlap
    @return Union overlap in float
 */
-float CAnalyzer::getUnionOverlap()
+float SegPerfCAnalyzer::getUnionOverlap()
 {
     return m_oFilter->getUnionOverlap();
 }
@@ -328,7 +332,7 @@ float CAnalyzer::getUnionOverlap()
    @brief  Getter of Mean overlap
    @return Mean overlap in float
 */
-float CAnalyzer::getMeanOverlap()
+float SegPerfCAnalyzer::getMeanOverlap()
 {
     return m_oFilter->getMeanOverlap();
 }
@@ -337,7 +341,7 @@ float CAnalyzer::getMeanOverlap()
    @brief  Getter of Sensibility
    @return Sensibility in float
 */
-float CAnalyzer::getSensitivity()
+float SegPerfCAnalyzer::getSensitivity()
 {
     return m_oFilter->getSensitivity();
 }
@@ -346,7 +350,7 @@ float CAnalyzer::getSensitivity()
    @brief  Getter of Specificity
    @return Specificity in float
 */
-float CAnalyzer::getSpecificity()
+float SegPerfCAnalyzer::getSpecificity()
 {
     return m_oFilter->getSpecificity();
 }
@@ -355,7 +359,7 @@ float CAnalyzer::getSpecificity()
    @brief  Getter of Positive predictive value
    @return Positive predictive value in float
 */
-float CAnalyzer::getPPV()
+float SegPerfCAnalyzer::getPPV()
 {
     return m_oFilter->getPPV();
 }
@@ -364,7 +368,7 @@ float CAnalyzer::getPPV()
    @brief  Getter of Negative predictive value
    @return Negative predictive value in float
 */
-float CAnalyzer::getNPV()
+float SegPerfCAnalyzer::getNPV()
 {
     return m_oFilter->getNPV();
 }
@@ -373,7 +377,7 @@ float CAnalyzer::getNPV()
    @brief  Getter of Dice coefficient
    @return Dice coefficient in float
 */
-float CAnalyzer::getDiceCoefficient()
+float SegPerfCAnalyzer::getDiceCoefficient()
 {
     return m_oFilter->GetDiceCoefficient();
 }
@@ -382,7 +386,7 @@ float CAnalyzer::getDiceCoefficient()
    @brief  Getter of Jaccard coefficient
    @return Jaccard coefficient in float
 */
-float CAnalyzer::getJaccardCoefficient()
+float SegPerfCAnalyzer::getJaccardCoefficient()
 {
     return m_oFilter->GetJaccardCoefficient();
 }
@@ -391,7 +395,7 @@ float CAnalyzer::getJaccardCoefficient()
    @brief  Getter of Relative volume error
    @return Relative volume error in float
 */
-float CAnalyzer::getRelativeVolumeError()
+float SegPerfCAnalyzer::getRelativeVolumeError()
 {
     return m_oFilter->getRelativeVolumeError();
 }
@@ -399,7 +403,7 @@ float CAnalyzer::getRelativeVolumeError()
 /**
    @brief    Check if the number of labels is the same for both input images
 */
-void CAnalyzer::checkNumberOfLabels(int iNbLabelsImageTest, int iNbLabelsImageRef)
+void SegPerfCAnalyzer::checkNumberOfLabels(int iNbLabelsImageTest, int iNbLabelsImageRef)
 {
     if(iNbLabelsImageTest<=1)
     {
@@ -485,7 +489,7 @@ void CAnalyzer::checkNumberOfLabels(int iNbLabelsImageTest, int iNbLabelsImageRe
 /**
    @brief    Format labels values for the image to evaluate and the ground truth to obtain : background pixels values = 0, cluster 1 pixels values = 1 ...etc
 */
-void CAnalyzer::formatLabels()
+void SegPerfCAnalyzer::formatLabels()
 {
     ImageIteratorType refIt (m_imageTest, m_imageTest->GetLargestPossibleRegion());
 
@@ -598,7 +602,7 @@ void CAnalyzer::formatLabels()
 @brief  Compute Haussdorf distance
 @return hausdorffDistance in float
 */
-float CAnalyzer::computeHausdorffDist()
+float SegPerfCAnalyzer::computeHausdorffDist()
 {
     FilterType::RealType hausdorffDistance = std::numeric_limits<float>::quiet_NaN();
 
@@ -633,7 +637,7 @@ float CAnalyzer::computeHausdorffDist()
 @brief   Compute mean distance
 @return  meanDistance
 */
-float CAnalyzer::computeMeanDist()
+float SegPerfCAnalyzer::computeMeanDist()
 {
     FilterType::RealType meanDistance = std::numeric_limits<float>::quiet_NaN();
 
@@ -671,7 +675,7 @@ float CAnalyzer::computeMeanDist()
 @brief   Compute average surface distance
 @return  average surface distance
 */
-float CAnalyzer::computeAverageSurfaceDistance()
+float SegPerfCAnalyzer::computeAverageSurfaceDistance()
 {
     float meanDistance = std::numeric_limits<float>::quiet_NaN();
 
@@ -764,7 +768,7 @@ float CAnalyzer::computeAverageSurfaceDistance()
 @param  [out] po_fF1 the output F1_score.
 @return true
 */
-bool CAnalyzer::getDetectionMarks(float&po_fPPVL, float&po_fSensL, float&po_fF1)
+bool SegPerfCAnalyzer::getDetectionMarks(float&po_fPPVL, float&po_fSensL, float&po_fF1)
 {
     bool bRes = true;
 
@@ -814,7 +818,7 @@ bool CAnalyzer::getDetectionMarks(float&po_fPPVL, float&po_fSensL, float&po_fF1)
 @brief   Set the number of threads to use for the computation of ITK.
 @param	[in] pi_iNbThreads Number of threads.
 */
-void CAnalyzer::setNbThreads(int pi_iNbThreads)
+void SegPerfCAnalyzer::setNbThreads(int pi_iNbThreads)
 {
     m_ThreadNb = static_cast<itk::ThreadIdType>(pi_iNbThreads);
 }
@@ -825,7 +829,7 @@ void CAnalyzer::setNbThreads(int pi_iNbThreads)
 @param	[out] po_iNbLabelsTest the number of labels found by connected components into tested image (1 by connected component + 1 for the background).
 @param	[out] po_ppiOverlapTab the table allocated by this method. Dimensions are po_iNbLabelsTest*po_iNbLabelsRef. The first cell [0][0] is the number of True-Negative voxels (background in both images), first line (excepte first cell) are False-Posite voxels, first colomne are False-Negative voxels and the rest of cels are True positive voxels. In Other words: first line is the back ground into Ref-image, first column is the back ground into Tested-image and the element [i][j] (with i,j > 0) correspond to the number of voxel belonging to the label i, that overlap with a voxel of the label j.
 */
-void CAnalyzer::getOverlapTab(int&po_iNbLabelsRef, int&po_iNbLabelsTest, int* *&po_ppiOverlapTab)
+void SegPerfCAnalyzer::getOverlapTab(int&po_iNbLabelsRef, int&po_iNbLabelsTest, int* *&po_ppiOverlapTab)
 {
     typedef itk::ImageRegionConstIterator<ImageType> imageConstIteratorType;
     typedef itk::ConnectedComponentImageFilter<ImageType, ImageType> connectedComponentImageFilterType;
@@ -923,7 +927,7 @@ void CAnalyzer::getOverlapTab(int&po_iNbLabelsRef, int&po_iNbLabelsTest, int* *&
    @brief  Getter of True positive lesions
    @return True positive lesions
 */
-int CAnalyzer::getTruePositiveLesions(int pi_iNbLabelsRef, int pi_iNbLabelsTest, int * *pi_ppiOverlapTab)
+int SegPerfCAnalyzer::getTruePositiveLesions(int pi_iNbLabelsRef, int pi_iNbLabelsTest, int * *pi_ppiOverlapTab)
 {
     int iNbLesionsDetected = 0;
 
@@ -992,7 +996,7 @@ struct pair_decreasing_comparator
 @param	[out] pi_dfGamma the beta threshold.
 @return true if the lesion is detected, false in other cases.
 */
-bool CAnalyzer::falsePositiveRatioTester(int pi_iLesionReference, int pi_iNbLabelsTest, int pi_iNbLabelsRef, int * *pi_ppiOverlapTab, int *pi_piTPRowSumTab, int *pi_piColumnSumTab, double pi_dfBeta, double pi_dfGamma)
+bool SegPerfCAnalyzer::falsePositiveRatioTester(int pi_iLesionReference, int pi_iNbLabelsTest, int pi_iNbLabelsRef, int * *pi_ppiOverlapTab, int *pi_piTPRowSumTab, int *pi_piColumnSumTab, double pi_dfBeta, double pi_dfGamma)
 {
     bool bRes = false;
 
@@ -1041,7 +1045,7 @@ bool CAnalyzer::falsePositiveRatioTester(int pi_iLesionReference, int pi_iNbLabe
 @param	[in]  pi_ppiOverlapTab the table allocated by this method. Dimensions are po_iNbLabelsTest*po_iNbLabelsRef.
 @param	[out] po_rppiOverlapTabTransposed the transposed table allocated by this method. Dimensions are po_iNbLabelsTest*po_iNbLabelsRef.
 */
-void CAnalyzer::transposer(int pi_iNbLabelsRef, int pi_iNbLabelsTest, int * *pi_ppiOverlapTab, int* *&po_rppiOverlapTabTransposed)
+void SegPerfCAnalyzer::transposer(int pi_iNbLabelsRef, int pi_iNbLabelsTest, int * *pi_ppiOverlapTab, int* *&po_rppiOverlapTabTransposed)
 {
     po_rppiOverlapTabTransposed = new int*[pi_iNbLabelsTest+1];
     for(int i=0; i<pi_iNbLabelsTest; ++i)
@@ -1063,7 +1067,7 @@ void CAnalyzer::transposer(int pi_iNbLabelsRef, int pi_iNbLabelsTest, int * *pi_
 @param	[in] pi_ppiOverlapTab the table to remove.
 @param	[in] pi_iNbLabelsRef the line dimension.
 */
-void CAnalyzer::removeOverlapTab(int * *pi_ppiOverlapTab, int pi_iNbLabelsRef)
+void SegPerfCAnalyzer::removeOverlapTab(int * *pi_ppiOverlapTab, int pi_iNbLabelsRef)
 {
     if (pi_ppiOverlapTab)
     {
@@ -1075,3 +1079,4 @@ void CAnalyzer::removeOverlapTab(int * *pi_ppiOverlapTab, int pi_iNbLabelsRef)
     }
 }
 
+} // end namespace anima

@@ -1,14 +1,34 @@
 #pragma once
 
-#include <Results.h>
-#include <Analyzer.h>
+#include <animaSegPerfResults.h>
+#include <animaSegPerfCAnalyzer.h>
+
+namespace anima
+{
 
 /**
-* @class CSegPerfApp
+* @class SegPerfApp
 * @brief Main class to structure application and handle command line options.
 */
-class CSegPerfApp
+class SegPerfApp
 {
+public:
+    SegPerfApp(void);
+    ~SegPerfApp(void);
+
+    bool init(int argc, char *argv[]);
+    bool checkParamsCoherence();
+    void checkOutputCoherence();
+    void prepareOutput();
+    void play();
+
+    static void about();
+
+protected:
+    void processAnalyze(SegPerfCAnalyzer &pi_oAnalyzer, int pi_iIndex);
+    void storeMetricsAndMarks(SegPerfResults &pi_roRes);
+    long writeStoredMetricsAndMarks(SegPerfResults &pi_roRes);
+
 private:
     //////////////////////////////////////////////////////////////////////////
     // Output way
@@ -60,21 +80,6 @@ private:
     std::string m_oStrInImage;   /*<! Path of Image to test. */
     std::string m_oStrRefImage;  /*<! Path of reference Image. */
     std::string m_oStrBaseOut;   /*<! Base name for output results file. */
-
-public:
-    CSegPerfApp(void);
-    ~CSegPerfApp(void);
-
-    bool init(int argc, char *argv[]);
-    bool checkParamsCoherence();
-    void checkOutputCoherence();
-    void prepareOutput();
-    void play();
-
-    static void about();
-
-private:
-    void processAnalyze(CAnalyzer&pi_oAnalyzer, int pi_iIndex);
-    void storeMetricsAndMarks(CResults&pi_roRes);
-    long writeStoredMetricsAndMarks(CResults&pi_roRes);
 };
+
+} // end namespace anima
