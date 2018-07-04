@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaGaussianizer)
+project(animaRicianToGaussianNoise)
 
 ## #############################################################################
 ## List Sources
