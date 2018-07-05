@@ -21,9 +21,17 @@ add_library(${PROJECT_NAME}
 ## Link
 ## #############################################################################
 
-target_link_libraries(${PROJECT_NAME}
-  ITKCommon
-  )
+if (USE_ARB AND ARB_FOUND)
+  target_link_libraries(${PROJECT_NAME}
+    ITKCommon
+    ${ARB_LIBRARY}
+    )
+else()
+  target_link_libraries(${PROJECT_NAME}
+    ITKCommon
+    )
+endif()
+
 
 
 ################################################################################

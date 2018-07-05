@@ -3,8 +3,13 @@
 #include "animaBesselFunctions.h"
 #include <animaGammaFunctions.h>
 #include <algorithm>
+#include <itkExceptionObject.h>
 
 #include <boost/math/special_functions/bessel.hpp>
+
+#ifdef WITH_ARB_FUNCTIONS
+#include <arb_hypgeom.h>
+#endif
 
 namespace anima
 {
@@ -14,6 +19,56 @@ double scaled_bessel_i(unsigned int N, double x)
     double logValue = log_bessel_i(N, x) - x;
     return std::exp(logValue);
 }
+
+#ifdef WITH_ARB_FUNCTIONS
+
+double GetScaledBesselI(const unsigned int N, const double x)
+{
+    arb_t inputBall, outputBall, dofBall;
+    arb_init(inputBall);
+    arb_init(outputBall);
+    arb_init(dofBall);
+    arb_set_d(inputBall, x);
+    arb_set_si(dofBall, N);
+
+    unsigned int precision = 64;
+    arb_hypgeom_bessel_i_scaled(outputBall, dofBall, inputBall, precision);
+
+    while (arb_can_round_arf(outputBall, 53, MPFR_RNDN) == 0)
+    {
+        precision *= 2;
+        arb_hypgeom_bessel_i_scaled(outputBall, dofBall, inputBall, precision);
+    }
+
+    double resVal = arf_get_d(arb_midref(outputBall), MPFR_RNDN);
+
+    arb_clear(inputBall);
+    arb_clear(outputBall);
+    arb_clear(dofBall);
+
+    return resVal;
+}
+
+#endif
+
+double GetMarcumQ(const unsigned int M, const double a, const double b)
+{
+    if (M < 1)
+        throw itk::ExceptionObject(__FILE__, __LINE__, "The order M should be greater or equal to 1",ITK_LOCATION);
+
+    MarcumQIntegrand integrand;
+    integrand.SetAValue(a);
+    integrand.SetBValue(b);
+    integrand.SetMValue(M);
+
+    double resVal = b * b * boost::math::quadrature::gauss<double, 15>::integrate(integrand, 0.0, 1.0);
+
+    if (M > 1)
+        resVal *= std::pow(b / a, M - 1.0);
+
+    return 1.0 - resVal;
+}
+
 
 double log_bessel_i(unsigned int N, double x)
 {

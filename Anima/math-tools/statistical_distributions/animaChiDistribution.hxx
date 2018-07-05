@@ -1,8 +1,8 @@
 #pragma once
 
 #include "animaChiDistribution.h"
-#include <animaARBBesselFunctions.h>
-#include <animaARBKummerFunctions.h>
+#include <animaBesselFunctions.h>
+#include <animaKummerFunctions.h>
 
 namespace anima
 {

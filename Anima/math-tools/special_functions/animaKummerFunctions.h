@@ -39,6 +39,13 @@ KummerFunction(const double &x,
                const unsigned int maxIter = 10000,
                const double tol = 1.0e-15);
 
+#ifdef WITH_ARB_FUNCTIONS
+
+//! Computes Kummer's M functions (i.e. confluent hypergeometric function 1F1) using the ARB library
+ANIMASPECIALFUNCTIONS_EXPORT double GetKummerM(const double x, const double a, const double b);
+
+#endif
+
 class KummerIntegrand
 {
 public:

@@ -2,6 +2,10 @@
 #include <boost/math/quadrature/gauss.hpp>
 #include <cmath>
 
+#ifdef WITH_ARB_FUNCTIONS
+#include <arb_hypgeom.h>
+#endif
+
 namespace anima
 {
 
@@ -115,5 +119,39 @@ KummerFunction(const double &x,
     else
         return KummerMethod2(x,a,b,maxIter,tol);
 }
+
+#ifdef WITH_ARB_FUNCTIONS
+
+double GetKummerM(const double x, const double a, const double b)
+{
+    arb_t inputBall, outputBall, aBall, bBall;
+    arb_init(inputBall);
+    arb_init(outputBall);
+    arb_init(aBall);
+    arb_init(bBall);
+    arb_set_d(inputBall, x);
+    arb_set_d(aBall, a);
+    arb_set_d(bBall, b);
+
+    unsigned int precision = 64;
+    arb_hypgeom_m(outputBall, aBall, bBall, inputBall, 0, precision);
+
+    while (arb_can_round_arf(outputBall, 53, MPFR_RNDN) == 0)
+    {
+        precision *= 2;
+        arb_hypgeom_m(outputBall, aBall, bBall, inputBall, 0, precision);
+    }
+
+    double resVal = arf_get_d(arb_midref(outputBall), MPFR_RNDN);
+
+    arb_clear(inputBall);
+    arb_clear(outputBall);
+    arb_clear(aBall);
+    arb_clear(bBall);
+
+    return resVal;
+}
+
+#endif
     
 } // end of namespace anima

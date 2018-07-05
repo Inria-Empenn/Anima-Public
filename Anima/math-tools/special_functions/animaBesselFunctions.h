@@ -5,6 +5,32 @@
 namespace anima
 {
 
+#ifdef WITH_ARB_FUNCTIONS
+//! Computes exp(-x) I_N(x) using the ARB library
+ANIMASPECIALFUNCTIONS_EXPORT double GetScaledBesselI(const unsigned int N, const double x);
+#endif
+
+class MarcumQIntegrand
+{
+public:
+    void SetAValue(double val) {m_AValue = val;}
+    void SetBValue(double val) {m_BValue = val;}
+    void SetMValue(double val) {m_MValue = val;}
+
+    double operator() (const double t)
+    {
+        double tmpVal = (m_MValue == 1) ? t : std::pow(t, (double)m_MValue);
+        return tmpVal * std::exp(-(m_BValue * t - m_AValue) * (m_BValue * t - m_AValue) / 2.0) * GetScaledBesselI(m_MValue - 1, m_AValue * m_BValue * t);
+    }
+
+private:
+    double m_AValue, m_BValue;
+    unsigned int m_MValue;
+};
+
+//! Computes Marcum Q integrand for scaled bessel i
+ANIMASPECIALFUNCTIONS_EXPORT double GetMarcumQ(const unsigned int M, const double a, const double b);
+
 //! Computes exp(-x) I_N(x)
 ANIMASPECIALFUNCTIONS_EXPORT double scaled_bessel_i(unsigned int N, double x);
 
