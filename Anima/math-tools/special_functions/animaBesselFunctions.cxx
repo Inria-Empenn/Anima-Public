@@ -3,7 +3,7 @@
 #include "animaBesselFunctions.h"
 #include <animaGammaFunctions.h>
 #include <algorithm>
-#include <itkExceptionObject.h>
+#include <itkMacro.h>
 
 #include <boost/math/special_functions/bessel.hpp>
 
