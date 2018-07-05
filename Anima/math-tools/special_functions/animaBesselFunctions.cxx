@@ -6,6 +6,7 @@
 #include <itkMacro.h>
 
 #include <boost/math/special_functions/bessel.hpp>
+#include <boost/math/quadrature/gauss_kronrod.hpp>
 
 #ifdef WITH_ARB_FUNCTIONS
 #include <arb_hypgeom.h>
