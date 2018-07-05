@@ -102,28 +102,8 @@ KummerFunction(const double &x,
                const unsigned int maxIter,
                const double tol)
 {
-    if (a > 0 && b > 0)
-    {
-        KummerIntegrand integrand;
-        integrand.SetXValue(x);
-        integrand.SetAValue(a);
-        integrand.SetBValue(b);
-        double resVal = boost::math::quadrature::gauss<double, 15>::integrate(integrand, 0.0, 1.0) / std::tgamma(b - a);
-        if (!normalized)
-            resVal *= (std::tgamma(b) / std::tgamma(a));
-        return (scaled || x <= 0) ? resVal : std::exp(x) * resVal;
-    }
-    
-    if (std::abs(x) < 50.0)
-        return KummerMethod1(x,a,b,maxIter,tol);
-    else
-        return KummerMethod2(x,a,b,maxIter,tol);
-}
-
 #ifdef WITH_ARB_FUNCTIONS
 
-double GetKummerM(const double x, const double a, const double b)
-{
     arb_t inputBall, outputBall, aBall, bBall;
     arb_init(inputBall);
     arb_init(outputBall);
@@ -150,8 +130,27 @@ double GetKummerM(const double x, const double a, const double b)
     arb_clear(bBall);
 
     return resVal;
-}
+
+#else
+
+    if (a > 0 && b > 0)
+    {
+        KummerIntegrand integrand;
+        integrand.SetXValue(x);
+        integrand.SetAValue(a);
+        integrand.SetBValue(b);
+        double resVal = boost::math::quadrature::gauss<double, 15>::integrate(integrand, 0.0, 1.0) / std::tgamma(b - a);
+        if (!normalized)
+            resVal *= (std::tgamma(b) / std::tgamma(a));
+        return (scaled || x <= 0) ? resVal : std::exp(x) * resVal;
+    }
+    
+    if (std::abs(x) < 50.0)
+        return KummerMethod1(x,a,b,maxIter,tol);
+    else
+        return KummerMethod2(x,a,b,maxIter,tol);
 
 #endif
+}
     
 } // end of namespace anima

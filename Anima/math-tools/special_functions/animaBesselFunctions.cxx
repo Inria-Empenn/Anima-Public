@@ -17,14 +17,8 @@ namespace anima
 
 double scaled_bessel_i(unsigned int N, double x)
 {
-    double logValue = log_bessel_i(N, x) - x;
-    return std::exp(logValue);
-}
-
 #ifdef WITH_ARB_FUNCTIONS
 
-double GetScaledBesselI(const unsigned int N, const double x)
-{
     arb_t inputBall, outputBall, dofBall;
     arb_init(inputBall);
     arb_init(outputBall);
@@ -48,9 +42,14 @@ double GetScaledBesselI(const unsigned int N, const double x)
     arb_clear(dofBall);
 
     return resVal;
-}
+
+#else
+
+    double logValue = log_bessel_i(N, x) - x;
+    return std::exp(logValue);
 
 #endif
+}
 
 double GetMarcumQ(const unsigned int M, const double a, const double b)
 {

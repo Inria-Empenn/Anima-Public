@@ -5,11 +5,6 @@
 namespace anima
 {
 
-#ifdef WITH_ARB_FUNCTIONS
-//! Computes exp(-x) I_N(x) using the ARB library
-ANIMASPECIALFUNCTIONS_EXPORT double GetScaledBesselI(const unsigned int N, const double x);
-#endif
-
 class MarcumQIntegrand
 {
 public:
