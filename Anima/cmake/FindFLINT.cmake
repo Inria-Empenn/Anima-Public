@@ -13,15 +13,13 @@ FIND_PATH(FLINT_INCLUDE_DIR flint/flint.h
   /usr/local/include
 )
 
-set(FLINT_LIBRARY_DIR "" CACHE PATH "FLINT library folder")
-
 FIND_LIBRARY(FLINT_LIBRARY NAMES flint libflint
   HINTS "${FLINT_LIBRARY_DIR}"
 )
 
 mark_as_advanced(FLINT_LIBRARY)
 
-IF( EXISTS "${FLINT_INCLUDE_DIR}" AND EXISTS "${FLINT_LIBRARY}" )
+IF (EXISTS "${FLINT_INCLUDE_DIR}" AND EXISTS "${FLINT_LIBRARY}")
   set(FLINT_FOUND TRUE)
 else()
   message(FATAL_ERROR "FLINT not found")

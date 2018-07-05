@@ -13,15 +13,13 @@ FIND_PATH(ARB_INCLUDE_DIR arb.h
   /usr/local/include
 )
 
-set(ARB_LIBRARY_DIR "" CACHE PATH "ARB library folder")
-
 FIND_LIBRARY(ARB_LIBRARY NAMES arb libarb
   HINTS "${ARB_LIBRARY_DIR}"
 )
 
 mark_as_advanced(ARB_LIBRARY)
 
-IF( EXISTS "${ARB_INCLUDE_DIR}" AND EXISTS "${ARB_LIBRARY}" )
+IF (EXISTS "${ARB_INCLUDE_DIR}" AND EXISTS "${ARB_LIBRARY}")
   set(ARB_FOUND TRUE)
 else()
   message(FATAL_ERROR "ARB not found")

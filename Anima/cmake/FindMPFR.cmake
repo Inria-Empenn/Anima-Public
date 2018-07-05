@@ -13,15 +13,13 @@ FIND_PATH(MPFR_INCLUDE_DIR mpfr.h
   /usr/local/include
 )
 
-set(MPFR_LIBRARY_DIR "" CACHE PATH "MPFR library folder")
-
 FIND_LIBRARY(MPFR_LIBRARY NAMES mpfr libmpfr
   HINTS "${MPFR_LIBRARY_DIR}"
 )
 
 mark_as_advanced(MPFR_LIBRARY)
 
-IF( EXISTS "${MPFR_INCLUDE_DIR}" AND EXISTS "${MPFR_LIBRARY}" )
+IF (EXISTS "${MPFR_INCLUDE_DIR}" AND EXISTS "${MPFR_LIBRARY}")
   set(MPFR_FOUND TRUE)
 else()
   message(FATAL_ERROR "MPFR not found")
