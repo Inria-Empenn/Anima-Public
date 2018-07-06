@@ -1,0 +1,3 @@
+add_subdirectory(detected_components)
+add_subdirectory(dice_measure)
+add_subdirectory(segmentation_performance_analyzer)
