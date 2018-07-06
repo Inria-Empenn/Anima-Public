@@ -12,7 +12,7 @@ SegmentationMeasuresImageFilter<TLabelImage>
 ::SegmentationMeasuresImageFilter()
 {
     // this filter requires two input images
-    this->SetNumberOfRequiredInputs( 2 );
+    this->SetNumberOfRequiredInputs(2);
 }
 
 template<typename TLabelImage>

@@ -287,19 +287,11 @@ void SegPerfCAnalyzer::contourDectection()
 */
 void SegPerfCAnalyzer::computeITKMeasures()
 {
-#ifdef _DEBUG
-    cout<<endl<<"****** COMPUTE ITK MEASURES ******"<<endl;
-#endif
-
     m_oFilter = FilterType::New();
 
     m_oFilter->SetNumberOfThreads(m_ThreadNb);
     m_oFilter->SetSourceImage( m_imageTest);
     m_oFilter->SetTargetImage( m_imageRef );
-
-#ifdef _DEBUG
-    std::cout<<"start compute itk measures"<<std::endl;
-#endif
 
     try
     {
@@ -310,13 +302,6 @@ void SegPerfCAnalyzer::computeITKMeasures()
         std::cerr << excp << std::endl;
         return;
     }
-
-#ifdef _DEBUG
-    std::cout<<"end compute itk measures"<<std::endl;
-    std::cout<< "UnionOverlap (Jaccard) : " <<m_oFilter->getUnionOverlap()<<std::endl;
-    std::cout<< "MeanOverlap (Dice)     : " <<m_oFilter->getMeanOverlap()<<std::endl;
-    cout<<"****** COMPUTE ITK MEASURES end ******"<<endl;
-#endif
 }
 
 /**
@@ -619,7 +604,6 @@ float SegPerfCAnalyzer::computeHausdorffDist()
         {
             filter->Update();
         }
-
         catch (itk::ExceptionObject& e)
         {
             std::cerr << "exception in filter " << std::endl;
@@ -772,8 +756,6 @@ bool SegPerfCAnalyzer::getDetectionMarks(float&po_fPPVL, float&po_fSensL, float&
 {
     bool bRes = true;
 
-    /*if (m_uiNbLabels>1)
-   {*/
     int iNbLabelsRef = 0;
     int iNbLabelsTest = 0;
     int * *ppiOverlapTab = NULL;
@@ -795,19 +777,6 @@ bool SegPerfCAnalyzer::getDetectionMarks(float&po_fPPVL, float&po_fSensL, float&
 
     po_fPPVL = (float)((double)iTPLd / (double)(iNbLabelsTest-1));     //po_fTPLd  = (float)((double)iTPLd  / (double)(iNbLabelsTest-1));// The "-1" is to reject background label
     po_fSensL = (float)((double)iTPLgt / (double)(iNbLabelsRef-1));    //po_fTPLgt = (float)((double)iTPLgt / (double)(iNbLabelsRef-1 ));// The "-1" is to reject background label
-    /*}
-   else
-   {
-      if (m_)
-      {
-      }
-      else
-      {
-      }
-      po_fPPVL = 0;
-      po_fSensL = std::numeric_limits<float>::infinity();
-      bRes = false;
-   }*/
 
     po_fF1 = 2 * (po_fPPVL * po_fSensL) / (po_fPPVL + po_fSensL);
 
@@ -862,9 +831,7 @@ void SegPerfCAnalyzer::getOverlapTab(int&po_iNbLabelsRef, int&po_iNbLabelsTest, 
     ImageType::SpacingValueType spacingTot = spacing[0];
     unsigned int imageDim = ImageType::ImageDimension;
     for (unsigned int i = 1; i < std::min(imageDim, (unsigned int)3); ++i)
-    {
         spacingTot *= spacing[i];
-    }
 
     // Compute minsize in voxels
     double minSizeInVoxelD = m_dfMinLesionVolumeDetection / spacingTot;
@@ -883,7 +850,6 @@ void SegPerfCAnalyzer::getOverlapTab(int&po_iNbLabelsRef, int&po_iNbLabelsTest, 
     poDuplicatorFilter->SetInputImage(poRelabelFilter->GetOutput());
     poDuplicatorFilter->Update();
     poImageRefLesionsByLabels = poDuplicatorFilter->GetOutput();
-
 
     //Create a label per connected component into image to evaluate
     poLesionSeparatorFilter->SetInput(m_imageTest);

@@ -1,5 +1,4 @@
 add_subdirectory(connected_components)
-add_subdirectory(dice_measure)
 add_subdirectory(distance_map)
 add_subdirectory(fill_hole_image)
 add_subdirectory(influence_zones)
