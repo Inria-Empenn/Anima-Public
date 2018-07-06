@@ -51,7 +51,13 @@ double scaled_bessel_i(unsigned int N, double x)
 #endif
 }
 
-double GetMarcumQ(const unsigned int M, const double a, const double b)
+double MarcumQIntegrand::operator() (const double t)
+{
+    double tmpVal = (m_MValue == 1) ? t : std::pow(t, (double)m_MValue);
+    return tmpVal * std::exp(-(m_BValue * t - m_AValue) * (m_BValue * t - m_AValue) / 2.0) * scaled_bessel_i(m_MValue - 1, m_AValue * m_BValue * t);
+}
+
+double marcum_q(const unsigned int M, const double a, const double b)
 {
     if (M < 1)
         throw itk::ExceptionObject(__FILE__, __LINE__, "The order M should be greater or equal to 1",ITK_LOCATION);

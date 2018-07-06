@@ -139,7 +139,7 @@ RiceToGaussianImageFilter<ImageDimension>
             double rValue = meanItr.Get() / sigmaValue;
             double k1Value = 0;
             double thetaValue = anima::FixedPointFinder(rValue, 1, k1Value);
-            k1Value = anima::GetKummerM(-thetaValue * thetaValue / 2.0, -0.5, 1);
+            k1Value = anima::KummerFunction(-thetaValue * thetaValue / 2.0, -0.5, 1);
             
             scale = sigmaValue / std::sqrt(anima::XiFunction(thetaValue * thetaValue, 1, k1Value, M_PI / 2.0));
             location = thetaValue * scale;

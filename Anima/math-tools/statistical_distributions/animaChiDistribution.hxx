@@ -3,6 +3,7 @@
 #include "animaChiDistribution.h"
 #include <animaBesselFunctions.h>
 #include <animaKummerFunctions.h>
+#include <itkMacro.h>
 
 namespace anima
 {
@@ -30,9 +31,10 @@ double XiFunction(const double thetaSq, const unsigned int N, const double k1Val
     
     if (resVal > 1.0)
     {
-        std::cerr << "The xi function cannot take values greater than 1." << std::endl;
-        std::cout << thetaSq << " " << k1Value << " " << anima::GetKummerM(-thetaSq / 2.0, -0.5, N) << std::endl;
-        exit(-1);
+        std::string errorMessage = "The xi function cannot take values greater than 1. ";
+        errorMessage += std::to_string(thetaSq) + " " + std::to_string(k1Value) + " " + std::to_string(anima::KummerFunction(-thetaSq / 2.0, -0.5, N));
+
+        throw itk::ExceptionObject(__FILE__, __LINE__, errorMessage, ITK_LOCATION);
     }
     
     return resVal;
@@ -48,8 +50,8 @@ double KFunction(const double theta, const double r, const unsigned int N, const
 {
     double thetaSq = theta * theta;
     double rSq = r * r;
-    k1Value = anima::GetKummerM(-thetaSq / 2.0, -0.5, N);
-    double k2Value = anima::GetKummerM(-thetaSq / 2.0, 0.5, N + 1);
+    k1Value = anima::KummerFunction(-thetaSq / 2.0, -0.5, N);
+    double k2Value = anima::KummerFunction(-thetaSq / 2.0, 0.5, N + 1);
     double gValue = anima::GFunction(thetaSq, rSq, N, k1Value, betaNSq);
     double num = gValue * (gValue - theta);
     double denom = theta * (1.0 + rSq) * (1.0 - betaNSq / (2.0 * N) * k1Value * k2Value) - gValue;
@@ -58,7 +60,7 @@ double KFunction(const double theta, const double r, const unsigned int N, const
 
 double FixedPointFinder(const double r, const unsigned int N, double &k1Value, const unsigned int maximumNumberOfIterations, const double epsilon)
 {
-    double k0Value = anima::GetKummerM(0.0, -0.5, N);
+    double k0Value = anima::KummerFunction(0.0, -0.5, N);
     double k0ValueSq = k0Value * k0Value;
     double betaN = std::sqrt(M_PI / 2.0) * anima::double_factorial(2 * N - 1) / (std::pow(2, N - 1) * anima::factorial(N - 1));
     double betaNSq = betaN * betaN;
@@ -97,8 +99,8 @@ double KFunction2(const double eta, const double m, const double sigma, const un
     double etaSq = eta * eta;
     double sigmaSq = sigma * sigma;
     double thetaSq = etaSq / sigmaSq;
-    k1Value = anima::GetKummerM(-thetaSq / 2.0, -0.5, N);
-    double k2Value = anima::GetKummerM(-thetaSq / 2.0, 0.5, N + 1);
+    k1Value = anima::KummerFunction(-thetaSq / 2.0, -0.5, N);
+    double k2Value = anima::KummerFunction(-thetaSq / 2.0, 0.5, N + 1);
     double gValue = anima::GFunction2(etaSq, mSq, sigmaSq, N, k1Value, betaNSq);
     double num = gValue * (gValue - eta);
     double denom = eta * (1.0 - betaNSq / (2.0 * N) * k1Value * k2Value) - gValue;
@@ -163,7 +165,7 @@ void GetRiceParameters(const std::vector<double> &samples, const std::vector<dou
         
         double rValue = meanValue / sigmaValue;
         double thetaValue = FixedPointFinder(rValue, 1, k1Value);
-        k1Value = anima::GetKummerM(-thetaValue * thetaValue / 2.0, -0.5, 1);
+        k1Value = anima::KummerFunction(-thetaValue * thetaValue / 2.0, -0.5, 1);
         
         scale = sigmaValue / std::sqrt(anima::XiFunction(thetaValue * thetaValue, 1, k1Value, M_PI / 2.0));
         location = thetaValue * scale;
@@ -177,7 +179,7 @@ double GetRiceCDF(const double x, const double location, const double scale)
 {
     double a = location / scale;
     double b = x / scale;
-    return 1.0 - anima::GetMarcumQ(1, a, b);
+    return 1.0 - anima::marcum_q(1, a, b);
 }
     
 } // end of namespace anima
