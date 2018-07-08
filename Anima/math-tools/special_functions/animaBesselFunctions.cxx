@@ -1,12 +1,10 @@
-#include <cmath>
-
-#include "animaBesselFunctions.h"
+#include <animaBesselFunctions.h>
 #include <animaGammaFunctions.h>
-#include <algorithm>
+
 #include <itkMacro.h>
 
 #include <boost/math/special_functions/bessel.hpp>
-#include <boost/math/quadrature/gauss_kronrod.hpp>
+#include <boost/math/quadrature/gauss.hpp>
 
 #ifdef WITH_ARB_FUNCTIONS
 #include <arb_hypgeom.h>

@@ -19,7 +19,7 @@ private:
     unsigned int m_MValue;
 };
 
-//! Computes Marcum Q integrand for scaled bessel i
+//! Computes Marcum Q function
 ANIMASPECIALFUNCTIONS_EXPORT double marcum_q(const unsigned int M, const double a, const double b);
 
 //! Computes exp(-x) I_N(x)
