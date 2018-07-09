@@ -16,7 +16,7 @@ struct
     {
         return a.second > b.second;
     }
-} pair_comparator;
+} pair_decreasing_comparator;
 
 int main(int argc, char * *argv)
 {
@@ -134,17 +134,22 @@ int main(int argc, char * *argv)
 
     std::vector < std::pair <unsigned int, unsigned int> > subVectorForSort(maxTestLabel - 1);
     std::vector < std::pair <double,unsigned int> > detectionTable(maxRefLabel-1);
+    std::vector <double> columnSums(maxTestLabel,0);
+    std::vector <double> lineSums(maxRefLabel,0);
+
     for (unsigned int i = 1;i < maxRefLabel;++i)
     {
-        double denom = labelsOverlap(i,0);
-        double num = 0;
         for (unsigned int j = 1;j < maxTestLabel;++j)
         {
-            num += labelsOverlap(i,j);
-            denom += labelsOverlap(i,j);
+            lineSums[i] += labelsOverlap(i,j);
+            columnSums[j] += labelsOverlap(i,j);
         }
+    }
 
-        double Si = num / denom;
+    for (unsigned int i = 1;i < maxRefLabel;++i)
+    {
+        double denom = labelsOverlap(i,0) + lineSums[i];
+        double Si = lineSums[i] / denom;
 
         if (Si <= alphaArg.getValue())
         {
@@ -152,21 +157,18 @@ int main(int argc, char * *argv)
             continue;
         }
 
-
         for (unsigned int j = 1;j < maxTestLabel;++j)
             subVectorForSort[j-1] = std::pair <unsigned int,unsigned int>(j,labelsOverlap(i,j));
 
-        std::sort(subVectorForSort.begin(),subVectorForSort.end(),pair_comparator);
+        std::sort(subVectorForSort.begin(),subVectorForSort.end(),pair_decreasing_comparator);
 
         double wSum = 0;
         unsigned int detectedObject = 1;
         unsigned int k = 0;
         while (wSum < gammaArg.getValue())
         {
-            double sumK = 0;
             unsigned int kIndex = subVectorForSort[k].first;
-            for (unsigned int l = 1;l < maxRefLabel;++l)
-                sumK += labelsOverlap(l,kIndex);
+            double sumK = labelsOverlap(0,kIndex) + columnSums[kIndex];
             double Tk = labelsOverlap(0,kIndex) / sumK;
 
             if (Tk > betaArg.getValue())
@@ -175,11 +177,7 @@ int main(int argc, char * *argv)
                 break;
             }
 
-            double sumI = 0;
-            for (unsigned int l = 1;l < maxTestLabel;++l)
-                sumI += labelsOverlap(i,l);
-
-            wSum += labelsOverlap(i,kIndex) / sumI;
+            wSum += labelsOverlap(i,kIndex) / lineSums[i];
             ++k;
         }
 
