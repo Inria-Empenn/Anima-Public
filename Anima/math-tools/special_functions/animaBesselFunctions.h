@@ -1,9 +1,37 @@
 #pragma once
 
 #include "AnimaSpecialFunctionsExport.h"
+#include <utility>
 
 namespace anima
 {
+
+class BesselRatioFraction
+{
+public:
+	void SetInputValue(double val) {m_InputValue = val;}
+	void SetOrderValue(double val) {m_OrderValue = val;}
+	
+	typedef std::pair<double,double> result_type;
+
+	result_type operator() ()
+	{
+		m_BValue = 2.0 * m_OrderValue / m_InputValue;
+		++m_OrderValue;
+		return std::make_pair(m_AValue,m_BValue);
+	}
+
+	BesselRatioFraction()
+	{
+		m_InputValue = 1.0;
+		m_OrderValue = 1.0;
+		m_AValue = 1.0;
+		m_BValue = 1.0;
+	}
+
+private:
+	double m_InputValue, m_OrderValue, m_AValue, m_BValue;
+};
 
 class MarcumQIntegrand
 {
