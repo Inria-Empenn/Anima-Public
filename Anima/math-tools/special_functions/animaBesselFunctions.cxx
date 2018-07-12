@@ -46,7 +46,10 @@ double scaled_bessel_i(unsigned int N, double x)
 #else
 
     boost::multiprecision::cpp_dec_float_100 y = x;
-    return std::exp(-y) * boost::math::cyl_bessel_i<boost::multiprecision::cpp_dec_float_100>(N, y);
+    boost::multiprecision::cpp_dec_float_100 expX = std::exp(-x);
+
+    boost::multiprecision::cpp_dec_float_100 resVal = expX * boost::math::cyl_bessel_i<boost::multiprecision::cpp_dec_float_100>(N, y);
+    return resVal.convert_to<double>();
 
 #endif
 }
