@@ -124,7 +124,7 @@ StaniszCompartment::ListType &StaniszCompartment::GetSignalAttenuationJacobian(d
         double aDiffDeriv = 1.0;
         if (this->GetUseBoundedOptimization())
             aDiffDeriv = levenberg::BoundedDerivativeAddOn(axialDiff, this->GetBoundedSignVectorValue(1),
-                                                           m_DiffusivityLowerBound, m_DiffusivityUpperBound);
+                                                           m_StaniszAxialDiffusivityLowerBound, m_DiffusivityUpperBound);
 
         m_JacobianVector[1] = - 4.0 * bValue * piSquare * m_SecondSummation * aDiffDeriv;
     }
