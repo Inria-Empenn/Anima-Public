@@ -28,8 +28,8 @@ public:
 
     DiffusionModelCompartmentType GetCompartmentType() ITK_OVERRIDE {return Tensor;}
 
-    virtual double GetFourierTransformedDiffusionProfile(double bValue, const Vector3DType &gradient) ITK_OVERRIDE;
-    virtual ListType &GetSignalAttenuationJacobian(double bValue, const Vector3DType &gradient) ITK_OVERRIDE;
+    virtual double GetFourierTransformedDiffusionProfile(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient) ITK_OVERRIDE;
+    virtual ListType &GetSignalAttenuationJacobian(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient) ITK_OVERRIDE;
     virtual double GetLogDiffusionProfile(const Vector3DType &sample) ITK_OVERRIDE;
 
     virtual void SetParametersFromVector(const ListType &params) ITK_OVERRIDE;

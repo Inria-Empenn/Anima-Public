@@ -27,8 +27,8 @@ public:
 
     DiffusionModelCompartmentType GetCompartmentType() ITK_OVERRIDE {return NODDI;}
 
-    virtual double GetFourierTransformedDiffusionProfile(double bValue, const Vector3DType &gradient) ITK_OVERRIDE;
-    virtual ListType &GetSignalAttenuationJacobian(double bValue, const Vector3DType &gradient) ITK_OVERRIDE;
+    virtual double GetFourierTransformedDiffusionProfile(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient) ITK_OVERRIDE;
+    virtual ListType &GetSignalAttenuationJacobian(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient) ITK_OVERRIDE;
     virtual double GetLogDiffusionProfile(const Vector3DType &sample) ITK_OVERRIDE;
 
     virtual void SetParametersFromVector(const ListType &params) ITK_OVERRIDE;
@@ -55,6 +55,7 @@ public:
     void SetExtraAxonalFraction(double num) ITK_OVERRIDE;
     void SetAxialDiffusivity(double num) ITK_OVERRIDE;
     
+    bool GetTensorCompatible() ITK_OVERRIDE {return false;}
     const Matrix3DType &GetDiffusionTensor() ITK_OVERRIDE;
     double GetFractionalAnisotropy() ITK_OVERRIDE;
 

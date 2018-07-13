@@ -26,9 +26,12 @@ public:
     void SetModelWithFreeWaterComponent(bool arg) {m_ModelWithFreeWaterComponent = arg;}
     void SetModelWithStationaryWaterComponent(bool arg) {m_ModelWithStationaryWaterComponent = arg;}
     void SetModelWithRestrictedWaterComponent(bool arg) {m_ModelWithRestrictedWaterComponent = arg;}
+    void SetModelWithStaniszComponent(bool arg) {m_ModelWithStaniszComponent = arg;}
+
     void SetFreeWaterProportionFixedValue(double arg) {m_FreeWaterProportionFixedValue = arg;}
     void SetStationaryWaterProportionFixedValue(double arg) {m_StationaryWaterProportionFixedValue = arg;}
     void SetRestrictedWaterProportionFixedValue(double arg) {m_RestrictedWaterProportionFixedValue = arg;}
+    void SetStaniszProportionFixedValue(double arg) {m_StaniszProportionFixedValue = arg;}
 
     void SetCompartmentType(CompartmentType arg) {m_CompartmentType = arg;}
     void SetNumberOfCompartments(unsigned int num) {m_NumberOfCompartments = num;}
@@ -79,8 +82,10 @@ private:
     virtual void CreateDDICompartment(BaseCompartmentPointer &compartmentPointer, bool applyConstraints);
 
     CompartmentType m_CompartmentType;
-    bool m_ModelWithFreeWaterComponent, m_ModelWithStationaryWaterComponent, m_ModelWithRestrictedWaterComponent;
-    double m_FreeWaterProportionFixedValue, m_StationaryWaterProportionFixedValue, m_RestrictedWaterProportionFixedValue;
+    bool m_ModelWithFreeWaterComponent, m_ModelWithStationaryWaterComponent;
+    bool m_ModelWithRestrictedWaterComponent, m_ModelWithStaniszComponent;
+    double m_FreeWaterProportionFixedValue, m_StationaryWaterProportionFixedValue;
+    double m_RestrictedWaterProportionFixedValue, m_StaniszProportionFixedValue;
     unsigned int m_NumberOfCompartments;
 
     bool m_UseFixedWeights;

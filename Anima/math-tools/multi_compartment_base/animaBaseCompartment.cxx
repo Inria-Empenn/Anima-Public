@@ -17,17 +17,19 @@ const double BaseCompartment::m_DefaultConcentrationUpperBound = 20;
 const double BaseCompartment::m_WatsonKappaUpperBound = 128.0;
 const double BaseCompartment::m_Epsilon = 1.0e-2;
 const double BaseCompartment::m_FractionUpperBound = 1.0;
+const double BaseCompartment::m_TissueRadiusLowerBound = 0.1e-3;
+const double BaseCompartment::m_TissueRadiusUpperBound = 40.1e-3;
 
-double BaseCompartment::GetPredictedSignal(double bValue, const Vector3DType &gradient)
+double BaseCompartment::GetPredictedSignal(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient)
 {
-    double ftDiffusionProfile = GetFourierTransformedDiffusionProfile(bValue,gradient);
+    double ftDiffusionProfile = GetFourierTransformedDiffusionProfile(smallDelta,bigDelta, gradientStrength, gradient);
 
     return std::abs(ftDiffusionProfile);
 }
 
 bool BaseCompartment::IsEqual(Self *rhs, double tolerance)
 {
-    if ((this->GetCompartmentType() != DDI)&&(rhs->GetCompartmentType() != DDI))
+    if (this->GetTensorCompatible() && rhs->GetTensorCompatible())
     {
         // Compare tensor representations, easier and probably faster
         Matrix3DType lhsTensor = this->GetDiffusionTensor();
@@ -63,6 +65,8 @@ bool BaseCompartment::IsEqual(Self *rhs, double tolerance)
         return false;
     if (std::abs(this->GetExtraAxonalFraction() - rhs->GetExtraAxonalFraction()) > tolerance)
         return false;
+    if (std::abs(this->GetTissueRadius() - rhs->GetTissueRadius()) > tolerance)
+        return false;
 
     return true;
 }
@@ -77,6 +81,7 @@ void BaseCompartment::CopyFromOther(Self *rhs)
     this->SetRadialDiffusivity2(rhs->GetRadialDiffusivity2());
     this->SetOrientationConcentration(rhs->GetOrientationConcentration());
     this->SetExtraAxonalFraction(rhs->GetExtraAxonalFraction());
+    this->SetTissueRadius(rhs->GetTissueRadius());
 }
 
 void BaseCompartment::Reorient(vnl_matrix <double> &orientationMatrix, bool affineTransform)

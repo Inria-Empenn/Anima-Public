@@ -142,6 +142,10 @@ MCMFileWriter <PixelType, ImageDimension>
                 outputHeaderFile << "<Type>StationaryWater</Type>" << std::endl;
                 break;
 
+            case Stanisz:
+                outputHeaderFile << "<Type>Stanisz</Type>" << std::endl;
+                break;
+
             case IsotropicRestrictedWater:
             default:
                 outputHeaderFile << "<Type>IRWater</Type>" << std::endl;

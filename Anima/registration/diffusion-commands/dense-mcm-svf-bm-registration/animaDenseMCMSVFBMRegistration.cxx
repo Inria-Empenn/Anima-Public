@@ -4,6 +4,7 @@
 
 #include <tclap/CmdLine.h>
 #include <itkTimeProbe.h>
+#include <animaMCMConstants.h>
 
 int main(int ac, const char** av)
 {
@@ -30,6 +31,9 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<unsigned int> blockTransfoArg("t","in-transform","Transformation computed between blocks (0: translation, 1: rigid, 2: affine, default: 0)",false,0,"transformation between blocks",cmd);
     TCLAP::ValueArg<unsigned int> blockMetricArg("","metric","Similarity metric between blocks (0: basic mean squares, 1: one to on basic mean squares, 2: MCM mean squares, 3: MT pairing correlation, 4: MCM correlation, default: 1)",false,1,"similarity metric",cmd);
     TCLAP::ValueArg<unsigned int> blockOrientationArg("","bor","Re-orientation strategy when matching blocks (0: none, 1: finite strain, 2: PPD, default: 2)",false,2,"block re-orientation",cmd);
+
+    TCLAP::ValueArg<double> smallDeltaArg("", "small-delta", "Diffusion small delta", false, anima::DiffusionSmallDelta, "small delta", cmd);
+    TCLAP::ValueArg<double> bigDeltaArg("", "big-delta", "Diffusion big delta", false, anima::DiffusionBigDelta, "big delta", cmd);
     TCLAP::ValueArg<std::string> bvalArg("b","bvals","B-values",false,"","b-values",cmd);
     TCLAP::ValueArg<std::string> bvecArg("v","bvec","Gradient direction",false,"","gradient directions",cmd);
 
@@ -97,10 +101,14 @@ int main(int ac, const char** av)
         gradientReader.SetGradientFileName(bvecArg.getValue());
         gradientReader.SetBValueBaseString(bvalArg.getValue());
         gradientReader.SetGradientIndependentNormalization(true);
+        gradientReader.SetSmallDelta(smallDeltaArg.getValue());
+        gradientReader.SetBigDelta(bigDeltaArg.getValue());
 
         gradientReader.Update();
 
-        matcher->SetBValues(gradientReader.GetBValues());
+        matcher->SetSmallDelta(smallDeltaArg.getValue());
+        matcher->SetBigDelta(bigDeltaArg.getValue());
+        matcher->SetGradientStrengths(gradientReader.GetGradientStrengths());
         matcher->SetGradientDirections(gradientReader.GetGradients());
     }
 

@@ -54,7 +54,8 @@ void MultiCompartmentModel::AddCompartment(double weight, BaseCompartment *compa
 
     DiffusionModelCompartmentType compType = compartment->GetCompartmentType();
 
-    if ((compType == anima::FreeWater)||(compType == anima::StationaryWater)||(compType == anima::IsotropicRestrictedWater))
+    if ((compType == anima::FreeWater)||(compType == anima::StationaryWater)||
+            (compType == anima::IsotropicRestrictedWater)||(compType == anima::Stanisz))
         ++m_NumberOfIsotropicCompartments;
 }
 
@@ -269,20 +270,20 @@ void MultiCompartmentModel::SetModelVector(const ModelOutputVectorType &mcmVec)
     }
 }
 
-double MultiCompartmentModel::GetPredictedSignal(double bValue, const Vector3DType &gradient)
+double MultiCompartmentModel::GetPredictedSignal(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient)
 {
     double ftDiffusionProfile = 0;
 
     for (unsigned int i = 0;i < m_Compartments.size();++i)
     {
         if (m_CompartmentWeights[i] != 0)
-            ftDiffusionProfile += m_CompartmentWeights[i] * m_Compartments[i]->GetFourierTransformedDiffusionProfile(bValue, gradient);
+            ftDiffusionProfile += m_CompartmentWeights[i] * m_Compartments[i]->GetFourierTransformedDiffusionProfile(smallDelta, bigDelta, gradientStrength, gradient);
     }
 
     return std::abs(ftDiffusionProfile);
 }
     
-MultiCompartmentModel::ListType &MultiCompartmentModel::GetSignalJacobian(double bValue, const Vector3DType &gradient)
+MultiCompartmentModel::ListType &MultiCompartmentModel::GetSignalJacobian(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient)
 {
     unsigned int jacobianSize = 0;
     for (unsigned int i = 0;i < m_Compartments.size();++i)
@@ -299,11 +300,11 @@ MultiCompartmentModel::ListType &MultiCompartmentModel::GetSignalJacobian(double
     // In that case, weights are not optimized
     if (m_OptimizeWeights && (numWeightsToOptimize > 0))
     {
-        double firstCompartmentSignal = m_Compartments[0]->GetFourierTransformedDiffusionProfile(bValue, gradient);
+        double firstCompartmentSignal = m_Compartments[0]->GetFourierTransformedDiffusionProfile(smallDelta, bigDelta, gradientStrength, gradient);
         
         for (unsigned int i = 0;i < numWeightsToOptimize;++i)
         {
-            m_JacobianVector[i] = m_Compartments[i+1]->GetFourierTransformedDiffusionProfile(bValue, gradient) - firstCompartmentSignal;
+            m_JacobianVector[i] = m_Compartments[i+1]->GetFourierTransformedDiffusionProfile(smallDelta, bigDelta, gradientStrength, gradient) - firstCompartmentSignal;
             if (m_UseBoundedWeightsOptimization)
                 m_JacobianVector[i] *= levenberg::BoundedDerivativeAddOn(m_CompartmentWeights[i+1], m_BoundedWeightsSignVector[i], 0.0, 1.0);
         }
@@ -313,7 +314,7 @@ MultiCompartmentModel::ListType &MultiCompartmentModel::GetSignalJacobian(double
     
     for (unsigned int i = 0;i < m_Compartments.size();++i)
     {
-        m_WorkVector = m_Compartments[i]->GetSignalAttenuationJacobian(bValue, gradient);
+        m_WorkVector = m_Compartments[i]->GetSignalAttenuationJacobian(smallDelta, bigDelta, gradientStrength, gradient);
         
         for (unsigned int j = 0;j < m_WorkVector.size();++j)
             m_JacobianVector[pos + j] = m_CompartmentWeights[i] * m_WorkVector[j];

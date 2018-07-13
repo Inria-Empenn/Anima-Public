@@ -18,6 +18,7 @@ enum DiffusionModelCompartmentType
     FreeWater = 0,
     StationaryWater,
     IsotropicRestrictedWater,
+    Stanisz,
     Stick,
     Zeppelin,
     Tensor,
@@ -45,8 +46,8 @@ public:
     typedef std::vector <double> ListType;
     typedef itk::VariableLengthVector <double> ModelOutputVectorType;
 
-    virtual double GetFourierTransformedDiffusionProfile(double bValue, const Vector3DType &gradient) = 0;
-    virtual ListType &GetSignalAttenuationJacobian(double bValue, const Vector3DType &gradient) = 0;
+    virtual double GetFourierTransformedDiffusionProfile(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient) = 0;
+    virtual ListType &GetSignalAttenuationJacobian(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient) = 0;
     virtual double GetLogDiffusionProfile(const Vector3DType &sample) = 0;
 
     //! Various methods for optimization parameters setting and getting
@@ -88,6 +89,7 @@ public:
     virtual double GetRadialDiffusivity2() {return m_RadialDiffusivity2;}
     virtual double GetOrientationConcentration() {return m_OrientationConcentration;}
     virtual double GetExtraAxonalFraction() {return m_ExtraAxonalFraction;}
+    virtual double GetTissueRadius() {return m_TissueRadius;}
 
     // Can be re-implemented, always re-use this implementation though
     virtual void SetOrientationTheta(double num) {m_OrientationTheta = num;}
@@ -98,9 +100,11 @@ public:
     virtual void SetRadialDiffusivity2(double num) {m_RadialDiffusivity2 = num;}
     virtual void SetOrientationConcentration(double num) {m_OrientationConcentration = num;}
     virtual void SetExtraAxonalFraction(double num) {m_ExtraAxonalFraction = num;}
-    
-    double GetPredictedSignal(double bValue, const Vector3DType &gradient);
+    virtual void SetTissueRadius(double num) {m_TissueRadius = num;}
 
+    double GetPredictedSignal(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient);
+
+    virtual bool GetTensorCompatible() {return true;}
     //! Get compartment as a 3D tensor (default behavior: throw exception if not supported by the compartment model)
     virtual const Matrix3DType &GetDiffusionTensor();
     virtual double GetFractionalAnisotropy();
@@ -120,6 +124,7 @@ protected:
         m_RadialDiffusivity2 = 1.5e-4;
         m_OrientationConcentration = 5.0;
         m_ExtraAxonalFraction = 0.1;
+        m_TissueRadius = 0.01;
 
         m_DiffusionTensor.SetIdentity();
         m_UseBoundedOptimization = false;
@@ -145,6 +150,8 @@ protected:
     static const double m_DefaultConcentrationUpperBound;
     static const double m_WatsonKappaUpperBound;
     static const double m_FractionUpperBound;
+    static const double m_TissueRadiusLowerBound;
+    static const double m_TissueRadiusUpperBound;
 
     //! Matrix to hold working value of diffusion tensor approximation to the model
     Matrix3DType m_DiffusionTensor;
@@ -174,6 +181,7 @@ private:
     double m_RadialDiffusivity1, m_RadialDiffusivity2;
     double m_OrientationConcentration;
     double m_ExtraAxonalFraction;
+    double m_TissueRadius;
 
     //! Boolean to tell whether parameters to be optimized are bounded or not
     bool m_UseBoundedOptimization;

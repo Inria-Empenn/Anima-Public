@@ -22,6 +22,8 @@ namespace anima
         
         void SetGradientFileName(std::string fName) {m_GradientFileName = fName;this->SetModified();}
         void SetBValueBaseString(std::string base) {m_BValueBaseString = base;this->SetModified();}
+        void SetSmallDelta(double val) {m_SmallDelta = val;this->SetModified();}
+        void SetBigDelta(double val) {m_BigDelta = val;this->SetModified();}
         void SetB0ValueThreshold(double thr) {m_B0ValueThreshold = thr;this->SetModified();}
         void SetGradientIndependentNormalization(bool normGrads) {m_GradientIndependentNormalization = normGrads;this->SetModified();}
         void SetModified() {m_Modified = true;}
@@ -29,6 +31,7 @@ namespace anima
         std::vector <bool> GetB0Directions();
         GradientVectorType &GetGradients();
         BValueVectorType &GetBValues();
+        BValueVectorType &GetGradientStrengths();
         unsigned int GetTotalNumberOfDirections();
         
         void Update();
@@ -62,7 +65,8 @@ namespace anima
         
         GradientVectorType m_Gradients;
         BValueVectorType m_BValues;
-        
+        BValueVectorType m_GradientStrengths;
+
         std::string m_GradientFileName;
         std::string m_BValueBaseString;
         
@@ -71,6 +75,9 @@ namespace anima
         double m_B0ValueThreshold;
         // If set to true, gradients are normalized to 1 without changing b-values, otherwise yes
         bool m_GradientIndependentNormalization;
+
+        //! Input small and big deltas of DWI acquisition (if known, gradient strengths will be Gmax)
+        double m_SmallDelta, m_BigDelta;
         
         // Internal value to trigger update
         bool m_Modified;

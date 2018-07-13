@@ -81,7 +81,8 @@ int main(int ac, const char** av)
     testMetric->SetFixedImage(refReader.GetModelVectorImage());
     testMetric->SetMovingImage(movingReader.GetModelVectorImage());
     testMetric->SetFixedImageRegion(region);
-    testMetric->SetBValues(gradientReader.GetBValues());
+    // Use default small and big delta values
+    testMetric->SetGradientStrengths(gradientReader.GetGradientStrengths());
     testMetric->SetGradientDirections(gradientReader.GetGradients());
     testMetric->SetInterpolator(interpolator);
 
@@ -92,7 +93,8 @@ int main(int ac, const char** av)
     testCorrelationMetric->SetFixedImage(refReader.GetModelVectorImage());
     testCorrelationMetric->SetMovingImage(movingReader.GetModelVectorImage());
     testCorrelationMetric->SetFixedImageRegion(region);
-    testCorrelationMetric->SetBValues(gradientReader.GetBValues());
+    // Use default small and big delta values
+    testCorrelationMetric->SetGradientStrengths(gradientReader.GetGradientStrengths());
     testCorrelationMetric->SetGradientDirections(gradientReader.GetGradients());
     testCorrelationMetric->SetInterpolator(interpolator);
 

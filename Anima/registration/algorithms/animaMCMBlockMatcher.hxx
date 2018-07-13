@@ -9,6 +9,7 @@
 #include <animaMTPairingCorrelationImageToImageMetric.h>
 
 #include <animaMCMBlockMatchInitializer.h>
+#include <animaMCMConstants.h>
 
 namespace anima
 {
@@ -18,6 +19,9 @@ MCMBlockMatcher<TInputImageType>
 ::MCMBlockMatcher()
 {
     m_SimilarityType = MCMMeanSquares;
+
+    m_SmallDelta = anima::DiffusionSmallDelta;
+    m_BigDelta = anima::DiffusionBigDelta;
 }
 
 template <typename TInputImageType>
@@ -115,9 +119,11 @@ MCMBlockMatcher<TInputImageType>
                                                             InputImageType::ImageDimension > MetricType;
 
             typename MetricType::Pointer tmpMetric = MetricType::New();
-            tmpMetric->SetBValues(m_BValues);
+            tmpMetric->SetSmallDelta(m_SmallDelta);
+            tmpMetric->SetBigDelta(m_BigDelta);
+            tmpMetric->SetGradientStrengths(m_GradientStrengths);
             tmpMetric->SetGradientDirections(m_GradientDirections);
-            if ((m_BValues.size() > 0)&&(m_GradientDirections.size() > 0))
+            if ((m_GradientStrengths.size() > 0)&&(m_GradientDirections.size() > 0))
                 tmpMetric->SetForceApproximation(true);
 
             metric = tmpMetric;
@@ -131,9 +137,11 @@ MCMBlockMatcher<TInputImageType>
                                                             InputImageType::ImageDimension > MetricType;
 
             typename MetricType::Pointer tmpMetric = MetricType::New();
-            tmpMetric->SetBValues(m_BValues);
+            tmpMetric->SetSmallDelta(m_SmallDelta);
+            tmpMetric->SetBigDelta(m_BigDelta);
+            tmpMetric->SetGradientStrengths(m_GradientStrengths);
             tmpMetric->SetGradientDirections(m_GradientDirections);
-            if ((m_BValues.size() > 0)&&(m_GradientDirections.size() > 0))
+            if ((m_GradientStrengths.size() > 0)&&(m_GradientDirections.size() > 0))
                 tmpMetric->SetForceApproximation(true);
 
             metric = tmpMetric;

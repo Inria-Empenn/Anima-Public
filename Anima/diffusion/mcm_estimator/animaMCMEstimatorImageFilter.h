@@ -13,6 +13,7 @@
 #include <animaNLOPTParametersConstraintFunction.h>
 
 #include <animaHyperbolicFunctions.h>
+#include <animaMCMConstants.h>
 
 namespace anima
 {
@@ -172,7 +173,9 @@ public:
     typedef vnl_vector_fixed <double,3> GradientType;
 
     // Acquisition-related parameters
-    void SetBValuesList(std::vector <double> &mb){m_BValuesList = mb;}
+    void SetGradientStrengths(std::vector <double> &mb) {m_GradientStrengths = mb;}
+    itkSetMacro(SmallDelta, double)
+    itkSetMacro(BigDelta, double)
     void AddGradientDirection(unsigned int i, GradientType &grad);
     itkSetMacro(B0Threshold, double)
 
@@ -190,10 +193,12 @@ public:
     itkSetMacro(ModelWithFreeWaterComponent, bool)
     itkSetMacro(ModelWithStationaryWaterComponent, bool)
     itkSetMacro(ModelWithRestrictedWaterComponent, bool)
+    itkSetMacro(ModelWithStaniszComponent, bool)
 
     itkSetMacro(FreeWaterProportionFixedValue, double)
     itkSetMacro(StationaryWaterProportionFixedValue, double)
     itkSetMacro(RestrictedWaterProportionFixedValue, double)
+    itkSetMacro(StaniszProportionFixedValue, double)
 
     itkSetMacro(NoiseType, SignalNoiseType)
     itkGetMacro(NoiseType, SignalNoiseType)
@@ -218,7 +223,10 @@ public:
     itkSetMacro(UseConcentrationBoundsFromDTI,bool)
 
     std::string GetOptimizer() {return m_Optimizer;}
-    std::vector <double> & GetBValuesList() {return m_BValuesList;}
+
+    std::vector <double> & GetGradientStrengths() {return m_GradientStrengths;}
+    itkGetMacro(SmallDelta, double)
+    itkGetMacro(BigDelta, double)
     std::vector< GradientType > &GetGradientDirections() {return m_GradientDirections;}
 
     MCMCreatorType *GetMCMCreator(unsigned int i) {return m_MCMCreators[i];}
@@ -250,7 +258,7 @@ protected:
         m_SigmaSquareVolume = 0;
         m_MoseVolume = 0;
 
-        m_BValuesList.clear();
+        m_GradientStrengths.clear();
         m_GradientDirections.clear();
 
         m_NumberOfDictionaryEntries = 120;
@@ -263,10 +271,12 @@ protected:
         m_ModelWithFreeWaterComponent = true;
         m_ModelWithStationaryWaterComponent = true;
         m_ModelWithRestrictedWaterComponent = true;
+        m_ModelWithStaniszComponent = true;
 
         m_FreeWaterProportionFixedValue = 0.1;
         m_StationaryWaterProportionFixedValue = 0.05;
         m_RestrictedWaterProportionFixedValue = 0.1;
+        m_StaniszProportionFixedValue = 0.1;
 
         m_NoiseType = Gaussian;
         m_CompartmentType = anima::Tensor;
@@ -298,6 +308,9 @@ protected:
         m_MaxEval = 0;
         m_XTolerance = 0;
         m_GTolerance = 0;
+
+        m_SmallDelta = anima::DiffusionSmallDelta;
+        m_BigDelta = anima::DiffusionBigDelta;
     }
 
     virtual ~MCMEstimatorImageFilter()
@@ -376,7 +389,8 @@ private:
     //! Utility function to initialize dictionary of sticks for initial sparse estimation
     void InitializeDictionary();
 
-    std::vector <double> m_BValuesList;
+    double m_SmallDelta, m_BigDelta;
+    std::vector <double> m_GradientStrengths;
     std::vector< GradientType > m_GradientDirections;
 
     OutputScalarImagePointer m_B0Volume;
@@ -400,8 +414,8 @@ private:
     MaximumLikelihoodEstimationMode m_MLEstimationStrategy;
     bool m_VNLDerivativeComputation;
 
-    bool m_ModelWithFreeWaterComponent, m_ModelWithStationaryWaterComponent, m_ModelWithRestrictedWaterComponent;
-    double m_FreeWaterProportionFixedValue, m_StationaryWaterProportionFixedValue, m_RestrictedWaterProportionFixedValue;
+    bool m_ModelWithFreeWaterComponent, m_ModelWithStationaryWaterComponent, m_ModelWithRestrictedWaterComponent, m_ModelWithStaniszComponent;
+    double m_FreeWaterProportionFixedValue, m_StationaryWaterProportionFixedValue, m_RestrictedWaterProportionFixedValue, m_StaniszProportionFixedValue;
 
     SignalNoiseType m_NoiseType;
     CompartmentType m_CompartmentType;

@@ -24,6 +24,8 @@ int main(int argc,  char **argv)
     TCLAP::ValueArg<std::string> gradsArg("g", "grads", "Gradient table", true, "", "gradients", cmd);
     TCLAP::ValueArg<std::string> bvalsArg("b", "bvals", "B-value list", true, "", "b-values", cmd);
     TCLAP::SwitchArg bvalueScaleArg("B","b-no-scale","Do not scale b-values according to gradient norm",cmd);
+    TCLAP::ValueArg<double> smallDeltaArg("", "small-delta", "Diffusion small delta", false, anima::DiffusionSmallDelta, "small delta", cmd);
+    TCLAP::ValueArg<double> bigDeltaArg("", "big-delta", "Diffusion big delta", false, anima::DiffusionBigDelta, "big delta", cmd);
 
     // Outputs
     TCLAP::ValueArg<std::string> outArg("o", "out-mcm", "MCM output volume", true, "", "MCM output", cmd);
@@ -46,11 +48,13 @@ int main(int argc,  char **argv)
     TCLAP::SwitchArg freeWaterCompartmentArg("F", "free-water", "Model with free water", cmd, false);
     TCLAP::SwitchArg stationaryWaterCompartmentArg("S", "stationary-water", "Model with stationary water", cmd, false);
     TCLAP::SwitchArg restrictedWaterCompartmentArg("R", "restricted-water", "Model with restricted water", cmd, false);
+    TCLAP::SwitchArg staniszCompartmentArg("Z", "stanisz", "Model with stanisz isotropic compartment", cmd, false);
 
     TCLAP::SwitchArg fixWeightsArg("", "fix-weights", "Fix compartment weights", cmd, false);
     TCLAP::ValueArg<double> freeWaterWeightArg("f", "fw-weight", "Free water weight, used if free water compartment (default: 0.1)", false, 0.1, "free water weight", cmd);
     TCLAP::ValueArg<double> stationaryWaterWeightArg("s", "sw-weight", "Stationary water weight, used if stationary water compartment (default: 0.05)", false, 0.05, "stationary water weight", cmd);
     TCLAP::ValueArg<double> restrictedWaterWeightArg("r", "rw-weight", "Restricted water weight, used if restricted water compartment (default: 0.1)", false, 0.1, "restricted water weight", cmd);
+    TCLAP::ValueArg<double> staniszWeightArg("z", "z-weight", "Stanisz compartment weight, used if restricted water compartment (default: 0.1)", false, 0.1, "Stanisz weight", cmd);
     TCLAP::SwitchArg fixDiffArg("", "fix-diff", "Fix diffusivity value", cmd, false);
     TCLAP::SwitchArg optFWDiffArg("", "opt-free-water-diff", "Optimize free water diffusivity value", cmd, false);
     TCLAP::SwitchArg optIRWDiffArg("", "opt-ir-water-diff", "Optimize isotropic restricted water diffusivity value", cmd, false);
@@ -115,14 +119,19 @@ int main(int argc,  char **argv)
     gfReader.SetGradientFileName(gradsArg.getValue());
     gfReader.SetBValueBaseString(bvalsArg.getValue());
     gfReader.SetGradientIndependentNormalization(bvalueScaleArg.isSet());
+    gfReader.SetSmallDelta(smallDeltaArg.getValue());
+    gfReader.SetBigDelta(bigDeltaArg.getValue());
     gfReader.Update();
 
     GFReaderType::GradientVectorType directions = gfReader.GetGradients();
     for(unsigned int i = 0;i < directions.size();++i)
         filter->AddGradientDirection(i,directions[i]);
 
-    GFReaderType::BValueVectorType mb = gfReader.GetBValues();
-    filter->SetBValuesList(mb);
+    GFReaderType::BValueVectorType mb = gfReader.GetGradientStrengths();
+
+    filter->SetGradientStrengths(mb);
+    filter->SetSmallDelta(smallDeltaArg.getValue());
+    filter->SetBigDelta(bigDeltaArg.getValue());
 
     if (computationMaskArg.getValue() != "")
         filter->SetComputationMask(anima::readImage<MaskImageType>(computationMaskArg.getValue()));
@@ -137,6 +146,7 @@ int main(int argc,  char **argv)
     filter->SetModelWithFreeWaterComponent(freeWaterCompartmentArg.isSet());
     filter->SetModelWithStationaryWaterComponent(stationaryWaterCompartmentArg.isSet());
     filter->SetModelWithRestrictedWaterComponent(restrictedWaterCompartmentArg.isSet());
+    filter->SetModelWithStaniszComponent(staniszCompartmentArg.isSet());
 
     switch (compartmentTypeArg.getValue())
     {
@@ -180,6 +190,7 @@ int main(int argc,  char **argv)
     filter->SetFreeWaterProportionFixedValue(freeWaterWeightArg.getValue());
     filter->SetStationaryWaterProportionFixedValue(stationaryWaterWeightArg.getValue());
     filter->SetRestrictedWaterProportionFixedValue(restrictedWaterWeightArg.getValue());
+    filter->SetStaniszProportionFixedValue(staniszWeightArg.getValue());
 
     filter->SetUseConstrainedDiffusivity(fixDiffArg.isSet());
     filter->SetUseConstrainedFreeWaterDiffusivity(!optFWDiffArg.isSet());

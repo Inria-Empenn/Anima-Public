@@ -12,6 +12,7 @@
 
 #include <animaVelocityUtils.h>
 #include <animaMCMResampleImageFilter.h>
+#include <animaMCMConstants.h>
 
 namespace anima
 {
@@ -39,6 +40,9 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::PyramidalDenseMCMSVFMatching
     m_Transform = Translation;
     m_Metric = MCMOneToOneBasicMeanSquares;
     m_Optimizer = Bobyqa;
+
+    m_SmallDelta = anima::DiffusionSmallDelta;
+    m_BigDelta = anima::DiffusionBigDelta;
 
     m_MaximumIterations = 10;
     m_MinimalTransformError = 0.01;
@@ -191,7 +195,9 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
         mainMatcher->SetUseTransformationDam(m_UseTransformationDam);
         mainMatcher->SetDamDistance(m_DamDistance * meanSpacing / 2.0);
         mainMatcher->SetGradientDirections(m_GradientDirections);
-        mainMatcher->SetBValues(m_BValues);
+        mainMatcher->SetSmallDelta(m_SmallDelta);
+        mainMatcher->SetBigDelta(m_BigDelta);
+        mainMatcher->SetGradientStrengths(m_GradientStrengths);
 
         switch (m_SymmetryType)
         {
@@ -214,7 +220,9 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
                 reverseMatcher->SetUseTransformationDam(m_UseTransformationDam);
                 reverseMatcher->SetDamDistance(m_DamDistance * meanSpacing / 2.0);
                 reverseMatcher->SetGradientDirections(m_GradientDirections);
-                reverseMatcher->SetBValues(m_BValues);
+                reverseMatcher->SetSmallDelta(m_SmallDelta);
+                reverseMatcher->SetBigDelta(m_BigDelta);
+                reverseMatcher->SetGradientStrengths(m_GradientStrengths);
 
                 tmpReg->SetReverseBlockMatcher(reverseMatcher);
                 m_bmreg = tmpReg;
