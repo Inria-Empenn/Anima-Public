@@ -24,7 +24,7 @@ GradientFileReader()
     m_TotalNumberOfDirections = 0;
 
     m_SmallDelta = anima::DiffusionSmallDelta;
-    m_LargeDelta = anima::DiffusionLargeDelta;
+    m_BigDelta = anima::DiffusionBigDelta;
 
     m_GradientIndependentNormalization = true;
     m_Modified = false;
@@ -139,10 +139,10 @@ Update()
         }
     }
 
-    // Finally get gradient strengths from bvalues and small/large delta
+    // Finally get gradient strengths from bvalues and small/big delta
     m_GradientStrengths.resize(m_TotalNumberOfDirections);
     for (unsigned int i = 0;i < m_TotalNumberOfDirections;++i)
-        m_GradientStrengths[i] = anima::GetGradientStrengthFromBValue(m_BValues[i], m_SmallDelta, m_LargeDelta);
+        m_GradientStrengths[i] = anima::GetGradientStrengthFromBValue(m_BValues[i], m_SmallDelta, m_BigDelta);
 
     m_Modified = false;
 }

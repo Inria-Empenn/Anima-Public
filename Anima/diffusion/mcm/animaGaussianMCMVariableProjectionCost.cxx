@@ -444,12 +444,12 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
         {
             unsigned int indexComp = m_IndexesUsefulCompartments[j];
             
-            m_PredictedSignalAttenuations[i][j] = m_MCMStructure->GetCompartment(indexComp)->GetFourierTransformedDiffusionProfile(m_SmallDelta, m_LargeDelta,
+            m_PredictedSignalAttenuations[i][j] = m_MCMStructure->GetCompartment(indexComp)->GetFourierTransformedDiffusionProfile(m_SmallDelta, m_BigDelta,
                                                                                                                                    m_GradientStrengths[i], m_Gradients[i]);
             
             if (m_UseDerivative)
             {
-                compartmentJacobian = m_MCMStructure->GetCompartment(indexComp)->GetSignalAttenuationJacobian(m_SmallDelta, m_LargeDelta,
+                compartmentJacobian = m_MCMStructure->GetCompartment(indexComp)->GetSignalAttenuationJacobian(m_SmallDelta, m_BigDelta,
                                                                                                               m_GradientStrengths[i], m_Gradients[i]);
                 
                 unsigned int compartmentSize = compartmentJacobian.size();

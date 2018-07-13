@@ -10,19 +10,19 @@ namespace anima
 
 const double StaniszCompartment::m_StaniszAxialDiffusivityLowerBound = 1.5e-4;
 
-void StaniszCompartment::UpdateSignals(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient)
+void StaniszCompartment::UpdateSignals(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient)
 {
-    if (std::abs(smallDelta - m_CurrentSmallDelta) < 1.0e-6 && std::abs(largeDelta - m_CurrentLargeDelta) && std::abs(gradientStrength - m_CurrentGradientStrength) < 1.0e-6 && anima::ComputeNorm(gradient - m_CurrentGradient) < 1.0e-6 && !m_ModifiedParameters)
+    if (std::abs(smallDelta - m_CurrentSmallDelta) < 1.0e-6 && std::abs(bigDelta - m_CurrentBigDelta) && std::abs(gradientStrength - m_CurrentGradientStrength) < 1.0e-6 && anima::ComputeNorm(gradient - m_CurrentGradient) < 1.0e-6 && !m_ModifiedParameters)
         return;
 
     double alpha = anima::DiffusionGyromagneticRatio * smallDelta * gradientStrength;
-    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
+    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, bigDelta, gradientStrength);
     double tissueRadius = this->GetTissueRadius();
     double axialDiff = this->GetAxialDiffusivity();
     double alphaRs = alpha * tissueRadius;
     double piSquare = M_PI * M_PI;
     double alphaRsSquare = alphaRs * alphaRs;
-    double deltaDiff = largeDelta - smallDelta / 3.0;
+    double deltaDiff = bigDelta - smallDelta / 3.0;
     double epsilon = std::numeric_limits<double>::epsilon();
 
     m_FirstSummation = 0.0;
@@ -70,15 +70,15 @@ void StaniszCompartment::UpdateSignals(double smallDelta, double largeDelta, dou
     }
 
     m_CurrentSmallDelta = smallDelta;
-    m_CurrentLargeDelta = largeDelta;
+    m_CurrentBigDelta = bigDelta;
     m_CurrentGradientStrength = gradientStrength;
     m_CurrentGradient = gradient;
     m_ModifiedParameters = false;
 }
 
-double StaniszCompartment::GetFourierTransformedDiffusionProfile(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient)
+double StaniszCompartment::GetFourierTransformedDiffusionProfile(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient)
 {
-    this->UpdateSignals(smallDelta, largeDelta, gradientStrength, gradient);
+    this->UpdateSignals(smallDelta, bigDelta, gradientStrength, gradient);
 
     double alpha = anima::DiffusionGyromagneticRatio * smallDelta * gradientStrength;
     double alphaRs = alpha * this->GetTissueRadius();
@@ -90,9 +90,9 @@ double StaniszCompartment::GetFourierTransformedDiffusionProfile(double smallDel
     return signalValue;
 }
 
-StaniszCompartment::ListType &StaniszCompartment::GetSignalAttenuationJacobian(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient)
+StaniszCompartment::ListType &StaniszCompartment::GetSignalAttenuationJacobian(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient)
 {
-    this->UpdateSignals(smallDelta, largeDelta, gradientStrength, gradient);
+    this->UpdateSignals(smallDelta, bigDelta, gradientStrength, gradient);
 
     m_JacobianVector.resize(this->GetNumberOfParameters());
 
@@ -102,7 +102,7 @@ StaniszCompartment::ListType &StaniszCompartment::GetSignalAttenuationJacobian(d
     double alphaRs = alpha * tissueRadius;
     double alphaRsSquare = alphaRs * alphaRs;
     double piSquare = M_PI * M_PI;
-    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
+    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, bigDelta, gradientStrength);
 
     // Derivative w.r.t. R_S
     m_JacobianVector[0] = (alphaRs < 1.0e-6) ? -alphaRsSquare / (6.0 * tissueRadius) : 2.0 * (alphaRs * std::sin(alphaRs) - 2.0 * (1.0 - std::cos(alphaRs))) / (alphaRsSquare * tissueRadius);

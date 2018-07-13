@@ -26,7 +26,7 @@ GaussianMCMCost::GetValues(const ParametersType &parameters)
 
     for (unsigned int i = 0;i < nbImages;++i)
     {
-        double predictedSignal = m_MCMStructure->GetPredictedSignal(m_SmallDelta,m_LargeDelta,
+        double predictedSignal = m_MCMStructure->GetPredictedSignal(m_SmallDelta,m_BigDelta,
                                                                     m_GradientStrengths[i],m_Gradients[i]);
         observedSquaredNorm += m_ObservedSignals[i] * m_ObservedSignals[i];
         m_PredictedSquaredNorm += predictedSignal * predictedSignal;
@@ -110,7 +110,7 @@ GaussianMCMCost::GetDerivativeMatrix(const ParametersType &parameters, Derivativ
 
     for (unsigned int i = 0;i < nbValues;++i)
     {
-        signalJacobians[i] = m_MCMStructure->GetSignalJacobian(m_SmallDelta,m_LargeDelta,
+        signalJacobians[i] = m_MCMStructure->GetSignalJacobian(m_SmallDelta,m_BigDelta,
                                                                m_GradientStrengths[i],m_Gradients[i]);
 
         for (unsigned int j = 0;j < nbParams;++j)

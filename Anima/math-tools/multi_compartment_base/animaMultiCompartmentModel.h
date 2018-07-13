@@ -61,8 +61,8 @@ public:
     void SetModelVector(const itk::VariableLengthVector <float> &mcmVec);
     void SetModelVector(const ModelOutputVectorType &mcmVec);
 
-    double GetPredictedSignal(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient);
-    ListType &GetSignalJacobian(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient);
+    double GetPredictedSignal(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient);
+    ListType &GetSignalJacobian(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient);
     double GetDiffusionProfile(Vector3DType &sample);
 
     ListType &GetParameterLowerBounds();

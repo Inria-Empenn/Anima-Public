@@ -175,7 +175,7 @@ public:
     // Acquisition-related parameters
     void SetGradientStrengths(std::vector <double> &mb) {m_GradientStrengths = mb;}
     itkSetMacro(SmallDelta, double)
-    itkSetMacro(LargeDelta, double)
+    itkSetMacro(BigDelta, double)
     void AddGradientDirection(unsigned int i, GradientType &grad);
     itkSetMacro(B0Threshold, double)
 
@@ -226,7 +226,7 @@ public:
 
     std::vector <double> & GetGradientStrengths() {return m_GradientStrengths;}
     itkGetMacro(SmallDelta, double)
-    itkGetMacro(LargeDelta, double)
+    itkGetMacro(BigDelta, double)
     std::vector< GradientType > &GetGradientDirections() {return m_GradientDirections;}
 
     MCMCreatorType *GetMCMCreator(unsigned int i) {return m_MCMCreators[i];}
@@ -310,7 +310,7 @@ protected:
         m_GTolerance = 0;
 
         m_SmallDelta = anima::DiffusionSmallDelta;
-        m_LargeDelta = anima::DiffusionLargeDelta;
+        m_BigDelta = anima::DiffusionBigDelta;
     }
 
     virtual ~MCMEstimatorImageFilter()
@@ -389,7 +389,7 @@ private:
     //! Utility function to initialize dictionary of sticks for initial sparse estimation
     void InitializeDictionary();
 
-    double m_SmallDelta, m_LargeDelta;
+    double m_SmallDelta, m_BigDelta;
     std::vector <double> m_GradientStrengths;
     std::vector< GradientType > m_GradientDirections;
 

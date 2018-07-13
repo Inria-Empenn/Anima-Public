@@ -36,9 +36,9 @@ public:
     virtual void GetDerivative(const ParametersType &parameters, DerivativeType &derivative) const ITK_OVERRIDE;
 
     void SetReferenceModels(const std::vector <MCMPointer> &refModels, const std::vector <GradientType> &gradients,
-                            const double &smallDelta, const double &largeDelta, const std::vector <double> &gradientStrengths);
+                            const double &smallDelta, const double &bigDelta, const std::vector <double> &gradientStrengths);
     void SetMovingModels(const std::vector<MCMPointer> &movingModels, const std::vector <GradientType> &gradients,
-                         const double &smallDelta, const double &largeDelta, const std::vector <double> &gradientStrengths);
+                         const double &smallDelta, const double &bigDelta, const std::vector <double> &gradientStrengths);
 
     void SetGradientStrengths(const std::vector <double> &val);
     void SetGradientDirections(const std::vector <GradientType> &val);
@@ -48,7 +48,7 @@ public:
 
     itkSetMacro(ParameterScale, double)
     void SetSmallDelta(double val);
-    void SetLargeDelta(double val);
+    void SetBigDelta(double val);
 
     unsigned int GetNumberOfParameters() const ITK_OVERRIDE {return 1;}
 
@@ -59,7 +59,7 @@ protected:
         m_ConstantTerm = 0;
         m_ParameterScale = 1.0e-3;
         m_SmallDelta = anima::DiffusionSmallDelta;
-        m_LargeDelta = anima::DiffusionLargeDelta;
+        m_BigDelta = anima::DiffusionBigDelta;
     }
 
     virtual ~ApproximateMCMSmoothingCostFunction() {}
@@ -78,7 +78,7 @@ private:
     mutable bool m_UpdatedData;
     mutable double m_ConstantTerm;
     double m_ParameterScale;
-    double m_SmallDelta, m_LargeDelta;
+    double m_SmallDelta, m_BigDelta;
 };
 
 } // end namespace anima

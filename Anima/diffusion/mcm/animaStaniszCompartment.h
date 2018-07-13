@@ -27,8 +27,8 @@ public:
 
     DiffusionModelCompartmentType GetCompartmentType() ITK_OVERRIDE {return Stanisz;}
 
-    virtual double GetFourierTransformedDiffusionProfile(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient) ITK_OVERRIDE;
-    virtual ListType &GetSignalAttenuationJacobian(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient) ITK_OVERRIDE;
+    virtual double GetFourierTransformedDiffusionProfile(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient) ITK_OVERRIDE;
+    virtual ListType &GetSignalAttenuationJacobian(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient) ITK_OVERRIDE;
     virtual double GetLogDiffusionProfile(const Vector3DType &sample) ITK_OVERRIDE;
 
     virtual void SetParametersFromVector(const ListType &params) ITK_OVERRIDE;
@@ -63,7 +63,7 @@ protected:
         m_FourthSummation = 0.0;
 
         m_CurrentSmallDelta = 0.0;
-        m_CurrentLargeDelta = 0.0;
+        m_CurrentBigDelta = 0.0;
         m_CurrentGradientStrength = 0.0;
         m_CurrentGradient.fill(0.0);
 
@@ -75,7 +75,7 @@ protected:
     virtual void BoundParameters(const ListType &params) ITK_OVERRIDE;
     virtual void UnboundParameters(ListType &params) ITK_OVERRIDE;
 
-    void UpdateSignals(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient);
+    void UpdateSignals(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient);
 
 private:
     bool m_EstimateAxialDiffusivity;
@@ -88,7 +88,7 @@ private:
     double m_FourthSummation;
 
     double m_CurrentSmallDelta;
-    double m_CurrentLargeDelta;
+    double m_CurrentBigDelta;
     double m_CurrentGradientStrength;
     Vector3DType m_CurrentGradient;
 

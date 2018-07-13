@@ -21,7 +21,7 @@ MCMBlockMatcher<TInputImageType>
     m_SimilarityType = MCMMeanSquares;
 
     m_SmallDelta = anima::DiffusionSmallDelta;
-    m_LargeDelta = anima::DiffusionLargeDelta;
+    m_BigDelta = anima::DiffusionBigDelta;
 }
 
 template <typename TInputImageType>
@@ -120,7 +120,7 @@ MCMBlockMatcher<TInputImageType>
 
             typename MetricType::Pointer tmpMetric = MetricType::New();
             tmpMetric->SetSmallDelta(m_SmallDelta);
-            tmpMetric->SetLargeDelta(m_LargeDelta);
+            tmpMetric->SetBigDelta(m_BigDelta);
             tmpMetric->SetGradientStrengths(m_GradientStrengths);
             tmpMetric->SetGradientDirections(m_GradientDirections);
             if ((m_GradientStrengths.size() > 0)&&(m_GradientDirections.size() > 0))
@@ -138,7 +138,7 @@ MCMBlockMatcher<TInputImageType>
 
             typename MetricType::Pointer tmpMetric = MetricType::New();
             tmpMetric->SetSmallDelta(m_SmallDelta);
-            tmpMetric->SetLargeDelta(m_LargeDelta);
+            tmpMetric->SetBigDelta(m_BigDelta);
             tmpMetric->SetGradientStrengths(m_GradientStrengths);
             tmpMetric->SetGradientDirections(m_GradientDirections);
             if ((m_GradientStrengths.size() > 0)&&(m_GradientDirections.size() > 0))

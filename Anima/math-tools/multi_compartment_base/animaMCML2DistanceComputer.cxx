@@ -13,7 +13,7 @@ MCML2DistanceComputer::MCML2DistanceComputer()
     m_SquaredDistance = true;
 
     m_SmallDelta = anima::DiffusionSmallDelta;
-    m_LargeDelta = anima::DiffusionLargeDelta;
+    m_BigDelta = anima::DiffusionBigDelta;
 }
 
 void MCML2DistanceComputer::SetSmallDelta(double val)
@@ -25,10 +25,10 @@ void MCML2DistanceComputer::SetSmallDelta(double val)
         this->UpdateSphereWeights();
 }
 
-void MCML2DistanceComputer::SetLargeDelta(double val)
+void MCML2DistanceComputer::SetBigDelta(double val)
 {
-    double oldVal = m_LargeDelta;
-    m_LargeDelta = val;
+    double oldVal = m_BigDelta;
+    m_BigDelta = val;
 
     if (oldVal != val)
         this->UpdateSphereWeights();
@@ -82,7 +82,7 @@ void MCML2DistanceComputer::UpdateSphereWeights()
 
     m_SphereWeights.resize(individualGradientStrengths.size());
     m_BValWeightsIndexes.resize(m_GradientStrengths.size());
-    double lastBValue = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, individualGradientStrengths[individualGradientStrengths.size() - 1]);
+    double lastBValue = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_BigDelta, individualGradientStrengths[individualGradientStrengths.size() - 1]);
 
     for (unsigned int i = 0;i < individualGradientStrengths.size();++i)
     {
@@ -98,11 +98,11 @@ void MCML2DistanceComputer::UpdateSphereWeights()
 
         double lowerRadius = 0;
         double baseValue = 0;
-        double bValueCenter = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, individualGradientStrengths[i]);
+        double bValueCenter = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_BigDelta, individualGradientStrengths[i]);
 
         if (i > 0)
         {
-            double bValueBefore = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, individualGradientStrengths[i-1]);
+            double bValueBefore = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_BigDelta, individualGradientStrengths[i-1]);
             lowerRadius = (bValueCenter + bValueBefore) / 2.0;
             baseValue = bValueBefore;
         }
@@ -110,7 +110,7 @@ void MCML2DistanceComputer::UpdateSphereWeights()
         double upperRadius = lastBValue + lowerRadius - baseValue;
         if (i < individualGradientStrengths.size() - 1)
         {
-            double bValueAfter = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, individualGradientStrengths[i+1]);
+            double bValueAfter = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_BigDelta, individualGradientStrengths[i+1]);
             upperRadius = (bValueCenter + bValueAfter) / 2.0;
         }
 
@@ -300,8 +300,8 @@ double MCML2DistanceComputer::ComputeApproximateDistance(const MCMPointer &first
     double metricValue = 0;
     for (unsigned int i = 0;i < m_GradientStrengths.size();++i)
     {
-        double firstCFValue = firstModel->GetPredictedSignal(m_SmallDelta, m_LargeDelta, m_GradientStrengths[i], m_GradientDirections[i]);
-        double secondCFValue = secondModel->GetPredictedSignal(m_SmallDelta, m_LargeDelta, m_GradientStrengths[i], m_GradientDirections[i]);
+        double firstCFValue = firstModel->GetPredictedSignal(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_GradientDirections[i]);
+        double secondCFValue = secondModel->GetPredictedSignal(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_GradientDirections[i]);
 
         // We should weight these squared differences by their local volume
         metricValue += m_SphereWeights[m_BValWeightsIndexes[i]] * (firstCFValue - secondCFValue) * (firstCFValue - secondCFValue);

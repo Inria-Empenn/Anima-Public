@@ -20,9 +20,9 @@ const double BaseCompartment::m_FractionUpperBound = 1.0;
 const double BaseCompartment::m_TissueRadiusLowerBound = 0.1e-3;
 const double BaseCompartment::m_TissueRadiusUpperBound = 40.1e-3;
 
-double BaseCompartment::GetPredictedSignal(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient)
+double BaseCompartment::GetPredictedSignal(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient)
 {
-    double ftDiffusionProfile = GetFourierTransformedDiffusionProfile(smallDelta,largeDelta, gradientStrength, gradient);
+    double ftDiffusionProfile = GetFourierTransformedDiffusionProfile(smallDelta,bigDelta, gradientStrength, gradient);
 
     return std::abs(ftDiffusionProfile);
 }

@@ -72,7 +72,7 @@ public:
     virtual double GetSigmaSquare() {return m_SigmaSquare;}
 
     void SetSmallDelta(double val) {m_SmallDelta = val;}
-    void SetLargeDelta(double val) {m_LargeDelta = val;}
+    void SetBigDelta(double val) {m_BigDelta = val;}
 
 protected:
     BaseMCMCost();
@@ -88,7 +88,7 @@ protected:
     std::vector<Vector3DType> m_Gradients;
 
     double m_SmallDelta;
-    double m_LargeDelta;
+    double m_BigDelta;
     ListType m_GradientStrengths;
 
     MCMPointer m_MCMStructure;

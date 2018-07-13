@@ -8,7 +8,7 @@
 namespace anima
 {
 
-double TensorCompartment::GetFourierTransformedDiffusionProfile(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient)
+double TensorCompartment::GetFourierTransformedDiffusionProfile(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient)
 {
     this->UpdateDiffusionTensor();
 
@@ -21,18 +21,18 @@ double TensorCompartment::GetFourierTransformedDiffusionProfile(double smallDelt
             quadForm += 2 * m_DiffusionTensor(i,j) * gradient[i] * gradient[j];
     }
 
-    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
+    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, bigDelta, gradientStrength);
 
     return std::exp(- bValue * quadForm);
 }
 
-TensorCompartment::ListType &TensorCompartment::GetSignalAttenuationJacobian(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient)
+TensorCompartment::ListType &TensorCompartment::GetSignalAttenuationJacobian(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient)
 {
     this->UpdateDiffusionTensor();
 
     m_JacobianVector.resize(this->GetNumberOfParameters());
     
-    double signalAttenuation = this->GetFourierTransformedDiffusionProfile(smallDelta, largeDelta, gradientStrength, gradient);
+    double signalAttenuation = this->GetFourierTransformedDiffusionProfile(smallDelta, bigDelta, gradientStrength, gradient);
     double innerProd1 = anima::ComputeScalarProduct(gradient, m_EigenVector1);
     double innerProd2 = anima::ComputeScalarProduct(gradient, m_EigenVector2);
     
@@ -52,7 +52,7 @@ TensorCompartment::ListType &TensorCompartment::GetSignalAttenuationJacobian(dou
         thetaDeriv = levenberg::BoundedDerivativeAddOn(this->GetOrientationTheta(), this->GetBoundedSignVectorValue(0),
                                                        m_ZeroLowerBound, m_PolarAngleUpperBound);
 
-    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
+    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, bigDelta, gradientStrength);
     m_JacobianVector[0] = -2.0 * bValue * (diffAxialRadial2 * innerProd1 * DgTe1DTheta + diffRadialDiffusivities * innerProd2 * DgTe2DTheta) * signalAttenuation * thetaDeriv;
     
     // Derivative w.r.t. phi

@@ -33,7 +33,7 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<unsigned int> blockOrientationArg("","bor","Re-orientation strategy when matching blocks (0: none, 1: finite strain, 2: PPD, default: 2)",false,2,"block re-orientation",cmd);
 
     TCLAP::ValueArg<double> smallDeltaArg("", "small-delta", "Diffusion small delta", false, anima::DiffusionSmallDelta, "small delta", cmd);
-    TCLAP::ValueArg<double> largeDeltaArg("", "large-delta", "Diffusion large delta", false, anima::DiffusionLargeDelta, "large delta", cmd);
+    TCLAP::ValueArg<double> bigDeltaArg("", "big-delta", "Diffusion big delta", false, anima::DiffusionBigDelta, "big delta", cmd);
     TCLAP::ValueArg<std::string> bvalArg("b","bvals","B-values",false,"","b-values",cmd);
     TCLAP::ValueArg<std::string> bvecArg("v","bvec","Gradient direction",false,"","gradient directions",cmd);
 
@@ -102,12 +102,12 @@ int main(int ac, const char** av)
         gradientReader.SetBValueBaseString(bvalArg.getValue());
         gradientReader.SetGradientIndependentNormalization(true);
         gradientReader.SetSmallDelta(smallDeltaArg.getValue());
-        gradientReader.SetLargeDelta(largeDeltaArg.getValue());
+        gradientReader.SetBigDelta(bigDeltaArg.getValue());
 
         gradientReader.Update();
 
         matcher->SetSmallDelta(smallDeltaArg.getValue());
-        matcher->SetLargeDelta(largeDeltaArg.getValue());
+        matcher->SetBigDelta(bigDeltaArg.getValue());
         matcher->SetGradientStrengths(gradientReader.GetGradientStrengths());
         matcher->SetGradientDirections(gradientReader.GetGradients());
     }

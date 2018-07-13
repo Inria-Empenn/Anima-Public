@@ -232,7 +232,7 @@ public:
     void SetPercentageKept(double PercentageKept) {m_PercentageKept=PercentageKept;}
 
     void SetSmallDelta(double val) {m_SmallDelta = val;}
-    void SetLargeDelta(double val) {m_LargeDelta = val;}
+    void SetBigDelta(double val) {m_BigDelta = val;}
     void SetGradientStrengths(std::vector <double> &val) {m_GradientStrengths = val;}
 
     void SetGradientDirections(std::vector <vnl_vector_fixed <double,3> > &grads) {m_GradientDirections = grads;}
@@ -298,7 +298,7 @@ private:
 
     // Variables for metric approximation
     std::vector < vnl_vector_fixed <double,3> > m_GradientDirections;
-    double m_SmallDelta, m_LargeDelta;
+    double m_SmallDelta, m_BigDelta;
     std::vector <double> m_GradientStrengths;
 
     BaseBlockMatchRegistrationPointer m_bmreg;

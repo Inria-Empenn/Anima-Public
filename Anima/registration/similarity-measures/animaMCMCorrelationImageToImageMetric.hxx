@@ -31,7 +31,7 @@ MCMCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,Imag
     m_ZeroDiffusionVector = m_ZeroDiffusionModel->GetModelVector();
 
     m_SmallDelta = anima::DiffusionSmallDelta;
-    m_LargeDelta = anima::DiffusionLargeDelta;
+    m_BigDelta = anima::DiffusionBigDelta;
     m_GradientStrengths.clear();
     m_GradientDirections.clear();
 
@@ -173,12 +173,12 @@ MCMCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,Imag
     typename CostFunctionType::Pointer smootherCostFunction = CostFunctionType::New();
 
     smootherCostFunction->SetReferenceModels(m_FixedImageValues,m_GradientDirections,
-                                             m_SmallDelta,m_LargeDelta,m_GradientStrengths);
+                                             m_SmallDelta,m_BigDelta,m_GradientStrengths);
     smootherCostFunction->SetMovingModels(movingValues,m_GradientDirections,
-                                          m_SmallDelta,m_LargeDelta,m_GradientStrengths);
+                                          m_SmallDelta,m_BigDelta,m_GradientStrengths);
     smootherCostFunction->SetGradientDirections(m_GradientDirections);
     smootherCostFunction->SetSmallDelta(m_SmallDelta);
-    smootherCostFunction->SetLargeDelta(m_SmallDelta);
+    smootherCostFunction->SetBigDelta(m_SmallDelta);
     smootherCostFunction->SetGradientStrengths(m_GradientStrengths);
     smootherCostFunction->SetBValueWeightIndexes(m_BValWeightsIndexes);
     smootherCostFunction->SetSphereWeights(m_SphereWeights);
@@ -226,10 +226,10 @@ MCMCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,Imag
 template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >
 void
 MCMCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,ImageDimension>
-::SetLargeDelta(double val)
+::SetBigDelta(double val)
 {
-    double oldVal = m_LargeDelta;
-    m_LargeDelta = val;
+    double oldVal = m_BigDelta;
+    m_BigDelta = val;
 
     if (oldVal != val)
         this->UpdateSphereWeights();
@@ -292,7 +292,7 @@ MCMCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,Imag
 
     m_SphereWeights.resize(individualGradientStrengths.size());
     m_BValWeightsIndexes.resize(m_GradientStrengths.size());
-    double lastBValue = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, individualGradientStrengths[individualGradientStrengths.size() - 1]);
+    double lastBValue = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_BigDelta, individualGradientStrengths[individualGradientStrengths.size() - 1]);
 
     for (unsigned int i = 0;i < individualGradientStrengths.size();++i)
     {
@@ -308,11 +308,11 @@ MCMCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,Imag
 
         double lowerRadius = 0;
         double baseValue = 0;
-        double bValueCenter = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, individualGradientStrengths[i]);
+        double bValueCenter = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_BigDelta, individualGradientStrengths[i]);
 
         if (i > 0)
         {
-            double bValueBefore = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, individualGradientStrengths[i-1]);
+            double bValueBefore = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_BigDelta, individualGradientStrengths[i-1]);
             lowerRadius = (bValueCenter + bValueBefore) / 2.0;
             baseValue = bValueBefore;
         }
@@ -320,7 +320,7 @@ MCMCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,Imag
         double upperRadius = lastBValue + lowerRadius - baseValue;
         if (i < individualGradientStrengths.size() - 1)
         {
-            double bValueAfter = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, individualGradientStrengths[i+1]);
+            double bValueAfter = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_BigDelta, individualGradientStrengths[i+1]);
             upperRadius = (bValueCenter + bValueAfter) / 2.0;
         }
 

@@ -39,7 +39,7 @@ public:
 
     void SetGradientStrengths(const std::vector <double> &val);
     void SetSmallDelta(double val);
-    void SetLargeDelta(double val);
+    void SetBigDelta(double val);
 
     void SetGradientDirections(const std::vector <GradientType> &val);
 
@@ -60,7 +60,7 @@ private:
 
     // Optional parameters for the case when compartments are not tensor compatible
     double m_SmallDelta;
-    double m_LargeDelta;
+    double m_BigDelta;
     std::vector <double> m_GradientStrengths;
     std::vector <GradientType> m_GradientDirections;
 

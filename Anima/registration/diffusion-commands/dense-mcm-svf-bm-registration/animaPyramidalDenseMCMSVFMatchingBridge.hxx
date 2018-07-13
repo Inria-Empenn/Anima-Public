@@ -42,7 +42,7 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::PyramidalDenseMCMSVFMatching
     m_Optimizer = Bobyqa;
 
     m_SmallDelta = anima::DiffusionSmallDelta;
-    m_LargeDelta = anima::DiffusionLargeDelta;
+    m_BigDelta = anima::DiffusionBigDelta;
 
     m_MaximumIterations = 10;
     m_MinimalTransformError = 0.01;
@@ -196,7 +196,7 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
         mainMatcher->SetDamDistance(m_DamDistance * meanSpacing / 2.0);
         mainMatcher->SetGradientDirections(m_GradientDirections);
         mainMatcher->SetSmallDelta(m_SmallDelta);
-        mainMatcher->SetLargeDelta(m_LargeDelta);
+        mainMatcher->SetBigDelta(m_BigDelta);
         mainMatcher->SetGradientStrengths(m_GradientStrengths);
 
         switch (m_SymmetryType)
@@ -221,7 +221,7 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
                 reverseMatcher->SetDamDistance(m_DamDistance * meanSpacing / 2.0);
                 reverseMatcher->SetGradientDirections(m_GradientDirections);
                 reverseMatcher->SetSmallDelta(m_SmallDelta);
-                reverseMatcher->SetLargeDelta(m_LargeDelta);
+                reverseMatcher->SetBigDelta(m_BigDelta);
                 reverseMatcher->SetGradientStrengths(m_GradientStrengths);
 
                 tmpReg->SetReverseBlockMatcher(reverseMatcher);

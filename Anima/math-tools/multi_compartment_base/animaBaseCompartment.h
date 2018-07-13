@@ -46,8 +46,8 @@ public:
     typedef std::vector <double> ListType;
     typedef itk::VariableLengthVector <double> ModelOutputVectorType;
 
-    virtual double GetFourierTransformedDiffusionProfile(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient) = 0;
-    virtual ListType &GetSignalAttenuationJacobian(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient) = 0;
+    virtual double GetFourierTransformedDiffusionProfile(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient) = 0;
+    virtual ListType &GetSignalAttenuationJacobian(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient) = 0;
     virtual double GetLogDiffusionProfile(const Vector3DType &sample) = 0;
 
     //! Various methods for optimization parameters setting and getting
@@ -102,7 +102,7 @@ public:
     virtual void SetExtraAxonalFraction(double num) {m_ExtraAxonalFraction = num;}
     virtual void SetTissueRadius(double num) {m_TissueRadius = num;}
 
-    double GetPredictedSignal(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient);
+    double GetPredictedSignal(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient);
 
     virtual bool GetTensorCompatible() {return true;}
     //! Get compartment as a 3D tensor (default behavior: throw exception if not supported by the compartment model)

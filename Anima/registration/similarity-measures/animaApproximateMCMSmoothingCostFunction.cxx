@@ -6,7 +6,7 @@ namespace anima
 void
 ApproximateMCMSmoothingCostFunction
 ::SetReferenceModels(const std::vector <MCMPointer> &refModels, const std::vector <GradientType> &gradients,
-                     const double &smallDelta, const double &largeDelta, const std::vector <double> &gradientStrengths)
+                     const double &smallDelta, const double &bigDelta, const std::vector <double> &gradientStrengths)
 {
     unsigned int numRefModels = refModels.size();
     m_ReferenceModelSignalValues.resize(numRefModels);
@@ -16,7 +16,7 @@ ApproximateMCMSmoothingCostFunction
     for (unsigned int i = 0;i < numRefModels;++i)
     {
         for (unsigned int j = 0;j < numSamples;++j)
-            modelSignalValues[j] = refModels[i]->GetPredictedSignal(smallDelta, largeDelta,
+            modelSignalValues[j] = refModels[i]->GetPredictedSignal(smallDelta, bigDelta,
                                                                     gradientStrengths[j], gradients[j]);
 
         m_ReferenceModelSignalValues[i] = modelSignalValues;
@@ -28,7 +28,7 @@ ApproximateMCMSmoothingCostFunction
 void
 ApproximateMCMSmoothingCostFunction
 ::SetMovingModels(const std::vector<MCMPointer> &movingModels, const std::vector <GradientType> &gradients,
-                  const double &smallDelta, const double &largeDelta, const std::vector <double> &gradientStrengths)
+                  const double &smallDelta, const double &bigDelta, const std::vector <double> &gradientStrengths)
 {
     unsigned int numMovingModels = movingModels.size();
     m_MovingModelSignalValues.resize(numMovingModels);
@@ -38,7 +38,7 @@ ApproximateMCMSmoothingCostFunction
     for (unsigned int i = 0;i < numMovingModels;++i)
     {
         for (unsigned int j = 0;j < numSamples;++j)
-            modelSignalValues[j] = movingModels[i]->GetPredictedSignal(smallDelta, largeDelta,
+            modelSignalValues[j] = movingModels[i]->GetPredictedSignal(smallDelta, bigDelta,
                                                                        gradientStrengths[j], gradients[j]);
 
         m_MovingModelSignalValues[i] = modelSignalValues;
@@ -57,9 +57,9 @@ ApproximateMCMSmoothingCostFunction
 
 void
 ApproximateMCMSmoothingCostFunction
-::SetLargeDelta(double val)
+::SetBigDelta(double val)
 {
-    m_LargeDelta = val;
+    m_BigDelta = val;
     m_UpdatedData = true;
 }
 
@@ -123,7 +123,7 @@ ApproximateMCMSmoothingCostFunction
 
     for (unsigned int j = 0;j < m_GradientDirections.size();++j)
     {
-        double bValue = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, m_GradientStrengths[j]);
+        double bValue = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_BigDelta, m_GradientStrengths[j]);
         double gaussianValue = 0;
         for (unsigned int i = 0;i < m_GradientDirections[j].size();++i)
             gaussianValue += m_GradientDirections[j][i] * m_GradientDirections[j][i];
@@ -161,7 +161,7 @@ ApproximateMCMSmoothingCostFunction
 
     for (unsigned int j = 0;j < m_GradientDirections.size();++j)
     {
-        double bValue = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, m_GradientStrengths[j]);
+        double bValue = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_BigDelta, m_GradientStrengths[j]);
         double addonValue = 0;
         double gaussianDotProduct = 0;
         for (unsigned int i = 0;i < m_GradientDirections[j].size();++i)

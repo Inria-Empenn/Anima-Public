@@ -100,11 +100,11 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     typedef itk::ImageRegionIterator <MaskImageType> MaskIteratorType;
 
     unsigned int firstB0Index = 0;
-    double bValueFirstB0Index = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, m_GradientStrengths[firstB0Index]);
+    double bValueFirstB0Index = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_BigDelta, m_GradientStrengths[firstB0Index]);
     while (bValueFirstB0Index > 10)
     {
         ++firstB0Index;
-        bValueFirstB0Index = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_LargeDelta, m_GradientStrengths[firstB0Index]);
+        bValueFirstB0Index = anima::GetBValueFromAcquisitionParameters(m_SmallDelta, m_BigDelta, m_GradientStrengths[firstB0Index]);
     }
 
     B0IteratorType b0Itr(this->GetInput(firstB0Index),this->GetOutput()->GetLargestPossibleRegion());
@@ -325,7 +325,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         mcm = mcmCreator->GetNewMultiCompartmentModel();
 
         for (unsigned int i = 0;i < m_NumberOfImages;++i)
-            m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_SmallDelta, m_LargeDelta, m_GradientStrengths[i], m_GradientDirections[i]);
+            m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_GradientDirections[i]);
 
         ++countIsoComps;
     }
@@ -341,7 +341,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         mcm = mcmCreator->GetNewMultiCompartmentModel();
 
         for (unsigned int i = 0;i < m_NumberOfImages;++i)
-            m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_SmallDelta, m_LargeDelta, m_GradientStrengths[i], m_GradientDirections[i]);
+            m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_GradientDirections[i]);
 
         ++countIsoComps;
     }
@@ -357,7 +357,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         mcm = mcmCreator->GetNewMultiCompartmentModel();
 
         for (unsigned int i = 0;i < m_NumberOfImages;++i)
-            m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_SmallDelta, m_LargeDelta, m_GradientStrengths[i], m_GradientDirections[i]);
+            m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_GradientDirections[i]);
 
         ++countIsoComps;
     }
@@ -373,7 +373,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         mcm = mcmCreator->GetNewMultiCompartmentModel();
 
         for (unsigned int i = 0;i < m_NumberOfImages;++i)
-            m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_SmallDelta, m_LargeDelta, m_GradientStrengths[i], m_GradientDirections[i]);
+            m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_GradientDirections[i]);
 
         ++countIsoComps;
     }
@@ -396,7 +396,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         mcm->GetCompartment(0)->SetOrientationPhi(m_DictionaryDirections[i + countIsoComps][1]);
 
         for (unsigned int j = 0;j < m_NumberOfImages;++j)
-            m_SparseSticksDictionary(j,countIsoComps + i) = mcm->GetPredictedSignal(m_SmallDelta, m_LargeDelta, m_GradientStrengths[i], m_GradientDirections[j]);
+            m_SparseSticksDictionary(j,countIsoComps + i) = mcm->GetPredictedSignal(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_GradientDirections[j]);
     }
 }
 
@@ -719,7 +719,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>::CreateCostFunction(std
     baseCost->SetObservedSignals(observedSignals);
     baseCost->SetGradients(m_GradientDirections);
     baseCost->SetSmallDelta(m_SmallDelta);
-    baseCost->SetLargeDelta(m_LargeDelta);
+    baseCost->SetBigDelta(m_BigDelta);
     baseCost->SetGradientStrengths(m_GradientStrengths);
     baseCost->SetMCMStructure(mcmModel);
 

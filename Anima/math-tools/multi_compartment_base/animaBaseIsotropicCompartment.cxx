@@ -6,13 +6,13 @@
 namespace anima
 {
 
-double BaseIsotropicCompartment::GetFourierTransformedDiffusionProfile(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient)
+double BaseIsotropicCompartment::GetFourierTransformedDiffusionProfile(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient)
 {
-    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
+    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, bigDelta, gradientStrength);
     return std::exp(- bValue * this->GetAxialDiffusivity());
 }
 
-BaseCompartment::ListType &BaseIsotropicCompartment::GetSignalAttenuationJacobian(double smallDelta, double largeDelta, double gradientStrength, const Vector3DType &gradient)
+BaseCompartment::ListType &BaseIsotropicCompartment::GetSignalAttenuationJacobian(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient)
 {
     m_JacobianVector.resize(this->GetNumberOfParameters());
     
@@ -23,8 +23,8 @@ BaseCompartment::ListType &BaseIsotropicCompartment::GetSignalAttenuationJacobia
     if (this->GetUseBoundedOptimization())
         axDiffDeriv = this->GetAxialDiffusivityDerivativeFactor();
 
-    double signalAttenuation = this->GetFourierTransformedDiffusionProfile(smallDelta, largeDelta, gradientStrength, gradient);
-    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, largeDelta, gradientStrength);
+    double signalAttenuation = this->GetFourierTransformedDiffusionProfile(smallDelta, bigDelta, gradientStrength, gradient);
+    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, bigDelta, gradientStrength);
 
     m_JacobianVector[0] = - bValue * signalAttenuation * axDiffDeriv;
     return m_JacobianVector;

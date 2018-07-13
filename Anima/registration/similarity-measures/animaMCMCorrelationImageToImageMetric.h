@@ -53,7 +53,7 @@ public:
     MeasureType GetValue(const TransformParametersType & parameters) const ITK_OVERRIDE;
 
     void SetSmallDelta(double val);
-    void SetLargeDelta(double val);
+    void SetBigDelta(double val);
     void SetGradientStrengths(std::vector <double> &val);
     void SetGradientDirections(std::vector <GradientType> &val);
 
@@ -85,7 +85,7 @@ private:
 
     // Optional parameters for the case when compartments are not tensor compatible
     std::vector <double> m_GradientStrengths;
-    double m_SmallDelta, m_LargeDelta;
+    double m_SmallDelta, m_BigDelta;
     std::vector <GradientType> m_GradientDirections;
 
     // Parameters for numerical integration on non tensor compatible models

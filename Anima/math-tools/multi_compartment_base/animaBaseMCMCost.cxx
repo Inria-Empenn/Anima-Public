@@ -10,7 +10,7 @@ BaseMCMCost::BaseMCMCost()
     m_SigmaSquare = 1;
 
     m_SmallDelta = anima::DiffusionSmallDelta;
-    m_LargeDelta = anima::DiffusionLargeDelta;
+    m_BigDelta = anima::DiffusionBigDelta;
 }
 
 } // end namespace anima
