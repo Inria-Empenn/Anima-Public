@@ -18,9 +18,9 @@ inline double double_factorial(unsigned int x)
     return (x <= 1) ? 1 : x * double_factorial(x - 2);
 }
 
-double LowerBound(const unsigned int N, const double k0ValueSq, const double betaNSq)
+double LowerBound(const unsigned int N, const double betaNSq)
 {
-    double xiValue = 2.0 * N - betaNSq * k0ValueSq;
+    double xiValue = 2.0 * N - betaNSq;
     double insideValue = 2.0 * N / xiValue - 1.0;
     return std::sqrt(std::max(insideValue, 0.0));
 }
@@ -32,7 +32,7 @@ double XiFunction(const double thetaSq, const unsigned int N, const double k1Val
     if (resVal > 1.0)
     {
         std::string errorMessage = "The xi function cannot take values greater than 1. ";
-        errorMessage += std::to_string(thetaSq) + " " + std::to_string(k1Value) + " " + std::to_string(anima::KummerFunction(-thetaSq / 2.0, -0.5, N));
+        errorMessage += std::to_string(thetaSq) + " " + std::to_string(k1Value) + " " + std::to_string(resVal);
 
         throw itk::ExceptionObject(__FILE__, __LINE__, errorMessage, ITK_LOCATION);
     }
@@ -51,21 +51,19 @@ double KFunction(const double theta, const double r, const unsigned int N, const
     double thetaSq = theta * theta;
     double rSq = r * r;
     k1Value = anima::KummerFunction(-thetaSq / 2.0, -0.5, N);
-    double k2Value = anima::KummerFunction(-thetaSq / 2.0, 0.5, N + 1);
     double gValue = anima::GFunction(thetaSq, rSq, N, k1Value, betaNSq);
     double num = gValue * (gValue - theta);
+    double k2Value = anima::KummerFunction(-thetaSq / 2.0, 0.5, N + 1);
     double denom = theta * (1.0 + rSq) * (1.0 - betaNSq / (2.0 * N) * k1Value * k2Value) - gValue;
     return theta - num / denom;
 }
 
 double FixedPointFinder(const double r, const unsigned int N, double &k1Value, const unsigned int maximumNumberOfIterations, const double epsilon)
 {
-    double k0Value = anima::KummerFunction(0.0, -0.5, N);
-    double k0ValueSq = k0Value * k0Value;
     double betaN = std::sqrt(M_PI / 2.0) * anima::double_factorial(2 * N - 1) / (std::pow(2, N - 1) * anima::factorial(N - 1));
     double betaNSq = betaN * betaN;
     
-    double lb = anima::LowerBound(N, k0ValueSq, betaNSq);
+    double lb = anima::LowerBound(N, betaNSq);
     if (r <= lb)
         return 0.0;
     

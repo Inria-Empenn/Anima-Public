@@ -6,7 +6,7 @@ namespace anima
 {
 
 //! Implementation of Koay and Basser, Analytically exact correction scheme for signal extraction from noisy magnitude MR signals, Journal of Magnetic Resonance (2006).
-double LowerBound(const unsigned int N, const double k0ValueSq, const double betaNSq);
+double LowerBound(const unsigned int N, const double betaNSq);
 double XiFunction(const double thetaSq, const unsigned int N, const double k1Value, const double betaNSq);
 double GFunction(const double thetaSq, const double rSq, const unsigned int N, const double k1Value, const double betaNSq);
 double KFunction(const double theta, const double r, const unsigned int N, const double betaNSq, double &k1Value);
