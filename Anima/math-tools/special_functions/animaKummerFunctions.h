@@ -1,9 +1,42 @@
 #pragma once
 
 #include "AnimaSpecialFunctionsExport.h"
+#include <utility>
 
 namespace anima
 {
+
+class KummerFraction
+{
+public:
+	void SetInputValue(double val) {m_InputValue = val;}
+	void SetAParameter(double val) {m_AParameter = val;}
+	void SetBParameter(double val) {m_BParameter = val;}
+	
+	typedef std::pair<double,double> result_type;
+
+	result_type operator() ()
+	{
+		++m_Index;
+		m_AValue = -(m_AParameter + m_Index) * m_InputValue / ((m_Index + 1.0) * (m_BParameter + m_Index));
+		m_BValue = (m_AParameter + m_Index) * m_InputValue / ((m_Index + 1.0) * (m_BParameter + m_Index)) + 1.0;
+		return std::make_pair(m_AValue,m_BValue);
+	}
+
+	KummerFraction()
+	{
+		m_InputValue = 1.0;
+		m_AParameter = 1.0;
+		m_BParameter = 1.0;
+		m_AValue = 1.0;
+		m_BValue = 1.0;
+		m_Index = 0;
+	}
+
+private:
+	double m_InputValue, m_AParameter, m_BParameter, m_AValue, m_BValue;
+	unsigned int m_Index;
+};
 
 class KummerIntegrand
 {

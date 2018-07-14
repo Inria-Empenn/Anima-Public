@@ -1,5 +1,7 @@
 #include <animaKummerFunctions.h>
+
 #include <boost/math/quadrature/gauss.hpp>
+#include <boost/math/tools/fraction.hpp>
 
 #include <itkMacro.h>
 
@@ -53,17 +55,50 @@ KummerFunction(const double &x,
 
 #else
 
-    if (a <= 0 || b <= 0)
-        throw itk::ExceptionObject(__FILE__, __LINE__, "The parameters a and b should be positive.",ITK_LOCATION);
+    if (a > 0 && b > a) // This seems to work fine
+    {
+        KummerIntegrand integrand;
+        integrand.SetXValue(x);
+        integrand.SetAValue(a);
+        integrand.SetBValue(b);
+        double resVal = boost::math::quadrature::gauss<double, 15>::integrate(integrand, 0.0, 1.0) / std::tgamma(b - a);
 
-    KummerIntegrand integrand;
-    integrand.SetXValue(x);
-    integrand.SetAValue(a);
-    integrand.SetBValue(b);
-    double resVal = boost::math::quadrature::gauss<double, 15>::integrate(integrand, 0.0, 1.0) / std::tgamma(b - a);
-    if (!normalized)
-        resVal *= (std::tgamma(b) / std::tgamma(a));
-    return (scaled || x <= 0) ? resVal : std::exp(x) * resVal;
+        if (!normalized)
+            resVal *= (std::tgamma(b) / std::tgamma(a));
+
+        if ((scaled && x <= 0) || (!scaled && x > 0))
+            resVal *= std::exp(x);
+
+        return resVal;
+    }
+    else
+    {
+        // This is the weak part to be improved
+        // Maybe monitor future release of Boost if they make a header-only implementation
+        if (std::abs(x) > 25.0)
+        {
+            double resVal = std::tgamma(b);
+            
+            if (x > 0)
+                resVal *= std::exp(x) * std::pow(x, a - b) * (1.0 / std::tgamma(a) + (a - b) / (std::tgamma(a - 1) * x));
+            else
+                resVal *= std::pow(-x, -a) * (1.0 / std::tgamma(b - a) + a / (std::tgamma(b - a - 1) * x));
+
+            return resVal;
+        }
+
+        // This is a generic implementation based on continued fraction approximation suggested by Wolfram.
+        // Seems to behave badly for large negative arguments (hence the previous special case)
+        // Not tested for large positive arguments yet
+        double epsilon = std::numeric_limits<double>::epsilon();
+        KummerFraction generator;
+        generator.SetInputValue(x);
+        generator.SetAParameter(a);
+        generator.SetBParameter(b);
+
+        double resVal = 1.0 + a * x / (b * (1.0 + boost::math::tools::continued_fraction_a(generator, epsilon)));
+        return resVal;
+    }
 
 #endif
 }
