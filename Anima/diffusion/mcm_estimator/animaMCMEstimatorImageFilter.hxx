@@ -313,16 +313,17 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     mcmCreator->SetFreeWaterProportionFixedValue(m_FreeWaterProportionFixedValue);
     mcmCreator->SetStationaryWaterProportionFixedValue(m_StationaryWaterProportionFixedValue);
     mcmCreator->SetRestrictedWaterProportionFixedValue(m_RestrictedWaterProportionFixedValue);
+    mcmCreator->SetModelWithFreeWaterComponent(false);
+    mcmCreator->SetModelWithStationaryWaterComponent(false);
+    mcmCreator->SetModelWithRestrictedWaterComponent(false);
+    mcmCreator->SetModelWithStaniszComponent(false);
+    mcmCreator->SetNumberOfCompartments(0);
 
     if (m_ModelWithFreeWaterComponent)
     {
         mcmCreator->SetModelWithFreeWaterComponent(true);
-        mcmCreator->SetModelWithStationaryWaterComponent(false);
-        mcmCreator->SetModelWithRestrictedWaterComponent(false);
-        mcmCreator->SetModelWithStaniszComponent(false);
-        mcmCreator->SetNumberOfCompartments(0);
-
         mcm = mcmCreator->GetNewMultiCompartmentModel();
+        mcmCreator->SetModelWithFreeWaterComponent(false);
 
         for (unsigned int i = 0;i < m_NumberOfImages;++i)
             m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_GradientDirections[i]);
@@ -332,13 +333,9 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     if (m_ModelWithStationaryWaterComponent)
     {
-        mcmCreator->SetModelWithFreeWaterComponent(false);
         mcmCreator->SetModelWithStationaryWaterComponent(true);
-        mcmCreator->SetModelWithRestrictedWaterComponent(false);
-        mcmCreator->SetModelWithStaniszComponent(false);
-        mcmCreator->SetNumberOfCompartments(0);
-
         mcm = mcmCreator->GetNewMultiCompartmentModel();
+        mcmCreator->SetModelWithStationaryWaterComponent(false);
 
         for (unsigned int i = 0;i < m_NumberOfImages;++i)
             m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_GradientDirections[i]);
@@ -348,13 +345,9 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     if (m_ModelWithRestrictedWaterComponent)
     {
-        mcmCreator->SetModelWithFreeWaterComponent(false);
-        mcmCreator->SetModelWithStationaryWaterComponent(false);
         mcmCreator->SetModelWithRestrictedWaterComponent(true);
-        mcmCreator->SetModelWithStaniszComponent(false);
-        mcmCreator->SetNumberOfCompartments(0);
-
         mcm = mcmCreator->GetNewMultiCompartmentModel();
+        mcmCreator->SetModelWithRestrictedWaterComponent(false);
 
         for (unsigned int i = 0;i < m_NumberOfImages;++i)
             m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_GradientDirections[i]);
@@ -364,13 +357,9 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     if (m_ModelWithStaniszComponent)
     {
-        mcmCreator->SetModelWithFreeWaterComponent(false);
-        mcmCreator->SetModelWithStationaryWaterComponent(false);
-        mcmCreator->SetModelWithRestrictedWaterComponent(false);
         mcmCreator->SetModelWithStaniszComponent(true);
-        mcmCreator->SetNumberOfCompartments(0);
-
         mcm = mcmCreator->GetNewMultiCompartmentModel();
+        mcmCreator->SetModelWithStaniszComponent(false);
 
         for (unsigned int i = 0;i < m_NumberOfImages;++i)
             m_SparseSticksDictionary(i,countIsoComps) = mcm->GetPredictedSignal(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_GradientDirections[i]);
@@ -378,10 +367,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         ++countIsoComps;
     }
 
-    mcmCreator->SetModelWithFreeWaterComponent(false);
-    mcmCreator->SetModelWithStationaryWaterComponent(false);
-    mcmCreator->SetModelWithRestrictedWaterComponent(false);
-    mcmCreator->SetModelWithStaniszComponent(false);
+
     mcmCreator->SetNumberOfCompartments(1);
     mcmCreator->SetCompartmentType(Stick);
 
@@ -483,6 +469,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     MCMPointer mcmData = 0;
     MCMPointer outputMCMData = this->GetOutput()->GetDescriptionModel()->Clone();
     MCMType::ListType outputWeights(outputMCMData->GetNumberOfCompartments(),0);
+    int numMaxCompartmentsOutputData = outputMCMData->GetNumberOfCompartments() - outputMCMData->GetNumberOfIsotropicCompartments();
 
     double aiccValue, b0Value, sigmaSqValue;
 
@@ -538,8 +525,9 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
             }
             else if (moseValue != -1)
             {
-                minimalNumberOfCompartments = moseValue;
-                maximalNumberOfCompartments = moseValue;
+                int numMoseCompartments = std::min(moseValue,numMaxCompartmentsOutputData);
+                minimalNumberOfCompartments = numMoseCompartments;
+                maximalNumberOfCompartments = numMoseCompartments;
             }
 
             for (unsigned int i = minimalNumberOfCompartments;i <= maximalNumberOfCompartments;++i)
