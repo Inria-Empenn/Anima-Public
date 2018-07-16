@@ -362,7 +362,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         ++countIsoComps;
     }
 
-    if (m_ModelWithRestrictedWaterComponent)
+    if (m_ModelWithStaniszComponent)
     {
         mcmCreator->SetModelWithFreeWaterComponent(false);
         mcmCreator->SetModelWithStationaryWaterComponent(false);
