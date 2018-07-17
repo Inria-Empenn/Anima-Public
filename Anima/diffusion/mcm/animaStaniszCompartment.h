@@ -65,7 +65,6 @@ protected:
         m_CurrentSmallDelta = 0.0;
         m_CurrentBigDelta = 0.0;
         m_CurrentGradientStrength = 0.0;
-        m_CurrentGradient.fill(0.0);
 
         m_ModifiedParameters = true;
     }
@@ -75,7 +74,7 @@ protected:
     virtual void BoundParameters(const ListType &params) ITK_OVERRIDE;
     virtual void UnboundParameters(ListType &params) ITK_OVERRIDE;
 
-    void UpdateSignals(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient);
+    void UpdateSignals(double smallDelta, double bigDelta, double gradientStrength);
 
 private:
     bool m_EstimateAxialDiffusivity;
@@ -90,7 +89,6 @@ private:
     double m_CurrentSmallDelta;
     double m_CurrentBigDelta;
     double m_CurrentGradientStrength;
-    Vector3DType m_CurrentGradient;
 
     bool m_ModifiedParameters;
 

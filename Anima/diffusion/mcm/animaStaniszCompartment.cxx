@@ -7,12 +7,11 @@
 namespace anima
 {
 
-void StaniszCompartment::UpdateSignals(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient)
+void StaniszCompartment::UpdateSignals(double smallDelta, double bigDelta, double gradientStrength)
 {
     if ((std::abs(smallDelta - m_CurrentSmallDelta) < 1.0e-6) &&
             (std::abs(bigDelta - m_CurrentBigDelta)) &&
             (std::abs(gradientStrength - m_CurrentGradientStrength) < 1.0e-6) &&
-            (anima::ComputeNorm(gradient - m_CurrentGradient) < 1.0e-6) &&
             (!m_ModifiedParameters))
         return;
 
@@ -62,13 +61,12 @@ void StaniszCompartment::UpdateSignals(double smallDelta, double bigDelta, doubl
     m_CurrentSmallDelta = smallDelta;
     m_CurrentBigDelta = bigDelta;
     m_CurrentGradientStrength = gradientStrength;
-    m_CurrentGradient = gradient;
     m_ModifiedParameters = false;
 }
 
 double StaniszCompartment::GetFourierTransformedDiffusionProfile(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient)
 {
-    this->UpdateSignals(smallDelta, bigDelta, gradientStrength, gradient);
+    this->UpdateSignals(smallDelta, bigDelta, gradientStrength);
 
     double alpha = anima::DiffusionGyromagneticRatio * smallDelta * gradientStrength;
     double alphaRs = alpha * this->GetTissueRadius();
@@ -86,7 +84,7 @@ double StaniszCompartment::GetFourierTransformedDiffusionProfile(double smallDel
 
 StaniszCompartment::ListType &StaniszCompartment::GetSignalAttenuationJacobian(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient)
 {
-    this->UpdateSignals(smallDelta, bigDelta, gradientStrength, gradient);
+    this->UpdateSignals(smallDelta, bigDelta, gradientStrength);
 
     m_JacobianVector.resize(this->GetNumberOfParameters());
 
@@ -132,8 +130,28 @@ StaniszCompartment::ListType &StaniszCompartment::GetSignalAttenuationJacobian(d
 
 double StaniszCompartment::GetLogDiffusionProfile(const Vector3DType &sample)
 {
-    // Compute equivalent
-    throw itk::ExceptionObject(__FILE__, __LINE__, "Stanisz PDF not implemented yet", ITK_LOCATION);
+    // Compute equivalent isotropic term for default delta values and gradient strength
+    double bValue = 1000.0;
+    double gradientStrength = anima::GetGradientStrengthFromBValue(bValue, anima::DiffusionSmallDelta, anima::DiffusionBigDelta);
+    this->UpdateSignals(anima::DiffusionSmallDelta, anima::DiffusionBigDelta, gradientStrength);
+
+    double alpha = anima::DiffusionGyromagneticRatio * anima::DiffusionSmallDelta * gradientStrength;
+    double alphaRs = alpha * this->GetTissueRadius();
+    double alphaRsSquare = alphaRs * alphaRs;
+    double signalValue = 4.0 * alphaRsSquare * m_FirstSummation;
+
+    if (alphaRs < 1.0e-8)
+        signalValue += 1.0 - alphaRsSquare / 12.0;
+    else
+        signalValue += 2.0 * (1.0 - std::cos(alphaRs)) / alphaRsSquare;
+
+    double equivalentGaussianDiffusivity = - std::log(signalValue) / bValue;
+
+    double resVal = - 1.5 * std::log(2.0 * M_PI * equivalentGaussianDiffusivity);
+
+    resVal -= sample.squared_magnitude() / (2.0 * equivalentGaussianDiffusivity);
+
+    return resVal;
 }
 
 void StaniszCompartment::SetTissueRadius(double num)
