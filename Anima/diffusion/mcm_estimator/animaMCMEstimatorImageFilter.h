@@ -18,23 +18,6 @@
 namespace anima
 {
 
-class ConcentrationUpperBoundSolverCostFunction
-{
-public:
-    void SetWMAxialDiffusivity(double val) {m_WMAxialDiffusivity = val;}
-    void SetWMRadialDiffusivity(double val) {m_WMRadialDiffusivity = val;}
-
-    double operator() (const double k)
-    {
-        double priorKappa = m_WMAxialDiffusivity / m_WMRadialDiffusivity - 1.0;
-        double x = anima::xi(k);
-        return 1.0 - x * (priorKappa + 3.0);
-    }
-
-private:
-    double m_WMAxialDiffusivity, m_WMRadialDiffusivity;
-};
-
 /**
  * Inequality function for NLOPT estimation, helps maintain weights in reasonable bounds
  * (i.e. \sum_{i=0}^N w_i = 1 , which is equivalent to \sum_{i=1}^N w_i <= 1)
@@ -195,11 +178,6 @@ public:
     itkSetMacro(ModelWithRestrictedWaterComponent, bool)
     itkSetMacro(ModelWithStaniszComponent, bool)
 
-    itkSetMacro(FreeWaterProportionFixedValue, double)
-    itkSetMacro(StationaryWaterProportionFixedValue, double)
-    itkSetMacro(RestrictedWaterProportionFixedValue, double)
-    itkSetMacro(StaniszProportionFixedValue, double)
-
     itkSetMacro(NoiseType, SignalNoiseType)
     itkGetMacro(NoiseType, SignalNoiseType)
     itkSetMacro(CompartmentType, CompartmentType)
@@ -209,7 +187,6 @@ public:
     itkSetMacro(NumberOfCompartments, unsigned int)
     itkSetMacro(FindOptimalNumberOfCompartments, bool)
 
-    itkSetMacro(UseFixedWeights, bool)
     itkSetMacro(UseConstrainedDiffusivity, bool)
     itkSetMacro(UseConstrainedFreeWaterDiffusivity, bool)
     itkSetMacro(UseConstrainedIRWDiffusivity, bool)
@@ -272,11 +249,6 @@ protected:
         m_ModelWithRestrictedWaterComponent = true;
         m_ModelWithStaniszComponent = true;
 
-        m_FreeWaterProportionFixedValue = 0.1;
-        m_StationaryWaterProportionFixedValue = 0.05;
-        m_RestrictedWaterProportionFixedValue = 0.1;
-        m_StaniszProportionFixedValue = 0.1;
-
         m_NoiseType = Gaussian;
         m_CompartmentType = anima::Tensor;
 
@@ -284,7 +256,6 @@ protected:
         m_NumberOfCompartments = 2;
         m_FindOptimalNumberOfCompartments = true;
 
-        m_UseFixedWeights = false;
         m_UseConstrainedDiffusivity = false;
         m_UseConstrainedFreeWaterDiffusivity = true;
         m_UseConstrainedIRWDiffusivity = true;
@@ -413,7 +384,6 @@ private:
     bool m_VNLDerivativeComputation;
 
     bool m_ModelWithFreeWaterComponent, m_ModelWithStationaryWaterComponent, m_ModelWithRestrictedWaterComponent, m_ModelWithStaniszComponent;
-    double m_FreeWaterProportionFixedValue, m_StationaryWaterProportionFixedValue, m_RestrictedWaterProportionFixedValue, m_StaniszProportionFixedValue;
 
     SignalNoiseType m_NoiseType;
     CompartmentType m_CompartmentType;
@@ -422,7 +392,6 @@ private:
     unsigned int m_NumberOfCompartments;
     bool m_FindOptimalNumberOfCompartments;
 
-    bool m_UseFixedWeights;
     bool m_UseConstrainedDiffusivity;
     bool m_UseConstrainedFreeWaterDiffusivity;
     bool m_UseConstrainedIRWDiffusivity;

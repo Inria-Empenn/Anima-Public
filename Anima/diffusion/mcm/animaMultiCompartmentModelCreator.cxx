@@ -15,19 +15,14 @@ namespace anima
 MultiCompartmentModelCreator::MultiCompartmentModelCreator()
 {
     m_CompartmentType = Tensor;
-    m_ModelWithFreeWaterComponent = true;
+    m_ModelWithFreeWaterComponent = false;
     m_ModelWithStationaryWaterComponent = false;
     m_ModelWithRestrictedWaterComponent = false;
     m_ModelWithStaniszComponent = false;
 
-    m_FreeWaterProportionFixedValue = 0;
-    m_StationaryWaterProportionFixedValue = 0;
-    m_RestrictedWaterProportionFixedValue = 0;
-    m_StaniszProportionFixedValue = 0;
-
     m_NumberOfCompartments = 1;
+    m_UseFixedWeights = true;
 
-    m_UseFixedWeights = false;
     m_UseConstrainedDiffusivity = false;
     m_UseConstrainedFreeWaterDiffusivity = true;
     m_UseConstrainedIRWDiffusivity = false;
@@ -57,17 +52,18 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
     outputMCM->SetCommonExtraAxonalFractionParameters(m_UseCommonExtraAxonalFractions);
 
     double sumIsotropicWeights = 0;
+    double isoDefaultWeight = 0.1;
     if (m_ModelWithFreeWaterComponent)
-        sumIsotropicWeights += m_FreeWaterProportionFixedValue;
+        sumIsotropicWeights += isoDefaultWeight;
 
     if (m_ModelWithStationaryWaterComponent)
-        sumIsotropicWeights += m_StationaryWaterProportionFixedValue;
+        sumIsotropicWeights += isoDefaultWeight;
 
     if (m_ModelWithRestrictedWaterComponent)
-        sumIsotropicWeights += m_RestrictedWaterProportionFixedValue;
+        sumIsotropicWeights += isoDefaultWeight;
 
     if (m_ModelWithStaniszComponent)
-        sumIsotropicWeights += m_StaniszProportionFixedValue;
+        sumIsotropicWeights += isoDefaultWeight;
 
     double compartmentWeight = (1.0 - sumIsotropicWeights) / m_NumberOfCompartments;
 
@@ -80,9 +76,9 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
         fwComp->SetUseBoundedOptimization(m_UseBoundedOptimization);
 
         if (m_NumberOfCompartments != 0)
-            outputMCM->AddCompartment(m_FreeWaterProportionFixedValue,fwComp);
+            outputMCM->AddCompartment(isoDefaultWeight,fwComp);
         else
-            outputMCM->AddCompartment(m_FreeWaterProportionFixedValue / sumIsotropicWeights,fwComp);
+            outputMCM->AddCompartment(isoDefaultWeight / sumIsotropicWeights,fwComp);
     }
 
     if (m_ModelWithStationaryWaterComponent)
@@ -91,9 +87,9 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
         SWType::Pointer swComp = SWType::New();
 
         if (m_NumberOfCompartments != 0)
-            outputMCM->AddCompartment(m_StationaryWaterProportionFixedValue,swComp);
+            outputMCM->AddCompartment(isoDefaultWeight,swComp);
         else
-            outputMCM->AddCompartment(m_StationaryWaterProportionFixedValue / sumIsotropicWeights,swComp);
+            outputMCM->AddCompartment(isoDefaultWeight / sumIsotropicWeights,swComp);
     }
 
     if (m_ModelWithRestrictedWaterComponent)
@@ -104,9 +100,9 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
         restComp->SetUseBoundedOptimization(m_UseBoundedOptimization);
 
         if (m_NumberOfCompartments != 0)
-            outputMCM->AddCompartment(m_RestrictedWaterProportionFixedValue,restComp);
+            outputMCM->AddCompartment(isoDefaultWeight,restComp);
         else
-            outputMCM->AddCompartment(m_RestrictedWaterProportionFixedValue / sumIsotropicWeights,restComp);
+            outputMCM->AddCompartment(isoDefaultWeight / sumIsotropicWeights,restComp);
     }
 
     if (m_ModelWithStaniszComponent)
@@ -117,9 +113,9 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
         restComp->SetUseBoundedOptimization(m_UseBoundedOptimization);
 
         if (m_NumberOfCompartments != 0)
-            outputMCM->AddCompartment(m_StaniszProportionFixedValue,restComp);
+            outputMCM->AddCompartment(isoDefaultWeight,restComp);
         else
-            outputMCM->AddCompartment(m_StaniszProportionFixedValue / sumIsotropicWeights,restComp);
+            outputMCM->AddCompartment(isoDefaultWeight / sumIsotropicWeights,restComp);
     }
 
     for (unsigned int i = 0;i < m_NumberOfCompartments;++i)

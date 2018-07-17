@@ -28,11 +28,6 @@ public:
     void SetModelWithRestrictedWaterComponent(bool arg) {m_ModelWithRestrictedWaterComponent = arg;}
     void SetModelWithStaniszComponent(bool arg) {m_ModelWithStaniszComponent = arg;}
 
-    void SetFreeWaterProportionFixedValue(double arg) {m_FreeWaterProportionFixedValue = arg;}
-    void SetStationaryWaterProportionFixedValue(double arg) {m_StationaryWaterProportionFixedValue = arg;}
-    void SetRestrictedWaterProportionFixedValue(double arg) {m_RestrictedWaterProportionFixedValue = arg;}
-    void SetStaniszProportionFixedValue(double arg) {m_StaniszProportionFixedValue = arg;}
-
     void SetCompartmentType(CompartmentType arg) {m_CompartmentType = arg;}
     void SetNumberOfCompartments(unsigned int num) {m_NumberOfCompartments = num;}
     void SetUseFixedWeights(bool arg) {m_UseFixedWeights = arg;}
@@ -79,8 +74,6 @@ private:
     CompartmentType m_CompartmentType;
     bool m_ModelWithFreeWaterComponent, m_ModelWithStationaryWaterComponent;
     bool m_ModelWithRestrictedWaterComponent, m_ModelWithStaniszComponent;
-    double m_FreeWaterProportionFixedValue, m_StationaryWaterProportionFixedValue;
-    double m_RestrictedWaterProportionFixedValue, m_StaniszProportionFixedValue;
     unsigned int m_NumberOfCompartments;
 
     bool m_UseFixedWeights;

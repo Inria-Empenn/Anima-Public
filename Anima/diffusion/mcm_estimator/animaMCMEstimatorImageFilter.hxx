@@ -288,9 +288,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     countIsoComps = 0;
     MCMPointer mcm;
     MCMCreatorType *mcmCreator = m_MCMCreators[0];
-    mcmCreator->SetFreeWaterProportionFixedValue(m_FreeWaterProportionFixedValue);
-    mcmCreator->SetStationaryWaterProportionFixedValue(m_StationaryWaterProportionFixedValue);
-    mcmCreator->SetRestrictedWaterProportionFixedValue(m_RestrictedWaterProportionFixedValue);
     mcmCreator->SetModelWithFreeWaterComponent(false);
     mcmCreator->SetModelWithStationaryWaterComponent(false);
     mcmCreator->SetModelWithRestrictedWaterComponent(false);
@@ -596,14 +593,10 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     mcmCreator->SetModelWithRestrictedWaterComponent(m_ModelWithRestrictedWaterComponent);
     mcmCreator->SetModelWithStaniszComponent(m_ModelWithStaniszComponent);
     mcmCreator->SetNumberOfCompartments(0);
-    mcmCreator->SetUseFixedWeights(m_UseFixedWeights || (m_MLEstimationStrategy == VariableProjection));
+    mcmCreator->SetUseFixedWeights(m_MLEstimationStrategy == VariableProjection);
     mcmCreator->SetUseConstrainedFreeWaterDiffusivity(m_UseConstrainedFreeWaterDiffusivity);
     mcmCreator->SetUseConstrainedIRWDiffusivity(m_UseConstrainedIRWDiffusivity);
     mcmCreator->SetUseConstrainedDiffusivity(m_UseConstrainedDiffusivity);
-    mcmCreator->SetFreeWaterProportionFixedValue(m_FreeWaterProportionFixedValue);
-    mcmCreator->SetStationaryWaterProportionFixedValue(m_StationaryWaterProportionFixedValue);
-    mcmCreator->SetRestrictedWaterProportionFixedValue(m_RestrictedWaterProportionFixedValue);
-    mcmCreator->SetStaniszProportionFixedValue(m_StaniszProportionFixedValue);
 
     mcmValue = mcmCreator->GetNewMultiCompartmentModel();
 
@@ -732,11 +725,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     mcmCreator->SetModelWithStaniszComponent(m_ModelWithStaniszComponent);
     mcmCreator->SetCompartmentType(Stick);
     mcmCreator->SetNumberOfCompartments(currentNumberOfCompartments);
-    mcmCreator->SetUseFixedWeights(m_UseFixedWeights || (m_MLEstimationStrategy == VariableProjection));
-    mcmCreator->SetFreeWaterProportionFixedValue(m_FreeWaterProportionFixedValue);
-    mcmCreator->SetStationaryWaterProportionFixedValue(m_StationaryWaterProportionFixedValue);
-    mcmCreator->SetRestrictedWaterProportionFixedValue(m_RestrictedWaterProportionFixedValue);
-    mcmCreator->SetStaniszProportionFixedValue(m_StaniszProportionFixedValue);
+    mcmCreator->SetUseFixedWeights(m_MLEstimationStrategy == VariableProjection);
     mcmCreator->SetUseConstrainedDiffusivity(true);
     mcmCreator->SetUseConstrainedFreeWaterDiffusivity(m_UseConstrainedFreeWaterDiffusivity);
     mcmCreator->SetUseConstrainedIRWDiffusivity(m_UseConstrainedIRWDiffusivity);
@@ -1128,16 +1117,13 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
             else if (m_Optimizer == "bfgs")
                 tmpOpt->SetLocalOptimizer(NLOPT_LD_LBFGS);
 
-            if (!m_UseFixedWeights)
-            {
-                typedef anima::MCMWeightsInequalityConstraintFunction WeightInequalityFunctionType;
-                WeightInequalityFunctionType::Pointer weightsInequality = WeightInequalityFunctionType::New();
-                double wIneqTol = std::min(1.0e-16, xTol / 10.0);
-                weightsInequality->SetTolerance(wIneqTol);
-                weightsInequality->SetMCMStructure(costCast->GetMCMStructure());
+            typedef anima::MCMWeightsInequalityConstraintFunction WeightInequalityFunctionType;
+            WeightInequalityFunctionType::Pointer weightsInequality = WeightInequalityFunctionType::New();
+            double wIneqTol = std::min(1.0e-16, xTol / 10.0);
+            weightsInequality->SetTolerance(wIneqTol);
+            weightsInequality->SetMCMStructure(costCast->GetMCMStructure());
 
-                tmpOpt->AddInequalityConstraint(weightsInequality);
-            }
+            tmpOpt->AddInequalityConstraint(weightsInequality);
         }
         else
         {
