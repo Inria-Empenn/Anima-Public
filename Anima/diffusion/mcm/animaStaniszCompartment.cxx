@@ -7,8 +7,6 @@
 namespace anima
 {
 
-const double StaniszCompartment::m_StaniszAxialDiffusivityLowerBound = 1.5e-4;
-
 void StaniszCompartment::UpdateSignals(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient)
 {
     if ((std::abs(smallDelta - m_CurrentSmallDelta) < 1.0e-6) &&
@@ -114,7 +112,7 @@ StaniszCompartment::ListType &StaniszCompartment::GetSignalAttenuationJacobian(d
     double rsDeriv = 1.0;
     if (this->GetUseBoundedOptimization())
         rsDeriv = levenberg::BoundedDerivativeAddOn(tissueRadius, this->GetBoundedSignVectorValue(0),
-                                                    m_TissueRadiusLowerBound, m_TissueRadiusUpperBound);
+                                                    anima::MCMTissueRadiusLowerBound, anima::MCMTissueRadiusUpperBound);
 
     m_JacobianVector[0] *= rsDeriv;
 
@@ -124,7 +122,7 @@ StaniszCompartment::ListType &StaniszCompartment::GetSignalAttenuationJacobian(d
         double aDiffDeriv = 1.0;
         if (this->GetUseBoundedOptimization())
             aDiffDeriv = levenberg::BoundedDerivativeAddOn(axialDiff, this->GetBoundedSignVectorValue(1),
-                                                           m_StaniszAxialDiffusivityLowerBound, m_DiffusivityUpperBound);
+                                                           anima::MCMStaniszAxialDiffusivityLowerBound, anima::MCMStaniszAxialDiffusivityUpperBound);
 
         m_JacobianVector[1] = - 4.0 * bValue * piSquare * m_SecondSummation * aDiffDeriv;
     }
@@ -195,10 +193,10 @@ StaniszCompartment::ListType &StaniszCompartment::GetParameterLowerBounds()
 {
     m_ParametersLowerBoundsVector.resize(this->GetNumberOfParameters());
 
-    m_ParametersLowerBoundsVector[0] = m_TissueRadiusLowerBound;
+    m_ParametersLowerBoundsVector[0] = anima::MCMTissueRadiusLowerBound;
 
     if (m_EstimateAxialDiffusivity)
-        m_ParametersLowerBoundsVector[1] = m_StaniszAxialDiffusivityLowerBound;
+        m_ParametersLowerBoundsVector[1] = anima::MCMStaniszAxialDiffusivityLowerBound;
 
     return m_ParametersLowerBoundsVector;
 }
@@ -207,10 +205,10 @@ StaniszCompartment::ListType &StaniszCompartment::GetParameterUpperBounds()
 {
     m_ParametersUpperBoundsVector.resize(this->GetNumberOfParameters());
 
-    m_ParametersUpperBoundsVector[0] = m_TissueRadiusUpperBound;
+    m_ParametersUpperBoundsVector[0] = anima::MCMTissueRadiusUpperBound;
 
     if (m_EstimateAxialDiffusivity)
-        m_ParametersUpperBoundsVector[1] = m_DiffusivityUpperBound;
+        m_ParametersUpperBoundsVector[1] = anima::MCMStaniszAxialDiffusivityUpperBound;
 
     return m_ParametersUpperBoundsVector;
 }
@@ -220,22 +218,22 @@ void StaniszCompartment::BoundParameters(const ListType &params)
     m_BoundedVector.resize(params.size());
     
     double inputSign = 1;
-    m_BoundedVector[0] = levenberg::ComputeBoundedValue(params[0], inputSign, m_TissueRadiusLowerBound, m_TissueRadiusUpperBound);
+    m_BoundedVector[0] = levenberg::ComputeBoundedValue(params[0], inputSign, anima::MCMTissueRadiusLowerBound, anima::MCMTissueRadiusUpperBound);
     this->SetBoundedSignVectorValue(0,inputSign);
     
     if (m_EstimateAxialDiffusivity)
     {
-        m_BoundedVector[1] = levenberg::ComputeBoundedValue(params[1],inputSign, m_StaniszAxialDiffusivityLowerBound, m_DiffusivityUpperBound);
+        m_BoundedVector[1] = levenberg::ComputeBoundedValue(params[1],inputSign, anima::MCMStaniszAxialDiffusivityLowerBound, anima::MCMStaniszAxialDiffusivityUpperBound);
         this->SetBoundedSignVectorValue(1,inputSign);
     }
 }
 
 void StaniszCompartment::UnboundParameters(ListType &params)
 {
-    params[0] = levenberg::UnboundValue(params[0], m_TissueRadiusLowerBound, m_TissueRadiusUpperBound);
+    params[0] = levenberg::UnboundValue(params[0], anima::MCMTissueRadiusLowerBound, anima::MCMTissueRadiusUpperBound);
     
     if (m_EstimateAxialDiffusivity)
-        params[1] = levenberg::UnboundValue(params[1], m_StaniszAxialDiffusivityLowerBound, m_DiffusivityUpperBound);
+        params[1] = levenberg::UnboundValue(params[1], anima::MCMStaniszAxialDiffusivityLowerBound, anima::MCMStaniszAxialDiffusivityUpperBound);
 }
 
 void StaniszCompartment::SetEstimateAxialDiffusivity(bool arg)

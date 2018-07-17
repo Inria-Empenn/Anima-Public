@@ -95,7 +95,6 @@ private:
     bool m_ModifiedParameters;
 
     const unsigned int m_MaximumNumberOfSumElements = 2000;
-    static const double m_StaniszAxialDiffusivityLowerBound;
 };
 
 } //end namespace anima

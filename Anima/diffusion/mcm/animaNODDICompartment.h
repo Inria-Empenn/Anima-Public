@@ -111,7 +111,7 @@ private:
     Vector3DType m_CurrentGradient;
     
     // Internal work variables for faster processing
-    std::vector<double> m_WatsonSHCoefficients, m_WatsonSHCoefficientDerivatives;
+    std::vector <double> m_WatsonSHCoefficients, m_WatsonSHCoefficientDerivatives;
     double m_Tau1, m_Tau1Deriv;
     double m_ExtraAxonalSignal, m_IntraAxonalSignal;
     double m_IntraAngleDerivative, m_IntraKappaDerivative, m_IntraAxialDerivative;

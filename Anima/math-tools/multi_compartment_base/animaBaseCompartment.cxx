@@ -6,20 +6,6 @@
 namespace anima
 {
 
-const double BaseCompartment::m_ZeroLowerBound = 0.0;
-const double BaseCompartment::m_DiffusivityLowerBound = 1e-5;
-const double BaseCompartment::m_AxialDiffusivityAddonLowerBound = 5.0e-4;
-const double BaseCompartment::m_PolarAngleUpperBound = M_PI;
-const double BaseCompartment::m_AzimuthAngleUpperBound = 2.0 * M_PI;
-const double BaseCompartment::m_DiffusivityUpperBound = 3e-3;
-const double BaseCompartment::m_RadialDiffusivityUpperBound = 1e-3;
-const double BaseCompartment::m_DefaultConcentrationUpperBound = 20;
-const double BaseCompartment::m_WatsonKappaUpperBound = 128.0;
-const double BaseCompartment::m_Epsilon = 1.0e-2;
-const double BaseCompartment::m_FractionUpperBound = 1.0;
-const double BaseCompartment::m_TissueRadiusLowerBound = 0.1e-3;
-const double BaseCompartment::m_TissueRadiusUpperBound = 40.1e-3;
-
 double BaseCompartment::GetPredictedSignal(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient)
 {
     double ftDiffusionProfile = GetFourierTransformedDiffusionProfile(smallDelta,bigDelta, gradientStrength, gradient);

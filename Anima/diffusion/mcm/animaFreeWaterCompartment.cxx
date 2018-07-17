@@ -1,18 +1,16 @@
 #include <animaFreeWaterCompartment.h>
 #include <animaLevenbergTools.h>
+#include <animaMCMConstants.h>
 
 namespace anima
 {
-
-const double FreeWaterCompartment::m_FreeWaterDiffusivityLowerBound = 2e-3;
-const double FreeWaterCompartment::m_FreeWaterDiffusivityUpperBound = 4e-3;
 
 FreeWaterCompartment::ListType &FreeWaterCompartment::GetParameterLowerBounds()
 {
     m_ParametersLowerBoundsVector.resize(this->GetNumberOfParameters());
 
     if (this->GetEstimateAxialDiffusivity())
-        m_ParametersLowerBoundsVector[0] = m_FreeWaterDiffusivityLowerBound;
+        m_ParametersLowerBoundsVector[0] = anima::MCMFreeWaterDiffusivityLowerBound;
 
     return m_ParametersLowerBoundsVector;
 }
@@ -22,7 +20,7 @@ BaseCompartment::ListType &FreeWaterCompartment::GetParameterUpperBounds()
     m_ParametersUpperBoundsVector.resize(this->GetNumberOfParameters());
 
     if (this->GetEstimateAxialDiffusivity())
-        m_ParametersUpperBoundsVector[0] = m_FreeWaterDiffusivityUpperBound;
+        m_ParametersUpperBoundsVector[0] = anima::MCMFreeWaterDiffusivityUpperBound;
 
     return m_ParametersUpperBoundsVector;
 }
@@ -30,8 +28,8 @@ BaseCompartment::ListType &FreeWaterCompartment::GetParameterUpperBounds()
 void FreeWaterCompartment::UnboundParameters(ListType &params)
 {
     if (this->GetEstimateAxialDiffusivity())
-        params[0] = levenberg::UnboundValue(params[0], m_FreeWaterDiffusivityLowerBound,
-                m_FreeWaterDiffusivityUpperBound);
+        params[0] = levenberg::UnboundValue(params[0], anima::MCMFreeWaterDiffusivityLowerBound,
+                anima::MCMFreeWaterDiffusivityUpperBound);
 }
 
 void FreeWaterCompartment::BoundParameters(const ListType &params)
@@ -41,8 +39,8 @@ void FreeWaterCompartment::BoundParameters(const ListType &params)
     if (this->GetEstimateAxialDiffusivity())
     {
         double inputSign = 1;
-        m_BoundedVector[0] = levenberg::ComputeBoundedValue(params[0], inputSign, m_FreeWaterDiffusivityLowerBound,
-                m_FreeWaterDiffusivityUpperBound);
+        m_BoundedVector[0] = levenberg::ComputeBoundedValue(params[0], inputSign, anima::MCMFreeWaterDiffusivityLowerBound,
+                anima::MCMFreeWaterDiffusivityUpperBound);
         this->SetBoundedSignVectorValue(0,inputSign);
     }
 }
@@ -50,7 +48,7 @@ void FreeWaterCompartment::BoundParameters(const ListType &params)
 double FreeWaterCompartment::GetAxialDiffusivityDerivativeFactor()
 {
     return levenberg::BoundedDerivativeAddOn(this->GetAxialDiffusivity(),this->GetBoundedSignVectorValue(0),
-                                             m_FreeWaterDiffusivityLowerBound,m_FreeWaterDiffusivityUpperBound);
+                                             anima::MCMFreeWaterDiffusivityLowerBound,anima::MCMFreeWaterDiffusivityUpperBound);
 }
 
 } // end namespace anima
