@@ -137,12 +137,13 @@ Update()
             if (!m_GradientIndependentNormalization)
                 m_BValues[i] *= norm;
         }
-    }
 
-    // Finally get gradient strengths from bvalues and small/big delta
-    m_GradientStrengths.resize(m_TotalNumberOfDirections);
-    for (unsigned int i = 0;i < m_TotalNumberOfDirections;++i)
-        m_GradientStrengths[i] = anima::GetGradientStrengthFromBValue(m_BValues[i], m_SmallDelta, m_BigDelta);
+        // Finally get gradient strengths from bvalues and small/big delta
+
+        m_GradientStrengths.resize(m_TotalNumberOfDirections);
+        for (unsigned int i = 0;i < m_TotalNumberOfDirections;++i)
+            m_GradientStrengths[i] = anima::GetGradientStrengthFromBValue(m_BValues[i], m_SmallDelta, m_BigDelta);
+    }
 
     m_Modified = false;
 }
