@@ -2,7 +2,6 @@
 #include <animaLevenbergTools.h>
 
 #include <animaVectorOperations.h>
-#include <itkSymmetricEigenAnalysis.h>
 #include <animaMCMConstants.h>
 
 namespace anima
@@ -12,36 +11,37 @@ const double StaniszCompartment::m_StaniszAxialDiffusivityLowerBound = 1.5e-4;
 
 void StaniszCompartment::UpdateSignals(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient)
 {
-    if (std::abs(smallDelta - m_CurrentSmallDelta) < 1.0e-6 && std::abs(bigDelta - m_CurrentBigDelta) && std::abs(gradientStrength - m_CurrentGradientStrength) < 1.0e-6 && anima::ComputeNorm(gradient - m_CurrentGradient) < 1.0e-6 && !m_ModifiedParameters)
+    if ((std::abs(smallDelta - m_CurrentSmallDelta) < 1.0e-6) &&
+            (std::abs(bigDelta - m_CurrentBigDelta)) &&
+            (std::abs(gradientStrength - m_CurrentGradientStrength) < 1.0e-6) &&
+            (anima::ComputeNorm(gradient - m_CurrentGradient) < 1.0e-6) &&
+            (!m_ModifiedParameters))
         return;
 
     double alpha = anima::DiffusionGyromagneticRatio * smallDelta * gradientStrength;
-    double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, bigDelta, gradientStrength);
     double tissueRadius = this->GetTissueRadius();
     double axialDiff = this->GetAxialDiffusivity();
     double alphaRs = alpha * tissueRadius;
-    double piSquare = M_PI * M_PI;
     double alphaRsSquare = alphaRs * alphaRs;
     double deltaDiff = bigDelta - smallDelta / 3.0;
-    double epsilon = std::numeric_limits<double>::epsilon();
 
     m_FirstSummation = 0.0;
     m_SecondSummation = 0.0;
     m_ThirdSummation = 0.0;
     m_FourthSummation = 0.0;
-    for (unsigned int i = 0;i < m_MaximumNumberOfSumElements;++i)
+    for (unsigned int n = 1;n <= m_MaximumNumberOfSumElements;++n)
     {
-        double n = i + 1.0;
-        double npiSquare = n * n * piSquare;
+        double npiSquare = n * M_PI * n * M_PI;
+        double expInternalValue = npiSquare * deltaDiff * axialDiff / (tissueRadius * tissueRadius);
         double denomValue = alphaRsSquare - npiSquare;
         
-        if (denomValue < 1.0e-6)
+        double internalTermCos = std::exp(- expInternalValue);
+        if (internalTermCos == 0)
             continue;
-        
-        double internalTermCos = std::exp(-npiSquare * deltaDiff * axialDiff / (tissueRadius * tissueRadius));
+
         double internalTermSin = internalTermCos;
 
-        if ((i+1) % 2 == 0)
+        if (n % 2 == 0)
         {
             internalTermCos *= 1.0 - std::cos(alphaRs);
             internalTermSin *= std::sin(alphaRs);
@@ -49,7 +49,7 @@ void StaniszCompartment::UpdateSignals(double smallDelta, double bigDelta, doubl
         else
         {
             internalTermCos *= 1.0 + std::cos(alphaRs);
-            internalTermSin *= -std::sin(alphaRs);
+            internalTermSin *= - std::sin(alphaRs);
         }
 
         internalTermCos /= denomValue * denomValue;
@@ -59,14 +59,6 @@ void StaniszCompartment::UpdateSignals(double smallDelta, double bigDelta, doubl
         m_SecondSummation += internalTermCos * n * n;
         m_ThirdSummation += internalTermSin;
         m_FourthSummation += internalTermCos / denomValue;
-
-        bool stopSum1 = internalTermCos < epsilon * m_FirstSummation;
-        bool stopSum2 = internalTermCos * n * n < epsilon * m_SecondSummation;
-        bool stopSum3 = internalTermSin < epsilon * m_ThirdSummation;
-        bool stopSum4 = internalTermCos < epsilon * m_FourthSummation * denomValue;
-
-        if (stopSum1 && stopSum2 && stopSum3 && stopSum4)
-            break;
     }
 
     m_CurrentSmallDelta = smallDelta;
@@ -84,8 +76,12 @@ double StaniszCompartment::GetFourierTransformedDiffusionProfile(double smallDel
     double alphaRs = alpha * this->GetTissueRadius();
     double alphaRsSquare = alphaRs * alphaRs;
 
-    double signalValue = (alphaRs < 1.0e-6) ? 1.0 - alphaRsSquare / 12.0 : 2.0 * (1.0 - std::cos(alphaRs)) / (alphaRsSquare);
-    signalValue += 4.0 * alphaRsSquare *  m_FirstSummation;
+    double signalValue = 4.0 * alphaRsSquare * m_FirstSummation;
+
+    if (alphaRs < 1.0e-8)
+        signalValue += 1.0 - alphaRsSquare / 12.0;
+    else
+        signalValue += 2.0 * (1.0 - std::cos(alphaRs)) / alphaRsSquare;
 
     return signalValue;
 }
@@ -105,7 +101,11 @@ StaniszCompartment::ListType &StaniszCompartment::GetSignalAttenuationJacobian(d
     double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, bigDelta, gradientStrength);
 
     // Derivative w.r.t. R_S
-    m_JacobianVector[0] = (alphaRs < 1.0e-6) ? -alphaRsSquare / (6.0 * tissueRadius) : 2.0 * (alphaRs * std::sin(alphaRs) - 2.0 * (1.0 - std::cos(alphaRs))) / (alphaRsSquare * tissueRadius);
+    if (alphaRs < 1.0e-8)
+        m_JacobianVector[0] = - alphaRsSquare / (6.0 * tissueRadius);
+    else
+        m_JacobianVector[0] = 2.0 * (alphaRs * std::sin(alphaRs) - 2.0 * (1.0 - std::cos(alphaRs))) / (alphaRsSquare * tissueRadius);
+
     m_JacobianVector[0] += 8.0 * alpha * alphaRs * m_FirstSummation;
     m_JacobianVector[0] += 8.0 * piSquare * bValue * axialDiff * m_SecondSummation / tissueRadius;
     m_JacobianVector[0] += 4.0 * alpha * alphaRsSquare * m_ThirdSummation;
@@ -184,7 +184,7 @@ StaniszCompartment::ListType &StaniszCompartment::GetParametersAsVector()
 
     if (m_EstimateAxialDiffusivity)
         m_ParametersVector[1] = this->GetAxialDiffusivity();
-    
+
     if (this->GetUseBoundedOptimization())
         this->UnboundParameters(m_ParametersVector);
 

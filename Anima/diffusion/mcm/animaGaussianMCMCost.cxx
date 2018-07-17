@@ -86,19 +86,11 @@ GaussianMCMCost::GetDerivativeMatrix(const ParametersType &parameters, Derivativ
     unsigned int nbValues = m_ObservedSignals.size();
 
     // Assume get derivative is called with the same parameters as GetValue just before
-    bool requireGetValue = false;
     for (unsigned int i = 0;i < nbParams;++i)
     {
         if (m_TestedParameters[i] != parameters[i])
-        {
-            requireGetValue = true;
-            std::cerr << "Get derivative not called with the same parameters as GetValue. Running GetValue first..." << std::endl;
-            break;
-        }
+            itkExceptionMacro("Get derivative not called with the same parameters as GetValue, suggestive of NaN...");
     }
-
-    if (requireGetValue)
-        this->GetValues(parameters);
 
     derivative.SetSize(nbParams, nbValues);
     derivative.Fill(0.0);

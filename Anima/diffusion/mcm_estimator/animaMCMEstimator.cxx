@@ -24,8 +24,8 @@ int main(int argc,  char **argv)
     TCLAP::ValueArg<std::string> gradsArg("g", "grads", "Gradient table", true, "", "gradients", cmd);
     TCLAP::ValueArg<std::string> bvalsArg("b", "bvals", "B-value list", true, "", "b-values", cmd);
     TCLAP::SwitchArg bvalueScaleArg("B","b-no-scale","Do not scale b-values according to gradient norm",cmd);
-    TCLAP::ValueArg<double> smallDeltaArg("", "small-delta", "Diffusion small delta", false, anima::DiffusionSmallDelta, "small delta", cmd);
-    TCLAP::ValueArg<double> bigDeltaArg("", "big-delta", "Diffusion big delta", false, anima::DiffusionBigDelta, "big delta", cmd);
+    TCLAP::ValueArg<double> smallDeltaArg("", "small-delta", "Diffusion small delta (in seconds)", false, anima::DiffusionSmallDelta, "small delta", cmd);
+    TCLAP::ValueArg<double> bigDeltaArg("", "big-delta", "Diffusion big delta (in seconds)", false, anima::DiffusionBigDelta, "big delta", cmd);
 
     // Outputs
     TCLAP::ValueArg<std::string> outArg("o", "out-mcm", "MCM output volume", true, "", "MCM output", cmd);

@@ -469,7 +469,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     MCMPointer mcmData = 0;
     MCMPointer outputMCMData = this->GetOutput()->GetDescriptionModel()->Clone();
     MCMType::ListType outputWeights(outputMCMData->GetNumberOfCompartments(),0);
-    int numMaxCompartmentsOutputData = outputMCMData->GetNumberOfCompartments() - outputMCMData->GetNumberOfIsotropicCompartments();
 
     double aiccValue, b0Value, sigmaSqValue;
 
@@ -525,7 +524,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
             }
             else if (moseValue != -1)
             {
-                int numMoseCompartments = std::min(moseValue,numMaxCompartmentsOutputData);
+                int numMoseCompartments = std::min(moseValue,(int)m_NumberOfCompartments);
                 minimalNumberOfCompartments = numMoseCompartments;
                 maximalNumberOfCompartments = numMoseCompartments;
             }
