@@ -184,7 +184,6 @@ int main(int argc,  char **argv)
     filter->SetGTolerance(gTolArg.getValue());
     filter->SetMaxEval(maxEvalArg.getValue());
 
-    filter->SetUseConcentrationBoundsFromDTI(false);
     filter->SetUseFixedWeights(fixWeightsArg.isSet() && (mlModeArg.getValue() != 2));
 
     filter->SetFreeWaterProportionFixedValue(freeWaterWeightArg.getValue());

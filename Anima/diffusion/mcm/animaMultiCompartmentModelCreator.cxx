@@ -45,18 +45,6 @@ MultiCompartmentModelCreator::MultiCompartmentModelCreator()
     m_RadialDiffusivity2 = 1.5e-4;
     m_ExtraAxonalFraction = 0.1;
     m_OrientationConcentration = 10.0;
-
-    m_UserDefinedConcentrationBounds = false;
-    m_ConcentrationLowerBound = 0;
-    m_ConcentrationUpperBound = 0;
-}
-
-void MultiCompartmentModelCreator::SetConcentrationBounds(double lowerBound, double upperBound)
-{
-    m_UserDefinedConcentrationBounds = true;
-    m_ConcentrationLowerBound = lowerBound;
-    m_ConcentrationUpperBound = upperBound;
-    m_OrientationConcentration = (lowerBound + upperBound) / 2.0;
 }
 
 MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMultiCompartmentModel()

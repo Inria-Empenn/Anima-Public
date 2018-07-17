@@ -71,11 +71,8 @@ const double MCMPolarAngleUpperBound = M_PI;
 //! Azimuth angle upper bound
 const double MCMAzimuthAngleUpperBound = 2.0 * M_PI;
 
-//! Watson kappa upper bound (used in NODDI)
-const double MCMWatsonKappaUpperBound = 128.0;
-
-//! Default concentration parameter upper bound
-const double MCMDefaultConcentrationUpperBound = 20;
+//! Concentration upper bound (used in NODDI and DDI)
+const double MCMConcentrationUpperBound = 128.0;
 
 //! Fraction upper bound (intra/extra axonal)
 const double MCMFractionUpperBound = 1.0;

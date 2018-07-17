@@ -167,7 +167,7 @@ NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(doubl
         double kappaDeriv = 1.0;
         if (this->GetUseBoundedOptimization())
             kappaDeriv = levenberg::BoundedDerivativeAddOn(kappa, this->GetBoundedSignVectorValue(pos),
-                                                           anima::MCMZeroLowerBound, anima::MCMWatsonKappaUpperBound);
+                                                           anima::MCMZeroLowerBound, anima::MCMConcentrationUpperBound);
 
         // Derivative of Aec w.r.t. kappa
         double extraKappaDerivative = bValue * dpara * nuic * m_Tau1Deriv * (1.0 - 3.0 * innerProd * innerProd) * m_ExtraAxonalSignal / 2.0;
@@ -371,7 +371,7 @@ NODDICompartment::ListType &NODDICompartment::GetParameterUpperBounds()
 
     if (m_EstimateOrientationConcentration)
     {
-        m_ParametersUpperBoundsVector[pos] = anima::MCMWatsonKappaUpperBound;
+        m_ParametersUpperBoundsVector[pos] = anima::MCMConcentrationUpperBound;
         ++pos;
     }
 
@@ -400,7 +400,7 @@ void NODDICompartment::BoundParameters(const ListType &params)
     unsigned int pos = 2;
     if (m_EstimateOrientationConcentration)
     {
-        m_BoundedVector[pos] = levenberg::ComputeBoundedValue(params[pos], inputSign, anima::MCMZeroLowerBound, anima::MCMWatsonKappaUpperBound);
+        m_BoundedVector[pos] = levenberg::ComputeBoundedValue(params[pos], inputSign, anima::MCMZeroLowerBound, anima::MCMConcentrationUpperBound);
         this->SetBoundedSignVectorValue(pos,inputSign);
         ++pos;
     }
@@ -427,7 +427,7 @@ void NODDICompartment::UnboundParameters(ListType &params)
     unsigned int pos = 2;
     if (m_EstimateOrientationConcentration)
     {
-        params[pos] = levenberg::UnboundValue(params[pos], anima::MCMZeroLowerBound, anima::MCMWatsonKappaUpperBound);
+        params[pos] = levenberg::UnboundValue(params[pos], anima::MCMZeroLowerBound, anima::MCMConcentrationUpperBound);
         ++pos;
     }
 

@@ -19,9 +19,6 @@
 #include <animaBaseTensorTools.h>
 #include <animaMCMFileWriter.h>
 
-#include <boost/math/tools/toms748_solve.hpp>
-#include <ctime>
-
 namespace anima
 {
 
@@ -229,25 +226,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         m_MCMCreators[i]->SetRadialDiffusivity1Value(m_RadialDiffusivity1FixedValue);
         m_MCMCreators[i]->SetRadialDiffusivity2Value(m_RadialDiffusivity2FixedValue);
         m_MCMCreators[i]->SetUseBoundedOptimization(m_UseBoundedOptimization);
-    }
-
-    if (m_UseConcentrationBoundsFromDTI)
-    {
-        // Orientation concentration bounds estimation
-        ConcentrationUpperBoundSolverCostFunction upperCost;
-        upperCost.SetWMAxialDiffusivity(m_AxialDiffusivityFixedValue);
-        upperCost.SetWMRadialDiffusivity((m_RadialDiffusivity1FixedValue + m_RadialDiffusivity2FixedValue) / 2.0);
-
-        boost::uintmax_t max_iter = 500;
-        boost::math::tools::eps_tolerance<double> tol(30);
-
-        double kappaLowerBound = m_AxialDiffusivityFixedValue * 2.0 / (m_RadialDiffusivity1FixedValue + m_RadialDiffusivity2FixedValue) - 1.0;
-
-        std::pair <double,double> r = boost::math::tools::toms748_solve(upperCost, kappaLowerBound, 20.0, tol, max_iter);
-        double kappaUpperBound = std::min(r.first,r.second);
-
-        for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
-            m_MCMCreators[i]->SetConcentrationBounds(kappaLowerBound,kappaUpperBound);
     }
     
     // Switch over compartment types to setup coarse grid initialization

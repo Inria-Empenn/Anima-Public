@@ -220,7 +220,6 @@ public:
     itkSetMacro(UseCommonExtraAxonalFractions, bool)
 
     itkSetMacro(UseCommonDiffusivities, bool)
-    itkSetMacro(UseConcentrationBoundsFromDTI,bool)
 
     std::string GetOptimizer() {return m_Optimizer;}
 
@@ -289,7 +288,6 @@ protected:
         m_UseConstrainedDiffusivity = false;
         m_UseConstrainedFreeWaterDiffusivity = true;
         m_UseConstrainedIRWDiffusivity = true;
-        m_UseConcentrationBoundsFromDTI = false;
         m_UseBoundedOptimization = false;
         m_UseCommonDiffusivities = false;
 
@@ -428,7 +426,6 @@ private:
     bool m_UseConstrainedDiffusivity;
     bool m_UseConstrainedFreeWaterDiffusivity;
     bool m_UseConstrainedIRWDiffusivity;
-    bool m_UseConcentrationBoundsFromDTI;
     bool m_UseBoundedOptimization;
     bool m_UseCommonDiffusivities;
 

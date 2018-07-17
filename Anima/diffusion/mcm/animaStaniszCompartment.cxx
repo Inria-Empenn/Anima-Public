@@ -132,6 +132,7 @@ StaniszCompartment::ListType &StaniszCompartment::GetSignalAttenuationJacobian(d
 
 double StaniszCompartment::GetLogDiffusionProfile(const Vector3DType &sample)
 {
+    // Compute equivalent
     throw itk::ExceptionObject(__FILE__, __LINE__, "Stanisz PDF not implemented yet", ITK_LOCATION);
 }
 

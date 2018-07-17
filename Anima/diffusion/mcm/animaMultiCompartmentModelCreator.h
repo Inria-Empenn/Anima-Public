@@ -61,16 +61,11 @@ public:
     void SetRadialDiffusivity1Value(double arg) {m_RadialDiffusivity1 = arg;}
     void SetRadialDiffusivity2Value(double arg) {m_RadialDiffusivity2 = arg;}
 
-    void SetConcentrationBounds(double lowerBound, double upperBound);
-    bool GetUserDefinedConcentrationBounds() {return m_UserDefinedConcentrationBounds;}
-
     double GetOrientationConcentration() {return m_OrientationConcentration;}
     double GetAxialDiffusivity() {return m_AxialDiffusivity;}
     double GetRadialDiffusivity1() {return m_RadialDiffusivity1;}
     double GetRadialDiffusivity2() {return m_RadialDiffusivity2;}
     double GetExtraAxonalFraction() {return m_ExtraAxonalFraction;}
-    double GetConcentrationLowerBound() {return m_ConcentrationLowerBound;}
-    double GetConcentrationUpperBound() {return m_ConcentrationUpperBound;}
 
     MCMPointer GetNewMultiCompartmentModel();
 
@@ -99,10 +94,6 @@ private:
     bool m_UseCommonDiffusivities;
     bool m_UseCommonConcentrations;
     bool m_UseCommonExtraAxonalFractions;
-    
-    bool m_UserDefinedConcentrationBounds;
-    double m_ConcentrationLowerBound;
-    double m_ConcentrationUpperBound;
 
     double m_FreeWaterDiffusivity;
     double m_OrientationConcentration, m_ExtraAxonalFraction;
