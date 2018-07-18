@@ -204,11 +204,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     m_MCMCreators.resize(this->GetNumberOfThreads());
     for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
         m_MCMCreators[i] = this->GetNewMCMCreatorInstance();
-
-    // Use default known values for diffusivities (would be nice to store those values somewhere else)
-    m_AxialDiffusivityFixedValue = 1.71e-3;
-    m_RadialDiffusivity1FixedValue = 1.5e-4;
-    m_RadialDiffusivity2FixedValue = 1.5e-4;
     
     std::cout << "Stick initial diffusivities:" << std::endl;
     std::cout << " - Axial diffusivity: " << m_AxialDiffusivityFixedValue << " mm2/s," << std::endl;
@@ -596,7 +591,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     mcmCreator->SetUseFixedWeights(m_MLEstimationStrategy == VariableProjection);
     mcmCreator->SetUseConstrainedFreeWaterDiffusivity(m_UseConstrainedFreeWaterDiffusivity);
     mcmCreator->SetUseConstrainedIRWDiffusivity(m_UseConstrainedIRWDiffusivity);
-    mcmCreator->SetUseConstrainedDiffusivity(m_UseConstrainedDiffusivity);
+    mcmCreator->SetUseConstrainedStaniszDiffusivity(m_UseConstrainedStaniszDiffusivity);
+    mcmCreator->SetUseConstrainedStaniszRadius(m_UseConstrainedStaniszRadius);
 
     mcmValue = mcmCreator->GetNewMultiCompartmentModel();
 
@@ -729,6 +725,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     mcmCreator->SetUseConstrainedDiffusivity(true);
     mcmCreator->SetUseConstrainedFreeWaterDiffusivity(m_UseConstrainedFreeWaterDiffusivity);
     mcmCreator->SetUseConstrainedIRWDiffusivity(m_UseConstrainedIRWDiffusivity);
+    mcmCreator->SetUseConstrainedStaniszDiffusivity(m_UseConstrainedStaniszDiffusivity);
+    mcmCreator->SetUseConstrainedStaniszRadius(m_UseConstrainedStaniszRadius);
     mcmCreator->SetUseCommonDiffusivities(m_UseCommonDiffusivities);
 
     MCMPointer mcmUpdateValue = mcmCreator->GetNewMultiCompartmentModel();

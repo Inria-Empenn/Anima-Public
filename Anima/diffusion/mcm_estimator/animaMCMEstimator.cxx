@@ -53,6 +53,8 @@ int main(int argc,  char **argv)
     TCLAP::SwitchArg fixDiffArg("", "fix-diff", "Fix diffusivity value", cmd, false);
     TCLAP::SwitchArg optFWDiffArg("", "opt-free-water-diff", "Optimize free water diffusivity value", cmd, false);
     TCLAP::SwitchArg optIRWDiffArg("", "opt-ir-water-diff", "Optimize isotropic restricted water diffusivity value", cmd, false);
+    TCLAP::SwitchArg optStaniszRadiusArg("", "opt-stanisz-radius", "Optimize isotropic Stanisz radius value", cmd, false);
+    TCLAP::SwitchArg optStaniszDiffArg("", "opt-stanisz-diff", "Optimize isotropic Stanisz diffusivity value", cmd, false);
     TCLAP::SwitchArg fixKappaArg("", "fix-kappa", "Fix orientation concentration values", cmd, false);
     TCLAP::SwitchArg fixEAFArg("", "fix-eaf", "Fix extra axonal fraction values", cmd, false);
 
@@ -182,6 +184,8 @@ int main(int argc,  char **argv)
     filter->SetUseConstrainedDiffusivity(fixDiffArg.isSet());
     filter->SetUseConstrainedFreeWaterDiffusivity(!optFWDiffArg.isSet());
     filter->SetUseConstrainedIRWDiffusivity(!optIRWDiffArg.isSet());
+    filter->SetUseConstrainedStaniszDiffusivity(!optStaniszDiffArg.isSet());
+    filter->SetUseConstrainedStaniszRadius(!optStaniszRadiusArg.isSet());
 
     if (!fixDiffArg.isSet())
         filter->SetUseCommonDiffusivities(commonDiffusivitiesArg.isSet());

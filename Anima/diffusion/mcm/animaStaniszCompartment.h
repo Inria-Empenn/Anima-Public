@@ -39,6 +39,7 @@ public:
 
     // Set constraints
     void SetEstimateAxialDiffusivity(bool arg);
+    void SetEstimateTissueRadius(bool arg);
     void SetCompartmentVector(ModelOutputVectorType &compartmentVector) ITK_OVERRIDE;
 
     unsigned int GetCompartmentSize() ITK_OVERRIDE;
@@ -55,6 +56,7 @@ protected:
     StaniszCompartment() : Superclass()
     {
         m_EstimateAxialDiffusivity = true;
+        m_EstimateTissueRadius = true;
         m_ChangedConstraints = true;
 
         m_FirstSummation = 0.0;
@@ -77,7 +79,7 @@ protected:
     void UpdateSignals(double smallDelta, double bigDelta, double gradientStrength);
 
 private:
-    bool m_EstimateAxialDiffusivity;
+    bool m_EstimateAxialDiffusivity, m_EstimateTissueRadius;
     bool m_ChangedConstraints;
     unsigned int m_NumberOfParameters;
 
