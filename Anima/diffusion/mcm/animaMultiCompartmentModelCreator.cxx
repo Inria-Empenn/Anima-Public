@@ -38,7 +38,10 @@ MultiCompartmentModelCreator::MultiCompartmentModelCreator()
 
     m_AxialDiffusivity = 1.71e-3;
     m_FreeWaterDiffusivity = 3.0e-3;
-    m_RadialDiffusivity1 = 1.5e-4;
+    m_IRWDiffusivity = 7.5e-4;
+    m_StaniszDiffusivity = 1.71e-3;
+    m_RadialDiffusivity = 1.7e-4;
+    m_RadialDiffusivity1 = 1.9e-4;
     m_RadialDiffusivity2 = 1.5e-4;
     m_ExtraAxonalFraction = 0.1;
     m_OrientationConcentration = 10.0;
@@ -100,6 +103,7 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
         IRWType::Pointer restComp = IRWType::New();
         restComp->SetEstimateAxialDiffusivity(!m_UseConstrainedIRWDiffusivity);
         restComp->SetUseBoundedOptimization(m_UseBoundedOptimization);
+        restComp->SetAxialDiffusivity(m_IRWDiffusivity);
 
         if (m_NumberOfCompartments != 0)
             outputMCM->AddCompartment(isoDefaultWeight,restComp);
@@ -114,6 +118,7 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
         restComp->SetEstimateAxialDiffusivity(!m_UseConstrainedStaniszDiffusivity);
         restComp->SetEstimateTissueRadius(!m_UseConstrainedStaniszRadius);
         restComp->SetUseBoundedOptimization(m_UseBoundedOptimization);
+        restComp->SetAxialDiffusivity(m_StaniszDiffusivity);
 
         if (m_NumberOfCompartments != 0)
             outputMCM->AddCompartment(isoDefaultWeight,restComp);
@@ -190,7 +195,7 @@ void MultiCompartmentModelCreator::CreateZeppelinCompartment(BaseCompartmentPoin
     zepComp->SetEstimateDiffusivities(!m_UseConstrainedDiffusivity);
 
     zepComp->SetAxialDiffusivity(m_AxialDiffusivity);
-    zepComp->SetRadialDiffusivity1((m_RadialDiffusivity1 + m_RadialDiffusivity2) / 2.0);
+    zepComp->SetRadialDiffusivity1(m_RadialDiffusivity);
 
     if (applyConstraints)
     {

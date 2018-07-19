@@ -1,5 +1,6 @@
 #pragma once
 #include "animaMCMEstimatorImageFilter.h"
+#include <animaMCMConstants.h>
 
 #include <itkImageRegionIterator.h>
 #include <itkImageRegionConstIterator.h>
@@ -205,10 +206,15 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
         m_MCMCreators[i] = this->GetNewMCMCreatorInstance();
     
-    std::cout << "Stick initial diffusivities:" << std::endl;
-    std::cout << " - Axial diffusivity: " << m_AxialDiffusivityFixedValue << " mm2/s," << std::endl;
-    std::cout << " - First radial diffusivity: " << m_RadialDiffusivity1FixedValue << " mm2/s," << std::endl;
-    std::cout << " - Second radial diffusivity: " << m_RadialDiffusivity2FixedValue << " mm2/s." << std::endl;
+    std::cout << "Initial diffusivities:" << std::endl;
+    std::cout << " - Axial diffusivity: " << m_AxialDiffusivityValue << " mm2/s," << std::endl;
+    std::cout << " - Radial diffusivity: " << m_RadialDiffusivityValue << " mm2/s," << std::endl;
+
+    if (m_ModelWithRestrictedWaterComponent)
+        std::cout << " - IRW diffusivity: " << m_IRWDiffusivityValue << " mm2/s," << std::endl;
+
+    if (m_ModelWithStaniszComponent)
+        std::cout << " - Stanisz diffusivity: " << m_StaniszDiffusivityValue << " mm2/s," << std::endl;
 
     // Setting up creators
     if (m_Optimizer == "levenberg")
@@ -216,10 +222,13 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
     {
-        m_MCMCreators[i]->SetAxialDiffusivityValue(m_AxialDiffusivityFixedValue);
+        m_MCMCreators[i]->SetAxialDiffusivityValue(m_AxialDiffusivityValue);
         m_MCMCreators[i]->SetFreeWaterDiffusivityValue(3.0e-3);
-        m_MCMCreators[i]->SetRadialDiffusivity1Value(m_RadialDiffusivity1FixedValue);
-        m_MCMCreators[i]->SetRadialDiffusivity2Value(m_RadialDiffusivity2FixedValue);
+        m_MCMCreators[i]->SetIRWDiffusivityValue(m_IRWDiffusivityValue);
+        m_MCMCreators[i]->SetStaniszDiffusivityValue(m_StaniszDiffusivityValue);
+        m_MCMCreators[i]->SetRadialDiffusivityValue(m_RadialDiffusivityValue);
+        m_MCMCreators[i]->SetRadialDiffusivity1Value(m_RadialDiffusivity1Value);
+        m_MCMCreators[i]->SetRadialDiffusivity2Value(m_RadialDiffusivity2Value);
         m_MCMCreators[i]->SetUseBoundedOptimization(m_UseBoundedOptimization);
     }
     
@@ -1012,13 +1021,12 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     }
     else
     {
-        meanAxialDiff = m_AxialDiffusivityFixedValue;
-        meanRadialDiff = (m_RadialDiffusivity1FixedValue + m_RadialDiffusivity2FixedValue) / 2.0;
-
+        meanAxialDiff = m_AxialDiffusivityValue;
+        meanRadialDiff = m_RadialDiffusivityValue;
     }
 
-    if (meanAxialDiff - meanRadialDiff < 5.0e-4)
-        meanAxialDiff = meanRadialDiff + 5.0e-4;
+    if (meanAxialDiff - meanRadialDiff < anima::MCMAxialDiffusivityAddonLowerBound)
+        meanAxialDiff = meanRadialDiff + anima::MCMAxialDiffusivityAddonLowerBound;
 
     for (unsigned int i = numIsoCompartments;i < numCompartments;++i)
         mcmUpdateValue->GetCompartment(i)->SetAxialDiffusivity(meanAxialDiff);
@@ -1027,8 +1035,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     {
         double tmpWeight2 = m_ValuesCoarseGrid[2][l];
 
-        // In between meanRD and (meanRD + e-5) / 2
-        double tmpRadialDiffusivity2 = 0.5 * ((1.0 + tmpWeight2) * meanRadialDiff + (1.0 - tmpWeight2) * 1.0e-5);
+        // In between meanRD and (meanRD + MCMDiffusivityLowerBound) / 2
+        double tmpRadialDiffusivity2 = 0.5 * ((1.0 + tmpWeight2) * meanRadialDiff + (1.0 - tmpWeight2) * anima::MCMDiffusivityLowerBound);
 
         for (unsigned int k = 0;k < m_ValuesCoarseGrid[1].size();++k)
         {
@@ -1036,7 +1044,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
             // In between meanRD and (meanRD + meanAD) / 2
             double tmpRadialDiffusivity1 = 0.5 * ((1.0 + tmpWeight1) * meanRadialDiff + (1.0 - tmpWeight1) * meanAxialDiff);
-            if (meanAxialDiff - tmpRadialDiffusivity1 < 5.0e-4)
+            if (meanAxialDiff - tmpRadialDiffusivity1 < anima::MCMAxialDiffusivityAddonLowerBound)
                 continue;
 
             for (unsigned int j = 0;j < m_ValuesCoarseGrid[0].size();++j)

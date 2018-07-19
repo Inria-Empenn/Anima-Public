@@ -220,9 +220,12 @@ public:
 
     void WriteMCMOutput(std::string fileName);
 
-    itkSetMacro(AxialDiffusivityFixedValue, double)
-    itkSetMacro(RadialDiffusivity1FixedValue, double)
-    itkSetMacro(RadialDiffusivity2FixedValue, double)
+    itkSetMacro(AxialDiffusivityValue, double)
+    itkSetMacro(StaniszDiffusivityValue, double)
+    itkSetMacro(IRWDiffusivityValue, double)
+    itkSetMacro(RadialDiffusivityValue, double)
+    itkSetMacro(RadialDiffusivity1Value, double)
+    itkSetMacro(RadialDiffusivity2Value, double)
 
     itkSetMacro(XTolerance, double)
     itkSetMacro(GTolerance, double)
@@ -271,9 +274,12 @@ protected:
         m_UseCommonConcentrations = false;
         m_UseCommonExtraAxonalFractions = false;
 
-        m_AxialDiffusivityFixedValue = 1.71e-3;
-        m_RadialDiffusivity1FixedValue = 1.5e-4;
-        m_RadialDiffusivity2FixedValue = 1.5e-4;
+        m_AxialDiffusivityValue = 1.71e-3;
+        m_StaniszDiffusivityValue = 1.71e-3;
+        m_IRWDiffusivityValue = 7.5e-4;
+        m_RadialDiffusivityValue = 1.7e-4;
+        m_RadialDiffusivity1Value = 1.9e-4;
+        m_RadialDiffusivity2Value = 1.5e-4;
 
         m_NumberOfImages = 0;
         m_ExternalMoseVolume = false;
@@ -409,9 +415,15 @@ private:
     bool m_UseCommonConcentrations;
     bool m_UseCommonExtraAxonalFractions;
 
-    double m_AxialDiffusivityFixedValue;
-    double m_RadialDiffusivity1FixedValue;
-    double m_RadialDiffusivity2FixedValue;
+    double m_AxialDiffusivityValue;
+    double m_RadialDiffusivityValue;
+    double m_IRWDiffusivityValue;
+    double m_StaniszDiffusivityValue;
+
+    // To do ? Radial diffusivities 1 and 2 are useless for now since there is coarse grid initialization for tensors
+    // Keeping it just as legacy but no parameters in the estimation
+    double m_RadialDiffusivity1Value;
+    double m_RadialDiffusivity2Value;
 
     bool m_ExternalMoseVolume;
 

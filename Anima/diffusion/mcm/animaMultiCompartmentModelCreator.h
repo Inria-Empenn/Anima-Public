@@ -54,12 +54,16 @@ public:
     bool GetUseCommonExtraAxonalFractions() {return m_UseCommonExtraAxonalFractions;}
 
     void SetFreeWaterDiffusivityValue(double arg) {m_FreeWaterDiffusivity = arg;}
+    void SetIRWDiffusivityValue(double arg) {m_IRWDiffusivity = arg;}
+    void SetStaniszDiffusivityValue(double arg) {m_StaniszDiffusivity = arg;}
     void SetAxialDiffusivityValue(double arg) {m_AxialDiffusivity = arg;}
+    void SetRadialDiffusivityValue(double arg) {m_RadialDiffusivity = arg;}
     void SetRadialDiffusivity1Value(double arg) {m_RadialDiffusivity1 = arg;}
     void SetRadialDiffusivity2Value(double arg) {m_RadialDiffusivity2 = arg;}
 
     double GetOrientationConcentration() {return m_OrientationConcentration;}
     double GetAxialDiffusivity() {return m_AxialDiffusivity;}
+    double GetRadialDiffusivity() {return m_RadialDiffusivity;}
     double GetRadialDiffusivity1() {return m_RadialDiffusivity1;}
     double GetRadialDiffusivity2() {return m_RadialDiffusivity2;}
     double GetExtraAxonalFraction() {return m_ExtraAxonalFraction;}
@@ -92,10 +96,10 @@ private:
     bool m_UseCommonConcentrations;
     bool m_UseCommonExtraAxonalFractions;
 
-    double m_FreeWaterDiffusivity;
+    double m_FreeWaterDiffusivity, m_IRWDiffusivity, m_StaniszDiffusivity;
     double m_OrientationConcentration, m_ExtraAxonalFraction;
     double m_AxialDiffusivity;
-    double m_RadialDiffusivity1, m_RadialDiffusivity2;
+    double m_RadialDiffusivity, m_RadialDiffusivity1, m_RadialDiffusivity2;
 };
 
 } // end namespace anima

@@ -54,10 +54,10 @@ const double MCMFreeWaterDiffusivityLowerBound = 2.0e-3;
 const double MCMFreeWaterDiffusivityUpperBound = 4.0e-3;
 
 //! Isotropic restricted water diffusivity lower bound
-const double MCMIsotropicRestrictedWaterDiffusivityLowerBound = 2.0e-3;
+const double MCMIsotropicRestrictedWaterDiffusivityLowerBound = 0.25e-4;
 
 //! Isotropic restricted water diffusivity upper bound
-const double MCMIsotropicRestrictedWaterDiffusivityUpperBound = 4.0e-3;
+const double MCMIsotropicRestrictedWaterDiffusivityUpperBound = 2.0e-3;
 
 //! Stanisz water diffusivity lower bound
 const double MCMStaniszAxialDiffusivityLowerBound = 1.5e-4;
