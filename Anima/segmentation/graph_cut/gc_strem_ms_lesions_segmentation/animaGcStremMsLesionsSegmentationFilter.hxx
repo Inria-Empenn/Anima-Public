@@ -755,7 +755,7 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::CreateFuzzyRuleImage()
             double mahaValue = mahaMinimumIterator.Get();
             double lesionPriorValue = lesionPriorIterator.Get();
 
-            mahaMinimumIterator.Set(std::sqrt(mahaValue * lesionPriorValue));
+            mahaMinimumIterator.Set(mahaValue * 0.77 + lesionPriorValue * 0.23);
 
             ++mahaMinimumIterator;
             ++lesionPriorIterator;
@@ -880,7 +880,7 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::GraphCut()
                 double mahaValue = sinkProbasIterator.Get();
                 double lesionPriorValue = lesionPriorIterator.Get();
 
-                sinkProbasIterator.Set(std::sqrt(mahaValue * (1.0 - lesionPriorValue)));
+                sinkProbasIterator.Set(mahaValue * 0.77 + (1.0 - lesionPriorValue) * 0.23);
 
                 ++sinkProbasIterator;
                 ++lesionPriorIterator;
