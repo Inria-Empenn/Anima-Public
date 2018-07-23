@@ -755,7 +755,7 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::CreateFuzzyRuleImage()
             double mahaValue = mahaMinimumIterator.Get();
             double lesionPriorValue = lesionPriorIterator.Get();
 
-            mahaMinimumIterator.Set(mahaValue * 0.77 + lesionPriorValue * 0.23);
+            mahaMinimumIterator.Set(mahaValue * (1.0 - m_LesionPriorProportion) + lesionPriorValue * m_LesionPriorProportion);
 
             ++mahaMinimumIterator;
             ++lesionPriorIterator;

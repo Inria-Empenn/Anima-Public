@@ -26,7 +26,9 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<std::string> atlasFileCSFArg("x","atlas-csf","CSF atlas image",false,"","csf atlas image",cmd);
     TCLAP::ValueArg<std::string> atlasFileGMArg("y","atlas-gm","GM atlas image",false,"","gm atlas image",cmd);
     TCLAP::ValueArg<std::string> atlasFileWMArg("z","atlas-wm","WM atlas image",false,"","wm atlas image",cmd);
+
     TCLAP::ValueArg<std::string> lesionPriorArg("","lesion-prior","Lesions prior image",false,"","lesions prior image",cmd);
+    TCLAP::ValueArg<double> lesionPriorProportionArg("","lesion-prior-rate","Lesions prior proportion (default: 0.23)",false,0.23,"lesions prior proportion",cmd);
 
     TCLAP::ValueArg<std::string> maskFileArg("m","mask","Brain mask",true,"","brain mask",cmd);
 
@@ -145,7 +147,10 @@ int main(int argc, const char** argv)
     }
 
     if (lesionPriorArg.getValue() != "")
+    {
         segFilter->SetInputLesionPrior(anima::readImage<InputImageTypeD> (lesionPriorArg.getValue()));
+        segFilter->SetLesionPriorProportion(lesionPriorProportionArg.getValue());
+    }
 
     if( maskFileArg.getValue()!="" )
     {

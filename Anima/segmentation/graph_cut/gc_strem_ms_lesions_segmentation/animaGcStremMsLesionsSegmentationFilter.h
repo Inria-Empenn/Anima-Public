@@ -244,6 +244,9 @@ public:
     itkSetMacro(MultiVarSinks, double)
     itkGetMacro(MultiVarSinks, double)
 
+    itkSetMacro(LesionPriorProportion, double)
+    itkGetMacro(LesionPriorProportion, double)
+
     itkSetMacro(Sigma, double)
     itkGetMacro(Sigma, double)
 
@@ -402,6 +405,7 @@ protected:
         m_Sigma = 0.6;
         m_MultiVarSources = 1;
         m_MultiVarSinks = 1;
+        m_LesionPriorProportion = 0.23;
 
         m_MinLesionsSize = 0;
         m_RemoveBorder = false;
@@ -537,6 +541,7 @@ private:
     double m_Alpha;
     double m_MultiVarSources;
     double m_MultiVarSinks;
+    double m_LesionPriorProportion; /*! Lesion prior proportion in graph cut algorithm */
 
     /**
     * Heurisitic Rules Parameters
@@ -553,7 +558,7 @@ private:
     unsigned int m_IndexWMinModel;
 
     double m_RatioContourWM;              /*!< White matter ratio */
-    double m_ThresoldWMmap ;
+    double m_ThresoldWMmap;
 
     /**
     * Filenames
