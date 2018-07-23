@@ -880,7 +880,7 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::GraphCut()
                 double mahaValue = sinkProbasIterator.Get();
                 double lesionPriorValue = lesionPriorIterator.Get();
 
-                sinkProbasIterator.Set(mahaValue * 0.77 + (1.0 - lesionPriorValue) * 0.23);
+                sinkProbasIterator.Set(mahaValue * (1.0 - m_LesionPriorProportion) + (1.0 - lesionPriorValue) * m_LesionPriorProportion);
 
                 ++sinkProbasIterator;
                 ++lesionPriorIterator;
