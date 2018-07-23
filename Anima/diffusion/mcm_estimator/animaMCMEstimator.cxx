@@ -65,7 +65,8 @@ int main(int argc,  char **argv)
 
     //Initial values for diffusivities
     TCLAP::ValueArg<double> initAxialDiffArg("", "init-axial-diff", "Initial axial diffusivity (default: 1.71e-3)", false, 1.71e-3, "initial axial diffusivity", cmd);
-    TCLAP::ValueArg<double> initRadialDiffArg("", "init-radial-diff", "Initial radial diffusivity (default: 1.7e-4)", false, 1.7e-4, "initial radial diffusivity", cmd);
+    TCLAP::ValueArg<double> initRadialDiff1Arg("", "init-radial-diff1", "Initial first radial diffusivity (default: 1.9e-4)", false, 1.9e-4, "initial first radial diffusivity", cmd);
+    TCLAP::ValueArg<double> initRadialDiff2Arg("", "init-radial-diff2", "Initial second radial diffusivity (default: 1.5e-4)", false, 1.5e-4, "initial second radial diffusivity", cmd);
     TCLAP::ValueArg<double> initIRWDiffArg("", "init-irw-diff", "Initial isotropic restricted diffusivity (default: 7.5e-4)", false, 7.5e-4, "initial IRW diffusivity", cmd);
     TCLAP::ValueArg<double> initStaniszDiffArg("", "init-stanisz-diff", "Initial Stanisz diffusivity (default: 1.71e-3)", false, 1.71e-3, "initial Stanisz diffusivity", cmd);
 
@@ -177,7 +178,8 @@ int main(int argc,  char **argv)
     }
 
     filter->SetAxialDiffusivityValue(initAxialDiffArg.getValue());
-    filter->SetRadialDiffusivityValue(initRadialDiffArg.getValue());
+    filter->SetRadialDiffusivity1Value(initRadialDiff1Arg.getValue());
+    filter->SetRadialDiffusivity2Value(initRadialDiff2Arg.getValue());
     filter->SetIRWDiffusivityValue(initIRWDiffArg.getValue());
     filter->SetStaniszDiffusivityValue(initStaniszDiffArg.getValue());
 

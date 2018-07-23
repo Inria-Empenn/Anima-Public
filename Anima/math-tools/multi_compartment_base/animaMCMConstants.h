@@ -39,7 +39,7 @@ const double MCMEpsilon = 1.0e-2;
 const double MCMAxialDiffusivityAddonLowerBound = 5.0e-4;
 
 //! Diffusivity lower bound for estimation
-const double MCMDiffusivityLowerBound = 1.0e-5;
+const double MCMDiffusivityLowerBound = 1.0e-6;
 
 //! Diffusivity upper bound
 const double MCMDiffusivityUpperBound = 3.0e-3;
@@ -58,12 +58,6 @@ const double MCMIsotropicRestrictedWaterDiffusivityLowerBound = 0.25e-4;
 
 //! Isotropic restricted water diffusivity upper bound
 const double MCMIsotropicRestrictedWaterDiffusivityUpperBound = 2.0e-3;
-
-//! Stanisz water diffusivity lower bound
-const double MCMStaniszAxialDiffusivityLowerBound = 1.5e-4;
-
-//! Stanisz water diffusivity lower bound
-const double MCMStaniszAxialDiffusivityUpperBound = 2.0e-3;
 
 //! Polar angle upper bound (used in tensor for now)
 const double MCMPolarAngleUpperBound = M_PI;

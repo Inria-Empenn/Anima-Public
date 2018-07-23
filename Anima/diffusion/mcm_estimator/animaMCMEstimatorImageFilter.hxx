@@ -20,6 +20,8 @@
 #include <animaBaseTensorTools.h>
 #include <animaMCMFileWriter.h>
 
+#include <limits>
+
 namespace anima
 {
 
@@ -208,7 +210,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     
     std::cout << "Initial diffusivities:" << std::endl;
     std::cout << " - Axial diffusivity: " << m_AxialDiffusivityValue << " mm2/s," << std::endl;
-    std::cout << " - Radial diffusivity: " << m_RadialDiffusivityValue << " mm2/s," << std::endl;
+    std::cout << " - Radial diffusivity 1: " << m_RadialDiffusivity1Value << " mm2/s," << std::endl;
+    std::cout << " - Radial diffusivity 2: " << m_RadialDiffusivity2Value << " mm2/s," << std::endl;
 
     if (m_ModelWithRestrictedWaterComponent)
         std::cout << " - IRW diffusivity: " << m_IRWDiffusivityValue << " mm2/s," << std::endl;
@@ -226,7 +229,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         m_MCMCreators[i]->SetFreeWaterDiffusivityValue(3.0e-3);
         m_MCMCreators[i]->SetIRWDiffusivityValue(m_IRWDiffusivityValue);
         m_MCMCreators[i]->SetStaniszDiffusivityValue(m_StaniszDiffusivityValue);
-        m_MCMCreators[i]->SetRadialDiffusivityValue(m_RadialDiffusivityValue);
         m_MCMCreators[i]->SetRadialDiffusivity1Value(m_RadialDiffusivity1Value);
         m_MCMCreators[i]->SetRadialDiffusivity2Value(m_RadialDiffusivity2Value);
         m_MCMCreators[i]->SetUseBoundedOptimization(m_UseBoundedOptimization);
@@ -597,7 +599,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     mcmCreator->SetModelWithRestrictedWaterComponent(m_ModelWithRestrictedWaterComponent);
     mcmCreator->SetModelWithStaniszComponent(m_ModelWithStaniszComponent);
     mcmCreator->SetNumberOfCompartments(0);
-    mcmCreator->SetUseFixedWeights(m_MLEstimationStrategy == VariableProjection);
+    mcmCreator->SetVariableProjectionEstimationMode(m_MLEstimationStrategy == VariableProjection);
     mcmCreator->SetUseConstrainedFreeWaterDiffusivity(m_UseConstrainedFreeWaterDiffusivity);
     mcmCreator->SetUseConstrainedIRWDiffusivity(m_UseConstrainedIRWDiffusivity);
     mcmCreator->SetUseConstrainedStaniszDiffusivity(m_UseConstrainedStaniszDiffusivity);
@@ -730,7 +732,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     mcmCreator->SetModelWithStaniszComponent(m_ModelWithStaniszComponent);
     mcmCreator->SetCompartmentType(Stick);
     mcmCreator->SetNumberOfCompartments(currentNumberOfCompartments);
-    mcmCreator->SetUseFixedWeights(m_MLEstimationStrategy == VariableProjection);
+    mcmCreator->SetVariableProjectionEstimationMode(m_MLEstimationStrategy == VariableProjection);
     mcmCreator->SetUseConstrainedDiffusivity(true);
     mcmCreator->SetUseConstrainedFreeWaterDiffusivity(m_UseConstrainedFreeWaterDiffusivity);
     mcmCreator->SetUseConstrainedIRWDiffusivity(m_UseConstrainedIRWDiffusivity);
@@ -1022,7 +1024,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     else
     {
         meanAxialDiff = m_AxialDiffusivityValue;
-        meanRadialDiff = m_RadialDiffusivityValue;
+        meanRadialDiff = (m_RadialDiffusivity1Value + m_RadialDiffusivity2Value) / 2.0;
     }
 
     if (meanAxialDiff - meanRadialDiff < anima::MCMAxialDiffusivityAddonLowerBound)
@@ -1125,7 +1127,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
             typedef anima::MCMWeightsInequalityConstraintFunction WeightInequalityFunctionType;
             WeightInequalityFunctionType::Pointer weightsInequality = WeightInequalityFunctionType::New();
-            double wIneqTol = std::min(1.0e-16, xTol / 10.0);
+            double wIneqTol = std::min(std::numeric_limits<double>::epsilon(), xTol / 10.0);
             weightsInequality->SetTolerance(wIneqTol);
             weightsInequality->SetMCMStructure(costCast->GetMCMStructure());
 

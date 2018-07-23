@@ -30,7 +30,7 @@ public:
 
     void SetCompartmentType(CompartmentType arg) {m_CompartmentType = arg;}
     void SetNumberOfCompartments(unsigned int num) {m_NumberOfCompartments = num;}
-    void SetUseFixedWeights(bool arg) {m_UseFixedWeights = arg;}
+    void SetVariableProjectionEstimationMode(bool arg) {m_VariableProjectionEstimationMode = arg;}
 
     void SetUseConstrainedDiffusivity(bool arg) {m_UseConstrainedDiffusivity = arg;}
     void SetUseConstrainedOrientationConcentration(bool arg) {m_UseConstrainedOrientationConcentration = arg;}
@@ -57,13 +57,11 @@ public:
     void SetIRWDiffusivityValue(double arg) {m_IRWDiffusivity = arg;}
     void SetStaniszDiffusivityValue(double arg) {m_StaniszDiffusivity = arg;}
     void SetAxialDiffusivityValue(double arg) {m_AxialDiffusivity = arg;}
-    void SetRadialDiffusivityValue(double arg) {m_RadialDiffusivity = arg;}
     void SetRadialDiffusivity1Value(double arg) {m_RadialDiffusivity1 = arg;}
     void SetRadialDiffusivity2Value(double arg) {m_RadialDiffusivity2 = arg;}
 
     double GetOrientationConcentration() {return m_OrientationConcentration;}
     double GetAxialDiffusivity() {return m_AxialDiffusivity;}
-    double GetRadialDiffusivity() {return m_RadialDiffusivity;}
     double GetRadialDiffusivity1() {return m_RadialDiffusivity1;}
     double GetRadialDiffusivity2() {return m_RadialDiffusivity2;}
     double GetExtraAxonalFraction() {return m_ExtraAxonalFraction;}
@@ -82,7 +80,7 @@ private:
     bool m_ModelWithRestrictedWaterComponent, m_ModelWithStaniszComponent;
     unsigned int m_NumberOfCompartments;
 
-    bool m_UseFixedWeights;
+    bool m_VariableProjectionEstimationMode;
     bool m_UseConstrainedDiffusivity;
     bool m_UseConstrainedOrientationConcentration;
     bool m_UseConstrainedExtraAxonalFraction;
@@ -99,7 +97,7 @@ private:
     double m_FreeWaterDiffusivity, m_IRWDiffusivity, m_StaniszDiffusivity;
     double m_OrientationConcentration, m_ExtraAxonalFraction;
     double m_AxialDiffusivity;
-    double m_RadialDiffusivity, m_RadialDiffusivity1, m_RadialDiffusivity2;
+    double m_RadialDiffusivity1, m_RadialDiffusivity2;
 };
 
 } // end namespace anima
