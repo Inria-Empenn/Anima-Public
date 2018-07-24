@@ -4,6 +4,7 @@ set (cmake_args
   ${common_cache_args}
   -DBUILD_EXAMPLES:BOOL=OFF
   -DBUILD_TESTING:BOOL=OFF
+  -DVTK_LEGACY_REMOVE:BOOL=ON
   )
 
 set (location "")
