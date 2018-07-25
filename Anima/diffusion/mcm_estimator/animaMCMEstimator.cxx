@@ -50,14 +50,12 @@ int main(int argc,  char **argv)
     TCLAP::SwitchArg restrictedWaterCompartmentArg("R", "restricted-water", "Model with restricted water", cmd, false);
     TCLAP::SwitchArg staniszCompartmentArg("Z", "stanisz", "Model with stanisz isotropic compartment", cmd, false);
 
-    TCLAP::SwitchArg fixWeightsArg("", "fix-weights", "Fix compartment weights", cmd, false);
-    TCLAP::ValueArg<double> freeWaterWeightArg("f", "fw-weight", "Free water weight, used if free water compartment (default: 0.1)", false, 0.1, "free water weight", cmd);
-    TCLAP::ValueArg<double> stationaryWaterWeightArg("s", "sw-weight", "Stationary water weight, used if stationary water compartment (default: 0.05)", false, 0.05, "stationary water weight", cmd);
-    TCLAP::ValueArg<double> restrictedWaterWeightArg("r", "rw-weight", "Restricted water weight, used if restricted water compartment (default: 0.1)", false, 0.1, "restricted water weight", cmd);
-    TCLAP::ValueArg<double> staniszWeightArg("z", "z-weight", "Stanisz compartment weight, used if restricted water compartment (default: 0.1)", false, 0.1, "Stanisz weight", cmd);
-    TCLAP::SwitchArg fixDiffArg("", "fix-diff", "Fix diffusivity value", cmd, false);
     TCLAP::SwitchArg optFWDiffArg("", "opt-free-water-diff", "Optimize free water diffusivity value", cmd, false);
     TCLAP::SwitchArg optIRWDiffArg("", "opt-ir-water-diff", "Optimize isotropic restricted water diffusivity value", cmd, false);
+    TCLAP::SwitchArg optStaniszRadiusArg("", "opt-stanisz-radius", "Optimize isotropic Stanisz radius value", cmd, false);
+    TCLAP::SwitchArg optStaniszDiffArg("", "opt-stanisz-diff", "Optimize isotropic Stanisz diffusivity value", cmd, false);
+
+    TCLAP::SwitchArg fixDiffArg("", "fix-diff", "Fix diffusivity value", cmd, false);
     TCLAP::SwitchArg fixKappaArg("", "fix-kappa", "Fix orientation concentration values", cmd, false);
     TCLAP::SwitchArg fixEAFArg("", "fix-eaf", "Fix extra axonal fraction values", cmd, false);
 
@@ -65,6 +63,14 @@ int main(int argc,  char **argv)
     TCLAP::SwitchArg commonKappaArg("", "common-kappa", "Share orientation concentration values among compartments", cmd, false);
     TCLAP::SwitchArg commonEAFArg("", "common-eaf", "Share extra axonal fraction values among compartments", cmd, false);
 
+    //Initial values for diffusivities
+    TCLAP::ValueArg<double> initAxialDiffArg("", "init-axial-diff", "Initial axial diffusivity (default: 1.71e-3)", false, 1.71e-3, "initial axial diffusivity", cmd);
+    TCLAP::ValueArg<double> initRadialDiff1Arg("", "init-radial-diff1", "Initial first radial diffusivity (default: 1.9e-4)", false, 1.9e-4, "initial first radial diffusivity", cmd);
+    TCLAP::ValueArg<double> initRadialDiff2Arg("", "init-radial-diff2", "Initial second radial diffusivity (default: 1.5e-4)", false, 1.5e-4, "initial second radial diffusivity", cmd);
+    TCLAP::ValueArg<double> initIRWDiffArg("", "init-irw-diff", "Initial isotropic restricted diffusivity (default: 7.5e-4)", false, 7.5e-4, "initial IRW diffusivity", cmd);
+    TCLAP::ValueArg<double> initStaniszDiffArg("", "init-stanisz-diff", "Initial Stanisz diffusivity (default: 1.71e-3)", false, 1.71e-3, "initial Stanisz diffusivity", cmd);
+
+    // Optimization parameters
     TCLAP::ValueArg<std::string> optimizerArg("", "optimizer", "Optimizer for estimation: bobyqa (default), ccsaq, bfgs or levenberg", false, "bobyqa", "optimizer", cmd);
     TCLAP::ValueArg<double> absCostChangeArg("", "abs-cost-change", "Cost function change to stop estimation (default: 0.01)", false, 0.01, "cost change threshold", cmd);
     TCLAP::ValueArg <unsigned int> mlModeArg("", "ml-mode", "ML estimation strategy: marginal likelihood (0), profile likelihood (1, default), Variable projection (2)", false, 1, "ML mode", cmd);
@@ -171,6 +177,12 @@ int main(int argc,  char **argv)
             return EXIT_FAILURE;
     }
 
+    filter->SetAxialDiffusivityValue(initAxialDiffArg.getValue());
+    filter->SetRadialDiffusivity1Value(initRadialDiff1Arg.getValue());
+    filter->SetRadialDiffusivity2Value(initRadialDiff2Arg.getValue());
+    filter->SetIRWDiffusivityValue(initIRWDiffArg.getValue());
+    filter->SetStaniszDiffusivityValue(initStaniszDiffArg.getValue());
+
     filter->SetNumberOfCompartments(nbFasciclesArg.getValue());
     filter->SetFindOptimalNumberOfCompartments(aicSelectNbCompartmentsArg.isSet());
 
@@ -184,17 +196,11 @@ int main(int argc,  char **argv)
     filter->SetGTolerance(gTolArg.getValue());
     filter->SetMaxEval(maxEvalArg.getValue());
 
-    filter->SetUseConcentrationBoundsFromDTI(false);
-    filter->SetUseFixedWeights(fixWeightsArg.isSet() && (mlModeArg.getValue() != 2));
-
-    filter->SetFreeWaterProportionFixedValue(freeWaterWeightArg.getValue());
-    filter->SetStationaryWaterProportionFixedValue(stationaryWaterWeightArg.getValue());
-    filter->SetRestrictedWaterProportionFixedValue(restrictedWaterWeightArg.getValue());
-    filter->SetStaniszProportionFixedValue(staniszWeightArg.getValue());
-
     filter->SetUseConstrainedDiffusivity(fixDiffArg.isSet());
     filter->SetUseConstrainedFreeWaterDiffusivity(!optFWDiffArg.isSet());
     filter->SetUseConstrainedIRWDiffusivity(!optIRWDiffArg.isSet());
+    filter->SetUseConstrainedStaniszDiffusivity(!optStaniszDiffArg.isSet());
+    filter->SetUseConstrainedStaniszRadius(!optStaniszRadiusArg.isSet());
 
     if (!fixDiffArg.isSet())
         filter->SetUseCommonDiffusivities(commonDiffusivitiesArg.isSet());

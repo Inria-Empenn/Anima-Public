@@ -20,7 +20,6 @@ MCMMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,Imag
     mcmCreator.SetNumberOfCompartments(0);
     mcmCreator.SetModelWithStationaryWaterComponent(true);
     mcmCreator.SetModelWithFreeWaterComponent(false);
-    mcmCreator.SetStationaryWaterProportionFixedValue(1.0);
 
     m_ZeroDiffusionModel = mcmCreator.GetNewMultiCompartmentModel();
     m_ZeroDiffusionVector = m_ZeroDiffusionModel->GetModelVector();

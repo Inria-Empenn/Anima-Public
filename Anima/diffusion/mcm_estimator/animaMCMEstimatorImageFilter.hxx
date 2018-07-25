@@ -1,5 +1,6 @@
 #pragma once
 #include "animaMCMEstimatorImageFilter.h"
+#include <animaMCMConstants.h>
 
 #include <itkImageRegionIterator.h>
 #include <itkImageRegionConstIterator.h>
@@ -19,8 +20,7 @@
 #include <animaBaseTensorTools.h>
 #include <animaMCMFileWriter.h>
 
-#include <boost/math/tools/toms748_solve.hpp>
-#include <ctime>
+#include <limits>
 
 namespace anima
 {
@@ -207,16 +207,17 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     m_MCMCreators.resize(this->GetNumberOfThreads());
     for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
         m_MCMCreators[i] = this->GetNewMCMCreatorInstance();
-
-    // Use default known values for diffusivities (would be nice to store those values somewhere else)
-    m_AxialDiffusivityFixedValue = 1.71e-3;
-    m_RadialDiffusivity1FixedValue = 1.5e-4;
-    m_RadialDiffusivity2FixedValue = 1.5e-4;
     
-    std::cout << "Stick initial diffusivities:" << std::endl;
-    std::cout << " - Axial diffusivity: " << m_AxialDiffusivityFixedValue << " mm2/s," << std::endl;
-    std::cout << " - First radial diffusivity: " << m_RadialDiffusivity1FixedValue << " mm2/s," << std::endl;
-    std::cout << " - Second radial diffusivity: " << m_RadialDiffusivity2FixedValue << " mm2/s." << std::endl;
+    std::cout << "Initial diffusivities:" << std::endl;
+    std::cout << " - Axial diffusivity: " << m_AxialDiffusivityValue << " mm2/s," << std::endl;
+    std::cout << " - Radial diffusivity 1: " << m_RadialDiffusivity1Value << " mm2/s," << std::endl;
+    std::cout << " - Radial diffusivity 2: " << m_RadialDiffusivity2Value << " mm2/s," << std::endl;
+
+    if (m_ModelWithRestrictedWaterComponent)
+        std::cout << " - IRW diffusivity: " << m_IRWDiffusivityValue << " mm2/s," << std::endl;
+
+    if (m_ModelWithStaniszComponent)
+        std::cout << " - Stanisz diffusivity: " << m_StaniszDiffusivityValue << " mm2/s," << std::endl;
 
     // Setting up creators
     if (m_Optimizer == "levenberg")
@@ -224,30 +225,13 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
     {
-        m_MCMCreators[i]->SetAxialDiffusivityValue(m_AxialDiffusivityFixedValue);
+        m_MCMCreators[i]->SetAxialDiffusivityValue(m_AxialDiffusivityValue);
         m_MCMCreators[i]->SetFreeWaterDiffusivityValue(3.0e-3);
-        m_MCMCreators[i]->SetRadialDiffusivity1Value(m_RadialDiffusivity1FixedValue);
-        m_MCMCreators[i]->SetRadialDiffusivity2Value(m_RadialDiffusivity2FixedValue);
+        m_MCMCreators[i]->SetIRWDiffusivityValue(m_IRWDiffusivityValue);
+        m_MCMCreators[i]->SetStaniszDiffusivityValue(m_StaniszDiffusivityValue);
+        m_MCMCreators[i]->SetRadialDiffusivity1Value(m_RadialDiffusivity1Value);
+        m_MCMCreators[i]->SetRadialDiffusivity2Value(m_RadialDiffusivity2Value);
         m_MCMCreators[i]->SetUseBoundedOptimization(m_UseBoundedOptimization);
-    }
-
-    if (m_UseConcentrationBoundsFromDTI)
-    {
-        // Orientation concentration bounds estimation
-        ConcentrationUpperBoundSolverCostFunction upperCost;
-        upperCost.SetWMAxialDiffusivity(m_AxialDiffusivityFixedValue);
-        upperCost.SetWMRadialDiffusivity((m_RadialDiffusivity1FixedValue + m_RadialDiffusivity2FixedValue) / 2.0);
-
-        boost::uintmax_t max_iter = 500;
-        boost::math::tools::eps_tolerance<double> tol(30);
-
-        double kappaLowerBound = m_AxialDiffusivityFixedValue * 2.0 / (m_RadialDiffusivity1FixedValue + m_RadialDiffusivity2FixedValue) - 1.0;
-
-        std::pair <double,double> r = boost::math::tools::toms748_solve(upperCost, kappaLowerBound, 20.0, tol, max_iter);
-        double kappaUpperBound = std::min(r.first,r.second);
-
-        for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
-            m_MCMCreators[i]->SetConcentrationBounds(kappaLowerBound,kappaUpperBound);
     }
     
     // Switch over compartment types to setup coarse grid initialization
@@ -310,9 +294,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     countIsoComps = 0;
     MCMPointer mcm;
     MCMCreatorType *mcmCreator = m_MCMCreators[0];
-    mcmCreator->SetFreeWaterProportionFixedValue(m_FreeWaterProportionFixedValue);
-    mcmCreator->SetStationaryWaterProportionFixedValue(m_StationaryWaterProportionFixedValue);
-    mcmCreator->SetRestrictedWaterProportionFixedValue(m_RestrictedWaterProportionFixedValue);
     mcmCreator->SetModelWithFreeWaterComponent(false);
     mcmCreator->SetModelWithStationaryWaterComponent(false);
     mcmCreator->SetModelWithRestrictedWaterComponent(false);
@@ -618,14 +599,11 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     mcmCreator->SetModelWithRestrictedWaterComponent(m_ModelWithRestrictedWaterComponent);
     mcmCreator->SetModelWithStaniszComponent(m_ModelWithStaniszComponent);
     mcmCreator->SetNumberOfCompartments(0);
-    mcmCreator->SetUseFixedWeights(m_UseFixedWeights || (m_MLEstimationStrategy == VariableProjection));
+    mcmCreator->SetVariableProjectionEstimationMode(m_MLEstimationStrategy == VariableProjection);
     mcmCreator->SetUseConstrainedFreeWaterDiffusivity(m_UseConstrainedFreeWaterDiffusivity);
     mcmCreator->SetUseConstrainedIRWDiffusivity(m_UseConstrainedIRWDiffusivity);
-    mcmCreator->SetUseConstrainedDiffusivity(m_UseConstrainedDiffusivity);
-    mcmCreator->SetFreeWaterProportionFixedValue(m_FreeWaterProportionFixedValue);
-    mcmCreator->SetStationaryWaterProportionFixedValue(m_StationaryWaterProportionFixedValue);
-    mcmCreator->SetRestrictedWaterProportionFixedValue(m_RestrictedWaterProportionFixedValue);
-    mcmCreator->SetStaniszProportionFixedValue(m_StaniszProportionFixedValue);
+    mcmCreator->SetUseConstrainedStaniszDiffusivity(m_UseConstrainedStaniszDiffusivity);
+    mcmCreator->SetUseConstrainedStaniszRadius(m_UseConstrainedStaniszRadius);
 
     mcmValue = mcmCreator->GetNewMultiCompartmentModel();
 
@@ -754,14 +732,12 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     mcmCreator->SetModelWithStaniszComponent(m_ModelWithStaniszComponent);
     mcmCreator->SetCompartmentType(Stick);
     mcmCreator->SetNumberOfCompartments(currentNumberOfCompartments);
-    mcmCreator->SetUseFixedWeights(m_UseFixedWeights || (m_MLEstimationStrategy == VariableProjection));
-    mcmCreator->SetFreeWaterProportionFixedValue(m_FreeWaterProportionFixedValue);
-    mcmCreator->SetStationaryWaterProportionFixedValue(m_StationaryWaterProportionFixedValue);
-    mcmCreator->SetRestrictedWaterProportionFixedValue(m_RestrictedWaterProportionFixedValue);
-    mcmCreator->SetStaniszProportionFixedValue(m_StaniszProportionFixedValue);
+    mcmCreator->SetVariableProjectionEstimationMode(m_MLEstimationStrategy == VariableProjection);
     mcmCreator->SetUseConstrainedDiffusivity(true);
     mcmCreator->SetUseConstrainedFreeWaterDiffusivity(m_UseConstrainedFreeWaterDiffusivity);
     mcmCreator->SetUseConstrainedIRWDiffusivity(m_UseConstrainedIRWDiffusivity);
+    mcmCreator->SetUseConstrainedStaniszDiffusivity(m_UseConstrainedStaniszDiffusivity);
+    mcmCreator->SetUseConstrainedStaniszRadius(m_UseConstrainedStaniszRadius);
     mcmCreator->SetUseCommonDiffusivities(m_UseCommonDiffusivities);
 
     MCMPointer mcmUpdateValue = mcmCreator->GetNewMultiCompartmentModel();
@@ -1047,13 +1023,12 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     }
     else
     {
-        meanAxialDiff = m_AxialDiffusivityFixedValue;
-        meanRadialDiff = (m_RadialDiffusivity1FixedValue + m_RadialDiffusivity2FixedValue) / 2.0;
-
+        meanAxialDiff = m_AxialDiffusivityValue;
+        meanRadialDiff = (m_RadialDiffusivity1Value + m_RadialDiffusivity2Value) / 2.0;
     }
 
-    if (meanAxialDiff - meanRadialDiff < 5.0e-4)
-        meanAxialDiff = meanRadialDiff + 5.0e-4;
+    if (meanAxialDiff - meanRadialDiff < anima::MCMAxialDiffusivityAddonLowerBound)
+        meanAxialDiff = meanRadialDiff + anima::MCMAxialDiffusivityAddonLowerBound;
 
     for (unsigned int i = numIsoCompartments;i < numCompartments;++i)
         mcmUpdateValue->GetCompartment(i)->SetAxialDiffusivity(meanAxialDiff);
@@ -1062,8 +1037,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     {
         double tmpWeight2 = m_ValuesCoarseGrid[2][l];
 
-        // In between meanRD and (meanRD + e-5) / 2
-        double tmpRadialDiffusivity2 = 0.5 * ((1.0 + tmpWeight2) * meanRadialDiff + (1.0 - tmpWeight2) * 1.0e-5);
+        // In between meanRD and (meanRD + MCMDiffusivityLowerBound) / 2
+        double tmpRadialDiffusivity2 = 0.5 * ((1.0 + tmpWeight2) * meanRadialDiff + (1.0 - tmpWeight2) * anima::MCMDiffusivityLowerBound);
 
         for (unsigned int k = 0;k < m_ValuesCoarseGrid[1].size();++k)
         {
@@ -1071,7 +1046,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
             // In between meanRD and (meanRD + meanAD) / 2
             double tmpRadialDiffusivity1 = 0.5 * ((1.0 + tmpWeight1) * meanRadialDiff + (1.0 - tmpWeight1) * meanAxialDiff);
-            if (meanAxialDiff - tmpRadialDiffusivity1 < 5.0e-4)
+            if (meanAxialDiff - tmpRadialDiffusivity1 < anima::MCMAxialDiffusivityAddonLowerBound)
                 continue;
 
             for (unsigned int j = 0;j < m_ValuesCoarseGrid[0].size();++j)
@@ -1150,16 +1125,13 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
             else if (m_Optimizer == "bfgs")
                 tmpOpt->SetLocalOptimizer(NLOPT_LD_LBFGS);
 
-            if (!m_UseFixedWeights)
-            {
-                typedef anima::MCMWeightsInequalityConstraintFunction WeightInequalityFunctionType;
-                WeightInequalityFunctionType::Pointer weightsInequality = WeightInequalityFunctionType::New();
-                double wIneqTol = std::min(1.0e-16, xTol / 10.0);
-                weightsInequality->SetTolerance(wIneqTol);
-                weightsInequality->SetMCMStructure(costCast->GetMCMStructure());
+            typedef anima::MCMWeightsInequalityConstraintFunction WeightInequalityFunctionType;
+            WeightInequalityFunctionType::Pointer weightsInequality = WeightInequalityFunctionType::New();
+            double wIneqTol = std::min(std::numeric_limits<double>::epsilon(), xTol / 10.0);
+            weightsInequality->SetTolerance(wIneqTol);
+            weightsInequality->SetMCMStructure(costCast->GetMCMStructure());
 
-                tmpOpt->AddInequalityConstraint(weightsInequality);
-            }
+            tmpOpt->AddInequalityConstraint(weightsInequality);
         }
         else
         {

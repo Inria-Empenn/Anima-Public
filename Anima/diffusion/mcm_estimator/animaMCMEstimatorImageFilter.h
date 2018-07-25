@@ -18,23 +18,6 @@
 namespace anima
 {
 
-class ConcentrationUpperBoundSolverCostFunction
-{
-public:
-    void SetWMAxialDiffusivity(double val) {m_WMAxialDiffusivity = val;}
-    void SetWMRadialDiffusivity(double val) {m_WMRadialDiffusivity = val;}
-
-    double operator() (const double k)
-    {
-        double priorKappa = m_WMAxialDiffusivity / m_WMRadialDiffusivity - 1.0;
-        double x = anima::xi(k);
-        return 1.0 - x * (priorKappa + 3.0);
-    }
-
-private:
-    double m_WMAxialDiffusivity, m_WMRadialDiffusivity;
-};
-
 /**
  * Inequality function for NLOPT estimation, helps maintain weights in reasonable bounds
  * (i.e. \sum_{i=0}^N w_i = 1 , which is equivalent to \sum_{i=1}^N w_i <= 1)
@@ -195,11 +178,6 @@ public:
     itkSetMacro(ModelWithRestrictedWaterComponent, bool)
     itkSetMacro(ModelWithStaniszComponent, bool)
 
-    itkSetMacro(FreeWaterProportionFixedValue, double)
-    itkSetMacro(StationaryWaterProportionFixedValue, double)
-    itkSetMacro(RestrictedWaterProportionFixedValue, double)
-    itkSetMacro(StaniszProportionFixedValue, double)
-
     itkSetMacro(NoiseType, SignalNoiseType)
     itkGetMacro(NoiseType, SignalNoiseType)
     itkSetMacro(CompartmentType, CompartmentType)
@@ -209,10 +187,11 @@ public:
     itkSetMacro(NumberOfCompartments, unsigned int)
     itkSetMacro(FindOptimalNumberOfCompartments, bool)
 
-    itkSetMacro(UseFixedWeights, bool)
     itkSetMacro(UseConstrainedDiffusivity, bool)
     itkSetMacro(UseConstrainedFreeWaterDiffusivity, bool)
     itkSetMacro(UseConstrainedIRWDiffusivity, bool)
+    itkSetMacro(UseConstrainedStaniszDiffusivity, bool)
+    itkSetMacro(UseConstrainedStaniszRadius, bool)
 
     itkSetMacro(UseConstrainedOrientationConcentration, bool)
     itkSetMacro(UseConstrainedExtraAxonalFraction, bool)
@@ -220,7 +199,6 @@ public:
     itkSetMacro(UseCommonExtraAxonalFractions, bool)
 
     itkSetMacro(UseCommonDiffusivities, bool)
-    itkSetMacro(UseConcentrationBoundsFromDTI,bool)
 
     std::string GetOptimizer() {return m_Optimizer;}
 
@@ -242,9 +220,11 @@ public:
 
     void WriteMCMOutput(std::string fileName);
 
-    itkSetMacro(AxialDiffusivityFixedValue, double)
-    itkSetMacro(RadialDiffusivity1FixedValue, double)
-    itkSetMacro(RadialDiffusivity2FixedValue, double)
+    itkSetMacro(AxialDiffusivityValue, double)
+    itkSetMacro(StaniszDiffusivityValue, double)
+    itkSetMacro(IRWDiffusivityValue, double)
+    itkSetMacro(RadialDiffusivity1Value, double)
+    itkSetMacro(RadialDiffusivity2Value, double)
 
     itkSetMacro(XTolerance, double)
     itkSetMacro(GTolerance, double)
@@ -273,11 +253,6 @@ protected:
         m_ModelWithRestrictedWaterComponent = true;
         m_ModelWithStaniszComponent = true;
 
-        m_FreeWaterProportionFixedValue = 0.1;
-        m_StationaryWaterProportionFixedValue = 0.05;
-        m_RestrictedWaterProportionFixedValue = 0.1;
-        m_StaniszProportionFixedValue = 0.1;
-
         m_NoiseType = Gaussian;
         m_CompartmentType = anima::Tensor;
 
@@ -285,11 +260,11 @@ protected:
         m_NumberOfCompartments = 2;
         m_FindOptimalNumberOfCompartments = true;
 
-        m_UseFixedWeights = false;
         m_UseConstrainedDiffusivity = false;
         m_UseConstrainedFreeWaterDiffusivity = true;
         m_UseConstrainedIRWDiffusivity = true;
-        m_UseConcentrationBoundsFromDTI = false;
+        m_UseConstrainedStaniszDiffusivity = true;
+        m_UseConstrainedStaniszRadius = true;
         m_UseBoundedOptimization = false;
         m_UseCommonDiffusivities = false;
 
@@ -298,9 +273,11 @@ protected:
         m_UseCommonConcentrations = false;
         m_UseCommonExtraAxonalFractions = false;
 
-        m_AxialDiffusivityFixedValue = 1.71e-3;
-        m_RadialDiffusivity1FixedValue = 1.5e-4;
-        m_RadialDiffusivity2FixedValue = 1.5e-4;
+        m_AxialDiffusivityValue = 1.71e-3;
+        m_StaniszDiffusivityValue = 1.71e-3;
+        m_IRWDiffusivityValue = 7.5e-4;
+        m_RadialDiffusivity1Value = 1.9e-4;
+        m_RadialDiffusivity2Value = 1.5e-4;
 
         m_NumberOfImages = 0;
         m_ExternalMoseVolume = false;
@@ -415,7 +392,6 @@ private:
     bool m_VNLDerivativeComputation;
 
     bool m_ModelWithFreeWaterComponent, m_ModelWithStationaryWaterComponent, m_ModelWithRestrictedWaterComponent, m_ModelWithStaniszComponent;
-    double m_FreeWaterProportionFixedValue, m_StationaryWaterProportionFixedValue, m_RestrictedWaterProportionFixedValue, m_StaniszProportionFixedValue;
 
     SignalNoiseType m_NoiseType;
     CompartmentType m_CompartmentType;
@@ -424,11 +400,11 @@ private:
     unsigned int m_NumberOfCompartments;
     bool m_FindOptimalNumberOfCompartments;
 
-    bool m_UseFixedWeights;
     bool m_UseConstrainedDiffusivity;
     bool m_UseConstrainedFreeWaterDiffusivity;
     bool m_UseConstrainedIRWDiffusivity;
-    bool m_UseConcentrationBoundsFromDTI;
+    bool m_UseConstrainedStaniszRadius;
+    bool m_UseConstrainedStaniszDiffusivity;
     bool m_UseBoundedOptimization;
     bool m_UseCommonDiffusivities;
 
@@ -437,9 +413,11 @@ private:
     bool m_UseCommonConcentrations;
     bool m_UseCommonExtraAxonalFractions;
 
-    double m_AxialDiffusivityFixedValue;
-    double m_RadialDiffusivity1FixedValue;
-    double m_RadialDiffusivity2FixedValue;
+    double m_AxialDiffusivityValue;
+    double m_IRWDiffusivityValue;
+    double m_StaniszDiffusivityValue;
+    double m_RadialDiffusivity1Value;
+    double m_RadialDiffusivity2Value;
 
     bool m_ExternalMoseVolume;
 

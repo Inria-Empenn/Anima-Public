@@ -39,6 +39,7 @@ public:
 
     // Set constraints
     void SetEstimateAxialDiffusivity(bool arg);
+    void SetEstimateTissueRadius(bool arg);
     void SetCompartmentVector(ModelOutputVectorType &compartmentVector) ITK_OVERRIDE;
 
     unsigned int GetCompartmentSize() ITK_OVERRIDE;
@@ -55,6 +56,7 @@ protected:
     StaniszCompartment() : Superclass()
     {
         m_EstimateAxialDiffusivity = true;
+        m_EstimateTissueRadius = true;
         m_ChangedConstraints = true;
 
         m_FirstSummation = 0.0;
@@ -65,7 +67,6 @@ protected:
         m_CurrentSmallDelta = 0.0;
         m_CurrentBigDelta = 0.0;
         m_CurrentGradientStrength = 0.0;
-        m_CurrentGradient.fill(0.0);
 
         m_ModifiedParameters = true;
     }
@@ -75,10 +76,10 @@ protected:
     virtual void BoundParameters(const ListType &params) ITK_OVERRIDE;
     virtual void UnboundParameters(ListType &params) ITK_OVERRIDE;
 
-    void UpdateSignals(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient);
+    void UpdateSignals(double smallDelta, double bigDelta, double gradientStrength);
 
 private:
-    bool m_EstimateAxialDiffusivity;
+    bool m_EstimateAxialDiffusivity, m_EstimateTissueRadius;
     bool m_ChangedConstraints;
     unsigned int m_NumberOfParameters;
 
@@ -90,12 +91,10 @@ private:
     double m_CurrentSmallDelta;
     double m_CurrentBigDelta;
     double m_CurrentGradientStrength;
-    Vector3DType m_CurrentGradient;
 
     bool m_ModifiedParameters;
 
     const unsigned int m_MaximumNumberOfSumElements = 2000;
-    static const double m_StaniszAxialDiffusivityLowerBound;
 };
 
 } //end namespace anima

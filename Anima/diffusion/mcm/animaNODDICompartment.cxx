@@ -127,7 +127,7 @@ NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(doubl
     double thetaDeriv = 1.0;
     if (this->GetUseBoundedOptimization())
         thetaDeriv = levenberg::BoundedDerivativeAddOn(theta, this->GetBoundedSignVectorValue(0),
-                                                       m_ZeroLowerBound, m_PolarAngleUpperBound);
+                                                       anima::MCMZeroLowerBound, anima::MCMPolarAngleUpperBound);
     
     double innerProdThetaDeriv = (gradient[0] * std::cos(phi) + gradient[1] * std::sin(phi)) * std::cos(theta) - gradient[2] * std::sin(theta);
     
@@ -145,7 +145,7 @@ NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(doubl
     double phiDeriv = 1.0;
     if (this->GetUseBoundedOptimization())
         phiDeriv = levenberg::BoundedDerivativeAddOn(phi, this->GetBoundedSignVectorValue(1),
-                                                     m_ZeroLowerBound, m_AzimuthAngleUpperBound);
+                                                     anima::MCMZeroLowerBound, anima::MCMAzimuthAngleUpperBound);
     
     double innerProdPhiDeriv = std::sin(theta) * (gradient[1] * std::cos(phi) - gradient[0] * std::sin(phi));
     
@@ -167,7 +167,7 @@ NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(doubl
         double kappaDeriv = 1.0;
         if (this->GetUseBoundedOptimization())
             kappaDeriv = levenberg::BoundedDerivativeAddOn(kappa, this->GetBoundedSignVectorValue(pos),
-                                                           m_ZeroLowerBound, m_WatsonKappaUpperBound);
+                                                           anima::MCMZeroLowerBound, anima::MCMConcentrationUpperBound);
 
         // Derivative of Aec w.r.t. kappa
         double extraKappaDerivative = bValue * dpara * nuic * m_Tau1Deriv * (1.0 - 3.0 * innerProd * innerProd) * m_ExtraAxonalSignal / 2.0;
@@ -184,7 +184,7 @@ NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(doubl
     {
         double nuDeriv = -1.0;
         if (this->GetUseBoundedOptimization())
-            nuDeriv *= levenberg::BoundedDerivativeAddOn(1.0 - nuic, this->GetBoundedSignVectorValue(pos), m_ZeroLowerBound, m_FractionUpperBound);
+            nuDeriv *= levenberg::BoundedDerivativeAddOn(1.0 - nuic, this->GetBoundedSignVectorValue(pos), anima::MCMZeroLowerBound, anima::MCMFractionUpperBound);
 
         double extraNuicDeriv = bValue * dpara * tmpVal * m_ExtraAxonalSignal / 2.0;
 
@@ -201,7 +201,7 @@ NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(doubl
         if (this->GetUseBoundedOptimization())
             dparaDeriv = levenberg::BoundedDerivativeAddOn(dpara,
                                                         this->GetBoundedSignVectorValue(pos),
-                                                        m_ZeroLowerBound, m_DiffusivityUpperBound);
+                                                        anima::MCMZeroLowerBound, anima::MCMDiffusivityUpperBound);
         
         m_JacobianVector[pos] = bValue * dparaDeriv * (nuic * m_IntraAxialDerivative - (1.0 - nuic) * m_ExtraAxonalSignal * (1.0 - nuic * tmpVal / 2.0));
     }
@@ -352,10 +352,10 @@ NODDICompartment::ListType &NODDICompartment::GetParameterLowerBounds()
 {
     m_ParametersLowerBoundsVector.resize(this->GetNumberOfParameters());
     
-    std::fill(m_ParametersLowerBoundsVector.begin(),m_ParametersLowerBoundsVector.end(),m_ZeroLowerBound);
+    std::fill(m_ParametersLowerBoundsVector.begin(),m_ParametersLowerBoundsVector.end(),anima::MCMZeroLowerBound);
     
     if (m_EstimateAxialDiffusivity)
-        m_ParametersLowerBoundsVector[this->GetNumberOfParameters() - 1] = m_DiffusivityLowerBound;
+        m_ParametersLowerBoundsVector[this->GetNumberOfParameters() - 1] = anima::MCMDiffusivityLowerBound;
     
     return m_ParametersLowerBoundsVector;
 }
@@ -364,25 +364,25 @@ NODDICompartment::ListType &NODDICompartment::GetParameterUpperBounds()
 {
     m_ParametersUpperBoundsVector.resize(this->GetNumberOfParameters());
 
-    m_ParametersUpperBoundsVector[0] = m_PolarAngleUpperBound;
-    m_ParametersUpperBoundsVector[1] = m_AzimuthAngleUpperBound;
+    m_ParametersUpperBoundsVector[0] = anima::MCMPolarAngleUpperBound;
+    m_ParametersUpperBoundsVector[1] = anima::MCMAzimuthAngleUpperBound;
 
     unsigned int pos = 2;
 
     if (m_EstimateOrientationConcentration)
     {
-        m_ParametersUpperBoundsVector[pos] = m_WatsonKappaUpperBound;
+        m_ParametersUpperBoundsVector[pos] = anima::MCMConcentrationUpperBound;
         ++pos;
     }
 
     if (m_EstimateExtraAxonalFraction)
     {
-        m_ParametersUpperBoundsVector[pos] = m_FractionUpperBound;
+        m_ParametersUpperBoundsVector[pos] = anima::MCMFractionUpperBound;
         ++pos;
     }
     
     if (m_EstimateAxialDiffusivity)
-        m_ParametersUpperBoundsVector[pos] = m_DiffusivityUpperBound;
+        m_ParametersUpperBoundsVector[pos] = anima::MCMDiffusivityUpperBound;
 
     return m_ParametersUpperBoundsVector;
 }
@@ -392,53 +392,53 @@ void NODDICompartment::BoundParameters(const ListType &params)
     m_BoundedVector.resize(params.size());
     
     double inputSign = 1;
-    m_BoundedVector[0] = levenberg::ComputeBoundedValue(params[0], inputSign, m_ZeroLowerBound, m_PolarAngleUpperBound);
+    m_BoundedVector[0] = levenberg::ComputeBoundedValue(params[0], inputSign, anima::MCMZeroLowerBound, anima::MCMPolarAngleUpperBound);
     this->SetBoundedSignVectorValue(0,inputSign);
-    m_BoundedVector[1] = levenberg::ComputeBoundedValue(params[1], inputSign, m_ZeroLowerBound, m_AzimuthAngleUpperBound);
+    m_BoundedVector[1] = levenberg::ComputeBoundedValue(params[1], inputSign, anima::MCMZeroLowerBound, anima::MCMAzimuthAngleUpperBound);
     this->SetBoundedSignVectorValue(1,inputSign);
 
     unsigned int pos = 2;
     if (m_EstimateOrientationConcentration)
     {
-        m_BoundedVector[pos] = levenberg::ComputeBoundedValue(params[pos], inputSign, m_ZeroLowerBound, m_WatsonKappaUpperBound);
+        m_BoundedVector[pos] = levenberg::ComputeBoundedValue(params[pos], inputSign, anima::MCMZeroLowerBound, anima::MCMConcentrationUpperBound);
         this->SetBoundedSignVectorValue(pos,inputSign);
         ++pos;
     }
 
     if (m_EstimateExtraAxonalFraction)
     {
-        m_BoundedVector[pos] = levenberg::ComputeBoundedValue(params[pos], inputSign, m_ZeroLowerBound, m_FractionUpperBound);
+        m_BoundedVector[pos] = levenberg::ComputeBoundedValue(params[pos], inputSign, anima::MCMZeroLowerBound, anima::MCMFractionUpperBound);
         this->SetBoundedSignVectorValue(pos,inputSign);
         ++pos;
     }
     
     if (m_EstimateAxialDiffusivity)
     {
-        m_BoundedVector[pos] = levenberg::ComputeBoundedValue(params[pos], inputSign, m_DiffusivityLowerBound, m_DiffusivityUpperBound);
+        m_BoundedVector[pos] = levenberg::ComputeBoundedValue(params[pos], inputSign, anima::MCMDiffusivityLowerBound, anima::MCMDiffusivityUpperBound);
         this->SetBoundedSignVectorValue(pos,inputSign);
     }
 }
 
 void NODDICompartment::UnboundParameters(ListType &params)
 {
-    params[0] = levenberg::UnboundValue(params[0], m_ZeroLowerBound, m_PolarAngleUpperBound);
-    params[1] = levenberg::UnboundValue(params[1], m_ZeroLowerBound, m_AzimuthAngleUpperBound);
+    params[0] = levenberg::UnboundValue(params[0], anima::MCMZeroLowerBound, anima::MCMPolarAngleUpperBound);
+    params[1] = levenberg::UnboundValue(params[1], anima::MCMZeroLowerBound, anima::MCMAzimuthAngleUpperBound);
 
     unsigned int pos = 2;
     if (m_EstimateOrientationConcentration)
     {
-        params[pos] = levenberg::UnboundValue(params[pos], m_ZeroLowerBound, m_WatsonKappaUpperBound);
+        params[pos] = levenberg::UnboundValue(params[pos], anima::MCMZeroLowerBound, anima::MCMConcentrationUpperBound);
         ++pos;
     }
 
     if (m_EstimateExtraAxonalFraction)
     {
-        params[pos] = levenberg::UnboundValue(params[pos], m_ZeroLowerBound, m_FractionUpperBound);
+        params[pos] = levenberg::UnboundValue(params[pos], anima::MCMZeroLowerBound, anima::MCMFractionUpperBound);
         ++pos;
     }
     
     if (m_EstimateAxialDiffusivity)
-        params[pos] = levenberg::UnboundValue(params[pos], m_DiffusivityLowerBound, m_DiffusivityUpperBound);
+        params[pos] = levenberg::UnboundValue(params[pos], anima::MCMDiffusivityLowerBound, anima::MCMDiffusivityUpperBound);
 }
 
 void NODDICompartment::SetEstimateOrientationConcentration(bool arg)

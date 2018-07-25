@@ -38,10 +38,6 @@ protected:
     virtual void BoundParameters(const ListType &params) ITK_OVERRIDE;
     virtual void UnboundParameters(ListType &params) ITK_OVERRIDE;
     double GetAxialDiffusivityDerivativeFactor() ITK_OVERRIDE;
-
-private:
-    static const double m_IsotropicRestrictedWaterDiffusivityLowerBound;
-    static const double m_IsotropicRestrictedWaterDiffusivityUpperBound;
 };
 
 } // end namespace anima

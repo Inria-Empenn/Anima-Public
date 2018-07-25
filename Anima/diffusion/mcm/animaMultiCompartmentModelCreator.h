@@ -28,20 +28,17 @@ public:
     void SetModelWithRestrictedWaterComponent(bool arg) {m_ModelWithRestrictedWaterComponent = arg;}
     void SetModelWithStaniszComponent(bool arg) {m_ModelWithStaniszComponent = arg;}
 
-    void SetFreeWaterProportionFixedValue(double arg) {m_FreeWaterProportionFixedValue = arg;}
-    void SetStationaryWaterProportionFixedValue(double arg) {m_StationaryWaterProportionFixedValue = arg;}
-    void SetRestrictedWaterProportionFixedValue(double arg) {m_RestrictedWaterProportionFixedValue = arg;}
-    void SetStaniszProportionFixedValue(double arg) {m_StaniszProportionFixedValue = arg;}
-
     void SetCompartmentType(CompartmentType arg) {m_CompartmentType = arg;}
     void SetNumberOfCompartments(unsigned int num) {m_NumberOfCompartments = num;}
-    void SetUseFixedWeights(bool arg) {m_UseFixedWeights = arg;}
+    void SetVariableProjectionEstimationMode(bool arg) {m_VariableProjectionEstimationMode = arg;}
 
     void SetUseConstrainedDiffusivity(bool arg) {m_UseConstrainedDiffusivity = arg;}
     void SetUseConstrainedOrientationConcentration(bool arg) {m_UseConstrainedOrientationConcentration = arg;}
     void SetUseConstrainedExtraAxonalFraction(bool arg) {m_UseConstrainedExtraAxonalFraction = arg;}
     void SetUseConstrainedFreeWaterDiffusivity(bool arg) {m_UseConstrainedFreeWaterDiffusivity = arg;}
     void SetUseConstrainedIRWDiffusivity(bool arg) {m_UseConstrainedIRWDiffusivity = arg;}
+    void SetUseConstrainedStaniszDiffusivity(bool arg) {m_UseConstrainedStaniszDiffusivity = arg;}
+    void SetUseConstrainedStaniszRadius(bool arg) {m_UseConstrainedStaniszRadius = arg;}
     void SetUseBoundedOptimization(bool arg) {m_UseBoundedOptimization = arg;}
 
     bool GetUseConstrainedDiffusivity() {return m_UseConstrainedDiffusivity;}
@@ -57,20 +54,17 @@ public:
     bool GetUseCommonExtraAxonalFractions() {return m_UseCommonExtraAxonalFractions;}
 
     void SetFreeWaterDiffusivityValue(double arg) {m_FreeWaterDiffusivity = arg;}
+    void SetIRWDiffusivityValue(double arg) {m_IRWDiffusivity = arg;}
+    void SetStaniszDiffusivityValue(double arg) {m_StaniszDiffusivity = arg;}
     void SetAxialDiffusivityValue(double arg) {m_AxialDiffusivity = arg;}
     void SetRadialDiffusivity1Value(double arg) {m_RadialDiffusivity1 = arg;}
     void SetRadialDiffusivity2Value(double arg) {m_RadialDiffusivity2 = arg;}
-
-    void SetConcentrationBounds(double lowerBound, double upperBound);
-    bool GetUserDefinedConcentrationBounds() {return m_UserDefinedConcentrationBounds;}
 
     double GetOrientationConcentration() {return m_OrientationConcentration;}
     double GetAxialDiffusivity() {return m_AxialDiffusivity;}
     double GetRadialDiffusivity1() {return m_RadialDiffusivity1;}
     double GetRadialDiffusivity2() {return m_RadialDiffusivity2;}
     double GetExtraAxonalFraction() {return m_ExtraAxonalFraction;}
-    double GetConcentrationLowerBound() {return m_ConcentrationLowerBound;}
-    double GetConcentrationUpperBound() {return m_ConcentrationUpperBound;}
 
     MCMPointer GetNewMultiCompartmentModel();
 
@@ -84,27 +78,23 @@ private:
     CompartmentType m_CompartmentType;
     bool m_ModelWithFreeWaterComponent, m_ModelWithStationaryWaterComponent;
     bool m_ModelWithRestrictedWaterComponent, m_ModelWithStaniszComponent;
-    double m_FreeWaterProportionFixedValue, m_StationaryWaterProportionFixedValue;
-    double m_RestrictedWaterProportionFixedValue, m_StaniszProportionFixedValue;
     unsigned int m_NumberOfCompartments;
 
-    bool m_UseFixedWeights;
+    bool m_VariableProjectionEstimationMode;
     bool m_UseConstrainedDiffusivity;
     bool m_UseConstrainedOrientationConcentration;
     bool m_UseConstrainedExtraAxonalFraction;
     bool m_UseConstrainedFreeWaterDiffusivity;
     bool m_UseConstrainedIRWDiffusivity;
+    bool m_UseConstrainedStaniszDiffusivity;
+    bool m_UseConstrainedStaniszRadius;
     bool m_UseBoundedOptimization;
 
     bool m_UseCommonDiffusivities;
     bool m_UseCommonConcentrations;
     bool m_UseCommonExtraAxonalFractions;
-    
-    bool m_UserDefinedConcentrationBounds;
-    double m_ConcentrationLowerBound;
-    double m_ConcentrationUpperBound;
 
-    double m_FreeWaterDiffusivity;
+    double m_FreeWaterDiffusivity, m_IRWDiffusivity, m_StaniszDiffusivity;
     double m_OrientationConcentration, m_ExtraAxonalFraction;
     double m_AxialDiffusivity;
     double m_RadialDiffusivity1, m_RadialDiffusivity2;

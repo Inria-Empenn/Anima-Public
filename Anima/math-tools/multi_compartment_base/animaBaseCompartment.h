@@ -8,6 +8,7 @@
 #include <itkVariableLengthVector.h>
 
 #include <AnimaMCMBaseExport.h>
+#include <animaMCMConstants.h>
 
 namespace anima
 {
@@ -118,7 +119,7 @@ protected:
     {
         m_OrientationTheta = 0.0;
         m_OrientationPhi = 0.0;
-        m_PerpendicularAngle = m_AzimuthAngleUpperBound / 2.0;
+        m_PerpendicularAngle = anima::MCMAzimuthAngleUpperBound / 2.0;
         m_AxialDiffusivity = 1.71e-3;
         m_RadialDiffusivity1 = 1.5e-4;
         m_RadialDiffusivity2 = 1.5e-4;
@@ -138,20 +139,6 @@ protected:
     virtual void UnboundParameters(ListType &params) = 0;
 
     static const unsigned int m_SpaceDimension = 3;
-
-    static const double m_ZeroLowerBound;
-    static const double m_Epsilon;
-    static const double m_AxialDiffusivityAddonLowerBound;
-    static const double m_DiffusivityLowerBound;
-    static const double m_PolarAngleUpperBound;
-    static const double m_AzimuthAngleUpperBound;
-    static const double m_DiffusivityUpperBound;
-    static const double m_RadialDiffusivityUpperBound;
-    static const double m_DefaultConcentrationUpperBound;
-    static const double m_WatsonKappaUpperBound;
-    static const double m_FractionUpperBound;
-    static const double m_TissueRadiusLowerBound;
-    static const double m_TissueRadiusUpperBound;
 
     //! Matrix to hold working value of diffusion tensor approximation to the model
     Matrix3DType m_DiffusionTensor;

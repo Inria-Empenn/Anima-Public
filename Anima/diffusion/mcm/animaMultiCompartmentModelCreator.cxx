@@ -15,22 +15,19 @@ namespace anima
 MultiCompartmentModelCreator::MultiCompartmentModelCreator()
 {
     m_CompartmentType = Tensor;
-    m_ModelWithFreeWaterComponent = true;
+    m_ModelWithFreeWaterComponent = false;
     m_ModelWithStationaryWaterComponent = false;
     m_ModelWithRestrictedWaterComponent = false;
     m_ModelWithStaniszComponent = false;
 
-    m_FreeWaterProportionFixedValue = 0;
-    m_StationaryWaterProportionFixedValue = 0;
-    m_RestrictedWaterProportionFixedValue = 0;
-    m_StaniszProportionFixedValue = 0;
-
     m_NumberOfCompartments = 1;
+    m_VariableProjectionEstimationMode = true;
 
-    m_UseFixedWeights = false;
     m_UseConstrainedDiffusivity = false;
     m_UseConstrainedFreeWaterDiffusivity = true;
-    m_UseConstrainedIRWDiffusivity = false;
+    m_UseConstrainedIRWDiffusivity = true;
+    m_UseConstrainedStaniszDiffusivity = true;
+    m_UseConstrainedStaniszRadius = true;
     m_UseConstrainedOrientationConcentration = false;
     m_UseConstrainedExtraAxonalFraction = false;
     m_UseBoundedOptimization = false;
@@ -41,47 +38,26 @@ MultiCompartmentModelCreator::MultiCompartmentModelCreator()
 
     m_AxialDiffusivity = 1.71e-3;
     m_FreeWaterDiffusivity = 3.0e-3;
-    m_RadialDiffusivity1 = 1.5e-4;
+    m_IRWDiffusivity = 7.5e-4;
+    m_StaniszDiffusivity = 1.71e-3;
+    m_RadialDiffusivity1 = 1.9e-4;
     m_RadialDiffusivity2 = 1.5e-4;
     m_ExtraAxonalFraction = 0.1;
     m_OrientationConcentration = 10.0;
-
-    m_UserDefinedConcentrationBounds = false;
-    m_ConcentrationLowerBound = 0;
-    m_ConcentrationUpperBound = 0;
-}
-
-void MultiCompartmentModelCreator::SetConcentrationBounds(double lowerBound, double upperBound)
-{
-    m_UserDefinedConcentrationBounds = true;
-    m_ConcentrationLowerBound = lowerBound;
-    m_ConcentrationUpperBound = upperBound;
-    m_OrientationConcentration = (lowerBound + upperBound) / 2.0;
 }
 
 MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMultiCompartmentModel()
 {
     MCMPointer outputMCM = MCMType::New();
-    outputMCM->SetOptimizeWeights(!m_UseFixedWeights);
+    outputMCM->SetOptimizeWeights(!m_VariableProjectionEstimationMode);
     outputMCM->SetUseBoundedWeightsOptimization(m_UseBoundedOptimization);
     outputMCM->SetCommonDiffusivityParameters(m_UseCommonDiffusivities);
     outputMCM->SetCommonConcentrationParameters(m_UseCommonConcentrations);
     outputMCM->SetCommonExtraAxonalFractionParameters(m_UseCommonExtraAxonalFractions);
 
-    double sumIsotropicWeights = 0;
-    if (m_ModelWithFreeWaterComponent)
-        sumIsotropicWeights += m_FreeWaterProportionFixedValue;
-
-    if (m_ModelWithStationaryWaterComponent)
-        sumIsotropicWeights += m_StationaryWaterProportionFixedValue;
-
-    if (m_ModelWithRestrictedWaterComponent)
-        sumIsotropicWeights += m_RestrictedWaterProportionFixedValue;
-
-    if (m_ModelWithStaniszComponent)
-        sumIsotropicWeights += m_StaniszProportionFixedValue;
-
-    double compartmentWeight = (1.0 - sumIsotropicWeights) / m_NumberOfCompartments;
+    double numCompartments = m_ModelWithFreeWaterComponent + m_ModelWithRestrictedWaterComponent +
+            m_ModelWithStaniszComponent + m_ModelWithStationaryWaterComponent + m_NumberOfCompartments;
+    double defaultWeight = 1.0 / numCompartments;
 
     if (m_ModelWithFreeWaterComponent)
     {
@@ -91,10 +67,7 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
         fwComp->SetAxialDiffusivity(m_FreeWaterDiffusivity);
         fwComp->SetUseBoundedOptimization(m_UseBoundedOptimization);
 
-        if (m_NumberOfCompartments != 0)
-            outputMCM->AddCompartment(m_FreeWaterProportionFixedValue,fwComp);
-        else
-            outputMCM->AddCompartment(m_FreeWaterProportionFixedValue / sumIsotropicWeights,fwComp);
+        outputMCM->AddCompartment(defaultWeight,fwComp);
     }
 
     if (m_ModelWithStationaryWaterComponent)
@@ -102,10 +75,7 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
         typedef anima::StationaryWaterCompartment SWType;
         SWType::Pointer swComp = SWType::New();
 
-        if (m_NumberOfCompartments != 0)
-            outputMCM->AddCompartment(m_StationaryWaterProportionFixedValue,swComp);
-        else
-            outputMCM->AddCompartment(m_StationaryWaterProportionFixedValue / sumIsotropicWeights,swComp);
+        outputMCM->AddCompartment(defaultWeight,swComp);
     }
 
     if (m_ModelWithRestrictedWaterComponent)
@@ -114,24 +84,21 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
         IRWType::Pointer restComp = IRWType::New();
         restComp->SetEstimateAxialDiffusivity(!m_UseConstrainedIRWDiffusivity);
         restComp->SetUseBoundedOptimization(m_UseBoundedOptimization);
+        restComp->SetAxialDiffusivity(m_IRWDiffusivity);
 
-        if (m_NumberOfCompartments != 0)
-            outputMCM->AddCompartment(m_RestrictedWaterProportionFixedValue,restComp);
-        else
-            outputMCM->AddCompartment(m_RestrictedWaterProportionFixedValue / sumIsotropicWeights,restComp);
+        outputMCM->AddCompartment(defaultWeight,restComp);
     }
 
     if (m_ModelWithStaniszComponent)
     {
         typedef anima::StaniszCompartment StaniszType;
         StaniszType::Pointer restComp = StaniszType::New();
-        restComp->SetEstimateAxialDiffusivity(!m_UseConstrainedDiffusivity);
+        restComp->SetEstimateAxialDiffusivity(!m_UseConstrainedStaniszDiffusivity);
+        restComp->SetEstimateTissueRadius(!m_UseConstrainedStaniszRadius);
         restComp->SetUseBoundedOptimization(m_UseBoundedOptimization);
+        restComp->SetAxialDiffusivity(m_StaniszDiffusivity);
 
-        if (m_NumberOfCompartments != 0)
-            outputMCM->AddCompartment(m_StaniszProportionFixedValue,restComp);
-        else
-            outputMCM->AddCompartment(m_StaniszProportionFixedValue / sumIsotropicWeights,restComp);
+        outputMCM->AddCompartment(defaultWeight,restComp);
     }
 
     for (unsigned int i = 0;i < m_NumberOfCompartments;++i)
@@ -170,7 +137,7 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
         // Kind of ugly but required for optimization, otherwise initialization from simplified models may fail
         tmpPointer->SetOrientationConcentration(m_OrientationConcentration);
 
-        outputMCM->AddCompartment(compartmentWeight,tmpPointer);
+        outputMCM->AddCompartment(defaultWeight,tmpPointer);
     }
 
     return outputMCM;
