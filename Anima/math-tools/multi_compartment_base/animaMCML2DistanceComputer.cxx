@@ -138,13 +138,13 @@ bool MCML2DistanceComputer::CheckTensorCompatibility(const MCMPointer &firstMode
 
     for (unsigned int i = 0;i < firstModel->GetNumberOfCompartments();++i)
     {
-        if (firstModel->GetCompartment(i)->GetCompartmentType() == anima::DDI)
+        if (!firstModel->GetCompartment(i)->GetTensorCompatible())
             return false;
     }
 
     for (unsigned int i = 0;i < secondModel->GetNumberOfCompartments();++i)
     {
-        if (secondModel->GetCompartment(i)->GetCompartmentType() == anima::DDI)
+        if (!secondModel->GetCompartment(i)->GetTensorCompatible())
             return false;
     }
 
