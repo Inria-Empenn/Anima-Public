@@ -12,7 +12,7 @@
 
 struct
 {
-    bool operator()(std::pair <unsigned int, unsigned int> &a, std::pair <unsigned int, unsigned int> &b) const
+    bool operator()(const std::pair <unsigned int, unsigned int> &a, const std::pair <unsigned int, unsigned int> &b) const
     {
         return a.second > b.second;
     }
