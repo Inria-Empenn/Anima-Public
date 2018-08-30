@@ -56,7 +56,7 @@ protected:
     virtual ~NNOrthogonalMatchingPursuitOptimizer() {}
 
     void PerformMatchingPursuit(bool workOnIgnored);
-    static bool sort_descendant (std::pair <unsigned int, double> &a, std::pair <unsigned int, double> &b) {return (a.second > b.second);}
+    static bool sort_descendant (const std::pair <unsigned int, double> &a, const std::pair <unsigned int, double> &b) {return (a.second > b.second);}
 
 private:
     bool CheckIndex(std::vector <unsigned int> &indexesTaken, unsigned int index);
