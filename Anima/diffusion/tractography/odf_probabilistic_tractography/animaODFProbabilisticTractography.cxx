@@ -65,7 +65,7 @@ int main(int argc,  char*  argv[])
 
     TCLAP::SwitchArg averageClustersArg("M","average-clusters","Output only cluster mean",cmd,false);
 
-    TCLAP::ValueArg<unsigned int> nbThreadsArg("T","nb-threads","Number of threads to run on (default: all available)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbThreadsArg("T","nb-threads","Number of threads to run on (default: all available)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     try
     {
@@ -84,7 +84,7 @@ int main(int argc,  char*  argv[])
     
     MainFilterType::Pointer odfTracker = MainFilterType::New();
 
-    odfTracker->SetNumberOfThreads(nbThreadsArg.getValue());
+    odfTracker->SetNumberOfWorkUnits(nbThreadsArg.getValue());
     odfTracker->SetInputModelImage(anima::readImage <InputModelImageType> (odfArg.getValue()));
 
     odfTracker->SetInitialColinearityDirection((MainFilterType::ColinearityDirectionType)colinearityModeArg.getValue());

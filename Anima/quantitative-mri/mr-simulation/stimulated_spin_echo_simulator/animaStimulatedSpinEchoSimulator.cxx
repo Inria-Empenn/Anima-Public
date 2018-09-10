@@ -23,7 +23,7 @@ int main(int argc, char *argv[] )
     TCLAP::ValueArg<double> xfaArg("x","excite-fa","Excitation flip angle (degrees), default: 90 degrees", false, 90,"excitation flip angle value",cmd);
     TCLAP::ValueArg<double> faArg("f","fa","Flip angle (degrees), default: 180 degrees", false, 180,"flip angle value",cmd);
 
-    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     try
     {
@@ -66,7 +66,7 @@ int main(int argc, char *argv[] )
     filter->SetInput(0,reader1->GetOutput());
     filter->SetInput(1,reader2->GetOutput());
     filter->SetInput(2,reader3->GetOutput());
-    filter->SetNumberOfThreads(nbpArg.getValue());
+    filter->SetNumberOfWorkUnits(nbpArg.getValue());
     
     // Read B1 map
     if (b1ImageArg.getValue() != "")

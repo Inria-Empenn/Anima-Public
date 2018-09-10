@@ -39,8 +39,8 @@ void
 MCMResampleImageFilter<TImageType,TInterpolatorPrecisionType>
 ::BeforeThreadedGenerateData()
 {
-    m_WorkModels.resize(this->GetNumberOfThreads());
-    for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
+    m_WorkModels.resize(this->GetNumberOfWorkUnits());
+    for (unsigned int i = 0;i < this->GetNumberOfWorkUnits();++i)
         m_WorkModels[i] = m_ReferenceOutputModel->Clone();
 
     InputImageType *output = dynamic_cast <InputImageType *> (this->GetOutput());

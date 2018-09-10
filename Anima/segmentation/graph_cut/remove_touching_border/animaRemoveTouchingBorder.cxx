@@ -60,7 +60,7 @@ int main(int argc, const char** argv)
     segFilter->SetLabeledImage( labeledImageArg.getValue() );
     segFilter->SetNoContour( noContourDetectionArg.getValue() );
     segFilter->SetVerbose( verboseArg.getValue() );
-    segFilter->SetNumberOfThreads( numThreadsArg.getValue() );
+    segFilter->SetNumberOfWorkUnits( numThreadsArg.getValue() );
 
     // Process
     itk::TimeProbe timer;

@@ -20,7 +20,7 @@ void
 SegmentationMeasuresImageFilter<TLabelImage>
 ::BeforeThreadedGenerateData()
 {
-    itk::ThreadIdType numberOfThreads = this->GetNumberOfThreads();
+    itk::ThreadIdType numberOfThreads = this->GetNumberOfWorkUnits();
 
     // Resize the thread temporaries
     this->m_LabelSetMeasuresPerThread.resize(numberOfThreads);
@@ -47,7 +47,7 @@ SegmentationMeasuresImageFilter<TLabelImage>
 ::AfterThreadedGenerateData()
 {
     // Run through the map for each thread and accumulate the set measures.
-    for (itk::ThreadIdType n = 0;n < this->GetNumberOfThreads();++n)
+    for (itk::ThreadIdType n = 0;n < this->GetNumberOfWorkUnits();++n)
     {
         // iterate over the map for this thread
         for (MapConstIterator threadIt = this->m_LabelSetMeasuresPerThread[n].begin();

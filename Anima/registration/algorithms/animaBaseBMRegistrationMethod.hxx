@@ -31,7 +31,7 @@ BaseBMRegistrationMethod <TInputImageType>
 
     m_VerboseProgression = true;
 
-    this->SetNumberOfThreads(this->GetMultiThreader()->GetNumberOfThreads());
+    this->SetNumberOfWorkUnits(this->GetMultiThreader()->GetNumberOfWorkUnits());
 
     m_InitialTransform = 0;
     this->SetNumberOfRequiredOutputs(1);
@@ -62,7 +62,7 @@ BaseBMRegistrationMethod <TInputImageType>
             break;
         default:
             itkExceptionMacro("MakeOutput request for an output number larger than the expected number of outputs");
-            return 0;
+            return ITK_NULLPTR;
     }
 }
 
@@ -88,7 +88,7 @@ BaseBMRegistrationMethod <TInputImageType>
 {
     m_Agregator->SetInputTransformType(m_BlockMatcher->GetAgregatorInputTransformType());
 
-    TransformPointer computedTransform = NULL;
+    TransformPointer computedTransform = ITK_NULLPTR;
     this->SetupTransform(computedTransform);
 
     //progress management
@@ -175,7 +175,7 @@ BaseBMRegistrationMethod <TInputImageType>
             DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
             SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (currentTransform);
 
-            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfThreads(),false);
+            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfWorkUnits(),false);
 
             resampleFilter->SetTransform(dispTrsf);
         }
@@ -195,7 +195,7 @@ BaseBMRegistrationMethod <TInputImageType>
             DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
             SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (currentTransform);
 
-            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfThreads(),false);
+            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfWorkUnits(),false);
 
             resampleFilter->SetTransform(dispTrsf);
         }
@@ -204,7 +204,7 @@ BaseBMRegistrationMethod <TInputImageType>
     }
 
     m_MovingImageResampler->SetInput(m_MovingImage);
-    m_MovingImageResampler->SetNumberOfThreads(this->GetNumberOfThreads());
+    m_MovingImageResampler->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     m_MovingImageResampler->Update();
 
     movingImage = m_MovingImageResampler->GetOutput();
@@ -223,7 +223,7 @@ BaseBMRegistrationMethod <TInputImageType>
             DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
             SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (currentTransform);
 
-            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfThreads(),true);
+            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfWorkUnits(),true);
 
             resampleFilter->SetTransform(dispTrsf);
         }
@@ -247,7 +247,7 @@ BaseBMRegistrationMethod <TInputImageType>
             DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
             SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (currentTransform);
 
-            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfThreads(),true);
+            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfWorkUnits(),true);
 
             resampleFilter->SetTransform(dispTrsf);
         }
@@ -260,7 +260,7 @@ BaseBMRegistrationMethod <TInputImageType>
     }
 
     m_ReferenceImageResampler->SetInput(m_FixedImage);
-    m_ReferenceImageResampler->SetNumberOfThreads(this->GetNumberOfThreads());
+    m_ReferenceImageResampler->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     m_ReferenceImageResampler->Update();
 
     refImage = m_ReferenceImageResampler->GetOutput();
@@ -304,7 +304,7 @@ BaseBMRegistrationMethod <TInputImageType>
         SVFTransformType *tmpTrsf = dynamic_cast<SVFTransformType *>(computedTransform.GetPointer());
         SVFTransformType *tmpAddOn = dynamic_cast<SVFTransformType *>(addOn);
 
-        anima::composeSVF(tmpTrsf,tmpAddOn,this->GetNumberOfThreads(),m_BCHCompositionOrder);
+        anima::composeSVF(tmpTrsf,tmpAddOn,this->GetNumberOfWorkUnits(),m_BCHCompositionOrder);
 
         typedef typename SVFTransformType::VectorFieldType VectorFieldType;
         typedef itk::ImageRegionConstIterator <VectorFieldType> IteratorType;
@@ -339,7 +339,7 @@ BaseBMRegistrationMethod <TInputImageType>
 
             smootherPtr->SetInput(tmpTrsf->GetParametersAsVectorField());
             smootherPtr->SetSigma(m_SVFElasticRegSigma);
-            smootherPtr->SetNumberOfThreads(this->GetNumberOfThreads());
+            smootherPtr->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
             smootherPtr->Update();
 

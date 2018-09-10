@@ -10,7 +10,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> inArg("i","inputlist","Log-tensors image",true,"","input log-tensor image",cmd);
     TCLAP::ValueArg<std::string> resArg("o","outputfile","Result tensor image",true,"","result tensor image",cmd);
 
-    TCLAP::ValueArg<unsigned int> nbpArg("T","nb-threads","Number of threads (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"Number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("T","nb-threads","Number of threads (default: all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"Number of threads",cmd);
     TCLAP::SwitchArg scaleArg("S","scale","The log-tensors have their non-diagonal terms scaled",cmd,false);
 
     try
@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 
     MainFilterType::Pointer mainFilter = MainFilterType::New();
 
-    mainFilter->SetNumberOfThreads(nbpArg.getValue());
+    mainFilter->SetNumberOfWorkUnits(nbpArg.getValue());
     mainFilter->SetScaleNonDiagonal(scaleArg.isSet());
     mainFilter->SetInput(anima::readImage <MainFilterType::TInputImage> (inArg.getValue()));
 

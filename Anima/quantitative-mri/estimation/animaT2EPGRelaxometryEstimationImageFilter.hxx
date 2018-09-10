@@ -75,7 +75,7 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
     initFilter->SetT1Map(m_T1Map);
 
     initFilter->SetEchoSpacing(m_EchoSpacing);
-    initFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    initFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     initFilter->SetComputationMask(this->GetComputationMask());
     initFilter->SetTRValue(m_TRValue);
     initFilter->SetT2UpperBoundValue(m_T2UpperBound);

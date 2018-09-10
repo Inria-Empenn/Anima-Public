@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> upperBoundM0Arg("","upper-bound-m0","M0 value upper bound (default: 5000)",false,5000,"M0 upper bound",cmd);
     TCLAP::ValueArg<double> backgroundSignalThresholdArg("t","signal-thr","Background signal threshold (default: 10)",false,10,"Background signal threshold",cmd);
     
-    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 	
     try
     {
@@ -98,7 +98,7 @@ int main(int argc, char **argv)
     }
    
     mainFilter->SetAverageSignalThreshold(backgroundSignalThresholdArg.getValue());
-    mainFilter->SetNumberOfThreads(nbpArg.getValue());
+    mainFilter->SetNumberOfWorkUnits(nbpArg.getValue());
     
     itk::TimeProbe tmpTime;
     tmpTime.Start();

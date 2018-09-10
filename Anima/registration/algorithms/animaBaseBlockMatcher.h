@@ -50,8 +50,8 @@ public:
     virtual typename AgregatorType::TRANSFORM_TYPE GetAgregatorInputTransformType() = 0;
 
     void SetForceComputeBlocks(bool val) {m_ForceComputeBlocks = val;}
-    void SetNumberOfThreads(unsigned int val) {m_NumberOfThreads = val;}
-    unsigned int GetNumberOfThreads() {return m_NumberOfThreads;}
+    void SetNumberOfWorkUnits(unsigned int val) {m_NumberOfThreads = val;}
+    unsigned int GetNumberOfWorkUnits() {return m_NumberOfThreads;}
 
     void SetBlockVarianceThreshold(double val) {m_BlockVarianceThreshold = val;}
     double GetBlockVarianceThreshold() {return m_BlockVarianceThreshold;}

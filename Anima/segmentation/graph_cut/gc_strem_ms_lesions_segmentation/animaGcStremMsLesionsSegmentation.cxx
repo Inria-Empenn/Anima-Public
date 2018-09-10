@@ -171,7 +171,7 @@ int main(int argc, const char** argv)
 
     segFilter->SetLesionSegmentationType( (LesionSegmentationType) lesionsSelectionArg.getValue() );
     segFilter->SetVerbose( verboseArg.getValue() );
-    segFilter->SetNumberOfThreads( numThreadsArg.getValue() );
+    segFilter->SetNumberOfWorkUnits( numThreadsArg.getValue() );
     segFilter->SetTol( tolArg.getValue() );
 
     segFilter->SetUseT2( useT2Arg.getValue() );

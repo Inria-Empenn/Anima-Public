@@ -102,7 +102,7 @@ protected:
     {
         m_BlockSize = 5;
         m_BlockSpacing = 3;
-        m_NumberOfThreads = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
+        m_NumberOfThreads = itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
 
         m_ScalarVarianceThreshold = 5.0;
         m_OrientedModelVarianceThreshold = 0.0;

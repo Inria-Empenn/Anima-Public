@@ -51,13 +51,13 @@ public:
 
         m_UseRigidTransforms = false;
 
-        m_NumberOfThreads = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
+        m_NumberOfThreads = itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
     }
 
     ~MatrixLoggerFilter() {}
 
     void SetInput(InputType &input) {m_InputTransforms = input;m_Modified = true;}
-    void SetNumberOfThreads(unsigned int &numThreads) {m_NumberOfThreads = numThreads;}
+    void SetNumberOfWorkUnits(unsigned int &numThreads) {m_NumberOfThreads = numThreads;}
     void SetUseRigidTransforms(bool rigTrsfs)
     {
         if (m_UseRigidTransforms != rigTrsfs)

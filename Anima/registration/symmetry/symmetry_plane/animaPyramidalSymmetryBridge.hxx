@@ -76,7 +76,7 @@ void PyramidalSymmetryBridge<PixelType,ScalarType>::Update()
         // Init matcher
         typename RegistrationType::Pointer reg = RegistrationType::New();
 
-        reg->SetNumberOfThreads(GetNumberOfThreads());
+        reg->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
 
         typedef anima::NLOPTOptimizers OptimizerType;
         typename OptimizerType::Pointer optimizer = OptimizerType::New();

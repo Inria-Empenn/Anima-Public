@@ -160,7 +160,7 @@ GraphCutFilter<TInput, TOutput>
     m_TLinksFilter->SetMultiVarSinks( this->GetMultiVarSinks() );
     m_TLinksFilter->SetTLinkMode( this->GetTLinkMode() );
     m_TLinksFilter->SetVerbose( this->GetVerbose() );
-    m_TLinksFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    m_TLinksFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     m_TLinksFilter->SetTol( m_Tol );
 
     m_Graph3DFilter->SetSigma( this->GetSigma() );
@@ -168,7 +168,7 @@ GraphCutFilter<TInput, TOutput>
     m_Graph3DFilter->SetMatrix( this->GetMatrix() );
     m_Graph3DFilter->SetMatFilename( this->GetMatrixGradFilename() );
     m_Graph3DFilter->SetVerbose( this->GetVerbose() );
-    m_Graph3DFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    m_Graph3DFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     m_Graph3DFilter->SetTol( m_Tol );
 
     m_Graph3DFilter->GraftNthOutput( 0, this->GetOutput() );

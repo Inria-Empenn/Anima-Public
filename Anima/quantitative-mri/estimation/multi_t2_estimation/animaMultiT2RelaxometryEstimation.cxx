@@ -61,7 +61,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<unsigned int> patchSSArg("s","patchStepSize","Patch step size for searching -> default: 1",false,1,"Patch search step size",cmd);
     TCLAP::ValueArg<unsigned int> patchNeighArg("","patchNeighborhood","Patch half neighborhood size -> default: 5",false,5,"Patch search neighborhood size",cmd);
 
-    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 	
     try
     {
@@ -119,7 +119,7 @@ int main(int argc, char **argv)
     }
     
     mainFilter->SetAverageSignalThreshold(backgroundSignalThresholdArg.getValue());
-    mainFilter->SetNumberOfThreads(nbpArg.getValue());
+    mainFilter->SetNumberOfWorkUnits(nbpArg.getValue());
 
     itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
     callback->SetCallback(eventCallback);
@@ -176,7 +176,7 @@ int main(int argc, char **argv)
         secondaryFilter->SetComputationMask(mainFilter->GetComputationMask());
 
         secondaryFilter->SetAverageSignalThreshold(backgroundSignalThresholdArg.getValue());
-        secondaryFilter->SetNumberOfThreads(nbpArg.getValue());
+        secondaryFilter->SetNumberOfWorkUnits(nbpArg.getValue());
 
         itk::CStyleCommand::Pointer secondaryCallback = itk::CStyleCommand::New();
         secondaryCallback->SetCallback(eventCallback);

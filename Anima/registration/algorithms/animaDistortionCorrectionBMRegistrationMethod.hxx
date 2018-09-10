@@ -58,7 +58,7 @@ DistortionCorrectionBMRegistrationMethod <TInputImageType>
 
         DisplacementFieldTransformType *initTrsf = dynamic_cast <DisplacementFieldTransformType *> (this->GetInitialTransform().GetPointer());
         composePositiveFilter->SetDisplacementField(initTrsf->GetParametersAsVectorField());
-        composePositiveFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+        composePositiveFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
         typename VectorInterpolateFunctionType::Pointer interpolator = VectorInterpolateFunctionType::New();
 
@@ -69,21 +69,21 @@ DistortionCorrectionBMRegistrationMethod <TInputImageType>
         typename MultiplyFilterType::Pointer multiplyInitFilter = MultiplyFilterType::New();
         multiplyInitFilter->SetInput(initTrsf->GetParametersAsVectorField());
         multiplyInitFilter->SetConstant(-1.0);
-        multiplyInitFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+        multiplyInitFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
         multiplyInitFilter->Update();
 
         typename MultiplyFilterType::Pointer multiplyCurrentFilter = MultiplyFilterType::New();
         multiplyCurrentFilter->SetInput(currentTrsf->GetParametersAsVectorField());
         multiplyCurrentFilter->SetConstant(-1.0);
-        multiplyCurrentFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+        multiplyCurrentFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
         multiplyCurrentFilter->Update();
 
         typename ComposeFilterType::Pointer composeNegativeFilter = ComposeFilterType::New();
         composeNegativeFilter->SetWarpingField(multiplyCurrentFilter->GetOutput());
         composeNegativeFilter->SetDisplacementField(multiplyInitFilter->GetOutput());
-        composeNegativeFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+        composeNegativeFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
         interpolator = VectorInterpolateFunctionType::New();
 
@@ -119,7 +119,7 @@ DistortionCorrectionBMRegistrationMethod <TInputImageType>
         typename MultiplyFilterType::Pointer multiplyFilter = MultiplyFilterType::New();
         multiplyFilter->SetInput(positiveTrsf->GetParametersAsVectorField());
         multiplyFilter->SetConstant(-1.0);
-        multiplyFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+        multiplyFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
         multiplyFilter->Update();
         negativeTrsf->SetParametersAsVectorField(multiplyFilter->GetOutput());
@@ -141,7 +141,7 @@ DistortionCorrectionBMRegistrationMethod <TInputImageType>
     // Fixed image resampling
     resampleFilter = dynamic_cast <InternalFilterType *> (this->GetReferenceImageResampler().GetPointer());
     resampleFilter->SetTransform(negativeTrsf);
-    resampleFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    resampleFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
     this->GetReferenceImageResampler()->SetInput(this->GetFixedImage());
     this->GetReferenceImageResampler()->Update();
@@ -158,14 +158,14 @@ DistortionCorrectionBMRegistrationMethod <TInputImageType>
     // Now compute positive and negative updated transform
     DisplacementFieldTransformPointer positiveDispTrsf = DisplacementFieldTransformType::New();
     SVFTransformType *addOnCast = dynamic_cast <SVFTransformType *> (addOn);
-    anima::GetSVFExponential(addOnCast,positiveDispTrsf.GetPointer(),this->GetExponentiationOrder(),this->GetNumberOfThreads(),false);
+    anima::GetSVFExponential(addOnCast,positiveDispTrsf.GetPointer(),this->GetExponentiationOrder(),this->GetNumberOfWorkUnits(),false);
 
     DisplacementFieldTransformPointer negativeDispTrsf = DisplacementFieldTransformType::New();
-    anima::GetSVFExponential(addOnCast,negativeDispTrsf.GetPointer(),this->GetExponentiationOrder(),this->GetNumberOfThreads(),true);
+    anima::GetSVFExponential(addOnCast,negativeDispTrsf.GetPointer(),this->GetExponentiationOrder(),this->GetNumberOfWorkUnits(),true);
 
     DisplacementFieldTransformPointer computedTransformCast = dynamic_cast <DisplacementFieldTransformType *> (computedTransform.GetPointer());
     anima::composeDistortionCorrections<typename AgregatorType::ScalarType, InputImageType::ImageDimension>
-            (computedTransformCast,positiveDispTrsf,negativeDispTrsf,this->GetNumberOfThreads());
+            (computedTransformCast,positiveDispTrsf,negativeDispTrsf,this->GetNumberOfWorkUnits());
 
     // Smooth (elastic)
     if (this->GetSVFElasticRegSigma() > 0)
@@ -176,7 +176,7 @@ DistortionCorrectionBMRegistrationMethod <TInputImageType>
 
         smootherPtr->SetInput(computedTransformCast->GetParametersAsVectorField());
         smootherPtr->SetSigma(this->GetSVFElasticRegSigma());
-        smootherPtr->SetNumberOfThreads(this->GetNumberOfThreads());
+        smootherPtr->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
         smootherPtr->Update();
 
@@ -203,7 +203,7 @@ DistortionCorrectionBMRegistrationMethod <TInputImageType>
     this->GetBlockMatcher()->SetForceComputeBlocks(true);
     this->GetBlockMatcher()->SetReferenceImage(refImage);
     this->GetBlockMatcher()->SetMovingImage(movingImage);
-    this->GetBlockMatcher()->SetNumberOfThreads(this->GetNumberOfThreads());
+    this->GetBlockMatcher()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     this->GetBlockMatcher()->Update();
 
     tmpTime.Stop();
@@ -253,7 +253,7 @@ DistortionCorrectionBMRegistrationMethod <TInputImageType>
     typename SubtractFilterType::Pointer subFilter = SubtractFilterType::New();
     subFilter->SetInput1(positiveSVF);
     subFilter->SetInput2(negativeSVF);
-    subFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    subFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     subFilter->InPlaceOn();
 
     subFilter->Update();
@@ -261,7 +261,7 @@ DistortionCorrectionBMRegistrationMethod <TInputImageType>
     typename MultiplyFilterType::Pointer multiplyFilter = MultiplyFilterType::New();
     multiplyFilter->SetInput(subFilter->GetOutput());
     multiplyFilter->SetConstant(0.25);
-    multiplyFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    multiplyFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     multiplyFilter->InPlaceOn();
 
     multiplyFilter->Update();

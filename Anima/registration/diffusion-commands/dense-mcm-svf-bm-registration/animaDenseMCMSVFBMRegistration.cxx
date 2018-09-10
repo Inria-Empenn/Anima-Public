@@ -142,7 +142,7 @@ int main(int ac, const char** av)
     matcher->SetLastPyramidLevel( lastPyramidLevelArg.getValue() );
 
     if (numThreadsArg.getValue() != 0)
-        matcher->SetNumberOfThreads( numThreadsArg.getValue() );
+        matcher->SetNumberOfWorkUnits( numThreadsArg.getValue() );
 
     matcher->SetPercentageKept( percentageKeptArg.getValue() );
 

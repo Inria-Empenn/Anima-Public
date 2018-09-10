@@ -17,7 +17,7 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<unsigned int> expOrderArg("e","exp-order","Order of field exponentiation approximation (in between 0 and 1, default: 0)",false,0,"exponentiation order",cmd);
     TCLAP::SwitchArg noIdArg("N","no-id","Do not add identity to the jacobian matrix",cmd,false);
     TCLAP::SwitchArg detArg("D","det","Simply compute the determinant of the jacobian (-N option ignored in that case)",cmd,false);
-    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
     
     try
     {
@@ -54,7 +54,7 @@ int main(int ac, const char** av)
     MainFilterType::Pointer mainFilter = MainFilterType::New();
 
     mainFilter->SetInput(inputField);
-    mainFilter->SetNumberOfThreads(nbpArg.getValue());
+    mainFilter->SetNumberOfWorkUnits(nbpArg.getValue());
     mainFilter->SetNeighborhood(neighArg.getValue());
     mainFilter->SetNoIdentity(noIdArg.isSet());
     mainFilter->SetComputeDeterminant(detArg.isSet());

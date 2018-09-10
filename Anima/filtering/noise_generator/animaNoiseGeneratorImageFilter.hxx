@@ -40,7 +40,7 @@ NoiseGeneratorImageFilter<ImageType>
 {
     m_Generators.clear();
     std::mt19937 motherGenerator(time(0));
-    for (int i = 0;i < this->GetNumberOfThreads();++i)
+    for (int i = 0;i < this->GetNumberOfWorkUnits();++i)
         m_Generators.push_back(std::mt19937(motherGenerator()));
 }
 

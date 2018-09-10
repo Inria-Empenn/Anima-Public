@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 	TCLAP::SwitchArg radialArg("R","radialestimation","Use radial estimation (see Aganj et al) ? (default: no)",cmd,false);
 	TCLAP::ValueArg<double> aganjRegFactorArg("d","adr","Delta threshold for signal regularization, only use if R option activated (see Aganj et al, default : 0.001)",false,0.001,"delta signal regularization",cmd);
 	
-    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
     
     try
     {
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 	itk::TimeProbe tmpTime;
 	tmpTime.Start();
 	
-	mainFilter->SetNumberOfThreads(nbpArg.getValue());
+	mainFilter->SetNumberOfWorkUnits(nbpArg.getValue());
 	mainFilter->Update();
 	
 	tmpTime.Stop();

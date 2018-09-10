@@ -22,7 +22,7 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<std::string> geomArg("g","geometry","Geometry image",true,"","geometry image",cmd);
 
     TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default : all cores)",
-                                         false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+                                         false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     try
     {
@@ -194,13 +194,13 @@ int main(int ac, const char** av)
         imageResampler->SetOutputSpacing(outputImage->GetSpacing());
         imageResampler->SetOutputDirection(outputImage->GetDirection());
         imageResampler->SetInput(input);
-        imageResampler->SetNumberOfThreads(nbpArg.getValue());
+        imageResampler->SetNumberOfWorkUnits(nbpArg.getValue());
         imageResampler->Update();
 
         AddFilterType::Pointer addFilter = AddFilterType::New();
         addFilter->SetInput1(outputImage);
         addFilter->SetInput2(imageResampler->GetOutput());
-        addFilter->SetNumberOfThreads(nbpArg.getValue());
+        addFilter->SetNumberOfWorkUnits(nbpArg.getValue());
         addFilter->Update();
 
         outputImage = addFilter->GetOutput();
@@ -222,7 +222,7 @@ int main(int ac, const char** av)
         maskImResampler->SetOutputSpacing(outputImage->GetSpacing());
         maskImResampler->SetOutputDirection(outputImage->GetDirection());
         maskImResampler->SetInput(tmpMask);
-        maskImResampler->SetNumberOfThreads(nbpArg.getValue());
+        maskImResampler->SetNumberOfWorkUnits(nbpArg.getValue());
         maskImResampler->Update();
 
         MaskImageIteratorType outputMaskItr(maskImage,maskImage->GetLargestPossibleRegion());

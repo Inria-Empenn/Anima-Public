@@ -18,7 +18,7 @@ AsymmetricBMRegistrationMethod <TInputImageType>
     this->GetBlockMatcher()->SetForceComputeBlocks(false);
     this->GetBlockMatcher()->SetReferenceImage(this->GetFixedImage());
     this->GetBlockMatcher()->SetMovingImage(movingImage);
-    this->GetBlockMatcher()->SetNumberOfThreads(this->GetNumberOfThreads());
+    this->GetBlockMatcher()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     this->GetBlockMatcher()->Update();
 
     tmpTime.Stop();

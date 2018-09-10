@@ -167,7 +167,7 @@ ComputeMahalanobisImagesFilter <TInputImage, TMaskImage, TOutput>
     rescaleFilter1->SetInput( this->GetInputImage1() );
     rescaleFilter1->SetOutputMinimum( desiredMinimum );
     rescaleFilter1->SetOutputMaximum( desiredMaximum );
-    rescaleFilter1->SetNumberOfThreads(this->GetNumberOfThreads());
+    rescaleFilter1->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     rescaleFilter1->SetCoordinateTolerance(m_Tol);
     rescaleFilter1->SetDirectionTolerance(m_Tol);
     rescaleFilter1->UpdateLargestPossibleRegion();
@@ -177,7 +177,7 @@ ComputeMahalanobisImagesFilter <TInputImage, TMaskImage, TOutput>
     rescaleFilter2->SetInput( this->GetInputImage2() );
     rescaleFilter2->SetOutputMinimum( desiredMinimum );
     rescaleFilter2->SetOutputMaximum( desiredMaximum );
-    rescaleFilter2->SetNumberOfThreads(this->GetNumberOfThreads());
+    rescaleFilter2->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     rescaleFilter2->SetCoordinateTolerance(m_Tol);
     rescaleFilter2->SetDirectionTolerance(m_Tol);
     rescaleFilter2->UpdateLargestPossibleRegion();
@@ -187,7 +187,7 @@ ComputeMahalanobisImagesFilter <TInputImage, TMaskImage, TOutput>
     rescaleFilter3->SetInput( this->GetInputImage3() );
     rescaleFilter3->SetOutputMinimum( desiredMinimum );
     rescaleFilter3->SetOutputMaximum( desiredMaximum );
-    rescaleFilter3->SetNumberOfThreads(this->GetNumberOfThreads());
+    rescaleFilter3->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     rescaleFilter3->SetCoordinateTolerance(m_Tol);
     rescaleFilter3->SetDirectionTolerance(m_Tol);
     rescaleFilter3->UpdateLargestPossibleRegion();

@@ -22,7 +22,7 @@ TransformSeriesReader<TScalarType,NDimensions>
     m_InvertTransform = false;
 
     m_ExponentiationOrder = 1;
-    m_NumberOfThreads = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
+    m_NumberOfThreads = itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
 }
 
 template <class TScalarType, unsigned int NDimensions>

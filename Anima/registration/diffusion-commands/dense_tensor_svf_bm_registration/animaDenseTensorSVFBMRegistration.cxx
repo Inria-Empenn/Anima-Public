@@ -85,7 +85,7 @@ int main(int ac, const char** av)
     tensorRefLogger->SetScaleNonDiagonal(true);
 
     if (numThreadsArg.getValue() != 0)
-        tensorRefLogger->SetNumberOfThreads(numThreadsArg.getValue());
+        tensorRefLogger->SetNumberOfWorkUnits(numThreadsArg.getValue());
 
     tensorRefLogger->Update();
 
@@ -102,7 +102,7 @@ int main(int ac, const char** av)
     tensorFloLogger->SetScaleNonDiagonal(true);
 
     if (numThreadsArg.getValue() != 0)
-        tensorFloLogger->SetNumberOfThreads(numThreadsArg.getValue());
+        tensorFloLogger->SetNumberOfWorkUnits(numThreadsArg.getValue());
 
     tensorFloLogger->Update();
 
@@ -145,7 +145,7 @@ int main(int ac, const char** av)
         matcher->SetBlockGenerationMask(anima::readImage<PyramidBMType::MaskImageType>(blockMaskArg.getValue()));
 
     if (numThreadsArg.getValue() != 0)
-        matcher->SetNumberOfThreads( numThreadsArg.getValue() );
+        matcher->SetNumberOfWorkUnits( numThreadsArg.getValue() );
 
     matcher->SetPercentageKept( percentageKeptArg.getValue() );
 

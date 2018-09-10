@@ -93,7 +93,7 @@ int main(int ac, const char** av)
     filter->SetInput(anima::readImage<TensorImageType>(tensorArg.getValue()));
 
     if(nbpArg.getValue())
-        filter->SetNumberOfThreads(nbpArg.getValue());
+        filter->SetNumberOfWorkUnits(nbpArg.getValue());
 
     filter->AddObserver(itk::ProgressEvent(), callback );
     filter->Update();

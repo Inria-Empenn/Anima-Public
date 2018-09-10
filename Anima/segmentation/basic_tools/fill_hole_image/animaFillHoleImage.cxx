@@ -12,7 +12,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> inArg("i","input","Input image",true,"","input image",cmd);
     TCLAP::ValueArg<std::string> outArg("o","output","Output image",true,"","output image",cmd);
 
-    TCLAP::ValueArg<unsigned int> numThreadsArg("T","threads","Number of execution threads (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> numThreadsArg("T","threads","Number of execution threads (default: all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     try
     {
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
     ConnectedComponentType::Pointer ccFilter = ConnectedComponentType::New();
     ccFilter->SetInput( tmpImageUS );
     ccFilter->SetFullyConnected( connectivity );
-    ccFilter->SetNumberOfThreads( numThreadsArg.getValue() );
+    ccFilter->SetNumberOfWorkUnits( numThreadsArg.getValue() );
     ccFilter->Update();
 
     IteratorTypeInt tmpImageIntIt (ccFilter->GetOutput(), ccFilter->GetOutput()->GetLargestPossibleRegion() );

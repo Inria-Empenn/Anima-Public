@@ -12,7 +12,7 @@ int main(int argc, char **argv)
     
     TCLAP::ValueArg<std::string> inArg("i","inputfile","Input image",true,"","input image",cmd);
     TCLAP::ValueArg<std::string> outArg("o","outputfile","Output image",true,"","output image",cmd);
-    TCLAP::ValueArg<unsigned int> nbpArg("p","nbcores","Number of cores to run on (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"Number of cores",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("p","nbcores","Number of cores to run on (default: all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"Number of cores",cmd);
 
     TCLAP::ValueArg<std::string> actArg("a","action","Action to perform ([clos], open, dil, er)",false,"clos","Action to perform",cmd);
     TCLAP::ValueArg<double> radiusArg("r","radius","Radius of morphological operation in mm3",false,1,"morphological radius",cmd);
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 
         ErodeFilterType::Pointer mainFilter = ErodeFilterType::New();
         mainFilter->SetInput(inputImage);
-        mainFilter->SetNumberOfThreads(nbpArg.getValue());
+        mainFilter->SetNumberOfWorkUnits(nbpArg.getValue());
         mainFilter->SetKernel(tmpBall);
 
         mainFilter->Update();
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 
         DilateFilterType::Pointer mainFilter = DilateFilterType::New();
         mainFilter->SetInput(inputImage);
-        mainFilter->SetNumberOfThreads(nbpArg.getValue());
+        mainFilter->SetNumberOfWorkUnits(nbpArg.getValue());
         mainFilter->SetKernel(tmpBall);
 
         mainFilter->Update();
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 
         OpeningFilterType::Pointer mainFilter = OpeningFilterType::New();
         mainFilter->SetInput(inputImage);
-        mainFilter->SetNumberOfThreads(nbpArg.getValue());
+        mainFilter->SetNumberOfWorkUnits(nbpArg.getValue());
         mainFilter->SetKernel(tmpBall);
 
         mainFilter->Update();
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
 
         ClosingFilterType::Pointer mainFilter = ClosingFilterType::New();
         mainFilter->SetInput(inputImage);
-        mainFilter->SetNumberOfThreads(nbpArg.getValue());
+        mainFilter->SetNumberOfWorkUnits(nbpArg.getValue());
         mainFilter->SetKernel(tmpBall);
 
         mainFilter->Update();

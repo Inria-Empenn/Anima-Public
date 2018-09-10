@@ -96,9 +96,9 @@ typedef struct
 
 ITK_THREAD_RETURN_TYPE ThreadFilterer(void *arg)
 {
-    itk::MultiThreader::ThreadInfoStruct *threadArgs = (itk::MultiThreader::ThreadInfoStruct *)arg;
-    unsigned int nbThread = threadArgs->ThreadID;
-    unsigned int numTotalThread = threadArgs->NumberOfThreads;
+    itk::MultiThreader::WorkUnitInfo *threadArgs = (itk::MultiThreader::WorkUnitInfo *)arg;
+    unsigned int nbThread = threadArgs->WorkUnitID;
+    unsigned int numTotalThread = threadArgs->NumberOfWorkUnits;
 
     ThreaderArguments *tmpArg = (ThreaderArguments *)threadArgs->UserData;
     unsigned int nbTotalCells = tmpArg->tracks->GetNumberOfCells();
@@ -126,7 +126,7 @@ int main(int argc, char **argv)
     TCLAP::MultiArg<unsigned int> touchArg("t", "touch", "Labels that have to be touched",false,"touched labels",cmd);
     TCLAP::MultiArg<unsigned int> forbiddenArg("f", "forbid", "Labels that must not to be touched",false,"forbidden labels",cmd);
 
-    TCLAP::ValueArg<unsigned int> nbThreadsArg("T","nb-threads","Number of threads to run on (default: all available)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbThreadsArg("T","nb-threads","Number of threads to run on (default: all available)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
     try
     {
         cmd.parse(argc,argv);
@@ -164,7 +164,7 @@ int main(int argc, char **argv)
     tmpStr.forbiddenLabels = forbiddenLabels;
 
     itk::MultiThreader::Pointer mThreader = itk::MultiThreader::New();
-    mThreader->SetNumberOfThreads(nbThreadsArg.getValue());
+    mThreader->SetNumberOfWorkUnits(nbThreadsArg.getValue());
     mThreader->SetSingleMethod(ThreadFilterer,&tmpStr);
     mThreader->SingleMethodExecute();
 

@@ -95,7 +95,7 @@ public:
     void SetNormalizeAcrossScale(bool normalizeInScaleSpace);
     itkGetConstMacro(NormalizeAcrossScale, bool)
 
-    void SetNumberOfThreads(itk::ThreadIdType nb) ITK_OVERRIDE;
+    void SetNumberOfWorkUnits(itk::ThreadIdType nb) ITK_OVERRIDE;
 
     // See super class for doxygen documentation
     //

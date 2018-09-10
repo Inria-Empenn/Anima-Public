@@ -26,7 +26,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> expVarArg("e","expvar","PCA threshold: threshold on eigenvalues to compute the new basis (default: 0.5)",false,0.5,"PCA threshold",cmd);
     TCLAP::ValueArg<unsigned int> numEigenArg("E","numeigenpca","Number of eigenvalues to keep (default: 6)",false,6,"Number of PCA eigen values",cmd);
 
-    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     try
     {
@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 
     MAZScoreImageFilterType::Pointer mainFilter = MAZScoreImageFilterType::New();
     mainFilter->SetComputationMask(anima::readImage < itk::Image <unsigned char, 3> > (maskArg.getValue()));
-    mainFilter->SetNumberOfThreads(nbpArg.getValue());
+    mainFilter->SetNumberOfWorkUnits(nbpArg.getValue());
 
     mainFilter->SetInput(anima::readImage <LogTensorImageType> (refLTArg.getValue()));
     mainFilter->SetExplainedRatio(expVarArg.getValue());

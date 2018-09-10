@@ -23,7 +23,7 @@ DenseSVFTransformAgregator() : Superclass()
     m_DistanceBoundary = m_ExtrapolationSigma * 3;
     m_MEstimateConvergenceThreshold = 0.001;
 
-    m_NumberOfThreads = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
+    m_NumberOfThreads = itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
 }
 
 template <unsigned int NDimensions>
@@ -139,7 +139,7 @@ estimateSVFFromTranslations()
     fieldSmoother->SetConvergenceThreshold(m_MEstimateConvergenceThreshold);
     fieldSmoother->SetMaxNumIterations(100);
 
-    fieldSmoother->SetNumberOfThreads(m_NumberOfThreads);
+    fieldSmoother->SetNumberOfWorkUnits(m_NumberOfThreads);
 
     fieldSmoother->Update();
 
@@ -223,7 +223,7 @@ estimateSVFFromRigidTransforms()
     fieldSmoother->SetConvergenceThreshold(m_MEstimateConvergenceThreshold);
     fieldSmoother->SetMaxNumIterations(100);
 
-    fieldSmoother->SetNumberOfThreads(m_NumberOfThreads);
+    fieldSmoother->SetNumberOfWorkUnits(m_NumberOfThreads);
 
     fieldSmoother->Update();
 
@@ -340,7 +340,7 @@ estimateSVFFromAffineTransforms()
 
         MatrixLoggerFilterType *logFilter = new MatrixLoggerFilterType;
         logFilter->SetInput(this->GetInputTransforms());
-        logFilter->SetNumberOfThreads(m_NumberOfThreads);
+        logFilter->SetNumberOfWorkUnits(m_NumberOfThreads);
         logFilter->SetUseRigidTransforms(false);
 
         logFilter->Update();
@@ -386,7 +386,7 @@ estimateSVFFromAffineTransforms()
     fieldSmoother->SetConvergenceThreshold(m_MEstimateConvergenceThreshold);
     fieldSmoother->SetMaxNumIterations(100);
 
-    fieldSmoother->SetNumberOfThreads(m_NumberOfThreads);
+    fieldSmoother->SetNumberOfWorkUnits(m_NumberOfThreads);
 
     fieldSmoother->Update();
 

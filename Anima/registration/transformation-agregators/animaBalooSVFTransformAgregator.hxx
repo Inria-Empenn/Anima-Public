@@ -20,7 +20,7 @@ BalooSVFTransformAgregator() : Superclass()
     m_OutlierRejectionSigma = 3.0;
     m_ZeroWeight = 0.0;
 
-    m_NumberOfThreads = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
+    m_NumberOfThreads = itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
 }
 
 template <unsigned int NDimensions>
@@ -306,7 +306,7 @@ estimateSVFFromAffineTransforms()
 
         MatrixLoggerFilterType *logFilter = new MatrixLoggerFilterType;
         logFilter->SetInput(this->GetInputTransforms());
-        logFilter->SetNumberOfThreads(m_NumberOfThreads);
+        logFilter->SetNumberOfWorkUnits(m_NumberOfThreads);
         logFilter->SetUseRigidTransforms(false);
 
         logFilter->Update();
@@ -413,7 +413,7 @@ filterInputs(WeightImageType *weights, typename itk::Image < itk::Vector <Scalar
 
     weightSmooth->SetInput(weights);
     weightSmooth->SetSigma(m_ExtrapolationSigma);
-    weightSmooth->SetNumberOfThreads(m_NumberOfThreads);
+    weightSmooth->SetNumberOfWorkUnits(m_NumberOfThreads);
 
     weightSmooth->Update();
 
@@ -426,7 +426,7 @@ filterInputs(WeightImageType *weights, typename itk::Image < itk::Vector <Scalar
 
     smootherPtr->SetInput(output);
     smootherPtr->SetSigma(m_ExtrapolationSigma);
-    smootherPtr->SetNumberOfThreads(m_NumberOfThreads);
+    smootherPtr->SetNumberOfWorkUnits(m_NumberOfThreads);
 
     smootherPtr->Update();
 
@@ -481,7 +481,7 @@ filterInputs(WeightImageType *weights, typename itk::Image < itk::Vector <Scalar
 
     weightSmooth->SetInput(weights);
     weightSmooth->SetSigma(m_ExtrapolationSigma);
-    weightSmooth->SetNumberOfThreads(m_NumberOfThreads);
+    weightSmooth->SetNumberOfWorkUnits(m_NumberOfThreads);
 
     weightSmooth->Update();
 
@@ -492,7 +492,7 @@ filterInputs(WeightImageType *weights, typename itk::Image < itk::Vector <Scalar
 
     smootherPtr->SetInput(output);
     smootherPtr->SetSigma(m_ExtrapolationSigma);
-    smootherPtr->SetNumberOfThreads(m_NumberOfThreads);
+    smootherPtr->SetNumberOfWorkUnits(m_NumberOfThreads);
 
     smootherPtr->Update();
 

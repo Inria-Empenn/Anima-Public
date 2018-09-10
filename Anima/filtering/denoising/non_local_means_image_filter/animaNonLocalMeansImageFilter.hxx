@@ -41,7 +41,7 @@ NonLocalMeansImageFilter <TInputImage>
     }
 
     filter->SetRadius(radius);
-    filter->SetNumberOfThreads(this->GetNumberOfThreads());
+    filter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     filter->Update();
     m_meanImage = filter->GetMeanImage();
     m_varImage = filter->GetVarImage();

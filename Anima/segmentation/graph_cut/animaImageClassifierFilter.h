@@ -85,7 +85,7 @@ protected:
         m_NbMaxImages = 7;
         m_IndexImage1=m_NbMaxImages, m_IndexImage2=m_NbMaxImages, m_IndexImage3=m_NbMaxImages, m_IndexImage4=m_NbMaxImages,m_IndexImage5=m_NbMaxImages, m_IndexImage6=m_NbMaxImages;
         m_Verbose=false;
-        this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
+        this->SetNumberOfWorkUnits(itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads());
     }
 
     virtual ~ImageClassifierFilter()

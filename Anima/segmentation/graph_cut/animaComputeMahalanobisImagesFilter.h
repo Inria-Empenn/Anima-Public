@@ -129,7 +129,7 @@ protected:
         m_NbTissus = 3;     // 3 NABT tissus to estimate.
         m_NbModalities = 3; // use of 3 images.
 
-        this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
+        this->SetNumberOfWorkUnits(itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads());
 
     }
 

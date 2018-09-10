@@ -56,8 +56,8 @@ MCMBlockMatcher<TInputImageType>
     InitializerPointer initPtr = InitializerType::New();
     initPtr->AddReferenceImage(this->GetReferenceImage());
 
-    if (this->GetNumberOfThreads() != 0)
-        initPtr->SetNumberOfThreads(this->GetNumberOfThreads());
+    if (this->GetNumberOfWorkUnits() != 0)
+        initPtr->SetNumberOfThreads(this->GetNumberOfWorkUnits());
 
     initPtr->SetPercentageKept(this->GetBlockPercentageKept());
     initPtr->SetBlockSize(this->GetBlockSize());

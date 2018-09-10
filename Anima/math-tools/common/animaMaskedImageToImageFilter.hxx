@@ -1,5 +1,6 @@
 #pragma once
 #include "animaMaskedImageToImageFilter.h"
+#include <itkMultiThreader.h>
 
 #include <itkImageRegionConstIterator.h>
 
@@ -117,7 +118,7 @@ MaskedImageToImageFilter < TInputImage, TOutputImage >
     ThreadStruct str;
     str.Filter = this;
 
-    this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
+    this->GetMultiThreader()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     this->GetMultiThreader()->SetSingleMethod(this->ThreaderMultiSplitCallback, &str);
 
     this->GetMultiThreader()->SingleMethodExecute();
@@ -162,8 +163,8 @@ MaskedImageToImageFilter < TInputImage, TOutputImage >
     ThreadStruct *str;
     itk::ThreadIdType threadId;
 
-    threadId = ( (itk::MultiThreader::ThreadInfoStruct *)( arg ) )->ThreadID;
-    str = (ThreadStruct *)( ( (itk::MultiThreader::ThreadInfoStruct *)( arg ) )->UserData );
+    threadId = ( (itk::MultiThreader::WorkUnitInfo *)( arg ) )->WorkUnitID;
+    str = (ThreadStruct *)( ( (itk::MultiThreader::WorkUnitInfo *)( arg ) )->UserData );
 
     Self *filterPtr = dynamic_cast <Self *> (str->Filter.GetPointer());
     filterPtr->ThreadProcessSlices(threadId);

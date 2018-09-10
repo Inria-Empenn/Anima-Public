@@ -21,7 +21,7 @@ KissingSymmetricBMRegistrationMethod <TInputImageType>
     this->GetBlockMatcher()->SetForceComputeBlocks(true);
     this->GetBlockMatcher()->SetReferenceImage(refImage);
     this->GetBlockMatcher()->SetMovingImage(movingImage);
-    this->GetBlockMatcher()->SetNumberOfThreads(this->GetNumberOfThreads());
+    this->GetBlockMatcher()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     this->GetBlockMatcher()->Update();
 
     tmpTime.Stop();
@@ -71,7 +71,7 @@ KissingSymmetricBMRegistrationMethod <TInputImageType>
         typename SubtractFilterType::Pointer subFilter = SubtractFilterType::New();
         subFilter->SetInput1(usualAddOnCast->GetParametersAsVectorField());
         subFilter->SetInput2(reverseAddOnCast->GetParametersAsVectorField());
-        subFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+        subFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
         subFilter->InPlaceOn();
 
         subFilter->Update();
@@ -79,7 +79,7 @@ KissingSymmetricBMRegistrationMethod <TInputImageType>
         typename MultiplyFilterType::Pointer multiplyFilter = MultiplyFilterType::New();
         multiplyFilter->SetInput(subFilter->GetOutput());
         multiplyFilter->SetConstant(0.25);
-        multiplyFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+        multiplyFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
         multiplyFilter->InPlaceOn();
 
         multiplyFilter->Update();

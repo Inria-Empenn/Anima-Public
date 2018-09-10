@@ -105,7 +105,7 @@ protected:
         m_Tol = 0.0001;
         m_Ratio = 0;
 
-        this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
+        this->SetNumberOfWorkUnits(itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads());
     }
 
     virtual ~CheckStructureNeighborFilter()

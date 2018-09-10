@@ -29,7 +29,7 @@ connectedComponent(const arguments &args)
     mainFilter->SetInput(anima::readImage<ImageType>(args.input));
     mainFilter->SetFullyConnected(args.full);
     if(args.pthread > 0)
-        mainFilter->SetNumberOfThreads(args.pthread);
+        mainFilter->SetNumberOfWorkUnits(args.pthread);
     mainFilter->Update();
 
     // Compute Image Spacing, 4th dimension is not physical but temporal
@@ -50,7 +50,7 @@ connectedComponent(const arguments &args)
     relabelFilter->SetInput( mainFilter->GetOutput() );
     relabelFilter->SetMinimumObjectSize(minSizeInVoxel);
     if(args.pthread > 0)
-        relabelFilter->SetNumberOfThreads(args.pthread);
+        relabelFilter->SetNumberOfWorkUnits(args.pthread);
     relabelFilter->Update();
 
     std::cout << "Original number of objects: " << relabelFilter->GetOriginalNumberOfObjects() <<std::endl;

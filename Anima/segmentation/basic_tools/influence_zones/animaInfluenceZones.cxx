@@ -20,7 +20,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> outArg("o","output","Output image",true,"","output image",cmd);
     TCLAP::ValueArg<unsigned int> radiusArg("r","radius","Dilation radius for regional maxima",false,1,"dilation radius",cmd);
 
-    TCLAP::ValueArg<unsigned int> numThreadsArg("T","threads","Number of execution threads (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> numThreadsArg("T","threads","Number of execution threads (default: all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
     
     try
     {
@@ -93,20 +93,20 @@ int main(int argc, char **argv)
     extractFilter->SetExtractionRegion(reqRegion);
     extractFilter->SetDirectionCollapseToGuess();
     extractFilter->SetInput(inputImage);
-    extractFilter->SetNumberOfThreads(numThreadsArg.getValue());
+    extractFilter->SetNumberOfWorkUnits(numThreadsArg.getValue());
 
     typedef itk::SignedDanielssonDistanceMapImageFilter <InputImageType, DistanceImageType, OutputImageType> DistanceMapFilterType;
     DistanceMapFilterType::Pointer distanceMap = DistanceMapFilterType::New();
     distanceMap->SetInput(extractFilter->GetOutput());
     distanceMap->InsideIsPositiveOn();
     distanceMap->SetUseImageSpacing(true);
-    distanceMap->SetNumberOfThreads(numThreadsArg.getValue());
+    distanceMap->SetNumberOfWorkUnits(numThreadsArg.getValue());
 
     typedef itk::RegionalMaximaImageFilter <DistanceImageType,InputImageType> RegionalMaximaFilterType;
     RegionalMaximaFilterType::Pointer regionalFilter = RegionalMaximaFilterType::New();
     regionalFilter->SetInput(distanceMap->GetOutput());
     regionalFilter->SetFullyConnected(true);
-    regionalFilter->SetNumberOfThreads(numThreadsArg.getValue());
+    regionalFilter->SetNumberOfWorkUnits(numThreadsArg.getValue());
     
     typedef itk::BinaryBallStructuringElement<InputImageType::PixelType,3> StructuringElementType;
     StructuringElementType structuringElement;
@@ -117,20 +117,20 @@ int main(int argc, char **argv)
     DilateFilterType::Pointer dilateFilter = DilateFilterType::New();
     dilateFilter->SetInput(regionalFilter->GetOutput());
     dilateFilter->SetKernel(structuringElement);
-    dilateFilter->SetNumberOfThreads(numThreadsArg.getValue());
+    dilateFilter->SetNumberOfWorkUnits(numThreadsArg.getValue());
 
     typedef itk::ConnectedComponentImageFilter <InputImageType,OutputImageType> CCFilterType;
     CCFilterType::Pointer ccFilter = CCFilterType::New();
     ccFilter->SetInput(dilateFilter->GetOutput());
     ccFilter->SetFullyConnected(true);
-    ccFilter->SetNumberOfThreads(numThreadsArg.getValue());
+    ccFilter->SetNumberOfWorkUnits(numThreadsArg.getValue());
 
     typedef itk::SignedDanielssonDistanceMapImageFilter <OutputImageType, DistanceImageType, OutputImageType> VoronoiMapFilterType;
     VoronoiMapFilterType::Pointer voronoiFilter = VoronoiMapFilterType::New();
     voronoiFilter->SetInput(ccFilter->GetOutput());
     voronoiFilter->SetUseImageSpacing(true);
     voronoiFilter->InsideIsPositiveOff();
-    voronoiFilter->SetNumberOfThreads(numThreadsArg.getValue());
+    voronoiFilter->SetNumberOfWorkUnits(numThreadsArg.getValue());
 
     voronoiFilter->Update();
 

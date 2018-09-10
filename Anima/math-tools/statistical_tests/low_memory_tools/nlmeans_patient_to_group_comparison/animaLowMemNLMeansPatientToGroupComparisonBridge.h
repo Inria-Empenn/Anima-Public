@@ -45,7 +45,7 @@ public:
     void SetOutputNPatchesName(std::string &pref) {m_OutputNPatchesName = pref;}
 
     void SetNbSplits(unsigned int nbSplits) {m_NbSplits = nbSplits;}
-    void SetNumberOfThreads(unsigned int nbT) {m_NumThreads = nbT;}
+    void SetNumberOfWorkUnits(unsigned int nbT) {m_NumThreads = nbT;}
 
     void SetWeightThreshold(double weight) {m_WeightThreshold = weight;}
     void SetMeanThreshold(double weight) {m_MeanThreshold = weight;}

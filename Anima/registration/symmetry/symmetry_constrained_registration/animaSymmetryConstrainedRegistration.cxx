@@ -63,7 +63,7 @@ int main(int ac, const char** av)
     matcher->SetFastRegistration(fastRegArg.isSet());
 
     if (numThreadsArg.getValue() != 0)
-        matcher->SetNumberOfThreads( numThreadsArg.getValue() );
+        matcher->SetNumberOfWorkUnits( numThreadsArg.getValue() );
 
     typedef BridgeType::BaseTransformType BaseTransformType;
     itk::TransformFileReader::Pointer tmpTrRead = itk::TransformFileReader::New();

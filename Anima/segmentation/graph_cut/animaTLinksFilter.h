@@ -134,7 +134,7 @@ protected:
 
     void GenerateData() ITK_OVERRIDE;
     void computeSingleGaussian();
-    void computeSingleGaussianSeeds(TSeedMask::ConstPointer seedMask, OutputImagePointer output, float multiVar, TSeedMask::ConstPointer seedMaskOpp = NULL);
+    void computeSingleGaussianSeeds(TSeedMask::ConstPointer seedMask, OutputImagePointer output, float multiVar, TSeedMask::ConstPointer seedMaskOpp = ITK_NULLPTR);
     void computeStrem();
 
     /**  Create the Output */

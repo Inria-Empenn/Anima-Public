@@ -365,7 +365,7 @@ Update()
 
     unsigned int actualNumberOfThreads = std::min(m_NumberOfThreads,(unsigned int)m_InputTransforms.size());
 
-    threaderLog->SetNumberOfThreads(actualNumberOfThreads);
+    threaderLog->SetNumberOfWorkUnits(actualNumberOfThreads);
     threaderLog->SetSingleMethod(this->ThreadedLogging,tmpStr);
     threaderLog->SingleMethodExecute();
 
@@ -379,10 +379,10 @@ ITK_THREAD_RETURN_TYPE
 MatrixLoggerFilter<TInputScalarType,TOutputScalarType,NDimensions,NDegreesOfFreedom>::
 ThreadedLogging(void *arg)
 {
-    itk::MultiThreader::ThreadInfoStruct *threadArgs = (itk::MultiThreader::ThreadInfoStruct *)arg;
+    itk::MultiThreader::WorkUnitInfo *threadArgs = (itk::MultiThreader::WorkUnitInfo *)arg;
 
-    unsigned int nbThread = threadArgs->ThreadID;
-    unsigned int nbProcs = threadArgs->NumberOfThreads;
+    unsigned int nbThread = threadArgs->WorkUnitID;
+    unsigned int nbProcs = threadArgs->NumberOfWorkUnits;
 
     ThreadedLogData *tmpStr = (ThreadedLogData *)threadArgs->UserData;
 

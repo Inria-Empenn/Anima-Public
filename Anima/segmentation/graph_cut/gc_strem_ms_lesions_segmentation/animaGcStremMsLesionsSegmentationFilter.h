@@ -452,7 +452,7 @@ protected:
         m_IndexSourcesMask = m_MaxNumberOfInputs;
         m_IndexSinksMask = m_MaxNumberOfInputs;
 
-        this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
+        this->SetNumberOfWorkUnits(itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads());
     }
 
     ~GcStremMsLesionsSegmentationFilter()

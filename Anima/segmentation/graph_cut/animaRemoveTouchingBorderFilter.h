@@ -8,6 +8,7 @@
 #include <itkLabelContourImageFilter.h>
 #include <itkConnectedComponentImageFilter.h>
 #include <animaReadWriteFunctions.h>
+#include <itkMultiThreader.h>
 
 namespace anima
 {
@@ -114,7 +115,7 @@ protected:
         m_NoContour=false;
         m_Verbose=false;
         m_Tol = 0.0001;
-        this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
+        this->SetNumberOfWorkUnits(itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads());
     }
 
     virtual ~RemoveTouchingBorderFilter()

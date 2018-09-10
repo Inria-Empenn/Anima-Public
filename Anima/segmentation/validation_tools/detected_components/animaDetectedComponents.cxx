@@ -31,7 +31,7 @@ int main(int argc, char * *argv)
     TCLAP::ValueArg <double> betaArg("b", "beta", "Beta threshold (in between 0 and 1, default: 0.7)", false, 0.7, "beta threshold", cmd);
 
     TCLAP::ValueArg <unsigned int> minVolumeArg("m", "min-vol", "Minimal volume for the component to be considered (default: 3 mm3)", false, 3, "minimal volume", cmd);
-    TCLAP::ValueArg <unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg <unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     TCLAP::SwitchArg fullConnectArg("F","full-connect","Use 26-connectivity instead of 6-connectivity",cmd,false);
 
@@ -57,7 +57,7 @@ int main(int argc, char * *argv)
     CCFilterType::Pointer refCCFilter = CCFilterType::New();
     refCCFilter->SetInput(refSegmentation);
     refCCFilter->SetFullyConnected(fullConnectArg.isSet());
-    refCCFilter->SetNumberOfThreads(nbpArg.getValue());
+    refCCFilter->SetNumberOfWorkUnits(nbpArg.getValue());
     refCCFilter->Update();
 
     ImageType::SpacingType spacing = refSegmentation->GetSpacing();
@@ -72,7 +72,7 @@ int main(int argc, char * *argv)
     RelabelComponentFilterType::Pointer relabelRefFilter = RelabelComponentFilterType::New();
     relabelRefFilter->SetInput(refCCFilter->GetOutput());
     relabelRefFilter->SetMinimumObjectSize(minSizeInVoxel);
-    relabelRefFilter->SetNumberOfThreads(nbpArg.getValue());
+    relabelRefFilter->SetNumberOfWorkUnits(nbpArg.getValue());
     relabelRefFilter->Update();
 
     // Reference segmentation is now labeled per connected objects
@@ -82,14 +82,14 @@ int main(int argc, char * *argv)
     CCFilterType::Pointer testCCFilter = CCFilterType::New();
     testCCFilter->SetInput(testSegmentation);
     testCCFilter->SetFullyConnected(fullConnectArg.isSet());
-    testCCFilter->SetNumberOfThreads(nbpArg.getValue());
+    testCCFilter->SetNumberOfWorkUnits(nbpArg.getValue());
     testCCFilter->Update();
 
     // Remove too small test objects
     RelabelComponentFilterType::Pointer relabelTestFilter = RelabelComponentFilterType::New();
     relabelTestFilter->SetInput(testCCFilter->GetOutput());
     relabelTestFilter->SetMinimumObjectSize(minSizeInVoxel);
-    relabelTestFilter->SetNumberOfThreads(nbpArg.getValue());
+    relabelTestFilter->SetNumberOfWorkUnits(nbpArg.getValue());
     relabelTestFilter->Update();
 
     // Test segmentation is now labeled per connected objects

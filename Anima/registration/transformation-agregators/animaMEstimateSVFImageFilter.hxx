@@ -51,7 +51,7 @@ BeforeThreadedGenerateData ()
 
     weightSmooth->SetInput(tmpWeights);
     weightSmooth->SetSigma(m_FluidSigma);
-    weightSmooth->SetNumberOfThreads(this->GetNumberOfThreads());
+    weightSmooth->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
     weightSmooth->Update();
 
@@ -60,7 +60,7 @@ BeforeThreadedGenerateData ()
 
     fieldSmooth->SetInput(this->GetInput());
     fieldSmooth->SetSigma(m_FluidSigma);
-    fieldSmooth->SetNumberOfThreads(this->GetNumberOfThreads());
+    fieldSmooth->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
     fieldSmooth->Update();
 

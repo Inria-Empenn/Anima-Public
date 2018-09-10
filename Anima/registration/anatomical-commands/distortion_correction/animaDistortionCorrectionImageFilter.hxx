@@ -178,7 +178,7 @@ void DistortionCorrectionImageFilter < TInputImage >
         
         typename SmoothingFilterType::Pointer fieldSmoother = SmoothingFilterType::New();
         fieldSmoother->SetInput(this->GetOutput());
-        fieldSmoother->SetNumberOfThreads(this->GetNumberOfThreads());
+        fieldSmoother->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
         fieldSmoother->SetSigma(m_FieldSmoothingSigma);
         
         fieldSmoother->Update();

@@ -55,7 +55,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::PyramidalDisto
     m_NumberOfPyramidLevels = 3;
     m_LastPyramidLevel = 0;
     m_PercentageKept = 0.8;
-    this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
+    this->SetNumberOfWorkUnits(itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads());
 }
 
 template <unsigned int ImageDimension>
@@ -157,7 +157,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
         // Init matcher
         typename BlockMatchRegistrationType::Pointer bmreg = BlockMatchRegistrationType::New();
 
-        bmreg->SetNumberOfThreads(this->GetNumberOfThreads());
+        bmreg->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
         
         typedef anima::ResampleImageFilter<InputImageType, InputImageType,
                                          typename BaseAgregatorType::ScalarType> ResampleFilterType;
@@ -168,7 +168,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
         refResampler->SetOutputSpacing(forwardImage->GetSpacing());
         refResampler->SetOutputDirection(forwardImage->GetDirection());
         refResampler->SetDefaultPixelValue(0);
-        refResampler->SetNumberOfThreads(GetNumberOfThreads());
+        refResampler->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
         refResampler->SetScaleIntensitiesWithJacobian(true);
         bmreg->SetReferenceImageResampler(refResampler);
 
@@ -178,7 +178,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
         movingResampler->SetOutputSpacing(backwardImage->GetSpacing());
         movingResampler->SetOutputDirection(backwardImage->GetDirection());
         movingResampler->SetDefaultPixelValue(0);
-        movingResampler->SetNumberOfThreads(GetNumberOfThreads());
+        movingResampler->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
         movingResampler->SetScaleIntensitiesWithJacobian(true);
         bmreg->SetMovingImageResampler(movingResampler);
 
@@ -206,7 +206,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
             agreg->SetOutlierRejectionSigma(m_OutlierSigma);
             agreg->SetOutputTransformType(BaseAgregatorType::SVF);
             
-            agreg->SetNumberOfThreads(this->GetNumberOfThreads());
+            agreg->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
             agreg->SetGeometryInformation(backwardImage.GetPointer());
             
             agreg->SetNeighborhoodHalfSize((unsigned int)floor(m_ExtrapolationSigma * m_NeighborhoodApproximation));
@@ -222,7 +222,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
             agreg->SetOutlierRejectionSigma(m_OutlierSigma);
             agreg->SetOutputTransformType(BaseAgregatorType::SVF);
             
-            agreg->SetNumberOfThreads(this->GetNumberOfThreads());
+            agreg->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
             agreg->SetGeometryInformation(backwardImage.GetPointer());
             
             agregPtr = agreg;
@@ -253,7 +253,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
         mainMatcher->SetTranslateMax(m_TranlateUpperBound);
         mainMatcher->SetScaleMax(m_ScaleUpperBound);
         mainMatcher->SetSkewMax(m_SkewUpperBound);
-        mainMatcher->SetNumberOfThreads(GetNumberOfThreads());
+        mainMatcher->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
 
         bmreg->Update();
 
@@ -295,7 +295,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
     typename MultiplyFilterType::Pointer multiplyFilter = MultiplyFilterType::New();
     multiplyFilter->SetInput(m_OutputTransform->GetParametersAsVectorField());
     multiplyFilter->SetConstant(-1.0);
-    multiplyFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    multiplyFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     
     multiplyFilter->Update();
 
@@ -303,7 +303,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
     
     if (m_InitialTransform)
         anima::composeDistortionCorrections<typename BaseAgregatorType::ScalarType,ImageDimension>
-                (m_InitialTransform,m_OutputTransform,oppositeTransform,this->GetNumberOfThreads());
+                (m_InitialTransform,m_OutputTransform,oppositeTransform,this->GetNumberOfWorkUnits());
     
     typename ResampleFilterType::Pointer tmpResampleFloating = ResampleFilterType::New();
     tmpResampleFloating->SetTransform(m_OutputTransform);
@@ -315,7 +315,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
     tmpResampleFloating->SetOutputDirection(m_BackwardImage->GetDirection());
     tmpResampleFloating->SetDefaultPixelValue(0);
     tmpResampleFloating->SetScaleIntensitiesWithJacobian(true);
-    tmpResampleFloating->SetNumberOfThreads(this->GetNumberOfThreads());
+    tmpResampleFloating->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     tmpResampleFloating->Update();
     
     typename ResampleFilterType::Pointer tmpResampleReference = ResampleFilterType::New();
@@ -328,7 +328,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
     tmpResampleReference->SetOutputDirection(m_BackwardImage->GetDirection());
     tmpResampleReference->SetDefaultPixelValue(0);
     tmpResampleReference->SetScaleIntensitiesWithJacobian(true);
-    tmpResampleReference->SetNumberOfThreads(this->GetNumberOfThreads());
+    tmpResampleReference->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     
     tmpResampleReference->Update();
     
@@ -336,7 +336,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
     typename AddFilterType::Pointer addFilter = AddFilterType::New();
     addFilter->SetInput1(tmpResampleFloating->GetOutput());
     addFilter->SetInput2(tmpResampleReference->GetOutput());
-    addFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    addFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     
     addFilter->Update();
     
@@ -344,7 +344,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
     typename MultiplyScalarFilterType::Pointer multiplyScalarFilter = MultiplyScalarFilterType::New();
     multiplyScalarFilter->SetInput(addFilter->GetOutput());
     multiplyScalarFilter->SetConstant(0.5);
-    multiplyScalarFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    multiplyScalarFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     multiplyScalarFilter->InPlaceOn();
     
     multiplyScalarFilter->Update();
@@ -376,7 +376,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::SetupPyramids(
 
     m_BackwardPyramid->SetInput(m_BackwardImage);
     m_BackwardPyramid->SetNumberOfLevels(m_NumberOfPyramidLevels);
-    m_BackwardPyramid->SetNumberOfThreads(this->GetNumberOfThreads());
+    m_BackwardPyramid->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
     typedef typename anima::ResampleImageFilter<InputImageType, InputImageType,
             typename BaseAgregatorType::ScalarType> ResampleFilterType;
@@ -391,7 +391,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::SetupPyramids(
 
     m_ForwardPyramid->SetInput(m_ForwardImage);
     m_ForwardPyramid->SetNumberOfLevels(m_NumberOfPyramidLevels);
-    m_ForwardPyramid->SetNumberOfThreads(this->GetNumberOfThreads());
+    m_ForwardPyramid->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
     typename ResampleFilterType::Pointer forwardResampler = ResampleFilterType::New();
     m_ForwardPyramid->SetImageResampler(forwardResampler);

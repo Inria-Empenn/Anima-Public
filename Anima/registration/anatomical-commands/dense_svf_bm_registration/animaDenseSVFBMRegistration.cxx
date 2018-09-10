@@ -119,7 +119,7 @@ int main(int argc, const char** argv)
         matcher->SetBlockGenerationMask(anima::readImage<PyramidBMType::MaskImageType>(blockMaskArg.getValue()));
 
     if (numThreadsArg.getValue() != 0)
-        matcher->SetNumberOfThreads( numThreadsArg.getValue() );
+        matcher->SetNumberOfWorkUnits( numThreadsArg.getValue() );
 
     matcher->SetPercentageKept( percentageKeptArg.getValue() );
 

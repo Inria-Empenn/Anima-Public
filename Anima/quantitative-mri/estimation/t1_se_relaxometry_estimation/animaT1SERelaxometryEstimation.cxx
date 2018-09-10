@@ -21,7 +21,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> trArg("","tr","Text file listing repetition times for input images",true,"","repetition times list",cmd);
     TCLAP::ValueArg<double> backgroundSignalThresholdArg("t","signal-thr","Background signal threshold (default: 10)",false,10,"Background signal threshold",cmd);
     
-    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 	
     TCLAP::ValueArg<unsigned int> numOptimizerIterArg("","opt-iter","Maximal number of optimizer iterations (default: 200)",false,200,"Maximal number of optimizer iterations",cmd);
     TCLAP::ValueArg<double> optimizerStopConditionArg("","opt-stop","Optimizer stopping threshold (default: 1.0e-4)",false,1.0e-4,"Optimizer stopping threshold",cmd);
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
     }
     
     mainFilter->SetAverageSignalThreshold(backgroundSignalThresholdArg.getValue());
-    mainFilter->SetNumberOfThreads(nbpArg.getValue());
+    mainFilter->SetNumberOfWorkUnits(nbpArg.getValue());
     
     itk::TimeProbe tmpTime;
     tmpTime.Start();

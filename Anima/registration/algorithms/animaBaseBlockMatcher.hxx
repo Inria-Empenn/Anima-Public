@@ -14,7 +14,7 @@ BaseBlockMatcher <TInputImageType>
 ::BaseBlockMatcher()
 {
     m_ForceComputeBlocks = false;
-    m_NumberOfThreads = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
+    m_NumberOfThreads = itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
 
     m_BlockPercentageKept = 0.8;
     m_BlockSize = 5;
@@ -150,7 +150,7 @@ BaseBlockMatcher <TInputImageType>
     ThreadedMatchData *tmpStr = new ThreadedMatchData;
     tmpStr->BlockMatch = this;
 
-    threadWorker->SetNumberOfThreads(m_NumberOfThreads);
+    threadWorker->SetNumberOfWorkUnits(m_NumberOfThreads);
     threadWorker->SetSingleMethod(this->ThreadedMatching,tmpStr);
     threadWorker->SingleMethodExecute();
 
@@ -162,7 +162,7 @@ ITK_THREAD_RETURN_TYPE
 BaseBlockMatcher <TInputImageType>
 ::ThreadedMatching(void *arg)
 {
-    itk::MultiThreader::ThreadInfoStruct *threadArgs = (itk::MultiThreader::ThreadInfoStruct *)arg;
+    itk::MultiThreader::WorkUnitInfo *threadArgs = (itk::MultiThreader::WorkUnitInfo *)arg;
     ThreadedMatchData* data = (ThreadedMatchData *)threadArgs->UserData;
 
     data->BlockMatch->ProcessBlockMatch();

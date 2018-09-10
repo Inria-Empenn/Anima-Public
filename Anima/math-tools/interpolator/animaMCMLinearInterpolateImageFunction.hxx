@@ -37,7 +37,7 @@ MCMLinearInterpolateImageFunction< TInputImage, TCoordRep >
             this->TestModelsAdequation(model,m_MCMAveragers[0]->GetUntouchedOutputModel());
     }
 
-    unsigned int numThreads = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
+    unsigned int numThreads = itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
     m_ReferenceInputModels.resize(numThreads);
     m_ReferenceInputWeights.resize(numThreads);
     for (unsigned int i = 0;i < numThreads;++i)
@@ -66,7 +66,7 @@ void
 MCMLinearInterpolateImageFunction< TInputImage, TCoordRep >
 ::ResetAveragePointers(MCModelPointer &model)
 {
-    unsigned int numThreads = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
+    unsigned int numThreads = itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
     m_MCMAveragers.resize(numThreads);
 
     for (unsigned int i = 0;i < numThreads;++i)

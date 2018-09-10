@@ -58,7 +58,7 @@ int main(int ac, const char** av)
     TCLAP::SwitchArg reverseFieldArg("R","reverse","If set, apply the opposite of the input field to the forward image",cmd,false);
     TCLAP::SwitchArg inverseFieldArg("I","invert","If set, invert the input field (after reverting if R option is on)",cmd,false);
 
-    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
     
     try
     {
@@ -95,7 +95,7 @@ int main(int ac, const char** av)
         MultiplierFilterType::Pointer vectorMultiplier = MultiplierFilterType::New();
         vectorMultiplier->SetInput(appliedField);
         vectorMultiplier->SetConstant(-1.0);
-        vectorMultiplier->SetNumberOfThreads(nbpArg.getValue());
+        vectorMultiplier->SetNumberOfWorkUnits(nbpArg.getValue());
         vectorMultiplier->Update();
         vectorMultiplier->InPlaceOn();
         
@@ -112,7 +112,7 @@ int main(int ac, const char** av)
         fieldInverter->SetSize(appliedField->GetLargestPossibleRegion().GetSize());
         fieldInverter->SetOutputOrigin(appliedField->GetOrigin());
         fieldInverter->SetOutputSpacing(appliedField->GetSpacing());
-        fieldInverter->SetNumberOfThreads(nbpArg.getValue());
+        fieldInverter->SetNumberOfWorkUnits(nbpArg.getValue());
         fieldInverter->Update();
         
         appliedField = fieldInverter->GetOutput();
@@ -137,7 +137,7 @@ int main(int ac, const char** av)
         MultiplierFilterType::Pointer vectorMultiplier = MultiplierFilterType::New();
         vectorMultiplier->SetInput(trsf->GetParametersAsVectorField());
         vectorMultiplier->SetConstant(-1.0);
-        vectorMultiplier->SetNumberOfThreads(nbpArg.getValue());
+        vectorMultiplier->SetNumberOfWorkUnits(nbpArg.getValue());
         vectorMultiplier->Update();
         
         VectorFieldType::Pointer oppositeField = vectorMultiplier->GetOutput();
@@ -177,7 +177,7 @@ int main(int ac, const char** av)
         
         ResampleFilterType::Pointer forwardResampler = ResampleFilterType::New();
         forwardResampler->SetInput(forwardExtractor->GetOutput());
-        forwardResampler->SetNumberOfThreads(nbpArg.getValue());
+        forwardResampler->SetNumberOfWorkUnits(nbpArg.getValue());
         forwardResampler->SetTransform(trsf);
         
         forwardResampler->SetSize(forwardExtractor->GetOutput()->GetLargestPossibleRegion().GetSize());
@@ -200,7 +200,7 @@ int main(int ac, const char** av)
             
             ResampleFilterType::Pointer backwardResampler = ResampleFilterType::New();
             backwardResampler->SetInput(backwardExtractor->GetOutput());
-            backwardResampler->SetNumberOfThreads(nbpArg.getValue());
+            backwardResampler->SetNumberOfWorkUnits(nbpArg.getValue());
             backwardResampler->SetTransform(oppositeTransform);
             
             backwardResampler->SetSize(backwardExtractor->GetOutput()->GetLargestPossibleRegion().GetSize());
@@ -216,7 +216,7 @@ int main(int ac, const char** av)
             AddFilterType::Pointer outputAdder = AddFilterType::New();
             outputAdder->SetInput1(outputSingleImage);
             outputAdder->SetInput2(backwardResampler->GetOutput());
-            outputAdder->SetNumberOfThreads(nbpArg.getValue());
+            outputAdder->SetNumberOfWorkUnits(nbpArg.getValue());
             outputAdder->Update();
             outputAdder->InPlaceOn();
             
@@ -224,7 +224,7 @@ int main(int ac, const char** av)
             MultiplierFilterType::Pointer outputMultiplier = MultiplierFilterType::New();
             outputMultiplier->SetInput(outputAdder->GetOutput());
             outputMultiplier->SetConstant(0.5);
-            outputMultiplier->SetNumberOfThreads(nbpArg.getValue());
+            outputMultiplier->SetNumberOfWorkUnits(nbpArg.getValue());
             outputMultiplier->Update();
             outputMultiplier->InPlaceOn();
             

@@ -95,20 +95,20 @@ BaseProbabilisticTractographyImageFilter <TInputModelImageType>
 
     trackerArguments tmpStr;
     tmpStr.trackerPtr = this;
-    tmpStr.resultFibersFromThreads.resize(this->GetNumberOfThreads());
-    tmpStr.resultWeightsFromThreads.resize(this->GetNumberOfThreads());
+    tmpStr.resultFibersFromThreads.resize(this->GetNumberOfWorkUnits());
+    tmpStr.resultWeightsFromThreads.resize(this->GetNumberOfWorkUnits());
 
-    for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
+    for (unsigned int i = 0;i < this->GetNumberOfWorkUnits();++i)
     {
         tmpStr.resultFibersFromThreads[i] = resultFibers;
         tmpStr.resultWeightsFromThreads[i] = resultWeights;
     }
 
-    this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
+    this->GetMultiThreader()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     this->GetMultiThreader()->SetSingleMethod(this->ThreadTracker,&tmpStr);
     this->GetMultiThreader()->SingleMethodExecute();
 
-    for (unsigned int j = 0;j < this->GetNumberOfThreads();++j)
+    for (unsigned int j = 0;j < this->GetNumberOfWorkUnits();++j)
     {
         resultFibers.insert(resultFibers.end(),tmpStr.resultFibersFromThreads[j].begin(),tmpStr.resultFibersFromThreads[j].end());
         resultWeights.insert(resultWeights.end(),tmpStr.resultWeightsFromThreads[j].begin(),tmpStr.resultWeightsFromThreads[j].end());
@@ -136,11 +136,11 @@ BaseProbabilisticTractographyImageFilter <TInputModelImageType>
     m_NoiseInterpolator->SetInputImage(m_NoiseImage);
 
     // Initialize random generator
-    m_Generators.resize(this->GetNumberOfThreads());
+    m_Generators.resize(this->GetNumberOfWorkUnits());
 
     std::mt19937 motherGenerator(time(0));
 
-    for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
+    for (unsigned int i = 0;i < this->GetNumberOfWorkUnits();++i)
         m_Generators[i] = std::mt19937(motherGenerator());
 
     bool is2d = m_InputModelImage->GetLargestPossibleRegion().GetSize()[2] == 1;
@@ -269,8 +269,8 @@ ITK_THREAD_RETURN_TYPE
 BaseProbabilisticTractographyImageFilter <TInputModelImageType>
 ::ThreadTracker(void *arg)
 {
-    itk::MultiThreader::ThreadInfoStruct *threadArgs = (itk::MultiThreader::ThreadInfoStruct *)arg;
-    unsigned int nbThread = threadArgs->ThreadID;
+    itk::MultiThreader::WorkUnitInfo *threadArgs = (itk::MultiThreader::WorkUnitInfo *)arg;
+    unsigned int nbThread = threadArgs->WorkUnitID;
 
     trackerArguments *tmpArg = (trackerArguments *)threadArgs->UserData;
     tmpArg->trackerPtr->ThreadTrack(nbThread,tmpArg->resultFibersFromThreads[nbThread],tmpArg->resultWeightsFromThreads[nbThread]);

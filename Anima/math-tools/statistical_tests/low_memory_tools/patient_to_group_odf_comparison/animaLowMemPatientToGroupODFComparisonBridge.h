@@ -38,7 +38,7 @@ public:
     void SetOutputPValName(std::string &pref) {m_OutputPValName = pref;}
 
     void SetNbSplits(unsigned int nbSplits) {m_NbSplits = nbSplits;}
-    void SetNumberOfThreads(unsigned int &nbT) {m_NumThreads = nbT;}
+    void SetNumberOfWorkUnits(unsigned int &nbT) {m_NumThreads = nbT;}
 
     void SetStatisticalTestType(TestType type) {m_StatisticalTestType = type;}
     void SetExplainedRatio(double eRatio) {m_ExplainedRatio = eRatio;}
