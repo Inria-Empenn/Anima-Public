@@ -29,6 +29,7 @@ void
 MaskedImageToImageFilter < TInputImage, TOutputImage >
 ::BeforeThreadedGenerateData()
 {
+    this->CheckComputationMask();
     Superclass::BeforeThreadedGenerateData();
 
     // Since image requested region may now be smaller than the image, fill the outputs with zeros

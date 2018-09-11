@@ -23,16 +23,12 @@ MeanAndVarianceImagesFilter<TInputImage, TOutputImage>
 template< class TInputImage, class TOutputImage>
 void
 MeanAndVarianceImagesFilter< TInputImage, TOutputImage>
-::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                       itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType& outputRegionForThread)
 {
     // Allocate output
     typename OutputImageType::Pointer output1 = this->GetOutput(0);
     typename OutputImageType::Pointer output2 = this->GetOutput(1);
     typename InputImageType::ConstPointer input  = this->GetInput();
-
-    // support progress methods/callbacks
-    itk::ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
 
     double sum, var;
 
@@ -62,7 +58,6 @@ MeanAndVarianceImagesFilter< TInputImage, TOutputImage>
         ++bit;
         ++it1;
         ++it2;
-        progress.CompletedPixel();
     }
 }
 

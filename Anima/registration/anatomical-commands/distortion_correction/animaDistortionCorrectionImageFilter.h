@@ -4,7 +4,6 @@
 #include <itkImageToImageFilter.h>
 #include <itkVectorContainer.h>
 #include <itkVectorImage.h>
-#include <itkImageRegionSplitterDirection.h>
 
 namespace anima
 {
@@ -44,11 +43,10 @@ protected:
 
     void GenerateOutputInformation() ITK_OVERRIDE;
 
+    void GenerateData() ITK_OVERRIDE;
     void BeforeThreadedGenerateData() ITK_OVERRIDE;
-    void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
+    void DynamicThreadedGenerateData(const OutputImageRegionType& outputRegionForThread) ITK_OVERRIDE;
     void AfterThreadedGenerateData() ITK_OVERRIDE;
-
-    virtual const itk::ImageRegionSplitterBase* GetImageRegionSplitter() const ITK_OVERRIDE;
 
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(DistortionCorrectionImageFilter);
@@ -56,7 +54,6 @@ private:
     unsigned int m_Direction;
     double m_FieldSmoothingSigma;
 
-    itk::ImageRegionSplitterDirection::Pointer m_ImageRegionSplitter;
     MatrixType m_ReferenceGeometry;
 };
 

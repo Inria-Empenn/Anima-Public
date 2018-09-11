@@ -2,7 +2,6 @@
 #include "animaSegmentationMeasuresImageFilter.h"
 
 #include "itkImageRegionConstIterator.h"
-#include "itkProgressReporter.h"
 
 namespace anima
 {
@@ -39,6 +38,8 @@ SegmentationMeasuresImageFilter<TLabelImage>
     {
         m_fNbOfPixels = poImgIn->GetLargestPossibleRegion().GetNumberOfPixels();
     }
+
+    Superclass::BeforeThreadedGenerateData();
 }
 
 template<typename TLabelImage>
@@ -76,11 +77,12 @@ SegmentationMeasuresImageFilter<TLabelImage>
 template<typename TLabelImage>
 void
 SegmentationMeasuresImageFilter<TLabelImage>
-::ThreadedGenerateData(const RegionType& outputRegionForThread,
-                       itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const RegionType& outputRegionForThread)
 {
     itk::ImageRegionConstIterator<LabelImageType> itS(this->GetSourceImage(), outputRegionForThread);
     itk::ImageRegionConstIterator<LabelImageType> itT(this->GetTargetImage(), outputRegionForThread);
+
+    unsigned int threadId = this->GetSafeThreadId();
 
     // support progress methods/callbacks
     for (itS.GoToBegin(), itT.GoToBegin(); !itS.IsAtEnd(); ++itS, ++itT)
@@ -119,6 +121,8 @@ SegmentationMeasuresImageFilter<TLabelImage>
         if(sourceLabel ==  0 && targetLabel == 0)
             m_LabelSetMeasuresPerThread[threadId][sourceLabel].m_TrueNegative++;
     }
+
+    this->SafeReleaseThreadId(threadId);
 }
 
 template<typename TLabelImage>

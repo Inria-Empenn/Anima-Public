@@ -129,8 +129,7 @@ StimulatedSpinEchoImageFilter <TImage,TOutputImage>
 
 template <class TImage, class TOutputImage>
 void StimulatedSpinEchoImageFilter <TImage,TOutputImage>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread,
-                       itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typename TImage::ConstPointer T1 = this->GetInput(0);
     typename TImage::ConstPointer T2 = this->GetInput(1);

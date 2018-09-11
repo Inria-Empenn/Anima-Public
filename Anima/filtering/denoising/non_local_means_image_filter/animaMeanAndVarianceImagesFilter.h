@@ -81,18 +81,7 @@ protected:
     virtual ~MeanAndVarianceImagesFilter() {}
     void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
 
-    /** MeanAndVarianceImagesFilter can be implemented as a multithreaded filter.
-     * Therefore, this implementation provides a ThreadedGenerateData()
-     * routine which is called for each processing thread. The output
-     * image data is allocated automatically by the superclass prior to
-     * calling ThreadedGenerateData().  ThreadedGenerateData can only
-     * write to the portion of the output image specified by the
-     * parameter "outputRegionForThread"
-     *
-     * \sa ImageToImageFilter::ThreadedGenerateData(),
-     *     ImageToImageFilter::GenerateData() */
-    void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                              itk::ThreadIdType threadId) ITK_OVERRIDE;
+    void DynamicThreadedGenerateData(const OutputImageRegionType& outputRegionForThread) ITK_OVERRIDE;
 
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(MeanAndVarianceImagesFilter);

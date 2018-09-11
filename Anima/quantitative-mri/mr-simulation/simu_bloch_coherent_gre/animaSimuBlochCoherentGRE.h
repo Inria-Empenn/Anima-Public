@@ -49,8 +49,7 @@ protected:
     virtual ~SimuBlochCoherentGRE(){}
 
     /** Does the real work. */
-    virtual void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread,
-                                      itk::ThreadIdType threadId) ITK_OVERRIDE;
+    virtual void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
 
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(SimuBlochCoherentGRE);

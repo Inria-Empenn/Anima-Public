@@ -65,7 +65,7 @@ protected:
     }
 
     void BeforeThreadedGenerateData() ITK_OVERRIDE;
-    void ThreadedGenerateData(const InputRegionType &region, itk::ThreadIdType threadId) ITK_OVERRIDE;
+    void DynamicThreadedGenerateData(const InputRegionType &region) ITK_OVERRIDE;
     virtual MCMAveragerPointer CreateAverager();
 
 private:

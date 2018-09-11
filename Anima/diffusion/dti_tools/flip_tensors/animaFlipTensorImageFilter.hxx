@@ -23,8 +23,7 @@ FlipTensorImageFilter<TPixelType,TImageDimension>
 template <class TPixelType, unsigned int TImageDimension>
 void
 FlipTensorImageFilter<TPixelType,TImageDimension>
-::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                       itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType& outputRegionForThread)
 {
     itk::ImageRegionConstIterator<InputImageType> inItr(this->GetInput(), outputRegionForThread);
     itk::ImageRegionConstIterator<MaskImageType> maskItr(this->GetComputationMask(), outputRegionForThread);

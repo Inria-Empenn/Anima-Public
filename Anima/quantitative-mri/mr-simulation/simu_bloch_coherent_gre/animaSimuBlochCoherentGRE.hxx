@@ -1,37 +1,3 @@
-/**
- * SimuBlochCoherentGRE
- * Version 0.3
- *
- * Description: A MRI simulator for the sequence of the Coherent or Partially Refocused (Rewound) Gradient Echo sequence (FISP, GRASS, FFE, FAST)
- *
- * Filename: SimuBlochCoherentGRE.txx
- *
- * Libraries: This source file uses the open source library ITK 3.0
- * that is available through the following URI:
- * http://www.itk.org/
- * and the open source library TCLAP:
- * http://tclap.sourceforge.net/
- *
- *
- * @category   SimuBloch
- * @package    SimuBlochCoherentGRE
- * @author     F. Cao <fang.cao@inria.fr>
- * @author     O. Commowick <Olivier.Commowick@inria.fr>
- * @copyright  INRIA Rennes - Bretagne Atlantique, VISAGES Team
- * @version    0.3
- *
- * Compile:    Install ITK
- *             Install TCLAP
- *             $Cmake
- *             $make
- *             (See readme for more information)
- *
- * Example:    $./SimuBlochCoherentGRE  --t1 ./SampleData/T1.nii.gz --t2 ./SampleData/T2.nii.gz --t2s ./SampleData/T2s.nii.gz --m0 ./SampleData/M0.nii.gz -o testing_CoherentGRE_T2sW.nii.gz --tr 40 --te 15 --fa 25
- *             (See readme for more information)
- *
- * Date:       Nov 16, 2012
- */
-
 #pragma once
 #include "animaSimuBlochCoherentGRE.h"
 
@@ -75,8 +41,7 @@ void SimuBlochCoherentGRE<TImage>::SetInputT2(const TImage* T2)//changed for Coh
 template< class TImage>//changed for CoherentGRE
 
 void SimuBlochCoherentGRE< TImage>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread,
-                       itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typename TImage::ConstPointer T1 = this->GetInput(0);
     typename TImage::ConstPointer T2s = this->GetInput(1);

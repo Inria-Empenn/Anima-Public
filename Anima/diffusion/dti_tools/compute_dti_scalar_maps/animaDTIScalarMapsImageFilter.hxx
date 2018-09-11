@@ -41,8 +41,8 @@ DTIScalarMapsImageFilter< ImageDimension >::MakeOutput(itk::ProcessObject::DataO
 
 template < unsigned int ImageDimension>
 void
-DTIScalarMapsImageFilter< ImageDimension >::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                       itk::ThreadIdType threadId)
+DTIScalarMapsImageFilter< ImageDimension >
+::DynamicThreadedGenerateData(const OutputImageRegionType& outputRegionForThread)
 {
     itk::ImageRegionConstIterator<TensorImageType> tensorIterator;
     itk::ImageRegionIterator<ADCImageType> adcIterator;
@@ -50,9 +50,6 @@ DTIScalarMapsImageFilter< ImageDimension >::ThreadedGenerateData(const OutputIma
     // Allocate output
     typename  InputImageType::ConstPointer tensorImage  = this->GetInput();
     typename ADCImageType::Pointer adcImage = this->GetOutput(0);
-
-    // support progress methods/callbacks
-    itk::ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
 
     TensorImageRegionType tensorRegionForThread;
     tensorRegionForThread.SetIndex(outputRegionForThread.GetIndex());
@@ -118,7 +115,6 @@ DTIScalarMapsImageFilter< ImageDimension >::ThreadedGenerateData(const OutputIma
         ++faIterator;
         ++axialIterator;
         ++radialIterator;
-        progress.CompletedPixel();
     }
 }
 

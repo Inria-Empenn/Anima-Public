@@ -20,8 +20,6 @@ RecursiveLineYvvGaussianImageFilter<TInputImage,TOutputImage>
     this->SetNumberOfRequiredInputs( 1 );
 
     this->InPlaceOff();
-
-    m_ImageRegionSplitter = itk::ImageRegionSplitterDirection::New();
 }
 
 /**
@@ -168,16 +166,6 @@ RecursiveLineYvvGaussianImageFilter<TInputImage,TOutputImage>
     }
 }
 
-
-template <typename TInputImage, typename TOutputImage>
-const itk::ImageRegionSplitterBase *
-RecursiveLineYvvGaussianImageFilter<TInputImage,TOutputImage>
-::GetImageRegionSplitter(void) const
-{
-    return this->m_ImageRegionSplitter;
-}
-
-
 template <typename TInputImage, typename TOutputImage>
 void
 RecursiveLineYvvGaussianImageFilter<TInputImage,TOutputImage>
@@ -196,8 +184,6 @@ RecursiveLineYvvGaussianImageFilter<TInputImage,TOutputImage>
     }
 
     const typename InputImageType::SpacingType & pixelSize = inputImage->GetSpacing();
-
-    this->m_ImageRegionSplitter->SetDirection(m_Direction);
     this->SetUp(pixelSize[m_Direction]);
 
     RegionType region = outputImage->GetRequestedRegion();
@@ -210,6 +196,22 @@ RecursiveLineYvvGaussianImageFilter<TInputImage,TOutputImage>
     }
 }
 
+template <typename TInputImage, typename TOutputImage>
+void
+RecursiveLineYvvGaussianImageFilter<TInputImage,TOutputImage>
+::GenerateData()
+{
+    this->AllocateOutputs();
+    this->BeforeThreadedGenerateData();
+
+    using RegionType = itk::ImageRegion <TInputImage::ImageDimension>;
+    typename TOutputImage::Pointer outputImage(this->GetOutput());
+    const RegionType region = outputImage->GetRequestedRegion();
+
+    this->GetMultiThreader()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
+    this->GetMultiThreader()->template ParallelizeImageRegionRestrictDirection<TOutputImage::ImageDimension>(
+                this->m_Direction, region, [this](const RegionType & lambdaRegion) { this->DynamicThreadedGenerateData(lambdaRegion); }, this);
+}
 
 /**
  * Compute Recursive filter
@@ -218,7 +220,7 @@ RecursiveLineYvvGaussianImageFilter<TInputImage,TOutputImage>
 template <typename TInputImage, typename TOutputImage>
 void
 RecursiveLineYvvGaussianImageFilter<TInputImage,TOutputImage>
-::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType& outputRegionForThread)
 {
     typedef typename TOutputImage::PixelType  OutputPixelType;
 
@@ -253,9 +255,6 @@ RecursiveLineYvvGaussianImageFilter<TInputImage,TOutputImage>
         inputIterator.GoToBegin();
         outputIterator.GoToBegin();
 
-        const unsigned int numberOfLinesToProcess = outputRegionForThread.GetNumberOfPixels() / outputRegionForThread.GetSize(this->m_Direction);
-        itk::ProgressReporter progress(this, threadId, numberOfLinesToProcess, 10 );
-
         while( !inputIterator.IsAtEnd() && !outputIterator.IsAtEnd() )
         {
             unsigned int i=0;
@@ -276,10 +275,6 @@ RecursiveLineYvvGaussianImageFilter<TInputImage,TOutputImage>
 
             inputIterator.NextLine();
             outputIterator.NextLine();
-
-            // Although the method name is CompletedPixel(),
-            // this is being called after each line is processed
-            progress.CompletedPixel();
         }
     }
     catch( itk::ProcessAborted  & )
