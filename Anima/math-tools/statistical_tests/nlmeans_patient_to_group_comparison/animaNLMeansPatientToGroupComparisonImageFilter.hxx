@@ -126,6 +126,7 @@ NLMeansPatientToGroupComparisonImageFilter<PixelScalarType>
         outScoreIterator.Set(diffScore);
         outNumPatchesIterator.Set(databaseSamples.size());
 
+        this->IncrementNumberOfProcessedPoints();
         ++outIterator;
         ++outScoreIterator;
         ++outNumPatchesIterator;

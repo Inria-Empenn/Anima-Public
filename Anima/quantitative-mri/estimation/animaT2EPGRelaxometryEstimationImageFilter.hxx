@@ -204,6 +204,7 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
         outM0Iterator.Set(cost->GetM0Value());
         outB1Iterator.Set(b1Value);
 
+        this->IncrementNumberOfProcessedPoints();
         ++maskItr;
         ++outT2Iterator;
         ++outM0Iterator;

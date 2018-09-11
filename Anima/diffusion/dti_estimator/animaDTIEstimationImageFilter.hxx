@@ -305,6 +305,7 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
                 ++outIterator;
                 ++outB0Iterator;
                 ++outVarianceIterator;
+                this->IncrementNumberOfProcessedPoints();
 
                 continue;
             }
@@ -327,6 +328,7 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
         for (unsigned int i = 0;i < numInputs;++i)
             ++inIterators[i];
 
+        this->IncrementNumberOfProcessedPoints();
         ++maskIterator;
         ++outIterator;
         ++outB0Iterator;

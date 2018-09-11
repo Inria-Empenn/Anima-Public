@@ -189,6 +189,7 @@ PatientToGroupComparisonImageFilter<PixelScalarType>
                 resValue *= -1;
         }
 
+        this->IncrementNumberOfProcessedPoints();
         outIterator.Set(resValue);
         ++outIterator;
         ++outPValIterator;

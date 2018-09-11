@@ -27,8 +27,13 @@ public:
     /** Run-time type information (and related methods) */
     itkTypeMacro(NumberedThreadImageToImageFilter, itk::ImageToImageFilter)
 
+    itkSetMacro(NumberOfPointsToProcess, unsigned int)
+
 protected:
-    NumberedThreadImageToImageFilter() {}
+    NumberedThreadImageToImageFilter()
+    {
+        m_NumberOfProcessedPoints = 0;
+    }
 
     virtual ~NumberedThreadImageToImageFilter() {}
 
@@ -37,11 +42,17 @@ protected:
     unsigned int GetSafeThreadId();
     void SafeReleaseThreadId(unsigned int threadId);
 
+    void IncrementNumberOfProcessedPoints();
+
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(NumberedThreadImageToImageFilter);
 
     itk::SimpleFastMutexLock m_LockThreadIdNumber;
     std::vector <unsigned int> m_ThreadIdsVector;
+
+    itk::SimpleFastMutexLock m_LockProcessedPoints;
+    unsigned int m_NumberOfProcessedPoints;
+    unsigned int m_NumberOfPointsToProcess;
 };
 
 } //end namespace anima

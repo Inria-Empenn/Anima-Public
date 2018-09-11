@@ -95,6 +95,7 @@ LocalPatchMeanDistanceImageFilter<PixelScalarType>
         outMeanIterator.Set(meanDist);
         outStdIterator.Set(std::sqrt(varDist));
 
+        this->IncrementNumberOfProcessedPoints();
         ++outMeanIterator;
         ++outStdIterator;
         ++maskIterator;

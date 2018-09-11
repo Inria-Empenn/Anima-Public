@@ -317,6 +317,7 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
         outB1Iterator.Set(b1Value);
         outSigmaSqIterator.Set(cost->GetSigmaSquare());
 
+        this->IncrementNumberOfProcessedPoints();
         ++maskItr;
         ++outWeightsIterator;
         ++outM0Iterator;

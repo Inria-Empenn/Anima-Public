@@ -5,7 +5,7 @@
 // gets integrated into the main directories.
 #include <itkConfigure.h>
 
-#include <itkImageToImageFilter.h>
+#include <animaNumberedThreadImageToImageFilter.h>
 #include <itkVectorImage.h>
 #include <itkImage.h>
 
@@ -21,8 +21,7 @@ namespace anima
  */
 template <unsigned int ImageDimension = 3>
 class DTIScalarMapsImageFilter :
-    public itk::ImageToImageFilter< itk::VectorImage <float, ImageDimension>,
-                                    itk::Image <float, ImageDimension> >
+    public anima::NumberedThreadImageToImageFilter < itk::VectorImage <float, ImageDimension>, itk::Image <float, ImageDimension> >
 {
 public:
 
@@ -41,16 +40,16 @@ public:
 
 
     /** Standard class typedefs. */
-    typedef DTIScalarMapsImageFilter                                      Self;
-    typedef itk::ImageToImageFilter< InputImageType, OutputImageType> Superclass;
-    typedef itk::SmartPointer<Self>                                   Pointer;
-    typedef itk::SmartPointer<const Self>                             ConstPointer;
+    typedef DTIScalarMapsImageFilter Self;
+    typedef anima::NumberedThreadImageToImageFilter <InputImageType, OutputImageType> Superclass;
+    typedef itk::SmartPointer<Self> Pointer;
+    typedef itk::SmartPointer<const Self> ConstPointer;
 
     /** Method for creation through the object factory. */
     itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(DTIScalarMapsImageFilter, ImageToImageFilter)
+    itkTypeMacro(DTIScalarMapsImageFilter, anima::NumberedThreadImageToImageFilter)
 
     /** Image typedef support. */
     typedef typename TensorImageType::PixelType               TensorVectorType;

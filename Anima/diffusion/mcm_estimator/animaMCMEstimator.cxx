@@ -91,7 +91,6 @@ int main(int argc,  char **argv)
     typedef anima::MCMEstimatorImageFilter <float, double> FilterType;
     typedef FilterType::InputImageType InputImageType;
     typedef FilterType::MaskImageType MaskImageType;
-    typedef FilterType::CompartmentType CompartmentType;
     typedef FilterType::Pointer FilterPointer;
 
     itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();

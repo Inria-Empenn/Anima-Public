@@ -105,6 +105,7 @@ LocalPatchCovarianceDistanceImageFilter<PixelScalarType>
         outMeanIterator.Set(meanDist);
         outStdIterator.Set(sqrt(varDist));
 
+        this->IncrementNumberOfProcessedPoints();
         ++outMeanIterator;
         ++outStdIterator;
         ++maskIterator;

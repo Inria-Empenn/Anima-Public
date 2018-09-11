@@ -376,6 +376,7 @@ GammaMixtureT2RelaxometryEstimationImageFilter <TPixelScalarType>
         outMWFIterator.Set(mwfValue);
         outB1Iterator.Set(b1Value);
 
+        this->IncrementNumberOfProcessedPoints();
         ++maskItr;
         ++outWeightsIterator;
         ++outMeanParamsIterator;

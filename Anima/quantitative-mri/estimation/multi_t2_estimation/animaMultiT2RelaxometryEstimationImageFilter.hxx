@@ -355,6 +355,7 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
         outMWFIterator.Set(mwfValue);
         outB1Iterator.Set(b1Value);
 
+        this->IncrementNumberOfProcessedPoints();
         ++maskItr;
         ++outT2Iterator;
         ++outM0Iterator;

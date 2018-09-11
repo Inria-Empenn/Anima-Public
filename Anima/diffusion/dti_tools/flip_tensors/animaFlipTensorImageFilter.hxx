@@ -64,6 +64,7 @@ FlipTensorImageFilter<TPixelType,TImageDimension>
         
         outItr.Set(outTensor);
 
+        this->IncrementNumberOfProcessedPoints();
         ++inItr;
         ++outItr;
         ++maskItr;

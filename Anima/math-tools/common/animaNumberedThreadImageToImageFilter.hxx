@@ -11,6 +11,25 @@ NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
 {
     m_ThreadIdsVector.clear();
     Superclass::BeforeThreadedGenerateData();
+
+    m_NumberOfProcessedPoints = 0;
+    m_NumberOfPointsToProcess = this->GetOutput(0)->GetRequestedRegion().GetNumberOfPixels();
+    this->UpdateProgress(0.0);
+}
+
+template <typename TInputImage, typename TOutputImage>
+void
+NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
+::IncrementNumberOfProcessedPoints()
+{
+    m_LockProcessedPoints.Lock();
+
+    ++m_NumberOfProcessedPoints;
+
+    double ratio = m_NumberOfProcessedPoints / m_NumberOfPointsToProcess;
+    this->UpdateProgress(ratio);
+
+    m_LockProcessedPoints.Unlock();
 }
 
 template <typename TInputImage, typename TOutputImage>

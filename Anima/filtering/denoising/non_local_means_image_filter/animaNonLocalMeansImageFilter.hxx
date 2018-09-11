@@ -185,6 +185,7 @@ NonLocalMeansImageFilter < TInputImage >
             break;
         }
 
+        this->IncrementNumberOfProcessedPoints();
         ++outputIterator;
         ++inputIterator;
     }

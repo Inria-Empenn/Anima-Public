@@ -28,7 +28,6 @@ DTIScalarMapsImageFilter < ImageDimension >::DTIScalarMapsImageFilter() :
     this->SetNthOutput(3, this->MakeOutput(3));
 }
 
-
 /**
  *   Make Ouput
  */
@@ -110,6 +109,7 @@ DTIScalarMapsImageFilter< ImageDimension >
         axialIterator.Set(l1);
         radialIterator.Set((l2+l3) / 2.0);
 
+        this->IncrementNumberOfProcessedPoints();
         ++tensorIterator;
         ++adcIterator;
         ++faIterator;

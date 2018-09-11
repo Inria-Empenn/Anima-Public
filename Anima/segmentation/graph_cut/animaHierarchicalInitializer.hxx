@@ -258,7 +258,7 @@ void HierarchicalInitializer<TInputImage,TMaskImage>
             {
                 if(classesCIt.Get()!=0)
                 {
-                    mv[0] = ( MeasurementType ) tmpIt.Get();
+                    mv[0] = static_cast <MeasurementType> (tmpIt.Get());
                     listSample->PushBack(mv);
                 }
                 ++classesCIt;
@@ -325,11 +325,11 @@ void HierarchicalInitializer<TInputImage,TMaskImage>
 
             // get maxs
             std::vector<unsigned int> maxs;
-            const unsigned int localMax = 3;
+            const int localMax = 3;
             for (unsigned int i = 0; i < smoothedBins; i++ )
             {
-		int testVal = i - localMax;
-                unsigned int jmin = testVal < 0 ? 0 : testVal;	
+                int testVal = static_cast <int> (i) - localMax;
+                unsigned int jmin = testVal < 0 ? 0 : static_cast <unsigned int> (testVal);
 
                 unsigned int jmax = ( i + localMax ) > smoothedBins ? smoothedBins : ( i + localMax );
 
@@ -420,7 +420,7 @@ void HierarchicalInitializer<TInputImage,TMaskImage>
         imagesVectorItVec.push_back(imagesVectorIt);
     }
 
-    const float estimatorFactor = 1.4918; // factor to compute standard deviation using a robust variance estimator
+    const double estimatorFactor = 1.4918; // factor to compute standard deviation using a robust variance estimator
 
     for ( unsigned int im = 1; im < m_NumberOfModalities; im++ )
     {

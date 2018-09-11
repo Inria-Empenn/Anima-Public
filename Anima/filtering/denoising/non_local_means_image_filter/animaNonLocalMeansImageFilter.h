@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include <itkImageToImageFilter.h>
+#include <animaNumberedThreadImageToImageFilter.h>
 #include <itkVectorImage.h>
 #include <itkImage.h>
 #include <itkVector.h>
@@ -13,7 +13,7 @@ namespace anima
 
 template <class TInputImage >
 class NonLocalMeansImageFilter :
-    public itk::ImageToImageFilter < TInputImage, TInputImage >
+    public anima::NumberedThreadImageToImageFilter <TInputImage, TInputImage>
 {
 public:
 
@@ -33,7 +33,7 @@ public:
 
     /** Standard "Self" & Superclass typedef. */
     typedef NonLocalMeansImageFilter Self;
-    typedef itk::ImageToImageFilter< InputImageType, OutputImageType> Superclass;
+    typedef anima::NumberedThreadImageToImageFilter <InputImageType, OutputImageType> Superclass;
 
     /** SmartPointer typedef support  */
     typedef itk::SmartPointer<Self> Pointer;
@@ -43,7 +43,7 @@ public:
     itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(NonLocalMeansImageFilter, ImageToImageFilter)
+    itkTypeMacro(NonLocalMeansImageFilter, anima::NumberedThreadImageToImageFilter)
 
     /** Extract dimension from input image. */
     itkStaticConstMacro(InputImageDimension, unsigned int,

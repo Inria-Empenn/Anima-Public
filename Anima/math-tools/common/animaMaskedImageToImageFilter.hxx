@@ -1,6 +1,8 @@
 #pragma once
 #include "animaMaskedImageToImageFilter.h"
 
+#include <itkImageRegionConstIterator.h>
+
 namespace anima
 {
 template< typename TInputImage, typename TOutputImage >
@@ -29,8 +31,20 @@ void
 MaskedImageToImageFilter < TInputImage, TOutputImage >
 ::BeforeThreadedGenerateData()
 {
-    this->CheckComputationMask();
     Superclass::BeforeThreadedGenerateData();
+    this->CheckComputationMask();
+
+    itk::ImageRegionConstIterator <MaskImageType> maskItr(m_ComputationMask, m_ComputationMask->GetLargestPossibleRegion());
+    unsigned int numPointsToProcess = 0;
+    while (!maskItr.IsAtEnd())
+    {
+        if (maskItr.Get() != 0)
+            ++numPointsToProcess;
+
+        ++maskItr;
+    }
+
+    this->SetNumberOfPointsToProcess(numPointsToProcess);
 
     // Since image requested region may now be smaller than the image, fill the outputs with zeros
     typedef typename TOutputImage::PixelType OutputPixelType;

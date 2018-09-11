@@ -560,6 +560,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         for (unsigned int i = 0;i < m_NumberOfImages;++i)
             ++inIterators[i];
 
+        this->IncrementNumberOfProcessedPoints();
         ++outIterator;
         ++maskItr;
         ++aiccIterator;
