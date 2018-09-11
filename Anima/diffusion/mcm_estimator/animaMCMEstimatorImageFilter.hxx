@@ -418,7 +418,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 template <class InputPixelType, class OutputPixelType>
 void
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionConstIterator <InputImageType> ConstImageIteratorType;
 
@@ -449,6 +449,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     MCMType::ListType outputWeights(outputMCMData->GetNumberOfCompartments(),0);
 
     double aiccValue, b0Value, sigmaSqValue;
+
+    unsigned int threadId = this->GetSafeThreadId();
 
     while (!outIterator.IsAtEnd())
     {
@@ -565,6 +567,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         ++sigmaIterator;
         ++moseIterator;
     }
+
+    this->SafeReleaseThreadId(threadId);
 }
 
 template <class InputPixelType, class OutputPixelType>

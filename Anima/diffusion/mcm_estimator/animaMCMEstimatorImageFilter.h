@@ -228,7 +228,7 @@ protected:
 
     void GenerateOutputInformation() ITK_OVERRIDE;
     virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
+    void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
 
     //! Create a cost function following the noise type and estimation mode
     virtual CostFunctionBasePointer CreateCostFunction(std::vector<double> &observedSignals, MCMPointer &mcmModel);

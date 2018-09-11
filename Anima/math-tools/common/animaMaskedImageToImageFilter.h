@@ -1,23 +1,21 @@
 #pragma once
 
 #include <iostream>
-#include <itkImageToImageFilter.h>
+#include <animaNumberedThreadImageToImageFilter.h>
 #include <itkNumericTraits.h>
 #include <itkVariableLengthVector.h>
-#include <itkFastMutexLock.h>
-#include <itkProgressReporter.h>
 
 namespace anima
 {
 
 template <typename TInputImage, typename TOutputImage>
 class MaskedImageToImageFilter :
-        public itk::ImageToImageFilter < TInputImage, TOutputImage >
+        public anima::NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
 {
 public:
     /** Standard class typedefs. */
     typedef MaskedImageToImageFilter Self;
-    typedef itk::ImageToImageFilter< TInputImage, TOutputImage > Superclass;
+    typedef anima::NumberedThreadImageToImageFilter <TInputImage, TOutputImage> Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
@@ -25,7 +23,7 @@ public:
     itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(MaskedImageToImageFilter, itk::ImageToImageFilter)
+    itkTypeMacro(MaskedImageToImageFilter, anima::NumberedThreadImageToImageFilter)
 
     /** Superclass typedefs. */
     typedef typename Superclass::InputImageRegionType InputImageRegionType;

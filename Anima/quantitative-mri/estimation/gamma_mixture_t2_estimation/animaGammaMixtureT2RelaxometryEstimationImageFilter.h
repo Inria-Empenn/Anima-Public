@@ -116,7 +116,7 @@ protected:
     void CheckComputationMask() ITK_OVERRIDE;
 
     void BeforeThreadedGenerateData() ITK_OVERRIDE;
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
+    void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
 
     void PrepareGammaValues(std::vector < std::vector <double> > &sampledGammaValues, std::vector < std::vector <unsigned int> > &sampledGammaT2Correspondences,
                             std::vector <double> &t2WorkingValues, std::vector <double> &optimizedGamParams, std::vector <double> &gammaVariance);

@@ -198,7 +198,7 @@ ODFEstimatorImageFilter<TInputPixelType,TOutputPixelType>
 template <typename TInputPixelType, typename TOutputPixelType>
 void
 ODFEstimatorImageFilter<TInputPixelType,TOutputPixelType>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionConstIterator <TInputImage> InputIteratorType;
     typedef itk::ImageRegionIterator <TOutputImage> OutputIteratorType;

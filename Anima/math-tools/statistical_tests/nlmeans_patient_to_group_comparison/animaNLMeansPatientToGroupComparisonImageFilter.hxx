@@ -30,7 +30,7 @@ NLMeansPatientToGroupComparisonImageFilter<PixelScalarType>
 template <class PixelScalarType>
 void
 NLMeansPatientToGroupComparisonImageFilter<PixelScalarType>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionConstIteratorWithIndex< InputImageType > InIteratorType;
     typedef itk::ImageRegionConstIterator < InputImageType > DatabaseIteratorType;

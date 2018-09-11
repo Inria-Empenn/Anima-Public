@@ -49,7 +49,7 @@ SVFLieBracketImageFilter <TPixelType, Dimension>
 template <typename TPixelType, unsigned int Dimension>
 void
 SVFLieBracketImageFilter <TPixelType, Dimension>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionConstIterator <InputImageType> InputIteratorType;
     typedef itk::ImageRegionConstIterator <JacobianImageType> JacobianIteratorType;

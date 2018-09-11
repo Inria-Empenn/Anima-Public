@@ -127,7 +127,7 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
 template <class TPixelScalarType>
 void
 MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionConstIterator <InputImageType> ImageConstIteratorType;
     typedef itk::ImageRegionIterator <InputImageType> ImageIteratorType;
@@ -201,6 +201,8 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
     // NL specific variables
     std::vector <double> workDataWeights;
     std::vector <OutputVectorType> workDataSamples;
+
+    unsigned int threadId = this->GetSafeThreadId();
 
     while (!maskItr.IsAtEnd())
     {
@@ -373,6 +375,8 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
             ++initM0Iterator;
         }
     }
+
+    this->SafeReleaseThreadId(threadId);
 }
 
 template <class TPixelScalarType>

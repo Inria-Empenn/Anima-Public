@@ -10,7 +10,7 @@ namespace anima
 template <typename TInputPixelType>
 void
 GeneralizedFAImageFilter<TInputPixelType>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionConstIteratorWithIndex <TInputImage> InputIteratorType;
     typedef itk::ImageRegionIterator <TOutputImage> OutputIteratorType;

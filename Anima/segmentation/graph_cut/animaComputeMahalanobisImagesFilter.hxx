@@ -197,7 +197,7 @@ ComputeMahalanobisImagesFilter <TInputImage, TMaskImage, TOutput>
 
 template <typename TInputImage, typename TMaskImage, typename TOutput>
 void
-ComputeMahalanobisImagesFilter <TInputImage, TMaskImage, TOutput>::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+ComputeMahalanobisImagesFilter <TInputImage, TMaskImage, TOutput>::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     const unsigned int                         Dimension = 3;
     typedef double                      PixelComponentType;

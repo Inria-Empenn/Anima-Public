@@ -26,7 +26,7 @@ LocalPatchMeanDistanceImageFilter<PixelScalarType>
 template <class PixelScalarType>
 void
 LocalPatchMeanDistanceImageFilter<PixelScalarType>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionIteratorWithIndex< OutputImageType > OutRegionIteratorType;
     typedef itk::ImageRegionConstIteratorWithIndex < MaskImageType > MaskRegionIteratorType;

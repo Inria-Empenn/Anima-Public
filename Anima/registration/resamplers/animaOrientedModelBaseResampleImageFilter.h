@@ -93,7 +93,7 @@ protected:
     virtual void GenerateOutputInformation() ITK_OVERRIDE;
 
     virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
+    void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
 
     virtual unsigned int GetOutputVectorLength();
 
@@ -130,8 +130,8 @@ protected:
         zeroPixel = itk::NumericTraits <T>::ZeroValue();
     }
 
-    void LinearThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId);
-    void NonLinearThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId);
+    void LinearThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, unsigned int threadId);
+    void NonLinearThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, unsigned int threadId);
 
     /**
      * Compute local re-orientation transformation matrix from linear transform

@@ -100,7 +100,7 @@ protected:
 
     typename TMask::ConstPointer GetMask();
 
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
+    void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
     double probability(DoubleVariableSizeMatrixType &point, GaussianFunctionType::Pointer model);
 
 private:

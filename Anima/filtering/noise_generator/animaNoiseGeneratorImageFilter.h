@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <random>
-#include <itkImageToImageFilter.h>
+#include <animaNumberedThreadImageToImageFilter.h>
 #include <itkImage.h>
 
 #include <time.h>
@@ -12,14 +12,14 @@ namespace anima
 
 template <class ImageType>
 class NoiseGeneratorImageFilter :
-public itk::ImageToImageFilter<ImageType,ImageType>
+public anima::NumberedThreadImageToImageFilter <ImageType,ImageType>
 {
 public:
     /** Standard class typedefs. */
     typedef NoiseGeneratorImageFilter Self;
     typedef ImageType TInputImage;
     typedef ImageType TOutputImage;
-    typedef itk::ImageToImageFilter< TInputImage, TOutputImage > Superclass;
+    typedef anima::NumberedThreadImageToImageFilter <TInputImage, TOutputImage> Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
@@ -27,7 +27,7 @@ public:
     itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(NoiseGeneratorImageFilter, ImageToImageFilter)
+    itkTypeMacro(NoiseGeneratorImageFilter, anima::NumberedThreadImageToImageFilter)
 
     typedef typename TOutputImage::PixelType OutputPixelType;
     typedef typename TInputImage::PixelType InputPixelType;
@@ -64,7 +64,7 @@ protected:
 
     void GenerateOutputInformation() ITK_OVERRIDE;
     void BeforeThreadedGenerateData() ITK_OVERRIDE;
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
+    void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
 
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(NoiseGeneratorImageFilter);

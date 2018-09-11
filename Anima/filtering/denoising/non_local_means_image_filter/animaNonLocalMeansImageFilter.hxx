@@ -101,10 +101,8 @@ NonLocalMeansImageFilter <TInputImage>
 template < class TInputImage>
 void
 NonLocalMeansImageFilter < TInputImage >
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
-    // support progress methods/callbacks
-    itk::ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
     // Allocate output
     typename OutputImageType::Pointer output = this->GetOutput();
     typename InputImageType::Pointer input = const_cast<InputImageType *> (this->GetInput());
@@ -189,7 +187,6 @@ NonLocalMeansImageFilter < TInputImage >
 
         ++outputIterator;
         ++inputIterator;
-        progress.CompletedPixel();
     }
 }
 

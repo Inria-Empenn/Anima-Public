@@ -38,8 +38,10 @@ void
 NoiseGeneratorImageFilter<ImageType>
 ::BeforeThreadedGenerateData ()
 {
+    Superclass::BeforeThreadedGenerateData();
+
     m_Generators.clear();
-    std::mt19937 motherGenerator(time(0));
+    std::mt19937 motherGenerator(time(ITK_NULLPTR));
     for (int i = 0;i < this->GetNumberOfWorkUnits();++i)
         m_Generators.push_back(std::mt19937(motherGenerator()));
 }
@@ -47,7 +49,7 @@ NoiseGeneratorImageFilter<ImageType>
 template <class ImageType>
 void
 NoiseGeneratorImageFilter<ImageType>
-::ThreadedGenerateData (const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData (const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionConstIterator<InputImageType> InputImageIteratorType;
     typedef itk::ImageRegionIterator<OutputImageType> OutputImageIteratorType;
@@ -59,6 +61,7 @@ NoiseGeneratorImageFilter<ImageType>
         outIterators[i] = OutputImageIteratorType(this->GetOutput(i), outputRegionForThread);
     
     double mean = 0;
+    unsigned int threadId = this->GetSafeThreadId();
     
     while (!inputIterator.IsAtEnd())
     {
@@ -94,6 +97,8 @@ NoiseGeneratorImageFilter<ImageType>
         
         ++inputIterator;
     }
+
+    this->SafeReleaseThreadId(threadId);
 }
 
 } //end of namespace anima
