@@ -168,7 +168,6 @@ void LowMemoryNLMeansPatientToGroupComparisonBridge::Update(int specificSplitToD
         mainFilter->SetBetaParameter(m_BetaParameter);
 
         mainFilter->SetInput(0,m_TestImage->GetOutput(0));
-        mainFilter->SetComputationRegion(m_TestImage->GetBlockRegionInsideMargin());
 
         mainFilter->Update();
 

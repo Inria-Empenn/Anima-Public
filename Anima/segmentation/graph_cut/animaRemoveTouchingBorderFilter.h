@@ -8,7 +8,7 @@
 #include <itkLabelContourImageFilter.h>
 #include <itkConnectedComponentImageFilter.h>
 #include <animaReadWriteFunctions.h>
-#include <itkMultiThreader.h>
+#include <itkMultiThreaderBase.h>
 
 namespace anima
 {

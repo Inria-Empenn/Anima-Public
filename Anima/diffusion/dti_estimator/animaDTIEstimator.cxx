@@ -127,7 +127,6 @@ int main(int argc,  char **argv)
     tmpTimer.Stop();
 
     std::cout << "\nEstimation done in " << tmpTimer.GetTotal() << " s" << std::endl;
-
     std::cout << "Writing result to : " << resArg.getValue() << std::endl;
 
     VectorImageType::Pointer output = mainFilter->GetOutput();

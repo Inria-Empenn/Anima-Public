@@ -12,7 +12,7 @@
 #include <vtkGenericCell.h>
 
 #include <itkNearestNeighborInterpolateImageFunction.h>
-#include <itkMultiThreader.h>
+#include <itkMultiThreaderBase.h>
 
 void FilterTracks(vtkPolyData *tracks, unsigned int startIndex, unsigned int endIndex,
                   itk::NearestNeighborInterpolateImageFunction < itk::Image <unsigned short, 3> > * interpolator,
@@ -96,7 +96,7 @@ typedef struct
 
 ITK_THREAD_RETURN_TYPE ThreadFilterer(void *arg)
 {
-    itk::MultiThreader::WorkUnitInfo *threadArgs = (itk::MultiThreader::WorkUnitInfo *)arg;
+    itk::MultiThreaderBase::WorkUnitInfo *threadArgs = (itk::MultiThreaderBase::WorkUnitInfo *)arg;
     unsigned int nbThread = threadArgs->WorkUnitID;
     unsigned int numTotalThread = threadArgs->NumberOfWorkUnits;
 
@@ -163,7 +163,7 @@ int main(int argc, char **argv)
     tmpStr.touchLabels = touchLabels;
     tmpStr.forbiddenLabels = forbiddenLabels;
 
-    itk::MultiThreader::Pointer mThreader = itk::MultiThreader::New();
+    itk::MultiThreaderBase::Pointer mThreader = itk::MultiThreaderBase::New();
     mThreader->SetNumberOfWorkUnits(nbThreadsArg.getValue());
     mThreader->SetSingleMethod(ThreadFilterer,&tmpStr);
     mThreader->SingleMethodExecute();

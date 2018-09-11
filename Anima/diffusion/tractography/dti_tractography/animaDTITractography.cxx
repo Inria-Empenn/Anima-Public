@@ -3,7 +3,6 @@
 
 #include <animaReadWriteFunctions.h>
 #include <animaLogTensorImageFilter.h>
-#include <itkMultiThreader.h>
 #include <itkCommand.h>
 
 #include <tclap/CmdLine.h>

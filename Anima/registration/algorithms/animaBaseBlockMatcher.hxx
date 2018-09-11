@@ -4,7 +4,6 @@
 #include <animaBobyqaOptimizer.h>
 #include <animaVoxelExhaustiveOptimizer.h>
 #include <animaBlockMatchInitializer.h>
-#include <itkMultiThreader.h>
 
 namespace anima
 {
@@ -146,7 +145,7 @@ BaseBlockMatcher <TInputImageType>
         this->InitializeBlocks();
 
     m_HighestProcessedBlock = 0;
-    itk::MultiThreader::Pointer threadWorker = itk::MultiThreader::New();
+    itk::MultiThreaderBase::Pointer threadWorker = itk::MultiThreaderBase::New();
     ThreadedMatchData *tmpStr = new ThreadedMatchData;
     tmpStr->BlockMatch = this;
 
@@ -162,7 +161,7 @@ ITK_THREAD_RETURN_TYPE
 BaseBlockMatcher <TInputImageType>
 ::ThreadedMatching(void *arg)
 {
-    itk::MultiThreader::WorkUnitInfo *threadArgs = (itk::MultiThreader::WorkUnitInfo *)arg;
+    itk::MultiThreaderBase::WorkUnitInfo *threadArgs = (itk::MultiThreaderBase::WorkUnitInfo *)arg;
     ThreadedMatchData* data = (ThreadedMatchData *)threadArgs->UserData;
 
     data->BlockMatch->ProcessBlockMatch();

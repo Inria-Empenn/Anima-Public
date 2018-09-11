@@ -358,7 +358,7 @@ Update()
 
     m_Output.resize(m_InputTransforms.size());
 
-    itk::MultiThreader::Pointer threaderLog = itk::MultiThreader::New();
+    itk::MultiThreaderBase::Pointer threaderLog = itk::MultiThreaderBase::New();
 
     ThreadedLogData *tmpStr = new ThreadedLogData;
     tmpStr->loggerFilter = this;
@@ -379,7 +379,7 @@ ITK_THREAD_RETURN_TYPE
 MatrixLoggerFilter<TInputScalarType,TOutputScalarType,NDimensions,NDegreesOfFreedom>::
 ThreadedLogging(void *arg)
 {
-    itk::MultiThreader::WorkUnitInfo *threadArgs = (itk::MultiThreader::WorkUnitInfo *)arg;
+    itk::MultiThreaderBase::WorkUnitInfo *threadArgs = (itk::MultiThreaderBase::WorkUnitInfo *)arg;
 
     unsigned int nbThread = threadArgs->WorkUnitID;
     unsigned int nbProcs = threadArgs->NumberOfWorkUnits;

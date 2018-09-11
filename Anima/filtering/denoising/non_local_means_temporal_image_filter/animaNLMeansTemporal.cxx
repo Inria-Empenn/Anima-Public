@@ -5,7 +5,6 @@
 
 #include <itkImage.h>
 #include <itkCommand.h>
-#include <itkMultiThreader.h>
 
 //Update progression of the process
 void eventCallback (itk::Object* caller, const itk::EventObject& event, void* clientData)

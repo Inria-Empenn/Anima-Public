@@ -4,7 +4,6 @@
 #include <animaReadWriteFunctions.h>
 #include <itkTransformFileReader.h>
 #include <itkTransformFileWriter.h>
-#include <itkMultiThreader.h>
 #include <itkCenteredTransformInitializer.h>
 
 #include <animaAsymmetricBMRegistrationMethod.h>

@@ -6,7 +6,6 @@
 #include <itkImageRegionIterator.h>
 #include <itkImageRegionConstIterator.h>
 #include <itkExtractImageFilter.h>
-#include <itkMultiThreader.h>
 #include <itkImageMomentsCalculator.h>
 
 #include <animaVectorOperations.h>
@@ -269,7 +268,7 @@ ITK_THREAD_RETURN_TYPE
 BaseProbabilisticTractographyImageFilter <TInputModelImageType>
 ::ThreadTracker(void *arg)
 {
-    itk::MultiThreader::WorkUnitInfo *threadArgs = (itk::MultiThreader::WorkUnitInfo *)arg;
+    itk::MultiThreaderBase::WorkUnitInfo *threadArgs = (itk::MultiThreaderBase::WorkUnitInfo *)arg;
     unsigned int nbThread = threadArgs->WorkUnitID;
 
     trackerArguments *tmpArg = (trackerArguments *)threadArgs->UserData;

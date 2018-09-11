@@ -6,7 +6,6 @@
 #include <itkShrinkImageFilter.h>
 #include <itkCommand.h>
 #include <itkTimeProbe.h>
-#include <itkMultiThreader.h>
 
 //Update progression of the process
 void eventCallback(itk::Object* caller, const itk::EventObject& event, void* clientData)

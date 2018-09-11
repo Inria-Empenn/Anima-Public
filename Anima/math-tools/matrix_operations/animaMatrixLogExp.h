@@ -6,7 +6,7 @@
 
 #include <itkTransform.h>
 #include <itkMatrixOffsetTransformBase.h>
-#include <itkMultiThreader.h>
+#include <itkMultiThreaderBase.h>
 
 namespace anima
 {

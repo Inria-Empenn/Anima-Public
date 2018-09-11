@@ -3,7 +3,7 @@
 #include <itkConnectedComponentImageFilter.h>
 #include <itkRelabelComponentImageFilter.h>
 #include <itkImageRegionConstIterator.h>
-#include <itkMultiThreader.h>
+#include <itkMultiThreaderBase.h>
 #include <vnl/vnl_matrix.h>
 
 #include <tclap/CmdLine.h>

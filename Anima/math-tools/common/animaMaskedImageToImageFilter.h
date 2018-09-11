@@ -42,40 +42,16 @@ public:
     /** Set/Get the mask on which to compute estimates. */
     itkSetMacro(ComputationMask, MaskImagePointer)
     itkGetMacro(ComputationMask, MaskImageType *)
-    itkSetMacro(ComputationRegion, MaskRegionType)
-    itkGetMacro(ComputationRegion, MaskRegionType)
-
-    itkSetMacro(VerboseProgression, bool)
 
 protected:
     MaskedImageToImageFilter()
     {
-        m_ComputationMask = NULL;
-        m_ComputationRegion.SetSize(0,0);
-        m_HighestProcessedSlice = 0;
-        m_ProcessedDimension = 0;
-        m_VerboseProgression = true;
-        m_ProgressReport = 0;
+        m_ComputationMask = ITK_NULLPTR;
     }
 
-    virtual ~MaskedImageToImageFilter()
-    {
-        if (m_ProgressReport)
-            delete m_ProgressReport;
-    }
+    virtual ~MaskedImageToImageFilter() {}
 
     virtual void CheckComputationMask();
-
-    void InitializeComputationRegionFromMask();
-
-    virtual void GenerateData() ITK_OVERRIDE;
-
-    virtual void InitializeSplitParameters();
-    virtual void DeleteProgressReporter();
-
-    static ITK_THREAD_RETURN_TYPE ThreaderMultiSplitCallback(void *arg);
-    virtual void ThreadProcessSlices(itk::ThreadIdType threadId);
-
     virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
 
     //! Utility function to initialize output images pixel to zero for vector images
@@ -99,16 +75,7 @@ protected:
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(MaskedImageToImageFilter);
 
-    itk::SimpleFastMutexLock m_LockHighestProcessedSlice;
-    int m_HighestProcessedSlice;
-    unsigned int m_ProcessedDimension;
-
-    itk::ProgressReporter *m_ProgressReport;
-    bool m_VerboseProgression;
-
     MaskImagePointer m_ComputationMask;
-    // Optimization of multithread code, compute only on region defined from mask... Uninitialized in constructor.
-    MaskRegionType m_ComputationRegion;
 };
 
 } //end namespace anima

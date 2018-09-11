@@ -1,7 +1,7 @@
 #include "animaBaseTractographyImageFilter.h"
 
 #include <itkImageRegionIteratorWithIndex.h>
-#include <itkMultiThreader.h>
+#include <itkMultiThreaderBase.h>
 #include <itkProgressReporter.h>
 
 #include <animaVectorOperations.h>
@@ -24,7 +24,7 @@ BaseTractographyImageFilter::BaseTractographyImageFilter()
 
     m_ComputeLocalColors = true;
     m_HighestProcessedSeed = 0;
-    m_ProgressReport = 0;
+    m_ProgressReport = ITK_NULLPTR;
 }
 
 BaseTractographyImageFilter::~BaseTractographyImageFilter()
@@ -173,7 +173,7 @@ void BaseTractographyImageFilter::PrepareTractography()
 
 ITK_THREAD_RETURN_TYPE BaseTractographyImageFilter::ThreadTracker(void *arg)
 {
-    itk::MultiThreader::WorkUnitInfo *threadArgs = (itk::MultiThreader::WorkUnitInfo *)arg;
+    itk::MultiThreaderBase::WorkUnitInfo *threadArgs = (itk::MultiThreaderBase::WorkUnitInfo *)arg;
     unsigned int nbThread = threadArgs->WorkUnitID;
     
     trackerArguments *tmpArg = (trackerArguments *)threadArgs->UserData;

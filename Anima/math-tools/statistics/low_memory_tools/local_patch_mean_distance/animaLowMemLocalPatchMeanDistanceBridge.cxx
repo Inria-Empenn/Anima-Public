@@ -98,7 +98,6 @@ void LowMemoryLocalPatchMeanDistanceBridge::Update(int specificSplitToDo, bool g
         mainFilter->SetNumberOfWorkUnits(m_NumThreads);
 
         mainFilter->SetPatchHalfSize(m_PatchHalfSize);
-        mainFilter->SetComputationRegion(m_DatabaseImages->GetBlockRegionInsideMargin());
 
         mainFilter->Update();
 

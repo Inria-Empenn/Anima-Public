@@ -157,7 +157,7 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
 template <class InputPixelScalarType, class OutputPixelScalarType>
 void
 DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionConstIterator <InputImageType> ImageIteratorType;
 
@@ -202,7 +202,7 @@ DTIEstimationImageFilter<InputPixelScalarType, OutputPixelScalarType>
 
             for (unsigned int i = 0;i < numInputs;++i)
                 ++inIterators[i];
-            
+
             ++maskIterator;
             ++outIterator;
             ++outB0Iterator;

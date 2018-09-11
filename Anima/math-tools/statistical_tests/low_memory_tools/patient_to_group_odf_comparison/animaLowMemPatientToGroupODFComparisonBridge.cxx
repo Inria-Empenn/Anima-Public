@@ -107,7 +107,6 @@ void LowMemoryPatientToGroupODFComparisonBridge::Update(int specificSplitToDo, b
         mainFilter->SetSampleDirections(m_SampleDirections);
 
         mainFilter->SetInput(0,m_TestODFImage->GetOutput(0));
-        mainFilter->SetComputationRegion(m_TestODFImage->GetBlockRegionInsideMargin());
 
         mainFilter->Update();
 

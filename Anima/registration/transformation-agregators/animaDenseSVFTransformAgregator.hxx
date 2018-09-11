@@ -6,7 +6,6 @@
 #include <animaDirectionScaleSkewTransform.h>
 
 #include <animaMatrixLogExp.h>
-#include <itkMultiThreader.h>
 #include <itkTimeProbe.h>
 
 namespace anima

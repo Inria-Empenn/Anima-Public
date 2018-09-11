@@ -7,7 +7,7 @@
 #include <itkConnectedComponentImageFilter.h>
 #include <itkRelabelComponentImageFilter.h>
 #include <itkImageIterator.h>
-#include <itkMultiThreader.h>
+#include <itkMultiThreaderBase.h>
 #include <itkImageDuplicator.h>
 
 namespace anima

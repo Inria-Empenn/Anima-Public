@@ -187,7 +187,7 @@ void
 BlockMatchingInitializer<PixelType,NDimensions>
 ::ComputeBlocksOnGenerationMask(unsigned int maskIndex)
 {
-    itk::MultiThreader::Pointer threaderBlockGenerator = itk::MultiThreader::New();
+    itk::MultiThreaderBase::Pointer threaderBlockGenerator = itk::MultiThreaderBase::New();
 
     BlockGeneratorThreadStruct *tmpStr = 0;
     this->InitializeThreading(maskIndex,tmpStr);
@@ -350,7 +350,7 @@ ITK_THREAD_RETURN_TYPE
 BlockMatchingInitializer<PixelType,NDimensions>
 ::ThreadBlockGenerator(void *arg)
 {
-    itk::MultiThreader::WorkUnitInfo *threadArgs = (itk::MultiThreader::WorkUnitInfo *)arg;
+    itk::MultiThreaderBase::WorkUnitInfo *threadArgs = (itk::MultiThreaderBase::WorkUnitInfo *)arg;
 
     unsigned int nbThread = threadArgs->WorkUnitID;
 

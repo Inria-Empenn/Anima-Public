@@ -99,7 +99,6 @@ void LowMemoryPatientToGroupComparisonBridge::Update(int specificSplitToDo, bool
         mainFilter->SetNumberOfWorkUnits(m_NumThreads);
 
         mainFilter->SetInput(0,m_TestLTImage->GetOutput(0));
-        mainFilter->SetComputationRegion(m_TestLTImage->GetBlockRegionInsideMargin());
 
         mainFilter->SetStatisticalTestType(m_StatisticalTestType);
         mainFilter->SetExplainedRatio(m_ExplainedRatio);
