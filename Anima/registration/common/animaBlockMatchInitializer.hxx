@@ -8,6 +8,7 @@
 #include <itkDanielssonDistanceMapImageFilter.h>
 #include <itkGrayscaleDilateImageFilter.h>
 #include <itkBinaryBallStructuringElement.h>
+#include <itkPoolMultiThreader.h>
 
 namespace anima
 {
@@ -187,7 +188,7 @@ void
 BlockMatchingInitializer<PixelType,NDimensions>
 ::ComputeBlocksOnGenerationMask(unsigned int maskIndex)
 {
-    itk::MultiThreaderBase::Pointer threaderBlockGenerator = itk::MultiThreaderBase::New();
+    itk::PoolMultiThreader::Pointer threaderBlockGenerator = itk::PoolMultiThreader::New();
 
     BlockGeneratorThreadStruct *tmpStr = 0;
     this->InitializeThreading(maskIndex,tmpStr);

@@ -6,6 +6,7 @@
 #include <vnl/algo/vnl_real_eigensystem.h>
 #include <vnl/algo/vnl_matrix_inverse.h>
 #include <vnl/vnl_inverse.h>
+#include <itkPoolMultiThreader.h>
 
 namespace anima
 {
@@ -358,7 +359,7 @@ Update()
 
     m_Output.resize(m_InputTransforms.size());
 
-    itk::MultiThreaderBase::Pointer threaderLog = itk::MultiThreaderBase::New();
+    itk::PoolMultiThreader::Pointer threaderLog = itk::PoolMultiThreader::New();
 
     ThreadedLogData *tmpStr = new ThreadedLogData;
     tmpStr->loggerFilter = this;

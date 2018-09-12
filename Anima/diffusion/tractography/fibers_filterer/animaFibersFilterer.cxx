@@ -12,7 +12,7 @@
 #include <vtkGenericCell.h>
 
 #include <itkNearestNeighborInterpolateImageFunction.h>
-#include <itkMultiThreaderBase.h>
+#include <itkPoolMultiThreader.h>
 
 void FilterTracks(vtkPolyData *tracks, unsigned int startIndex, unsigned int endIndex,
                   itk::NearestNeighborInterpolateImageFunction < itk::Image <unsigned short, 3> > * interpolator,
@@ -45,7 +45,7 @@ void FilterTracks(vtkPolyData *tracks, unsigned int startIndex, unsigned int end
             if (!interpolator->IsInsideBuffer(currentIndex))
                 continue;
 
-            unsigned int value = interpolator->EvaluateAtContinuousIndex(currentIndex);
+            unsigned int value = static_cast <unsigned int> (std::round(interpolator->EvaluateAtContinuousIndex(currentIndex)));
 
             for (unsigned int k = 0;k < forbiddenLabels.size();++k)
             {
@@ -112,7 +112,7 @@ ITK_THREAD_RETURN_TYPE ThreadFilterer(void *arg)
 
     FilterTracks(tmpArg->tracks, startIndex, endIndex, tmpArg->interpolator, tmpArg->touchLabels, tmpArg->forbiddenLabels);
 
-    return NULL;
+    return ITK_NULLPTR;
 }
 
 int main(int argc, char **argv)
@@ -163,7 +163,7 @@ int main(int argc, char **argv)
     tmpStr.touchLabels = touchLabels;
     tmpStr.forbiddenLabels = forbiddenLabels;
 
-    itk::MultiThreaderBase::Pointer mThreader = itk::MultiThreaderBase::New();
+    itk::PoolMultiThreader::Pointer mThreader = itk::PoolMultiThreader::New();
     mThreader->SetNumberOfWorkUnits(nbThreadsArg.getValue());
     mThreader->SetSingleMethod(ThreadFilterer,&tmpStr);
     mThreader->SingleMethodExecute();
