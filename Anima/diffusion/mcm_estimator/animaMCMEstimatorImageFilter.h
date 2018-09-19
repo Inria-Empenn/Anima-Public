@@ -241,7 +241,7 @@ protected:
         m_GradientStrengths.clear();
         m_GradientDirections.clear();
 
-        m_NumberOfDictionaryEntries = 120;
+        m_NumberOfDictionaryEntries = 360;
         m_Optimizer = "bobyqa";
         m_AbsoluteCostChange = 0.01;
         m_B0Threshold = 0;

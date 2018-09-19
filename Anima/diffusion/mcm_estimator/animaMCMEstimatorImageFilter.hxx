@@ -363,7 +363,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         mcm->GetCompartment(0)->SetOrientationPhi(m_DictionaryDirections[i + countIsoComps][1]);
 
         for (unsigned int j = 0;j < m_NumberOfImages;++j)
-            m_SparseSticksDictionary(j,countIsoComps + i) = mcm->GetPredictedSignal(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_GradientDirections[j]);
+            m_SparseSticksDictionary(j,countIsoComps + i) = mcm->GetPredictedSignal(m_SmallDelta, m_BigDelta, m_GradientStrengths[j], m_GradientDirections[j]);
     }
 }
 
