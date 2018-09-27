@@ -740,9 +740,6 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::CreateFuzzyRuleImage()
     filtermin1->SetCoordinateTolerance( m_Tol );
     filtermin1->SetDirectionTolerance( m_Tol );
 
-    typename ImageTypeD::Pointer mahaMinimum = ImageTypeD::New();
-    mahaMinimum->Graft(m_MahalanobisFilter->GetOutputMahaMinimum());
-
     if (this->GetInputLesionPrior().IsNotNull())
     {
         typedef itk::ImageRegionIterator <ImageTypeD> IteratorType;
@@ -763,7 +760,7 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::CreateFuzzyRuleImage()
     }
 
     filtermin2->SetInput1( filtermin1->GetOutput() );
-    filtermin2->SetInput2( mahaMinimum );
+    filtermin2->SetInput2(m_MahalanobisFilter->GetOutputMahaMinimum());
     filtermin2->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
     filtermin2->SetCoordinateTolerance( m_Tol );
     filtermin2->SetDirectionTolerance( m_Tol );
@@ -867,9 +864,6 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::GraphCut()
         }
         else if (this->GetInputLesionPrior().IsNotNull())
         {
-            typename ImageTypeD::Pointer sinkProbas = ImageTypeD::New();
-            sinkProbas->Graft(m_MahalanobisFilter->GetOutputMahaMaximum());
-
             typedef itk::ImageRegionIterator <ImageTypeD> IteratorType;
             IteratorType sinkProbasIterator(m_MahalanobisFilter->GetOutputMahaMaximum(),m_MahalanobisFilter->GetOutputMahaMaximum()->GetLargestPossibleRegion());
             typedef itk::ImageRegionConstIterator <ImageTypeD> ConstIteratorType;
@@ -886,7 +880,7 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::GraphCut()
                 ++lesionPriorIterator;
             }
 
-            m_GraphCutFilter->SetInputSeedSinksProba(sinkProbas);
+            m_GraphCutFilter->SetInputSeedSinksProba(m_MahalanobisFilter->GetOutputMahaMaximum());
         }
         else
         {
