@@ -41,14 +41,12 @@ public:
     void SetDataMatrix(MatrixType &data);
     void SetPoints(ParametersType &data) {m_Points = data;}
 
-    double GetCurrentResidual();
-
     itkSetMacro(L1NormWeight, double)
 
 protected:
     NNLassoOptimizer()
     {
-
+        m_L1NormWeight = 1.0;
     }
 
     virtual ~NNLassoOptimizer() {}
