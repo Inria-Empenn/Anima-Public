@@ -56,5 +56,6 @@ add_subdirectory(dti_tractography)
 add_subdirectory(fibers_filterer)
 add_subdirectory(fibers_filterer_JC)
 add_subdirectory(odf_probabilistic_tractography)
+add_subdirectory(fibers_to_mask)
 
 endif() #USE_VTK AND VTK_FOUND

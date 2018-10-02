@@ -1,6 +1,6 @@
-if(BUILD_TOOLS)
+if(BUILD_TOOLS AND USE_VTK AND VTK_FOUND)
 
-project(AnimaStapleLabelVoting)
+project(animaFibersToMask)
 
 ## #############################################################################
 ## List Sources
@@ -18,13 +18,18 @@ add_executable(${PROJECT_NAME}
   ${${PROJECT_NAME}_CFILES}
   )
 
-
 ## #############################################################################
 ## Link
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME}
+  AnimaTractography
   ${ITKIO_LIBRARIES}
+  vtkCommonCore
+  vtkFiltersCore
+  vtkIOXML
+  vtkIOLegacy
+  vtksys
   )
 
 ## #############################################################################
@@ -34,4 +39,3 @@ target_link_libraries(${PROJECT_NAME}
 set_exe_install_rules(${PROJECT_NAME})
 
 endif()
-
