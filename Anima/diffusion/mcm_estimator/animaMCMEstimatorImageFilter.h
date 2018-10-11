@@ -228,15 +228,7 @@ public:
 
     itkSetMacro(XTolerance, double)
     itkSetMacro(GTolerance, double)
-    itkSetMacro(MaxEval, double)
-
-    struct
-    {
-        bool operator() (const std::pair <unsigned int, double> &a, const std::pair <unsigned int, double> &b) const
-        {
-            return a.second > b.second;
-        }
-    } pair_decreasing_comparator;
+    itkSetMacro(MaxEval, unsigned int)
 
 protected:
     MCMEstimatorImageFilter() : Superclass()
