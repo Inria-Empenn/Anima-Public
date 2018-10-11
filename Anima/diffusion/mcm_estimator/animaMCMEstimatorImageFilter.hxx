@@ -585,7 +585,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     this->InitialOrientationsEstimation(mcmValue,currentNumberOfCompartments,observedSignals,threadId,
                                         aiccValue,b0Value,sigmaSqValue);
 
-    //this->ModelEstimation(mcmValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
+    this->ModelEstimation(mcmValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
 }
 
 template <class InputPixelType, class OutputPixelType>
@@ -747,37 +747,37 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     // - Now initialize sticks from dictionary
     this->SparseInitializeSticks(mcmUpdateValue,observedSignals,threadId);
 
-//    unsigned int dimension = mcmUpdateValue->GetNumberOfParameters();
-//    ParametersType p(dimension);
-//    MCMType::ListType workVec(dimension);
-//    itk::Array<double> lowerBounds(dimension), upperBounds(dimension);
+    unsigned int dimension = mcmUpdateValue->GetNumberOfParameters();
+    ParametersType p(dimension);
+    MCMType::ListType workVec(dimension);
+    itk::Array<double> lowerBounds(dimension), upperBounds(dimension);
 
-//    workVec = mcmUpdateValue->GetParameterLowerBounds();
-//    for (unsigned int j = 0;j < dimension;++j)
-//        lowerBounds[j] = workVec[j];
+    workVec = mcmUpdateValue->GetParameterLowerBounds();
+    for (unsigned int j = 0;j < dimension;++j)
+        lowerBounds[j] = workVec[j];
 
-//    workVec = mcmUpdateValue->GetParameterUpperBounds();
-//    for (unsigned int j = 0;j < dimension;++j)
-//        upperBounds[j] = workVec[j];
+    workVec = mcmUpdateValue->GetParameterUpperBounds();
+    for (unsigned int j = 0;j < dimension;++j)
+        upperBounds[j] = workVec[j];
 
-//    CostFunctionBasePointer cost = this->CreateCostFunction(observedSignals,mcmUpdateValue);
+    CostFunctionBasePointer cost = this->CreateCostFunction(observedSignals,mcmUpdateValue);
 
-//    // - Update ball and stick model against observed signals
-//    workVec = mcmUpdateValue->GetParametersAsVector();
-//    for (unsigned int j = 0;j < dimension;++j)
-//        p[j] = workVec[j];
+    // - Update ball and stick model against observed signals
+    workVec = mcmUpdateValue->GetParametersAsVector();
+    for (unsigned int j = 0;j < dimension;++j)
+        p[j] = workVec[j];
 
-//    double costValue = this->PerformSingleOptimization(p,cost,lowerBounds,upperBounds);
+    double costValue = this->PerformSingleOptimization(p,cost,lowerBounds,upperBounds);
 
-//    // - Get estimated data
-//    for (unsigned int j = 0;j < dimension;++j)
-//        workVec[j] = p[j];
+    // - Get estimated data
+    for (unsigned int j = 0;j < dimension;++j)
+        workVec[j] = p[j];
 
-//    mcmUpdateValue->SetParametersFromVector(workVec);
+    mcmUpdateValue->SetParametersFromVector(workVec);
 
-//    this->GetProfiledInformation(cost,mcmUpdateValue,b0Value,sigmaSqValue);
+    this->GetProfiledInformation(cost,mcmUpdateValue,b0Value,sigmaSqValue);
 
-//    aiccValue = this->ComputeAICcValue(mcmUpdateValue,costValue);
+    aiccValue = this->ComputeAICcValue(mcmUpdateValue,costValue);
     mcmValue = mcmUpdateValue;
 }
 
@@ -1399,12 +1399,14 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     for (unsigned int i = 0;i < numNonIsotropicComponents;++i)
     {
         dcmMatrix.fill(0.0);
+        double weightComponent = 0;
         for (unsigned int j = 0;j < numRealAnisotropicCompartments;++j)
         {
             classMemberships = spectralClustering.GetClassesMembership(j);
 
             unsigned int atomIndex = nonNullAtomIndexes[j];
             double membershipWeight = classMemberships[i];
+            weightComponent += membershipWeight * dictionaryWeights[atomIndex];
             for (unsigned int k = 0;k < 3;++k)
             {
                 for (unsigned int l = k;l < 3;++l)
@@ -1427,34 +1429,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         currentCompartment->SetOrientationTheta(tmpDirection[0]);
         currentCompartment->SetOrientationPhi(tmpDirection[1]);
 
-        sparseWeights[i + numIsotropicComponents] = 1.0;
-    }
-
-    if (m_MLEstimationStrategy != VariableProjection)
-    {
-        // Restart NNLS optimization to get correct weights
-        vnl_matrix <double> reducedDictionary(m_SparseSticksDictionary.rows(),numCompartments);
-        for (unsigned int i = 0;i < numIsotropicComponents;++i)
-        {
-            for (unsigned int j = 0;j < m_SparseSticksDictionary.rows();++j)
-                reducedDictionary(j,i) = m_SparseSticksDictionary(j,i);
-        }
-
-        for (unsigned int i = numIsotropicComponents;i < numCompartments;++i)
-        {
-            anima::BaseCompartment *currentCompartment = complexModel->GetCompartment(i);
-            for (unsigned int j = 0;j < m_SparseSticksDictionary.rows();++j)
-                reducedDictionary(j,i) = currentCompartment->GetPredictedSignal(m_SmallDelta, m_BigDelta, m_GradientStrengths[j], m_GradientDirections[j]);
-        }
-
-        anima::NNLSOptimizer::Pointer nnlsOptimizer = anima::NNLSOptimizer::New();
-        nnlsOptimizer->SetDataMatrix(reducedDictionary);
-        nnlsOptimizer->SetPoints(rightHandValues);
-        nnlsOptimizer->StartOptimization();
-
-        dictionaryWeights = nnlsOptimizer->GetCurrentPosition();
-        for (unsigned int i = 0;i < dictionaryWeights.size();++i)
-            sparseWeights[i] = dictionaryWeights[i];
+        sparseWeights[i + numIsotropicComponents] = weightComponent;
     }
 
     double sumWeights = 0;
