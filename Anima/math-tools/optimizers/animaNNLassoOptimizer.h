@@ -46,7 +46,7 @@ public:
 protected:
     NNLassoOptimizer()
     {
-        m_L1NormWeight = 1.0;
+        m_L1NormWeight = 0.01;
     }
 
     virtual ~NNLassoOptimizer() {}

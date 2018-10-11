@@ -1,11 +1,12 @@
-#include <animaNNOrthogonalMatchingPursuitOptimizer.h>
+#include <animaNNLassoOptimizer.h>
+#include <animaNNLSOptimizer.h>
 #include <itkTimeProbe.h>
 #include <iostream>
 #include <fstream>
 
 int main()
 {
-    typedef anima::NNOrthogonalMatchingPursuitOptimizer OptimizerType;
+    typedef anima::NNLassoOptimizer OptimizerType;
 
     itk::TimeProbe tmpTime;
     tmpTime.Start();
@@ -34,9 +35,7 @@ int main()
 
     optTest->SetDataMatrix(testData);
     optTest->SetPoints(testPoints);
-
-    optTest->SetMaximalNumberOfWeights(2);
-    optTest->SetIgnoredIndexesUpperBound(0);
+    //optTest->SetL1NormWeight(0.0);
 
     optTest->StartOptimization();
 
