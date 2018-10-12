@@ -871,7 +871,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         workVec[i] = p[i];
 
     mcmUpdateValue->SetParametersFromVector(workVec);
-    
+
     mcmValue = mcmUpdateValue;
     aiccValue = this->ComputeAICcValue(mcmValue,costValue);
 
@@ -1302,6 +1302,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     unsigned int numNonIsotropicComponents = complexModel->GetNumberOfCompartments() - numIsotropicComponents;
     unsigned int numCompartments = complexModel->GetNumberOfCompartments();
 
+    //First compute sparse solution as NNLS optmization
     anima::NNLSOptimizer::Pointer sparseOptimizer = anima::NNLSOptimizer::New();
     sparseOptimizer->SetDataMatrix(m_SparseSticksDictionary);
 
@@ -1312,24 +1313,60 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     sparseOptimizer->SetPoints(rightHandValues);
     sparseOptimizer->StartOptimization();
 
+    // Get atom weights and determine the number of non null weighted components, first quartile of their weights
     ParametersType dictionaryWeights = sparseOptimizer->GetCurrentPosition();
     unsigned int dictionarySize = dictionaryWeights.size();
 
     std::vector <unsigned int> nonNullAtomIndexes;
-    for (unsigned int i = numIsotropicComponents;i < dictionarySize;++i)
+
+    double totalWeightsSum = 0.0;
+    double sumWeights = 0.0;
+    for (unsigned int i = 0;i < numIsotropicComponents;++i)
     {
-        if (dictionaryWeights[i] > 1.0e-4)
-            nonNullAtomIndexes.push_back(i);
+        totalWeightsSum += dictionaryWeights[i];
+        sumWeights += dictionaryWeights[i];
+        dictionaryWeights[i] = 0;
     }
 
-    MCMType::ListType sparseWeights(complexModel->GetNumberOfCompartments(),0.0);
+    std::sort(dictionaryWeights.begin(),dictionaryWeights.end());
+
+    unsigned int numRealAnisotropicCompartments = dictionarySize;
+    for (int i = dictionarySize - 1;i >= 0;--i)
+    {
+        if (dictionaryWeights[i] == 0.0)
+        {
+            numRealAnisotropicCompartments = dictionarySize - 1 - i;
+            break;
+        }
+
+        totalWeightsSum += dictionaryWeights[i];
+    }
+
+    unsigned int thrIndex = dictionarySize - std::max(numNonIsotropicComponents,static_cast <unsigned int>(std::floor(numRealAnisotropicCompartments * 0.75)));
+    if (thrIndex > 0)
+        --thrIndex;
+
+    double thrWeight = dictionaryWeights[thrIndex];
+    dictionaryWeights = sparseOptimizer->GetCurrentPosition();
+
+    for (unsigned int i = numIsotropicComponents;i < dictionarySize;++i)
+    {
+        if (dictionaryWeights[i] > thrWeight)
+        {
+            nonNullAtomIndexes.push_back(i);
+            sumWeights += dictionaryWeights[i];
+        }
+    }
+
+    numRealAnisotropicCompartments = nonNullAtomIndexes.size();
+    MCMType::ListType sparseWeights(numCompartments,0.0);
     for (unsigned int i = 0;i < numIsotropicComponents;++i)
         sparseWeights[i] = dictionaryWeights[i];
 
-    unsigned int numRealAnisotropicCompartments = nonNullAtomIndexes.size();
     std::vector <double> tmpDirection(3,0.0);
     if (numRealAnisotropicCompartments <= numNonIsotropicComponents)
     {
+        // Not enough atomas detected, keep what we get and return
         MCMCreatorType *mcmCreator = m_MCMCreators[threadId];
         mcmCreator->SetNumberOfCompartments(numRealAnisotropicCompartments);
         complexModel = mcmCreator->GetNewMultiCompartmentModel();
@@ -1347,12 +1384,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
             currentCompartment->SetOrientationPhi(tmpDirection[1]);
         }
 
-        double sumWeights = 0;
         for (unsigned int i = 0;i < numCompartments;++i)
-            sumWeights += sparseWeights[i];
-
-        for (unsigned int i = 0;i < numCompartments;++i)
-            sparseWeights[i] /= sumWeights;
+            sparseWeights[i] /= totalWeightsSum;
 
         complexModel->SetCompartmentWeights(sparseWeights);
 
@@ -1367,9 +1400,11 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         for (unsigned int j = i + 1;j < numRealAnisotropicCompartments;++j)
         {
             double dotProduct = std::abs(anima::ComputeScalarProduct(m_DictionaryDirections[nonNullAtomIndexes[i]],m_DictionaryDirections[nonNullAtomIndexes[j]]));
-            if (dotProduct > 1)
+            if (dotProduct > 1.0)
                 dotProduct = 1.0;
-            directionsDistanceMatrix(i,j) = std::acos(dotProduct);
+
+            double acosValue = std::acos(dotProduct);
+            directionsDistanceMatrix(i,j) = acosValue * acosValue;
             directionsDistanceMatrix(j,i) = directionsDistanceMatrix(i,j);
         }
     }
@@ -1396,33 +1431,33 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     EigenVectorType eigVals;
     eigSystem.SetOrderEigenValues(true);
 
+    // Set output directions and compute their absolute weights (includes B0)
     for (unsigned int i = 0;i < numNonIsotropicComponents;++i)
     {
         dcmMatrix.fill(0.0);
-        double weightComponent = 0;
+        double weightComponent = 0.0;
         for (unsigned int j = 0;j < numRealAnisotropicCompartments;++j)
         {
             classMemberships = spectralClustering.GetClassesMembership(j);
-
             unsigned int atomIndex = nonNullAtomIndexes[j];
             double membershipWeight = classMemberships[i];
             weightComponent += membershipWeight * dictionaryWeights[atomIndex];
             for (unsigned int k = 0;k < 3;++k)
             {
-                for (unsigned int l = k;l < 3;++l)
-                    dcmMatrix(k,l) += membershipWeight * dictionaryWeights[atomIndex] * m_DictionaryDirections[atomIndex][k] * m_DictionaryDirections[atomIndex][l];
+                dcmMatrix(k,k) += membershipWeight * dictionaryWeights[atomIndex] * m_DictionaryDirections[atomIndex][k] * m_DictionaryDirections[atomIndex][k];
+
+                for (unsigned int l = k + 1;l < 3;++l)
+                {
+                    double tmpValue = membershipWeight * dictionaryWeights[atomIndex] * m_DictionaryDirections[atomIndex][k] * m_DictionaryDirections[atomIndex][l];
+                    dcmMatrix(k,l) += tmpValue;
+                    dcmMatrix(l,k) += tmpValue;
+                }
             }
         }
 
-        for (unsigned int k = 0;k < 3;++k)
-        {
-            for (unsigned int l = k + 1;l < 3;++l)
-                dcmMatrix(l,k) = dcmMatrix(k,l);
-        }
-
         eigSystem.ComputeEigenValuesAndVectors(dcmMatrix, eigVals, eigVecs);
-        for (unsigned int k = 0;k < 3;++k)
-            tmpDirection[k] = eigVecs(2,k);
+        for (unsigned int j = 0;j < 3;++j)
+            tmpDirection[j] = eigVecs(2,j);
         anima::TransformCartesianToSphericalCoordinates(tmpDirection,tmpDirection);
 
         anima::BaseCompartment *currentCompartment = complexModel->GetCompartment(i + numIsotropicComponents);
@@ -1432,12 +1467,14 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         sparseWeights[i + numIsotropicComponents] = weightComponent;
     }
 
-    double sumWeights = 0;
-    for (unsigned int i = 0;i < numCompartments;++i)
-        sumWeights += sparseWeights[i];
-
-    for (unsigned int i = 0;i < numCompartments;++i)
-        sparseWeights[i] /= sumWeights;
+    // Rearrange weights to account for left out atoms (ensure isotropic weights don't get inflated
+    for (unsigned int i = 0;i < numIsotropicComponents;++i)
+        sparseWeights[i] /= totalWeightsSum;
+    for (unsigned int i = numIsotropicComponents;i < numCompartments;++i)
+    {
+        sparseWeights[i] += (totalWeightsSum - sumWeights) / numNonIsotropicComponents;
+        sparseWeights[i] /= totalWeightsSum;
+    }
 
     complexModel->SetCompartmentWeights(sparseWeights);
 }
