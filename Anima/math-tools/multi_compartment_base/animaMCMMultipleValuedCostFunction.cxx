@@ -45,13 +45,6 @@ MCMMultipleValuedCostFunction
 
 double
 MCMMultipleValuedCostFunction
-::GetB0Value()
-{
-    return m_InternalCost->GetB0Value();
-}
-
-double
-MCMMultipleValuedCostFunction
 ::GetSigmaSquare()
 {
     return m_InternalCost->GetSigmaSquare();

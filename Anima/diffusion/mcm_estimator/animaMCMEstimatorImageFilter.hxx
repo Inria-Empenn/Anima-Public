@@ -544,7 +544,9 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
             for (unsigned int i = 0;i < mcmData->GetNumberOfCompartments();++i)
             {
                 outputMCMData->GetCompartment(i)->CopyFromOther(mcmData->GetCompartment(i));
-                outputWeights[i] = mcmData->GetCompartmentWeight(i);
+
+                if (b0Value != 0.0)
+                    outputWeights[i] = mcmData->GetCompartmentWeight(i) / b0Value;
             }
 
             outputMCMData->SetCompartmentWeights(outputWeights);
@@ -1109,49 +1111,20 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     {
         anima::NLOPTOptimizers::Pointer tmpOpt = anima::NLOPTOptimizers::New();
 
-        if (m_MLEstimationStrategy != VariableProjection)
+        if (m_Optimizer == "bobyqa")
         {
-            anima::MCMSingleValuedCostFunction *costCast =
-                    dynamic_cast <anima::MCMSingleValuedCostFunction *> (cost.GetPointer());
-            tmpOpt->SetCostFunction(costCast);
-            tmpOpt->SetAlgorithm(NLOPT_AUGLAG);
-
-            if (m_Optimizer == "bobyqa")
-            {
-                tmpOpt->SetLocalOptimizer(NLOPT_LN_BOBYQA);
-                if (defaultTol)
-                    xTol = 1.0e-7;
-            }
-            else if (m_Optimizer == "ccsaq")
-                tmpOpt->SetLocalOptimizer(NLOPT_LD_CCSAQ);
-            else if (m_Optimizer == "bfgs")
-                tmpOpt->SetLocalOptimizer(NLOPT_LD_LBFGS);
-
-            typedef anima::MCMWeightsInequalityConstraintFunction WeightInequalityFunctionType;
-            WeightInequalityFunctionType::Pointer weightsInequality = WeightInequalityFunctionType::New();
-            double wIneqTol = std::min(std::numeric_limits<double>::epsilon(), xTol / 10.0);
-            weightsInequality->SetTolerance(wIneqTol);
-            weightsInequality->SetMCMStructure(costCast->GetMCMStructure());
-
-            tmpOpt->AddInequalityConstraint(weightsInequality);
+            tmpOpt->SetAlgorithm(NLOPT_LN_BOBYQA);
+            if (defaultTol)
+                xTol = 1.0e-7;
         }
-        else
-        {
-            if (m_Optimizer == "bobyqa")
-            {
-                tmpOpt->SetAlgorithm(NLOPT_LN_BOBYQA);
-                if (defaultTol)
-                    xTol = 1.0e-7;
-            }
-            else if (m_Optimizer == "ccsaq")
-                tmpOpt->SetAlgorithm(NLOPT_LD_CCSAQ);
-            else if (m_Optimizer == "bfgs")
-                tmpOpt->SetAlgorithm(NLOPT_LD_LBFGS);
+        else if (m_Optimizer == "ccsaq")
+            tmpOpt->SetAlgorithm(NLOPT_LD_CCSAQ);
+        else if (m_Optimizer == "bfgs")
+            tmpOpt->SetAlgorithm(NLOPT_LD_LBFGS);
 
-            anima::MCMSingleValuedCostFunction *costCast =
-                    dynamic_cast <anima::MCMSingleValuedCostFunction *> (cost.GetPointer());
-            tmpOpt->SetCostFunction(costCast);
-        }
+        anima::MCMSingleValuedCostFunction *costCast =
+                dynamic_cast <anima::MCMSingleValuedCostFunction *> (cost.GetPointer());
+        tmpOpt->SetCostFunction(costCast);
 
         tmpOpt->SetMaximize(false);
         tmpOpt->SetXTolRel(xTol);
@@ -1253,28 +1226,32 @@ void
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::GetProfiledInformation(CostFunctionBasePointer &cost, MCMPointer &mcm, double &b0Value, double &sigmaSqValue)
 {
+    unsigned int numCompartments = mcm->GetNumberOfCompartments();
+    MCMType::ListType tmpWeights;
+
     if (m_Optimizer == "levenberg")
     {
         anima::MCMMultipleValuedCostFunction *costCast =
                 dynamic_cast <anima::MCMMultipleValuedCostFunction *> (cost.GetPointer());
 
-        b0Value = costCast->GetB0Value();
         sigmaSqValue = costCast->GetSigmaSquare();
-
-        if (m_MLEstimationStrategy == VariableProjection)
-            mcm->SetCompartmentWeights(costCast->GetMCMStructure()->GetCompartmentWeights());
+        tmpWeights = costCast->GetMCMStructure()->GetCompartmentWeights();
     }
     else
     {
         anima::MCMSingleValuedCostFunction *costCast =
                 dynamic_cast <anima::MCMSingleValuedCostFunction *> (cost.GetPointer());
 
-        b0Value = costCast->GetB0Value();
         sigmaSqValue = costCast->GetSigmaSquare();
-
-        if (m_MLEstimationStrategy == VariableProjection)
-            mcm->SetCompartmentWeights(costCast->GetMCMStructure()->GetCompartmentWeights());
+        tmpWeights = costCast->GetMCMStructure()->GetCompartmentWeights();
     }
+
+    b0Value = 0;
+    for (unsigned int i = 0;i < numCompartments;++i)
+        b0Value += tmpWeights[i];
+
+    if (m_MLEstimationStrategy == VariableProjection)
+        mcm->SetCompartmentWeights(tmpWeights);
 }
 
 template <class InputPixelType, class OutputPixelType>
@@ -1283,8 +1260,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::ComputeAICcValue(MCMPointer &mcmValue, double costValue)
 {
     // Compute AICu (improvement over AICc)
-    // nbparams is the number of parameters of the model plus the B0 value and the variance value
-    double nbparams = mcmValue->GetNumberOfParameters() + 2.0;
+    // nbparams is the number of parameters of the model plus the variance value
+    double nbparams = mcmValue->GetNumberOfParameters() + 1.0;
 
     // We assume the cost value is returned as - 2 * log-likelihood
     double AICc = costValue + 2.0 * nbparams + 2.0 * nbparams * (nbparams + 1.0) / (m_NumberOfImages - nbparams - 1.0)
@@ -1347,11 +1324,12 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         --thrIndex;
 
     double thrWeight = dictionaryWeights[thrIndex];
+    double maxDictionaryWeight = dictionaryWeights[dictionarySize - 1];
     dictionaryWeights = sparseOptimizer->GetCurrentPosition();
 
     for (unsigned int i = numIsotropicComponents;i < dictionarySize;++i)
     {
-        if (dictionaryWeights[i] > thrWeight)
+        if ((dictionaryWeights[i] > thrWeight) && (dictionaryWeights[i] > maxDictionaryWeight / 10.0))
         {
             nonNullAtomIndexes.push_back(i);
             sumWeights += dictionaryWeights[i];
@@ -1383,9 +1361,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
             currentCompartment->SetOrientationTheta(tmpDirection[0]);
             currentCompartment->SetOrientationPhi(tmpDirection[1]);
         }
-
-        for (unsigned int i = 0;i < numCompartments;++i)
-            sparseWeights[i] /= totalWeightsSum;
 
         complexModel->SetCompartmentWeights(sparseWeights);
 
@@ -1468,13 +1443,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     }
 
     // Rearrange weights to account for left out atoms (ensure isotropic weights don't get inflated
-    for (unsigned int i = 0;i < numIsotropicComponents;++i)
-        sparseWeights[i] /= totalWeightsSum;
     for (unsigned int i = numIsotropicComponents;i < numCompartments;++i)
-    {
         sparseWeights[i] += (totalWeightsSum - sumWeights) / numNonIsotropicComponents;
-        sparseWeights[i] /= totalWeightsSum;
-    }
 
     complexModel->SetCompartmentWeights(sparseWeights);
 }

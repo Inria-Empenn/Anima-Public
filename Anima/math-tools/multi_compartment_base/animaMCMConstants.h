@@ -35,6 +35,9 @@ const double MCMZeroLowerBound = 0.0;
 //! Epsilon value in case we do not want to have parameters reaching their true bounds (used for now in DDI)
 const double MCMEpsilon = 1.0e-2;
 
+//! Compartment fractions upper bound (B0 times weight)
+const double MCMCompartmentsFractionUpperBound = 1.0e7;
+
 //! Axial diffusivity add on to lower bound (used to ensure a minimal anisotropy to the anisotropic compartments)
 const double MCMAxialDiffusivityAddonLowerBound = 5.0e-4;
 

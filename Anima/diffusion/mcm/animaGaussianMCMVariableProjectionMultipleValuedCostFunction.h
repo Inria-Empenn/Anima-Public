@@ -34,7 +34,6 @@ public:
     virtual MeasureType GetValue(const ParametersType &parameters) const ITK_OVERRIDE;
     virtual void GetDerivative(const ParametersType &parameters, DerivativeType &derivative) const ITK_OVERRIDE;
 
-    double GetB0Value();
     double GetSigmaSquare();
     std::vector <double> &GetOptimalWeights();
 
@@ -44,7 +43,7 @@ public:
 protected:
     GaussianMCMVariableProjectionMultipleValuedCostFunction()
     {
-        m_InternalCost = 0;
+        m_InternalCost = ITK_NULLPTR;
     }
 
     virtual ~GaussianMCMVariableProjectionMultipleValuedCostFunction() {}

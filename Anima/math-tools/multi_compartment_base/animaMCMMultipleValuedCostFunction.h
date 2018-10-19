@@ -34,7 +34,6 @@ public:
     virtual MeasureType GetValue(const ParametersType &parameters) const ITK_OVERRIDE;
     virtual void GetDerivative(const ParametersType &parameters, DerivativeType &derivative) const ITK_OVERRIDE;
 
-    double GetB0Value();
     double GetSigmaSquare();
 
     InternalCostType::MCMPointer &GetMCMStructure() {return m_InternalCost->GetMCMStructure();}
@@ -45,10 +44,10 @@ public:
 protected:
     MCMMultipleValuedCostFunction()
     {
-        m_InternalCost = 0;
+        m_InternalCost = ITK_NULLPTR;
     }
 
-    virtual ~MCMMultipleValuedCostFunction() {}
+    virtual ~MCMMultipleValuedCostFunction() ITK_OVERRIDE {}
 
 private:
     MCMMultipleValuedCostFunction(const Self&); //purposely not implemented

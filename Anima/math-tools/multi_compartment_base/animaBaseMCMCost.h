@@ -68,7 +68,6 @@ public:
         return m_ObservedSignals.size();
     }
 
-    virtual double GetB0Value() {return m_B0Value;}
     virtual double GetSigmaSquare() {return m_SigmaSquare;}
 
     void SetSmallDelta(double val) {m_SmallDelta = val;}
@@ -78,7 +77,6 @@ protected:
     BaseMCMCost();
     virtual ~BaseMCMCost() {}
 
-    double m_B0Value;
     double m_SigmaSquare;
     std::vector <double> m_PredictedSignals;
 
