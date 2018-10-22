@@ -19,6 +19,40 @@ NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
 template <typename TInputImage, typename TOutputImage>
 void
 NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
+::GenerateData()
+{
+    // Copy pasted from itk Image source to de-activate progress handling by ITK
+
+    // Call a method that can be overriden by a subclass to allocate
+    // memory for the filter's outputs
+    this->AllocateOutputs();
+
+    // Call a method that can be overridden by a subclass to perform
+    // some calculations prior to splitting the main computations into
+    // separate threads
+    this->BeforeThreadedGenerateData();
+
+    if (!this->GetDynamicMultiThreading())
+    {
+        this->ClassicMultiThread(this->ThreaderCallback);
+    }
+    else
+    {
+        this->GetMultiThreader()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
+        this->GetMultiThreader()->template ParallelizeImageRegion<OutputImageDimension>(
+                    this->GetOutput()->GetRequestedRegion(),
+                    [this](const OutputImageRegionType & outputRegionForThread)
+        { this->DynamicThreadedGenerateData(outputRegionForThread); }, ITK_NULLPTR);
+    }
+
+    // Call a method that can be overridden by a subclass to perform
+    // some calculations after all the threads have completed
+    this->AfterThreadedGenerateData();
+}
+
+template <typename TInputImage, typename TOutputImage>
+void
+NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
 ::IncrementNumberOfProcessedPoints()
 {
     m_LockProcessedPoints.Lock();

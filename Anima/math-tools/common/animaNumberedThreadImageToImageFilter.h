@@ -21,6 +21,9 @@ public:
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
+    static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
+    typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
+
     /** Method for creation through the object factory. */
     itkNewMacro(Self)
 
@@ -37,6 +40,7 @@ protected:
 
     virtual ~NumberedThreadImageToImageFilter() {}
 
+    virtual void GenerateData() ITK_OVERRIDE;
     virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
 
     unsigned int GetSafeThreadId();
