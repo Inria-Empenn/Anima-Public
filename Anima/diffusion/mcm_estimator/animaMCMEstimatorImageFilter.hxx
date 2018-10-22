@@ -544,9 +544,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
             for (unsigned int i = 0;i < mcmData->GetNumberOfCompartments();++i)
             {
                 outputMCMData->GetCompartment(i)->CopyFromOther(mcmData->GetCompartment(i));
-
-                if (b0Value != 0.0)
-                    outputWeights[i] = mcmData->GetCompartmentWeight(i) / b0Value;
+                outputWeights[i] = mcmData->GetCompartmentWeight(i);
             }
 
             outputMCMData->SetCompartmentWeights(outputWeights);
@@ -588,6 +586,16 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
                                         aiccValue,b0Value,sigmaSqValue);
 
     this->ModelEstimation(mcmValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
+
+    if (b0Value != 0.0)
+    {
+        MCMType::ListType outputWeights = mcmValue->GetCompartmentWeights();
+
+        for (unsigned int i = 0;i < outputWeights.size();++i)
+            outputWeights[i] /= b0Value;
+
+        mcmValue->SetCompartmentWeights(outputWeights);
+    }
 }
 
 template <class InputPixelType, class OutputPixelType>
