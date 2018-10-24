@@ -103,9 +103,7 @@ SpectralClusteringFilter <ScalarType>
 ::InitializeSigmaFromDistances()
 {
     double sigmaTmp = 0;
-
     unsigned int inputSize = m_InputData.rows();
-
     unsigned int numPts = inputSize*(inputSize + 1)/2 - inputSize - 1;
 
     for (unsigned int i = 0;i < inputSize;++i)
@@ -128,11 +126,13 @@ SpectralClusteringFilter <ScalarType>
     std::vector <double> dValues(inputSize,0);
 
     for (unsigned int i = 0;i < inputSize;++i)
+    {
         for (unsigned int j = i+1;j < inputSize;++j)
         {
             W(i,j) = std::exp(- m_InputData(i,j) / (2.0 * m_SigmaWeighting * m_SigmaWeighting));
             W(j,i) = W(i,j);
         }
+    }
 
     for (unsigned int i = 0;i < inputSize;++i)
     {

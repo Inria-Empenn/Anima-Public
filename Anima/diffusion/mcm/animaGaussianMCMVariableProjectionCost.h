@@ -48,12 +48,12 @@ protected:
         m_UseDerivative = false;
     }
 
-    virtual ~GaussianMCMVariableProjectionCost() {}
+    virtual ~GaussianMCMVariableProjectionCost() ITK_OVERRIDE {}
 
-    //! Computes maximum likelihood estimates of weights and B0
+    //! Computes maximum likelihood estimates of weights
     void SolveUnconstrainedLinearLeastSquares();
 
-    //! Computes maximum likelihood estimates of weights and B0 on the borders of the domain (has to be used after SolveMaximumLikelihoodPDE)
+    //! Computes maximum likelihood estimates of weights on the borders of the domain (has to be used after SolveUnconstrainedLinearLeastSquares)
     void SolveLinearLeastSquaresOnBorders();
 
     bool CheckBoundaryConditions();
@@ -66,16 +66,14 @@ private:
     bool m_UseDerivative;
 
     // Utility variables to make ML estimation faster
-    vnl_matrix<double> m_PhiInverseG, m_PhiInverseGCopy;
+    vnl_matrix <double> m_FMatrixInverseG, m_FMatrixInverseGCopy;
     std::vector <double> m_OptimalWeights, m_OptimalWeightsCopy;
     MeasureType m_Residuals, m_ResidualsCopy;
     std::vector <bool> m_CompartmentSwitches, m_CompartmentSwitchesCopy;
-    std::vector <double> m_ProjFirstCompartmentSignals, m_ProjFirstCompartmentSignalsCopy;
     
     std::vector <unsigned int> m_IndexesUsefulCompartments;
     std::vector < std::vector <double> > m_PredictedSignalAttenuations;
     std::vector< vnl_matrix<double> > m_SignalAttenuationsJacobian;
-    double m_ProjFirstCompartmentSqNorm;
 };
 
 } // end namespace anima

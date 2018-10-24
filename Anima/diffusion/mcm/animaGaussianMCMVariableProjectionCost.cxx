@@ -25,55 +25,10 @@ GaussianMCMVariableProjectionCost::GetValues(const ParametersType &parameters)
 
     std::fill(m_CompartmentSwitches.begin(),m_CompartmentSwitches.end(),true);
 
-    if (m_CompartmentSwitches.size() > 1)
-    {
-        this->SolveUnconstrainedLinearLeastSquares();
+    this->SolveUnconstrainedLinearLeastSquares();
 
-        if (!this->CheckBoundaryConditions())
-            this->SolveLinearLeastSquaresOnBorders();
-    }
-    else
-    {
-        std::fill(m_OptimalWeights.begin(),m_OptimalWeights.end(),0);
-        unsigned int indexNonNull = 0;
-        m_CompartmentSwitches[0] = true;
-        m_OptimalWeights[0] = 1;
-        m_B0Value = 0;
-        double normConstant = 0;
-
-        unsigned int nbValues = m_Gradients.size();
-        for (unsigned int i = 0;i < nbValues;++i)
-        {
-            double predictedValue = m_PredictedSignalAttenuations[i][indexNonNull];
-            double observedValue = m_ObservedSignals[i];
-
-            m_B0Value += predictedValue * observedValue;
-            normConstant += predictedValue * predictedValue;
-        }
-
-        m_B0Value /= normConstant;
-        m_SigmaSquare = 0;
-
-        for (unsigned int i = 0;i < nbValues;++i)
-        {
-            double predictedValue = m_B0Value * m_PredictedSignalAttenuations[i][indexNonNull];
-            double observedValue = m_ObservedSignals[i];
-
-            m_Residuals[i] = predictedValue - observedValue;
-            m_SigmaSquare += (observedValue - predictedValue) * (observedValue - predictedValue);
-        }
-
-        m_SigmaSquare /= nbValues;
-
-        // needs update Projection
-        m_ProjFirstCompartmentSqNorm = 0;
-        for (unsigned int i = 0;i < nbValues;++i)
-        {
-            double workScalar = m_PredictedSignalAttenuations[i][indexNonNull];
-            m_ProjFirstCompartmentSignals[i] = workScalar;
-            m_ProjFirstCompartmentSqNorm += workScalar * workScalar;
-        }
-    }
+    if (!this->CheckBoundaryConditions())
+        this->SolveLinearLeastSquaresOnBorders();
 
     m_MCMStructure->SetCompartmentWeights(m_OptimalWeights);
     return m_Residuals;
@@ -81,13 +36,11 @@ GaussianMCMVariableProjectionCost::GetValues(const ParametersType &parameters)
 
 double GaussianMCMVariableProjectionCost::GetCurrentCostValue()
 {
+    // This is -2log(L) so that we only have to give one formula
     double costValue = 0;
     unsigned int nbImages = m_Residuals.size();
 
-    for (unsigned int i = 0;i < nbImages;++i)
-        costValue += m_Residuals[i] * m_Residuals[i];
-
-    costValue = nbImages * (1.0 + std::log(2.0 * M_PI * costValue / nbImages));
+    costValue = nbImages * (1.0 + std::log(2.0 * M_PI * m_SigmaSquare));
 
     return costValue;
 }
@@ -95,9 +48,6 @@ double GaussianMCMVariableProjectionCost::GetCurrentCostValue()
 bool
 GaussianMCMVariableProjectionCost::CheckBoundaryConditions()
 {
-    if (m_B0Value < 0)
-        return false;
-    
     if (m_SigmaSquare <= 0)
         return false;
 
@@ -121,14 +71,11 @@ GaussianMCMVariableProjectionCost::SolveLinearLeastSquaresOnBorders()
     m_CompartmentSwitches[numCompartments-1] = true;
 
     double referenceCostValue = 0;
-    double optimalB0Value = m_B0Value;
     double optimalSigmaSquare = m_SigmaSquare;
-    double optimalProjFirstCompartmentSqNorm = m_ProjFirstCompartmentSqNorm;
-    m_ProjFirstCompartmentSignalsCopy = m_ProjFirstCompartmentSignals;
     m_OptimalWeightsCopy = m_OptimalWeights;
     m_CompartmentSwitchesCopy = m_CompartmentSwitches;
     m_ResidualsCopy = m_Residuals;
-    m_PhiInverseGCopy = m_PhiInverseG;
+    m_FMatrixInverseGCopy = m_FMatrixInverseG;
 
     bool allCompartmentsOn = false;
     bool oneModelFound = false;
@@ -144,58 +91,7 @@ GaussianMCMVariableProjectionCost::SolveLinearLeastSquaresOnBorders()
                 break;
         }
 
-        if (numCompartmentsOn > 1)
-            this->SolveUnconstrainedLinearLeastSquares();
-        else
-        {
-            std::fill(m_OptimalWeights.begin(),m_OptimalWeights.end(),0);
-            unsigned int indexNonNull = 0;
-            for (unsigned int i = 0;i < numCompartments;++i)
-            {
-                if (m_CompartmentSwitches[i])
-                {
-                    indexNonNull = i;
-                    break;
-                }
-            }
-
-            m_OptimalWeights[m_IndexesUsefulCompartments[indexNonNull]] = 1;
-            m_B0Value = 0;
-            double normConstant = 0;
-            
-            for (unsigned int i = 0;i < nbValues;++i)
-            {
-                double predictedValue = m_PredictedSignalAttenuations[i][indexNonNull];
-                double observedValue = m_ObservedSignals[i];
-
-                m_B0Value += predictedValue * observedValue;
-                normConstant += predictedValue * predictedValue;
-            }
-            
-            m_B0Value /= normConstant;
-
-            m_SigmaSquare = 0;
-
-            for (unsigned int i = 0;i < nbValues;++i)
-            {
-                double predictedValue = m_B0Value * m_PredictedSignalAttenuations[i][indexNonNull];
-                double observedValue = m_ObservedSignals[i];
-
-                m_Residuals[i] = predictedValue - observedValue;
-                m_SigmaSquare += (observedValue - predictedValue) * (observedValue - predictedValue);
-            }
-
-            m_SigmaSquare /= nbValues;
-            
-            // needs update Projection
-            m_ProjFirstCompartmentSqNorm = 0;
-            for (unsigned int i = 0;i < nbValues;++i)
-            {
-                double workScalar = m_PredictedSignalAttenuations[i][indexNonNull];
-                m_ProjFirstCompartmentSignals[i] = workScalar;
-                m_ProjFirstCompartmentSqNorm += workScalar * workScalar;
-            }
-        }
+        this->SolveUnconstrainedLinearLeastSquares();
 
         double costValue = this->GetCurrentCostValue();
         if (((costValue < referenceCostValue)||(!oneModelFound))&&
@@ -204,17 +100,14 @@ GaussianMCMVariableProjectionCost::SolveLinearLeastSquaresOnBorders()
             referenceCostValue = costValue;
             oneModelFound = true;
             m_OptimalWeightsCopy = m_OptimalWeights;
-            optimalB0Value = m_B0Value;
             optimalSigmaSquare = m_SigmaSquare;
-            optimalProjFirstCompartmentSqNorm = m_ProjFirstCompartmentSqNorm;
             m_ResidualsCopy = m_Residuals;
-            m_ProjFirstCompartmentSignalsCopy = m_ProjFirstCompartmentSignals;
-            m_PhiInverseGCopy = m_PhiInverseG;
+            m_FMatrixInverseGCopy = m_FMatrixInverseG;
             m_CompartmentSwitchesCopy = m_CompartmentSwitches;
         }
 
         // Update configuration
-        unsigned int index = numCompartments-1;
+        unsigned int index = numCompartments - 1;
         bool continueProgress = true;
         while (continueProgress)
         {
@@ -236,11 +129,8 @@ GaussianMCMVariableProjectionCost::SolveLinearLeastSquaresOnBorders()
 
     m_Residuals = m_ResidualsCopy;
     m_OptimalWeights = m_OptimalWeightsCopy;
-    m_B0Value = optimalB0Value;
     m_SigmaSquare = optimalSigmaSquare;
-    m_ProjFirstCompartmentSqNorm = optimalProjFirstCompartmentSqNorm;
-    m_ProjFirstCompartmentSignals = m_ProjFirstCompartmentSignalsCopy;
-    m_PhiInverseG = m_PhiInverseGCopy;
+    m_FMatrixInverseG = m_FMatrixInverseGCopy;
     m_CompartmentSwitches = m_CompartmentSwitchesCopy;
 }
 
@@ -250,48 +140,35 @@ GaussianMCMVariableProjectionCost::SolveUnconstrainedLinearLeastSquares()
     unsigned int nbValues = m_Gradients.size();
     unsigned int numCompartments = m_IndexesUsefulCompartments.size();
     unsigned int numOnCompartments = 0;
-    unsigned int firstCompartmentIndex = 0;
 
     for (unsigned int j = 0;j < numCompartments;++j)
     {
         if (m_CompartmentSwitches[j])
-        {
-            if (numOnCompartments == 0)
-                firstCompartmentIndex = j;
             ++numOnCompartments;
-            continue;
-        }
     }
 
-    unsigned int vecSize = 0;
-    if (numOnCompartments - 1.0 > 0)
-        vecSize = numOnCompartments - 1;
+    unsigned int vecSize = numOnCompartments;
 
-    ListType fSignal(vecSize,0), fFirstCompartment(vecSize,0);
-    vnl_matrix <double> gramMatrix(vecSize,vecSize,0), inverseGramMatrix;
+    ListType fSignal(vecSize,0);
+    vnl_matrix <double> gramMatrix(vecSize,vecSize,0.0), inverseGramMatrix;
     
     for (unsigned int i = 0;i < nbValues;++i)
     {
-        double firstCompartmentSignal = m_PredictedSignalAttenuations[i][firstCompartmentIndex];
         unsigned int posX = 0;
-        for (unsigned int j = firstCompartmentIndex+1;j < numCompartments;++j)
+        for (unsigned int j = 0;j < numCompartments;++j)
         {
             if (!m_CompartmentSwitches[j])
                 continue;
-            
-            double jthCompartmentSignal = m_PredictedSignalAttenuations[i][j];
-            
-            fSignal[posX] += (jthCompartmentSignal - firstCompartmentSignal) * m_ObservedSignals[i];
-            fFirstCompartment[posX] += (jthCompartmentSignal - firstCompartmentSignal) * firstCompartmentSignal;
-            
+
+            fSignal[posX] += m_PredictedSignalAttenuations[i][j] * m_ObservedSignals[i];
+
             unsigned int posY = posX;
             for (unsigned int k = j;k < numCompartments;++k)
             {
                 if (!m_CompartmentSwitches[k])
                     continue;
                 
-                gramMatrix(posX,posY) += (jthCompartmentSignal - firstCompartmentSignal) * (m_PredictedSignalAttenuations[i][k] - firstCompartmentSignal);
-                
+                gramMatrix(posX,posY) += m_PredictedSignalAttenuations[i][j] * m_PredictedSignalAttenuations[i][k];
                 ++posY;
             }
             
@@ -306,86 +183,55 @@ GaussianMCMVariableProjectionCost::SolveUnconstrainedLinearLeastSquares()
     if (vecSize > 0)
         anima::GetTensorPower(gramMatrix,inverseGramMatrix,-1.0);
 
-    // Here gets Phi G^-1
-    m_PhiInverseG.set_size(nbValues,vecSize);
+    // Here gets F G^-1
+    m_FMatrixInverseG.set_size(nbValues,vecSize);
     for (unsigned int i = 0;i < nbValues;++i)
     {
         for (unsigned int j = 0;j < vecSize;++j)
         {
-            double workScalar = 0;
+            m_FMatrixInverseG(i,j) = 0.0;
             unsigned int pos = 0;
-            for (unsigned int k = firstCompartmentIndex+1;k < numCompartments;++k)
+            for (unsigned int k = 0;k < numCompartments;++k)
             {
                 if (!m_CompartmentSwitches[k])
                     continue;
                 
-                workScalar += (m_PredictedSignalAttenuations[i][k] - m_PredictedSignalAttenuations[i][firstCompartmentIndex]) * inverseGramMatrix(pos,j);
-                
+                m_FMatrixInverseG(i,j) += m_PredictedSignalAttenuations[i][k] * inverseGramMatrix(pos,j);
                 ++pos;
             }
-            
-            m_PhiInverseG(i,j) = workScalar;
         }
     }
-    
-    double observedProjObservedProduct = 0;
-    double observedProjFirstComparmentProduct = 0;
-    m_ProjFirstCompartmentSqNorm = 0;
+
+    m_SigmaSquare = 0.0;
     
     for (unsigned int i = 0;i < nbValues;++i)
     {
-        double firstCompartmentSignal = m_PredictedSignalAttenuations[i][firstCompartmentIndex];
         double projObservedSignal = m_ObservedSignals[i];
-        double projFirstCompartmentSignal = firstCompartmentSignal;
         
         for (unsigned int j = 0;j < vecSize;++j)
-        {
-            projObservedSignal -= m_PhiInverseG(i,j) * fSignal[j];
-            projFirstCompartmentSignal -= m_PhiInverseG(i,j) * fFirstCompartment[j];
-        }
+            projObservedSignal -= m_FMatrixInverseG(i,j) * fSignal[j];
         
-        m_ProjFirstCompartmentSignals[i] = projFirstCompartmentSignal;
-        
-        observedProjObservedProduct += m_ObservedSignals[i] * projObservedSignal;
-        observedProjFirstComparmentProduct += m_ObservedSignals[i] * projFirstCompartmentSignal;
-        m_ProjFirstCompartmentSqNorm += firstCompartmentSignal * projFirstCompartmentSignal;
+        m_Residuals[i] = projObservedSignal;
+        m_SigmaSquare += projObservedSignal * projObservedSignal;
     }
-    
-    // Solving for B0
-    m_B0Value = observedProjFirstComparmentProduct / m_ProjFirstCompartmentSqNorm;
     
     // Solving for weights
     std::fill(m_OptimalWeights.begin(),m_OptimalWeights.end(),0.0);
     unsigned int pos = 0;
-    double sumWeights = 0;
-    for (unsigned int k = firstCompartmentIndex+1;k < numCompartments;++k)
+    for (unsigned int k = 0;k < numCompartments;++k)
     {
         if (!m_CompartmentSwitches[k])
             continue;
         
         unsigned int indexOptWeight = m_IndexesUsefulCompartments[k];
         for (unsigned int j = 0;j < vecSize;++j)
-            m_OptimalWeights[indexOptWeight] += inverseGramMatrix(pos,j) * (fSignal[j] / m_B0Value - fFirstCompartment[j]);
-        
-        sumWeights += m_OptimalWeights[indexOptWeight];
+            m_OptimalWeights[indexOptWeight] += inverseGramMatrix(pos,j) * fSignal[j];
+
         ++pos;
     }
     
-    m_OptimalWeights[m_IndexesUsefulCompartments[firstCompartmentIndex]] = 1.0 - sumWeights;
-    
-    // Compute residuals
-    for (unsigned int i = 0;i < nbValues;++i)
-    {
-        double predictedValue = 0;
-        
-        for (unsigned int j = 0;j < m_IndexesUsefulCompartments.size();++j)
-            predictedValue += m_OptimalWeights[m_IndexesUsefulCompartments[j]] * m_PredictedSignalAttenuations[i][j];
-        
-        m_Residuals[i] = m_B0Value * predictedValue - m_ObservedSignals[i];
-    }
-    
     // Solving for SigmaSquare
-    m_SigmaSquare = (observedProjObservedProduct - m_B0Value * m_B0Value * m_ProjFirstCompartmentSqNorm) / nbValues;
+    m_SigmaSquare /= nbValues;
 }
 
 void
@@ -462,7 +308,6 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
     }
     
     m_Residuals.SetSize(nbValues);
-    m_ProjFirstCompartmentSignals.resize(nbValues);
     m_CompartmentSwitches.resize(numCompartments);
 }
     
@@ -476,17 +321,11 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
     unsigned int nbValues = m_ObservedSignals.size();
     unsigned int numCompartments = m_IndexesUsefulCompartments.size();
     unsigned int numOnCompartments = 0;
-    unsigned int firstCompartmentIndex = 0;
 
     for (unsigned int j = 0;j < numCompartments;++j)
     {
         if (m_CompartmentSwitches[j])
-        {
-            if (numOnCompartments == 0)
-                firstCompartmentIndex = j;
             ++numOnCompartments;
-            continue;
-        }
     }
     
     // Assume get derivative is called with the same parameters as GetValue just before
@@ -498,85 +337,60 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
     
     derivative.SetSize(nbParams, nbValues);
     derivative.Fill(0.0);
-    
+    ListType DFw(nbValues,0.0);
+
+    unsigned int vecSize = numOnCompartments;
+    ListType tmpVec(vecSize,0.0);
+
     for (unsigned int k = 0;k < nbParams;++k)
     {
         // First, compute
-        // - B0DPhiW = B0 DPhi[k] w
-        // - tmpVal = B0 <D_k a_0, ProjOrthPhi a_0> + <D_k a_0, Residus>
-        ListType B0DPhiW(nbValues,0.0);
-        double tmpVal = 0;
+        // - DFw = DF[k] w
+        std::fill(DFw.begin(),DFw.end(),0.0);
         for (unsigned int i = 0;i < nbValues;++i)
         {
-            tmpVal += m_SignalAttenuationsJacobian[k](i,firstCompartmentIndex) * (m_B0Value * m_ProjFirstCompartmentSignals[i] + m_Residuals[i]);
-            
-            double workScalar = 0;
-            for (unsigned int j = firstCompartmentIndex+1;j < numCompartments;++j)
+            DFw[i] = 0.0;
+            for (unsigned int j = 0;j < numCompartments;++j)
             {
                 if (!m_CompartmentSwitches[j])
                     continue;
                 
-                workScalar += (m_SignalAttenuationsJacobian[k](i,j) - m_SignalAttenuationsJacobian[k](i,firstCompartmentIndex)) * m_OptimalWeights[m_IndexesUsefulCompartments[j]];
+                DFw[i] += m_SignalAttenuationsJacobian[k](i,j) * m_OptimalWeights[m_IndexesUsefulCompartments[j]];
             }
-            
-            B0DPhiW[i] = m_B0Value * workScalar;
         }
         
         // Then, compute
-        // - tmpVec = Phi^T (B0 DPhi[k] w) + (DPhi[k])^T Residuals
-        // - tmpVec2 = Phi^T (D_k a_0)
-        unsigned int vecSize = 0;
-        if (numOnCompartments - 1.0 > 0)
-            vecSize = numOnCompartments - 1;
-
-        ListType tmpVec(vecSize,0.0), tmpVec2(vecSize,0.0);
+        // - tmpVec = F^T DF[k] w - (DF[k])^T Residuals
         unsigned int pos = 0;
-        for (unsigned int j = firstCompartmentIndex+1;j < numCompartments;++j)
+        for (unsigned int j = 0;j < numCompartments;++j)
         {
             if (!m_CompartmentSwitches[j])
                 continue;
 
-            double workScalar = 0, workScalar2 = 0;
-            for (unsigned int i = 0;i < nbValues;++i)
-            {
-                workScalar += (m_PredictedSignalAttenuations[i][j] - m_PredictedSignalAttenuations[i][firstCompartmentIndex]) * B0DPhiW[i];
-                workScalar += (m_SignalAttenuationsJacobian[k](i,j) - m_SignalAttenuationsJacobian[k](i,firstCompartmentIndex)) * m_Residuals[i];
-                workScalar2 += (m_PredictedSignalAttenuations[i][j] - m_PredictedSignalAttenuations[i][firstCompartmentIndex]) * m_SignalAttenuationsJacobian[k](i,firstCompartmentIndex);
-            }
+            tmpVec[pos] = 0.0;
 
-            tmpVec[pos] = workScalar;
-            tmpVec2[pos] = workScalar2;
+            for (unsigned int i = 0;i < nbValues;++i)
+                tmpVec[pos] += m_PredictedSignalAttenuations[i][j] * DFw[i] - m_SignalAttenuationsJacobian[k](i,j) * m_Residuals[i];
+
             ++pos;
         }
 
         // Finally, get
-        // - omega = DProjOrthPhi (B0 a_0 - y)
-        // - tmpVec3 = B0 ProjOrthPhi (D_k a_0)
-        ListType omega(nbValues,0.0), tmpVec3(nbValues,0.0);
+        // - derivative = FMatrixInverseG tmpVec - DFw
         for (unsigned int i = 0;i < nbValues;++i)
         {
-            double workScalar = 0, workScalar2 = 0;
+            derivative[k][i] = - DFw[i];
 
             for (unsigned int j = 0;j < vecSize;++j)
-            {
-                workScalar += m_PhiInverseG(i,j) * tmpVec[j];
-                workScalar2 += m_PhiInverseG(i,j) * tmpVec2[j];
-            }
-            
-            omega[i] = B0DPhiW[i] - workScalar;
-            tmpVec3[i] = m_B0Value * (m_SignalAttenuationsJacobian[k](i,firstCompartmentIndex) - workScalar2);
-        }
+                derivative[k][i] += m_FMatrixInverseG(i,j) * tmpVec[j];
 
-        // Get <a_0, omega>
-        double innerProduct = 0;
-        for (unsigned int i = 0;i < nbValues;++i)
-            innerProduct += omega[i] * m_PredictedSignalAttenuations[i][firstCompartmentIndex];
-        
-        for (unsigned int i = 0;i < nbValues;++i)
-        {
-            derivative[k][i] = omega[i] - (tmpVal + innerProduct) * m_ProjFirstCompartmentSignals[i] / m_ProjFirstCompartmentSqNorm + tmpVec3[i];
-            if (std::isnan(derivative[k][i]))
-                std::cout << "Arf " << k << " " << i << " " << omega[i] << " " << tmpVal << " " << innerProduct << " " << m_ProjFirstCompartmentSignals[i] << " " << tmpVec3[i] << std::endl;
+            if (!std::isfinite(derivative[k][i]))
+            {
+                std::cerr << "Arf " << k << " " << i << " tmpVec ";
+                for (unsigned int j = 0;j < vecSize;++j)
+                    std::cerr << tmpVec[j] << " ";
+                std::cerr << std::endl;
+            }
         }
     }
     
@@ -593,10 +407,9 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
     if (problem)
     {
         std::cerr << derivative << std::endl;
-        std::cout << "Proj first comp: " << m_ProjFirstCompartmentSqNorm << std::endl;
-        std::cout << "Residuals: " << m_Residuals << std::endl;
+        std::cerr << "Residuals: " << m_Residuals << std::endl;
 
-        std::cout << "Params: " << parameters << std::endl;
+        std::cerr << "Params: " << parameters << std::endl;
         itkExceptionMacro("Non finite derivative");
     }
 }
@@ -607,18 +420,16 @@ GaussianMCMVariableProjectionCost::GetCurrentDerivative(DerivativeMatrixType &de
     unsigned int nbParams = derivativeMatrix.rows();
     unsigned int nbValues = derivativeMatrix.columns();
 
+    // Current derivative of the system is 2 residual^T derivativeMatrix
+    // To handle the fact that the cost function is -2 log(L) and not the rms problem itself
     derivative.set_size(nbParams);
-    double residualSquareSum = 0;
-    for (unsigned int i = 0;i < nbValues;++i)
-        residualSquareSum += m_Residuals[i] * m_Residuals[i];
-
     for (unsigned int i = 0;i < nbParams;++i)
     {
-        derivative[i] = 0;
+        derivative[i] = 0.0;
         for (unsigned int j = 0;j < nbValues;++j)
             derivative[i] += m_Residuals[j] * derivativeMatrix(i,j);
 
-        derivative[i] *= 2.0 * nbValues / residualSquareSum;
+        derivative[i] *= 2.0 / m_SigmaSquare;
     }
 }
 

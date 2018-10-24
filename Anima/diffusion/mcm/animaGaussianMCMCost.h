@@ -58,12 +58,9 @@ private:
 
     //! Switch to compute marginal or profile estimation
     bool m_MarginalEstimation;
-
     bool m_UseDerivative;
 
-    double m_PredictedSquaredNorm;
     MeasureType m_Residuals;
-    ListType m_PredictedJacobianProducts;
 };
 
 } // end namespace anima

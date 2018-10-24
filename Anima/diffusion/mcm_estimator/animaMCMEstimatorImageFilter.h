@@ -10,80 +10,12 @@
 #include <animaMultiCompartmentModelCreator.h>
 #include <itkCostFunction.h>
 #include <itkNonLinearOptimizer.h>
-#include <animaNLOPTParametersConstraintFunction.h>
 
 #include <animaHyperbolicFunctions.h>
 #include <animaMCMConstants.h>
 
 namespace anima
 {
-
-/**
- * Inequality function for NLOPT estimation, helps maintain weights in reasonable bounds
- * (i.e. \sum_{i=0}^N w_i = 1 , which is equivalent to \sum_{i=1}^N w_i <= 1)
- *
- * param an MCM structure (to get the actual number of optimized weights)
- */
-
-class MCMWeightsInequalityConstraintFunction : public anima::NLOPTParametersConstraintFunction
-{
-public:
-    typedef MCMWeightsInequalityConstraintFunction Self;
-    typedef anima::NLOPTParametersConstraintFunction Superclass;
-    typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self> ConstPointer;
-
-    typedef anima::MultiCompartmentModel MCMType;
-    typedef MCMType::Pointer MCMPointer;
-
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
-
-    /** Run-time type information (and related methods) */
-    itkTypeMacro(MCMWeightsInequalityConstraintFunction, anima::NLOPTParametersConstraintFunction)
-
-    itkSetMacro(MCMStructure, MCMPointer)
-
-protected:
-    MCMWeightsInequalityConstraintFunction()
-    {
-        m_MCMStructure = 0;
-    }
-
-    virtual ~MCMWeightsInequalityConstraintFunction() {}
-
-    virtual double InternalComputeConstraint(unsigned int numParameters, const double *dataValue, double *gradValue) ITK_OVERRIDE
-    {
-        double sumWeights = 0;
-        unsigned int numWeightsToOptimize = m_MCMStructure->GetNumberOfOptimizedWeights();
-        if (numWeightsToOptimize == 0)
-            return 0.0;
-
-        // Strong assumption here that weights are at the beginning of the vector in the parameters
-        // To do: make this be handled by the multi-compartment model
-        for (unsigned int i = 0;i < numWeightsToOptimize;++i)
-        {
-            sumWeights += dataValue[i];
-            if (gradValue)
-                gradValue[i] = 1.0;
-        }
-
-        if (gradValue)
-        {
-            for (unsigned int i = numWeightsToOptimize;i < numParameters;++i)
-                gradValue[i] = 0;
-        }
-
-        // Note: there is always at least one isotropic compartment when estimating weights
-        return sumWeights - 1.0;
-    }
-
-private:
-    MCMWeightsInequalityConstraintFunction(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
-
-    MCMPointer m_MCMStructure;
-};
 
 template <class InputPixelType, class OutputPixelType>
 class MCMEstimatorImageFilter :
@@ -228,7 +160,7 @@ public:
 
     itkSetMacro(XTolerance, double)
     itkSetMacro(GTolerance, double)
-    itkSetMacro(MaxEval, double)
+    itkSetMacro(MaxEval, unsigned int)
 
 protected:
     MCMEstimatorImageFilter() : Superclass()
@@ -241,7 +173,7 @@ protected:
         m_GradientStrengths.clear();
         m_GradientDirections.clear();
 
-        m_NumberOfDictionaryEntries = 360;
+        m_NumberOfDictionaryEntries = 500;
         m_Optimizer = "bobyqa";
         m_AbsoluteCostChange = 0.01;
         m_B0Threshold = 0;

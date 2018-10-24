@@ -45,13 +45,6 @@ GaussianMCMVariableProjectionMultipleValuedCostFunction
 
 double
 GaussianMCMVariableProjectionMultipleValuedCostFunction
-::GetB0Value()
-{
-    return m_InternalCost->GetB0Value();
-}
-
-double
-GaussianMCMVariableProjectionMultipleValuedCostFunction
 ::GetSigmaSquare()
 {
     return m_InternalCost->GetSigmaSquare();
