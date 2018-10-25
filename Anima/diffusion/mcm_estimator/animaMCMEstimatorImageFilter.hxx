@@ -662,6 +662,17 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
         aiccValue = this->ComputeAICcValue(mcmValue,costValue);
     }
+
+
+    if (b0Value != 0.0)
+    {
+        MCMType::ListType outputWeights = mcmValue->GetCompartmentWeights();
+
+        for (unsigned int i = 0;i < outputWeights.size();++i)
+            outputWeights[i] /= b0Value;
+
+        mcmValue->SetCompartmentWeights(outputWeights);
+    }
 }
 
 template <class InputPixelType, class OutputPixelType>
