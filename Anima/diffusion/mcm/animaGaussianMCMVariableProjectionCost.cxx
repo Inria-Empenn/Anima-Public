@@ -52,10 +52,22 @@ GaussianMCMVariableProjectionCost::CheckBoundaryConditions()
         return false;
 
     unsigned int numCompartments = m_MCMStructure->GetNumberOfCompartments();
-    for (unsigned int i = 0;i < numCompartments;++i)
+
+    if (!m_MCMStructure->GetNegativeWeightBounds())
     {
-        if (m_OptimalWeights[i] < 0)
-            return false;
+        for (unsigned int i = 0;i < numCompartments;++i)
+        {
+            if (m_OptimalWeights[i] < 0)
+                return false;
+        }
+    }
+    else
+    {
+        for (unsigned int i = 0;i < numCompartments;++i)
+        {
+            if (m_OptimalWeights[i] > 0.0)
+                return false;
+        }
     }
 
     return true;
@@ -65,10 +77,7 @@ void
 GaussianMCMVariableProjectionCost::SolveLinearLeastSquaresOnBorders()
 {
     unsigned int numCompartments = m_IndexesUsefulCompartments.size();
-
-    unsigned int nbValues = m_ObservedSignals.size();
     std::fill(m_CompartmentSwitches.begin(),m_CompartmentSwitches.end(),false);
-    m_CompartmentSwitches[numCompartments-1] = true;
 
     double referenceCostValue = 0;
     double optimalSigmaSquare = m_SigmaSquare;
@@ -93,17 +102,20 @@ GaussianMCMVariableProjectionCost::SolveLinearLeastSquaresOnBorders()
 
         this->SolveUnconstrainedLinearLeastSquares();
 
-        double costValue = this->GetCurrentCostValue();
-        if (((costValue < referenceCostValue)||(!oneModelFound))&&
-                (this->CheckBoundaryConditions()))
+        if (this->CheckBoundaryConditions())
         {
-            referenceCostValue = costValue;
-            oneModelFound = true;
-            m_OptimalWeightsCopy = m_OptimalWeights;
-            optimalSigmaSquare = m_SigmaSquare;
-            m_ResidualsCopy = m_Residuals;
-            m_FMatrixInverseGCopy = m_FMatrixInverseG;
-            m_CompartmentSwitchesCopy = m_CompartmentSwitches;
+            double costValue = this->GetCurrentCostValue();
+            if (((costValue < referenceCostValue)||(!oneModelFound)) &&
+                    (this->CheckBoundaryConditions()))
+            {
+                referenceCostValue = costValue;
+                oneModelFound = true;
+                m_OptimalWeightsCopy = m_OptimalWeights;
+                optimalSigmaSquare = m_SigmaSquare;
+                m_ResidualsCopy = m_Residuals;
+                m_FMatrixInverseGCopy = m_FMatrixInverseG;
+                m_CompartmentSwitchesCopy = m_CompartmentSwitches;
+            }
         }
 
         // Update configuration

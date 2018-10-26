@@ -12,6 +12,7 @@ MultiCompartmentModel::MultiCompartmentModel()
     m_CommonConcentrationParameters = false;
     m_CommonExtraAxonalFractionParameters = false;
     m_UseBoundedWeightsOptimization = false;
+    m_NegativeWeightBounds = false;
 
     m_NumberOfIsotropicCompartments = 0;
 }
@@ -87,8 +88,12 @@ MultiCompartmentModel::ListType &MultiCompartmentModel::GetParametersAsVector()
     {
         m_ParametersVector[i] = m_CompartmentWeights[i];
         if (m_UseBoundedWeightsOptimization)
-            m_ParametersVector[i] = levenberg::UnboundValue(m_ParametersVector[i],
-                                                            anima::MCMZeroLowerBound, anima::MCMCompartmentsFractionUpperBound);
+        {
+            if (!m_NegativeWeightBounds)
+                m_ParametersVector[i] = levenberg::UnboundValue(m_ParametersVector[i], anima::MCMZeroLowerBound, anima::MCMCompartmentsFractionUpperBound);
+            else
+                m_ParametersVector[i] = levenberg::UnboundValue(m_ParametersVector[i], - anima::MCMCompartmentsFractionUpperBound, - anima::MCMZeroLowerBound);
+        }
     }
 
     pos += numWeightsToOptimize;
@@ -139,8 +144,11 @@ void MultiCompartmentModel::SetParametersFromVector(ListType &params)
         if (m_UseBoundedWeightsOptimization)
         {
             double inputSign = 1;
-            m_CompartmentWeights[i] = levenberg::ComputeBoundedValue(params[i], inputSign,
-                                                                     anima::MCMZeroLowerBound, anima::MCMCompartmentsFractionUpperBound);
+            if (!m_NegativeWeightBounds)
+                m_CompartmentWeights[i] = levenberg::ComputeBoundedValue(params[i], inputSign, anima::MCMZeroLowerBound, anima::MCMCompartmentsFractionUpperBound);
+            else
+                m_CompartmentWeights[i] = levenberg::ComputeBoundedValue(params[i], inputSign, - anima::MCMCompartmentsFractionUpperBound, - anima::MCMZeroLowerBound);
+
             m_BoundedWeightsSignVector[i] = inputSign;
         }
     }
@@ -279,8 +287,12 @@ MultiCompartmentModel::ListType &MultiCompartmentModel::GetSignalJacobian(double
     {
         m_JacobianVector[i] = m_Compartments[i]->GetFourierTransformedDiffusionProfile(smallDelta, bigDelta, gradientStrength, gradient);
         if (m_UseBoundedWeightsOptimization)
-            m_JacobianVector[i] *= levenberg::BoundedDerivativeAddOn(m_CompartmentWeights[i], m_BoundedWeightsSignVector[i],
-                                                                     anima::MCMZeroLowerBound, anima::MCMCompartmentsFractionUpperBound);
+        {
+            if (!m_NegativeWeightBounds)
+                m_JacobianVector[i] *= levenberg::BoundedDerivativeAddOn(m_CompartmentWeights[i], m_BoundedWeightsSignVector[i], anima::MCMZeroLowerBound, anima::MCMCompartmentsFractionUpperBound);
+            else
+                m_JacobianVector[i] *= levenberg::BoundedDerivativeAddOn(m_CompartmentWeights[i], m_BoundedWeightsSignVector[i], - anima::MCMCompartmentsFractionUpperBound, - anima::MCMZeroLowerBound);
+        }
     }
 
     pos += numWeightsToOptimize;
@@ -324,13 +336,18 @@ MultiCompartmentModel::ListType &MultiCompartmentModel::GetParameterLowerBounds(
 
     unsigned int pos = 0;
     // Lower bound of weights is 0
-    if (m_OptimizeWeights)
+    if (!m_NegativeWeightBounds)
     {
         for (unsigned int i = 0;i < numWeightsToOptimize;++i)
             m_ParametersLowerBoundsVector[i] = anima::MCMZeroLowerBound;
-
-        pos += numWeightsToOptimize;
     }
+    else
+    {
+        for (unsigned int i = 0;i < numWeightsToOptimize;++i)
+            m_ParametersLowerBoundsVector[i] = - anima::MCMFractionUpperBound;
+    }
+
+    pos += numWeightsToOptimize;
 
     for (unsigned int i = 0;i < m_Compartments.size();++i)
     {
@@ -357,8 +374,16 @@ MultiCompartmentModel::ListType &MultiCompartmentModel::GetParameterUpperBounds(
 
     unsigned int pos = 0;
     // Upper bound of weights is 1
-    for (unsigned int i = 0;i < numWeightsToOptimize;++i)
-        m_ParametersUpperBoundsVector[i] = anima::MCMCompartmentsFractionUpperBound;
+    if (!m_NegativeWeightBounds)
+    {
+        for (unsigned int i = 0;i < numWeightsToOptimize;++i)
+            m_ParametersUpperBoundsVector[i] = anima::MCMCompartmentsFractionUpperBound;
+    }
+    else
+    {
+        for (unsigned int i = 0;i < numWeightsToOptimize;++i)
+            m_ParametersUpperBoundsVector[i] = - anima::MCMZeroLowerBound;
+    }
 
     pos += numWeightsToOptimize;
 

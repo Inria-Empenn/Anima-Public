@@ -251,20 +251,21 @@ protected:
                                           double &aiccValue, double &b0Value, double &sigmaSqValue);
 
     //! Doing estimation only of multiple orientations
-    void InitialOrientationsEstimation(MCMPointer &mcmValue, unsigned int currentNumberOfCompartments,
+    void InitialOrientationsEstimation(MCMPointer &mcmValue, bool authorizedNegativeB0Value, unsigned int currentNumberOfCompartments,
                                        std::vector <double> &observedSignals, itk::ThreadIdType threadId,
                                        double &aiccValue, double &b0Value, double &sigmaSqValue);
 
     //! Doing estimation, calling initialization procedure until ball and zeppelin, returns AICc value
-    void ModelEstimation(MCMPointer &mcmValue, std::vector <double> &observedSignals, itk::ThreadIdType threadId,
-                         double &aiccValue, double &b0Value, double &sigmaSqValue);
+    void ModelEstimation(MCMPointer &mcmValue, bool authorizedNegativeB0Value, std::vector <double> &observedSignals,
+                         itk::ThreadIdType threadId, double &aiccValue, double &b0Value, double &sigmaSqValue);
     
     //! Performs an optimization of the supplied cost function and parameters using the specified optimizer(s). Returns the optimized parameters.
     double PerformSingleOptimization(ParametersType &p, CostFunctionBasePointer &cost, itk::Array<double> &lowerBounds,
                                      itk::Array<double> &upperBounds);
 
     //! Performs initialization from single DTI
-    virtual void SparseInitializeSticks(MCMPointer &complexModel, std::vector<double> &observedSignals, itk::ThreadIdType threadId);
+    virtual void SparseInitializeSticks(MCMPointer &complexModel, bool authorizeNegativeB0Value,
+                                        std::vector<double> &observedSignals, itk::ThreadIdType threadId);
 
     //! Performs initialization from simplified model with the same number of compartments
     virtual void InitializeModelFromSimplifiedOne(MCMPointer &simplifiedModel, MCMPointer &complexModel);

@@ -557,7 +557,6 @@ NODDICompartment::ModelOutputVectorType &NODDICompartment::GetCompartmentVector(
 const NODDICompartment::Matrix3DType &NODDICompartment::GetDiffusionTensor()
 {
     // Get an apparent diffusion tensor based on the extra-axonal space.
-    
     this->UpdateKappaValues();
     
     double intraFraction = 1.0 - this->GetExtraAxonalFraction();

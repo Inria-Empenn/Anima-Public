@@ -95,6 +95,9 @@ public:
     void SetUseBoundedWeightsOptimization(bool val) {m_UseBoundedWeightsOptimization = val;}
     itkGetMacro(UseBoundedWeightsOptimization, bool)
 
+    void SetNegativeWeightBounds(bool val) {m_NegativeWeightBounds = val;}
+    itkGetMacro(NegativeWeightBounds, bool)
+
 protected:
     MultiCompartmentModel();
     ~MultiCompartmentModel();
@@ -109,6 +112,9 @@ private:
     bool m_CommonExtraAxonalFractionParameters;
 
     unsigned int m_NumberOfIsotropicCompartments;
+
+    //! Use negative weight bounds for weights (in case we test for a negative B0)
+    bool m_NegativeWeightBounds;
 
     //! Vector holding current jacobian value
     ListType m_JacobianVector;

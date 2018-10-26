@@ -73,7 +73,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     output->SetVectorLength(tmpMCM->GetSize());
     output->SetDescriptionModel(tmpMCM);
-    
+
     delete tmpMCMCreator;
 }
 
@@ -207,7 +207,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     m_MCMCreators.resize(this->GetNumberOfThreads());
     for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
         m_MCMCreators[i] = this->GetNewMCMCreatorInstance();
-    
+
     std::cout << "Initial diffusivities:" << std::endl;
     std::cout << " - Axial diffusivity: " << m_AxialDiffusivityValue << " mm2/s," << std::endl;
     std::cout << " - Radial diffusivity 1: " << m_RadialDiffusivity1Value << " mm2/s," << std::endl;
@@ -233,7 +233,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         m_MCMCreators[i]->SetRadialDiffusivity2Value(m_RadialDiffusivity2Value);
         m_MCMCreators[i]->SetUseBoundedOptimization(m_UseBoundedOptimization);
     }
-    
+
     // Switch over compartment types to setup coarse grid initialization
     switch (m_CompartmentType)
     {
@@ -241,11 +241,11 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         case DDI:
             this->ComputeExtraAxonalAndKappaCoarseGrids();
             break;
-            
+
         case Tensor:
             this->ComputeTensorRadialDiffsAndAzimuthCoarseGrids();
             break;
-            
+
         default:
             // No coarse grid initialization for simple models
             break;
@@ -582,10 +582,18 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     sigmaSqValue = 1;
     aiccValue = -1;
 
-    this->InitialOrientationsEstimation(mcmValue,currentNumberOfCompartments,observedSignals,threadId,
+    this->InitialOrientationsEstimation(mcmValue,false,currentNumberOfCompartments,observedSignals,threadId,
                                         aiccValue,b0Value,sigmaSqValue);
 
-    this->ModelEstimation(mcmValue,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
+    this->ModelEstimation(mcmValue,false,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
+
+    if (b0Value == 0.0)
+    {
+        this->InitialOrientationsEstimation(mcmValue,true,currentNumberOfCompartments,observedSignals,threadId,
+                                            aiccValue,b0Value,sigmaSqValue);
+
+        this->ModelEstimation(mcmValue,true,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
+    }
 
     if (b0Value != 0.0)
     {
@@ -628,10 +636,11 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     ParametersType p(dimension);
     MCMType::ListType workVec(dimension);
 
+    double costValue = this->GetCostValue(cost,p);
+    itk::Array<double> lowerBounds(dimension), upperBounds(dimension);
+
     if (dimension > 0)
     {
-        itk::Array<double> lowerBounds(dimension), upperBounds(dimension);
-
         workVec = mcmValue->GetParameterLowerBounds();
         for (unsigned int i = 0;i < dimension;++i)
             lowerBounds[i] = workVec[i];
@@ -644,25 +653,50 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         for (unsigned int i = 0;i < dimension;++i)
             p[i] = workVec[i];
 
-        double costValue = this->PerformSingleOptimization(p,cost,lowerBounds,upperBounds);
+        costValue = this->PerformSingleOptimization(p,cost,lowerBounds,upperBounds);
 
         // - Get estimated DTI and B0
         for (unsigned int i = 0;i < dimension;++i)
             workVec[i] = p[i];
 
         mcmValue->SetParametersFromVector(workVec);
-
-        this->GetProfiledInformation(cost,mcmValue,b0Value,sigmaSqValue);
-        aiccValue = this->ComputeAICcValue(mcmValue,costValue);
     }
-    else
+
+    this->GetProfiledInformation(cost,mcmValue,b0Value,sigmaSqValue);
+    aiccValue = this->ComputeAICcValue(mcmValue,costValue);
+
+    if (b0Value == 0.0)
     {
-        double costValue = this->GetCostValue(cost,p);
-        this->GetProfiledInformation(cost,mcmValue,b0Value,sigmaSqValue);
+        // Try with negative bounds
+        mcmValue->SetNegativeWeightBounds(true);
+        costValue = this->GetCostValue(cost,p);
 
+        if (dimension > 0)
+        {
+            workVec = mcmValue->GetParameterLowerBounds();
+            for (unsigned int i = 0;i < dimension;++i)
+                lowerBounds[i] = workVec[i];
+
+            workVec = mcmValue->GetParameterUpperBounds();
+            for (unsigned int i = 0;i < dimension;++i)
+                upperBounds[i] = workVec[i];
+
+            workVec = mcmValue->GetParametersAsVector();
+            for (unsigned int i = 0;i < dimension;++i)
+                p[i] = workVec[i];
+
+            costValue = this->PerformSingleOptimization(p,cost,lowerBounds,upperBounds);
+
+            // - Get estimated DTI and B0
+            for (unsigned int i = 0;i < dimension;++i)
+                workVec[i] = p[i];
+
+            mcmValue->SetParametersFromVector(workVec);
+        }
+
+        this->GetProfiledInformation(cost,mcmValue,b0Value,sigmaSqValue);
         aiccValue = this->ComputeAICcValue(mcmValue,costValue);
     }
-
 
     if (b0Value != 0.0)
     {
@@ -736,7 +770,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>::CreateCostFunction(std
 template <class InputPixelType, class OutputPixelType>
 void
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
-::InitialOrientationsEstimation(MCMPointer &mcmValue, unsigned int currentNumberOfCompartments,
+::InitialOrientationsEstimation(MCMPointer &mcmValue, bool authorizedNegativeB0Value, unsigned int currentNumberOfCompartments,
                                 std::vector <double> &observedSignals, itk::ThreadIdType threadId,
                                 double &aiccValue, double &b0Value, double &sigmaSqValue)
 {
@@ -764,9 +798,10 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     mcmCreator->SetUseCommonDiffusivities(m_UseCommonDiffusivities);
 
     MCMPointer mcmUpdateValue = mcmCreator->GetNewMultiCompartmentModel();
+    mcmUpdateValue->SetNegativeWeightBounds(authorizedNegativeB0Value);
 
     // - Now initialize sticks from dictionary
-    this->SparseInitializeSticks(mcmUpdateValue,observedSignals,threadId);
+    this->SparseInitializeSticks(mcmUpdateValue,authorizedNegativeB0Value,observedSignals,threadId);
 
     unsigned int dimension = mcmUpdateValue->GetNumberOfParameters();
     ParametersType p(dimension);
@@ -805,7 +840,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 template <class InputPixelType, class OutputPixelType>
 void
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
-::ModelEstimation(MCMPointer &mcmValue, std::vector <double> &observedSignals, itk::ThreadIdType threadId,
+::ModelEstimation(MCMPointer &mcmValue, bool authorizedNegativeB0Value, std::vector <double> &observedSignals, itk::ThreadIdType threadId,
                   double &aiccValue, double &b0Value, double &sigmaSqValue)
 {
     unsigned int optimalNumberOfCompartments = mcmValue->GetNumberOfCompartments() - mcmValue->GetNumberOfIsotropicCompartments();
@@ -821,6 +856,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     mcmCreator->SetUseConstrainedDiffusivity(m_UseConstrainedDiffusivity);
 
     MCMPointer mcmUpdateValue = mcmCreator->GetNewMultiCompartmentModel();
+    mcmUpdateValue->SetNegativeWeightBounds(authorizedNegativeB0Value);
 
     // - Now the tricky part: initialize from previous model, handled somewhere else
     this->InitializeModelFromSimplifiedOne(mcmValue,mcmUpdateValue);
@@ -846,7 +882,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     double costValue = this->PerformSingleOptimization(p,cost,lowerBounds,upperBounds);
     this->GetProfiledInformation(cost,mcmUpdateValue,b0Value,sigmaSqValue);
-    
+
     for (unsigned int i = 0;i < dimension;++i)
         workVec[i] = p[i];
 
@@ -855,13 +891,14 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     mcmValue = mcmUpdateValue;
     aiccValue = this->ComputeAICcValue(mcmValue,costValue);
 
-    if (m_CompartmentType == Stick)
+    if ((m_CompartmentType == Stick)||(b0Value == 0.0))
         return;
 
     // We're done with ball and stick, next up is ball and zeppelin
     // - First create model
     mcmCreator->SetCompartmentType(Zeppelin);
     mcmUpdateValue = mcmCreator->GetNewMultiCompartmentModel();
+    mcmUpdateValue->SetNegativeWeightBounds(authorizedNegativeB0Value);
 
     // - Now the tricky part: initialize from previous model, handled somewhere else
     this->InitializeModelFromSimplifiedOne(mcmValue,mcmUpdateValue);
@@ -884,10 +921,10 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     workVec = mcmUpdateValue->GetParametersAsVector();
     for (unsigned int i = 0;i < dimension;++i)
         p[i] = workVec[i];
-    
+
     costValue = this->PerformSingleOptimization(p,cost,lowerBounds,upperBounds);
     this->GetProfiledInformation(cost,mcmUpdateValue,b0Value,sigmaSqValue);
-    
+
     for (unsigned int i = 0;i < dimension;++i)
         workVec[i] = p[i];
 
@@ -896,7 +933,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     mcmValue = mcmUpdateValue;
     aiccValue = this->ComputeAICcValue(mcmValue,costValue);
 
-    if (m_CompartmentType == Zeppelin)
+    if ((m_CompartmentType == Zeppelin)||(b0Value == 0.0))
         return;
 
     // Finally, we're done with ball and zeppelin, an example of what's next up with multi-tensor
@@ -908,6 +945,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     mcmCreator->SetUseCommonExtraAxonalFractions(m_UseCommonExtraAxonalFractions);
 
     mcmUpdateValue = mcmCreator->GetNewMultiCompartmentModel();
+    mcmUpdateValue->SetNegativeWeightBounds(authorizedNegativeB0Value);
 
     // - Now the tricky part: initialize from previous model, handled somewhere else
     this->InitializeModelFromSimplifiedOne(mcmValue,mcmUpdateValue);
@@ -926,7 +964,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     workVec = mcmUpdateValue->GetParameterUpperBounds();
     for (unsigned int i = 0;i < dimension;++i)
         upperBounds[i] = workVec[i];
-    
+
     switch (m_CompartmentType)
     {
         case NODDI:
@@ -1150,7 +1188,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         tmpOpt->SetFTolRel(xTol * 1.0e-2);
         tmpOpt->SetMaxEval(maxEvals);
         tmpOpt->SetVectorStorageSize(2000);
-        
+
         if (!m_UseBoundedOptimization)
         {
             tmpOpt->SetLowerBoundParameters(lowerBounds);
@@ -1169,18 +1207,18 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
         anima::MCMMultipleValuedCostFunction *costCast =
                 dynamic_cast <anima::MCMMultipleValuedCostFunction *> (cost.GetPointer());
-        
+
         double gTol = m_GTolerance;
         if (m_GTolerance == 0)
             gTol = 1.0e-5;
-        
+
         tmpOpt->SetCostFunction(costCast);
         tmpOpt->SetEpsilonFunction(xTol * 1.0e-3);
         tmpOpt->SetGradientTolerance(gTol);
         tmpOpt->SetNumberOfIterations(maxEvals);
         tmpOpt->SetValueTolerance(xTol);
         tmpOpt->SetUseCostFunctionGradient(!m_VNLDerivativeComputation);
-        
+
         returnOpt = tmpOpt;
     }
 
@@ -1193,9 +1231,9 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::PerformSingleOptimization(ParametersType &p, CostFunctionBasePointer &cost, itk::Array<double> &lowerBounds, itk::Array<double> &upperBounds)
 {
     double costValue = this->GetCostValue(cost,p);
-    
+
     OptimizerPointer optimizer = this->CreateOptimizer(cost,lowerBounds,upperBounds);
-    
+
     optimizer->SetInitialPosition(p);
     optimizer->StartOptimization();
 
@@ -1216,7 +1254,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     }
 
     costValue = this->GetCostValue(cost,p);
-    
+
     return costValue;
 }
 
@@ -1265,7 +1303,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         tmpWeights = costCast->GetMCMStructure()->GetCompartmentWeights();
     }
 
-    b0Value = 0;
+    b0Value = 0.0;
     for (unsigned int i = 0;i < numCompartments;++i)
         b0Value += tmpWeights[i];
 
@@ -1292,7 +1330,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 template <class InputPixelType, class OutputPixelType>
 void
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
-::SparseInitializeSticks(MCMPointer &complexModel, std::vector<double> &observedSignals, itk::ThreadIdType threadId)
+::SparseInitializeSticks(MCMPointer &complexModel, bool authorizeNegativeB0Value, std::vector<double> &observedSignals,
+                         itk::ThreadIdType threadId)
 {
     unsigned int numIsotropicComponents = complexModel->GetNumberOfIsotropicCompartments();
     unsigned int numNonIsotropicComponents = complexModel->GetNumberOfCompartments() - numIsotropicComponents;
@@ -1304,7 +1343,12 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     ParametersType rightHandValues(observedSignals.size());
     for (unsigned int i = 0;i < observedSignals.size();++i)
-        rightHandValues[i] = observedSignals[i];
+    {
+        if (!authorizeNegativeB0Value)
+            rightHandValues[i] = observedSignals[i];
+        else
+            rightHandValues[i] = - observedSignals[i];
+    }
 
     sparseOptimizer->SetPoints(rightHandValues);
     sparseOptimizer->StartOptimization();
@@ -1373,7 +1417,12 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         for (unsigned int i = numIsotropicComponents;i < numCompartments;++i)
         {
             unsigned int iIndex = i - numIsotropicComponents;
-            sparseWeights[i] = dictionaryWeights[nonNullAtomIndexes[iIndex]];
+
+            if (!authorizeNegativeB0Value)
+                sparseWeights[i] = dictionaryWeights[nonNullAtomIndexes[iIndex]];
+            else
+                sparseWeights[i] = - dictionaryWeights[nonNullAtomIndexes[iIndex]];
+
             anima::BaseCompartment *currentCompartment = complexModel->GetCompartment(i);
 
             anima::TransformCartesianToSphericalCoordinates(m_DictionaryDirections[iIndex],tmpDirection);
@@ -1382,7 +1431,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         }
 
         complexModel->SetCompartmentWeights(sparseWeights);
-
         return;
     }
 
@@ -1458,12 +1506,20 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         currentCompartment->SetOrientationTheta(tmpDirection[0]);
         currentCompartment->SetOrientationPhi(tmpDirection[1]);
 
-        sparseWeights[i + numIsotropicComponents] = weightComponent;
+        if (!authorizeNegativeB0Value)
+            sparseWeights[i + numIsotropicComponents] = weightComponent;
+        else
+            sparseWeights[i + numIsotropicComponents] = - weightComponent;
     }
 
     // Rearrange weights to account for left out atoms (ensure isotropic weights don't get inflated
     for (unsigned int i = numIsotropicComponents;i < numCompartments;++i)
-        sparseWeights[i] += (totalWeightsSum - sumWeights) / numNonIsotropicComponents;
+    {
+        if (!authorizeNegativeB0Value)
+            sparseWeights[i] += (totalWeightsSum - sumWeights) / numNonIsotropicComponents;
+        else
+            sparseWeights[i] += (sumWeights - totalWeightsSum) / numNonIsotropicComponents;
+    }
 
     complexModel->SetCompartmentWeights(sparseWeights);
 }
