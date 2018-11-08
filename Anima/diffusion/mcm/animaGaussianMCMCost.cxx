@@ -29,7 +29,7 @@ GaussianMCMCost::GetValues(const ParametersType &parameters)
         m_PredictedSignals[i] = m_MCMStructure->GetPredictedSignal(m_SmallDelta,m_BigDelta,
                                                                     m_GradientStrengths[i],m_Gradients[i]);
 
-        m_Residuals[i] = m_PredictedSignals[i] - m_ObservedSignals[i];
+        m_Residuals[i] = m_ObservedSignals[i] - m_PredictedSignals[i];
         m_SigmaSquare += m_Residuals[i] * m_Residuals[i];
     }
 
@@ -38,7 +38,7 @@ GaussianMCMCost::GetValues(const ParametersType &parameters)
     if (m_SigmaSquare < 1.0e-4)
     {
         std::cerr << "Noise variance: " << m_SigmaSquare << std::endl;
-        itkExceptionMacro("Tow low estimated noise variance.");
+        itkExceptionMacro("Too low estimated noise variance.");
     }
 
     return m_Residuals;

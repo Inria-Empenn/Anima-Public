@@ -201,7 +201,7 @@ MultiCompartmentModel::ModelOutputVectorType &MultiCompartmentModel::GetModelVec
 
     for (unsigned int i = 0;i < numCompartments;++i)
     {
-        if (m_CompartmentWeights[i] > 0)
+        if (m_CompartmentWeights[i] != 0.0)
         {
             tmpParams = m_Compartments[i]->GetCompartmentVector();
             for (unsigned int j = 0;j < m_Compartments[i]->GetCompartmentSize();++j)
@@ -266,7 +266,7 @@ double MultiCompartmentModel::GetPredictedSignal(double smallDelta, double bigDe
             ftDiffusionProfile += m_CompartmentWeights[i] * m_Compartments[i]->GetFourierTransformedDiffusionProfile(smallDelta, bigDelta, gradientStrength, gradient);
     }
 
-    return std::abs(ftDiffusionProfile);
+    return ftDiffusionProfile;
 }
     
 MultiCompartmentModel::ListType &MultiCompartmentModel::GetSignalJacobian(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient)
@@ -279,13 +279,14 @@ MultiCompartmentModel::ListType &MultiCompartmentModel::GetSignalJacobian(double
     jacobianSize += numWeightsToOptimize;
     
     m_JacobianVector.resize(jacobianSize);
+    std::fill(m_JacobianVector.begin(), m_JacobianVector.end(), 0.0);
     
     unsigned int pos = 0;
     // Not accounting for optimize weights with common compartment weights, and no free water
     // In that case, weights are not optimized
     for (unsigned int i = 0;i < numWeightsToOptimize;++i)
     {
-        m_JacobianVector[i] = m_Compartments[i]->GetFourierTransformedDiffusionProfile(smallDelta, bigDelta, gradientStrength, gradient);
+        m_JacobianVector[i] = - m_Compartments[i]->GetFourierTransformedDiffusionProfile(smallDelta, bigDelta, gradientStrength, gradient);
         if (m_UseBoundedWeightsOptimization)
         {
             if (!m_NegativeWeightBounds)
@@ -302,7 +303,7 @@ MultiCompartmentModel::ListType &MultiCompartmentModel::GetSignalJacobian(double
         m_WorkVector = m_Compartments[i]->GetSignalAttenuationJacobian(smallDelta, bigDelta, gradientStrength, gradient);
         
         for (unsigned int j = 0;j < m_WorkVector.size();++j)
-            m_JacobianVector[pos + j] = m_CompartmentWeights[i] * m_WorkVector[j];
+            m_JacobianVector[pos + j] -= m_CompartmentWeights[i] * m_WorkVector[j];
         
         pos += m_WorkVector.size();
     }
