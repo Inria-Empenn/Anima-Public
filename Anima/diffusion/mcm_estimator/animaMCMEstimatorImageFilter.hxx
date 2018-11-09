@@ -581,7 +581,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     this->InitialOrientationsEstimation(mcmValue,false,currentNumberOfCompartments,observedSignals,threadId,
                                         aiccValue,b0Value,sigmaSqValue);
 
-    //this->ModelEstimation(mcmValue,false,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
+    this->ModelEstimation(mcmValue,false,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
 
     if (b0Value == 0.0)
     {
