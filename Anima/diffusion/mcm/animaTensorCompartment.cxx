@@ -58,7 +58,6 @@ TensorCompartment::ListType &TensorCompartment::GetSignalAttenuationJacobian(dou
     if (m_EstimateDiffusivities)
     {
         // Derivative w.r.t. to d1
-        double d1Deriv = 1.0;
         m_JacobianVector[3] = - bValue * innerProd1 * innerProd1 * signalAttenuation;
         
         // Derivative w.r.t. to d2

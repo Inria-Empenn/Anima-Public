@@ -581,7 +581,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     this->InitialOrientationsEstimation(mcmValue,false,currentNumberOfCompartments,observedSignals,threadId,
                                         aiccValue,b0Value,sigmaSqValue);
 
-    this->ModelEstimation(mcmValue,false,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
+    //this->ModelEstimation(mcmValue,false,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
 
     if (b0Value == 0.0)
     {
@@ -719,14 +719,14 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>::CreateCostFunction(std
     {
         anima::GaussianMCMCost::Pointer internalCost = anima::GaussianMCMCost::New();
         internalCost->SetMarginalEstimation(m_MLEstimationStrategy == Marginal);
-        internalCost->SetUseDerivative((m_Optimizer == "ccsaq")||(m_Optimizer == "bfgs"));
+        internalCost->SetUseDerivative(m_Optimizer != "bobyqa");
 
         baseCost = internalCost;
     }
     else
     {
         anima::GaussianMCMVariableProjectionCost::Pointer internalCost = anima::GaussianMCMVariableProjectionCost::New();
-        internalCost->SetUseDerivative((m_Optimizer == "ccsaq")||(m_Optimizer == "bfgs"));
+        internalCost->SetUseDerivative(m_Optimizer != "bobyqa");
 
         baseCost = internalCost;
     }
@@ -1203,7 +1203,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
             gTol = 1.0e-5;
 
         tmpOpt->SetCostFunction(costCast);
-        tmpOpt->SetLambdaParameter(xTol * 1.0e-3);
+        tmpOpt->SetLambdaParameter(1.0e-11);
         tmpOpt->SetGradientTolerance(gTol);
         tmpOpt->SetNumberOfIterations(maxEvals);
         tmpOpt->SetValueTolerance(xTol);
