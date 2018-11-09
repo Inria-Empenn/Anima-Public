@@ -34,10 +34,6 @@ protected:
     }
 
     virtual ~IsotropicRestrictedWaterCompartment() {}
-
-    virtual void BoundParameters(const ListType &params) ITK_OVERRIDE;
-    virtual void UnboundParameters(ListType &params) ITK_OVERRIDE;
-    double GetAxialDiffusivityDerivativeFactor() ITK_OVERRIDE;
 };
 
 } // end namespace anima

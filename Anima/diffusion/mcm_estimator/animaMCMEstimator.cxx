@@ -42,8 +42,6 @@ int main(int argc,  char **argv)
     TCLAP::ValueArg<unsigned int> nbFasciclesArg("n", "nb-fascicles", "Number of computed fascicles (default: 2)", false, 2, "number of fascicles", cmd);
     TCLAP::ValueArg<unsigned int> compartmentTypeArg("c", "comp-type", "Compartment type for fascicles: 1: stick, 2: zeppelin, 3: tensor, 4: noddi (default: 3)", false, 3, "fascicles type", cmd);
     TCLAP::SwitchArg aicSelectNbCompartmentsArg("M", "opt-nb-comp", "Activate AICC-based number of compartments selection", cmd, false);
-
-    TCLAP::SwitchArg vnlDerivArg("D", "vnl-deriv", "Compute derivative by forward difference (used only with levenberg-marquardt algorithm)", cmd, false);
     
     TCLAP::SwitchArg freeWaterCompartmentArg("F", "free-water", "Model with free water", cmd, false);
     TCLAP::SwitchArg stationaryWaterCompartmentArg("S", "stationary-water", "Model with stationary water", cmd, false);
@@ -146,8 +144,6 @@ int main(int argc,  char **argv)
         filter->SetMoseVolume(anima::readImage<FilterType::MoseImageType>(inMoseArg.getValue()));
 
     filter->SetB0Threshold(b0thrArg.getValue());
-    
-    filter->SetVNLDerivativeComputation(vnlDerivArg.isSet());
 
     filter->SetModelWithFreeWaterComponent(freeWaterCompartmentArg.isSet());
     filter->SetModelWithStationaryWaterComponent(stationaryWaterCompartmentArg.isSet());

@@ -15,15 +15,4 @@ StationaryWaterCompartment::ListType &StationaryWaterCompartment::GetParameterUp
     return m_ParametersUpperBoundsVector;
 }
 
-void StationaryWaterCompartment::UnboundParameters(ListType &params)
-{
-    // Not doing anything, as there are no params
-}
-
-void StationaryWaterCompartment::BoundParameters(const ListType &params)
-{
-    // Not doing anything, as there are no params
-    m_BoundedVector.resize(params.size());
-}
-
 } // end namespace anima

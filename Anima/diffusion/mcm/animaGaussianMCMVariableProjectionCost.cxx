@@ -214,6 +214,7 @@ GaussianMCMVariableProjectionCost::SolveUnconstrainedLinearLeastSquares()
         }
     }
 
+    // Solving for SigmaSquare
     m_SigmaSquare = 0.0;
     
     for (unsigned int i = 0;i < nbValues;++i)
@@ -226,7 +227,9 @@ GaussianMCMVariableProjectionCost::SolveUnconstrainedLinearLeastSquares()
         m_Residuals[i] = projObservedSignal;
         m_SigmaSquare += projObservedSignal * projObservedSignal;
     }
-    
+
+    m_SigmaSquare /= nbValues;
+
     // Solving for weights
     std::fill(m_OptimalWeights.begin(),m_OptimalWeights.end(),0.0);
     unsigned int pos = 0;
@@ -241,9 +244,6 @@ GaussianMCMVariableProjectionCost::SolveUnconstrainedLinearLeastSquares()
 
         ++pos;
     }
-    
-    // Solving for SigmaSquare
-    m_SigmaSquare /= nbValues;
 }
 
 void
@@ -339,7 +339,7 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
         if (m_CompartmentSwitches[j])
             ++numOnCompartments;
     }
-    
+
     // Assume get derivative is called with the same parameters as GetValue just before
     for (unsigned int i = 0;i < nbParams;++i)
     {

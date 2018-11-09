@@ -100,9 +100,6 @@ public:
 
     itkSetMacro(MLEstimationStrategy, MaximumLikelihoodEstimationMode)
     itkGetMacro(MLEstimationStrategy, MaximumLikelihoodEstimationMode)
-    
-    itkSetMacro(VNLDerivativeComputation, bool)
-    itkGetMacro(VNLDerivativeComputation, bool)
 
     // Model-related parameters
     itkSetMacro(ModelWithFreeWaterComponent, bool)
@@ -178,7 +175,6 @@ protected:
         m_AbsoluteCostChange = 0.01;
         m_B0Threshold = 0;
         m_MLEstimationStrategy = Marginal;
-        m_VNLDerivativeComputation = false;
 
         m_ModelWithFreeWaterComponent = true;
         m_ModelWithStationaryWaterComponent = true;
@@ -197,7 +193,6 @@ protected:
         m_UseConstrainedIRWDiffusivity = true;
         m_UseConstrainedStaniszDiffusivity = true;
         m_UseConstrainedStaniszRadius = true;
-        m_UseBoundedOptimization = false;
         m_UseCommonDiffusivities = false;
 
         m_UseConstrainedOrientationConcentration = false;
@@ -322,7 +317,6 @@ private:
 
     double m_AbsoluteCostChange;
     MaximumLikelihoodEstimationMode m_MLEstimationStrategy;
-    bool m_VNLDerivativeComputation;
 
     bool m_ModelWithFreeWaterComponent, m_ModelWithStationaryWaterComponent, m_ModelWithRestrictedWaterComponent, m_ModelWithStaniszComponent;
 
@@ -338,7 +332,6 @@ private:
     bool m_UseConstrainedIRWDiffusivity;
     bool m_UseConstrainedStaniszRadius;
     bool m_UseConstrainedStaniszDiffusivity;
-    bool m_UseBoundedOptimization;
     bool m_UseCommonDiffusivities;
 
     bool m_UseConstrainedOrientationConcentration;

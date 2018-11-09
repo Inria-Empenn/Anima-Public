@@ -73,9 +73,6 @@ protected:
 
     virtual ~StaniszCompartment() {}
 
-    virtual void BoundParameters(const ListType &params) ITK_OVERRIDE;
-    virtual void UnboundParameters(ListType &params) ITK_OVERRIDE;
-
     void UpdateSignals(double smallDelta, double bigDelta, double gradientStrength);
 
 private:

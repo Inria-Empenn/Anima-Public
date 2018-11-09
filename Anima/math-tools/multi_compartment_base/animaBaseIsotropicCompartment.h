@@ -56,8 +56,6 @@ protected:
 
     virtual ~BaseIsotropicCompartment() {}
 
-    virtual double GetAxialDiffusivityDerivativeFactor() {return 1;}
-
 private:
     bool m_EstimateAxialDiffusivity;
     bool m_ChangedConstraints;

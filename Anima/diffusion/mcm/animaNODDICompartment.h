@@ -94,9 +94,6 @@ protected:
     //! Update quantities that depend on kappa
     void UpdateKappaValues();
 
-    virtual void BoundParameters(const ListType &params) ITK_OVERRIDE;
-    virtual void UnboundParameters(ListType &params) ITK_OVERRIDE;
-
 private:
     bool m_EstimateOrientationConcentration, m_EstimateAxialDiffusivity, m_EstimateExtraAxonalFraction;
     bool m_ChangedConstraints;

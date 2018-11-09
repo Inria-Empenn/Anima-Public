@@ -1,5 +1,4 @@
 #include <animaStickCompartment.h>
-#include <animaLevenbergTools.h>
 
 #include <animaVectorOperations.h>
 #include <itkSymmetricEigenAnalysis.h>
@@ -27,36 +26,20 @@ StickCompartment::ListType &StickCompartment::GetSignalAttenuationJacobian(doubl
     double signalAttenuation = this->GetFourierTransformedDiffusionProfile(smallDelta, bigDelta, gradientStrength, gradient);
     
     // Derivative w.r.t. theta
-    double thetaDeriv = 1.0;
-    if (this->GetUseBoundedOptimization())
-        thetaDeriv = levenberg::BoundedDerivativeAddOn(this->GetOrientationTheta(), this->GetBoundedSignVectorValue(0),
-                                                       anima::MCMZeroLowerBound, anima::MCMPolarAngleUpperBound);
-    
     m_JacobianVector[0] = -2.0 * bValue * (this->GetAxialDiffusivity() - this->GetRadialDiffusivity1())
             * (gradient[0] * std::cos(this->GetOrientationTheta()) * std::cos(this->GetOrientationPhi())
             + gradient[1] * std::cos(this->GetOrientationTheta()) * std::sin(this->GetOrientationPhi())
-            - gradient[2] * std::sin(this->GetOrientationTheta())) * m_GradientEigenvector1 * signalAttenuation * thetaDeriv;
+            - gradient[2] * std::sin(this->GetOrientationTheta())) * m_GradientEigenvector1 * signalAttenuation;
     
     // Derivative w.r.t. phi
-    double phiDeriv = 1.0;
-    if (this->GetUseBoundedOptimization())
-        phiDeriv = levenberg::BoundedDerivativeAddOn(this->GetOrientationPhi(), this->GetBoundedSignVectorValue(1),
-                                                     anima::MCMZeroLowerBound, anima::MCMAzimuthAngleUpperBound);
-    
     m_JacobianVector[1] = -2.0 * bValue * std::sin(this->GetOrientationTheta()) * (this->GetAxialDiffusivity() - this->GetRadialDiffusivity1())
             * (gradient[1] * std::cos(this->GetOrientationPhi()) - gradient[0] * std::sin(this->GetOrientationPhi()))
-            * m_GradientEigenvector1 * signalAttenuation * phiDeriv;
+            * m_GradientEigenvector1 * signalAttenuation;
     
     if (m_EstimateAxialDiffusivity)
     {
         // Derivative w.r.t. to d1
-        double d1Deriv = 1.0;
-        if (this->GetUseBoundedOptimization())
-            d1Deriv = levenberg::BoundedDerivativeAddOn(this->GetAxialDiffusivity() - this->GetRadialDiffusivity1(),
-                                                        this->GetBoundedSignVectorValue(2),
-                                                        anima::MCMAxialDiffusivityAddonLowerBound, anima::MCMDiffusivityUpperBound);
-
-        m_JacobianVector[2] = -bValue * m_GradientEigenvector1 * m_GradientEigenvector1 * signalAttenuation * d1Deriv;
+        m_JacobianVector[2] = -bValue * m_GradientEigenvector1 * m_GradientEigenvector1 * signalAttenuation;
     }
     
     return m_JacobianVector;
@@ -81,21 +64,11 @@ void StickCompartment::SetParametersFromVector(const ListType &params)
     if (params.size() != this->GetNumberOfParameters())
         return;
 
-    if (this->GetUseBoundedOptimization())
-    {
-        if (params.size() != this->GetBoundedSignVector().size())
-            this->GetBoundedSignVector().resize(params.size());
-
-        this->BoundParameters(params);
-    }
-    else
-        m_BoundedVector = params;
-
-    this->SetOrientationTheta(m_BoundedVector[0]);
-    this->SetOrientationPhi(m_BoundedVector[1]);
+    this->SetOrientationTheta(params[0]);
+    this->SetOrientationPhi(params[1]);
 
     if (m_EstimateAxialDiffusivity)
-        this->SetAxialDiffusivity(m_BoundedVector[2] + this->GetRadialDiffusivity1());
+        this->SetAxialDiffusivity(params[2] + this->GetRadialDiffusivity1());
 }
 
 StickCompartment::ListType &StickCompartment::GetParametersAsVector()
@@ -107,9 +80,6 @@ StickCompartment::ListType &StickCompartment::GetParametersAsVector()
 
     if (m_EstimateAxialDiffusivity)
         m_ParametersVector[2] = this->GetAxialDiffusivity() - this->GetRadialDiffusivity1();
-
-    if (this->GetUseBoundedOptimization())
-        this->UnboundParameters(m_ParametersVector);
 
     return m_ParametersVector;
 }
@@ -136,32 +106,6 @@ StickCompartment::ListType &StickCompartment::GetParameterUpperBounds()
         m_ParametersUpperBoundsVector[2] = anima::MCMDiffusivityUpperBound;
 
     return m_ParametersUpperBoundsVector;
-}
-
-void StickCompartment::BoundParameters(const ListType &params)
-{
-    m_BoundedVector.resize(params.size());
-    
-    double inputSign = 1;
-    m_BoundedVector[0] = levenberg::ComputeBoundedValue(params[0], inputSign, anima::MCMZeroLowerBound, anima::MCMPolarAngleUpperBound);
-    this->SetBoundedSignVectorValue(0,inputSign);
-    m_BoundedVector[1] = levenberg::ComputeBoundedValue(params[1], inputSign, anima::MCMZeroLowerBound, anima::MCMAzimuthAngleUpperBound);
-    this->SetBoundedSignVectorValue(1,inputSign);
-
-    if (m_EstimateAxialDiffusivity)
-    {
-        m_BoundedVector[2] = levenberg::ComputeBoundedValue(params[2],inputSign, anima::MCMAxialDiffusivityAddonLowerBound, anima::MCMDiffusivityUpperBound);
-        this->SetBoundedSignVectorValue(2,inputSign);
-    }
-}
-
-void StickCompartment::UnboundParameters(ListType &params)
-{    
-    params[0] = levenberg::UnboundValue(params[0], anima::MCMZeroLowerBound, anima::MCMPolarAngleUpperBound);
-    params[1] = levenberg::UnboundValue(params[1], anima::MCMZeroLowerBound, anima::MCMAzimuthAngleUpperBound);
-    
-    if (m_EstimateAxialDiffusivity)
-        params[2] = levenberg::UnboundValue(params[2], anima::MCMAxialDiffusivityAddonLowerBound, anima::MCMDiffusivityUpperBound);
 }
 
 void StickCompartment::SetEstimateAxialDiffusivity(bool arg)
@@ -285,7 +229,7 @@ double StickCompartment::GetFractionalAnisotropy()
     double denomFA = std::sqrt (l1 * l1 + 2.0 * l2 * l2);
 
     double fa = 0;
-    if (denomFA != 0)
+    if (denomFA != 0.0)
         fa = std::sqrt(0.5) * (numFA / denomFA);
 
     return fa;
