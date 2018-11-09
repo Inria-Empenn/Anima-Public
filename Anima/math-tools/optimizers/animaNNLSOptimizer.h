@@ -43,14 +43,12 @@ public:
     double GetCurrentResidual();
 
 protected:
-    NNLSOptimizer()
-    {
-
-    }
-
-    virtual ~NNLSOptimizer() {}
+    NNLSOptimizer() {}
+    virtual ~NNLSOptimizer() ITK_OVERRIDE {}
 
 private:
+    ITK_DISALLOW_COPY_AND_ASSIGN(NNLSOptimizer);
+
     unsigned int UpdateProcessedIndexes(std::vector <unsigned short> &treatedIndexes,
                                         std::vector <unsigned int> &processedIndexes);
 

@@ -7,7 +7,7 @@
 #include <itkSymmetricEigenAnalysis.h>
 
 #include <animaNLOPTOptimizers.h>
-#include <itkLevenbergMarquardtOptimizer.h>
+#include <animaBoundedLevenbergMarquardtOptimizer.h>
 #include <animaNNLSOptimizer.h>
 #include <animaSpectralClusteringFilter.h>
 
@@ -220,9 +220,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         std::cout << " - Stanisz diffusivity: " << m_StaniszDiffusivityValue << " mm2/s," << std::endl;
 
     // Setting up creators
-    if (m_Optimizer == "levenberg")
-        m_UseBoundedOptimization = true;
-
     for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
     {
         m_MCMCreators[i]->SetAxialDiffusivityValue(m_AxialDiffusivityValue);
@@ -231,7 +228,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         m_MCMCreators[i]->SetStaniszDiffusivityValue(m_StaniszDiffusivityValue);
         m_MCMCreators[i]->SetRadialDiffusivity1Value(m_RadialDiffusivity1Value);
         m_MCMCreators[i]->SetRadialDiffusivity2Value(m_RadialDiffusivity2Value);
-        m_MCMCreators[i]->SetUseBoundedOptimization(m_UseBoundedOptimization);
     }
 
     // Switch over compartment types to setup coarse grid initialization
@@ -585,7 +581,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     this->InitialOrientationsEstimation(mcmValue,false,currentNumberOfCompartments,observedSignals,threadId,
                                         aiccValue,b0Value,sigmaSqValue);
 
-    this->ModelEstimation(mcmValue,false,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
+    //this->ModelEstimation(mcmValue,false,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
 
     if (b0Value == 0.0)
     {
@@ -723,17 +719,14 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>::CreateCostFunction(std
     {
         anima::GaussianMCMCost::Pointer internalCost = anima::GaussianMCMCost::New();
         internalCost->SetMarginalEstimation(m_MLEstimationStrategy == Marginal);
+        internalCost->SetUseDerivative(m_Optimizer != "bobyqa");
 
         baseCost = internalCost;
     }
     else
     {
         anima::GaussianMCMVariableProjectionCost::Pointer internalCost = anima::GaussianMCMVariableProjectionCost::New();
-
-        if (m_Optimizer == "levenberg")
-            internalCost->SetUseDerivative(!m_VNLDerivativeComputation);
-        else
-            internalCost->SetUseDerivative((m_Optimizer == "ccsaq")||(m_Optimizer == "bfgs"));
+        internalCost->SetUseDerivative(m_Optimizer != "bobyqa");
 
         baseCost = internalCost;
     }
@@ -1189,11 +1182,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         tmpOpt->SetMaxEval(maxEvals);
         tmpOpt->SetVectorStorageSize(2000);
 
-        if (!m_UseBoundedOptimization)
-        {
-            tmpOpt->SetLowerBoundParameters(lowerBounds);
-            tmpOpt->SetUpperBoundParameters(upperBounds);
-        }
+        tmpOpt->SetLowerBoundParameters(lowerBounds);
+        tmpOpt->SetUpperBoundParameters(upperBounds);
 
         returnOpt = tmpOpt;
     }
@@ -1202,7 +1192,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         if (m_MLEstimationStrategy == Marginal)
             itkExceptionMacro("Levenberg Marquardt optimizer not supported with marginal optimization");
 
-        typedef itk::LevenbergMarquardtOptimizer LevenbergMarquardtOptimizerType;
+        typedef anima::BoundedLevenbergMarquardtOptimizer LevenbergMarquardtOptimizerType;
         LevenbergMarquardtOptimizerType::Pointer tmpOpt = LevenbergMarquardtOptimizerType::New();
 
         anima::MCMMultipleValuedCostFunction *costCast =
@@ -1213,11 +1203,13 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
             gTol = 1.0e-5;
 
         tmpOpt->SetCostFunction(costCast);
-        tmpOpt->SetEpsilonFunction(xTol * 1.0e-3);
+        tmpOpt->SetLambdaParameter(1.0e-11);
         tmpOpt->SetGradientTolerance(gTol);
         tmpOpt->SetNumberOfIterations(maxEvals);
         tmpOpt->SetValueTolerance(xTol);
-        tmpOpt->SetUseCostFunctionGradient(!m_VNLDerivativeComputation);
+
+        tmpOpt->SetLowerBounds(lowerBounds);
+        tmpOpt->SetUpperBounds(upperBounds);
 
         returnOpt = tmpOpt;
     }
@@ -1239,18 +1231,15 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     p = optimizer->GetCurrentPosition();
 
-    if (!m_UseBoundedOptimization)
+    // Takes care of round-off errors resulting
+    // in parameters sometimes slightly off bounds
+    for (unsigned int i = 0;i < p.GetSize();++i)
     {
-        // Takes care of round-off errors in NLOpt resulting
-        // in parameters sometimes slightly off bounds
-        for (unsigned int i = 0;i < p.GetSize();++i)
-        {
-            if (p[i] < lowerBounds[i])
-                p[i] = lowerBounds[i];
+        if (p[i] < lowerBounds[i])
+            p[i] = lowerBounds[i];
 
-            if (p[i] > upperBounds[i])
-                p[i] = upperBounds[i];
-        }
+        if (p[i] > upperBounds[i])
+            p[i] = upperBounds[i];
     }
 
     costValue = this->GetCostValue(cost,p);
@@ -1407,7 +1396,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     std::vector <double> tmpDirection(3,0.0);
     if (numRealAnisotropicCompartments <= numNonIsotropicComponents)
     {
-        // Not enough atomas detected, keep what we get and return
+        // Not enough atoms detected, keep what we get and return
         MCMCreatorType *mcmCreator = m_MCMCreators[threadId];
         mcmCreator->SetNumberOfCompartments(numRealAnisotropicCompartments);
         complexModel = mcmCreator->GetNewMultiCompartmentModel();

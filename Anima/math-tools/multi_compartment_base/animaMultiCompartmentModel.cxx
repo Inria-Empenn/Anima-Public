@@ -1,5 +1,4 @@
 #include <animaMultiCompartmentModel.h>
-#include <animaLevenbergTools.h>
 #include <animaMCMConstants.h>
 
 namespace anima
@@ -11,7 +10,6 @@ MultiCompartmentModel::MultiCompartmentModel()
     m_CommonDiffusivityParameters = false;
     m_CommonConcentrationParameters = false;
     m_CommonExtraAxonalFractionParameters = false;
-    m_UseBoundedWeightsOptimization = false;
     m_NegativeWeightBounds = false;
 
     m_NumberOfIsotropicCompartments = 0;
@@ -36,7 +34,6 @@ itk::LightObject::Pointer MultiCompartmentModel::InternalClone() const
     mcm->SetCommonDiffusivityParameters(m_CommonDiffusivityParameters);
     mcm->SetCommonConcentrationParameters(m_CommonConcentrationParameters);
     mcm->SetCommonExtraAxonalFractionParameters(m_CommonExtraAxonalFractionParameters);
-    mcm->SetUseBoundedWeightsOptimization(m_UseBoundedWeightsOptimization);
 
     return outputValue;
 }
@@ -85,16 +82,7 @@ MultiCompartmentModel::ListType &MultiCompartmentModel::GetParametersAsVector()
     // Not accounting for optimize weights with common compartment weights, and no free water
     // In that case, weights are not optimized
     for (unsigned int i = 0;i < numWeightsToOptimize;++i)
-    {
         m_ParametersVector[i] = m_CompartmentWeights[i];
-        if (m_UseBoundedWeightsOptimization)
-        {
-            if (!m_NegativeWeightBounds)
-                m_ParametersVector[i] = levenberg::UnboundValue(m_ParametersVector[i], anima::MCMZeroLowerBound, anima::MCMCompartmentsFractionUpperBound);
-            else
-                m_ParametersVector[i] = levenberg::UnboundValue(m_ParametersVector[i], - anima::MCMCompartmentsFractionUpperBound, - anima::MCMZeroLowerBound);
-        }
-    }
 
     pos += numWeightsToOptimize;
 
@@ -135,23 +123,8 @@ void MultiCompartmentModel::SetParametersFromVector(ListType &params)
     unsigned int numWeightsToOptimize = this->GetNumberOfOptimizedWeights();
 
     // Set compartment fractions if optimized
-    if (m_UseBoundedWeightsOptimization)
-        m_BoundedWeightsSignVector.resize(numWeightsToOptimize);
-
     for (unsigned int i = 0;i < numWeightsToOptimize;++i)
-    {
         m_CompartmentWeights[i] = params[i];
-        if (m_UseBoundedWeightsOptimization)
-        {
-            double inputSign = 1;
-            if (!m_NegativeWeightBounds)
-                m_CompartmentWeights[i] = levenberg::ComputeBoundedValue(params[i], inputSign, anima::MCMZeroLowerBound, anima::MCMCompartmentsFractionUpperBound);
-            else
-                m_CompartmentWeights[i] = levenberg::ComputeBoundedValue(params[i], inputSign, - anima::MCMCompartmentsFractionUpperBound, - anima::MCMZeroLowerBound);
-
-            m_BoundedWeightsSignVector[i] = inputSign;
-        }
-    }
 
     pos = numWeightsToOptimize;
 
@@ -285,26 +258,17 @@ MultiCompartmentModel::ListType &MultiCompartmentModel::GetSignalJacobian(double
     // Not accounting for optimize weights with common compartment weights, and no free water
     // In that case, weights are not optimized
     for (unsigned int i = 0;i < numWeightsToOptimize;++i)
-    {
         m_JacobianVector[i] = - m_Compartments[i]->GetFourierTransformedDiffusionProfile(smallDelta, bigDelta, gradientStrength, gradient);
-        if (m_UseBoundedWeightsOptimization)
-        {
-            if (!m_NegativeWeightBounds)
-                m_JacobianVector[i] *= levenberg::BoundedDerivativeAddOn(m_CompartmentWeights[i], m_BoundedWeightsSignVector[i], anima::MCMZeroLowerBound, anima::MCMCompartmentsFractionUpperBound);
-            else
-                m_JacobianVector[i] *= levenberg::BoundedDerivativeAddOn(m_CompartmentWeights[i], m_BoundedWeightsSignVector[i], - anima::MCMCompartmentsFractionUpperBound, - anima::MCMZeroLowerBound);
-        }
-    }
 
     pos += numWeightsToOptimize;
     
     for (unsigned int i = 0;i < m_Compartments.size();++i)
     {
         m_WorkVector = m_Compartments[i]->GetSignalAttenuationJacobian(smallDelta, bigDelta, gradientStrength, gradient);
-        
+
         for (unsigned int j = 0;j < m_WorkVector.size();++j)
             m_JacobianVector[pos + j] -= m_CompartmentWeights[i] * m_WorkVector[j];
-        
+
         pos += m_WorkVector.size();
     }
     

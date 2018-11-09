@@ -87,9 +87,6 @@ protected:
     //! Update angles' sine and cosine values from parameters
     void UpdateAngleConfiguration();
 
-    virtual void BoundParameters(const ListType &params) ITK_OVERRIDE;
-    virtual void UnboundParameters(ListType &params) ITK_OVERRIDE;
-
 private:
     bool m_EstimateDiffusivities;
     bool m_ChangedConstraints;

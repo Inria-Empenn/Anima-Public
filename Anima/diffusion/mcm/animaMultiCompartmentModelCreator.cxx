@@ -30,7 +30,6 @@ MultiCompartmentModelCreator::MultiCompartmentModelCreator()
     m_UseConstrainedStaniszRadius = true;
     m_UseConstrainedOrientationConcentration = false;
     m_UseConstrainedExtraAxonalFraction = false;
-    m_UseBoundedOptimization = false;
 
     m_UseCommonDiffusivities = false;
     m_UseCommonConcentrations = false;
@@ -50,7 +49,6 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
 {
     MCMPointer outputMCM = MCMType::New();
     outputMCM->SetOptimizeWeights(!m_VariableProjectionEstimationMode);
-    outputMCM->SetUseBoundedWeightsOptimization(m_UseBoundedOptimization);
     outputMCM->SetCommonDiffusivityParameters(m_UseCommonDiffusivities);
     outputMCM->SetCommonConcentrationParameters(m_UseCommonConcentrations);
     outputMCM->SetCommonExtraAxonalFractionParameters(m_UseCommonExtraAxonalFractions);
@@ -65,7 +63,6 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
         FreeWaterType::Pointer fwComp = FreeWaterType::New();
         fwComp->SetEstimateAxialDiffusivity(!m_UseConstrainedFreeWaterDiffusivity);
         fwComp->SetAxialDiffusivity(m_FreeWaterDiffusivity);
-        fwComp->SetUseBoundedOptimization(m_UseBoundedOptimization);
 
         outputMCM->AddCompartment(defaultWeight,fwComp);
     }
@@ -83,7 +80,6 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
         typedef anima::IsotropicRestrictedWaterCompartment IRWType;
         IRWType::Pointer restComp = IRWType::New();
         restComp->SetEstimateAxialDiffusivity(!m_UseConstrainedIRWDiffusivity);
-        restComp->SetUseBoundedOptimization(m_UseBoundedOptimization);
         restComp->SetAxialDiffusivity(m_IRWDiffusivity);
 
         outputMCM->AddCompartment(defaultWeight,restComp);
@@ -95,7 +91,6 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
         StaniszType::Pointer restComp = StaniszType::New();
         restComp->SetEstimateAxialDiffusivity(!m_UseConstrainedStaniszDiffusivity);
         restComp->SetEstimateTissueRadius(!m_UseConstrainedStaniszRadius);
-        restComp->SetUseBoundedOptimization(m_UseBoundedOptimization);
         restComp->SetAxialDiffusivity(m_StaniszDiffusivity);
 
         outputMCM->AddCompartment(defaultWeight,restComp);
@@ -133,7 +128,6 @@ MultiCompartmentModelCreator::MCMPointer MultiCompartmentModelCreator::GetNewMul
                 break;
         }
 
-        tmpPointer->SetUseBoundedOptimization(m_UseBoundedOptimization);
         // Kind of ugly but required for optimization, otherwise initialization from simplified models may fail
         tmpPointer->SetOrientationConcentration(m_OrientationConcentration);
 

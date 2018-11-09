@@ -58,9 +58,6 @@ protected:
 
     virtual ~StickCompartment() {}
 
-    virtual void BoundParameters(const ListType &params) ITK_OVERRIDE;
-    virtual void UnboundParameters(ListType &params) ITK_OVERRIDE;
-
 private:
     bool m_EstimateAxialDiffusivity;
     bool m_ChangedConstraints;

@@ -39,7 +39,6 @@ public:
     void SetUseConstrainedIRWDiffusivity(bool arg) {m_UseConstrainedIRWDiffusivity = arg;}
     void SetUseConstrainedStaniszDiffusivity(bool arg) {m_UseConstrainedStaniszDiffusivity = arg;}
     void SetUseConstrainedStaniszRadius(bool arg) {m_UseConstrainedStaniszRadius = arg;}
-    void SetUseBoundedOptimization(bool arg) {m_UseBoundedOptimization = arg;}
 
     bool GetUseConstrainedDiffusivity() {return m_UseConstrainedDiffusivity;}
     bool GetUseConstrainedOrientationConcentration() {return m_UseConstrainedOrientationConcentration;}
@@ -88,7 +87,6 @@ private:
     bool m_UseConstrainedIRWDiffusivity;
     bool m_UseConstrainedStaniszDiffusivity;
     bool m_UseConstrainedStaniszRadius;
-    bool m_UseBoundedOptimization;
 
     bool m_UseCommonDiffusivities;
     bool m_UseCommonConcentrations;

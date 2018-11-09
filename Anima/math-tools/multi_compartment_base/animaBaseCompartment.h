@@ -78,9 +78,6 @@ public:
 
     //! Reorient the fascicle compartment using a matrix, the flag specifies if the transform is affine or rigid
     virtual void Reorient(vnl_matrix <double> &orientationMatrix, bool affineTransform);
-    
-    void SetUseBoundedOptimization(bool x) {m_UseBoundedOptimization = x;}
-    bool GetUseBoundedOptimization() {return m_UseBoundedOptimization;}
 
     virtual double GetOrientationTheta() {return m_OrientationTheta;}
     virtual double GetOrientationPhi() {return m_OrientationPhi;}
@@ -110,10 +107,6 @@ public:
     virtual const Matrix3DType &GetDiffusionTensor();
     virtual double GetFractionalAnisotropy();
 
-    std::vector <double> &GetBoundedSignVector() {return m_BoundedSignVector;}
-    double GetBoundedSignVectorValue(unsigned int i) {return m_BoundedSignVector[i];}
-    void SetBoundedSignVectorValue(unsigned int i, double val) {m_BoundedSignVector[i] = val;}
-
 protected:
     BaseCompartment() : Superclass()
     {
@@ -128,23 +121,14 @@ protected:
         m_TissueRadius = 0.01;
 
         m_DiffusionTensor.SetIdentity();
-        m_UseBoundedOptimization = false;
     }
 
     virtual ~BaseCompartment() {}
-
-    //! From input vector, fills m_BoundedVector with bounded values
-    virtual void BoundParameters(const ListType &params) = 0;
-
-    virtual void UnboundParameters(ListType &params) = 0;
 
     static const unsigned int m_SpaceDimension = 3;
 
     //! Matrix to hold working value of diffusion tensor approximation to the model
     Matrix3DType m_DiffusionTensor;
-
-    //! Vector holding current bounded values
-    ListType m_BoundedVector;
 
     //! Vector holding current jacobian value
     ListType m_JacobianVector;
@@ -169,11 +153,6 @@ private:
     double m_OrientationConcentration;
     double m_ExtraAxonalFraction;
     double m_TissueRadius;
-
-    //! Boolean to tell whether parameters to be optimized are bounded or not
-    bool m_UseBoundedOptimization;
-    //! Vector to keep position information in R. If a cosine is negative (this is what we keep), the derivative will be influenced
-    std::vector <double> m_BoundedSignVector;
 };
 
 } // end namespace anima

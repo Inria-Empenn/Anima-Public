@@ -18,15 +18,11 @@ BaseCompartment::ListType &BaseIsotropicCompartment::GetSignalAttenuationJacobia
     
     if (m_JacobianVector.size() == 0)
         return m_JacobianVector;
-    
-    double axDiffDeriv = 1.0;
-    if (this->GetUseBoundedOptimization())
-        axDiffDeriv = this->GetAxialDiffusivityDerivativeFactor();
 
     double signalAttenuation = this->GetFourierTransformedDiffusionProfile(smallDelta, bigDelta, gradientStrength, gradient);
     double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, bigDelta, gradientStrength);
 
-    m_JacobianVector[0] = - bValue * signalAttenuation * axDiffDeriv;
+    m_JacobianVector[0] = - bValue * signalAttenuation;
     return m_JacobianVector;
 }
     
@@ -44,18 +40,8 @@ void BaseIsotropicCompartment::SetParametersFromVector(const ListType &params)
     if (params.size() != this->GetNumberOfParameters())
         return;
 
-    if (this->GetUseBoundedOptimization())
-    {
-        if (params.size() != this->GetBoundedSignVector().size())
-            this->GetBoundedSignVector().resize(params.size());
-
-        this->BoundParameters(params);
-    }
-    else
-        m_BoundedVector = params;
-
     if (m_EstimateAxialDiffusivity)
-        this->SetAxialDiffusivity(m_BoundedVector[0]);
+        this->SetAxialDiffusivity(params[0]);
 }
 
 BaseCompartment::ListType &BaseIsotropicCompartment::GetParametersAsVector()
@@ -64,9 +50,6 @@ BaseCompartment::ListType &BaseIsotropicCompartment::GetParametersAsVector()
 
     if (m_EstimateAxialDiffusivity)
         m_ParametersVector[0] = this->GetAxialDiffusivity();
-
-    if (this->GetUseBoundedOptimization())
-        this->UnboundParameters(m_ParametersVector);
 
     return m_ParametersVector;
 }

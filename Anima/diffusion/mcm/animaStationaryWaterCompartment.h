@@ -36,9 +36,6 @@ protected:
 
     virtual ~StationaryWaterCompartment() {}
 
-    virtual void BoundParameters(const ListType &params) ITK_OVERRIDE;
-    virtual void UnboundParameters(ListType &params) ITK_OVERRIDE;
-
 private:
     using Superclass::SetEstimateAxialDiffusivity;
 };

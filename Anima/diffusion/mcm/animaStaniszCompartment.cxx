@@ -1,5 +1,4 @@
 #include <animaStaniszCompartment.h>
-#include <animaLevenbergTools.h>
 
 #include <animaVectorOperations.h>
 #include <animaMCMConstants.h>
@@ -111,25 +110,13 @@ StaniszCompartment::ListType &StaniszCompartment::GetSignalAttenuationJacobian(d
         m_JacobianVector[pos] += 4.0 * alpha * alphaRsSquare * m_ThirdSummation;
         m_JacobianVector[pos] -= 16.0 * alpha * alphaRs * alphaRsSquare * m_FourthSummation;
 
-        double rsDeriv = 1.0;
-        if (this->GetUseBoundedOptimization())
-            rsDeriv = levenberg::BoundedDerivativeAddOn(tissueRadius, this->GetBoundedSignVectorValue(pos),
-                                                        anima::MCMTissueRadiusLowerBound, anima::MCMTissueRadiusUpperBound);
-
-        m_JacobianVector[pos] *= rsDeriv;
-
         ++pos;
     }
 
     if (m_EstimateAxialDiffusivity)
     {
         // Derivative w.r.t. D_I
-        double aDiffDeriv = 1.0;
-        if (this->GetUseBoundedOptimization())
-            aDiffDeriv = levenberg::BoundedDerivativeAddOn(axialDiff, this->GetBoundedSignVectorValue(pos),
-                                                           anima::MCMDiffusivityLowerBound, anima::MCMDiffusivityUpperBound);
-
-        m_JacobianVector[pos] = - 4.0 * bValue * piSquare * m_SecondSummation * aDiffDeriv;
+        m_JacobianVector[pos] = - 4.0 * bValue * piSquare * m_SecondSummation;
     }
 
     return m_JacobianVector;
@@ -184,20 +171,10 @@ void StaniszCompartment::SetParametersFromVector(const ListType &params)
     if (params.size() != this->GetNumberOfParameters())
         return;
 
-    if (this->GetUseBoundedOptimization())
-    {
-        if (params.size() != this->GetBoundedSignVector().size())
-            this->GetBoundedSignVector().resize(params.size());
-
-        this->BoundParameters(params);
-    }
-    else
-        m_BoundedVector = params;
-
-    this->SetTissueRadius(m_BoundedVector[0]);
+    this->SetTissueRadius(params[0]);
 
     if (m_EstimateAxialDiffusivity)
-        this->SetAxialDiffusivity(m_BoundedVector[1]);
+        this->SetAxialDiffusivity(params[1]);
 }
 
 StaniszCompartment::ListType &StaniszCompartment::GetParametersAsVector()
@@ -213,9 +190,6 @@ StaniszCompartment::ListType &StaniszCompartment::GetParametersAsVector()
 
     if (m_EstimateAxialDiffusivity)
         m_ParametersVector[pos] = this->GetAxialDiffusivity();
-
-    if (this->GetUseBoundedOptimization())
-        this->UnboundParameters(m_ParametersVector);
 
     return m_ParametersVector;
 }
@@ -252,39 +226,6 @@ StaniszCompartment::ListType &StaniszCompartment::GetParameterUpperBounds()
         m_ParametersUpperBoundsVector[pos] = anima::MCMDiffusivityUpperBound;
 
     return m_ParametersUpperBoundsVector;
-}
-
-void StaniszCompartment::BoundParameters(const ListType &params)
-{
-    m_BoundedVector.resize(params.size());
-    
-    double inputSign = 1;
-    unsigned int pos = 0;
-    if (m_EstimateTissueRadius)
-    {
-        m_BoundedVector[pos] = levenberg::ComputeBoundedValue(params[pos], inputSign, anima::MCMTissueRadiusLowerBound, anima::MCMTissueRadiusUpperBound);
-        this->SetBoundedSignVectorValue(pos,inputSign);
-        ++pos;
-    }
-    
-    if (m_EstimateAxialDiffusivity)
-    {
-        m_BoundedVector[pos] = levenberg::ComputeBoundedValue(params[pos],inputSign, anima::MCMDiffusivityLowerBound, anima::MCMDiffusivityUpperBound);
-        this->SetBoundedSignVectorValue(1,inputSign);
-    }
-}
-
-void StaniszCompartment::UnboundParameters(ListType &params)
-{
-    unsigned int pos = 0;
-    if (m_EstimateTissueRadius)
-    {
-        params[pos] = levenberg::UnboundValue(params[pos], anima::MCMTissueRadiusLowerBound, anima::MCMTissueRadiusUpperBound);
-        ++pos;
-    }
-    
-    if (m_EstimateAxialDiffusivity)
-        params[pos] = levenberg::UnboundValue(params[pos], anima::MCMDiffusivityLowerBound, anima::MCMDiffusivityUpperBound);
 }
 
 void StaniszCompartment::SetEstimateAxialDiffusivity(bool arg)

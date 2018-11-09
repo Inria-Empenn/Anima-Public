@@ -92,9 +92,6 @@ public:
     void SetCommonExtraAxonalFractionParameters(bool val) {m_CommonExtraAxonalFractionParameters = val;}
     itkGetMacro(CommonExtraAxonalFractionParameters, bool)
 
-    void SetUseBoundedWeightsOptimization(bool val) {m_UseBoundedWeightsOptimization = val;}
-    itkGetMacro(UseBoundedWeightsOptimization, bool)
-
     void SetNegativeWeightBounds(bool val) {m_NegativeWeightBounds = val;}
     itkGetMacro(NegativeWeightBounds, bool)
 
@@ -133,10 +130,6 @@ private:
 
     //! Working variable for handling model vector representation
     ModelOutputVectorType m_ModelVector;
-
-    //! Boolean to tell whether weight parameters to be optimized are bounded or not
-    bool m_UseBoundedWeightsOptimization;
-    std::vector <double> m_BoundedWeightsSignVector;
 };
 
 } // end namespace anima
