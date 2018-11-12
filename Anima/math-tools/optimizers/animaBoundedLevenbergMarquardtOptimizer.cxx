@@ -1,6 +1,7 @@
 #include <animaBoundedLevenbergMarquardtOptimizer.h>
 #include <animaBaseTensorTools.h>
 #include <vnl_qr.h>
+#include <limits>
 
 namespace anima
 {
@@ -243,7 +244,7 @@ bool BoundedLevenbergMarquardtOptimizer::CheckConditions(unsigned int numIterati
     if (numIterations == m_NumberOfIterations)
         return true;
 
-    if (m_LambdaParameter == 0.0)
+    if ((m_LambdaParameter == 0.0)||(m_LambdaParameter >= std::numeric_limits<double>::max() / 2.0))
         return true;
 
     double normDiffParams = 0.0;
