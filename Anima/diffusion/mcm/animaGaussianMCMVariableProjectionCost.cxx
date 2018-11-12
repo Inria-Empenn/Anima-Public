@@ -79,12 +79,8 @@ GaussianMCMVariableProjectionCost::SolveLinearLeastSquaresOnBorders()
     unsigned int numCompartments = m_IndexesUsefulCompartments.size();
     std::fill(m_CompartmentSwitches.begin(),m_CompartmentSwitches.end(),false);
 
-    double referenceCostValue = 0;
-    double optimalSigmaSquare = m_SigmaSquare;
-    m_OptimalWeightsCopy = m_OptimalWeights;
-    m_CompartmentSwitchesCopy = m_CompartmentSwitches;
-    m_ResidualsCopy = m_Residuals;
-    m_FMatrixInverseGCopy = m_FMatrixInverseG;
+    double referenceCostValue = 0.0;
+    double optimalSigmaSquare = 0.0;
 
     bool allCompartmentsOn = false;
     bool oneModelFound = false;
@@ -161,39 +157,36 @@ GaussianMCMVariableProjectionCost::SolveUnconstrainedLinearLeastSquares()
 
     unsigned int vecSize = numOnCompartments;
 
-    ListType fSignal(vecSize,0);
-    vnl_matrix <double> gramMatrix(vecSize,vecSize,0.0), inverseGramMatrix;
-    
-    for (unsigned int i = 0;i < nbValues;++i)
+    m_FSignal.resize(vecSize);
+    m_GramMatrix.set_size(vecSize,vecSize);
+
+    unsigned int posX = 0;
+    for (unsigned int i = 0;i < numCompartments;++i)
     {
-        unsigned int posX = 0;
-        for (unsigned int j = 0;j < numCompartments;++j)
+        if (!m_CompartmentSwitches[i])
+            continue;
+
+        m_FSignal[posX] = 0.0;
+        for (unsigned int j = 0;j < nbValues;++j)
+            m_FSignal[posX] += m_PredictedSignalAttenuations[j][i] * m_ObservedSignals[j];
+
+        unsigned int posY = posX;
+        for (unsigned int j = i;j < numCompartments;++j)
         {
             if (!m_CompartmentSwitches[j])
                 continue;
 
-            fSignal[posX] += m_PredictedSignalAttenuations[i][j] * m_ObservedSignals[i];
-
-            unsigned int posY = posX;
-            for (unsigned int k = j;k < numCompartments;++k)
-            {
-                if (!m_CompartmentSwitches[k])
-                    continue;
-                
-                gramMatrix(posX,posY) += m_PredictedSignalAttenuations[i][j] * m_PredictedSignalAttenuations[i][k];
-                ++posY;
-            }
-            
-            ++posX;
+            m_GramMatrix(posX,posY) = m_CompleteGramMatrix(i,j);
+            if (posX != posY)
+                m_GramMatrix(posY,posX) = m_GramMatrix(posX,posY);
+            ++posY;
         }
+
+        ++posX;
     }
-    
-    for (unsigned int j = 0;j < vecSize;++j)
-        for (unsigned int k = j+1;k < vecSize;++k)
-            gramMatrix(k,j) = gramMatrix(j,k);
-    
+
     if (vecSize > 0)
-        anima::GetTensorPower(gramMatrix,inverseGramMatrix,-1.0);
+        anima::GetTensorPower(m_GramMatrix,m_InverseGramMatrix,-1.0);
 
     // Here gets F G^-1
     m_FMatrixInverseG.set_size(nbValues,vecSize);
@@ -207,8 +200,8 @@ GaussianMCMVariableProjectionCost::SolveUnconstrainedLinearLeastSquares()
             {
                 if (!m_CompartmentSwitches[k])
                     continue;
-                
-                m_FMatrixInverseG(i,j) += m_PredictedSignalAttenuations[i][k] * inverseGramMatrix(pos,j);
+
+                m_FMatrixInverseG(i,j) += m_PredictedSignalAttenuations[i][k] * m_InverseGramMatrix(pos,j);
                 ++pos;
             }
         }
@@ -216,14 +209,14 @@ GaussianMCMVariableProjectionCost::SolveUnconstrainedLinearLeastSquares()
 
     // Solving for SigmaSquare
     m_SigmaSquare = 0.0;
-    
+
     for (unsigned int i = 0;i < nbValues;++i)
     {
         double projObservedSignal = m_ObservedSignals[i];
-        
+
         for (unsigned int j = 0;j < vecSize;++j)
-            projObservedSignal -= m_FMatrixInverseG(i,j) * fSignal[j];
-        
+            projObservedSignal -= m_FMatrixInverseG(i,j) * m_FSignal[j];
+
         m_Residuals[i] = projObservedSignal;
         m_SigmaSquare += projObservedSignal * projObservedSignal;
     }
@@ -237,10 +230,10 @@ GaussianMCMVariableProjectionCost::SolveUnconstrainedLinearLeastSquares()
     {
         if (!m_CompartmentSwitches[k])
             continue;
-        
+
         unsigned int indexOptWeight = m_IndexesUsefulCompartments[k];
         for (unsigned int j = 0;j < vecSize;++j)
-            m_OptimalWeights[indexOptWeight] += inverseGramMatrix(pos,j) * fSignal[j];
+            m_OptimalWeights[indexOptWeight] += m_InverseGramMatrix(pos,j) * m_FSignal[j];
 
         ++pos;
     }
@@ -251,7 +244,7 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
 {
     unsigned int nbValues = m_Gradients.size();
     unsigned int numCompartments = m_MCMStructure->GetNumberOfCompartments();
-    
+
     unsigned int nbParams = 0;
     for (unsigned int i = 0;i < numCompartments;++i)
     {
@@ -292,37 +285,48 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
     m_SignalAttenuationsJacobian.resize(nbParams);
     std::fill(m_SignalAttenuationsJacobian.begin(),m_SignalAttenuationsJacobian.end(),zeroMatrix);
     ListType compartmentJacobian;
-    
+
     for (unsigned int i = 0;i < nbValues;++i)
     {
         unsigned int pos = 0;
         m_PredictedSignalAttenuations[i].resize(numCompartments);
-        
+
         for (unsigned int j = 0;j < numCompartments;++j)
         {
             unsigned int indexComp = m_IndexesUsefulCompartments[j];
-            
+
             m_PredictedSignalAttenuations[i][j] = m_MCMStructure->GetCompartment(indexComp)->GetFourierTransformedDiffusionProfile(m_SmallDelta, m_BigDelta,
                                                                                                                                    m_GradientStrengths[i], m_Gradients[i]);
-            
+
             if (m_UseDerivative)
             {
                 compartmentJacobian = m_MCMStructure->GetCompartment(indexComp)->GetSignalAttenuationJacobian(m_SmallDelta, m_BigDelta,
                                                                                                               m_GradientStrengths[i], m_Gradients[i]);
-                
+
                 unsigned int compartmentSize = compartmentJacobian.size();
                 for (unsigned int k = 0;k < compartmentSize;++k)
                     m_SignalAttenuationsJacobian[pos+k](i,j) = compartmentJacobian[k];
-            
+
                 pos += compartmentSize;
             }
         }
     }
-    
+
+    m_CompleteGramMatrix.set_size(numCompartments, numCompartments);
+    m_CompleteGramMatrix.fill(0.0);
+    for (unsigned int i = 0;i < numCompartments;++i)
+    {
+        for (unsigned int j = i;j < numCompartments;++j)
+        {
+            for (unsigned int k = 0;k < nbValues;++k)
+                m_CompleteGramMatrix(i,j) += m_PredictedSignalAttenuations[k][i] * m_PredictedSignalAttenuations[k][j];
+        }
+    }
+
     m_Residuals.SetSize(nbValues);
     m_CompartmentSwitches.resize(numCompartments);
 }
-    
+
 void
 GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &parameters, DerivativeMatrixType &derivative)
 {
@@ -346,7 +350,7 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
         if (m_TestedParameters[i] != parameters[i])
             itkExceptionMacro("Get derivative not called with the same parameters as GetValue, suggestive of NaN...");
     }
-    
+
     derivative.SetSize(nbParams, nbValues);
     derivative.Fill(0.0);
     ListType DFw(nbValues,0.0);
@@ -366,11 +370,11 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
             {
                 if (!m_CompartmentSwitches[j])
                     continue;
-                
+
                 DFw[i] += m_SignalAttenuationsJacobian[k](i,j) * m_OptimalWeights[m_IndexesUsefulCompartments[j]];
             }
         }
-        
+
         // Then, compute
         // - tmpVec = F^T DF[k] w - (DF[k])^T Residuals
         unsigned int pos = 0;
@@ -405,7 +409,7 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
             }
         }
     }
-    
+
     bool problem = false;
     for (unsigned int i = 0;i < nbParams;++i)
     {
@@ -415,7 +419,7 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
             break;
         }
     }
-    
+
     if (problem)
     {
         std::cerr << derivative << std::endl;
@@ -425,7 +429,7 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
         itkExceptionMacro("Non finite derivative");
     }
 }
-    
+
 void
 GaussianMCMVariableProjectionCost::GetCurrentDerivative(DerivativeMatrixType &derivativeMatrix, DerivativeType &derivative)
 {

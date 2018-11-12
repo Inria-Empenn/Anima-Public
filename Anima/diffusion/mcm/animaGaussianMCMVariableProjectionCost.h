@@ -70,6 +70,8 @@ private:
     std::vector <double> m_OptimalWeights, m_OptimalWeightsCopy;
     MeasureType m_Residuals, m_ResidualsCopy;
     std::vector <bool> m_CompartmentSwitches, m_CompartmentSwitchesCopy;
+    ListType m_FSignal;
+    vnl_matrix <double> m_CompleteGramMatrix, m_GramMatrix, m_InverseGramMatrix;
     
     std::vector <unsigned int> m_IndexesUsefulCompartments;
     std::vector < std::vector <double> > m_PredictedSignalAttenuations;
