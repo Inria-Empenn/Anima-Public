@@ -108,6 +108,7 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     while (!stopConditionReached)
     {
         ++numIterations;
+        std::cout << numIterations << " " << m_LambdaParameter << std::endl;
 
         for (unsigned int i = 0;i < nbParams;++i)
         {
