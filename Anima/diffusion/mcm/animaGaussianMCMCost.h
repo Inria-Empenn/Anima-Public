@@ -41,7 +41,6 @@ public:
     //! Get cost function derivatives from a derivative matrix obtained from GetDerivativeMatrix
     void GetCurrentDerivative(DerivativeMatrixType &derivativeMatrix, DerivativeType &derivative) ITK_OVERRIDE;
 
-    void SetUseDerivative(bool val) {m_UseDerivative = val;}
     void SetMarginalEstimation(bool val) {m_MarginalEstimation = val;}
 
 protected:
@@ -58,7 +57,6 @@ private:
 
     //! Switch to compute marginal or profile estimation
     bool m_MarginalEstimation;
-    bool m_UseDerivative;
 
     MeasureType m_Residuals;
 };

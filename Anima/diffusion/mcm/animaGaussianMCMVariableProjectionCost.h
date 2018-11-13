@@ -4,6 +4,7 @@
 #include <vnl/vnl_diag_matrix.h>
 
 #include <animaBaseMCMCost.h>
+#include <animaNNLSOptimizer.h>
 #include <AnimaMCMExport.h>
 
 namespace anima
@@ -40,41 +41,35 @@ public:
     void GetCurrentDerivative(DerivativeMatrixType &derivativeMatrix, DerivativeType &derivative) ITK_OVERRIDE;
 
     std::vector <double> &GetOptimalWeights() {return m_OptimalWeights;}
-    void SetUseDerivative(bool derivative) {m_UseDerivative = derivative;}
 
 protected:
-    GaussianMCMVariableProjectionCost()
-    {
-        m_UseDerivative = false;
-    }
+    GaussianMCMVariableProjectionCost() {}
 
     virtual ~GaussianMCMVariableProjectionCost() ITK_OVERRIDE {}
 
     //! Computes maximum likelihood estimates of weights
-    void SolveUnconstrainedLinearLeastSquares();
-
-    //! Computes maximum likelihood estimates of weights on the borders of the domain (has to be used after SolveUnconstrainedLinearLeastSquares)
-    void SolveLinearLeastSquaresOnBorders();
+    void SolveLinearLeastSquares();
 
     bool CheckBoundaryConditions();
     void PrepareDataForLLS();
+    void PrepareDataForDerivative();
 
 private:
     GaussianMCMVariableProjectionCost(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
 
-    bool m_UseDerivative;
-
     // Utility variables to make ML estimation faster
-    vnl_matrix <double> m_FMatrixInverseG, m_FMatrixInverseGCopy;
-    std::vector <double> m_OptimalWeights, m_OptimalWeightsCopy;
-    MeasureType m_Residuals, m_ResidualsCopy;
-    std::vector <bool> m_CompartmentSwitches, m_CompartmentSwitchesCopy;
+    vnl_matrix <double> m_FMatrixInverseG;
+    std::vector <double> m_OptimalWeights;
+    MeasureType m_Residuals;
+    std::vector <bool> m_CompartmentSwitches;
     ListType m_FSignal;
-    vnl_matrix <double> m_CompleteGramMatrix, m_GramMatrix, m_InverseGramMatrix;
+    vnl_matrix <double> m_GramMatrix, m_InverseGramMatrix;
+    ParametersType m_VNLSignals, m_OptimalNNLSWeights;
+    anima::NNLSOptimizer::Pointer m_NNLSBordersOptimizer;
     
     std::vector <unsigned int> m_IndexesUsefulCompartments;
-    std::vector < std::vector <double> > m_PredictedSignalAttenuations;
+    vnl_matrix <double> m_PredictedSignalAttenuations;
     std::vector< vnl_matrix<double> > m_SignalAttenuationsJacobian;
 };
 

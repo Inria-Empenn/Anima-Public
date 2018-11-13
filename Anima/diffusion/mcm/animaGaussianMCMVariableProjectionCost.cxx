@@ -2,6 +2,8 @@
 #include <cmath>
 
 #include <animaBaseTensorTools.h>
+#include <animaNNLSOptimizer.h>
+#include <vnl_qr.h>
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -23,12 +25,7 @@ GaussianMCMVariableProjectionCost::GetValues(const ParametersType &parameters)
 
     this->PrepareDataForLLS();
 
-    std::fill(m_CompartmentSwitches.begin(),m_CompartmentSwitches.end(),true);
-
-    this->SolveUnconstrainedLinearLeastSquares();
-
-    if (!this->CheckBoundaryConditions())
-        this->SolveLinearLeastSquaresOnBorders();
+    this->SolveLinearLeastSquares();
 
     m_MCMStructure->SetCompartmentWeights(m_OptimalWeights);
     return m_Residuals;
@@ -45,105 +42,8 @@ double GaussianMCMVariableProjectionCost::GetCurrentCostValue()
     return costValue;
 }
 
-bool
-GaussianMCMVariableProjectionCost::CheckBoundaryConditions()
-{
-    if (m_SigmaSquare <= 0)
-        return false;
-
-    unsigned int numCompartments = m_MCMStructure->GetNumberOfCompartments();
-
-    if (!m_MCMStructure->GetNegativeWeightBounds())
-    {
-        for (unsigned int i = 0;i < numCompartments;++i)
-        {
-            if (m_OptimalWeights[i] < 0)
-                return false;
-        }
-    }
-    else
-    {
-        for (unsigned int i = 0;i < numCompartments;++i)
-        {
-            if (m_OptimalWeights[i] > 0.0)
-                return false;
-        }
-    }
-
-    return true;
-}
-
 void
-GaussianMCMVariableProjectionCost::SolveLinearLeastSquaresOnBorders()
-{
-    unsigned int numCompartments = m_IndexesUsefulCompartments.size();
-    std::fill(m_CompartmentSwitches.begin(),m_CompartmentSwitches.end(),false);
-
-    double referenceCostValue = 0.0;
-    double optimalSigmaSquare = 0.0;
-
-    bool allCompartmentsOn = false;
-    bool oneModelFound = false;
-    while(!allCompartmentsOn)
-    {
-        unsigned int numCompartmentsOn = 0;
-        for (unsigned int i = 0;i < numCompartments;++i)
-        {
-            if (m_CompartmentSwitches[i])
-                ++numCompartmentsOn;
-
-            if (numCompartmentsOn > 1)
-                break;
-        }
-
-        this->SolveUnconstrainedLinearLeastSquares();
-
-        if (this->CheckBoundaryConditions())
-        {
-            double costValue = this->GetCurrentCostValue();
-            if (((costValue < referenceCostValue)||(!oneModelFound)) &&
-                    (this->CheckBoundaryConditions()))
-            {
-                referenceCostValue = costValue;
-                oneModelFound = true;
-                m_OptimalWeightsCopy = m_OptimalWeights;
-                optimalSigmaSquare = m_SigmaSquare;
-                m_ResidualsCopy = m_Residuals;
-                m_FMatrixInverseGCopy = m_FMatrixInverseG;
-                m_CompartmentSwitchesCopy = m_CompartmentSwitches;
-            }
-        }
-
-        // Update configuration
-        unsigned int index = numCompartments - 1;
-        bool continueProgress = true;
-        while (continueProgress)
-        {
-            continueProgress = m_CompartmentSwitches[index];
-            m_CompartmentSwitches[index] = !m_CompartmentSwitches[index];
-            --index;
-        }
-
-        allCompartmentsOn = true;
-        for (unsigned int i = 0;i < numCompartments;++i)
-        {
-            if (!m_CompartmentSwitches[i])
-            {
-                allCompartmentsOn = false;
-                break;
-            }
-        }
-    }
-
-    m_Residuals = m_ResidualsCopy;
-    m_OptimalWeights = m_OptimalWeightsCopy;
-    m_SigmaSquare = optimalSigmaSquare;
-    m_FMatrixInverseG = m_FMatrixInverseGCopy;
-    m_CompartmentSwitches = m_CompartmentSwitchesCopy;
-}
-
-void
-GaussianMCMVariableProjectionCost::SolveUnconstrainedLinearLeastSquares()
+GaussianMCMVariableProjectionCost::SolveLinearLeastSquares()
 {
     unsigned int nbValues = m_Gradients.size();
     unsigned int numCompartments = m_IndexesUsefulCompartments.size();
@@ -158,31 +58,38 @@ GaussianMCMVariableProjectionCost::SolveUnconstrainedLinearLeastSquares()
     unsigned int vecSize = numOnCompartments;
 
     m_FSignal.resize(vecSize);
+    std::fill(m_FSignal.begin(),m_FSignal.end(),0.0);
     m_GramMatrix.set_size(vecSize,vecSize);
+    m_GramMatrix.fill(0.0);
 
-    unsigned int posX = 0;
-    for (unsigned int i = 0;i < numCompartments;++i)
+    for (unsigned int i = 0;i < nbValues;++i)
     {
-        if (!m_CompartmentSwitches[i])
-            continue;
-
-        m_FSignal[posX] = 0.0;
-        for (unsigned int j = 0;j < nbValues;++j)
-            m_FSignal[posX] += m_PredictedSignalAttenuations[j][i] * m_ObservedSignals[j];
-
-        unsigned int posY = posX;
-        for (unsigned int j = i;j < numCompartments;++j)
+        unsigned int posX = 0;
+        for (unsigned int j = 0;j < numCompartments;++j)
         {
             if (!m_CompartmentSwitches[j])
                 continue;
 
-            m_GramMatrix(posX,posY) = m_CompleteGramMatrix(i,j);
-            if (posX != posY)
-                m_GramMatrix(posY,posX) = m_GramMatrix(posX,posY);
-            ++posY;
-        }
+            m_FSignal[posX] += m_PredictedSignalAttenuations(i,j) * m_ObservedSignals[i];
 
-        ++posX;
+            unsigned int posY = posX;
+            for (unsigned int k = j;k < numCompartments;++k)
+            {
+                if (!m_CompartmentSwitches[k])
+                    continue;
+
+                m_GramMatrix(posX,posY) += m_PredictedSignalAttenuations(i,j) * m_PredictedSignalAttenuations(i,k);
+                ++posY;
+            }
+
+            ++posX;
+        }
+    }
+
+    for (unsigned int i = 0;i < vecSize;++i)
+    {
+        for (unsigned int j = i+1;j < vecSize;++j)
+            m_GramMatrix(j,i) = m_GramMatrix(i,j);
     }
 
     if (vecSize > 0)
@@ -201,7 +108,7 @@ GaussianMCMVariableProjectionCost::SolveUnconstrainedLinearLeastSquares()
                 if (!m_CompartmentSwitches[k])
                     continue;
 
-                m_FMatrixInverseG(i,j) += m_PredictedSignalAttenuations[i][k] * m_InverseGramMatrix(pos,j);
+                m_FMatrixInverseG(i,j) += m_PredictedSignalAttenuations(i,k) * m_InverseGramMatrix(pos,j);
                 ++pos;
             }
         }
@@ -222,21 +129,6 @@ GaussianMCMVariableProjectionCost::SolveUnconstrainedLinearLeastSquares()
     }
 
     m_SigmaSquare /= nbValues;
-
-    // Solving for weights
-    std::fill(m_OptimalWeights.begin(),m_OptimalWeights.end(),0.0);
-    unsigned int pos = 0;
-    for (unsigned int k = 0;k < numCompartments;++k)
-    {
-        if (!m_CompartmentSwitches[k])
-            continue;
-
-        unsigned int indexOptWeight = m_IndexesUsefulCompartments[k];
-        for (unsigned int j = 0;j < vecSize;++j)
-            m_OptimalWeights[indexOptWeight] += m_InverseGramMatrix(pos,j) * m_FSignal[j];
-
-        ++pos;
-    }
 }
 
 void
@@ -245,12 +137,7 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
     unsigned int nbValues = m_Gradients.size();
     unsigned int numCompartments = m_MCMStructure->GetNumberOfCompartments();
 
-    unsigned int nbParams = 0;
-    for (unsigned int i = 0;i < numCompartments;++i)
-    {
-        double compartmentSize = m_MCMStructure->GetCompartment(i)->GetNumberOfParameters();
-        nbParams += compartmentSize;
-    }
+    unsigned int nbParams = m_MCMStructure->GetNumberOfParameters();
 
     m_OptimalWeights.resize(numCompartments);
     std::fill(m_OptimalWeights.begin(),m_OptimalWeights.end(),0.0);
@@ -280,7 +167,69 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
     m_IndexesUsefulCompartments.resize(numCompartments);
 
     // Compute predicted signals and jacobian
-    m_PredictedSignalAttenuations.resize(nbValues);
+    m_PredictedSignalAttenuations.set_size(nbValues,numCompartments);
+
+    m_VNLSignals.set_size(nbValues);
+    for (unsigned int i = 0;i < nbValues;++i)
+    {
+        m_VNLSignals[i] = m_ObservedSignals[i];
+
+        for (unsigned int j = 0;j < numCompartments;++j)
+        {
+            unsigned int indexComp = m_IndexesUsefulCompartments[j];
+
+            m_PredictedSignalAttenuations(i,j) = m_MCMStructure->GetCompartment(indexComp)->GetFourierTransformedDiffusionProfile(m_SmallDelta, m_BigDelta,
+                                                                                                                                  m_GradientStrengths[i], m_Gradients[i]);
+        }
+    }
+
+    bool negativeWeightBounds = m_MCMStructure->GetNegativeWeightBounds();
+    if (negativeWeightBounds)
+        m_VNLSignals *= -1.0;
+
+    m_OptimalNNLSWeights = vnl_qr <double> (m_PredictedSignalAttenuations).solve(m_VNLSignals);
+
+    bool performNNLS = false;
+    for (unsigned int i = 0;i < numCompartments;++i)
+    {
+        if (m_OptimalNNLSWeights[i] < 0.0)
+        {
+            performNNLS = true;
+            break;
+        }
+    }
+
+    if (performNNLS)
+    {
+        m_NNLSBordersOptimizer = anima::NNLSOptimizer::New();
+        m_NNLSBordersOptimizer->SetDataMatrix(m_PredictedSignalAttenuations);
+        m_NNLSBordersOptimizer->SetPoints(m_VNLSignals);
+        m_NNLSBordersOptimizer->StartOptimization();
+
+        m_OptimalNNLSWeights = m_NNLSBordersOptimizer->GetCurrentPosition();
+    }
+
+    m_CompartmentSwitches.resize(numCompartments);
+    for (unsigned int i = 0;i < numCompartments;++i)
+    {
+        m_OptimalWeights[m_IndexesUsefulCompartments[i]] = m_OptimalNNLSWeights[i];
+        m_CompartmentSwitches[i] = (m_OptimalNNLSWeights[i] > 0.0);
+
+        if (negativeWeightBounds)
+            m_OptimalWeights[m_IndexesUsefulCompartments[i]] *= -1.0;
+    }
+
+    m_Residuals.SetSize(nbValues);
+}
+
+void
+GaussianMCMVariableProjectionCost::PrepareDataForDerivative()
+{
+    unsigned int nbValues = m_Gradients.size();
+    unsigned int numCompartments = m_IndexesUsefulCompartments.size();
+
+    unsigned int nbParams = m_MCMStructure->GetNumberOfParameters();
+    // Compute jacobian parts
     vnl_matrix<double> zeroMatrix(nbValues,numCompartments,0.0);
     m_SignalAttenuationsJacobian.resize(nbParams);
     std::fill(m_SignalAttenuationsJacobian.begin(),m_SignalAttenuationsJacobian.end(),zeroMatrix);
@@ -289,42 +238,21 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
     for (unsigned int i = 0;i < nbValues;++i)
     {
         unsigned int pos = 0;
-        m_PredictedSignalAttenuations[i].resize(numCompartments);
 
         for (unsigned int j = 0;j < numCompartments;++j)
         {
             unsigned int indexComp = m_IndexesUsefulCompartments[j];
 
-            m_PredictedSignalAttenuations[i][j] = m_MCMStructure->GetCompartment(indexComp)->GetFourierTransformedDiffusionProfile(m_SmallDelta, m_BigDelta,
-                                                                                                                                   m_GradientStrengths[i], m_Gradients[i]);
+            compartmentJacobian = m_MCMStructure->GetCompartment(indexComp)->GetSignalAttenuationJacobian(m_SmallDelta, m_BigDelta,
+                                                                                                          m_GradientStrengths[i], m_Gradients[i]);
 
-            if (m_UseDerivative)
-            {
-                compartmentJacobian = m_MCMStructure->GetCompartment(indexComp)->GetSignalAttenuationJacobian(m_SmallDelta, m_BigDelta,
-                                                                                                              m_GradientStrengths[i], m_Gradients[i]);
+            unsigned int compartmentSize = compartmentJacobian.size();
+            for (unsigned int k = 0;k < compartmentSize;++k)
+                m_SignalAttenuationsJacobian[pos+k](i,j) = compartmentJacobian[k];
 
-                unsigned int compartmentSize = compartmentJacobian.size();
-                for (unsigned int k = 0;k < compartmentSize;++k)
-                    m_SignalAttenuationsJacobian[pos+k](i,j) = compartmentJacobian[k];
-
-                pos += compartmentSize;
-            }
+            pos += compartmentSize;
         }
     }
-
-    m_CompleteGramMatrix.set_size(numCompartments, numCompartments);
-    m_CompleteGramMatrix.fill(0.0);
-    for (unsigned int i = 0;i < numCompartments;++i)
-    {
-        for (unsigned int j = i;j < numCompartments;++j)
-        {
-            for (unsigned int k = 0;k < nbValues;++k)
-                m_CompleteGramMatrix(i,j) += m_PredictedSignalAttenuations[k][i] * m_PredictedSignalAttenuations[k][j];
-        }
-    }
-
-    m_Residuals.SetSize(nbValues);
-    m_CompartmentSwitches.resize(numCompartments);
 }
 
 void
@@ -343,6 +271,8 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
         if (m_CompartmentSwitches[j])
             ++numOnCompartments;
     }
+
+    this->PrepareDataForDerivative();
 
     // Assume get derivative is called with the same parameters as GetValue just before
     for (unsigned int i = 0;i < nbParams;++i)
@@ -386,7 +316,7 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
             tmpVec[pos] = 0.0;
 
             for (unsigned int i = 0;i < nbValues;++i)
-                tmpVec[pos] += m_PredictedSignalAttenuations[i][j] * DFw[i] - m_SignalAttenuationsJacobian[k](i,j) * m_Residuals[i];
+                tmpVec[pos] += m_PredictedSignalAttenuations(i,j) * DFw[i] - m_SignalAttenuationsJacobian[k](i,j) * m_Residuals[i];
 
             ++pos;
         }
@@ -422,7 +352,9 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
 
     if (problem)
     {
-        std::cerr << derivative << std::endl;
+        std::cerr << "Derivative: " << derivative << std::endl;
+        std::cerr << "Optimal weights: " << m_OptimalNNLSWeights << std::endl;
+        std::cerr << "Gram matrix: " << m_GramMatrix << std::endl;
         std::cerr << "Residuals: " << m_Residuals << std::endl;
 
         std::cerr << "Params: " << parameters << std::endl;

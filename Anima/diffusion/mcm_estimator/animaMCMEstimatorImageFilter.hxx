@@ -719,15 +719,11 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>::CreateCostFunction(std
     {
         anima::GaussianMCMCost::Pointer internalCost = anima::GaussianMCMCost::New();
         internalCost->SetMarginalEstimation(m_MLEstimationStrategy == Marginal);
-        internalCost->SetUseDerivative(m_Optimizer != "bobyqa");
-
         baseCost = internalCost;
     }
     else
     {
         anima::GaussianMCMVariableProjectionCost::Pointer internalCost = anima::GaussianMCMVariableProjectionCost::New();
-        internalCost->SetUseDerivative(m_Optimizer != "bobyqa");
-
         baseCost = internalCost;
     }
 

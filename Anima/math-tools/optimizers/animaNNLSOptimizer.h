@@ -49,16 +49,21 @@ protected:
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(NNLSOptimizer);
 
-    unsigned int UpdateProcessedIndexes(std::vector <unsigned short> &treatedIndexes,
-                                        std::vector <unsigned int> &processedIndexes);
-
-    void ComputeSPVector(MatrixType &dataMatrixP, VectorType &dataPointsP, std::vector <unsigned int> &processedIndexes,
-                         VectorType &sPVector, unsigned int numProcessedIndexes);
+    unsigned int UpdateProcessedIndexes();
+    void ComputeSPVector();
 
     MatrixType m_DataMatrix;
     ParametersType m_Points;
 
     static const double m_EpsilonValue;
+
+    // Working values
+    std::vector <unsigned short> m_TreatedIndexes;
+    std::vector <unsigned int> m_ProcessedIndexes;
+    std::vector <double> m_WVector;
+    VectorType m_SPVector;
+    VectorType m_DataPointsP;
+    MatrixType m_DataMatrixP;
 };
 
 } // end of namespace anima

@@ -18,23 +18,24 @@ void NNLSOptimizer::StartOptimization()
     m_CurrentPosition.SetSize(parametersSize);
     m_CurrentPosition.Fill(0);
 
-    std::vector <unsigned short> treatedIndexes(parametersSize,0);
+    m_TreatedIndexes.resize(parametersSize);
+    std::fill(m_TreatedIndexes.begin(),m_TreatedIndexes.end(),0);
 
-    std::vector <double> wVector(parametersSize,0);
-    std::vector <double> tmpVector(numEquations,0);
-    VectorType sPVector(parametersSize);
-    sPVector.fill(0);
-    VectorType dataPointsP(numEquations);
-    dataPointsP.fill(0);
-    MatrixType dataMatrixP(numEquations,parametersSize);
+    m_WVector.resize(parametersSize);
+
+    m_SPVector.set_size(parametersSize);
+    m_SPVector.fill(0.0);
+    m_DataPointsP.set_size(numEquations);
+    m_DataPointsP.fill(0);
+    m_DataMatrixP.set_size(numEquations,parametersSize);
 
     unsigned int numProcessedIndexes = 0;
-    std::vector <unsigned int> processedIndexes;
 
     for (unsigned int i = 0;i < parametersSize;++i)
     {
+        m_WVector[i] = 0;
         for (unsigned int j = 0;j < numEquations;++j)
-            wVector[i] += m_DataMatrix(j,i) * m_Points[j];
+            m_WVector[i] += m_DataMatrix(j,i) * m_Points[j];
     }
 
     bool continueMainLoop = true;
@@ -45,16 +46,16 @@ void NNLSOptimizer::StartOptimization()
         int maxIndex = -1;
         for (unsigned int i = 0;i < parametersSize;++i)
         {
-            if (treatedIndexes[i] == 0)
+            if (m_TreatedIndexes[i] == 0)
             {
                 if (maxIndex < 0)
                 {
-                    maxW = wVector[i];
+                    maxW = m_WVector[i];
                     maxIndex = i;
                 }
-                else if (maxW < wVector[i])
+                else if (maxW < m_WVector[i])
                 {
-                    maxW = wVector[i];
+                    maxW = m_WVector[i];
                     maxIndex = i;
                 }
             }
@@ -67,16 +68,16 @@ void NNLSOptimizer::StartOptimization()
         }
 
         previousMaxW = maxW;
-        treatedIndexes[maxIndex] = 1;
-        numProcessedIndexes = this->UpdateProcessedIndexes(treatedIndexes,processedIndexes);
-        this->ComputeSPVector(dataMatrixP,dataPointsP,processedIndexes,
-                              sPVector,numProcessedIndexes);
+        m_TreatedIndexes[maxIndex] = 1;
+        m_ProcessedIndexes.push_back(maxIndex);
+        numProcessedIndexes = m_ProcessedIndexes.size();
+        this->ComputeSPVector();
 
-        double minSP = sPVector[0];
+        double minSP = m_SPVector[0];
         for (unsigned int i = 1;i < numProcessedIndexes;++i)
         {
-            if (sPVector[i] < minSP)
-                minSP = sPVector[i];
+            if (m_SPVector[i] < minSP)
+                minSP = m_SPVector[i];
         }
 
         // Starting inner loop
@@ -87,14 +88,14 @@ void NNLSOptimizer::StartOptimization()
             double indexSelected = 0;
             for (unsigned int i = 0;i < numProcessedIndexes;++i)
             {
-                if (sPVector[i] > 0)
+                if (m_SPVector[i] > 0)
                     continue;
 
-                double tmpAlpha = m_CurrentPosition[processedIndexes[i]] / (m_CurrentPosition[processedIndexes[i]] - sPVector[i] + m_EpsilonValue);
+                double tmpAlpha = m_CurrentPosition[m_ProcessedIndexes[i]] / (m_CurrentPosition[m_ProcessedIndexes[i]] - m_SPVector[i] + m_EpsilonValue);
                 if ((tmpAlpha < alpha)||(!foundOne))
                 {
                     alpha = tmpAlpha;
-                    indexSelected = processedIndexes[i];
+                    indexSelected = m_ProcessedIndexes[i];
                     foundOne = true;
                 }
             }
@@ -105,34 +106,33 @@ void NNLSOptimizer::StartOptimization()
             // Update positions
             for (unsigned int i = 0;i < numProcessedIndexes;++i)
             {
-                m_CurrentPosition[processedIndexes[i]] += alpha * sPVector[i];
+                m_CurrentPosition[m_ProcessedIndexes[i]] += alpha * m_SPVector[i];
 
-                if (std::abs(m_CurrentPosition[processedIndexes[i]]) <= m_EpsilonValue)
-                    treatedIndexes[processedIndexes[i]] = 0;
+                if (std::abs(m_CurrentPosition[m_ProcessedIndexes[i]]) <= m_EpsilonValue)
+                    m_TreatedIndexes[m_ProcessedIndexes[i]] = 0;
             }
 
             m_CurrentPosition[indexSelected] = 0;
-            treatedIndexes[indexSelected] = 0;
+            m_TreatedIndexes[indexSelected] = 0;
 
             // Update processed indexes
-            numProcessedIndexes = this->UpdateProcessedIndexes(treatedIndexes,processedIndexes);
+            numProcessedIndexes = this->UpdateProcessedIndexes();
             if (numProcessedIndexes == 0)
                 break;
 
-            this->ComputeSPVector(dataMatrixP,dataPointsP,processedIndexes,
-                                  sPVector,numProcessedIndexes);
+            this->ComputeSPVector();
 
-            minSP = sPVector[0];
+            minSP = m_SPVector[0];
             for (unsigned int i = 1;i < numProcessedIndexes;++i)
             {
-                if (sPVector[i] < minSP)
-                    minSP = sPVector[i];
+                if (m_SPVector[i] < minSP)
+                    minSP = m_SPVector[i];
             }
         }
 
         m_CurrentPosition.Fill(0);
         for (unsigned int i = 0;i < numProcessedIndexes;++i)
-            m_CurrentPosition[processedIndexes[i]] = sPVector[i];
+            m_CurrentPosition[m_ProcessedIndexes[i]] = m_SPVector[i];
 
         if (numProcessedIndexes == parametersSize)
         {
@@ -140,41 +140,34 @@ void NNLSOptimizer::StartOptimization()
             continue;
         }
 
+        std::fill(m_WVector.begin(),m_WVector.end(),0.0);
         for (unsigned int i = 0;i < numEquations;++i)
         {
-            tmpVector[i] = m_Points[i];
+            double tmpValue = m_Points[i];
             for (unsigned int j = 0;j < parametersSize;++j)
-                tmpVector[i] -= m_DataMatrix(i,j) * m_CurrentPosition[j];
-        }
+                tmpValue -= m_DataMatrix(i,j) * m_CurrentPosition[j];
 
-        for (unsigned int i = 0;i < parametersSize;++i)
-        {
-            wVector[i] = 0;
-            for (unsigned int j = 0;j < numEquations;++j)
-                wVector[i] += m_DataMatrix(j,i) * tmpVector[j];
+            for (unsigned int j = 0;j < parametersSize;++j)
+                m_WVector[j] += m_DataMatrix(i,j) * tmpValue;
         }
     }
 }
 
-unsigned int NNLSOptimizer::UpdateProcessedIndexes(std::vector <unsigned short> &treatedIndexes,
-                                                   std::vector <unsigned int> &processedIndexes)
+unsigned int NNLSOptimizer::UpdateProcessedIndexes()
 {
     unsigned int numProcessedIndexes = 0;
     unsigned int parametersSize = m_DataMatrix.cols();
 
     for (unsigned int i = 0;i < parametersSize;++i)
-    {
-        if (treatedIndexes[i] > 0)
-            numProcessedIndexes++;
-    }
+        numProcessedIndexes += m_TreatedIndexes[i];
 
-    processedIndexes.resize(numProcessedIndexes);
+    m_ProcessedIndexes.resize(numProcessedIndexes);
     unsigned int pos = 0;
     for (unsigned int i = 0;i < parametersSize;++i)
     {
-        if (treatedIndexes[i] > 0)
+        if (m_TreatedIndexes[i] != 0)
         {
-            processedIndexes[pos] = i;
+            m_ProcessedIndexes[pos] = i;
             ++pos;
         }
     }
@@ -182,24 +175,23 @@ unsigned int NNLSOptimizer::UpdateProcessedIndexes(std::vector <unsigned short> 
     return numProcessedIndexes;
 }
 
-void NNLSOptimizer::ComputeSPVector(MatrixType &dataMatrixP, VectorType &dataPointsP,
-                                    std::vector<unsigned int> &processedIndexes,
-                                    VectorType &sPVector,unsigned int numProcessedIndexes)
+void NNLSOptimizer::ComputeSPVector()
 {
     unsigned int numEquations = m_DataMatrix.rows();
+    unsigned int numProcessedIndexes = m_ProcessedIndexes.size();
 
-    dataMatrixP.set_size(numEquations,numProcessedIndexes);
-    dataPointsP.set_size(numEquations);
+    m_DataMatrixP.set_size(numEquations,numProcessedIndexes);
+    m_DataPointsP.set_size(numEquations);
 
     for (unsigned int i = 0;i < numEquations;++i)
     {
         for (unsigned int j = 0;j < numProcessedIndexes;++j)
-            dataMatrixP(i,j) = m_DataMatrix(i,processedIndexes[j]);
+            m_DataMatrixP(i,j) = m_DataMatrix(i,m_ProcessedIndexes[j]);
 
-        dataPointsP[i] = m_Points[i];
+        m_DataPointsP[i] = m_Points[i];
     }
 
-    sPVector = vnl_qr<double>(dataMatrixP).solve(dataPointsP);
+    m_SPVector = vnl_qr<double>(m_DataMatrixP).solve(m_DataPointsP);
 }
 
 double NNLSOptimizer::GetCurrentResidual()
