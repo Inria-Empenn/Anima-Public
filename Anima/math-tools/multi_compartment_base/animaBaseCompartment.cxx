@@ -15,6 +15,22 @@ double BaseCompartment::GetPredictedSignal(double smallDelta, double bigDelta, d
 
 bool BaseCompartment::IsEqual(Self *rhs, double tolerance)
 {
+    if (this->GetTensorCompatible() && rhs->GetTensorCompatible())
+    {
+        // Compare tensor representations, easier and probably faster
+        Matrix3DType lhsTensor = this->GetDiffusionTensor();
+        Matrix3DType rhsTensor = rhs->GetDiffusionTensor();
+
+        for (unsigned int i = 0;i < Matrix3DType::RowDimensions;++i)
+            for (unsigned int j = i;j < Matrix3DType::ColumnDimensions;++j)
+            {
+                if (std::abs(lhsTensor(i,j) - rhsTensor(i,j)) > tolerance)
+                    return false;
+            }
+
+        return true;
+    }
+
     double denomValue = std::max(this->GetAxialDiffusivity(),rhs->GetAxialDiffusivity());
     if (std::abs(this->GetAxialDiffusivity() - rhs->GetAxialDiffusivity()) / denomValue > tolerance)
         return false;
