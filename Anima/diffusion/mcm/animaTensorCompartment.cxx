@@ -72,7 +72,7 @@ TensorCompartment::ListType &TensorCompartment::GetSignalAttenuationJacobian(dou
 
 double TensorCompartment::GetLogDiffusionProfile(const Vector3DType &sample)
 {
-    this->UpdateDiffusionTensor();
+    this->UpdateInverseDiffusionTensor();
 
     double resVal = - 1.5 * std::log(2.0 * M_PI) - 0.5 * std::log(m_TensorDeterminant);
 
@@ -269,19 +269,12 @@ void TensorCompartment::SetCompartmentVector(ModelOutputVectorType &compartmentV
 
     m_TensorDeterminant = vnl_determinant <double> (m_WorkVnlMatrix1);
 
-    if (m_TensorDeterminant > 0)
-    {
-        anima::GetTensorPower(m_WorkVnlMatrix1, m_WorkVnlMatrix2, -1.0);
-        m_InverseDiffusionTensor = m_WorkVnlMatrix2;
-    }
-    else
-    {
+    if (m_TensorDeterminant <= 0)
         m_TensorDeterminant = 0;
-        m_InverseDiffusionTensor.Fill(0);
-    }
 
     m_ModifiedTensor = false;
     m_ModifiedAngles = false;
+    m_UpdateInverseTensor = true;
     m_UpdatedCompartment = true;
 }
 
@@ -410,30 +403,51 @@ void TensorCompartment::UpdateDiffusionTensor()
         return;
 
     this->UpdateAngleConfiguration();
+    double axialDiff = this->GetAxialDiffusivity();
+    double radialDiff1 = this->GetRadialDiffusivity1();
+    double radialDiff2 = this->GetRadialDiffusivity2();
     
     m_DiffusionTensor.Fill(0.0);
     
     for (unsigned int i = 0;i < m_SpaceDimension;++i)
-        m_DiffusionTensor(i,i) = this->GetRadialDiffusivity2();
+        m_DiffusionTensor(i,i) = radialDiff2;
     
     for (unsigned int i = 0;i < m_SpaceDimension;++i)
         for (unsigned int j = i;j < m_SpaceDimension;++j)
         {
-            m_DiffusionTensor(i,j) += m_EigenVector1[i] * m_EigenVector1[j] * (this->GetAxialDiffusivity() - this->GetRadialDiffusivity2());
-            m_DiffusionTensor(i,j) += m_EigenVector2[i] * m_EigenVector2[j] * (this->GetRadialDiffusivity1() - this->GetRadialDiffusivity2());
+            m_DiffusionTensor(i,j) += m_EigenVector1[i] * m_EigenVector1[j] * (axialDiff - radialDiff2);
+            m_DiffusionTensor(i,j) += m_EigenVector2[i] * m_EigenVector2[j] * (radialDiff1 - radialDiff2);
             
             if (i != j)
                 m_DiffusionTensor(j,i) = m_DiffusionTensor(i,j);
         }
     
-    m_TensorDeterminant = this->GetAxialDiffusivity() * this->GetRadialDiffusivity1() * this->GetRadialDiffusivity2();
+    m_TensorDeterminant = axialDiff * radialDiff1 * radialDiff2;
     
+    m_UpdateInverseTensor = true;
+    m_ModifiedTensor = false;
+}
+
+void TensorCompartment::UpdateInverseDiffusionTensor()
+{
+    this->UpdateDiffusionTensor();
+
+    if (!m_UpdateInverseTensor)
+        return;
+
+    if (m_TensorDeterminant == 0.0)
+    {
+        m_InverseDiffusionTensor.Fill(0.0);
+        m_UpdateInverseTensor = false;
+        return;
+    }
+
     m_WorkVnlMatrix1.set_size(m_SpaceDimension,m_SpaceDimension);
     m_WorkVnlMatrix1 = m_DiffusionTensor.GetVnlMatrix();
     anima::GetTensorPower(m_WorkVnlMatrix1, m_WorkVnlMatrix2, -1.0);
     m_InverseDiffusionTensor = m_WorkVnlMatrix2;
-    
-    m_ModifiedTensor = false;
+
+    m_UpdateInverseTensor = false;
 }
 
 void TensorCompartment::UpdateAngleConfiguration()

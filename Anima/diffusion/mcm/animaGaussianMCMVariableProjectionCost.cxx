@@ -2,7 +2,6 @@
 #include <cmath>
 
 #include <animaBaseTensorTools.h>
-#include <animaNNLSOptimizer.h>
 #include <vnl_qr.h>
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -201,7 +200,6 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
 
     if (performNNLS)
     {
-        m_NNLSBordersOptimizer = anima::NNLSOptimizer::New();
         m_NNLSBordersOptimizer->SetDataMatrix(m_PredictedSignalAttenuations);
         m_NNLSBordersOptimizer->SetPoints(m_VNLSignals);
         m_NNLSBordersOptimizer->StartOptimization();

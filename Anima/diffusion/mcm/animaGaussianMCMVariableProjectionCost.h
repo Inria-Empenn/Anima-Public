@@ -43,7 +43,10 @@ public:
     std::vector <double> &GetOptimalWeights() {return m_OptimalWeights;}
 
 protected:
-    GaussianMCMVariableProjectionCost() {}
+    GaussianMCMVariableProjectionCost()
+    {
+        m_NNLSBordersOptimizer = anima::NNLSOptimizer::New();
+    }
 
     virtual ~GaussianMCMVariableProjectionCost() ITK_OVERRIDE {}
 

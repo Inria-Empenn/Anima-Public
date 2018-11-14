@@ -1,5 +1,4 @@
 #include <animaNNLSOptimizer.h>
-
 #include <vnl/algo/vnl_qr.h>
 
 namespace anima
@@ -16,23 +15,16 @@ void NNLSOptimizer::StartOptimization()
         itkExceptionMacro("Wrongly sized inputs to NNLS, aborting");
 
     m_CurrentPosition.SetSize(parametersSize);
-    m_CurrentPosition.Fill(0);
-
     m_TreatedIndexes.resize(parametersSize);
-    std::fill(m_TreatedIndexes.begin(),m_TreatedIndexes.end(),0);
-
+    m_ProcessedIndexes.clear();
     m_WVector.resize(parametersSize);
-
-    m_SPVector.set_size(parametersSize);
-    m_SPVector.fill(0.0);
-    m_DataPointsP.set_size(numEquations);
-    m_DataPointsP.fill(0);
-    m_DataMatrixP.set_size(numEquations,parametersSize);
 
     unsigned int numProcessedIndexes = 0;
 
     for (unsigned int i = 0;i < parametersSize;++i)
     {
+        m_TreatedIndexes[i] = 0;
+        m_CurrentPosition[i] = 0.0;
         m_WVector[i] = 0;
         for (unsigned int j = 0;j < numEquations;++j)
             m_WVector[i] += m_DataMatrix(j,i) * m_Points[j];
@@ -191,7 +183,7 @@ void NNLSOptimizer::ComputeSPVector()
         m_DataPointsP[i] = m_Points[i];
     }
 
-    m_SPVector = vnl_qr<double>(m_DataMatrixP).solve(m_DataPointsP);
+    m_SPVector = vnl_qr <double> (m_DataMatrixP).solve(m_DataPointsP);
 }
 
 double NNLSOptimizer::GetCurrentResidual()

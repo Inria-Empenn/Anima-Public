@@ -74,6 +74,7 @@ protected:
         m_ChangedConstraints = true;
 
         m_ModifiedTensor = true;
+        m_UpdateInverseTensor = true;
         m_ModifiedAngles = true;
         m_UpdatedCompartment = false;
         m_TensorDeterminant = 0;
@@ -83,7 +84,10 @@ protected:
 
     //! Update diffusion tensor value from parameters
     void UpdateDiffusionTensor();
-    
+
+    //! Update inverse diffusion tensor value from parameters
+    void UpdateInverseDiffusionTensor();
+
     //! Update angles' sine and cosine values from parameters
     void UpdateAngleConfiguration();
 
@@ -96,6 +100,9 @@ private:
 
     //! Optimization variable: set to true when an internal parameter is modified requiring to recompute the tensor
     bool m_ModifiedTensor;
+
+    //! Optimization variable: set to true if diffusion tensor has just been updated and its inverse needs update
+    bool m_UpdateInverseTensor;
 
     //! Optimization variable: set to true when an internal parameter is modified requiring to recompute the angles' sine and cosine values
     bool m_ModifiedAngles;
