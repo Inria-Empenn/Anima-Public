@@ -177,18 +177,21 @@ void NNLSOptimizer::ComputeSPVector()
     m_DataMatrixP.fill(0.0);
     m_DataPointsP.fill(0.0);
 
-    for (unsigned int j = 0;j < numProcessedIndexes;++j)
+
+    for (unsigned int i = 0;i < numEquations;++i)
     {
-        for (unsigned int i = 0;i < numEquations;++i)
+        for (unsigned int j = 0;j < numProcessedIndexes;++j)
+        {
             m_DataPointsP[j] += m_DataMatrix(i,m_ProcessedIndexes[j]) * m_Points[i];
 
-        for (unsigned int k = j;k < numProcessedIndexes;++k)
-        {
-            for (unsigned int i = 0;i < numEquations;++i)
-                m_DataMatrixP(j,k) += m_DataMatrix(i,m_ProcessedIndexes[j]) * m_DataMatrix(i,m_ProcessedIndexes[k]);
+            for (unsigned int k = j;k < numProcessedIndexes;++k)
+            {
+                double tmpVal = m_DataMatrix(i,m_ProcessedIndexes[j]) * m_DataMatrix(i,m_ProcessedIndexes[k]);
+                m_DataMatrixP(j,k) += tmpVal;
 
-            if (j != k)
-                m_DataMatrixP(k,j) = m_DataMatrixP(j,k);
+                if (j != k)
+                    m_DataMatrixP(k,j) += tmpVal;
+            }
         }
     }
 
