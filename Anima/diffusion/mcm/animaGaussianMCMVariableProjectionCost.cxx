@@ -136,8 +136,6 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
     unsigned int nbValues = m_Gradients.size();
     unsigned int numCompartments = m_MCMStructure->GetNumberOfCompartments();
 
-    unsigned int nbParams = m_MCMStructure->GetNumberOfParameters();
-
     m_OptimalWeights.resize(numCompartments);
     std::fill(m_OptimalWeights.begin(),m_OptimalWeights.end(),0.0);
 
@@ -176,7 +174,6 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
         for (unsigned int j = 0;j < numCompartments;++j)
         {
             unsigned int indexComp = m_IndexesUsefulCompartments[j];
-
             m_PredictedSignalAttenuations(i,j) = m_MCMStructure->GetCompartment(indexComp)->GetFourierTransformedDiffusionProfile(m_SmallDelta, m_BigDelta,
                                                                                                                                   m_GradientStrengths[i], m_Gradients[i]);
         }

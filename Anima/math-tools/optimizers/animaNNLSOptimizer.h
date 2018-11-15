@@ -62,7 +62,6 @@ private:
     std::vector <unsigned int> m_ProcessedIndexes;
     std::vector <double> m_WVector;
     VectorType m_SPVector;
-    VectorType m_DataPointsP;
     MatrixType m_DataMatrixP;
 };
 

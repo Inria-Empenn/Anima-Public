@@ -1410,7 +1410,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
             anima::BaseCompartment *currentCompartment = complexModel->GetCompartment(i);
 
-            anima::TransformCartesianToSphericalCoordinates(m_DictionaryDirections[iIndex],tmpDirection);
+            anima::TransformCartesianToSphericalCoordinates(m_DictionaryDirections[nonNullAtomIndexes[iIndex]],tmpDirection);
             currentCompartment->SetOrientationTheta(tmpDirection[0]);
             currentCompartment->SetOrientationPhi(tmpDirection[1]);
         }
@@ -1485,6 +1485,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         eigSystem.ComputeEigenValuesAndVectors(dcmMatrix, eigVals, eigVecs);
         for (unsigned int j = 0;j < 3;++j)
             tmpDirection[j] = eigVecs(2,j);
+
         anima::TransformCartesianToSphericalCoordinates(tmpDirection,tmpDirection);
 
         anima::BaseCompartment *currentCompartment = complexModel->GetCompartment(i + numIsotropicComponents);

@@ -11,7 +11,7 @@ void NNLSOptimizer::StartOptimization()
     unsigned int parametersSize = m_DataMatrix.cols();
     unsigned int numEquations = m_DataMatrix.rows();
 
-    if ((numEquations != m_Points.GetSize())||(numEquations == 0)||(parametersSize == 0))
+    if ((numEquations != m_Points.size())||(numEquations == 0)||(parametersSize == 0))
         itkExceptionMacro("Wrongly sized inputs to NNLS, aborting");
 
     m_CurrentPosition.SetSize(parametersSize);
@@ -173,17 +173,14 @@ void NNLSOptimizer::ComputeSPVector()
     unsigned int numProcessedIndexes = m_ProcessedIndexes.size();
 
     m_DataMatrixP.set_size(numEquations,numProcessedIndexes);
-    m_DataPointsP.set_size(numEquations);
 
     for (unsigned int i = 0;i < numEquations;++i)
     {
         for (unsigned int j = 0;j < numProcessedIndexes;++j)
             m_DataMatrixP(i,j) = m_DataMatrix(i,m_ProcessedIndexes[j]);
-
-        m_DataPointsP[i] = m_Points[i];
     }
 
-    m_SPVector = vnl_qr <double> (m_DataMatrixP).solve(m_DataPointsP);
+    m_SPVector = vnl_qr <double> (m_DataMatrixP).solve(m_Points);
 }
 
 double NNLSOptimizer::GetCurrentResidual()
