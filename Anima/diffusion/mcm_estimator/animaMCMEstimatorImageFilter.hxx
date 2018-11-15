@@ -1387,7 +1387,12 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     numRealAnisotropicCompartments = nonNullAtomIndexes.size();
     MCMType::ListType sparseWeights(numCompartments,0.0);
     for (unsigned int i = 0;i < numIsotropicComponents;++i)
-        sparseWeights[i] = dictionaryWeights[i];
+    {
+        if (!authorizeNegativeB0Value)
+            sparseWeights[i] = dictionaryWeights[i];
+        else
+            sparseWeights[i] = - dictionaryWeights[i];
+    }
 
     std::vector <double> tmpDirection(3,0.0);
     if (numRealAnisotropicCompartments <= numNonIsotropicComponents)
