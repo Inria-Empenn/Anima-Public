@@ -1,6 +1,6 @@
 #include <animaBoundedLevenbergMarquardtOptimizer.h>
 #include <animaBaseTensorTools.h>
-#include <vnl_qr.h>
+#include <vnl_ldl_cholesky.h>
 #include <limits>
 
 namespace anima
@@ -86,7 +86,7 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
                 workVector[i] -= derivativeMatrix(i,j) * residualValues[j];
         }
 
-        addonVector = vnl_qr <double> (workMatrix).solve(workVector);
+        addonVector = vnl_ldl_cholesky (workMatrix).solve(workVector);
         parameters = oldParameters;
         parameters += addonVector;
 

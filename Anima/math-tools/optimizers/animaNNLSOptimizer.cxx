@@ -1,5 +1,5 @@
 #include <animaNNLSOptimizer.h>
-#include <vnl/algo/vnl_qr.h>
+#include <vnl/algo/vnl_ldl_cholesky.h>
 
 namespace anima
 {
@@ -172,15 +172,27 @@ void NNLSOptimizer::ComputeSPVector()
     unsigned int numEquations = m_DataMatrix.rows();
     unsigned int numProcessedIndexes = m_ProcessedIndexes.size();
 
-    m_DataMatrixP.set_size(numEquations,numProcessedIndexes);
+    m_DataMatrixP.set_size(numProcessedIndexes,numProcessedIndexes);
+    m_DataPointsP.set_size(numProcessedIndexes);
+    m_DataMatrixP.fill(0.0);
+    m_DataPointsP.fill(0.0);
 
-    for (unsigned int i = 0;i < numEquations;++i)
+    for (unsigned int j = 0;j < numProcessedIndexes;++j)
     {
-        for (unsigned int j = 0;j < numProcessedIndexes;++j)
-            m_DataMatrixP(i,j) = m_DataMatrix(i,m_ProcessedIndexes[j]);
+        for (unsigned int i = 0;i < numEquations;++i)
+            m_DataPointsP[j] += m_DataMatrix(i,m_ProcessedIndexes[j]) * m_Points[i];
+
+        for (unsigned int k = j;k < numProcessedIndexes;++k)
+        {
+            for (unsigned int i = 0;i < numEquations;++i)
+                m_DataMatrixP(j,k) += m_DataMatrix(i,m_ProcessedIndexes[j]) * m_DataMatrix(i,m_ProcessedIndexes[k]);
+
+            if (j != k)
+                m_DataMatrixP(k,j) = m_DataMatrixP(j,k);
+        }
     }
 
-    m_SPVector = vnl_qr <double> (m_DataMatrixP).solve(m_Points);
+    m_SPVector = vnl_ldl_cholesky(m_DataMatrixP).solve(m_DataPointsP);
 }
 
 double NNLSOptimizer::GetCurrentResidual()

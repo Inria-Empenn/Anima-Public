@@ -63,6 +63,7 @@ private:
     std::vector <double> m_WVector;
     VectorType m_SPVector;
     MatrixType m_DataMatrixP;
+    VectorType m_DataPointsP;
 };
 
 } // end of namespace anima
