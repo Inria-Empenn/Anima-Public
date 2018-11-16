@@ -67,8 +67,8 @@ public:
     //! Copy internal parameters from another compartment, faster than a set/get compartment vector
     virtual void CopyFromOther(Self *rhs);
 
-    //! Tests equality to another compartment up to a constant
-    virtual bool IsEqual(Self *rhs, double tolerance = 1.0e-6);
+    //! Tests equality to another compartment up to a constant (relative and absolute tolerances)
+    virtual bool IsEqual(Self *rhs, double tolerance = 1.0e-2, double absoluteTolerance = 1.0e-8);
 
     //! Number of parameters to describe the model, these parameters will be self-contained, i.e. include fixed parameters for example
     virtual unsigned int GetCompartmentSize() = 0;

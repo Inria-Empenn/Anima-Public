@@ -6,6 +6,9 @@
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 
+#include <itkSymmetricEigenAnalysis.h>
+#include <vnl_diag_matrix.h>
+
 namespace anima
 {
 
@@ -141,6 +144,9 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
 
     m_IndexesUsefulCompartments.resize(numCompartments);
     unsigned int pos = 0;
+
+    // Trick to keep the compartments with the lowest number of compartments by default
+    // This is a trick because it assumes the first compartments (i.e. the iso ones are the ones with the lowest number of compartments)
     for (unsigned int i = 0;i < numCompartments;++i)
     {
         bool duplicated = false;
@@ -171,18 +177,14 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
     m_CholeskyMatrix.set_size(numCompartments,numCompartments);
     m_CholeskyMatrix.fill(0.0);
 
-    bool negativeWeightBounds = m_MCMStructure->GetNegativeWeightBounds();
-
     for (unsigned int i = 0;i < nbValues;++i)
     {
-        double tmpSignal = (negativeWeightBounds) ? -m_ObservedSignals[i] : m_ObservedSignals[i];
-
         for (unsigned int j = 0;j < numCompartments;++j)
         {
             unsigned int indexComp = m_IndexesUsefulCompartments[j];
             double predictedSignal = m_MCMStructure->GetCompartment(indexComp)->GetFourierTransformedDiffusionProfile(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_Gradients[i]);
             m_PredictedSignalAttenuations(i,j) = predictedSignal;
-            m_VNLSignals[j] += predictedSignal * tmpSignal;
+            m_VNLSignals[j] += predictedSignal * m_ObservedSignals[i];
             m_CholeskyMatrix(j,j) += predictedSignal * predictedSignal;
 
             for (unsigned int k = 0;k < j;++k)
@@ -193,6 +195,33 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
             }
         }
     }
+
+    typedef itk::SymmetricEigenAnalysis < vnl_matrix <double>, vnl_diag_matrix <double>, vnl_matrix<double> > EigenAnalysisType;
+    EigenAnalysisType eigen(numCompartments);
+
+    vnl_diag_matrix<double> eigValues(numCompartments);
+    eigen.ComputeEigenValues(m_CholeskyMatrix,eigValues);
+    
+    if (eigValues[0] <= 0.0)
+    {
+        std::cout << eigValues[0] << std::endl;
+        std::cout << m_CholeskyMatrix << std::endl;
+        std::cout << "Pred signals " << m_PredictedSignalAttenuations << std::endl;
+
+        std::cout << "Tested params ";
+        for (unsigned int i = 0;i < m_TestedParameters.size();++i)
+            std::cout << m_TestedParameters[i] << " ";
+        std::cout << std::endl;
+        std::cout << "Useful compartments ";
+        for (unsigned int i = 0;i < numCompartments;++i)
+            std::cout << m_IndexesUsefulCompartments[i] << " ";
+        std::cout << std::endl;
+
+        exit(-1);
+    }
+    bool negativeWeightBounds = m_MCMStructure->GetNegativeWeightBounds();
+    if (negativeWeightBounds)
+        m_VNLSignals *= -1.0;
 
     m_OptimalNNLSWeights = vnl_ldl_cholesky(m_CholeskyMatrix).solve(m_VNLSignals);
 
