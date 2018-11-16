@@ -2,7 +2,7 @@
 #include <cmath>
 
 #include <animaBaseTensorTools.h>
-#include <vnl_qr.h>
+#include <vnl_ldl_cholesky.h>
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -166,24 +166,35 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
     // Compute predicted signals and jacobian
     m_PredictedSignalAttenuations.set_size(nbValues,numCompartments);
 
-    m_VNLSignals.set_size(nbValues);
+    m_VNLSignals.set_size(numCompartments);
+    m_VNLSignals.fill(0.0);
+    m_CholeskyMatrix.set_size(numCompartments,numCompartments);
+    m_CholeskyMatrix.fill(0.0);
+
+    bool negativeWeightBounds = m_MCMStructure->GetNegativeWeightBounds();
+
     for (unsigned int i = 0;i < nbValues;++i)
     {
-        m_VNLSignals[i] = m_ObservedSignals[i];
+        double tmpSignal = (negativeWeightBounds) ? -m_ObservedSignals[i] : m_ObservedSignals[i];
 
         for (unsigned int j = 0;j < numCompartments;++j)
         {
             unsigned int indexComp = m_IndexesUsefulCompartments[j];
-            m_PredictedSignalAttenuations(i,j) = m_MCMStructure->GetCompartment(indexComp)->GetFourierTransformedDiffusionProfile(m_SmallDelta, m_BigDelta,
-                                                                                                                                  m_GradientStrengths[i], m_Gradients[i]);
+            double predictedSignal = m_MCMStructure->GetCompartment(indexComp)->GetFourierTransformedDiffusionProfile(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_Gradients[i]);
+            m_PredictedSignalAttenuations(i,j) = predictedSignal;
+            m_VNLSignals[j] += predictedSignal * tmpSignal;
+            m_CholeskyMatrix(j,j) += predictedSignal * predictedSignal;
+
+            for (unsigned int k = 0;k < j;++k)
+            {
+                double tmpVal = predictedSignal * m_PredictedSignalAttenuations(i,k);
+                m_CholeskyMatrix(j,k) += tmpVal;
+                m_CholeskyMatrix(k,j) += tmpVal;
+            }
         }
     }
 
-    bool negativeWeightBounds = m_MCMStructure->GetNegativeWeightBounds();
-    if (negativeWeightBounds)
-        m_VNLSignals *= -1.0;
-
-    m_OptimalNNLSWeights = vnl_qr <double> (m_PredictedSignalAttenuations).solve(m_VNLSignals);
+    m_OptimalNNLSWeights = vnl_ldl_cholesky(m_CholeskyMatrix).solve(m_VNLSignals);
 
     bool performNNLS = false;
     for (unsigned int i = 0;i < numCompartments;++i)
@@ -197,7 +208,7 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
 
     if (performNNLS)
     {
-        m_NNLSBordersOptimizer->SetDataMatrix(m_PredictedSignalAttenuations);
+        m_NNLSBordersOptimizer->SetDataMatrix(m_CholeskyMatrix);
         m_NNLSBordersOptimizer->SetPoints(m_VNLSignals);
         m_NNLSBordersOptimizer->StartOptimization();
 

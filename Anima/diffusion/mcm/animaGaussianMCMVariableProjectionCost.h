@@ -72,7 +72,7 @@ private:
     anima::NNLSOptimizer::Pointer m_NNLSBordersOptimizer;
     
     std::vector <unsigned int> m_IndexesUsefulCompartments;
-    vnl_matrix <double> m_PredictedSignalAttenuations;
+    vnl_matrix <double> m_PredictedSignalAttenuations, m_CholeskyMatrix;
     std::vector< vnl_matrix<double> > m_SignalAttenuationsJacobian;
 };
 
