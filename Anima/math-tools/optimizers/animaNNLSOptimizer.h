@@ -9,7 +9,8 @@
 namespace anima
 {
 /** \class NNLSOptimizer
- * \brief Non negative least squares optimizer.
+ * \brief Non negative least squares optimizer. Implements Lawson et al method,
+ * of squared problem is activated, assumes we pass AtA et AtB and uses Bro and de Jong method
  *
  * \ingroup Numerics Optimizers
  */
@@ -42,8 +43,14 @@ public:
 
     double GetCurrentResidual();
 
+    itkSetMacro(SquaredProblem, bool)
+
 protected:
-    NNLSOptimizer() {}
+    NNLSOptimizer()
+    {
+        m_SquaredProblem = false;
+    }
+
     virtual ~NNLSOptimizer() ITK_OVERRIDE {}
 
 private:
@@ -56,6 +63,9 @@ private:
     ParametersType m_Points;
 
     static const double m_EpsilonValue;
+
+    //! Flag to indicate if the inputs are already AtA and AtB
+    bool m_SquaredProblem;
 
     // Working values
     std::vector <unsigned short> m_TreatedIndexes;
