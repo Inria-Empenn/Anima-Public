@@ -147,7 +147,7 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
 
     // Trick to keep the compartments with the lowest number of compartments by default
     // This is a trick because it assumes the first compartments (i.e. the iso ones are the ones with the lowest number of compartments)
-    for (unsigned int i = 0;i < numCompartments;++i)
+    for (int i = numCompartments - 1;i >= 0;--i)
     {
         bool duplicated = false;
         for (unsigned int j = i+1;j < numCompartments;++j)
@@ -177,6 +177,9 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
     m_CholeskyMatrix.set_size(numCompartments,numCompartments);
     m_CholeskyMatrix.fill(0.0);
 
+    // Scale factor applied to construct Cholesky matrix to avoid colinearities and wrong results
+    double scaleFactor = 1000.0;
+
     for (unsigned int i = 0;i < nbValues;++i)
     {
         for (unsigned int j = 0;j < numCompartments;++j)
@@ -184,46 +187,24 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
             unsigned int indexComp = m_IndexesUsefulCompartments[j];
             double predictedSignal = m_MCMStructure->GetCompartment(indexComp)->GetFourierTransformedDiffusionProfile(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_Gradients[i]);
             m_PredictedSignalAttenuations(i,j) = predictedSignal;
-            m_VNLSignals[j] += predictedSignal * m_ObservedSignals[i];
-            m_CholeskyMatrix(j,j) += predictedSignal * predictedSignal;
+            m_VNLSignals[j] += scaleFactor * predictedSignal * m_ObservedSignals[i];
+            m_CholeskyMatrix(j,j) += scaleFactor * predictedSignal * predictedSignal;
 
             for (unsigned int k = 0;k < j;++k)
             {
-                double tmpVal = predictedSignal * m_PredictedSignalAttenuations(i,k);
+                double tmpVal = scaleFactor * predictedSignal * m_PredictedSignalAttenuations(i,k);
                 m_CholeskyMatrix(j,k) += tmpVal;
                 m_CholeskyMatrix(k,j) += tmpVal;
             }
         }
     }
 
-    typedef itk::SymmetricEigenAnalysis < vnl_matrix <double>, vnl_diag_matrix <double>, vnl_matrix<double> > EigenAnalysisType;
-    EigenAnalysisType eigen(numCompartments);
-
-    vnl_diag_matrix<double> eigValues(numCompartments);
-    eigen.ComputeEigenValues(m_CholeskyMatrix,eigValues);
-    
-    if (eigValues[0] <= 0.0)
-    {
-        std::cout << eigValues[0] << std::endl;
-        std::cout << m_CholeskyMatrix << std::endl;
-        std::cout << "Pred signals " << m_PredictedSignalAttenuations << std::endl;
-
-        std::cout << "Tested params ";
-        for (unsigned int i = 0;i < m_TestedParameters.size();++i)
-            std::cout << m_TestedParameters[i] << " ";
-        std::cout << std::endl;
-        std::cout << "Useful compartments ";
-        for (unsigned int i = 0;i < numCompartments;++i)
-            std::cout << m_IndexesUsefulCompartments[i] << " ";
-        std::cout << std::endl;
-
-        exit(-1);
-    }
     bool negativeWeightBounds = m_MCMStructure->GetNegativeWeightBounds();
     if (negativeWeightBounds)
         m_VNLSignals *= -1.0;
 
-    m_OptimalNNLSWeights = vnl_ldl_cholesky(m_CholeskyMatrix).solve(m_VNLSignals);
+    vnl_ldl_cholesky solver(m_CholeskyMatrix);
+    m_OptimalNNLSWeights = solver.solve(m_VNLSignals);
 
     bool performNNLS = false;
     for (unsigned int i = 0;i < numCompartments;++i)
@@ -239,6 +220,7 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
     {
         m_NNLSBordersOptimizer->SetDataMatrix(m_CholeskyMatrix);
         m_NNLSBordersOptimizer->SetPoints(m_VNLSignals);
+        m_NNLSBordersOptimizer->SetSquaredProblem(true);
         m_NNLSBordersOptimizer->StartOptimization();
 
         m_OptimalNNLSWeights = m_NNLSBordersOptimizer->GetCurrentPosition();
