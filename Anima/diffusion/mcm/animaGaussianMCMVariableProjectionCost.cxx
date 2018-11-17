@@ -2,12 +2,10 @@
 #include <cmath>
 
 #include <animaBaseTensorTools.h>
-#include <vnl_ldl_cholesky.h>
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 
-#include <itkSymmetricEigenAnalysis.h>
-#include <vnl_diag_matrix.h>
+#include <animaMatrixDecompositions.h>
 
 namespace anima
 {
@@ -174,6 +172,7 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
 
     m_VNLSignals.set_size(numCompartments);
     m_VNLSignals.fill(0.0);
+
     m_CholeskyMatrix.set_size(numCompartments,numCompartments);
     m_CholeskyMatrix.fill(0.0);
 
@@ -198,13 +197,44 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
             }
         }
     }
+    
+    CholeskyDecomposition solver(m_CholeskyMatrix);
+    solver.PerformDecomposition();
+
+    //---------- Version par update -----------//
+
+    // m_CholeskyMatrix.set_size(numCompartments,numCompartments);
+    // m_CholeskyMatrix.set_identity();
+
+    // // Initialize Cholesky decomposition
+    // CholeskyDecomposition solver(m_CholeskyMatrix);
+    // solver.PerformDecomposition();
+    // vnl_vector<double> tmpVector(numCompartments);
+
+    // // Scale factor applied to construct Cholesky matrix to avoid colinearities and wrong results
+    // double scaleFactor = 1000.0;
+
+    // for (unsigned int i = 0;i < nbValues;++i)
+    // {
+    //     for (unsigned int j = 0;j < numCompartments;++j)
+    //     {
+    //         unsigned int indexComp = m_IndexesUsefulCompartments[j];
+    //         double predictedSignal = m_MCMStructure->GetCompartment(indexComp)->GetFourierTransformedDiffusionProfile(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_Gradients[i]);
+    //         m_PredictedSignalAttenuations(i,j) = predictedSignal;
+    //         m_VNLSignals[j] += scaleFactor * predictedSignal * m_ObservedSignals[i];
+    //         tmpVector[j] = std::sqrt(scaleFactor) * predictedSignal;
+    //     }
+
+    //     solver.Update(tmpVector);
+    // }
+
+    //---------- END Version par update -----------//
 
     bool negativeWeightBounds = m_MCMStructure->GetNegativeWeightBounds();
     if (negativeWeightBounds)
         m_VNLSignals *= -1.0;
 
-    vnl_ldl_cholesky solver(m_CholeskyMatrix);
-    m_OptimalNNLSWeights = solver.solve(m_VNLSignals);
+    m_OptimalNNLSWeights = solver.SolveLinearSystem(m_VNLSignals);
 
     bool performNNLS = false;
     for (unsigned int i = 0;i < numCompartments;++i)
