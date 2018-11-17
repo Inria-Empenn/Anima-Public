@@ -28,6 +28,7 @@ public:
     void PerformDecomposition();
     VectorType SolveLinearSystem(const VectorType &b);
     void Update(const VectorType &x);
+    MatrixType Recompose();
 
 private:
     MatrixType m_InputMatrix, m_LMatrix;

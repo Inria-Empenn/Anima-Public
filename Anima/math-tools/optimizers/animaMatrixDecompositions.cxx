@@ -10,7 +10,7 @@ void CholeskyDecomposition::PerformDecomposition()
         m_DMatrix[j] = m_InputMatrix(j,j);
 
         if (j > 0)
-            for (unsigned int k = 0;k <= j - 1;++k)
+            for (unsigned int k = 0;k < j;++k)
                 m_DMatrix[j] -= m_LMatrix(j,k) * m_LMatrix(j,k) * m_DMatrix[k];
 
         for (unsigned int i = j + 1;i < m_MatrixSize;++i)
@@ -18,7 +18,7 @@ void CholeskyDecomposition::PerformDecomposition()
             double tmpVal = m_InputMatrix(i,j);
 
             if (j > 0)
-                for (unsigned int k = 0;k <= j - 1;++k)
+                for (unsigned int k = 0;k < j;++k)
                     tmpVal -= m_LMatrix(i,k) * m_LMatrix(j,k) * m_DMatrix[k];
 
             m_LMatrix(i,j) = tmpVal / m_DMatrix[j];
@@ -35,7 +35,7 @@ CholeskyDecomposition::VectorType CholeskyDecomposition::SolveLinearSystem(const
         double intermediateValue = b[i];
 
         if (i > 0)
-            for (unsigned int j = 0;j <= i - 1;++j)
+            for (unsigned int j = 0;j < i;++j)
                 intermediateValue -= m_LMatrix(i,j) * resVal[j];
 
         resVal[i] = intermediateValue;
@@ -63,17 +63,33 @@ void CholeskyDecomposition::Update(const VectorType &x)
     for (unsigned int i = 0;i < m_MatrixSize;++i)
     {
         double p = w[i];
-        double d0 = m_DMatrix[i];
+        double oldDValue = m_DMatrix[i];
         m_DMatrix[i] += a * p * p;
         double b = p * a / m_DMatrix[i];
-        a *= d0 / m_DMatrix[i];
+        a *= oldDValue / m_DMatrix[i];
 
-        for (unsigned int j = i + 1;j < m_MatrixSize;++j)
+        if (i < m_MatrixSize - 1)
         {
-            w[j] -= p * m_LMatrix(j,i);
-            m_LMatrix(j,i) += b * w[j];
+            for (unsigned int j = i + 1;j < m_MatrixSize;++j)
+            {
+                w[j] -= p * m_LMatrix(j,i);
+                m_LMatrix(j,i) += b * w[j];
+            }
         }
     }
+}
+
+CholeskyDecomposition::MatrixType CholeskyDecomposition::Recompose()
+{
+    MatrixType resVal(m_MatrixSize,m_MatrixSize);
+    resVal.fill(0.0);
+
+    for (unsigned int i = 0;i < m_MatrixSize;++i)
+        for (unsigned int j = 0;j < m_MatrixSize;++j)
+            for (unsigned int k = 0;k <= std::min(i,j);++k)
+                resVal(i,j) += m_LMatrix(i,k) * m_DMatrix[k] * m_LMatrix(j,k);
+
+    return resVal;
 }
 
 }
