@@ -10,7 +10,7 @@ namespace anima
 {
 
 /**
- * @brief Cholesky decomposition: decomposes a square matrix in the form L D L^T,
+ * @brief Cholesky decomposition: decomposes a symmetric matrix A in the form L D L^T,
  * where L is lower triangular and D diagonal. May be used to solve efficiently any linear system
  * using the solve methods. Refer to Gill, Golub et al. Methods for modifying matrix factorizations. 1974
  */
