@@ -7,7 +7,7 @@
 #include <animaNNLSOptimizer.h>
 #include <AnimaMCMExport.h>
 
-#include <animaMatrixDecompositions.h>
+#include <animaCholeskyDecomposition.h>
 
 namespace anima
 {    

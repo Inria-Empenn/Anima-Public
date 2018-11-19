@@ -4,6 +4,8 @@
 #include <vector>
 
 #include <itkOptimizer.h>
+
+#include <animaCholeskyDecomposition.h>
 #include "AnimaOptimizersExport.h"
 
 namespace anima
@@ -73,7 +75,8 @@ private:
     std::vector <double> m_WVector;
     VectorType m_SPVector;
     MatrixType m_DataMatrixP;
-    VectorType m_DataPointsP;
+
+    anima::CholeskyDecomposition m_CholeskySolver;
 };
 
 } // end of namespace anima

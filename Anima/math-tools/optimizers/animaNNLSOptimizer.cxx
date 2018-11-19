@@ -1,5 +1,4 @@
 #include <animaNNLSOptimizer.h>
-#include <animaMatrixDecompositions.h>
 
 namespace anima
 {
@@ -232,9 +231,9 @@ void NNLSOptimizer::ComputeSPVector()
         }
     }
 
-    CholeskyDecomposition solver(m_DataMatrixP);
-    solver.PerformDecomposition();
-    solver.SolveLinearSystem(m_SPVector);
+    m_CholeskySolver.SetInputMatrix(m_DataMatrixP);
+    m_CholeskySolver.PerformDecomposition();
+    m_CholeskySolver.SolveLinearSystemInPlace(m_SPVector);
 }
 
 double NNLSOptimizer::GetCurrentResidual()
