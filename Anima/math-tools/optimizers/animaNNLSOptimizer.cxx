@@ -192,9 +192,9 @@ void NNLSOptimizer::ComputeSPVector()
     unsigned int numProcessedIndexes = m_ProcessedIndexes.size();
 
     m_DataMatrixP.set_size(numProcessedIndexes,numProcessedIndexes);
-    m_DataPointsP.set_size(numProcessedIndexes);
+    m_SPVector.set_size(numProcessedIndexes);
     m_DataMatrixP.fill(0.0);
-    m_DataPointsP.fill(0.0);
+    m_SPVector.fill(0.0);
 
     if (!m_SquaredProblem)
     {
@@ -203,7 +203,7 @@ void NNLSOptimizer::ComputeSPVector()
             for (unsigned int j = 0;j < numProcessedIndexes;++j)
             {
                 double jthEntry = m_DataMatrix(i,m_ProcessedIndexes[j]);
-                m_DataPointsP[j] += jthEntry * m_Points[i];
+                m_SPVector[j] += jthEntry * m_Points[i];
                 m_DataMatrixP(j,j) += jthEntry * jthEntry;
 
                 for (unsigned int k = 0;k < j;++k)
@@ -220,7 +220,7 @@ void NNLSOptimizer::ComputeSPVector()
         for (unsigned int i = 0;i < numProcessedIndexes;++i)
         {
             unsigned int iIndex = m_ProcessedIndexes[i];
-            m_DataPointsP[i] = m_Points[iIndex];
+            m_SPVector[i] = m_Points[iIndex];
             for (unsigned int j = i;j < numProcessedIndexes;++j)
             {
                 unsigned int jIndex = m_ProcessedIndexes[j];
@@ -234,7 +234,7 @@ void NNLSOptimizer::ComputeSPVector()
 
     CholeskyDecomposition solver(m_DataMatrixP);
     solver.PerformDecomposition();
-    m_SPVector = solver.SolveLinearSystem(m_DataPointsP);
+    solver.SolveLinearSystem(m_SPVector);
 }
 
 double NNLSOptimizer::GetCurrentResidual()

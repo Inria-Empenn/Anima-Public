@@ -5,8 +5,6 @@
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 
-#include <animaMatrixDecompositions.h>
-
 namespace anima
 {
 
@@ -170,71 +168,70 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
     // Compute predicted signals and jacobian
     m_PredictedSignalAttenuations.set_size(nbValues,numCompartments);
 
-    m_VNLSignals.set_size(numCompartments);
-    m_VNLSignals.fill(0.0);
+    m_OptimalNNLSWeights.set_size(numCompartments);
+    m_OptimalNNLSWeights.fill(0.0);
 
-    m_CholeskyMatrix.set_size(numCompartments,numCompartments);
-    m_CholeskyMatrix.fill(0.0);
+    bool directMethod = false;
 
-    // Scale factor applied to construct Cholesky matrix to avoid colinearities and wrong results
-    double scaleFactor = 1000.0;
-
-    for (unsigned int i = 0;i < nbValues;++i)
+    if (directMethod)
     {
-        for (unsigned int j = 0;j < numCompartments;++j)
-        {
-            unsigned int indexComp = m_IndexesUsefulCompartments[j];
-            double predictedSignal = m_MCMStructure->GetCompartment(indexComp)->GetFourierTransformedDiffusionProfile(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_Gradients[i]);
-            m_PredictedSignalAttenuations(i,j) = predictedSignal;
-            m_VNLSignals[j] += scaleFactor * predictedSignal * m_ObservedSignals[i];
-            m_CholeskyMatrix(j,j) += scaleFactor * predictedSignal * predictedSignal;
+        m_CholeskyMatrix.set_size(numCompartments,numCompartments);
+        m_CholeskyMatrix.fill(0.0);
 
-            for (unsigned int k = 0;k < j;++k)
+        // Scale factor applied to construct Cholesky matrix to avoid colinearities and wrong results
+        double scaleFactor = 1000.0;
+
+        for (unsigned int i = 0;i < nbValues;++i)
+        {
+            for (unsigned int j = 0;j < numCompartments;++j)
             {
-                double tmpVal = scaleFactor * predictedSignal * m_PredictedSignalAttenuations(i,k);
-                m_CholeskyMatrix(j,k) += tmpVal;
-                m_CholeskyMatrix(k,j) += tmpVal;
+                unsigned int indexComp = m_IndexesUsefulCompartments[j];
+                double predictedSignal = m_MCMStructure->GetCompartment(indexComp)->GetFourierTransformedDiffusionProfile(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_Gradients[i]);
+                m_PredictedSignalAttenuations(i,j) = predictedSignal;
+                m_OptimalNNLSWeights[j] += scaleFactor * predictedSignal * m_ObservedSignals[i];
+                m_CholeskyMatrix(j,j) += scaleFactor * predictedSignal * predictedSignal;
+
+                for (unsigned int k = 0;k < j;++k)
+                {
+                    double tmpVal = scaleFactor * predictedSignal * m_PredictedSignalAttenuations(i,k);
+                    m_CholeskyMatrix(j,k) += tmpVal;
+                    m_CholeskyMatrix(k,j) += tmpVal;
+                }
             }
         }
+        
+        m_CholeskySolver = CholeskyDecomposition(m_CholeskyMatrix);
+        m_CholeskySolver.PerformDecomposition();
     }
-    
-    CholeskyDecomposition solver(m_CholeskyMatrix);
-    solver.PerformDecomposition();
+    else
+    {
+        m_VNLSignals.set_size(numCompartments);
+        m_CholeskySolver = CholeskyDecomposition(numCompartments, 1.0);
 
-    //---------- Version par update -----------//
+        // Scale factor applied to construct Cholesky matrix to avoid colinearities and wrong results
+        double scaleFactor = 1000.0;
 
-    // m_CholeskyMatrix.set_size(numCompartments,numCompartments);
-    // m_CholeskyMatrix.set_identity();
+        for (unsigned int i = 0;i < nbValues;++i)
+        {
+            for (unsigned int j = 0;j < numCompartments;++j)
+            {
+                unsigned int indexComp = m_IndexesUsefulCompartments[j];
+                double predictedSignal = m_MCMStructure->GetCompartment(indexComp)->GetFourierTransformedDiffusionProfile(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_Gradients[i]);
+                m_PredictedSignalAttenuations(i,j) = predictedSignal;
+                m_OptimalNNLSWeights[j] += scaleFactor * predictedSignal * m_ObservedSignals[i];
+                m_VNLSignals[j] = std::sqrt(scaleFactor) * predictedSignal;
+            }
 
-    // // Initialize Cholesky decomposition
-    // CholeskyDecomposition solver(m_CholeskyMatrix);
-    // solver.PerformDecomposition();
-    // vnl_vector<double> tmpVector(numCompartments);
-
-    // // Scale factor applied to construct Cholesky matrix to avoid colinearities and wrong results
-    // double scaleFactor = 1000.0;
-
-    // for (unsigned int i = 0;i < nbValues;++i)
-    // {
-    //     for (unsigned int j = 0;j < numCompartments;++j)
-    //     {
-    //         unsigned int indexComp = m_IndexesUsefulCompartments[j];
-    //         double predictedSignal = m_MCMStructure->GetCompartment(indexComp)->GetFourierTransformedDiffusionProfile(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_Gradients[i]);
-    //         m_PredictedSignalAttenuations(i,j) = predictedSignal;
-    //         m_VNLSignals[j] += scaleFactor * predictedSignal * m_ObservedSignals[i];
-    //         tmpVector[j] = std::sqrt(scaleFactor) * predictedSignal;
-    //     }
-
-    //     solver.Update(tmpVector);
-    // }
-
-    //---------- END Version par update -----------//
+            m_CholeskySolver.Update(m_VNLSignals);
+        }
+    }
 
     bool negativeWeightBounds = m_MCMStructure->GetNegativeWeightBounds();
     if (negativeWeightBounds)
-        m_VNLSignals *= -1.0;
+        m_OptimalNNLSWeights *= -1.0;
 
-    m_OptimalNNLSWeights = solver.SolveLinearSystem(m_VNLSignals);
+    m_VNLSignals = m_OptimalNNLSWeights;
+    m_CholeskySolver.SolveLinearSystem(m_OptimalNNLSWeights);
 
     bool performNNLS = false;
     for (unsigned int i = 0;i < numCompartments;++i)
@@ -248,6 +245,12 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
 
     if (performNNLS)
     {
+        if (!directMethod)
+        {
+            m_CholeskySolver.Recompose();
+            m_CholeskyMatrix = m_CholeskySolver.GetInputMatrix();
+        }
+
         m_NNLSBordersOptimizer->SetDataMatrix(m_CholeskyMatrix);
         m_NNLSBordersOptimizer->SetPoints(m_VNLSignals);
         m_NNLSBordersOptimizer->SetSquaredProblem(true);

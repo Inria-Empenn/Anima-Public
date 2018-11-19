@@ -7,6 +7,8 @@
 #include <animaNNLSOptimizer.h>
 #include <AnimaMCMExport.h>
 
+#include <animaMatrixDecompositions.h>
+
 namespace anima
 {    
 
@@ -74,6 +76,8 @@ private:
     std::vector <unsigned int> m_IndexesUsefulCompartments;
     vnl_matrix <double> m_PredictedSignalAttenuations, m_CholeskyMatrix;
     std::vector< vnl_matrix<double> > m_SignalAttenuationsJacobian;
+
+    CholeskyDecomposition m_CholeskySolver;
 };
 
 } // end namespace anima
