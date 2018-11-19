@@ -35,29 +35,13 @@ void CholeskyDecomposition::PerformDecomposition()
 
 CholeskyDecomposition::VectorType &CholeskyDecomposition::SolveLinearSystem(const VectorType &b)
 {
-    m_ProblemSolution.set_size(m_MatrixSize);
-    for (unsigned int i = 0;i < m_MatrixSize;++i)
-    {
-        m_ProblemSolution[i] = b[i];
-
-        for (unsigned int j = 0;j < i;++j)
-            m_ProblemSolution[i] -= m_LMatrix(i,j) * m_ProblemSolution[j];
-    }
-
-    for (int i = m_MatrixSize - 1;i >= 0;--i)
-    {
-        m_ProblemSolution[i] /= m_DMatrix[i];
-
-        for (unsigned int j = i + 1;j < m_MatrixSize;++j)
-            m_ProblemSolution[i] -= m_LMatrix(j,i) * m_ProblemSolution[j];
-    }
-
+    m_ProblemSolution = b;
+    SolveLinearSystemInPlace(m_ProblemSolution);
     return m_ProblemSolution;
 }
 
 void CholeskyDecomposition::SolveLinearSystemInPlace(VectorType &b)
 {
-    b.set_size(m_MatrixSize);
     for (unsigned int i = 1;i < m_MatrixSize;++i)
     {
         for (unsigned int j = 0;j < i;++j)

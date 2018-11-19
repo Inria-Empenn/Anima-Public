@@ -178,9 +178,6 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
     for (unsigned int i = 0;i < numCompartments;++i)
         m_CholeskyMatrix(i,i) = 1.0e-6;
 
-    // Scale factor applied to construct Cholesky matrix to avoid colinearities and wrong results
-    double scaleFactor = 1000.0;
-
     for (unsigned int i = 0;i < nbValues;++i)
     {
         for (unsigned int j = 0;j < numCompartments;++j)
@@ -188,12 +185,12 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
             unsigned int indexComp = m_IndexesUsefulCompartments[j];
             double predictedSignal = m_MCMStructure->GetCompartment(indexComp)->GetFourierTransformedDiffusionProfile(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_Gradients[i]);
             m_PredictedSignalAttenuations(i,j) = predictedSignal;
-            m_VNLSignals[j] += scaleFactor * predictedSignal * m_ObservedSignals[i];
-            m_CholeskyMatrix(j,j) += scaleFactor * predictedSignal * predictedSignal;
+            m_VNLSignals[j] += predictedSignal * m_ObservedSignals[i];
+            m_CholeskyMatrix(j,j) += predictedSignal * predictedSignal;
 
             for (unsigned int k = 0;k < j;++k)
             {
-                double tmpVal = scaleFactor * predictedSignal * m_PredictedSignalAttenuations(i,k);
+                double tmpVal = predictedSignal * m_PredictedSignalAttenuations(i,k);
                 m_CholeskyMatrix(j,k) += tmpVal;
                 m_CholeskyMatrix(k,j) += tmpVal;
             }
@@ -205,7 +202,7 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
 
     bool negativeWeightBounds = m_MCMStructure->GetNegativeWeightBounds();
     if (negativeWeightBounds)
-        m_OptimalNNLSWeights *= -1.0;
+        m_VNLSignals *= -1.0;
 
     m_OptimalNNLSWeights = m_CholeskySolver.SolveLinearSystem(m_VNLSignals);
 
