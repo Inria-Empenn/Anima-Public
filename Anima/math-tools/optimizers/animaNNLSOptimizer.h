@@ -4,12 +4,15 @@
 #include <vector>
 
 #include <itkOptimizer.h>
+
+#include <animaCholeskyDecomposition.h>
 #include "AnimaOptimizersExport.h"
 
 namespace anima
 {
 /** \class NNLSOptimizer
- * \brief Non negative least squares optimizer.
+ * \brief Non negative least squares optimizer. Implements Lawson et al method,
+ * of squared problem is activated, assumes we pass AtA et AtB and uses Bro and de Jong method
  *
  * \ingroup Numerics Optimizers
  */
@@ -42,8 +45,14 @@ public:
 
     double GetCurrentResidual();
 
+    itkSetMacro(SquaredProblem, bool)
+
 protected:
-    NNLSOptimizer() {}
+    NNLSOptimizer()
+    {
+        m_SquaredProblem = false;
+    }
+
     virtual ~NNLSOptimizer() ITK_OVERRIDE {}
 
 private:
@@ -57,13 +66,17 @@ private:
 
     static const double m_EpsilonValue;
 
+    //! Flag to indicate if the inputs are already AtA and AtB
+    bool m_SquaredProblem;
+
     // Working values
     std::vector <unsigned short> m_TreatedIndexes;
     std::vector <unsigned int> m_ProcessedIndexes;
     std::vector <double> m_WVector;
     VectorType m_SPVector;
     MatrixType m_DataMatrixP;
-    VectorType m_DataPointsP;
+
+    anima::CholeskyDecomposition m_CholeskySolver;
 };
 
 } // end of namespace anima

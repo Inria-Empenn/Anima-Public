@@ -13,7 +13,7 @@ double BaseCompartment::GetPredictedSignal(double smallDelta, double bigDelta, d
     return std::abs(ftDiffusionProfile);
 }
 
-bool BaseCompartment::IsEqual(Self *rhs, double tolerance)
+bool BaseCompartment::IsEqual(Self *rhs, double tolerance, double absoluteTolerance)
 {
     if (this->GetTensorCompatible() && rhs->GetTensorCompatible())
     {
@@ -22,17 +22,24 @@ bool BaseCompartment::IsEqual(Self *rhs, double tolerance)
         Matrix3DType rhsTensor = rhs->GetDiffusionTensor();
 
         for (unsigned int i = 0;i < Matrix3DType::RowDimensions;++i)
+        {
             for (unsigned int j = i;j < Matrix3DType::ColumnDimensions;++j)
             {
-                if (std::abs(lhsTensor(i,j) - rhsTensor(i,j)) > tolerance)
+                double diffValue = std::abs(lhsTensor(i,j) - rhsTensor(i,j));
+                double denom = std::max(std::abs(lhsTensor(i,j)),std::abs(rhsTensor(i,j)));
+                if (denom == 0)
+                    continue;
+                if ((diffValue / denom > tolerance) && (diffValue > absoluteTolerance))
                     return false;
             }
+        }
 
         return true;
     }
 
     double denomValue = std::max(this->GetAxialDiffusivity(),rhs->GetAxialDiffusivity());
-    if (std::abs(this->GetAxialDiffusivity() - rhs->GetAxialDiffusivity()) / denomValue > tolerance)
+    double diffValue = std::abs(this->GetAxialDiffusivity() - rhs->GetAxialDiffusivity());
+    if ((diffValue / denomValue > tolerance) && (diffValue > absoluteTolerance))
         return false;
 
     Vector3DType orientationLHS(0.0);
@@ -44,27 +51,33 @@ bool BaseCompartment::IsEqual(Self *rhs, double tolerance)
         return false;
 
     denomValue = std::max(this->GetPerpendicularAngle(),rhs->GetPerpendicularAngle());
-    if (std::abs(this->GetPerpendicularAngle() - rhs->GetPerpendicularAngle()) / denomValue > tolerance)
+    diffValue = std::abs(this->GetPerpendicularAngle() - rhs->GetPerpendicularAngle());
+    if ((diffValue / denomValue > tolerance) && (diffValue > absoluteTolerance))
         return false;
 
     denomValue = std::max(this->GetRadialDiffusivity1(),rhs->GetRadialDiffusivity1());
-    if (std::abs(this->GetRadialDiffusivity1() - rhs->GetRadialDiffusivity1()) > tolerance)
+    diffValue = std::abs(this->GetRadialDiffusivity1() - rhs->GetRadialDiffusivity1());
+    if ((diffValue / denomValue > tolerance) && (diffValue > absoluteTolerance))
         return false;
 
     denomValue = std::max(this->GetRadialDiffusivity2(),rhs->GetRadialDiffusivity2());
-    if (std::abs(this->GetRadialDiffusivity2() - rhs->GetRadialDiffusivity2()) > tolerance)
+    diffValue = std::abs(this->GetRadialDiffusivity2() - rhs->GetRadialDiffusivity2());
+    if ((diffValue / denomValue > tolerance) && (diffValue > absoluteTolerance))
         return false;
 
     denomValue = std::max(this->GetOrientationConcentration(),rhs->GetOrientationConcentration());
-    if (std::abs(this->GetOrientationConcentration() - rhs->GetOrientationConcentration()) > tolerance)
+    diffValue = std::abs(this->GetOrientationConcentration() - rhs->GetOrientationConcentration());
+    if ((diffValue / denomValue > tolerance) && (diffValue > absoluteTolerance))
         return false;
 
     denomValue = std::max(this->GetExtraAxonalFraction(),rhs->GetExtraAxonalFraction());
-    if (std::abs(this->GetExtraAxonalFraction() - rhs->GetExtraAxonalFraction()) > tolerance)
+    diffValue = std::abs(this->GetExtraAxonalFraction() - rhs->GetExtraAxonalFraction());
+    if ((diffValue / denomValue > tolerance) && (diffValue > absoluteTolerance))
         return false;
 
     denomValue = std::max(this->GetTissueRadius(),rhs->GetTissueRadius());
-    if (std::abs(this->GetTissueRadius() - rhs->GetTissueRadius()) > tolerance)
+    diffValue = std::abs(this->GetTissueRadius() - rhs->GetTissueRadius());
+    if ((diffValue / denomValue > tolerance) && (diffValue > absoluteTolerance))
         return false;
 
     return true;

@@ -1,5 +1,4 @@
 #include <animaNNLSOptimizer.h>
-#include <vnl/algo/vnl_ldl_cholesky.h>
 
 namespace anima
 {
@@ -26,8 +25,15 @@ void NNLSOptimizer::StartOptimization()
         m_TreatedIndexes[i] = 0;
         m_CurrentPosition[i] = 0.0;
         m_WVector[i] = 0;
-        for (unsigned int j = 0;j < numEquations;++j)
-            m_WVector[i] += m_DataMatrix(j,i) * m_Points[j];
+        if (!m_SquaredProblem)
+        {
+            for (unsigned int j = 0;j < numEquations;++j)
+                m_WVector[i] += m_DataMatrix(j,i) * m_Points[j];
+        }
+        else
+        {
+            m_WVector[i] = m_Points[i];
+        }
     }
 
     bool continueMainLoop = true;
@@ -133,14 +139,26 @@ void NNLSOptimizer::StartOptimization()
         }
 
         std::fill(m_WVector.begin(),m_WVector.end(),0.0);
-        for (unsigned int i = 0;i < numEquations;++i)
+        if (!m_SquaredProblem)
         {
-            double tmpValue = m_Points[i];
-            for (unsigned int j = 0;j < parametersSize;++j)
-                tmpValue -= m_DataMatrix(i,j) * m_CurrentPosition[j];
+            for (unsigned int i = 0;i < numEquations;++i)
+            {
+                double tmpValue = m_Points[i];
+                for (unsigned int j = 0;j < parametersSize;++j)
+                    tmpValue -= m_DataMatrix(i,j) * m_CurrentPosition[j];
 
-            for (unsigned int j = 0;j < parametersSize;++j)
-                m_WVector[j] += m_DataMatrix(i,j) * tmpValue;
+                for (unsigned int j = 0;j < parametersSize;++j)
+                    m_WVector[j] += m_DataMatrix(i,j) * tmpValue;
+            }
+        }
+        else
+        {
+            for (unsigned int i = 0;i < numEquations;++i)
+            {
+                m_WVector[i] = m_Points[i];
+                for (unsigned int j = 0;j < parametersSize;++j)
+                    m_WVector[i] -= m_DataMatrix(i,j) * m_CurrentPosition[j];
+            }
         }
     }
 }
@@ -173,29 +191,49 @@ void NNLSOptimizer::ComputeSPVector()
     unsigned int numProcessedIndexes = m_ProcessedIndexes.size();
 
     m_DataMatrixP.set_size(numProcessedIndexes,numProcessedIndexes);
-    m_DataPointsP.set_size(numProcessedIndexes);
+    m_SPVector.set_size(numProcessedIndexes);
     m_DataMatrixP.fill(0.0);
-    m_DataPointsP.fill(0.0);
+    m_SPVector.fill(0.0);
 
-
-    for (unsigned int i = 0;i < numEquations;++i)
+    if (!m_SquaredProblem)
     {
-        for (unsigned int j = 0;j < numProcessedIndexes;++j)
+        for (unsigned int i = 0;i < numEquations;++i)
         {
-            m_DataPointsP[j] += m_DataMatrix(i,m_ProcessedIndexes[j]) * m_Points[i];
-
-            for (unsigned int k = j;k < numProcessedIndexes;++k)
+            for (unsigned int j = 0;j < numProcessedIndexes;++j)
             {
-                double tmpVal = m_DataMatrix(i,m_ProcessedIndexes[j]) * m_DataMatrix(i,m_ProcessedIndexes[k]);
-                m_DataMatrixP(j,k) += tmpVal;
+                double jthEntry = m_DataMatrix(i,m_ProcessedIndexes[j]);
+                m_SPVector[j] += jthEntry * m_Points[i];
+                m_DataMatrixP(j,j) += jthEntry * jthEntry;
 
-                if (j != k)
-                    m_DataMatrixP(k,j) += tmpVal;
+                for (unsigned int k = 0;k < j;++k)
+                {
+                    double entryProduct = jthEntry * m_DataMatrix(i,m_ProcessedIndexes[k]);
+                    m_DataMatrixP(j,k) += entryProduct;
+                    m_DataMatrixP(k,j) += entryProduct;
+                }
+            }
+        }
+    }
+    else
+    {
+        for (unsigned int i = 0;i < numProcessedIndexes;++i)
+        {
+            unsigned int iIndex = m_ProcessedIndexes[i];
+            m_SPVector[i] = m_Points[iIndex];
+            for (unsigned int j = i;j < numProcessedIndexes;++j)
+            {
+                unsigned int jIndex = m_ProcessedIndexes[j];
+                m_DataMatrixP(i,j) = m_DataMatrix(iIndex,jIndex);
+
+                if (i != j)
+                    m_DataMatrixP(j,i) = m_DataMatrixP(i,j);
             }
         }
     }
 
-    m_SPVector = vnl_ldl_cholesky(m_DataMatrixP).solve(m_DataPointsP);
+    m_CholeskySolver.SetInputMatrix(m_DataMatrixP);
+    m_CholeskySolver.PerformDecomposition();
+    m_CholeskySolver.SolveLinearSystemInPlace(m_SPVector);
 }
 
 double NNLSOptimizer::GetCurrentResidual()
