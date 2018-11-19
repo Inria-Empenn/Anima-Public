@@ -170,9 +170,6 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
     m_VNLSignals.SetSize(numCompartments);
     m_VNLSignals.Fill(0.0);
 
-    m_OptimalNNLSWeights.set_size(numCompartments);
-    m_OptimalNNLSWeights.fill(0.0);
-
     m_CholeskyMatrix.set_size(numCompartments,numCompartments);
     m_CholeskyMatrix.fill(0.0);
     for (unsigned int i = 0;i < numCompartments;++i)
