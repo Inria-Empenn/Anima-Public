@@ -455,6 +455,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     {
         resVec.Fill(0.0);
 
+        //if ((maskItr.Get() == 0)||(maskItr.GetIndex()[0] != 61)||(maskItr.GetIndex()[1] != 102)||(maskItr.GetIndex()[2] != 53))
         if (maskItr.Get() == 0)
         {
             outIterator.Set(resVec);
@@ -1326,22 +1327,21 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     anima::NNLSOptimizer::Pointer sparseOptimizer = anima::NNLSOptimizer::New();
     sparseOptimizer->SetDataMatrix(m_SparseSticksDictionary);
 
-    ParametersType rightHandValues(observedSignals.size());
-    for (unsigned int i = 0;i < observedSignals.size();++i)
-    {
-        if (!authorizeNegativeB0Value)
-            rightHandValues[i] = observedSignals[i];
-        else
-            rightHandValues[i] = - observedSignals[i];
-    }
+    unsigned int dictionarySize = m_SparseSticksDictionary.cols();
+    unsigned int numSignals = observedSignals.size();
+    ParametersType rightHandValues(numSignals);
+    for (unsigned int i = 0;i < numSignals;++i)
+        rightHandValues[i] = observedSignals[i];
+
+    if (authorizeNegativeB0Value)
+        rightHandValues *= -1;
 
     sparseOptimizer->SetPoints(rightHandValues);
+    sparseOptimizer->SetSquaredProblem(false);
     sparseOptimizer->StartOptimization();
 
     // Get atom weights and determine the number of non null weighted components, first quartile of their weights
     ParametersType dictionaryWeights = sparseOptimizer->GetCurrentPosition();
-    unsigned int dictionarySize = dictionaryWeights.size();
-
     std::vector <unsigned int> nonNullAtomIndexes;
 
     double totalWeightsSum = 0.0;

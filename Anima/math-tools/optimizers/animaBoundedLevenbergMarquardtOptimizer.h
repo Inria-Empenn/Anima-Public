@@ -1,6 +1,8 @@
 #pragma once
 
 #include <itkMultipleValuedNonLinearOptimizer.h>
+
+#include <animaCholeskyDecomposition.h>
 #include "AnimaOptimizersExport.h"
 
 namespace anima
@@ -80,8 +82,10 @@ private:
     double m_LambdaParameter;
     double m_CurrentValue;
 
-    ParametersType m_LowerBounds;
-    ParametersType m_UpperBounds;
+    anima::CholeskyDecomposition m_CholeskySolver;
+    ParametersType m_LowerBounds, m_WorkLowerBounds;
+    ParametersType m_UpperBounds, m_WorkUpperBounds;
+    MeasureType m_ResidualValues;
 };
 
 } // end namespace anima

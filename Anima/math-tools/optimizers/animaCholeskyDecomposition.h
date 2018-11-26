@@ -58,6 +58,9 @@ public:
     //! Set input matrix to decompose
     void SetInputMatrix(const MatrixType &matrix);
 
+    //! Get condition number from decomposition
+    double GetConditionNumber();
+
     //! Get input matrix, useful if decomposition updated through rank one method
     MatrixType &GetInputMatrix() {return m_InputMatrix;}
 

@@ -1,9 +1,10 @@
 #include <animaNNLSOptimizer.h>
+#include <vnl_qr.h>
 
 namespace anima
 {
 
-const double NNLSOptimizer::m_EpsilonValue = 1.0e-8;
+const double NNLSOptimizer::m_EpsilonValue = 1.0e-12;
 
 void NNLSOptimizer::StartOptimization()
 {
@@ -14,27 +15,15 @@ void NNLSOptimizer::StartOptimization()
         itkExceptionMacro("Wrongly sized inputs to NNLS, aborting");
 
     m_CurrentPosition.SetSize(parametersSize);
+    m_CurrentPosition.Fill(0.0);
     m_TreatedIndexes.resize(parametersSize);
+    std::fill(m_TreatedIndexes.begin(), m_TreatedIndexes.end(),0);
     m_ProcessedIndexes.clear();
     m_WVector.resize(parametersSize);
 
     unsigned int numProcessedIndexes = 0;
 
-    for (unsigned int i = 0;i < parametersSize;++i)
-    {
-        m_TreatedIndexes[i] = 0;
-        m_CurrentPosition[i] = 0.0;
-        m_WVector[i] = 0;
-        if (!m_SquaredProblem)
-        {
-            for (unsigned int j = 0;j < numEquations;++j)
-                m_WVector[i] += m_DataMatrix(j,i) * m_Points[j];
-        }
-        else
-        {
-            m_WVector[i] = m_Points[i];
-        }
-    }
+    this->ComputeWVector();
 
     bool continueMainLoop = true;
     double previousMaxW = -1;
@@ -138,27 +127,37 @@ void NNLSOptimizer::StartOptimization()
             continue;
         }
 
-        std::fill(m_WVector.begin(),m_WVector.end(),0.0);
-        if (!m_SquaredProblem)
-        {
-            for (unsigned int i = 0;i < numEquations;++i)
-            {
-                double tmpValue = m_Points[i];
-                for (unsigned int j = 0;j < parametersSize;++j)
-                    tmpValue -= m_DataMatrix(i,j) * m_CurrentPosition[j];
+        this->ComputeWVector();
+    }
+}
 
-                for (unsigned int j = 0;j < parametersSize;++j)
-                    m_WVector[j] += m_DataMatrix(i,j) * tmpValue;
-            }
-        }
-        else
+void NNLSOptimizer::ComputeWVector()
+{
+    unsigned int parametersSize = m_DataMatrix.cols();
+    unsigned int numEquations = m_DataMatrix.rows();
+
+    m_WVector.resize(parametersSize);
+
+    std::fill(m_WVector.begin(),m_WVector.end(),0.0);
+    if (!m_SquaredProblem)
+    {
+        for (unsigned int i = 0;i < numEquations;++i)
         {
-            for (unsigned int i = 0;i < numEquations;++i)
-            {
-                m_WVector[i] = m_Points[i];
-                for (unsigned int j = 0;j < parametersSize;++j)
-                    m_WVector[i] -= m_DataMatrix(i,j) * m_CurrentPosition[j];
-            }
+            double tmpValue = m_Points[i];
+            for (unsigned int j = 0;j < parametersSize;++j)
+                tmpValue -= m_DataMatrix(i,j) * m_CurrentPosition[j];
+
+            for (unsigned int j = 0;j < parametersSize;++j)
+                m_WVector[j] += m_DataMatrix(i,j) * tmpValue;
+        }
+    }
+    else
+    {
+        for (unsigned int i = 0;i < numEquations;++i)
+        {
+            m_WVector[i] = m_Points[i];
+            for (unsigned int j = 0;j < parametersSize;++j)
+                m_WVector[i] -= m_DataMatrix(i,j) * m_CurrentPosition[j];
         }
     }
 }
@@ -190,32 +189,28 @@ void NNLSOptimizer::ComputeSPVector()
     unsigned int numEquations = m_DataMatrix.rows();
     unsigned int numProcessedIndexes = m_ProcessedIndexes.size();
 
-    m_DataMatrixP.set_size(numProcessedIndexes,numProcessedIndexes);
-    m_SPVector.set_size(numProcessedIndexes);
-    m_DataMatrixP.fill(0.0);
-    m_SPVector.fill(0.0);
-
     if (!m_SquaredProblem)
     {
+        m_DataMatrixP.set_size(numEquations,numProcessedIndexes);
+        m_SPVector.set_size(numProcessedIndexes);
+        m_SPVector.fill(0.0);
+
+        // We do not square on the fly since we are not allowed to, squared matrix has a chance of being too bad
         for (unsigned int i = 0;i < numEquations;++i)
         {
             for (unsigned int j = 0;j < numProcessedIndexes;++j)
-            {
-                double jthEntry = m_DataMatrix(i,m_ProcessedIndexes[j]);
-                m_SPVector[j] += jthEntry * m_Points[i];
-                m_DataMatrixP(j,j) += jthEntry * jthEntry;
-
-                for (unsigned int k = 0;k < j;++k)
-                {
-                    double entryProduct = jthEntry * m_DataMatrix(i,m_ProcessedIndexes[k]);
-                    m_DataMatrixP(j,k) += entryProduct;
-                    m_DataMatrixP(k,j) += entryProduct;
-                }
-            }
+                m_DataMatrixP(i,j) = m_DataMatrix(i,m_ProcessedIndexes[j]);
         }
+
+        m_SPVector = vnl_qr <double> (m_DataMatrixP).solve(m_Points);
     }
     else
     {
+        m_DataMatrixP.set_size(numProcessedIndexes,numProcessedIndexes);
+        m_SPVector.set_size(numProcessedIndexes);
+        m_DataMatrixP.fill(0.0);
+        m_SPVector.fill(0.0);
+
         for (unsigned int i = 0;i < numProcessedIndexes;++i)
         {
             unsigned int iIndex = m_ProcessedIndexes[i];
@@ -229,11 +224,11 @@ void NNLSOptimizer::ComputeSPVector()
                     m_DataMatrixP(j,i) = m_DataMatrixP(i,j);
             }
         }
-    }
 
-    m_CholeskySolver.SetInputMatrix(m_DataMatrixP);
-    m_CholeskySolver.PerformDecomposition();
-    m_CholeskySolver.SolveLinearSystemInPlace(m_SPVector);
+        m_CholeskySolver.SetInputMatrix(m_DataMatrixP);
+        m_CholeskySolver.PerformDecomposition();
+        m_CholeskySolver.SolveLinearSystemInPlace(m_SPVector);
+    }
 }
 
 double NNLSOptimizer::GetCurrentResidual()

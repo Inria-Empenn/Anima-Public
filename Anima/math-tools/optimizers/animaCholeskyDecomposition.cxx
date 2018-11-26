@@ -1,4 +1,5 @@
 #include <animaCholeskyDecomposition.h>
+#include <iostream>
 
 namespace anima
 {
@@ -7,30 +8,50 @@ void CholeskyDecomposition::SetInputMatrix(const MatrixType &val)
 {
     m_InputMatrix = val;
     m_MatrixSize = val.rows();
-    m_LMatrix.set_size(m_MatrixSize, m_MatrixSize);
-    m_LMatrix.set_identity();
-    m_DMatrix.set_size(m_MatrixSize);
 }
 
 void CholeskyDecomposition::PerformDecomposition()
 {
-    for (unsigned int j = 0;j < m_MatrixSize;++j)
+    m_LMatrix.set_size(m_MatrixSize, m_MatrixSize);
+    m_LMatrix.set_identity();
+    m_DMatrix.set_size(m_MatrixSize);
+\
+    for (unsigned int i = 0;i < m_MatrixSize;++i)
     {
-        m_DMatrix[j] = m_InputMatrix(j,j);
+        m_DMatrix[i] = m_InputMatrix(i,i);
+        for (unsigned int j = 0;j < i;++j)
+            m_DMatrix[i] -= m_LMatrix(i,j) * m_LMatrix(i,j) * m_DMatrix[j];
 
-        for (unsigned int k = 0;k < j;++k)
-            m_DMatrix[j] -= m_LMatrix(j,k) * m_LMatrix(j,k) * m_DMatrix[k];
-
-        for (unsigned int i = j + 1;i < m_MatrixSize;++i)
+        for (unsigned int j = i + 1;j < m_MatrixSize;++j)
         {
-            double tmpVal = m_InputMatrix(i,j);
+            double diffVal = 0;
+            for (unsigned int k = 0;k < i;++k)
+                diffVal += m_LMatrix(j,k) * m_LMatrix(i,k) * m_DMatrix[k];
 
-            for (unsigned int k = 0;k < j;++k)
-                tmpVal -= m_LMatrix(i,k) * m_LMatrix(j,k) * m_DMatrix[k];
-
-            m_LMatrix(i,j) = tmpVal / m_DMatrix[j];
+            m_LMatrix(j,i) = (m_InputMatrix(j,i) - diffVal) / m_DMatrix[i];
         }
     }
+}
+
+double CholeskyDecomposition::GetConditionNumber()
+{
+    double minVal = m_DMatrix[0];
+    double maxVal = m_DMatrix[0];
+
+    for (unsigned int i = 1;i < m_MatrixSize;++i)
+    {
+        double absVal = std::abs(m_DMatrix[i]);
+        if (minVal > absVal)
+            minVal = absVal;
+
+        if (maxVal < absVal)
+            maxVal = absVal;
+    }
+
+    if (minVal == 0.0)
+        return std::numeric_limits<double>::max();
+
+    return maxVal / minVal;
 }
 
 CholeskyDecomposition::VectorType &CholeskyDecomposition::SolveLinearSystem(const VectorType &b)
@@ -48,10 +69,11 @@ void CholeskyDecomposition::SolveLinearSystemInPlace(VectorType &b)
             b[i] -= m_LMatrix(i,j) * b[j];
     }
 
-    for (int i = m_MatrixSize - 1;i >= 0;--i)
-    {
+    for (unsigned int i = 0;i < m_MatrixSize;++i)
         b[i] /= m_DMatrix[i];
 
+    for (int i = m_MatrixSize - 2;i >= 0;--i)
+    {
         for (unsigned int j = i + 1;j < m_MatrixSize;++j)
             b[i] -= m_LMatrix(j,i) * b[j];
     }

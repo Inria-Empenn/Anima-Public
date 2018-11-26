@@ -67,13 +67,12 @@ private:
     vnl_matrix <double> m_FMatrixInverseG;
     std::vector <double> m_OptimalWeights;
     MeasureType m_Residuals;
-    std::vector <bool> m_CompartmentSwitches;
-    ListType m_FSignal;
     vnl_matrix <double> m_GramMatrix, m_InverseGramMatrix;
-    ParametersType m_VNLSignals, m_OptimalNNLSWeights;
+    ParametersType m_FSignals, m_OptimalUsefulWeights;
     anima::NNLSOptimizer::Pointer m_NNLSBordersOptimizer;
     
     std::vector <unsigned int> m_IndexesUsefulCompartments;
+    std::vector <bool> m_CompartmentSwitches;
     vnl_matrix <double> m_PredictedSignalAttenuations, m_CholeskyMatrix;
     std::vector< vnl_matrix<double> > m_SignalAttenuationsJacobian;
 

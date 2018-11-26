@@ -1,6 +1,7 @@
 #include <animaNNLSOptimizer.h>
 #include <itkTimeProbe.h>
 #include <iostream>
+#include <fstream>
 
 int main()
 {
@@ -11,24 +12,45 @@ int main()
 
     OptimizerType::Pointer optTest = OptimizerType::New();
 
-    OptimizerType::MatrixType testData (3,3);
-    testData(0,0) = 1;
-    testData(0,1) = -3;
-    testData(0,2) = 2;
-    testData(1,0) = -3;
-    testData(1,1) = 10;
-    testData(1,2) = -5;
-    testData(2,0) = 2;
-    testData(2,1) = -5;
-    testData(2,2) = 6;
+    unsigned int dimX = 72;
+    unsigned int dimY = 2;
+    OptimizerType::MatrixType testData (dimX,dimY);
+    std::ifstream dataMat("/Users/ocommowi/Documents/Tmp2/dataMatrix.txt");
 
-    OptimizerType::ParametersType testPoints(3);
-    testPoints[0] = 27;
-    testPoints[1] = -78;
-    testPoints[2] = 64;
+    for (unsigned int i = 0;i < dimX;++i)
+    {
+        for (unsigned int j = 0;j < dimY;++j)
+            dataMat >> testData(i,j);
+    }
+
+    std::cout << "Test data " << testData << std::endl;
+
+    OptimizerType::ParametersType testPoints(dimX);
+    std::ifstream bVector("/Users/ocommowi/Documents/Tmp2/bVector.txt");
+
+    for (unsigned int i = 0;i < dimX;++i)
+        bVector >> testPoints[i];
+
+    std::cout << "Test points " << testPoints << std::endl;
+
+//    OptimizerType::ParametersType lowerBounds(dim);
+//    std::ifstream lowBounds("/Users/ocommowi/Documents/Tmp2/lb.txt");
+
+//    for (unsigned int i = 0;i < dim;++i)
+//        lowBounds >> lowerBounds[i];
+
+//    OptimizerType::ParametersType upperBounds(dim);
+//    std::ifstream upBounds("/Users/ocommowi/Documents/Tmp2/ub.txt");
+
+//    for (unsigned int i = 0;i < dim;++i)
+//        upBounds >> upperBounds[i];
 
     optTest->SetDataMatrix(testData);
     optTest->SetPoints(testPoints);
+    optTest->SetSquaredProblem(false);
+
+//    optTest->SetLowerBounds(lowerBounds);
+//    optTest->SetUpperBounds(upperBounds);
 
     optTest->StartOptimization();
 
@@ -37,5 +59,5 @@ int main()
     std::cout << "Computation time: " << tmpTime.GetTotal() << std::endl;
     std::cout << optTest->GetCurrentPosition() << std::endl;
 
-    return 0;
+    return EXIT_SUCCESS;
 }

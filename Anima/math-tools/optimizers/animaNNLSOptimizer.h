@@ -60,6 +60,7 @@ private:
 
     unsigned int UpdateProcessedIndexes();
     void ComputeSPVector();
+    void ComputeWVector();
 
     MatrixType m_DataMatrix;
     ParametersType m_Points;

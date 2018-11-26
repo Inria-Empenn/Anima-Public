@@ -1,7 +1,7 @@
 #include <animaBoundedLevenbergMarquardtOptimizer.h>
 #include <animaBaseTensorTools.h>
-#include <vnl_ldl_cholesky.h>
 #include <limits>
+#include <vnl_qr.h>
 
 namespace anima
 {
@@ -14,8 +14,10 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
 
     unsigned int nbParams = parameters.size();
 
-    MeasureType residualValues;
     MeasureType newResidualValues;
+
+    m_WorkLowerBounds.set_size(m_LowerBounds.size());
+    m_WorkUpperBounds.set_size(m_UpperBounds.size());
 
     if (m_ScalesInitialized)
     {
@@ -24,8 +26,8 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
             parameters[i] *= scales[i];
     }
 
-    m_CurrentValue = this->EvaluateCostFunctionAtParameters(parameters,workParameters,residualValues);
-    unsigned int numResiduals = residualValues.size();
+    m_CurrentValue = this->EvaluateCostFunctionAtParameters(parameters,workParameters,m_ResidualValues);
+    unsigned int numResiduals = m_ResidualValues.size();
 
     unsigned int numIterations = 0;
     bool stopConditionReached = false;
@@ -37,6 +39,8 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     ParametersType addonVector(nbParams);
 
     double nuValue = 2.0;
+    // Be careful here: we consider the problem of the form |f(x)|^2, J is thus the Jacobian of f
+    // If f is itself y - g(x), then J = - J_g which is what is onn the wikipedia page
     m_CostFunction->GetDerivative(parameters,derivativeMatrix);
     bool derivativeCheck = false;
     for (unsigned int i = 0;i < nbParams;++i)
@@ -65,7 +69,7 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     double maxSquaredDiag = 0.0;
     for (unsigned int i = 0;i < nbParams;++i)
     {
-        if (maxSquaredDiag < derivativeSquared(i,i))
+        if ((maxSquaredDiag < derivativeSquared(i,i))||(i == 0))
             maxSquaredDiag = derivativeSquared(i,i);
     }
 
@@ -80,72 +84,57 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
 
         for (unsigned int i = 0;i < nbParams;++i)
         {
-            workMatrix(i,i) += m_LambdaParameter;
+            derivativeMatrix(i,i) += std::sqrt(m_LambdaParameter);
             workVector[i] = 0.0;
             for (unsigned int j = 0;j < numResiduals;++j)
-                workVector[i] -= derivativeMatrix(i,j) * residualValues[j];
+                workVector[i] -= derivativeMatrix(i,j) * m_ResidualValues[j];
         }
 
-        addonVector = vnl_ldl_cholesky (workMatrix).solve(workVector);
+        m_CholeskySolver.SetInputMatrix(workMatrix);
+        m_CholeskySolver.PerformDecomposition();
+        addonVector = m_CholeskySolver.SolveLinearSystem(workVector);
+
+//        std::cout.precision(30);
+//        std::cout << workMatrix << std::endl;
+//        std::cout << workVector << std::endl;
+//        std::cout << "solution " << addonVector << std::endl;
+
+//        if (m_CholeskySolver.GetConditionNumber() > 1.0e12)
+//            std::cout << "Arg " << m_CholeskySolver.GetConditionNumber() << std::endl;
+
         parameters = oldParameters;
         parameters += addonVector;
 
-        // Check lower bounds
         if (m_LowerBounds.size() == nbParams)
         {
-            if (m_ScalesInitialized)
+            const ScalesType &scales = this->GetScales();
+            for (unsigned int i = 0;i < nbParams;++i)
             {
-                const ScalesType &invScales = this->GetInverseScales();
-                const ScalesType &scales = this->GetScales();
+                double lowBound = m_LowerBounds[i];
+                if (m_ScalesInitialized)
+                    lowBound *= scales[i];
 
-                for (unsigned int i = 0;i < nbParams;++i)
+                if (parameters[i] < lowBound)
                 {
-                    if (parameters[i] * invScales[i] < m_LowerBounds[i])
-                    {
-                        parameters[i] = m_LowerBounds[i] * scales[i];
-                        addonVector[i] = parameters[i] - oldParameters[i];
-                    }
-                }
-            }
-            else
-            {
-                for (unsigned int i = 0;i < nbParams;++i)
-                {
-                    if (parameters[i] < m_LowerBounds[i])
-                    {
-                        parameters[i] = m_LowerBounds[i];
-                        addonVector[i] = parameters[i] - oldParameters[i];
-                    }
+                    parameters[i] = lowBound;
+                    addonVector[i] = parameters[i] - oldParameters[i];
                 }
             }
         }
 
-        // Check upper bounds
         if (m_UpperBounds.size() == nbParams)
         {
-            if (m_ScalesInitialized)
+            const ScalesType &scales = this->GetScales();
+            for (unsigned int i = 0;i < nbParams;++i)
             {
-                const ScalesType &invScales = this->GetInverseScales();
-                const ScalesType &scales = this->GetScales();
+                double upBound = m_UpperBounds[i];
+                if (m_ScalesInitialized)
+                    upBound *= scales[i];
 
-                for (unsigned int i = 0;i < nbParams;++i)
+                if (parameters[i] > upBound)
                 {
-                    if (parameters[i] * invScales[i] > m_UpperBounds[i])
-                    {
-                        parameters[i] = m_UpperBounds[i] * scales[i];
-                        addonVector[i] = parameters[i] - oldParameters[i];
-                    }
-                }
-            }
-            else
-            {
-                for (unsigned int i = 0;i < nbParams;++i)
-                {
-                    if (parameters[i] > m_UpperBounds[i])
-                    {
-                        parameters[i] = m_UpperBounds[i];
-                        addonVector[i] = parameters[i] - oldParameters[i];
-                    }
+                    parameters[i] = upBound;
+                    addonVector[i] = parameters[i] - oldParameters[i];
                 }
             }
         }
@@ -154,29 +143,41 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
         double tentativeNewCostValue = this->EvaluateCostFunctionAtParameters(parameters,workParameters,newResidualValues);
         double acceptRatio = m_CurrentValue - tentativeNewCostValue;
 
-        double LDiff = 0.0;
-        for (unsigned int i = 0;i < nbParams;++i)
-            LDiff += addonVector[i] * (m_LambdaParameter * addonVector[i] + workVector[i]);
+        double LDiff = m_CurrentValue;
+        double addonCost = 0.0;
+        for (unsigned int i = 0;i < numResiduals;++i)
+        {
+            double jacAddonValue = 0.0;
+            for (unsigned int j = 0;j < nbParams;++j)
+                jacAddonValue += derivativeMatrix(j,i) * addonVector[j];
 
-        // Divide by absolute value to account for non optimality of projected solution
-        if (LDiff != 0.0)
-            acceptRatio /= std::abs(LDiff);
+            addonCost += jacAddonValue * (jacAddonValue + 2.0 * m_ResidualValues[i]);
+        }
+
+        LDiff -= addonCost;
 
         rejectedStep = (acceptRatio <= 0.0);
+
+        if (LDiff != 0.0)
+            acceptRatio /= LDiff;
+        else
+            acceptRatio = 0.0;
 
         if (!rejectedStep)
         {
             oldParameters = parameters;
-            residualValues = newResidualValues;
+            m_ResidualValues = newResidualValues;
             m_CurrentValue = tentativeNewCostValue;
             m_CostFunction->GetDerivative(parameters,derivativeMatrix);
             this->GetDerivativeSquared(derivativeMatrix,derivativeSquared);
-            m_LambdaParameter *= std::max(1.0 / 3.0, 1.0 - std::pow(2.0 * acceptRatio - 1,3.0));
+            m_LambdaParameter /= 3.0;
+            //m_LambdaParameter *= std::max(1.0 / 3.0, 1.0 - std::pow(2.0 * acceptRatio - 1,3.0));
             nuValue = 2.0;
         }
         else
         {
-            m_LambdaParameter *= nuValue;
+            m_LambdaParameter *= 2.0;
+//            m_LambdaParameter *= nuValue;
             nuValue *= 2.0;
         }
 
