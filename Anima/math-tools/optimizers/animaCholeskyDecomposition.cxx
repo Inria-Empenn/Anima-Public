@@ -1,5 +1,6 @@
 #include <animaCholeskyDecomposition.h>
 #include <iostream>
+#include <limits>
 
 namespace anima
 {
