@@ -21,7 +21,7 @@ template < unsigned int ImageDimension>
 DTIScalarMapsImageFilter < ImageDimension >::DTIScalarMapsImageFilter() :
     Superclass()
 {
-    this->SetNumberOfRequiredOutputs(2);
+    this->SetNumberOfRequiredOutputs(4);
     this->SetNthOutput(0, this->MakeOutput(0));
     this->SetNthOutput(1, this->MakeOutput(1));
     this->SetNthOutput(2, this->MakeOutput(2));

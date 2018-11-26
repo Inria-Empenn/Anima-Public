@@ -1,1 +1,2 @@
 add_subdirectory(mcm_average_images)
+add_subdirectory(mcm_scalar_maps)
