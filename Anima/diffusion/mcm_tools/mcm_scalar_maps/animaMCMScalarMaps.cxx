@@ -9,7 +9,7 @@ int main(int argc,  char **argv)
 {
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
 
-    TCLAP::ValueArg<std::string> inArg("i","ddi","DDI volume",true,"","DDI volume",cmd);
+    TCLAP::ValueArg<std::string> inArg("i","mcm","MCM volume",true,"","MCM volume",cmd);
     TCLAP::ValueArg<std::string> outFAArg("f","out-fa","Result FA image",true,"","result FA image",cmd);
     TCLAP::ValueArg<std::string> outMDArg("m","out-md","Result MD image",true,"","result MD image",cmd);
 

@@ -23,7 +23,7 @@ MCMScalarMapsImageFilter <TPixelType>
         outItrs[i] = OutputIteratorType(this->GetOutput(i), region);
 
     InputImageType *input = const_cast <InputImageType *> (this->GetInput());
-    MCModelPointer mcmPtr = input->GetDescriptionModel();
+    MCModelPointer mcmPtr = input->GetDescriptionModel()->Clone();
     PixelType voxelValue;
     unsigned int numCompartments = mcmPtr->GetNumberOfCompartments();
     unsigned int numIsoCompartments = mcmPtr->GetNumberOfIsotropicCompartments();
@@ -53,6 +53,8 @@ MCMScalarMapsImageFilter <TPixelType>
         for (unsigned int i = numIsoCompartments;i < numCompartments;++i)
         {
             double weight = mcmPtr->GetCompartmentWeight(i);
+            if (weight <= 0.0)
+                continue;
             anima::BaseCompartment *currentComp = mcmPtr->GetCompartment(i);
             anisoWeight += weight;
             faCompartments += weight * currentComp->GetFractionalAnisotropy();
@@ -62,6 +64,9 @@ MCMScalarMapsImageFilter <TPixelType>
         for (unsigned int i = 0;i < numIsoCompartments;++i)
         {
             double weight = mcmPtr->GetCompartmentWeight(i);
+            if (weight <= 0.0)
+                continue;
+
             anima::BaseCompartment *currentComp = mcmPtr->GetCompartment(i);
 
             if (m_IncludeIsotropicWeights)
@@ -75,7 +80,7 @@ MCMScalarMapsImageFilter <TPixelType>
                 isoRWeight += weight;
         }
 
-        if (!m_IncludeIsotropicWeights)
+        if ((!m_IncludeIsotropicWeights)&&(anisoWeight > 0.0))
         {
             mdCompartments /= anisoWeight;
             faCompartments /= anisoWeight;
