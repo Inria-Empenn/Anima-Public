@@ -12,6 +12,8 @@ int main(int argc,  char **argv)
     TCLAP::ValueArg<std::string> inArg("i","mcm","MCM volume",true,"","MCM volume",cmd);
     TCLAP::ValueArg<std::string> outFAArg("f","out-fa","Result FA image",true,"","result FA image",cmd);
     TCLAP::ValueArg<std::string> outMDArg("m","out-md","Result MD image",true,"","result MD image",cmd);
+    TCLAP::ValueArg<std::string> outParDiffArg("p","out-par","Apparent parallel diffusivity image",false,"","apparent parallel diffusivity",cmd);
+    TCLAP::ValueArg<std::string> outPerpDiffArg("P","out-perp","Apparent perpendicular diffusivity image",false,"","apparent perpendicular diffusivity",cmd);
 
     TCLAP::ValueArg<std::string> outIsoRWArg("r","out-iso-r-w","Result iso restricted weight image",false,"","result iso R image",cmd);
     TCLAP::ValueArg<std::string> outAnisoRWArg("a","out-aniso-r-w","Result anisotropic weight image",false,"","result anisotropic image",cmd);
@@ -47,6 +49,12 @@ int main(int argc,  char **argv)
 
     anima::writeImage <MainFilterType::OutputImageType> (outFAArg.getValue(),mainFilter->GetOutput(3));
     anima::writeImage <MainFilterType::OutputImageType> (outMDArg.getValue(),mainFilter->GetOutput(4));
+
+    if (outParDiffArg.getValue() != "")
+        anima::writeImage <MainFilterType::OutputImageType> (outParDiffArg.getValue(),mainFilter->GetOutput(5));
+
+    if (outPerpDiffArg.getValue() != "")
+        anima::writeImage <MainFilterType::OutputImageType> (outPerpDiffArg.getValue(),mainFilter->GetOutput(6));
 
     if (outFWArg.getValue() != "")
         anima::writeImage <MainFilterType::OutputImageType> (outFWArg.getValue(),mainFilter->GetOutput(0));
