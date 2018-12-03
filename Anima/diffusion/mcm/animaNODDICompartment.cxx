@@ -499,7 +499,7 @@ void NODDICompartment::UpdateKappaValues()
     m_ModifiedConcentration = false;
 }
 
-double NODDICompartment::GetFractionalAnisotropy()
+double NODDICompartment::GetApparentFractionalAnisotropy()
 {
     double intraFraction = 1.0 - this->GetExtraAxonalFraction();
     double axialDiff = this->GetAxialDiffusivity();

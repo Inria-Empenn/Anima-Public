@@ -122,9 +122,24 @@ const BaseCompartment::Matrix3DType &BaseCompartment::GetDiffusionTensor()
     throw itk::ExceptionObject(__FILE__,__LINE__,"This compartment type does not support diffusion tensor export",ITK_LOCATION);
 }
 
-double BaseCompartment::GetFractionalAnisotropy()
+double BaseCompartment::GetApparentFractionalAnisotropy()
 {
-    throw itk::ExceptionObject(__FILE__,__LINE__,"This compartment type does not support fractional anisotropy computation",ITK_LOCATION);
+    throw itk::ExceptionObject(__FILE__,__LINE__,"This compartment type does not support apparent fractional anisotropy computation",ITK_LOCATION);
+}
+
+double BaseCompartment::GetApparentMeanDiffusivity()
+{
+    throw itk::ExceptionObject(__FILE__,__LINE__,"This compartment type does not support apparent mean diffusivity computation",ITK_LOCATION);
+}
+
+double BaseCompartment::GetApparentParallelDiffusivity()
+{
+    throw itk::ExceptionObject(__FILE__,__LINE__,"This compartment type does not support apparent parallel diffusivity computation",ITK_LOCATION);
+}
+
+double BaseCompartment::GetApparentPerpendicularDiffusivity()
+{
+    throw itk::ExceptionObject(__FILE__,__LINE__,"This compartment type does not support apparent perpendicular diffusivity computation",ITK_LOCATION);
 }
 
 } // end namespace anima

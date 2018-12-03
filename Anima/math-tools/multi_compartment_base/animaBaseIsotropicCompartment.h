@@ -43,7 +43,10 @@ public:
     void Reorient(vnl_matrix <double> &orientationMatrix, bool affineTransform) ITK_OVERRIDE {}
 
     const Matrix3DType &GetDiffusionTensor() ITK_OVERRIDE;
-    double GetFractionalAnisotropy() ITK_OVERRIDE;
+    double GetApparentFractionalAnisotropy() ITK_OVERRIDE;
+    double GetApparentMeanDiffusivity() ITK_OVERRIDE;
+    double GetApparentParallelDiffusivity() ITK_OVERRIDE;
+    double GetApparentPerpendicularDiffusivity() ITK_OVERRIDE;
 
 protected:
     BaseIsotropicCompartment() : Superclass()

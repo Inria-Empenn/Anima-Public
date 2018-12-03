@@ -50,7 +50,7 @@ public:
     void SetAxialDiffusivity(double num) ITK_OVERRIDE;
 
     bool GetTensorCompatible() ITK_OVERRIDE {return false;}
-    double GetFractionalAnisotropy() ITK_OVERRIDE;
+    double GetApparentFractionalAnisotropy() ITK_OVERRIDE;
 
 protected:
     StaniszCompartment() : Superclass()

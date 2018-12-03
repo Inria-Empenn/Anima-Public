@@ -295,7 +295,7 @@ StaniszCompartment::ModelOutputVectorType &StaniszCompartment::GetCompartmentVec
     return m_CompartmentVector;
 }
 
-double StaniszCompartment::GetFractionalAnisotropy()
+double StaniszCompartment::GetApparentFractionalAnisotropy()
 {
     return 0.0;
 }

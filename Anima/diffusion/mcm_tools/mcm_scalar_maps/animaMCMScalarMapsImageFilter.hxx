@@ -47,6 +47,8 @@ MCMScalarMapsImageFilter <TPixelType>
         double anisoWeight = 0.0;
         double faCompartments = 0.0;
         double mdCompartments = 0.0;
+        double parDiffCompartments = 0.0;
+        double perpDiffCompartments = 0.0;
         double isoRWeight = 0.0;
         double fwWeight = 0.0;
 
@@ -57,8 +59,10 @@ MCMScalarMapsImageFilter <TPixelType>
                 continue;
             anima::BaseCompartment *currentComp = mcmPtr->GetCompartment(i);
             anisoWeight += weight;
-            faCompartments += weight * currentComp->GetFractionalAnisotropy();
-            mdCompartments += weight * currentComp->GetMeanDiffusivity();
+            faCompartments += weight * currentComp->GetApparentFractionalAnisotropy();
+            mdCompartments += weight * currentComp->GetApparentMeanDiffusivity();
+            parDiffCompartments += weight * currentComp->GetApparentParallelDiffusivity();
+            perpDiffCompartments += weight * currentComp->GetApparentPerpendicularDiffusivity();
         }
 
         for (unsigned int i = 0;i < numIsoCompartments;++i)
@@ -70,7 +74,11 @@ MCMScalarMapsImageFilter <TPixelType>
             anima::BaseCompartment *currentComp = mcmPtr->GetCompartment(i);
 
             if (m_IncludeIsotropicWeights)
-                mdCompartments += weight * currentComp->GetMeanDiffusivity();
+            {
+                mdCompartments += weight * currentComp->GetApparentMeanDiffusivity();
+                parDiffCompartments += weight * currentComp->GetApparentParallelDiffusivity();
+                perpDiffCompartments += weight * currentComp->GetApparentPerpendicularDiffusivity();
+            }
 
             if (currentComp->GetCompartmentType() == anima::FreeWater)
                 fwWeight += weight;
@@ -91,6 +99,8 @@ MCMScalarMapsImageFilter <TPixelType>
         outItrs[2].Set(anisoWeight);
         outItrs[3].Set(faCompartments);
         outItrs[4].Set(mdCompartments);
+        outItrs[5].Set(parDiffCompartments);
+        outItrs[6].Set(perpDiffCompartments);
 
         ++inItr;
         for (unsigned int i = 0;i < numOutputs;++i)

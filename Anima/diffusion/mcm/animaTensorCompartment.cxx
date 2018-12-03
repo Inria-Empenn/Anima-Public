@@ -473,7 +473,7 @@ void TensorCompartment::UpdateAngleConfiguration()
     m_ModifiedAngles = false;
 }
 
-double TensorCompartment::GetFractionalAnisotropy()
+double TensorCompartment::GetApparentFractionalAnisotropy()
 {
     double l1 = this->GetAxialDiffusivity();
     double l2 = this->GetRadialDiffusivity1();
@@ -487,6 +487,25 @@ double TensorCompartment::GetFractionalAnisotropy()
         fa = std::sqrt(0.5) * (numFA / denomFA);
 
     return fa;
+}
+
+double TensorCompartment::GetApparentMeanDiffusivity()
+{
+    double l1 = this->GetAxialDiffusivity();
+    double l2 = this->GetRadialDiffusivity1();
+    double l3 = this->GetRadialDiffusivity2();
+
+    return (l1 + l2 + l3) / 3.0;
+}
+
+double TensorCompartment::GetApparentParallelDiffusivity()
+{
+    return this->GetAxialDiffusivity();
+}
+
+double TensorCompartment::GetApparentPerpendicularDiffusivity()
+{
+    return (this->GetRadialDiffusivity1() + this->GetRadialDiffusivity2()) / 2.0;
 }
 
 } //end namespace anima

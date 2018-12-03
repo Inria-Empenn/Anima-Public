@@ -57,7 +57,7 @@ public:
     
     bool GetTensorCompatible() ITK_OVERRIDE {return false;}
     const Matrix3DType &GetDiffusionTensor() ITK_OVERRIDE;
-    double GetFractionalAnisotropy() ITK_OVERRIDE;
+    double GetApparentFractionalAnisotropy() ITK_OVERRIDE;
 
 protected:
     NODDICompartment() : Superclass()

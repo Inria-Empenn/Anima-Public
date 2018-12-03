@@ -43,12 +43,12 @@ public:
 protected:
     MCMScalarMapsImageFilter ()
     {
-        // Five outputs for now:
+        // Seven outputs for now:
         // - free water weight, isotropic restricted weight (sum of IR or Stanisz compartments)
         // - anisotropic weight
         // - FA and MD
-        // - others coming soon
-        unsigned int numOutputs = 5;
+        // - Apparent parallel and perpendicular diffusivities
+        unsigned int numOutputs = 7;
         this->SetNumberOfRequiredOutputs(numOutputs);
 
         for (unsigned int i = 0;i < numOutputs;++i)

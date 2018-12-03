@@ -221,7 +221,7 @@ const StickCompartment::Matrix3DType &StickCompartment::GetDiffusionTensor()
     return m_DiffusionTensor;
 }
 
-double StickCompartment::GetFractionalAnisotropy()
+double StickCompartment::GetApparentFractionalAnisotropy()
 {
     double l1 = this->GetAxialDiffusivity();
     double l2 = this->GetRadialDiffusivity1();
@@ -233,6 +233,24 @@ double StickCompartment::GetFractionalAnisotropy()
         fa = std::sqrt(0.5) * (numFA / denomFA);
 
     return fa;
+}
+
+double StickCompartment::GetApparentMeanDiffusivity()
+{
+    double l1 = this->GetAxialDiffusivity();
+    double l2 = this->GetRadialDiffusivity1();
+
+    return (l1 + 2.0 * l2) / 3.0;
+}
+
+double StickCompartment::GetApparentParallelDiffusivity()
+{
+    return this->GetAxialDiffusivity();
+}
+
+double StickCompartment::GetApparentPerpendicularDiffusivity()
+{
+    return this->GetRadialDiffusivity1();
 }
 
 } //end namespace anima

@@ -105,7 +105,16 @@ public:
     virtual bool GetTensorCompatible() {return true;}
     //! Get compartment as a 3D tensor (default behavior: throw exception if not supported by the compartment model)
     virtual const Matrix3DType &GetDiffusionTensor();
-    virtual double GetFractionalAnisotropy();
+
+    // Getters for complex properties of compartment
+    virtual double GetApparentFractionalAnisotropy();
+    virtual double GetApparentMeanDiffusivity();
+
+    //! Get approximation to parallel diffusivity of the compartment (may be different from axial diffusivity which is an internal parameter of the model)
+    virtual double GetApparentParallelDiffusivity();
+
+    //! Get approximation to perpendicular diffusivity of the compartment (may be different from radial diffusivities which are internal parameters of the model)
+    virtual double GetApparentPerpendicularDiffusivity();
 
 protected:
     BaseCompartment() : Superclass()
