@@ -92,6 +92,8 @@ MCMScalarMapsImageFilter <TPixelType>
         {
             mdCompartments /= anisoWeight;
             faCompartments /= anisoWeight;
+            parDiffCompartments /= anisoWeight;
+            perpDiffCompartments /= anisoWeight;
         }
 
         outItrs[0].Set(fwWeight);
