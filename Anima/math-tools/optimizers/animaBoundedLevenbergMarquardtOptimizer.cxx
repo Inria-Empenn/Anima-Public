@@ -33,14 +33,16 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     bool stopConditionReached = false;
     bool rejectedStep = false;
 
-    DerivativeType derivativeMatrix, derivativeSquared, workMatrix;
+    DerivativeType derivativeMatrix(nbParams,numResiduals), workMatrix(numResiduals + nbParams, nbParams);
     ParametersType oldParameters = parameters;
-    ParametersType workVector(nbParams);
+    ParametersType workVector(numResiduals + nbParams);
+    workVector.Fill(0.0);
     ParametersType addonVector(nbParams);
+    ParametersType dValues(nbParams);
 
     double nuValue = 2.0;
     // Be careful here: we consider the problem of the form |f(x)|^2, J is thus the Jacobian of f
-    // If f is itself y - g(x), then J = - J_g which is what is onn the wikipedia page
+    // If f is itself y - g(x), then J = - J_g which is what is on the wikipedia page
     m_CostFunction->GetDerivative(parameters,derivativeMatrix);
     bool derivativeCheck = false;
     for (unsigned int i = 0;i < nbParams;++i)
@@ -64,43 +66,35 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
         return;
     }
 
-    this->GetDerivativeSquared(derivativeMatrix,derivativeSquared);
-
-    double maxSquaredDiag = 0.0;
     for (unsigned int i = 0;i < nbParams;++i)
     {
-        if ((maxSquaredDiag < derivativeSquared(i,i))||(i == 0))
-            maxSquaredDiag = derivativeSquared(i,i);
-    }
+        double normValue = 0.0;
+        for (unsigned int j = 0;j < numResiduals;++j)
+            normValue += derivativeMatrix(i,j) * derivativeMatrix(i,j);
 
-    m_LambdaParameter *= maxSquaredDiag;
+        normValue = std::sqrt(normValue);
+        if (normValue <= 0.0)
+            normValue = 1.0;
+        dValues[i] = normValue;
+    }
 
     while (!stopConditionReached)
     {
         ++numIterations;
 
-        // Solve (JtJ + lambda I) x = - Jt r
-        workMatrix = derivativeSquared;
-
+        // Solve (JtJ + lambda d^2) x = - Jt r
         for (unsigned int i = 0;i < nbParams;++i)
         {
-            derivativeMatrix(i,i) += std::sqrt(m_LambdaParameter);
-            workVector[i] = 0.0;
             for (unsigned int j = 0;j < numResiduals;++j)
-                workVector[i] -= derivativeMatrix(i,j) * m_ResidualValues[j];
+                workMatrix(j,i) = derivativeMatrix(i,j);
+
+            workMatrix(numResiduals + i,i) = std::sqrt(m_LambdaParameter) * dValues[i];
         }
 
-        m_CholeskySolver.SetInputMatrix(workMatrix);
-        m_CholeskySolver.PerformDecomposition();
-        addonVector = m_CholeskySolver.SolveLinearSystem(workVector);
+        for (unsigned int i = 0;i < numResiduals;++i)
+            workVector[i] = - m_ResidualValues[i];
 
-//        std::cout.precision(30);
-//        std::cout << workMatrix << std::endl;
-//        std::cout << workVector << std::endl;
-//        std::cout << "solution " << addonVector << std::endl;
-
-//        if (m_CholeskySolver.GetConditionNumber() > 1.0e12)
-//            std::cout << "Arg " << m_CholeskySolver.GetConditionNumber() << std::endl;
+        addonVector = vnl_qr <double> (workMatrix).solve(workVector);
 
         parameters = oldParameters;
         parameters += addonVector;
@@ -169,15 +163,24 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
             m_ResidualValues = newResidualValues;
             m_CurrentValue = tentativeNewCostValue;
             m_CostFunction->GetDerivative(parameters,derivativeMatrix);
-            this->GetDerivativeSquared(derivativeMatrix,derivativeSquared);
+            m_LambdaParameter /= 3.0;
+            for (unsigned int i = 0;i < nbParams;++i)
+            {
+                double normValue = 0;
+                for (unsigned int j = 0;j < numResiduals;++j)
+                    normValue += derivativeMatrix(i,j) * derivativeMatrix(i,j);
+
+                normValue = std::sqrt(normValue);
+                dValues[i] = std::max(dValues[i], normValue);
+            }
+
             m_LambdaParameter /= 3.0;
             //m_LambdaParameter *= std::max(1.0 / 3.0, 1.0 - std::pow(2.0 * acceptRatio - 1,3.0));
             nuValue = 2.0;
         }
         else
         {
-            m_LambdaParameter *= 2.0;
-//            m_LambdaParameter *= nuValue;
+            m_LambdaParameter *= 2.0; //nuValue;
             nuValue *= 2.0;
         }
 
@@ -195,26 +198,6 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     }
 
     this->SetCurrentPosition(oldParameters);
-}
-
-void BoundedLevenbergMarquardtOptimizer::GetDerivativeSquared(DerivativeType &derivativeMatrix, DerivativeType &derivativeSquared)
-{
-    unsigned int nbParams = derivativeMatrix.rows();
-    unsigned int numResiduals = derivativeMatrix.cols();
-    derivativeSquared.set_size(nbParams,nbParams);
-
-    for (unsigned int i = 0;i < nbParams;++i)
-    {
-        for (unsigned int j = i;j < nbParams;++j)
-        {
-            derivativeSquared(i,j) = 0.0;
-            for (unsigned int k = 0;k < numResiduals;++k)
-                derivativeSquared(i,j) += derivativeMatrix(i,k) * derivativeMatrix(j,k);
-
-            if (i != j)
-                derivativeSquared(j,i) = derivativeSquared(i,j);
-        }
-    }
 }
 
 double BoundedLevenbergMarquardtOptimizer::EvaluateCostFunctionAtParameters(ParametersType &parameters, ParametersType &scaledParameters,

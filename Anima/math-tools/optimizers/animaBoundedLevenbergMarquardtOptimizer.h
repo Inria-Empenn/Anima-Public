@@ -64,8 +64,6 @@ protected:
 
     virtual ~BoundedLevenbergMarquardtOptimizer() ITK_OVERRIDE {}
 
-    void GetDerivativeSquared(DerivativeType &derivativeMatrix, DerivativeType &derivativeSquared);
-
     double EvaluateCostFunctionAtParameters(ParametersType &parameters, ParametersType &scaledParameters,
                                             MeasureType &residualValues);
 
