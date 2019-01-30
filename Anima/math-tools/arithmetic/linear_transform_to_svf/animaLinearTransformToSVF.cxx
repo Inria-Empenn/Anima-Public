@@ -2,16 +2,14 @@
 
 #include <itkTransformFileReader.h>
 #include <itkTransformFileWriter.h>
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
 #include <itkAffineTransform.h>
 #include <animaMatrixLogExp.h>
 #include <itkTransformToDisplacementFieldFilter.h>
-
+#include <animaReadWriteFunctions.h>
 
 int main(int argc, char **argv)
 {
-    std::string descriptionMessage = "Linear transform to SVF";
+    std::string descriptionMessage = "Linear transform to SVF\n INRIA / IRISA - VisAGeS Team";
     TCLAP::CmdLine cmd(descriptionMessage, ' ', ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inArg("i", "input", "Input linear transform", true, "", "input transform", cmd);
@@ -25,18 +23,13 @@ int main(int argc, char **argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
 
     const unsigned int Dimension = 3;
     typedef double PixelType;
     typedef itk::Image< PixelType, Dimension > GeomImageType;
-    typedef itk::ImageFileReader< GeomImageType  > GeomImageReaderType;
-
-    GeomImageReaderType::Pointer  geomImageReader = GeomImageReaderType::New();
-    geomImageReader->SetFileName(geomArg.getValue());
-    geomImageReader->Update();
-    GeomImageType::ConstPointer geomImage = geomImageReader->GetOutput();
+    GeomImageType::Pointer geomImage = anima::readImage <GeomImageType> (geomArg.getValue());
 
     typedef double PrecisionType;
     typedef itk::AffineTransform <PrecisionType, Dimension> MatrixTransformType;
@@ -61,7 +54,7 @@ int main(int argc, char **argv)
 
     MatrixTransformType *trsf = dynamic_cast <MatrixTransformType *> ((*tr_it).GetPointer());
 
-    if (trsf == NULL)
+    if (trsf == nullptr)
     {
         std::cerr << "Problem converting transform file to linear file " << inArg.getValue() << ", exiting" << std::endl;
         return EXIT_FAILURE;
@@ -86,10 +79,10 @@ int main(int argc, char **argv)
     MatrixTransformType::OffsetType logOffset;
     MatrixTransformType::MatrixType logMatrix;
 
-    for (unsigned int i = 0; i < Dimension; ++i)
+    for (unsigned int i = 0; i < Dimension;++i)
     {
         logOffset[i] = logWorkMatrix(i, Dimension);
-        for (unsigned int j = 0; j < Dimension; ++j)
+        for (unsigned int j = 0; j < Dimension;++j)
             logMatrix(i, j) = logWorkMatrix(i, j);
         logMatrix(i, i) += 1; // add identity because TransformToDisplacementFieldFilter
     }
@@ -107,20 +100,7 @@ int main(int argc, char **argv)
     dispfieldGenerator->SetReferenceImage(geomImage);
     dispfieldGenerator->SetTransform(logTrsf);
 
-    typedef itk::ImageFileWriter< DisplacementFieldImageType >  FieldWriterType;
-    FieldWriterType::Pointer fieldWriter = FieldWriterType::New();
-    fieldWriter->SetInput(dispfieldGenerator->GetOutput());
-    fieldWriter->SetFileName(outArg.getValue());
-    try
-    {
-        fieldWriter->Update();
-    }
-    catch (itk::ExceptionObject & excp)
-    {
-        std::cerr << "Exception thrown " << std::endl;
-        std::cerr << excp << std::endl;
-        return EXIT_FAILURE;
-    }
+    anima::writeImage <DisplacementFieldImageType> (outArg.getValue(),dispfieldGenerator->GetOutput());
 
     return EXIT_SUCCESS;
 }
