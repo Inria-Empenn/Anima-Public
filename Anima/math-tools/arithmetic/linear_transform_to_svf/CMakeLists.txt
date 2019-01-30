@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaLinearTransform2SVF)
+project(animaLinearTransformToSVF)
 
 ## #############################################################################
 ## List Sources
