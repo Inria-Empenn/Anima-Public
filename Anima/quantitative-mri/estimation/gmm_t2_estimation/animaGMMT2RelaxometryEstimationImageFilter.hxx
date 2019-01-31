@@ -5,7 +5,7 @@
 #include <itkImageRegionConstIterator.h>
 
 #include <animaEPGSignalSimulator.h>
-#include <itkLevenbergMarquardtOptimizer.h>
+#include <animaNLOPTOptimizers.h>
 #include <animaB1GMMRelaxometryCostFunction.h>
 
 #include <fstream>
@@ -202,7 +202,7 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
 
     NNLSOptimizerPointer nnlsOpt = NNLSOptimizerType::New();
 
-    typedef itk::LevenbergMarquardtOptimizer B1OptimizerType;
+    typedef anima::NLOPTOptimizers B1OptimizerType;
     typedef anima::B1GMMRelaxometryCostFunction B1CostFunctionType;
     B1OptimizerType::ParametersType t2OptimizedWeights(numberOfGaussians);
 
@@ -225,6 +225,7 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
     cost->SetT2DistributionSamples(m_SampledGaussianValues);
     cost->SetT2WorkingValues(m_T2WorkingValues);
     cost->SetDistributionSamplesT2Correspondences(m_SampledGaussT2Correspondences);
+    cost->SetUseDerivative(false);
 
     unsigned int numSteps = m_T2WorkingValues.size();
     epgSignalValues.resize(numSteps);
@@ -274,13 +275,14 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
         cost->SetT2RelaxometrySignals(signalValues);
 
         B1OptimizerType::Pointer b1Optimizer = B1OptimizerType::New();
+        b1Optimizer->SetAlgorithm(NLOPT_LN_BOBYQA);
         b1Optimizer->SetCostFunction(cost);
-        double xTol = 1.0e-4;
-        b1Optimizer->SetEpsilonFunction(xTol * 1.0e-3);
-        b1Optimizer->SetGradientTolerance(1.0e-5);
-        b1Optimizer->SetNumberOfIterations(500);
-        b1Optimizer->SetValueTolerance(xTol);
-        b1Optimizer->SetUseCostFunctionGradient(true);
+        b1Optimizer->SetXTolRel(1.0e-5);
+        b1Optimizer->SetFTolRel(1.0e-7);
+        b1Optimizer->SetMaxEval(500);
+        b1Optimizer->SetVectorStorageSize(2000);
+        b1Optimizer->SetLowerBoundParameters(lowerBounds);
+        b1Optimizer->SetUpperBoundParameters(upperBounds);
 
         p[0] = 1.1 * m_T2FlipAngles[0];
 
@@ -311,16 +313,7 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
 
         outMWFIterator.Set(mwfValue);
 
-        double kValue = std::floor(std::abs(p[0]) / (2.0 * M_PI));
-        if (p[0] < 0)
-        {
-            kValue += 1;
-            kValue *= -1;
-        }
-
-        double b1Value = (p[0] - 2.0 * kValue * M_PI) / m_T2FlipAngles[0];
-        if (b1Value < 0)
-            std::cout << p[0] << " " << b1Value << " " << kValue << std::endl;
+        double b1Value = p[0] / m_T2FlipAngles[0];
         outB1Iterator.Set(b1Value);
         outSigmaSqIterator.Set(cost->GetSigmaSquare());
 

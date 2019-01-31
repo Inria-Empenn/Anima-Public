@@ -16,20 +16,13 @@ B1GMMRelaxometryCostFunction::GetValue(const ParametersType & parameters) const
 
     this->SolveLinearLeastSquares();
 
-    return m_Residuals;
-}
-
-unsigned int
-B1GMMRelaxometryCostFunction::GetNumberOfValues() const
-{
-    return m_T2RelaxometrySignals.size();
+    return m_SigmaSquare;
 }
 
 void
 B1GMMRelaxometryCostFunction::GetDerivative(const ParametersType &parameters,
                                             DerivativeType &derivative) const
 {
-    unsigned int nbParams = parameters.GetSize();
     unsigned int nbValues = m_T2RelaxometrySignals.size();
     unsigned int numDistributions = m_T2DistributionSamples.size();
 
@@ -43,7 +36,7 @@ B1GMMRelaxometryCostFunction::GetDerivative(const ParametersType &parameters,
         itkExceptionMacro("Get derivative not called with the same parameters as GetValue, suggestive of NaN...");
     }
 
-    derivative.SetSize(nbParams, nbValues);
+    derivative.SetSize(nbValues);
     derivative.Fill(0.0);
 
     std::vector <double> DFw(nbValues,0.0);
@@ -76,15 +69,15 @@ B1GMMRelaxometryCostFunction::GetDerivative(const ParametersType &parameters,
     // Finally, get derivative = FMatrixInverseG tmpVec - DFw
     for (unsigned int i = 0;i < nbValues;++i)
     {
-        derivative(0,i) = - DFw[i];
+        derivative[i] = - DFw[i];
 
         for (unsigned int j = 0;j < numOnDistributions;++j)
-            derivative(0,i) += m_FMatrixInverseG(i,j) * tmpVec[j];
+            derivative[i] += m_FMatrixInverseG(i,j) * tmpVec[j];
     }
 
     for (unsigned int i = 0;i < nbValues;++i)
     {
-        if (!std::isfinite(derivative(0,i)))
+        if (!std::isfinite(derivative[i]))
         {
             std::cerr << "Derivative: " << derivative << std::endl;
             std::cerr << "Optimal weights: " << m_OptimalT2Weights << std::endl;
@@ -95,6 +88,15 @@ B1GMMRelaxometryCostFunction::GetDerivative(const ParametersType &parameters,
             itkExceptionMacro("Non finite derivative");
         }
     }
+
+    double outputDerivative = 0.0;
+    for (unsigned int i = 0;i < nbValues;++i)
+        outputDerivative += m_Residuals[i] * derivative[i];
+
+    outputDerivative *= 2.0 / nbValues;
+
+    derivative.set_size(1);
+    derivative[0] = outputDerivative;
 }
 
 void

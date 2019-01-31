@@ -1,6 +1,6 @@
 #pragma once
 
-#include <itkMultipleValuedCostFunction.h>
+#include <itkSingleValuedCostFunction.h>
 #include "AnimaRelaxometryExport.h"
 #include <vnl_matrix.h>
 
@@ -17,12 +17,12 @@ namespace anima
  *
  */
 class ANIMARELAXOMETRY_EXPORT B1GMMRelaxometryCostFunction :
-public itk::MultipleValuedCostFunction
+public itk::SingleValuedCostFunction
 {
 public:
     /** Standard class typedefs. */
     typedef B1GMMRelaxometryCostFunction Self;
-    typedef itk::MultipleValuedCostFunction Superclass;
+    typedef itk::SingleValuedCostFunction Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self> ConstPointer;
 
@@ -61,9 +61,8 @@ public:
         return 1;
     }
 
-    unsigned int GetNumberOfValues() const ITK_OVERRIDE;
-
     itkGetMacro(SigmaSquare, double)
+    itkSetMacro(UseDerivative, bool)
     ParametersType &GetOptimalT2Weights() {return m_OptimalT2Weights;}
 
 protected:
@@ -118,7 +117,7 @@ private:
     mutable ParametersType m_FSignals;
     mutable vnl_matrix <double> m_FMatrixInverseG;
     mutable std::vector <bool> m_CompartmentSwitches;
-    mutable MeasureType m_Residuals;
+    mutable ParametersType m_Residuals;
     mutable vnl_matrix <double> m_SignalAttenuationsJacobian;
     mutable vnl_matrix <double> m_PredictedSignalAttenuations, m_CholeskyMatrix;
     mutable double m_SigmaSquare;
