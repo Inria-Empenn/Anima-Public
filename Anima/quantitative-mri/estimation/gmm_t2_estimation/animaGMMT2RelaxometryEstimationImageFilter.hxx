@@ -313,9 +313,14 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
 
         double kValue = std::floor(std::abs(p[0]) / (2.0 * M_PI));
         if (p[0] < 0)
+        {
+            kValue += 1;
             kValue *= -1;
+        }
 
         double b1Value = (p[0] - 2.0 * kValue * M_PI) / m_T2FlipAngles[0];
+        if (b1Value < 0)
+            std::cout << p[0] << " " << b1Value << " " << kValue << std::endl;
         outB1Iterator.Set(b1Value);
         outSigmaSqIterator.Set(cost->GetSigmaSquare());
 
