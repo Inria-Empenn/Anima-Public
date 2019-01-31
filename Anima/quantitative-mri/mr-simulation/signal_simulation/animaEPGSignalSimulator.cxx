@@ -19,8 +19,6 @@ EPGSignalSimulator::RealVectorType &EPGSignalSimulator::GetValue(double t1Value,
     m_SimulatedT2Values.set_size(3 * m_NumberOfEchoes + 1,m_NumberOfEchoes + 1);
     m_OutputVector.resize(m_NumberOfEchoes);
 
-    std::fill(m_OutputVector.begin(),m_OutputVector.end(),0.0);
-
     this->ComputeT2SignalMatrixElements(t1Value,t2Value,flipAngle);
 
     double baseValue = m0Value * std::sin(m_ExcitationFlipAngle);
@@ -112,11 +110,9 @@ void EPGSignalSimulator::ComputeT2SignalMatrixElements(double t1Value, double t2
     m_ThirdDerivativeProduct = - sinB1alpha * espT1Value * espT1Value;
 }
 
-EPGSignalSimulator::RealVectorType &EPGSignalSimulator::GetFADerivative(double t1Value, double t2Value,
-                                                                        double flipAngle, double m0Value)
+EPGSignalSimulator::RealVectorType &EPGSignalSimulator::GetFADerivative()
 {
     m_OutputB1Derivative.resize(m_NumberOfEchoes);
-    std::fill(m_OutputB1Derivative.begin(),m_OutputB1Derivative.end(),0.0);
 
     m_SimulatedDerivativeT2Values.set_size(3 * m_NumberOfEchoes + 1,m_NumberOfEchoes + 1);
     for (unsigned int i = 0;i <= m_NumberOfEchoes;++i)

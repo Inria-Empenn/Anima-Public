@@ -117,7 +117,7 @@ B1GMMRelaxometryCostFunction::PrepareDataForLLS() const
     {
         m_SimulatedEPGValues[i] = m_T2SignalSimulator.GetValue(m_T1Value,m_T2WorkingValues[i],m_TestedParameters[0],1.0);
         if (m_UseDerivative)
-            m_SimulatedEPGDerivatives[i] = m_T2SignalSimulator.GetFADerivative(m_T1Value,m_T2WorkingValues[i],m_TestedParameters[0],1.0);
+            m_SimulatedEPGDerivatives[i] = m_T2SignalSimulator.GetFADerivative();
     }
 
     m_PredictedSignalAttenuations.set_size(numT2Signals,numDistributions);

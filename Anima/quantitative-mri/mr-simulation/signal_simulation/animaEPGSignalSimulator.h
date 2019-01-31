@@ -16,11 +16,12 @@ public:
 
     typedef std::vector <double> RealVectorType;
 
+    //! Get EPG values at given point
     RealVectorType &GetValue(double t1Value, double t2Value,
                              double flipAngle, double m0Value);
 
-    RealVectorType &GetFADerivative(double t1Value, double t2Value,
-                                    double flipAngle, double m0Value);
+    //! Get EPG derivative values at same point that was used for getting EPG values. Requires a run of GetValue first
+    RealVectorType &GetFADerivative();
 
     void SetEchoSpacing(double val) {m_EchoSpacing = val;}
     void SetExcitationFlipAngle(double val) {m_ExcitationFlipAngle = val;}
