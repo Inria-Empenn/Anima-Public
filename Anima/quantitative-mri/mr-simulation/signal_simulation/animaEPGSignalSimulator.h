@@ -29,22 +29,14 @@ public:
 
 protected:
     void ComputeT2SignalMatrixElements(double t1Value, double t2Value, double flipAngle);
-    void ComputeT2SignalFADerivativeMatrixElements(double t1Value, double t2Value, double flipAngle);
 
 private:
     double m_EchoSpacing;
     double m_ExcitationFlipAngle;
     unsigned int m_NumberOfEchoes;
 
-    RealVectorType m_FirstLineElements, m_FirstColumnElements;
-    RealVectorType m_FirstDiagonalElements, m_DiagonalElements, m_LastDiagonalElements;
-    RealVectorType m_FirstLeftElements, m_FirstRightElements;
-    double m_SecondLeftElement, m_SecondRightElement;
-
-    RealVectorType m_FirstLineDerivativeElements, m_FirstColumnDerivativeElements;
-    RealVectorType m_FirstDiagonalDerivativeElements, m_DiagonalDerivativeElements, m_LastDiagonalDerivativeElements;
-    RealVectorType m_FirstLeftDerivativeElements, m_FirstRightDerivativeElements;
-    double m_SecondLeftDerivativeElement, m_SecondRightDerivativeElement;
+    double m_FirstEPGProduct, m_SecondEPGProduct, m_ThirdEPGProduct, m_FourthEPGProduct, m_FifthEPGProduct;
+    double m_FirstDerivativeProduct, m_SecondDerivativeProduct, m_ThirdDerivativeProduct;
 
     // Internal work variables. Because of this, not thread safe !
     vnl_matrix <double> m_SimulatedT2Values;

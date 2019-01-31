@@ -16,28 +16,20 @@ B1GMMRelaxometryCostFunction::GetValue(const ParametersType & parameters) const
 
     this->SolveLinearLeastSquares();
 
-    return m_SigmaSquare;
+    return m_Residuals;
+}
+
+unsigned int
+B1GMMRelaxometryCostFunction::GetNumberOfValues() const
+{
+    return m_T2RelaxometrySignals.size();
 }
 
 void
-B1GMMRelaxometryCostFunction::GetDerivative(const ParametersType & parameters,
-                                            DerivativeType & derivative) const
+B1GMMRelaxometryCostFunction::GetDerivative(const ParametersType &parameters,
+                                            DerivativeType &derivative) const
 {
-    this->GetDerivativeMatrix(parameters,derivative);
-    unsigned int nbValues = derivative.size();
-
-    double outputDerivative = 0.0;
-    for (unsigned int j = 0;j < nbValues;++j)
-        outputDerivative += m_Residuals[j] * derivative[j];
-
-    derivative.SetSize(this->GetNumberOfParameters());
-    derivative[0] = outputDerivative * 2.0 / nbValues;
-}
-
-void
-B1GMMRelaxometryCostFunction::GetDerivativeMatrix(const ParametersType &parameters,
-                                                  DerivativeType &derivativeMatrix) const
-{
+    unsigned int nbParams = parameters.GetSize();
     unsigned int nbValues = m_T2RelaxometrySignals.size();
     unsigned int numDistributions = m_T2DistributionSamples.size();
 
@@ -51,8 +43,8 @@ B1GMMRelaxometryCostFunction::GetDerivativeMatrix(const ParametersType &paramete
         itkExceptionMacro("Get derivative not called with the same parameters as GetValue, suggestive of NaN...");
     }
 
-    derivativeMatrix.SetSize(nbValues);
-    derivativeMatrix.Fill(0.0);
+    derivative.SetSize(nbParams, nbValues);
+    derivative.Fill(0.0);
 
     std::vector <double> DFw(nbValues,0.0);
     std::vector <double> tmpVec(numOnDistributions,0.0);
@@ -84,17 +76,17 @@ B1GMMRelaxometryCostFunction::GetDerivativeMatrix(const ParametersType &paramete
     // Finally, get derivative = FMatrixInverseG tmpVec - DFw
     for (unsigned int i = 0;i < nbValues;++i)
     {
-        derivativeMatrix[i] = - DFw[i];
+        derivative(0,i) = - DFw[i];
 
         for (unsigned int j = 0;j < numOnDistributions;++j)
-            derivativeMatrix[i] += m_FMatrixInverseG(i,j) * tmpVec[j];
+            derivative(0,i) += m_FMatrixInverseG(i,j) * tmpVec[j];
     }
 
     for (unsigned int i = 0;i < nbValues;++i)
     {
-        if (!std::isfinite(derivativeMatrix[i]))
+        if (!std::isfinite(derivative(0,i)))
         {
-            std::cerr << "Derivative: " << derivativeMatrix << std::endl;
+            std::cerr << "Derivative: " << derivative << std::endl;
             std::cerr << "Optimal weights: " << m_OptimalT2Weights << std::endl;
             std::cerr << "Gram matrix: " << m_GramMatrix << std::endl;
             std::cerr << "Residuals: " << m_Residuals << std::endl;

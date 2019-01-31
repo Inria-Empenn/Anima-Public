@@ -1,6 +1,6 @@
 #pragma once
 
-#include <itkSingleValuedCostFunction.h>
+#include <itkMultipleValuedCostFunction.h>
 #include "AnimaRelaxometryExport.h"
 #include <vnl_matrix.h>
 
@@ -17,12 +17,12 @@ namespace anima
  *
  */
 class ANIMARELAXOMETRY_EXPORT B1GMMRelaxometryCostFunction :
-public itk::SingleValuedCostFunction
+public itk::MultipleValuedCostFunction
 {
 public:
     /** Standard class typedefs. */
     typedef B1GMMRelaxometryCostFunction Self;
-    typedef itk::SingleValuedCostFunction Superclass;
+    typedef itk::MultipleValuedCostFunction Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self> ConstPointer;
 
@@ -37,11 +37,10 @@ public:
     typedef std::vector < std::complex <double> > ComplexVectorType;
     typedef std::vector <ComplexVectorType> MatrixType;
 
-    virtual MeasureType GetValue(const ParametersType & parameters) const ITK_OVERRIDE;
-    virtual void GetDerivative(const ParametersType & parameters, DerivativeType & derivative) const ITK_OVERRIDE;
+    virtual MeasureType GetValue(const ParametersType &parameters) const ITK_OVERRIDE;
+    virtual void GetDerivative(const ParametersType &parameters, DerivativeType &derivative) const ITK_OVERRIDE;
 
     itkSetMacro(EchoSpacing, double)
-    itkSetMacro(UseDerivative, bool)
     itkSetMacro(ExcitationFlipAngle, double)
 
     void SetT2RelaxometrySignals(ParametersType &relaxoSignals) {m_T2RelaxometrySignals = relaxoSignals;}
@@ -61,6 +60,8 @@ public:
     {
         return 1;
     }
+
+    unsigned int GetNumberOfValues() const ITK_OVERRIDE;
 
     itkGetMacro(SigmaSquare, double)
     ParametersType &GetOptimalT2Weights() {return m_OptimalT2Weights;}
@@ -86,8 +87,6 @@ protected:
 
     //! Computes maximum likelihood estimates of weights
     void SolveLinearLeastSquares() const;
-
-    void GetDerivativeMatrix(const ParametersType &parameters, DerivativeType &derivative) const;
 
 private:
     B1GMMRelaxometryCostFunction(const Self&); //purposely not implemented
@@ -119,7 +118,7 @@ private:
     mutable ParametersType m_FSignals;
     mutable vnl_matrix <double> m_FMatrixInverseG;
     mutable std::vector <bool> m_CompartmentSwitches;
-    mutable ParametersType m_Residuals;
+    mutable MeasureType m_Residuals;
     mutable vnl_matrix <double> m_SignalAttenuationsJacobian;
     mutable vnl_matrix <double> m_PredictedSignalAttenuations, m_CholeskyMatrix;
     mutable double m_SigmaSquare;
