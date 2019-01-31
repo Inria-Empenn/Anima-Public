@@ -44,7 +44,6 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> t2LowerBoundArg("","low-t2","Lower T2 value (default: 0)",false,0,"T2 lower value",cmd);
     TCLAP::ValueArg<double> t2UpperBoundArg("","up-t2","Upper T2 value (default: 3000)",false,3000,"T2 upper value",cmd);
 
-    TCLAP::SwitchArg b1OnExcAngleArg("B", "b1-exc", "B1 is also applied to excitation angle",cmd,false);
     TCLAP::ValueArg<double> b1ToleranceArg("","b1-tol","B1 tolerance threshold of convergence (default: 1.0e-4)",false,1.0e-4,"B1 tolerance for optimization convergence",cmd);
     TCLAP::ValueArg<double> costToleranceArg("c","cost-tol","Cost tolerance threshold of convergence (default: 1.0e-4)",false,1.0e-4,"Cost tolerance for optimization convergence",cmd);
 
@@ -74,7 +73,6 @@ int main(int argc, char **argv)
     mainFilter->SetEchoSpacing(echoSpacingArg.getValue());
     mainFilter->SetT2FlipAngles(t2FlipAngleArg.getValue() * M_PI / 180.0,numInputs);
     mainFilter->SetT2ExcitationFlipAngle(excitationT2FlipAngleArg.getValue() * M_PI / 180.0);
-    mainFilter->SetB1OnExcitationAngle(b1OnExcAngleArg.isSet());
     mainFilter->SetB1Tolerance(b1ToleranceArg.getValue());
     mainFilter->SetCostTolerance(costToleranceArg.getValue());
     mainFilter->SetConstrainedParameters(constrainArg.isSet());

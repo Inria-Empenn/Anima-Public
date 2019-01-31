@@ -1,4 +1,5 @@
 #pragma once
+#include "animaStimulatedSpinEchoImageFilter.h"
 
 #include <itkImageRegionIterator.h>
 #include <itkImageRegionConstIterator.h>
@@ -29,8 +30,6 @@ StimulatedSpinEchoImageFilter <TImage,TOutputImage>
     m_EchoSpacing = 10;
     m_ExcitationFlipAngle = M_PI / 2.0;
     m_FlipAngle = M_PI;
-
-    m_B1OnExcitationAngle = false;
 }
 
 template <class TImage, class TOutputImage>
@@ -155,11 +154,9 @@ void StimulatedSpinEchoImageFilter <TImage,TOutputImage>
     VectorType outputVector(m_NumberOfEchoes);
 
     anima::EPGSignalSimulator t2SignalSimulator;
-    t2SignalSimulator.SetB1OnExcitationAngle(m_B1OnExcitationAngle);
     t2SignalSimulator.SetNumberOfEchoes(m_NumberOfEchoes);
     t2SignalSimulator.SetEchoSpacing(m_EchoSpacing);
     t2SignalSimulator.SetExcitationFlipAngle(m_ExcitationFlipAngle);
-    t2SignalSimulator.SetFlipAngle(m_FlipAngle);
 
     anima::EPGSignalSimulator::RealVectorType tmpOutputVector;
 
@@ -189,7 +186,7 @@ void StimulatedSpinEchoImageFilter <TImage,TOutputImage>
         double t2Value = inputIteratorT2.Get();
         double m0Value = inputIteratorM0.Get();
 
-        tmpOutputVector = t2SignalSimulator.GetValue(t1Value,t2Value,b1Value,m0Value);
+        tmpOutputVector = t2SignalSimulator.GetValue(t1Value,t2Value,b1Value * m_FlipAngle,m0Value);
 
         for (unsigned int i = 0;i < m_NumberOfEchoes;++i)
             outputVector[i] = tmpOutputVector[i];

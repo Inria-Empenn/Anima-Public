@@ -68,7 +68,6 @@ public:
     itkSetMacro(T2ExcitationFlipAngle, double)
     itkSetMacro(T2IntegrationStep, double)
 
-    itkSetMacro(B1OnExcitationAngle, bool)
     itkSetMacro(B1Tolerance, double)
     itkSetMacro(CostTolerance, double)
     itkSetMacro(ConstrainedParameters, bool)
@@ -108,7 +107,6 @@ protected:
         m_UpperHighT2 = 2100.0;
 
         m_T2ExcitationFlipAngle = M_PI / 6;
-        m_B1OnExcitationAngle = false;
         m_B1Tolerance = 1.0e-4;
         m_CostTolerance = 1.0e-4;
     }
@@ -161,7 +159,6 @@ private:
     std::vector <double> m_T2FlipAngles;
     double m_T2ExcitationFlipAngle;
 
-    bool m_B1OnExcitationAngle;
     double m_B1Tolerance;
     double m_CostTolerance;
 };

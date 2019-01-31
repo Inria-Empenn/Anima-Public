@@ -138,9 +138,7 @@ GammaMixtureT2RelaxometryEstimationImageFilter <TPixelScalarType>
     anima::EPGSignalSimulator epgSimulator;
     epgSimulator.SetEchoSpacing(m_EchoSpacing);
     epgSimulator.SetNumberOfEchoes(numInputs);
-    epgSimulator.SetB1OnExcitationAngle(m_B1OnExcitationAngle);
     epgSimulator.SetExcitationFlipAngle(m_T2ExcitationFlipAngle);
-    epgSimulator.SetFlipAngle(m_T2FlipAngles[0]);
 
     std::vector <anima::EPGSignalSimulator::RealVectorType> epgSignalValues;
 
@@ -151,7 +149,6 @@ GammaMixtureT2RelaxometryEstimationImageFilter <TPixelScalarType>
     cost->SetEchoSpacing(m_EchoSpacing);
     cost->SetExcitationFlipAngle(m_T2ExcitationFlipAngle);
     cost->SetT2FlipAngles(m_T2FlipAngles);
-    cost->SetB1OnExcitationAngle(m_B1OnExcitationAngle);
     cost->SetM0Value(1.0);
 
     cost->SetLowerT2Bound(m_LowerT2Bound);

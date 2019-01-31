@@ -34,8 +34,6 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> excitationT2FlipAngleArg("","t2-ex-flip","Excitation flip angle for T2 (in degrees, default: 90)",false,90,"T2 excitation flip angle",cmd);
     TCLAP::ValueArg<double> t2FlipAngleArg("","t2-flip","All flip angles for T2 (in degrees, default: 180)",false,180,"T2 flip angle",cmd);
     TCLAP::ValueArg<double> backgroundSignalThresholdArg("t","signal-thr","Background signal threshold (default: 10)",false,10,"Background signal threshold",cmd);
-    
-    TCLAP::SwitchArg b1OnExcAngleArg("B", "b1-exc", "B1 is also applied to excitation angle",cmd,false);
 
     TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 	
@@ -79,8 +77,6 @@ int main(int argc, char **argv)
     
     if (maskArg.getValue() != "")
         mainFilter->SetComputationMask(anima::readImage < itk::Image <unsigned char, 3> > (maskArg.getValue()));
-
-    mainFilter->SetB1OnExcitationAngle(b1OnExcAngleArg.isSet());
 
     mainFilter->SetAverageSignalThreshold(backgroundSignalThresholdArg.getValue());
     mainFilter->SetNumberOfThreads(nbpArg.getValue());

@@ -46,7 +46,6 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> t2LowerBoundArg("","low-t2","Lower T2 value (default: 15)",false,15,"T2 lower value",cmd);
     TCLAP::ValueArg<double> t2UpperBoundArg("","up-t2","Upper T2 value (default: 2000)",false,2000,"T2 upper value",cmd);
 
-    TCLAP::SwitchArg b1OnExcAngleArg("B", "b1-exc", "B1 is also applied to excitation angle",cmd,false);
     TCLAP::ValueArg<unsigned int> b1NumOptimizerIterArg("","b1-opt-iter","Maximal number of optimizer iterations (default: 200)",false,200,"Maximal number of optimizer iterations",cmd);
     TCLAP::ValueArg<double> b1OptimizerStopConditionArg("","b1-opt-stop","Optimizer stopping threshold (default: 1.0e-4)",false,1.0e-4,"B1 Optimizer stopping threshold",cmd);
     TCLAP::ValueArg<double> b1OptimizerInitialStepArg("i","b1-opt-init","Optimizer initial step (default: 0.1)",false,0.1,"B1 Optimizer initial step",cmd);
@@ -88,7 +87,6 @@ int main(int argc, char **argv)
     mainFilter->SetEchoSpacing(echoSpacingArg.getValue());
     mainFilter->SetT2FlipAngles(t2FlipAngleArg.getValue() * M_PI / 180.0,numInputs);
     mainFilter->SetT2ExcitationFlipAngle(excitationT2FlipAngleArg.getValue() * M_PI / 180.0);
-    mainFilter->SetB1OnExcitationAngle(b1OnExcAngleArg.isSet());
     mainFilter->SetB1MaximumOptimizerIterations(b1NumOptimizerIterArg.getValue());
     mainFilter->SetB1OptimizerStopCondition(b1OptimizerStopConditionArg.getValue());
     mainFilter->SetB1OptimizerInitialStep(b1OptimizerInitialStepArg.getValue());
@@ -163,7 +161,6 @@ int main(int argc, char **argv)
         secondaryFilter->SetEchoSpacing(echoSpacingArg.getValue());
         secondaryFilter->SetT2FlipAngles(t2FlipAngleArg.getValue() * M_PI / 180.0,numInputs);
         secondaryFilter->SetT2ExcitationFlipAngle(excitationT2FlipAngleArg.getValue() * M_PI / 180.0);
-        secondaryFilter->SetB1OnExcitationAngle(b1OnExcAngleArg.isSet());
         secondaryFilter->SetB1MaximumOptimizerIterations(b1NumOptimizerIterArg.getValue());
         secondaryFilter->SetB1OptimizerStopCondition(b1OptimizerStopConditionArg.getValue());
         secondaryFilter->SetB1OptimizerInitialStep(b1OptimizerInitialStepArg.getValue());

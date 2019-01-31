@@ -46,8 +46,6 @@ public:
     void SetT2Values(std::vector <double> &values) {m_T2Values = values;}
     void SetT2Weights(ParametersType &weights) {m_T2Weights = weights;}
 
-    itkSetMacro(B1OnExcitationAngle, bool)
-
     unsigned int GetNumberOfParameters() const ITK_OVERRIDE
     {
         return 1;
@@ -60,8 +58,6 @@ protected:
         m_M0Value = 1;
 
         m_EchoSpacing = 1;
-
-        m_B1OnExcitationAngle = false;
     }
 
     virtual ~MultiT2EPGRelaxometryCostFunction() {}
@@ -79,7 +75,6 @@ private:
     std::vector <double> m_T2Values;
     ParametersType m_T2Weights;
 
-    bool m_B1OnExcitationAngle;
     double m_T1Value, m_M0Value;
 };
     

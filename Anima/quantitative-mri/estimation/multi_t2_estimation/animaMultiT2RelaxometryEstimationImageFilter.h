@@ -33,10 +33,10 @@ public:
     typedef itk::SmartPointer<const Self>  ConstPointer;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(MultiT2RelaxometryEstimationImageFilter, MaskedImageToImageFilter);
+    itkTypeMacro(MultiT2RelaxometryEstimationImageFilter, MaskedImageToImageFilter)
 
     /** Image typedef support */
     typedef TInputImage  InputImageType;
@@ -60,29 +60,29 @@ public:
 
     typedef anima::NonLocalT2DistributionPatchSearcher <VectorOutputImageType,InputImageType> PatchSearcherType;
 
-    itkSetMacro(NumberOfT2Compartments, unsigned int);
-    itkSetMacro(MyelinThreshold, double);
-    itkSetMacro(LowerT2Bound, double);
-    itkSetMacro(UpperT2Bound, double);
-    itkSetMacro(EchoSpacing, double);
-    itkSetMacro(RegularizationIntensity, double);
+    itkSetMacro(NumberOfT2Compartments, unsigned int)
+    itkSetMacro(MyelinThreshold, double)
+    itkSetMacro(LowerT2Bound, double)
+    itkSetMacro(UpperT2Bound, double)
+    itkSetMacro(EchoSpacing, double)
+    itkSetMacro(RegularizationIntensity, double)
 
     void SetT1Map(InputImageType *map) {m_T1Map = map;}
     InputImageType *GetT1Map() {return m_T1Map;}
 
-    itkSetMacro(NLEstimation, bool);
-    itkSetObjectMacro(InitialB1Map, InputImageType);
-    itkSetObjectMacro(InitialM0Map, InputImageType);
-    itkSetObjectMacro(InitialT2Map, VectorOutputImageType);
-    itkSetMacro(PatchHalfSize, unsigned int);
-    itkSetMacro(SearchNeighborhood, unsigned int);
-    itkSetMacro(SearchStepSize, unsigned int);
-    itkSetMacro(WeightThreshold, double);
-    itkSetMacro(BetaParameter, double);
-    itkSetMacro(MeanMinThreshold, double);
-    itkSetMacro(VarMinThreshold, double);
+    itkSetMacro(NLEstimation, bool)
+    itkSetObjectMacro(InitialB1Map, InputImageType)
+    itkSetObjectMacro(InitialM0Map, InputImageType)
+    itkSetObjectMacro(InitialT2Map, VectorOutputImageType)
+    itkSetMacro(PatchHalfSize, unsigned int)
+    itkSetMacro(SearchNeighborhood, unsigned int)
+    itkSetMacro(SearchStepSize, unsigned int)
+    itkSetMacro(WeightThreshold, double)
+    itkSetMacro(BetaParameter, double)
+    itkSetMacro(MeanMinThreshold, double)
+    itkSetMacro(VarMinThreshold, double)
 
-    itkSetMacro(AverageSignalThreshold, double);
+    itkSetMacro(AverageSignalThreshold, double)
 
     InputImageType *GetM0OutputImage() {return this->GetOutput(0);}
     InputImageType *GetMWFOutputImage() {return this->GetOutput(1);}
@@ -90,12 +90,11 @@ public:
     InputImageType *GetCostOutputImage() {return this->GetOutput(3);}
     VectorOutputImageType *GetT2OutputImage() {return m_T2OutputImage;}
 
-    itkSetMacro(T2ExcitationFlipAngle, double);
-    itkSetMacro(B1OnExcitationAngle, bool);
-    itkSetMacro(B1MaximumOptimizerIterations, unsigned int);
-    itkSetMacro(B1OptimizerStopCondition, double);
-    itkSetMacro(B1OptimizerInitialStep, double);
-    itkSetMacro(B1Tolerance, double);
+    itkSetMacro(T2ExcitationFlipAngle, double)
+    itkSetMacro(B1MaximumOptimizerIterations, unsigned int)
+    itkSetMacro(B1OptimizerStopCondition, double)
+    itkSetMacro(B1OptimizerInitialStep, double)
+    itkSetMacro(B1Tolerance, double)
 
     void SetT2FlipAngles(std::vector <double> & flipAngles) {m_T2FlipAngles = flipAngles;}
     void SetT2FlipAngles(double singleAngle, unsigned int numAngles) {m_T2FlipAngles = std::vector <double> (numAngles,singleAngle);}
@@ -122,7 +121,6 @@ protected:
         m_NLEstimation = false;
 
         m_T2ExcitationFlipAngle = M_PI / 6;
-        m_B1OnExcitationAngle = false;
         m_B1Tolerance = 1.0e-4;
         m_B1MaximumOptimizerIterations = 200;
         m_B1OptimizerStopCondition = 1.0e-4;
@@ -194,7 +192,6 @@ private:
     std::vector <double> m_T2FlipAngles;
     double m_T2ExcitationFlipAngle;
 
-    bool m_B1OnExcitationAngle;
     double m_B1Tolerance;
     double m_B1OptimizerInitialStep;
     double m_B1OptimizerStopCondition;

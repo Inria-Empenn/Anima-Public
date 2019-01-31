@@ -14,13 +14,11 @@ T2EPGRelaxometryCostFunction::GetValue(const ParametersType & parameters) const
     unsigned int numT2Signals = m_T2RelaxometrySignals.size();
 
     anima::EPGSignalSimulator t2SignalSimulator;
-    t2SignalSimulator.SetB1OnExcitationAngle(m_B1OnExcitationAngle);
     t2SignalSimulator.SetNumberOfEchoes(m_T2RelaxometrySignals.size());
     t2SignalSimulator.SetEchoSpacing(m_T2EchoSpacing);
     t2SignalSimulator.SetExcitationFlipAngle(m_T2ExcitationFlipAngle);
-    t2SignalSimulator.SetFlipAngle(m_T2FlipAngles[0]);
 
-    anima::EPGSignalSimulator::RealVectorType simulatedT2Values = t2SignalSimulator.GetValue(m_T1Value,m_T2Value,m_B1Value,1.0);
+    anima::EPGSignalSimulator::RealVectorType simulatedT2Values = t2SignalSimulator.GetValue(m_T1Value,m_T2Value,m_B1Value * m_T2FlipAngles[0],1.0);
 
     double sumSignals = 0;
     double sumSimulatedSignals = 0;
