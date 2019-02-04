@@ -2,6 +2,7 @@
 #include <animaBaseTensorTools.h>
 #include <limits>
 #include <vnl_qr.h>
+#include <animaQRPivotDecomposition.h>
 
 namespace anima
 {
@@ -40,10 +41,16 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     ParametersType addonVector(nbParams);
     ParametersType dValues(nbParams);
 
-    double nuValue = 2.0;
     // Be careful here: we consider the problem of the form |f(x)|^2, J is thus the Jacobian of f
     // If f is itself y - g(x), then J = - J_g which is what is on the wikipedia page
     m_CostFunction->GetDerivative(parameters,derivativeMatrix);
+    derivativeMatrix = derivativeMatrix.transpose();
+
+    unsigned int rank = 0;
+    std::vector <unsigned int> pivotVector(nbParams);
+    //anima::QRPivotDecomposition(derivativeMatrix,pivotVector,rank);
+
+/*
     bool derivativeCheck = false;
     for (unsigned int i = 0;i < nbParams;++i)
     {
@@ -198,6 +205,7 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     }
 
     this->SetCurrentPosition(oldParameters);
+*/
 }
 
 double BoundedLevenbergMarquardtOptimizer::EvaluateCostFunctionAtParameters(ParametersType &parameters, ParametersType &scaledParameters,

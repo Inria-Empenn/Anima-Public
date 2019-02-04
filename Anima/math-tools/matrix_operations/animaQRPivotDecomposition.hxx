@@ -5,7 +5,8 @@
 namespace anima
 {
 
-template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType> &aMatrix, std::vector <unsigned int> &pivotVector, unsigned int &rank)
+template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType> &aMatrix, std::vector <unsigned int> &transposePivotVector,
+                                                         std::vector <ScalarType> &houseBetaValues, unsigned int &rank)
 {
     unsigned int m = aMatrix.rows();
     unsigned int n = aMatrix.cols();
@@ -13,9 +14,14 @@ template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType>
     if (m < n)
         return;
 
-    pivotVector.resize(n);
+    transposePivotVector.resize(n);
+    houseBetaValues.resize(n);
+
     for (unsigned int i = 0;i < n;++i)
-        pivotVector[i] = i;
+    {
+        transposePivotVector[i] = i;
+        houseBetaValues[i] = 0.0;
+    }
 
     std::vector <double> cVector(n,0.0);
     for (unsigned int i = 0;i < n;++i)
@@ -38,15 +44,16 @@ template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType>
 
     std::vector <double> vVector;
     std::vector <double> housedVector;
-    double beta = 0.0;
     vnl_matrix <double> workMatrixHouse(m,m);
     vnl_matrix <double> workMatrix(m,n);
 
-    while (tau > 0)
+    while (tau > 1.0e-16)
     {
         ++rank;
         unsigned int r = rank - 1;
-        pivotVector[r] = k;
+        unsigned int tmpIndex = transposePivotVector[k];
+        transposePivotVector[k] = transposePivotVector[r];
+        transposePivotVector[r] = tmpIndex;
         double tmp = cVector[k];
         cVector[k] = cVector[r];
         cVector[r] = tmp;
@@ -58,11 +65,11 @@ template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType>
             aMatrix(i,r) = tmp;
         }
 
-        housedVector.resize(m - r + 1);
+        housedVector.resize(m - r);
         for (unsigned int i = r;i < m;++i)
             housedVector[i - r] = aMatrix(i,r);
 
-        ComputeHouseholderVector(housedVector,vVector,beta);
+        ComputeHouseholderVector(housedVector,vVector,houseBetaValues[r]);
 
         for (unsigned int i = r;i < m;++i)
         {
@@ -70,11 +77,11 @@ template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType>
                 workMatrix(i,j) = aMatrix(i,j);
         }
 
-        for (unsigned int i = 0;i < m - r + 1;++i)
+        for (unsigned int i = 0;i < m - r;++i)
         {
-            for (unsigned int j = i;j < m - r + 1;++j)
+            for (unsigned int j = i;j < m - r;++j)
             {
-                workMatrixHouse(i,j) = - beta * vVector[i] * vVector[j];
+                workMatrixHouse(i,j) = - houseBetaValues[r] * vVector[i] * vVector[j];
                 if (i != j)
                     workMatrixHouse(j,i) = workMatrixHouse(i,j);
                 else
@@ -82,16 +89,16 @@ template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType>
             }
         }
 
-        for (unsigned int i = 0;i < m - r + 1;++i)
+        for (unsigned int i = r;i < m;++i)
         {
-            unsigned int iIndex = i + r;
+            unsigned int iIndex = i - r;
             for (unsigned int j = r;j < n;++j)
             {
-                aMatrix(iIndex,j) = 0.0;
-                for (unsigned int l = 0;l < m - r + 1;++l)
+                aMatrix(i,j) = 0.0;
+                for (unsigned int l = r;l < m;++l)
                 {
-                    unsigned int lIndex = l + r;
-                    aMatrix(iIndex,j) += workMatrixHouse(i,l) * workMatrix(lIndex,j);
+                    unsigned int lIndex = l - r;
+                    aMatrix(i,j) += workMatrixHouse(iIndex,lIndex) * workMatrix(l,j);
                 }
             }
         }
@@ -108,15 +115,50 @@ template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType>
         {
             k = rank;
             tau = cVector[rank];
+
+            for (unsigned int i = rank + 1;i < n;++i)
+            {
+                if (tau < cVector[i] - 1.0e-16)
+                {
+                    k = i;
+                    tau = cVector[i];
+                }
+            }
+        }
+    }
+}
+
+template <typename ScalarType> void GetQMatrixFromQRDecomposition(vnl_matrix <ScalarType> &qrMatrix, vnl_matrix <ScalarType> &qMatrix,
+                                                                  std::vector <ScalarType> &houseBetaValues, unsigned int rank)
+{
+    unsigned int m = qrMatrix.rows();
+    unsigned int n = qrMatrix.cols();
+
+    if (m < n)
+        return;
+
+    qMatrix.set_size(m,m);
+    qMatrix.set_identity();
+
+    std::vector <ScalarType> workVector(m,0.0);
+    for (int j = rank - 1;j >= 0;--j)
+    {
+        // Compute v^T Q
+        for (unsigned int i = j;i < m;++i)
+        {
+            workVector[i] = qMatrix(j,i);
+            for (unsigned int k = j + 1;k < m;++k)
+                workVector[i] += qrMatrix(k,j) * qMatrix(k,i);
         }
 
-        for (unsigned int i = rank + 1;i < n;++i)
+        // Q -= beta * v * workVector
+        for (unsigned int i = j;i < m;++i)
+            qMatrix(j,i) -= houseBetaValues[j] * workVector[i];
+
+        for (unsigned int i = j + 1;i < m;++i)
         {
-            if (tau < cVector[i])
-            {
-                k = i;
-                tau = cVector[i];
-            }
+            for (unsigned int k = j;k < m;++k)
+                qMatrix(i,k) -= houseBetaValues[j] * qrMatrix(i,j) * workVector[k];
         }
     }
 }
