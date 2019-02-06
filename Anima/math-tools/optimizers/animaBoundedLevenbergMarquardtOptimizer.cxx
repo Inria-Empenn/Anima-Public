@@ -20,13 +20,6 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     m_WorkLowerBounds.set_size(m_LowerBounds.size());
     m_WorkUpperBounds.set_size(m_UpperBounds.size());
 
-    if (m_ScalesInitialized)
-    {
-        const ScalesType &scales = this->GetScales();
-        for (unsigned int i = 0;i < nbParams;++i)
-            parameters[i] *= scales[i];
-    }
-
     m_CurrentValue = this->EvaluateCostFunctionAtParameters(parameters,workParameters,m_ResidualValues);
     unsigned int numResiduals = m_ResidualValues.size();
 
@@ -35,22 +28,19 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     bool rejectedStep = false;
 
     DerivativeType derivativeMatrix(nbParams,numResiduals), workMatrix(numResiduals + nbParams, nbParams);
+    DerivativeType derivativeMatrixCopy;
     ParametersType oldParameters = parameters;
     ParametersType workVector(numResiduals + nbParams);
     workVector.Fill(0.0);
-    ParametersType addonVector(nbParams);
+    ParametersType addonVector(nbParams), addonVectorPermutted(nbParams);
     ParametersType dValues(nbParams);
 
     // Be careful here: we consider the problem of the form |f(x)|^2, J is thus the Jacobian of f
     // If f is itself y - g(x), then J = - J_g which is what is on the wikipedia page
     m_CostFunction->GetDerivative(parameters,derivativeMatrix);
     derivativeMatrix = derivativeMatrix.transpose();
+    derivativeMatrixCopy = derivativeMatrix;
 
-    unsigned int rank = 0;
-    std::vector <unsigned int> pivotVector(nbParams);
-    //anima::QRPivotDecomposition(derivativeMatrix,pivotVector,rank);
-
-/*
     bool derivativeCheck = false;
     for (unsigned int i = 0;i < nbParams;++i)
     {
@@ -77,12 +67,32 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     {
         double normValue = 0.0;
         for (unsigned int j = 0;j < numResiduals;++j)
-            normValue += derivativeMatrix(i,j) * derivativeMatrix(i,j);
+            normValue += derivativeMatrix(j,i) * derivativeMatrix(j,i);
 
         normValue = std::sqrt(normValue);
         if (normValue <= 0.0)
             normValue = 1.0;
         dValues[i] = normValue;
+    }
+
+    unsigned int rank = 0;
+    double nuValue = 2.0;
+    std::vector <unsigned int> transposePivotVector(nbParams);
+    std::vector <double> qrBetaValues(nbParams);
+    ParametersType qtResiduals = m_ResidualValues;
+    ParametersType wResiduals(numResiduals + nbParams);
+    anima::QRPivotDecomposition(derivativeMatrix,transposePivotVector,qrBetaValues,rank);
+    anima::GetQtBFromQRDecomposition(derivativeMatrix,qtResiduals,qrBetaValues,rank);
+
+    wResiduals.fill(0.0);
+    for (unsigned int i = 0;i < numResiduals;++i)
+        wResiduals[i] = - qtResiduals[i];
+
+    workMatrix.fill(0.0);
+    for (unsigned int i = 0;i < rank;++i)
+    {
+        for (unsigned int j = 0;j < nbParams;++j)
+            workMatrix(i,j) = derivativeMatrix(i,j);
     }
 
     while (!stopConditionReached)
@@ -91,29 +101,23 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
 
         // Solve (JtJ + lambda d^2) x = - Jt r
         for (unsigned int i = 0;i < nbParams;++i)
+            workMatrix(numResiduals + i,i) = std::sqrt(m_LambdaParameter) * dValues[transposePivotVector[transposePivotVector[i]]];
+
+        addonVectorPermutted = vnl_qr <double> (workMatrix).solve(wResiduals);
+        for (unsigned int i = 0;i < nbParams;++i)
         {
-            for (unsigned int j = 0;j < numResiduals;++j)
-                workMatrix(j,i) = derivativeMatrix(i,j);
-
-            workMatrix(numResiduals + i,i) = std::sqrt(m_LambdaParameter) * dValues[i];
+            unsigned int indexPermutted = transposePivotVector[i];
+            addonVector[indexPermutted] = addonVectorPermutted[i];
         }
-
-        for (unsigned int i = 0;i < numResiduals;++i)
-            workVector[i] = - m_ResidualValues[i];
-
-        addonVector = vnl_qr <double> (workMatrix).solve(workVector);
 
         parameters = oldParameters;
         parameters += addonVector;
 
         if (m_LowerBounds.size() == nbParams)
         {
-            const ScalesType &scales = this->GetScales();
             for (unsigned int i = 0;i < nbParams;++i)
             {
                 double lowBound = m_LowerBounds[i];
-                if (m_ScalesInitialized)
-                    lowBound *= scales[i];
 
                 if (parameters[i] < lowBound)
                 {
@@ -125,12 +129,9 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
 
         if (m_UpperBounds.size() == nbParams)
         {
-            const ScalesType &scales = this->GetScales();
             for (unsigned int i = 0;i < nbParams;++i)
             {
                 double upBound = m_UpperBounds[i];
-                if (m_ScalesInitialized)
-                    upBound *= scales[i];
 
                 if (parameters[i] > upBound)
                 {
@@ -142,27 +143,27 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
 
         // Check acceptability of step
         double tentativeNewCostValue = this->EvaluateCostFunctionAtParameters(parameters,workParameters,newResidualValues);
-        double acceptRatio = m_CurrentValue - tentativeNewCostValue;
+        double acceptRatio = 1.0 - (tentativeNewCostValue / m_CurrentValue) * (tentativeNewCostValue / m_CurrentValue);
 
-        double LDiff = m_CurrentValue;
-        double addonCost = 0.0;
+        double jpNorm = 0.0;
+        double dpValue = 0.0;
         for (unsigned int i = 0;i < numResiduals;++i)
         {
-            double jacAddonValue = 0.0;
             for (unsigned int j = 0;j < nbParams;++j)
-                jacAddonValue += derivativeMatrix(j,i) * addonVector[j];
+            {
+                double jpAddonValue = derivativeMatrixCopy(i,j) * addonVector[j];
+                jpNorm += jpAddonValue * jpAddonValue;
+            }
 
-            addonCost += jacAddonValue * (jacAddonValue + 2.0 * m_ResidualValues[i]);
+            dpValue += dValues[i] * addonVector[i] * dValues[i] * addonVector[i];
         }
 
-        LDiff -= addonCost;
+        double denomAcceptRatio = jpNorm / (m_CurrentValue * m_CurrentValue);
+        denomAcceptRatio += 2.0 * m_LambdaParameter * dpValue / (m_CurrentValue * m_CurrentValue);
+
+        acceptRatio /= denomAcceptRatio;
 
         rejectedStep = (acceptRatio <= 0.0);
-
-        if (LDiff != 0.0)
-            acceptRatio /= LDiff;
-        else
-            acceptRatio = 0.0;
 
         if (!rejectedStep)
         {
@@ -181,8 +182,25 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
                 dValues[i] = std::max(dValues[i], normValue);
             }
 
+            derivativeMatrix = derivativeMatrix.transpose();
+            derivativeMatrixCopy = derivativeMatrix;
+
+            qtResiduals = m_ResidualValues;
+            anima::QRPivotDecomposition(derivativeMatrix,transposePivotVector,qrBetaValues,rank);
+            anima::GetQtBFromQRDecomposition(derivativeMatrix,qtResiduals,qrBetaValues,rank);
+
+            wResiduals.fill(0.0);
+            for (unsigned int i = 0;i < numResiduals;++i)
+                wResiduals[i] = - qtResiduals[i];
+
+            workMatrix.fill(0.0);
+            for (unsigned int i = 0;i < rank;++i)
+            {
+                for (unsigned int j = 0;j < nbParams;++j)
+                    workMatrix(i,j) = derivativeMatrix(i,j);
+            }
+
             m_LambdaParameter /= 3.0;
-            //m_LambdaParameter *= std::max(1.0 / 3.0, 1.0 - std::pow(2.0 * acceptRatio - 1,3.0));
             nuValue = 2.0;
         }
         else
@@ -196,16 +214,7 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
                                                          derivativeMatrix);
     }
 
-    // we scale the parameters down if scales are defined, parameters optimal in the end are oldParameters
-    if (m_ScalesInitialized)
-    {
-        const ScalesType &invScales = this->GetInverseScales();
-        for (unsigned int i = 0;i < nbParams;++i)
-            oldParameters[i] *= invScales[i];
-    }
-
     this->SetCurrentPosition(oldParameters);
-*/
 }
 
 double BoundedLevenbergMarquardtOptimizer::EvaluateCostFunctionAtParameters(ParametersType &parameters, ParametersType &scaledParameters,
@@ -213,12 +222,6 @@ double BoundedLevenbergMarquardtOptimizer::EvaluateCostFunctionAtParameters(Para
 {
     unsigned int nbParams = parameters.size();
     scaledParameters = parameters;
-    if (m_ScalesInitialized)
-    {
-        const ScalesType & invScales = this->GetInverseScales();
-        for (unsigned int i = 0;i < nbParams;++i)
-            scaledParameters[i] *= invScales[i];
-    }
 
     residualValues = m_CostFunction->GetValue(scaledParameters);
 

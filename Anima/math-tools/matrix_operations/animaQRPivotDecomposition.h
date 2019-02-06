@@ -14,10 +14,10 @@ template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType>
                                                          std::vector <ScalarType> &houseBetaValues, unsigned int &rank);
 
 /**
- * From the results of QR decomposition, recompose Q from the obtained matrix in QRPivotDecomposition and beta values
+ * From the results of QR decomposition, compute QtB from the obtained matrix in QRPivotDecomposition, beta values and provided vector B
  */
-template <typename ScalarType> void GetQMatrixFromQRDecomposition(vnl_matrix <ScalarType> &qrMatrix, vnl_matrix <ScalarType> &qMatrix,
-                                                                  std::vector <ScalarType> &houseBetaValues, unsigned int rank);
+template <typename ScalarType> void GetQtBFromQRDecomposition(vnl_matrix <ScalarType> &qrMatrix, vnl_vector <ScalarType> &bVector,
+                                                              std::vector <ScalarType> &houseBetaValues, unsigned int rank);
 
 } // end namespace anima
 
