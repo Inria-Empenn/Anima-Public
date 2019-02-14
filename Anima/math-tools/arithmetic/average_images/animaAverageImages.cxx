@@ -2,6 +2,7 @@
 #include <itkImageRegionIterator.h>
 #include <itkMultiplyImageFilter.h>
 #include <itkDivideImageFilter.h>
+#include <itkMaskImageFilter.h>
 
 #include <tclap/CmdLine.h>
 
@@ -189,7 +190,7 @@ int main(int argc, char **argv)
 
         if (weightsIn.is_open())
             weightsIn.close();
-		
+
         if (tmpSumMasks.IsNotNull())
 		{
             DivideFilterType::Pointer divideFilter = DivideFilterType::New();
@@ -197,7 +198,13 @@ int main(int argc, char **argv)
             divideFilter->SetInput2(tmpSumMasks);
             divideFilter->Update();
 
-            tmpOutput = divideFilter->GetOutput();
+            typedef itk::MaskImageFilter <floatImageType, floatImageType, floatImageType> MaskFilterType;
+            MaskFilterType::Pointer maskFilter = MaskFilterType::New();
+            maskFilter->SetInput(divideFilter->GetOutput());
+            maskFilter->SetMaskImage(tmpSumMasks);
+            maskFilter->Update();
+
+            tmpOutput = maskFilter->GetOutput();
             tmpOutput->DisconnectPipeline();
 		}
 		else
@@ -345,7 +352,13 @@ int main(int argc, char **argv)
             divideFilter->SetInput2(tmpSumMasks);
             divideFilter->Update();
 
-            outputData = divideFilter->GetOutput();
+            typedef itk::MaskImageFilter <VectorImageType, floatImageType, VectorImageType> MaskFilterType;
+            MaskFilterType::Pointer maskFilter = MaskFilterType::New();
+            maskFilter->SetInput(divideFilter->GetOutput());
+            maskFilter->SetMaskImage(tmpSumMasks);
+            maskFilter->Update();
+
+            outputData = maskFilter->GetOutput();
             outputData->DisconnectPipeline();
         }
         else
