@@ -58,6 +58,7 @@ protected:
         m_ValueTolerance = 1e-8;
         m_GradientTolerance = 1e-5;
         m_LambdaParameter = 1.0e-8;
+        m_DeltaParameter = 0.0;
 
         m_CurrentValue = 0.0;
     }
@@ -67,6 +68,7 @@ protected:
     double EvaluateCostFunctionAtParameters(ParametersType &parameters, ParametersType &scaledParameters,
                                             MeasureType &residualValues);
 
+    void UpdateLambdaParameter(DerivativeType &derivative);
     bool CheckConditions(unsigned int numIterations, ParametersType &lastTestedParams,
                          ParametersType &newParams, DerivativeType &newDerivative);
 
@@ -78,6 +80,7 @@ private:
     double m_GradientTolerance;
 
     double m_LambdaParameter;
+    double m_DeltaParameter;
     double m_CurrentValue;
 
     anima::CholeskyDecomposition m_CholeskySolver;
