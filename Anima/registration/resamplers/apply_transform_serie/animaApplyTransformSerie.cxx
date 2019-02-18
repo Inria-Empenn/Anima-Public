@@ -10,7 +10,6 @@
 #include <itkImageRegionIterator.h>
 
 #include <itkExtractImageFilter.h>
-#include <itkLinearInterpolateImageFunction.h>
 #include <animaResampleImageFilter.h>
 #include <animaTransformSeriesReader.h>
 #include <animaReadWriteFunctions.h>
