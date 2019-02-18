@@ -58,9 +58,11 @@ int main(int argc, char **argv)
         double outRes = (i == 0) * xArg.getValue() + (i == 1) * yArg.getValue() + (i == 2) * zArg.getValue();
 
         double spacingRatio = spacing[i] / outRes;
+        double oldSize = size[i];
         size[i] = std::floor(size[i] * spacingRatio);
-        origin[i] += 0.5 * (outRes - spacing[i]);
-        spacing[i] = outRes;
+        double trueOutRes = oldSize * spacing[i] / size[i];
+        origin[i] += 0.5 * (trueOutRes - spacing[i]);
+        spacing[i] = trueOutRes;
     }
 
     resampler->SetSize(size);
