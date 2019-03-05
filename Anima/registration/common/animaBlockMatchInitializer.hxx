@@ -33,16 +33,6 @@ BlockMatchingInitializer<PixelType,NDimensions>
 }
 
 template <class PixelType, unsigned int NDimensions>
-typename BlockMatchingInitializer<PixelType,NDimensions>::WeightImagePointer &
-BlockMatchingInitializer<PixelType,NDimensions>
-::GetBlockDamWeights()
-{
-    this->Update();
-
-    return m_BlockDamWeights;
-}
-
-template <class PixelType, unsigned int NDimensions>
 std::vector <unsigned int> &
 BlockMatchingInitializer<PixelType,NDimensions>::GetMaskStartingIndexes()
 {
@@ -162,28 +152,6 @@ void BlockMatchingInitializer<PixelType,NDimensions>
 
 template <class PixelType, unsigned int NDimensions>
 void BlockMatchingInitializer<PixelType,NDimensions>
-::SetComputeOuterDam(bool val)
-{
-    if (val != m_ComputeOuterDam)
-    {
-        m_ComputeOuterDam = val;
-        m_UpToDate = false;
-    }
-}
-
-template <class PixelType, unsigned int NDimensions>
-void BlockMatchingInitializer<PixelType,NDimensions>
-::SetDamDistance(double val)
-{
-    if (val != m_DamDistance)
-    {
-        m_DamDistance = val;
-        m_UpToDate = false;
-    }
-}
-
-template <class PixelType, unsigned int NDimensions>
-void BlockMatchingInitializer<PixelType,NDimensions>
 ::Update()
 {
     if (m_GenerationMasks.size() == 0)
@@ -202,20 +170,6 @@ void BlockMatchingInitializer<PixelType,NDimensions>
     if (m_UpToDate)
         return;
 
-    if (m_ComputeOuterDam)
-    {
-        m_BlockDamWeights = WeightImageType::New();
-
-        m_BlockDamWeights->Initialize();
-        m_BlockDamWeights->SetRegions (this->GetFirstReferenceImage()->GetLargestPossibleRegion());
-        m_BlockDamWeights->SetSpacing (this->GetFirstReferenceImage()->GetSpacing());
-        m_BlockDamWeights->SetOrigin (this->GetFirstReferenceImage()->GetOrigin());
-        m_BlockDamWeights->SetDirection (this->GetFirstReferenceImage()->GetDirection());
-        m_BlockDamWeights->Allocate();
-
-        m_BlockDamWeights->FillBuffer(0);
-    }
-
     m_Output.clear();
     m_OutputPositions.clear();
     m_MaskStartingIndexes.resize(m_GenerationMasks.size());
@@ -224,9 +178,6 @@ void BlockMatchingInitializer<PixelType,NDimensions>
         m_MaskStartingIndexes[i] = m_Output.size();
         this->ComputeBlocksOnGenerationMask(i);
     }
-
-    if (m_ComputeOuterDam)
-        this->ComputeOuterDamFromBlocks();
 
     m_UpToDate = true;
 }
@@ -471,61 +422,6 @@ void BlockMatchingInitializer<PixelType,NDimensions>
 
         continueLoop = this->ProgressCounter(positionCounter,workStr->nb_blocks[threadId]);
     }
-}
-
-template <class PixelType, unsigned int NDimensions>
-void BlockMatchingInitializer<PixelType,NDimensions>
-::ComputeOuterDamFromBlocks()
-{
-    IndexType posIndex;
-    for (unsigned int i = 0;i < m_Output.size();++i)
-    {
-        for (unsigned int j = 0;j < NDimensions;++j)
-            posIndex[j] = (unsigned int)std::round(m_Output[i].GetIndex()[j] + (m_Output[i].GetSize()[j] - 1) / 2.0);
-
-        m_BlockDamWeights->SetPixel(posIndex,1);
-    }
-
-    typedef itk::BinaryBallStructuringElement <unsigned short, NDimensions> BallElementType;
-    typedef itk::GrayscaleDilateImageFilter <WeightImageType,WeightImageType,BallElementType> DilateFilterType;
-    typename DilateFilterType::Pointer dilateFilter = DilateFilterType::New();
-
-    dilateFilter->SetInput(m_BlockDamWeights);
-
-    BallElementType dilateBall;
-    // Rule of thumb for dilation of block mask
-    unsigned int radius = std::floor(m_BlockSpacing + (m_BlockSize - 1.0) / 2.0);
-    dilateBall.SetRadius(radius);
-    dilateBall.CreateStructuringElement();
-
-    dilateFilter->SetKernel(dilateBall);
-    dilateFilter->SetNumberOfThreads(this->GetNumberOfThreads());
-
-    dilateFilter->Update();
-
-    typedef itk::DanielssonDistanceMapImageFilter <WeightImageType, WeightImageType> DistanceMapFilterType;
-    typedef typename DistanceMapFilterType::Pointer DistanceMapFilterPointer;
-
-    DistanceMapFilterPointer distMapFilter = DistanceMapFilterType::New();
-    distMapFilter->SetInput(dilateFilter->GetOutput());
-    distMapFilter->SetNumberOfThreads(this->GetNumberOfThreads());
-    distMapFilter->InputIsBinaryOn();
-    distMapFilter->SetSquaredDistance(true);
-    distMapFilter->SetUseImageSpacing(true);
-
-    distMapFilter->Update();
-
-    typedef itk::ExpNegativeImageFilter <WeightImageType,WeightImageType> WeightFilterType;
-    typename WeightFilterType::Pointer weightFilter = WeightFilterType::New();
-
-    weightFilter->SetInput(distMapFilter->GetOutput());
-    weightFilter->SetFactor(1.0 / (m_DamDistance * m_DamDistance));
-    weightFilter->SetNumberOfThreads(this->GetNumberOfThreads());
-
-    weightFilter->Update();
-
-    m_BlockDamWeights = weightFilter->GetOutput();
-    m_BlockDamWeights->DisconnectPipeline();
 }
 
 template <class PixelType, unsigned int NDimensions>

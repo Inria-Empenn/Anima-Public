@@ -148,12 +148,6 @@ public:
 
     unsigned int GetExponentiationOrder() {return m_ExponentiationOrder;}
     void SetExponentiationOrder(unsigned int order) {m_ExponentiationOrder = order;}
-
-    bool GetUseTransformationDam() {return m_UseTransformationDam;}
-    void SetUseTransformationDam(bool useTransformationDam) {m_UseTransformationDam = useTransformationDam;}
-
-    double GetDamDistance() {return m_DamDistance;}
-    void SetDamDistance(double damDistance) {m_DamDistance = damDistance;}
     
     bool GetWeightedAgregation() {return m_WeightedAgregation;}
     void SetWeightedAgregation(bool WeightedAgregation) {m_WeightedAgregation=WeightedAgregation;}
@@ -210,9 +204,6 @@ private:
     double m_MEstimateConvergenceThreshold;
     double m_NeighborhoodApproximation;
     unsigned int m_ExponentiationOrder;
-
-    bool m_UseTransformationDam;
-    double m_DamDistance;
     
     unsigned int m_NumberOfPyramidLevels;
     unsigned int m_LastPyramidLevel;

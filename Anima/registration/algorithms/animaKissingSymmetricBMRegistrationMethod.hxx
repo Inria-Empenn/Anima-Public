@@ -31,23 +31,6 @@ KissingSymmetricBMRegistrationMethod <TInputImageType>
 
     this->GetAgregator()->SetInputRegions(this->GetBlockMatcher()->GetBlockRegions());
     this->GetAgregator()->SetInputOrigins(this->GetBlockMatcher()->GetBlockPositions());
-
-    if (this->GetAgregator()->GetOutputTransformType() == AgregatorType::SVF)
-    {
-        typedef anima::BalooSVFTransformAgregator<InputImageType::ImageDimension> SVFAgregatorType;
-        SVFAgregatorType *tmpAgreg = dynamic_cast <SVFAgregatorType *> (this->GetAgregator());
-
-        if (tmpAgreg)
-            tmpAgreg->SetBlockDamWeights(this->GetBlockMatcher()->GetBlockDamWeights());
-        else
-        {
-            typedef anima::DenseSVFTransformAgregator<InputImageType::ImageDimension> SVFAgregatorType;
-            SVFAgregatorType *tmpDenseAgreg = dynamic_cast <SVFAgregatorType *> (this->GetAgregator());
-
-            tmpDenseAgreg->SetBlockDamWeights(this->GetBlockMatcher()->GetBlockDamWeights());
-        }
-    }
-
     this->GetAgregator()->SetInputWeights(this->GetBlockMatcher()->GetBlockWeights());
     this->GetAgregator()->SetInputTransforms(this->GetBlockMatcher()->GetBlockTransformPointers());
 
@@ -67,23 +50,6 @@ KissingSymmetricBMRegistrationMethod <TInputImageType>
 
     this->GetAgregator()->SetInputRegions(this->GetBlockMatcher()->GetBlockRegions());
     this->GetAgregator()->SetInputOrigins(this->GetBlockMatcher()->GetBlockPositions());
-
-    if (this->GetAgregator()->GetOutputTransformType() == AgregatorType::SVF)
-    {
-        typedef anima::BalooSVFTransformAgregator<InputImageType::ImageDimension> SVFAgregatorType;
-        SVFAgregatorType *tmpAgreg = dynamic_cast <SVFAgregatorType *> (this->GetAgregator());
-
-        if (tmpAgreg)
-            tmpAgreg->SetBlockDamWeights(this->GetBlockMatcher()->GetBlockDamWeights());
-        else
-        {
-            typedef anima::DenseSVFTransformAgregator<InputImageType::ImageDimension> SVFAgregatorType;
-            SVFAgregatorType *tmpDenseAgreg = dynamic_cast <SVFAgregatorType *> (this->GetAgregator());
-
-            tmpDenseAgreg->SetBlockDamWeights(this->GetBlockMatcher()->GetBlockDamWeights());
-        }
-    }
-
     this->GetAgregator()->SetInputWeights(this->GetBlockMatcher()->GetBlockWeights());
     this->GetAgregator()->SetInputTransforms(this->GetBlockMatcher()->GetBlockTransformPointers());
 

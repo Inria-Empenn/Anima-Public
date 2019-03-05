@@ -1,4 +1,4 @@
-#include <itkSignedDanielssonDistanceMapImageFilter.h>
+#include <itkSignedMaurerDistanceMapImageFilter.h>
 
 #include <animaReadWriteFunctions.h>
 #include <tclap/CmdLine.h>
@@ -25,16 +25,18 @@ int main(int argc, char **argv)
     typedef itk::Image <unsigned short,3> ImageType;
     typedef itk::Image <float,3> FloatImageType;
 
-    typedef itk::SignedDanielssonDistanceMapImageFilter <ImageType,FloatImageType> MainFilterType;
+    typedef itk::SignedMaurerDistanceMapImageFilter <ImageType,FloatImageType> MainFilterType;
 
     MainFilterType::Pointer mainFilter = MainFilterType::New();
     mainFilter->SetInput(anima::readImage <ImageType> (inArg.getValue()));
+    mainFilter->SetSquaredDistance(false);
+    mainFilter->SetBackgroundValue(0);
     
     if (!invArg.isSet())
         mainFilter->InsideIsPositiveOn();
     else
         mainFilter->InsideIsPositiveOff();
-    
+
     mainFilter->UseImageSpacingOn();
     mainFilter->Update();
     

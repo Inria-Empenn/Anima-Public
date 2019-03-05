@@ -207,12 +207,6 @@ public:
     unsigned int GetExponentiationOrder() {return m_ExponentiationOrder;}
     void SetExponentiationOrder(unsigned int order) {m_ExponentiationOrder = order;}
 
-    bool GetUseTransformationDam() {return m_UseTransformationDam;}
-    void SetUseTransformationDam(bool useTransformationDam) {m_UseTransformationDam = useTransformationDam;}
-
-    double GetDamDistance() {return m_DamDistance;}
-    void SetDamDistance(double damDistance) {m_DamDistance = damDistance;}
-
     unsigned int GetNumberOfPyramidLevels() {return m_NumberOfPyramidLevels;}
     void SetNumberOfPyramidLevels(unsigned int NumberOfPyramidLevels) {m_NumberOfPyramidLevels=NumberOfPyramidLevels;}
 
@@ -278,9 +272,6 @@ private:
     double m_NeighborhoodApproximation;
     unsigned int m_BCHCompositionOrder;
     unsigned int m_ExponentiationOrder;
-
-    bool m_UseTransformationDam;
-    double m_DamDistance;
 
     unsigned int m_NumberOfPyramidLevels;
     unsigned int m_LastPyramidLevel;

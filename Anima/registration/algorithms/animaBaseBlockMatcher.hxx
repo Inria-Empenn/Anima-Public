@@ -20,8 +20,6 @@ BaseBlockMatcher <TInputImageType>
     m_BlockSize = 5;
     m_BlockSpacing = 2;
 
-    m_UseTransformationDam = false;
-    m_DamDistance = 6;
     m_BlockVarianceThreshold = 25;
 
     m_SearchRadius = 2;
@@ -60,12 +58,8 @@ BaseBlockMatcher <TInputImageType>
 
     initPtr->SetRequestedRegion(m_ReferenceImage->GetLargestPossibleRegion());
 
-    initPtr->SetComputeOuterDam(m_UseTransformationDam);
-    initPtr->SetDamDistance(m_DamDistance);
-
     m_BlockRegions = initPtr->GetOutput();
     m_BlockPositions = initPtr->GetOutputPositions();
-    m_BlockDamWeights = initPtr->GetBlockDamWeights();
 
     if (m_Verbose)
         std::cout << "Generated " << m_BlockRegions.size() << " blocks..." << std::endl;

@@ -66,12 +66,8 @@ MCMBlockMatcher<TInputImageType>
 
     initPtr->SetRequestedRegion(this->GetReferenceImage()->GetLargestPossibleRegion());
 
-    initPtr->SetComputeOuterDam(this->GetUseTransformationDam());
-    initPtr->SetDamDistance(this->GetDamDistance());
-
     this->SetBlockRegions(initPtr->GetOutput());
     this->SetBlockPositions(initPtr->GetOutputPositions());
-    this->SetBlockDamWeights(initPtr->GetBlockDamWeights());
 
     std::cout << "Generated " << this->GetBlockRegions().size() << " blocks..." << std::endl;
 

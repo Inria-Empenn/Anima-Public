@@ -108,39 +108,55 @@ BeforeThreadedGenerateData ()
     OutputImageRegionType tmpRegion;
     InputIndexType centerIndex, curIndex;
     InputPointType curPosition, centerPosition;
+    m_NeighborhoodHalfSizes.resize(NDimensions);
 
     for (unsigned int i = 0;i < NDimensions;++i)
     {
         tmpRegion.SetIndex(i,0);
-        tmpRegion.SetSize(i,2 * m_NeighborhoodHalfSize + 1);
-        centerIndex[i] = m_NeighborhoodHalfSize;
+        m_NeighborhoodHalfSizes[i] = std::ceil(3.0 * m_FluidSigma / this->GetInput()->GetSpacing()[i]);
+        tmpRegion.SetSize(i,2 * m_NeighborhoodHalfSizes[i] + 1);
+        centerIndex[i] = m_NeighborhoodHalfSizes[i];
     }
 
-    m_InternalSpatialWeight = WeightImageType::New();
+    typename WeightImageType::Pointer internalSpatialWeight = WeightImageType::New();
 
-    m_InternalSpatialWeight->Initialize();
-    m_InternalSpatialWeight->SetRegions (tmpRegion);
-    m_InternalSpatialWeight->SetSpacing (this->GetInput()->GetSpacing());
-    m_InternalSpatialWeight->SetOrigin (this->GetInput()->GetOrigin());
-    m_InternalSpatialWeight->SetDirection (this->GetInput()->GetDirection());
-    m_InternalSpatialWeight->Allocate();
+    internalSpatialWeight->Initialize();
+    internalSpatialWeight->SetRegions (tmpRegion);
+    internalSpatialWeight->SetSpacing (this->GetInput()->GetSpacing());
+    internalSpatialWeight->SetOrigin (this->GetInput()->GetOrigin());
+    internalSpatialWeight->SetDirection (this->GetInput()->GetDirection());
+    internalSpatialWeight->Allocate();
 
-    WeightIteratorWithIndexType spatialWeightItr(m_InternalSpatialWeight,tmpRegion);
-    m_InternalSpatialWeight->TransformIndexToPhysicalPoint(centerIndex,centerPosition);
+    WeightIteratorWithIndexType spatialWeightItr(internalSpatialWeight,tmpRegion);
+    internalSpatialWeight->TransformIndexToPhysicalPoint(centerIndex,centerPosition);
+
+    m_InternalSpatialKernelWeights.clear();
+    m_InternalSpatialKernelIndexes.clear();
 
     while (!spatialWeightItr.IsAtEnd())
     {
         curIndex = spatialWeightItr.GetIndex();
-        m_InternalSpatialWeight->TransformIndexToPhysicalPoint(curIndex,curPosition);
+        internalSpatialWeight->TransformIndexToPhysicalPoint(curIndex,curPosition);
 
         double centerDist = 0;
         for (unsigned int i = 0;i < NDimensions;++i)
             centerDist += (centerPosition[i] - curPosition[i]) * (centerPosition[i] - curPosition[i]);
 
-        if (centerDist < m_SqrDistanceBoundary)
-            spatialWeightItr.Set(std::exp(- centerDist / (2.0 * m_FluidSigma * m_FluidSigma)));
-        else
-            spatialWeightItr.Set(0);
+        if (centerDist > 9.0 * m_FluidSigma * m_FluidSigma)
+        {
+            ++spatialWeightItr;
+            continue;
+        }
+
+        centerDist = std::sqrt(centerDist) / (3.0 * m_FluidSigma);
+        // Wendland function phi_{3,1}
+        double wendlandFunctionValue = std::pow((1.0 - centerDist), 4) * (4.0 * centerDist + 1.0);
+
+        if (wendlandFunctionValue > 0.05)
+        {
+            m_InternalSpatialKernelWeights.push_back(wendlandFunctionValue);
+            m_InternalSpatialKernelIndexes.push_back(curIndex);
+        }
 
         ++spatialWeightItr;
     }
@@ -157,84 +173,60 @@ ThreadedGenerateData (const OutputImageRegionType &outputRegionForThread, itk::T
 
     OutRegionIteratorType outIterator(this->GetOutput(), outputRegionForThread);
 
-    unsigned int numMaxEltsRegion = 1;
-    for (unsigned int i = 0;i < NDimensions;++i)
-        numMaxEltsRegion *= (2 * m_NeighborhoodHalfSize + 1);
+    unsigned int numMaxEltsRegion = m_InternalSpatialKernelIndexes.size();
 
     std::vector <double> weightsVector(numMaxEltsRegion);
     std::vector <double> deltaVector(numMaxEltsRegion);
     std::vector <InputPixelType> logTrsfsVector(numMaxEltsRegion);
 
-    InputIndexType curIndex, centerIndex, spatialIndex;
-    std::vector <int> diffSpatialIndex(NDimensions,0);
+    InputIndexType centerIndex;
 
-    OutputImageRegionType tmpRegion;
     OutputImageRegionType largestRegion = this->GetOutput()->GetLargestPossibleRegion();
     std::vector <unsigned int> largestBound(NDimensions,0);
     for (unsigned int i = 0;i < NDimensions;++i)
         largestBound[i] = largestRegion.GetIndex()[i] + largestRegion.GetSize()[i] - 1;
 
+    InputIndexType inputIndex;
     OutputPixelType outValue, outValueOld;
-    WeightIteratorType damWeightsItr;
-    if (m_BlockDamWeights)
-        damWeightsItr = WeightIteratorType(m_BlockDamWeights,outputRegionForThread);
+    unsigned int numKernelWeights = m_InternalSpatialKernelWeights.size();
 
     while (!outIterator.IsAtEnd())
     {
         outValue.Fill(0);
-        if (m_BlockDamWeights)
-        {
-            if (damWeightsItr.Get() <= 0)
-            {
-                outIterator.Set(outValue);
-                ++outIterator;
-                ++damWeightsItr;
-                continue;
-            }
-        }
-
         centerIndex = outIterator.GetIndex();
-
-        for (unsigned int i = 0;i < NDimensions;++i)
-        {
-            diffSpatialIndex[i] = m_NeighborhoodHalfSize - centerIndex[i];
-            tmpRegion.SetIndex(i,std::max(0,- diffSpatialIndex[i]));
-            tmpRegion.SetSize(i,std::min(largestBound[i], (unsigned int)centerIndex[i] + m_NeighborhoodHalfSize) - tmpRegion.GetIndex()[i] + 1);
-        }
-
-        WeightIteratorWithIndexType weightIterator(m_WeightImage,tmpRegion);
 
         double sumAbsoluteWeights = 0;
         unsigned int pos = 0;
-        double spatialWeight = 0;
 
-        while (!weightIterator.IsAtEnd())
+        for (unsigned int i = 0;i < numKernelWeights;++i)
         {
-            if (weightIterator.Value() <= 0)
+            bool indexOk = true;
+            for (unsigned int j = 0;j < NDimensions;++j)
             {
-                ++weightIterator;
-                continue;
+                int testIndex = m_InternalSpatialKernelIndexes[i][j] + centerIndex[j] - m_NeighborhoodHalfSizes[j];
+                if ((testIndex < 0)||(testIndex > largestBound[j]))
+                {
+                    indexOk = false;
+                    break;
+                }
+
+                inputIndex[j] = testIndex;
             }
 
-            curIndex = weightIterator.GetIndex();
-            for (unsigned int i = 0;i < NDimensions;++i)
-                spatialIndex[i] = curIndex[i] + diffSpatialIndex[i];
+            double weight = 0.0;
 
-            spatialWeight = m_InternalSpatialWeight->GetPixel(spatialIndex);
-            if (spatialWeight <= 0)
+            if (indexOk)
+                weight = m_WeightImage->GetPixel(inputIndex);
+
+            if (weight > 0.0)
             {
-                ++weightIterator;
-                continue;
+                logTrsfsVector[pos] = this->GetInput()->GetPixel(inputIndex);
+                weightsVector[pos] = weight;
+                sumAbsoluteWeights += weightsVector[pos];
+
+                weightsVector[pos] *= m_InternalSpatialKernelWeights[i];
+                ++pos;
             }
-
-            logTrsfsVector[pos] = this->GetInput()->GetPixel(curIndex);
-            weightsVector[pos] = weightIterator.Value();
-            sumAbsoluteWeights += weightsVector[pos];
-
-            weightsVector[pos] *= spatialWeight;
-
-            ++pos;
-            ++weightIterator;
         }
 
         unsigned int numEltsRegion = pos;
@@ -243,8 +235,6 @@ ThreadedGenerateData (const OutputImageRegionType &outputRegionForThread, itk::T
         {
             outIterator.Set(outValue);
             ++outIterator;
-            if (m_BlockDamWeights)
-                ++damWeightsItr;
             continue;
         }
 
@@ -287,12 +277,6 @@ ThreadedGenerateData (const OutputImageRegionType &outputRegionForThread, itk::T
                     deltaVector[i] = std::exp(- residual / (m_AverageResidualValue * m_MEstimateFactor));
                 }
             }
-        }
-
-        if (m_BlockDamWeights)
-        {
-            outValue *= damWeightsItr.Get();
-            ++damWeightsItr;
         }
 
         outIterator.Set(outValue);

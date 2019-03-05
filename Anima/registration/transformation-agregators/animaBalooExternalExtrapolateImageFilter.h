@@ -1,24 +1,24 @@
 #pragma once
 
 #include <iostream>
-#include <itkImageToImageFilter.h>
+#include <itkInPlaceImageFilter.h>
 #include <itkImage.h>
 
 namespace anima
 {
 
 template <class TScalarType, unsigned int NDegreesOfFreedom, unsigned int NDimensions = 3>
-class MEstimateSVFImageFilter :
-public itk::ImageToImageFilter< itk::Image < itk::Vector <TScalarType,NDegreesOfFreedom>, NDimensions > , itk::Image < itk::Vector <TScalarType,NDegreesOfFreedom>, NDimensions > >
+class BalooExternalExtrapolateImageFilter :
+public itk::InPlaceImageFilter < itk::Image < itk::Vector <TScalarType,NDegreesOfFreedom>, NDimensions > >
 {
 public:
     /** Standard class typedefs. */
-    typedef MEstimateSVFImageFilter Self;
+    typedef BalooExternalExtrapolateImageFilter Self;
     typedef itk::Image <TScalarType, NDimensions> WeightImageType;
     typedef typename WeightImageType::Pointer WeightImagePointer;
     typedef itk::Image < itk::Vector <TScalarType,NDegreesOfFreedom>, NDimensions > TInputImage;
     typedef itk::Image < itk::Vector <TScalarType,NDegreesOfFreedom>, NDimensions > TOutputImage;
-    typedef itk::ImageToImageFilter <TInputImage, TOutputImage> Superclass;
+    typedef itk::InPlaceImageFilter <TInputImage, TOutputImage> Superclass;
     typedef itk::SmartPointer <Self> Pointer;
     typedef itk::SmartPointer <const Self> ConstPointer;
 
@@ -26,7 +26,7 @@ public:
     itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(MEstimateSVFImageFilter, ImageToImageFilter)
+    itkTypeMacro(BalooExternalExtrapolateImageFilter, InPlaceImageFilter)
 
     typedef typename TOutputImage::PixelType OutputPixelType;
     typedef typename TInputImage::PixelType InputPixelType;
@@ -41,48 +41,26 @@ public:
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
     itkSetMacro(WeightImage, WeightImagePointer)
-
-    itkSetMacro(FluidSigma, double)
-    itkSetMacro(MEstimateFactor, double)
-    void SetDistanceBoundary (double num) {m_SqrDistanceBoundary = num * num;}
-
-    itkSetMacro(ConvergenceThreshold, double)
-    itkSetMacro(MaxNumIterations, unsigned int)
+    itkSetMacro(ExtrapolationSigma, double)
 
 protected:
-    MEstimateSVFImageFilter()
+    BalooExternalExtrapolateImageFilter()
     {
-        m_FluidSigma = 4.0;
-        m_MEstimateFactor = 1.0;
-        m_AverageResidualValue = 1.0;
-        m_SqrDistanceBoundary = 9.0 * m_FluidSigma * m_FluidSigma;
+        this->SetInPlace(true);
+        m_ExtrapolationSigma = 3.0;
     }
 
-    virtual ~MEstimateSVFImageFilter() {}
+    virtual ~BalooExternalExtrapolateImageFilter() {}
 
     void BeforeThreadedGenerateData() ITK_OVERRIDE;
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(MEstimateSVFImageFilter);
-
-    bool checkConvergenceThreshold (OutputPixelType &outValOld, OutputPixelType &outVal);
-
-    WeightImagePointer m_WeightImage;
-
-    double m_FluidSigma, m_MEstimateFactor;
-    double m_SqrDistanceBoundary;
-    std::vector <unsigned int> m_NeighborhoodHalfSizes;
-    unsigned int m_MaxNumIterations;
-    double m_ConvergenceThreshold;
-
-    std::vector <double> m_InternalSpatialKernelWeights;
-    std::vector <InputIndexType> m_InternalSpatialKernelIndexes;
-
-    //Internal parameter
-    double m_AverageResidualValue;
+    ITK_DISALLOW_COPY_AND_ASSIGN(BalooExternalExtrapolateImageFilter);
+    WeightImagePointer m_WeightImage, m_DistanceImage;
+    double m_ExtrapolationSigma;
 };
 
 } // end namespace anima
 
-#include "animaMEstimateSVFImageFilter.hxx"
+#include "animaBalooExternalExtrapolateImageFilter.hxx"

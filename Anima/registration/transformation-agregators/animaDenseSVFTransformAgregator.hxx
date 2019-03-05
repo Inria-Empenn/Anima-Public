@@ -8,7 +8,6 @@
 #include <animaMatrixLogExp.h>
 #include <itkMultiThreader.h>
 #include <itkTimeProbe.h>
-#include <itkImageFileWriter.h>
 
 namespace anima
 {
@@ -134,10 +133,8 @@ estimateSVFFromTranslations()
     fieldSmoother->SetInput(velocityField);
     fieldSmoother->SetWeightImage(weights);
     fieldSmoother->SetFluidSigma(m_ExtrapolationSigma);
-    fieldSmoother->SetNeighborhoodHalfSize(m_NeighborhoodHalfSize);
     fieldSmoother->SetDistanceBoundary(m_DistanceBoundary);
     fieldSmoother->SetMEstimateFactor(m_OutlierRejectionSigma);
-    fieldSmoother->SetBlockDamWeights(m_BlockDamWeights);
 
     fieldSmoother->SetConvergenceThreshold(m_MEstimateConvergenceThreshold);
     fieldSmoother->SetMaxNumIterations(100);
@@ -220,10 +217,8 @@ estimateSVFFromRigidTransforms()
     fieldSmoother->SetInput(rigidField);
     fieldSmoother->SetWeightImage(weights);
     fieldSmoother->SetFluidSigma(m_ExtrapolationSigma);
-    fieldSmoother->SetNeighborhoodHalfSize(m_NeighborhoodHalfSize);
     fieldSmoother->SetDistanceBoundary(m_DistanceBoundary);
     fieldSmoother->SetMEstimateFactor(m_OutlierRejectionSigma);
-    fieldSmoother->SetBlockDamWeights(m_BlockDamWeights);
 
     fieldSmoother->SetConvergenceThreshold(m_MEstimateConvergenceThreshold);
     fieldSmoother->SetMaxNumIterations(100);
@@ -385,10 +380,8 @@ estimateSVFFromAffineTransforms()
     fieldSmoother->SetInput(affineField);
     fieldSmoother->SetWeightImage(weights);
     fieldSmoother->SetFluidSigma(m_ExtrapolationSigma);
-    fieldSmoother->SetNeighborhoodHalfSize(m_NeighborhoodHalfSize);
     fieldSmoother->SetDistanceBoundary(m_DistanceBoundary);
     fieldSmoother->SetMEstimateFactor(m_OutlierRejectionSigma);
-    fieldSmoother->SetBlockDamWeights(m_BlockDamWeights);
 
     fieldSmoother->SetConvergenceThreshold(m_MEstimateConvergenceThreshold);
     fieldSmoother->SetMaxNumIterations(100);

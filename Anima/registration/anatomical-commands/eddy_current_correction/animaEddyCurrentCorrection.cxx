@@ -218,7 +218,6 @@ int main(int argc, const char** argv)
         nonLinearMatcher->SetExtrapolationSigma(extrapolationSigmaArg.getValue());
         nonLinearMatcher->SetElasticSigma(elasticSigmaArg.getValue());
         nonLinearMatcher->SetOutlierSigma(outlierSigmaArg.getValue());
-        nonLinearMatcher->SetUseTransformationDam(false);
         nonLinearMatcher->SetNumberOfPyramidLevels(numPyramidLevelsArg.getValue());
         nonLinearMatcher->SetLastPyramidLevel(lastPyramidLevelArg.getValue());
         nonLinearMatcher->SetVerbose(false);

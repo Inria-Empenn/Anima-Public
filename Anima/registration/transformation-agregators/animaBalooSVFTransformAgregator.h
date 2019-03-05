@@ -47,9 +47,6 @@ public:
     void SetNumberOfThreads(unsigned int num) {m_NumberOfThreads = num;}
     unsigned int GetNumberOfThreads() {return m_NumberOfThreads;}
 
-    void SetBlockDamWeights(WeightImagePointer &damWeights) {m_BlockDamWeights = damWeights;}
-    WeightImagePointer &GetBlockDamWeights() {return m_BlockDamWeights;}
-
     template <class TInputImageType> void SetGeometryInformation(const TInputImageType *geomImage)
     {
         if (geomImage == NULL)
@@ -71,23 +68,20 @@ protected:
     VelocityFieldDirectionType m_Direction;
 
     unsigned int m_NumberOfThreads;
-    WeightImagePointer m_BlockDamWeights;
 
 private:
     void estimateSVFFromTranslations();
     void estimateSVFFromRigidTransforms();
     void estimateSVFFromAffineTransforms();
 
+    template <unsigned int NDegreesOfFreedom>
+    void
+    filterInputs(WeightImageType *weights, typename itk::Image < itk::Vector <ScalarType, NDegreesOfFreedom>, NDimensions >::Pointer &output,
+                 std::vector < itk::Vector <ScalarType, NDegreesOfFreedom> > &curTrsfs,
+                 std::vector < typename itk::Image < itk::Vector <ScalarType, NDegreesOfFreedom>, NDimensions >::IndexType > &posIndexes);
+
     double m_ZeroWeight;
 };
-
-template <class ScalarType, unsigned int NDimensions, unsigned int NDegreesOfFreedom>
-void
-filterInputs(itk::Image <ScalarType,NDimensions> *weights,
-             typename itk::Image < itk::Vector <ScalarType, NDegreesOfFreedom>, NDimensions >::Pointer &output,
-             std::vector < itk::Vector <ScalarType, NDegreesOfFreedom> > &curTrsfs,
-             std::vector < typename itk::Image < itk::Vector <ScalarType, NDegreesOfFreedom>, NDimensions >::IndexType > &posIndexes,
-             BalooSVFTransformAgregator <NDimensions> *filterPtr, double zeroWeight);
 
 } // end of namespace anima
 

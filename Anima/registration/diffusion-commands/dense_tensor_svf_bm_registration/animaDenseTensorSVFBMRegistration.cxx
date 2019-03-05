@@ -58,9 +58,6 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<unsigned int> bchOrderArg("b","bch-order","BCH composition order (default: 1)",false,1,"BCH order",cmd);
     TCLAP::ValueArg<unsigned int> expOrderArg("e","exp-order","Order of field exponentiation approximation (in between 0 and 1, default: 0)",false,0,"exponentiation order",cmd);
 
-    TCLAP::SwitchArg useTransformDamArg("D","use-dam", "Activate transformation dam to force identity far away from any blocks", cmd, false);
-    TCLAP::ValueArg<double> damDistanceArg("","dd","Distance of the deformation dam (crushes extrapolated displacements away from anything on a dd pixels distance, default: 3.0)",false,3.0,"identity dam distance",cmd);
-
     TCLAP::ValueArg<unsigned int> numPyramidLevelsArg("p","pyr","Number of pyramid levels (default: 3)",false,3,"number of pyramid levels",cmd);
     TCLAP::ValueArg<unsigned int> lastPyramidLevelArg("l","last-level","Index of the last pyramid level explored (default: 0)",false,0,"last pyramid level",cmd);
     TCLAP::ValueArg<unsigned int> numThreadsArg("T","threads","Number of execution threads (default: 0 = all cores)",false,0,"number of threads",cmd);
@@ -141,8 +138,6 @@ int main(int ac, const char** av)
     matcher->SetNeighborhoodApproximation(neighborhoodApproximationArg.getValue());
     matcher->SetBCHCompositionOrder(bchOrderArg.getValue());
     matcher->SetExponentiationOrder(expOrderArg.getValue());
-    matcher->SetUseTransformationDam(useTransformDamArg.isSet());
-    matcher->SetDamDistance(damDistanceArg.getValue());
     matcher->SetNumberOfPyramidLevels( numPyramidLevelsArg.getValue() );
     matcher->SetLastPyramidLevel( lastPyramidLevelArg.getValue() );
 
