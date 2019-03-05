@@ -61,12 +61,6 @@ public:
     itkGetMacro(BlockSpacing, unsigned int)
     itkGetMacro(BlockSize, unsigned int)
 
-    void SetComputeOuterDam(bool val);
-    itkGetMacro(ComputeOuterDam, bool)
-
-    void SetDamDistance(double val);
-    itkGetMacro(DamDistance, double)
-
     void clearGenerationMasks() {m_GenerationMasks.clear();}
     void AddGenerationMask(MaskImageType *mask);
 
@@ -85,7 +79,6 @@ public:
     std::vector <unsigned int> &GetMaskStartingIndexes();
 
     std::vector <PointType> &GetOutputPositions();
-    WeightImagePointer &GetBlockDamWeights();
 
     struct BlockGeneratorThreadStruct
     {
@@ -115,9 +108,6 @@ protected:
         m_OrientedModelVarianceThreshold = 0.0;
 
         m_PercentageKept = 0.8;
-
-        m_ComputeOuterDam = false;
-        m_DamDistance = 4;
         m_GenerationMasks.clear();
 
         m_UpToDate = false;
@@ -126,7 +116,6 @@ protected:
     virtual ~BlockMatchingInitializer() {}
 
     void ComputeBlocksOnGenerationMask(unsigned int maskIndex);
-    void ComputeOuterDamFromBlocks();
 
     virtual void InitializeThreading(unsigned int maskIndex, BlockGeneratorThreadStruct *&workStr);
 
@@ -157,11 +146,6 @@ private:
     double m_ScalarVarianceThreshold;
     double m_OrientedModelVarianceThreshold;
     double m_PercentageKept;
-
-    bool m_ComputeOuterDam;
-    //! Distance from blocks to the dam
-    double m_DamDistance;
-    WeightImagePointer m_BlockDamWeights;
 
     ImageRegionType m_RequestedRegion;
 

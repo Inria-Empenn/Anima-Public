@@ -52,8 +52,6 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::PyramidalDisto
     m_MEstimateConvergenceThreshold = 0.01;
     m_NeighborhoodApproximation = 2.5;
     m_ExponentiationOrder = 1;
-    m_UseTransformationDam = true;
-    m_DamDistance = 2.5;
     m_NumberOfPyramidLevels = 3;
     m_LastPyramidLevel = 0;
     m_PercentageKept = 0.8;
@@ -192,8 +190,6 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
         mainMatcher->SetBlockSize(GetBlockSize());
         mainMatcher->SetBlockSpacing(GetBlockSpacing());
         mainMatcher->SetBlockVarianceThreshold(GetStDevThreshold() * GetStDevThreshold());
-        mainMatcher->SetUseTransformationDam(m_UseTransformationDam);
-        mainMatcher->SetDamDistance(m_DamDistance * meanSpacing / 2.0);
 
         bmreg->SetBlockMatcher(mainMatcher);
 

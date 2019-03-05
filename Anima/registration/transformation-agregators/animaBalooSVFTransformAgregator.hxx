@@ -2,12 +2,12 @@
 #include "animaBalooSVFTransformAgregator.h"
 
 #include <animaSmoothingRecursiveYvvGaussianImageFilter.h>
-
 #include <animaLogRigid3DTransform.h>
 #include <animaDirectionScaleSkewTransform.h>
+#include <animaBalooExternalExtrapolateImageFilter.h>
 
 #include <animaMatrixLogExp.h>
-#include <itkMultiThreader.h>
+#include <itkTimeProbe.h>
 
 namespace anima
 {
@@ -124,7 +124,7 @@ estimateSVFFromTranslations()
         weights->SetPixel(posIndexes[i],tmpWeight);
     }
 
-    anima::filterInputs<ScalarType,NDimensions,NDimensions>(weights,velocityField,curDisps,posIndexes,this,m_ZeroWeight);
+    this->filterInputs<NDimensions>(weights,velocityField,curDisps,posIndexes);
 
     // Create the final transform
     typename BaseOutputTransformType::Pointer resultTransform = BaseOutputTransformType::New();
@@ -194,7 +194,7 @@ estimateSVFFromRigidTransforms()
         weights->SetPixel(posIndexes[i],tmpWeight);
     }
 
-    anima::filterInputs<ScalarType,NDimensions,NDegreesFreedom>(weights,rigidField,logVectors,posIndexes,this,m_ZeroWeight);
+    this->filterInputs<NDegreesFreedom>(weights,rigidField,logVectors,posIndexes);
 
     VelocityFieldPointer velocityField = VelocityFieldType::New();
     velocityField->Initialize();
@@ -340,7 +340,7 @@ estimateSVFFromAffineTransforms()
         weights->SetPixel(posIndexes[i],tmpWeight);
     }
 
-    anima::filterInputs<ScalarType,NDimensions,NDegreesFreedom>(weights,affineField,logVectors,posIndexes,this,m_ZeroWeight);
+    this->filterInputs<NDegreesFreedom>(weights,affineField,logVectors,posIndexes);
 
     VelocityFieldPointer velocityField = VelocityFieldType::New();
     velocityField->Initialize();
@@ -392,17 +392,13 @@ estimateSVFFromAffineTransforms()
     this->SetOutput(resultTransform);
 }
 
-//---------------------------------------------------------------------------------------------
-// global filterInputs funtion
-//---------------------------------------------------------------------------------------------
-
-template <class ScalarType, unsigned int NDimensions, unsigned int NDegreesOfFreedom>
+template <unsigned int NDimensions>
+template <unsigned int NDegreesOfFreedom>
 void
-filterInputs(itk::Image <ScalarType,NDimensions> *weights,
-             typename itk::Image < itk::Vector <ScalarType, NDegreesOfFreedom>, NDimensions >::Pointer &output,
+BalooSVFTransformAgregator <NDimensions>::
+filterInputs(WeightImageType *weights, typename itk::Image < itk::Vector <ScalarType, NDegreesOfFreedom>, NDimensions >::Pointer &output,
              std::vector < itk::Vector <ScalarType, NDegreesOfFreedom> > &curTrsfs,
-             std::vector < typename itk::Image < itk::Vector <ScalarType, NDegreesOfFreedom>, NDimensions >::IndexType > &posIndexes,
-             BalooSVFTransformAgregator <NDimensions> *filterPtr, double zeroWeight)
+             std::vector < typename itk::Image < itk::Vector <ScalarType, NDegreesOfFreedom>, NDimensions >::IndexType > &posIndexes)
 {
     typedef itk::Image < itk::Vector <ScalarType, NDegreesOfFreedom>, NDimensions > FieldType;
     typedef itk::Vector <ScalarType, NDegreesOfFreedom> FieldPixelType;
@@ -416,8 +412,8 @@ filterInputs(itk::Image <ScalarType,NDimensions> *weights,
     typename WeightSmootherType::Pointer weightSmooth = WeightSmootherType::New();
 
     weightSmooth->SetInput(weights);
-    weightSmooth->SetSigma(filterPtr->GetExtrapolationSigma());
-    weightSmooth->SetNumberOfThreads(filterPtr->GetNumberOfThreads());
+    weightSmooth->SetSigma(m_ExtrapolationSigma);
+    weightSmooth->SetNumberOfThreads(m_NumberOfThreads);
 
     weightSmooth->Update();
 
@@ -429,8 +425,8 @@ filterInputs(itk::Image <ScalarType,NDimensions> *weights,
     typename SVFSmoothingFilterType::Pointer smootherPtr = SVFSmoothingFilterType::New();
 
     smootherPtr->SetInput(output);
-    smootherPtr->SetSigma(filterPtr->GetExtrapolationSigma());
-    smootherPtr->SetNumberOfThreads(filterPtr->GetNumberOfThreads());
+    smootherPtr->SetSigma(m_ExtrapolationSigma);
+    smootherPtr->SetNumberOfThreads(m_NumberOfThreads);
 
     smootherPtr->Update();
 
@@ -441,7 +437,7 @@ filterInputs(itk::Image <ScalarType,NDimensions> *weights,
     // Now remove outliers
     FieldPixelType curTrsf;
 
-    unsigned int nbPts = filterPtr->GetInputRegions().size();
+    unsigned int nbPts = this->GetInputRegions().size();
     std::vector < double > residuals(nbPts);
     double averageResidual = 0, varResidual = 0;
     for (unsigned int i = 0;i < nbPts;++i)
@@ -474,18 +470,18 @@ filterInputs(itk::Image <ScalarType,NDimensions> *weights,
 
     for (unsigned int i = 0;i < nbPts;++i)
     {
-        if (residuals[i] > averageResidual + filterPtr->GetOutlierRejectionSigma() * varResidual)
+        if (residuals[i] > averageResidual + m_OutlierRejectionSigma * varResidual)
         {
             output->SetPixel(posIndexes[i],zeroTrsf);
-            weights->SetPixel(posIndexes[i],zeroWeight);
+            weights->SetPixel(posIndexes[i],m_ZeroWeight);
         }
     }
 
     weightSmooth = WeightSmootherType::New();
 
     weightSmooth->SetInput(weights);
-    weightSmooth->SetSigma(filterPtr->GetExtrapolationSigma());
-    weightSmooth->SetNumberOfThreads(filterPtr->GetNumberOfThreads());
+    weightSmooth->SetSigma(m_ExtrapolationSigma);
+    weightSmooth->SetNumberOfThreads(m_NumberOfThreads);
 
     weightSmooth->Update();
 
@@ -495,44 +491,24 @@ filterInputs(itk::Image <ScalarType,NDimensions> *weights,
     smootherPtr = SVFSmoothingFilterType::New();
 
     smootherPtr->SetInput(output);
-    smootherPtr->SetSigma(filterPtr->GetExtrapolationSigma());
-    smootherPtr->SetNumberOfThreads(filterPtr->GetNumberOfThreads());
+    smootherPtr->SetSigma(m_ExtrapolationSigma);
+    smootherPtr->SetNumberOfThreads(m_NumberOfThreads);
 
     smootherPtr->Update();
 
     output = smootherPtr->GetOutput();
     output->DisconnectPipeline();
 
-    typename WeightImageType::RegionType largestRegion = weights->GetLargestPossibleRegion();
-    itk::ImageRegionIterator < FieldType > svfIterator = itk::ImageRegionIterator < FieldType > (output,largestRegion);
-    itk::ImageRegionConstIterator <WeightImageType> weightItr(smoothedWeights,largestRegion);
-    itk::ImageRegionConstIterator <WeightImageType> damWeightsItr;
+    typedef anima::BalooExternalExtrapolateImageFilter <ScalarType, NDegreesOfFreedom, NDimensions> ExtrapolateFilterType;
+    typename ExtrapolateFilterType::Pointer extrapolateFilter = ExtrapolateFilterType::New();
+    extrapolateFilter->SetInput(output);
+    extrapolateFilter->SetExtrapolationSigma(m_ExtrapolationSigma);
+    extrapolateFilter->SetNumberOfThreads(m_NumberOfThreads);
+    extrapolateFilter->SetWeightImage(smoothedWeights);
+    extrapolateFilter->Update();
 
-    typename WeightImageType::Pointer blockDamWeights = filterPtr->GetBlockDamWeights();
-    if (blockDamWeights)
-        damWeightsItr = itk::ImageRegionConstIterator <WeightImageType>(blockDamWeights,largestRegion);
-
-    while (!svfIterator.IsAtEnd())
-    {
-        double damWeight = 1.0;
-        if (blockDamWeights)
-        {
-            damWeight = damWeightsItr.Get();
-            ++damWeightsItr;
-        }
-
-        if ((weightItr.Value() > 0) && (damWeight > 0))
-        {
-            curTrsf = svfIterator.Get();
-            curTrsf *= damWeight / weightItr.Value();
-            svfIterator.Set(curTrsf);
-        }
-        else
-            svfIterator.Set(zeroTrsf);
-
-        ++weightItr;
-        ++svfIterator;
-    }
+    output = extrapolateFilter->GetOutput();
+    output->DisconnectPipeline();
 }
 
 } // end of namespace anima

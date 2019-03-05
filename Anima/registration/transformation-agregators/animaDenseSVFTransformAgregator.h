@@ -48,8 +48,6 @@ public:
     void SetDistanceBoundary(double num) {m_DistanceBoundary = num;}
     void SetMEstimateConvergenceThreshold(double num) {m_MEstimateConvergenceThreshold = num;}
 
-    void SetBlockDamWeights(WeightImagePointer &blocksDamWeights) {m_BlockDamWeights = blocksDamWeights;}
-
     template <class TInputImageType> void SetGeometryInformation(const TInputImageType *geomImage)
     {
         if (geomImage == NULL)
@@ -75,7 +73,6 @@ protected:
     VelocityFieldDirectionType m_Direction;
 
     unsigned int m_NumberOfThreads;
-    WeightImagePointer m_BlockDamWeights;
 
 private:
     void estimateSVFFromTranslations();

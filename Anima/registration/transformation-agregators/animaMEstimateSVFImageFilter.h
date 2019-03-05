@@ -41,11 +41,9 @@ public:
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
     itkSetMacro(WeightImage, WeightImagePointer)
-    itkSetMacro(BlockDamWeights, WeightImagePointer)
 
     itkSetMacro(FluidSigma, double)
     itkSetMacro(MEstimateFactor, double)
-    itkSetMacro(NeighborhoodHalfSize, unsigned int)
     void SetDistanceBoundary (double num) {m_SqrDistanceBoundary = num * num;}
 
     itkSetMacro(ConvergenceThreshold, double)
@@ -57,7 +55,6 @@ protected:
         m_FluidSigma = 4.0;
         m_MEstimateFactor = 1.0;
         m_AverageResidualValue = 1.0;
-        m_NeighborhoodHalfSize = (unsigned int)std::floor(3.0 * m_FluidSigma);
         m_SqrDistanceBoundary = 9.0 * m_FluidSigma * m_FluidSigma;
     }
 
@@ -71,14 +68,16 @@ private:
 
     bool checkConvergenceThreshold (OutputPixelType &outValOld, OutputPixelType &outVal);
 
-    WeightImagePointer m_WeightImage, m_InternalSpatialWeight;
-    WeightImagePointer m_BlockDamWeights;
+    WeightImagePointer m_WeightImage;
 
     double m_FluidSigma, m_MEstimateFactor;
     double m_SqrDistanceBoundary;
-    unsigned int m_NeighborhoodHalfSize;
+    std::vector <unsigned int> m_NeighborhoodHalfSizes;
     unsigned int m_MaxNumIterations;
     double m_ConvergenceThreshold;
+
+    std::vector <double> m_InternalSpatialKernelWeights;
+    std::vector <InputIndexType> m_InternalSpatialKernelIndexes;
 
     //Internal parameter
     double m_AverageResidualValue;

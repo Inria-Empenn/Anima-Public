@@ -29,8 +29,6 @@ public:
 
     typedef anima::BaseTransformAgregator<TInputImageType::ImageDimension> AgregatorType;
     typedef typename AgregatorType::InternalScalarType InternalScalarType;
-    typedef itk::Image <InternalScalarType,TInputImageType::ImageDimension> DamWeightsImageType;
-    typedef typename DamWeightsImageType::Pointer DamWeightsImagePointer;
     typedef typename AgregatorType::BaseInputTransformType BaseInputTransformType;
     typedef typename BaseInputTransformType::Pointer BaseInputTransformPointer;
 
@@ -67,12 +65,6 @@ public:
     void SetBlockSpacing(unsigned int val) {m_BlockSpacing = val;}
     unsigned int GetBlockSpacing() {return m_BlockSpacing;}
 
-    void SetUseTransformationDam(bool val) {m_UseTransformationDam = val;}
-    bool GetUseTransformationDam() {return m_UseTransformationDam;}
-
-    void SetDamDistance(double val) {m_DamDistance = val;}
-    double GetDamDistance() {return m_DamDistance;}
-
     void SetSearchRadius(double val) {m_SearchRadius = val;}
     double GetSearchRadius() {return m_SearchRadius;}
     void SetFinalRadius(double val) {m_FinalRadius = val;}
@@ -85,8 +77,6 @@ public:
     std::vector <PointType> &GetBlockPositions() {return m_BlockPositions;}
     std::vector <ImageRegionType> &GetBlockRegions() {return m_BlockRegions;}
     ImageRegionType &GetBlockRegion(unsigned int i) {return m_BlockRegions[i];}
-    DamWeightsImagePointer &GetBlockDamWeights() {return m_BlockDamWeights;}
-    void SetBlockDamWeights(DamWeightsImagePointer &damWeights) {m_BlockDamWeights = damWeights;}
 
     std::vector <BaseInputTransformPointer> &GetBlockTransformPointers() {return m_BlockTransformPointers;}
     BaseInputTransformPointer &GetBlockTransformPointer(unsigned int i) {return m_BlockTransformPointers[i];}
@@ -133,7 +123,6 @@ protected:
     void SetBlockWeights(std::vector <double> &val) {m_BlockWeights = val;}
     void SetBlockRegions(std::vector <ImageRegionType> &val) {m_BlockRegions = val;}
     void SetBlockPositions(std::vector <PointType> &val) {m_BlockPositions = val;}
-    void SetDBlockDamWeights(DamWeightsImagePointer &val) {m_BlockDamWeights = val;}
 
 private:
     InputImagePointer m_ReferenceImage;
@@ -146,7 +135,6 @@ private:
     // The origins of the blocks
     std::vector <PointType> m_BlockPositions;
     std::vector <ImageRegionType> m_BlockRegions;
-    DamWeightsImagePointer m_BlockDamWeights;
 
     // The weights associated to blocks
     std::vector <double> m_BlockWeights;
@@ -156,8 +144,6 @@ private:
     double m_BlockPercentageKept;
     unsigned int m_BlockSize;
     unsigned int m_BlockSpacing;
-    bool m_UseTransformationDam;
-    double m_DamDistance;
 
     bool m_Verbose;
 
