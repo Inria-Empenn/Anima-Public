@@ -164,7 +164,7 @@ SmoothingRecursiveYvvGaussianImageFilter<TInputImage,TOutputImage>
 template <typename TInputImage, typename TOutputImage>
 void
 SmoothingRecursiveYvvGaussianImageFilter<TInputImage,TOutputImage>
-::GenerateInputRequestedRegion() throw(itk::InvalidRequestedRegionError)
+::GenerateInputRequestedRegion()
 {
     // call the superclass' implementation of this method. this should
     // copy the output requested region to the input requested region
