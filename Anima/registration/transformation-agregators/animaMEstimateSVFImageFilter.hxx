@@ -168,9 +168,6 @@ MEstimateSVFImageFilter<TScalarType,NDegreesOfFreedom,NDimensions>::
 ThreadedGenerateData (const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
 {
     typedef itk::ImageRegionIteratorWithIndex <TOutputImage> OutRegionIteratorType;
-    typedef itk::ImageRegionConstIteratorWithIndex <WeightImageType> WeightIteratorWithIndexType;
-    typedef itk::ImageRegionConstIterator <WeightImageType> WeightIteratorType;
-
     OutRegionIteratorType outIterator(this->GetOutput(), outputRegionForThread);
 
     unsigned int numMaxEltsRegion = m_InternalSpatialKernelIndexes.size();

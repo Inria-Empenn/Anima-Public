@@ -65,9 +65,6 @@ BalooExternalExtrapolateImageFilter<TScalarType,NDegreesOfFreedom,NDimensions>::
 ThreadedGenerateData (const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
 {
     typedef itk::ImageRegionIterator <TOutputImage> OutRegionIteratorType;
-    typedef itk::ImageRegionConstIterator <WeightImageType> WeightIteratorWithIndexType;
-    typedef itk::ImageRegionConstIterator <WeightImageType> WeightIteratorType;
-
     OutRegionIteratorType outIterator(this->GetOutput(), outputRegionForThread);
 
     itk::ImageRegionConstIterator <WeightImageType> weightItr(m_WeightImage,outputRegionForThread);
