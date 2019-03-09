@@ -39,7 +39,7 @@ retrieveNbDimensions(itk::ImageIOBase::Pointer imageIO, const arguments &args)
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> refArg("r","referencefile","Reference image",true,"","reference image",cmd);
     TCLAP::ValueArg<std::string> movArg("m","movingfile","Moving image",true,"","moving image",cmd);

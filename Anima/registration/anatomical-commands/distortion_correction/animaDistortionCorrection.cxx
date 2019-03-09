@@ -9,7 +9,7 @@ int main(int ac, const char** av)
 {
     std::string descriptionMessage;
     descriptionMessage += "Compute a vector field in order to correct a distorted EPI\n";
-    descriptionMessage += "INRIA / IRISA - VisAGeS Team";
+    descriptionMessage += "INRIA / IRISA - VisAGeS/Empenn Team";
 
     TCLAP::CmdLine cmd(descriptionMessage, ' ',ANIMA_VERSION);
 

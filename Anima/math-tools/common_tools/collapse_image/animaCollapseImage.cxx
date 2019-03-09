@@ -104,7 +104,7 @@ int main(int ac, const char** av)
 The last dimension of the output has same size as the component of the input image.\n\
 You can give the spacing and the origin of the added dimension, default values are 0 for the origin and 1 for the spacing\n\
 Example: input image is 4x4x4 with a component size of 32, the output will be 4x4x4x32.\n\
-INRIA / IRISA - VisAGeS Team",
+INRIA / IRISA - VisAGeS/Empenn Team",
             ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inputArg("i",

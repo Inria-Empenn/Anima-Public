@@ -44,7 +44,7 @@ int main(int ac, const char** av)
 {
     std::string descriptionMessage;
     descriptionMessage += "Resampler tool to apply a distortion correction to one or two 4D volumes\n";
-    descriptionMessage += "INRIA / IRISA - VisAGeS Team";
+    descriptionMessage += "INRIA / IRISA - VisAGeS/Empenn Team";
     
     TCLAP::CmdLine cmd(descriptionMessage, ' ',ANIMA_VERSION);
 	

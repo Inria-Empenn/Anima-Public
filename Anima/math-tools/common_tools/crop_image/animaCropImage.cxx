@@ -211,7 +211,7 @@ int main(int ac, const char** av)
                        " --zindex 1 --zsize 2 --tindex 3 --tsize 0\n will result on an image 3x4x2\n"
                        "Where the x dim corresponds to [1,2,3] of the input, y[0,3], zindex[1,2] and tindex is "
                        "collapsed, only the last sequence has been kept."
-                       "INRIA / IRISA - VisAGeS Team",
+                       "INRIA / IRISA - VisAGeS/Empenn Team",
                        ' ',
                        ANIMA_VERSION);
 

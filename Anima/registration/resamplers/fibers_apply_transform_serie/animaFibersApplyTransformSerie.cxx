@@ -27,7 +27,7 @@ void ApplyTransformToTracks(vtkPoints *dataPoints, anima::TransformSeriesReader 
 
 int main(int ac, const char** av)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inArg("i","input","input tracks file",true,"","input tracks",cmd);
     TCLAP::ValueArg<std::string> outArg("o","output","output tracks name",true,"","output tracks",cmd);

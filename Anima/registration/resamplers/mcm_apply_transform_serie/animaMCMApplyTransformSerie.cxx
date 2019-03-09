@@ -25,7 +25,7 @@ int main(int ac, const char** av)
     descriptionMessage += "</Transformation>\n";
     descriptionMessage += "...\n";
     descriptionMessage += "</TransformationList>\n\n";
-    descriptionMessage += "INRIA / IRISA - VisAGeS Team";
+    descriptionMessage += "INRIA / IRISA - VisAGeS/Empenn Team";
     
     TCLAP::CmdLine cmd(descriptionMessage, ' ',ANIMA_VERSION);
 	

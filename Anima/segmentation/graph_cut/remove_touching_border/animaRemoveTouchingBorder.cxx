@@ -12,7 +12,7 @@ int main(int argc, const char** argv)
     typedef anima::RemoveTouchingBorderFilter<UIImageType,UCImageType,UCImageType>  FilterTypeSeg;
     
     // Parsing arguments
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 
     // Setting up parameters
 

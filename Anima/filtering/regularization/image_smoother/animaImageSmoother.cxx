@@ -34,7 +34,7 @@ void performSmoothing (std::string &inStr, std::string &outStr, double sigma, un
 int main(int argc, char **argv)
 {
     std::string descriptionMessage = "Performs Gaussian smoothing of an image\n";
-    descriptionMessage += "INRIA / IRISA - VisAGeS Team";
+    descriptionMessage += "INRIA / IRISA - VisAGeS/Empenn Team";
 
     TCLAP::CmdLine cmd(descriptionMessage, ' ',ANIMA_VERSION);
 

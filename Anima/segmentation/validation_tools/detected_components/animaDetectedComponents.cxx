@@ -20,7 +20,7 @@ struct
 
 int main(int argc, char * *argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ', ANIMA_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ', ANIMA_VERSION);
 
     TCLAP::ValueArg <std::string> refArg("r", "ref", "Reference binary segmentation", true, "", "reference segmentation", cmd);
     TCLAP::ValueArg <std::string> testArg("t", "test", "Test binary segmentation", true, "", "test segmentation", cmd);

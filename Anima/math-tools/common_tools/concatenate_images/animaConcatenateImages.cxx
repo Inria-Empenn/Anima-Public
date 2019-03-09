@@ -242,7 +242,7 @@ if args base is given the geometry of the base is used otherwise it use the geom
 with the origin -O(def = 0) and spacing -s(def = 1) passed as arguments.\
 It's your responsability to give args set of well formed input.\n\n\
 Example: the arguments -b 4x4x4x1 and -i 4x4x4 -i 4x4x4 will result on an outpu 4x4x4x3.\n\
-INRIA / IRISA - VisAGeS Team",
+INRIA / IRISA - VisAGeS/Empenn Team",
             ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> baseArg("b",

@@ -117,7 +117,7 @@ int main(int ac, const char** av)
                        "The --reorient option allow to reorient the image in either the AXIAL, CORONAL or SAGITALL orientation. "
                        "Note that the reorientation is performed after the change of coordinate space if --space and --reorient "
                        "are given together.\n"
-                       "INRIA / IRISA - VisAGeS Team",' ',ANIMA_VERSION);
+                       "INRIA / IRISA - VisAGeS/Empenn Team",' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inputArg("i",
             "input",

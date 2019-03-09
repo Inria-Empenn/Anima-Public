@@ -12,7 +12,7 @@ int main(int argc, const char** argv)
     typedef PyramidBMType::VectorFieldType VectorFieldType;
 
     // Parsing arguments
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
     
     // Setting up parameters
     TCLAP::ValueArg<std::string> backwardArg("b","backimage","Backward image (eg PA image)",true,"","backward image",cmd);

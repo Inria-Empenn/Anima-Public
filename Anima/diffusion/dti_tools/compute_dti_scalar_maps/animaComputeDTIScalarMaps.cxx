@@ -18,7 +18,7 @@ void eventCallback (itk::Object* caller, const itk::EventObject& event, void* cl
 int main(int ac, const char** av)
 {
 
-    TCLAP::CmdLine cmd("Compute an ADC, FA, axial Diffusivity, radial diffuisivity image from a DTI volume.\nINRIA / IRISA - VisAGeS Team",' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("Compute an ADC, FA, axial Diffusivity, radial diffuisivity image from a DTI volume.\nINRIA / IRISA - VisAGeS/Empenn Team",' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> tensorArg("i",
                                            "input",

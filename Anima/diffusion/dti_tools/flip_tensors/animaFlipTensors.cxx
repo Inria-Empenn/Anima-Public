@@ -55,7 +55,7 @@ retrieveNbDimensions(itk::ImageIOBase::Pointer imageIO, const arguments &args)
 int main(int argc, char **argv)
 {
 
-    TCLAP::CmdLine cmd("Flip tensors in a DTI volume.\nINRIA / IRISA - VisAGeS Team",' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("Flip tensors in a DTI volume.\nINRIA / IRISA - VisAGeS/Empenn Team",' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inArg("i", "input", "Input tensor image.", true, "", "input image", cmd);
     TCLAP::ValueArg<std::string> outArg("o", "output", "Output tensor image.", true, "", "output image", cmd);

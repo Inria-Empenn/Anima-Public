@@ -64,7 +64,7 @@ retrieveNbDimensions(itk::ImageIOBase::Pointer imageIO, const arguments &args)
 int main(int ac, const char** av)
 {
     TCLAP::CmdLine cmd("animaVectorizeImage is used to combine several scalar images into a multicomponent Vector image."
-                       "INRIA / IRISA - VisAGeS Team",
+                       "INRIA / IRISA - VisAGeS/Empenn Team",
                        ' ',
                        ANIMA_VERSION);
 

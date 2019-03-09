@@ -6,7 +6,7 @@
 
 int main(int ac, const char** av)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inputArg("i","ref-image","image",true,"","image",cmd);
     TCLAP::ValueArg<std::string> outArg("o","out-image","Output (registered) image",true,"","output image",cmd);

@@ -9,7 +9,7 @@
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inFileArg("i","input","list of MCM images (one per line)",true,"","MCM images",cmd);
     TCLAP::ValueArg<std::string> resArg("o","output", "Average MCM volume",true,"","result MCM volume",cmd);

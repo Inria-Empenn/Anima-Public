@@ -117,7 +117,7 @@ ITK_THREAD_RETURN_TYPE ThreadFilterer(void *arg)
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("Filters fibers from a vtp file using a label image and specifying with several -t and -f which labels should be touched or are forbidden for each fiber. INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("Filters fibers from a vtp file using a label image and specifying with several -t and -f which labels should be touched or are forbidden for each fiber. INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inArg("i","input","input tracks file",true,"","input tracks",cmd);
     TCLAP::ValueArg<std::string> roiArg("r","roi","input ROI label image",true,"","ROI image",cmd);

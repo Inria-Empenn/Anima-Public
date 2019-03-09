@@ -14,7 +14,7 @@ int main(int argc, char **argv)
     descriptionMessage += "This software has known limitations: you might have to use it several times in a row or in combination with regular image arithmetic to perform the operation you want,\n";
     descriptionMessage += "for example taking the power of a log-transform, requires you to multiply the field outside of this tool.\n";
     descriptionMessage += "The logarithm computation of a field is also not yet implemented.\n";
-    descriptionMessage += "INRIA / IRISA - VisAGeS Team";
+    descriptionMessage += "INRIA / IRISA - VisAGeS/Empenn Team";
     
     TCLAP::CmdLine cmd(descriptionMessage, ' ',ANIMA_VERSION);
     

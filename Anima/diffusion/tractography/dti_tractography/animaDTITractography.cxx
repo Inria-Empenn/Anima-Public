@@ -19,7 +19,7 @@ void eventCallback (itk::Object* caller, const itk::EventObject& event, void* cl
 
 int main(int argc,  char*  argv[])
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> dtiArg("i","dti","Input DT image",true,"","DT image",cmd);
     TCLAP::ValueArg<std::string> seedMaskArg("s","seed-mask","Seed mask",true,"","seed",cmd);

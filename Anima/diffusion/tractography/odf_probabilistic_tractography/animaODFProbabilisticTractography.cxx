@@ -20,7 +20,7 @@ void eventCallback (itk::Object* caller, const itk::EventObject& event, void* cl
 
 int main(int argc,  char*  argv[])
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 
     // Mandatory arguments
     TCLAP::ValueArg<std::string> odfArg("i","odf","Input diffusion tensor image",true,"","dti image",cmd);

@@ -436,7 +436,7 @@ int main(int ac, const char** av)
                                      "</TransformationList>\n"
                                      "Note that only geometries and input with the same number of dimensions are supported for now.\n"
                                      "The default interpolation method is linear, it can be [nearest, linear, bspline, sinc]."
-                                     "INRIA / IRISA - VisAGeS Team";
+                                     "INRIA / IRISA - VisAGeS/Empenn Team";
 
     TCLAP::CmdLine cmd(descriptionMessage, ' ',ANIMA_VERSION);
 

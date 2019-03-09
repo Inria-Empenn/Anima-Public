@@ -28,7 +28,7 @@ int main(int argc, const char** argv)
     typedef AffineTransformType::Pointer AffineTransformPointer;
 
     // Parsing arguments
-    TCLAP::CmdLine  cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine  cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 
     // Setting up parameters
     TCLAP::ValueArg<std::string> inputArg("i","input","Input 4D image",true,"","input 4D image",cmd);

@@ -80,7 +80,7 @@ std::vector<unsigned int> extractMaxNumberOfIterationsVector(std::string pi_rsIt
 
 int main(int argc, char *argv[])
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ', ANIMA_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ', ANIMA_VERSION);
     TCLAP::ValueArg<std::string> oArgInputImg("i", "input", "Input image.", true, "", "input Name", cmd);
     TCLAP::ValueArg<std::string> oArgOutputName("o", "output", "Name for output file", true, "", "output Name", cmd);
     TCLAP::ValueArg<std::string> oArgIterationsString("I", "iterations", "Table of number of iterations, default=50x40x30", false, "50x40x30", "iterations table", cmd);

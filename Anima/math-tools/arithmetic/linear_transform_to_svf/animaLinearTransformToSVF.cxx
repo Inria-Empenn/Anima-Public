@@ -9,7 +9,7 @@
 
 int main(int argc, char **argv)
 {
-    std::string descriptionMessage = "Linear transform to SVF\n INRIA / IRISA - VisAGeS Team";
+    std::string descriptionMessage = "Linear transform to SVF\n INRIA / IRISA - VisAGeS/Empenn Team";
     TCLAP::CmdLine cmd(descriptionMessage, ' ', ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inArg("i", "input", "Input linear transform", true, "", "input transform", cmd);

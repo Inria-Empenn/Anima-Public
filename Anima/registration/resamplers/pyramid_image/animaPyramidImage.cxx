@@ -12,7 +12,7 @@
 
 int main(int ac, const char** av)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inArg("i","input","Input image",true,"","input image",cmd);
     TCLAP::ValueArg<std::string> outArg("o","output","Output resampled image",true,"","output image",cmd);

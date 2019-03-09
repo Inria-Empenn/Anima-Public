@@ -175,7 +175,7 @@ int main(int argc, char **argv)
     std::string descriptionMessage = "Performs very basic mathematical operations on images: performs ( (I * m * M) / (D * d) + A + a - s )^P \n";
     descriptionMessage += "This software has known limitations: you might have to use it several times in a row to perform the operation you want,\n";
     descriptionMessage += "it requires the divide and multiply images to be scalar, and the add and subtract images to be of the same format as the input (although this is not verified).\n";
-    descriptionMessage += "INRIA / IRISA - VisAGeS Team";
+    descriptionMessage += "INRIA / IRISA - VisAGeS/Empenn Team";
     
     TCLAP::CmdLine cmd(descriptionMessage, ' ',ANIMA_VERSION);
     

@@ -58,7 +58,7 @@ retrieveNbDimensions(itk::ImageIOBase::Pointer imageIO, const arguments &args)
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inArg("i","inputfile","Input image on which to add noise.",true,"","input image",cmd);
     TCLAP::ValueArg<std::string> outArg("o","outputfile","Output image. If number of replicates is 1, it is used as provided for saving the noisy dataset with the corresponding file name. If number of replicates > 1, the extension is extracted as desired output file format and the file name without extension is used as base file name for all replicates.",true,"","output file prefix",cmd);

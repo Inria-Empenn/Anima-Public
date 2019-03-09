@@ -5,7 +5,7 @@
 
 int main(int argc, char * *argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ', ANIMA_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ', ANIMA_VERSION);
 
     TCLAP::ValueArg <std::string> refArg("r", "reffile", "Reference segmentations", true, "", "reference image", cmd);
 

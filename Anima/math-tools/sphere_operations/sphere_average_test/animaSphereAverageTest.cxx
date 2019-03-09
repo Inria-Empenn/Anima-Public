@@ -7,7 +7,7 @@
 
 int main(int argc,  char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<unsigned int> numPointsArg("n","nb-points","Number of points (default: 20)",false,20,"number of points",cmd);
     TCLAP::SwitchArg equalWeightsArg("E", "equal-weights", "Use equal weights",cmd,false);

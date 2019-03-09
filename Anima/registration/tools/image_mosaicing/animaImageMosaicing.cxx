@@ -11,7 +11,7 @@ int main(int ac, const char** av)
     std::string descriptionMessage = "Resampler tool for stitching several image into one.\n"
                                      "Applies linear transforms associated to the input images, then\n"
                                      "generates a larger image containing the mosaic of the transformed input images.\n"
-                                     "INRIA / IRISA - VisAGeS Team";
+                                     "INRIA / IRISA - VisAGeS/Empenn Team";
 
     TCLAP::CmdLine cmd(descriptionMessage, ' ',ANIMA_VERSION);
 
