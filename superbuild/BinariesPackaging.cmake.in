@@ -12,6 +12,7 @@ set(BINARY_TOOLS_LIST
   animaCramersTest
   animaCreateImage
   animaCropImage
+  animaDetectedComponents
   animaDTIEstimator
   animaDTIProbabilisticTractography
   animaDTITractography
