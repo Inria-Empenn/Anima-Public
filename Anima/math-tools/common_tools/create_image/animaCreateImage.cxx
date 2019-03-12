@@ -10,7 +10,7 @@
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> geomArg("g","geometryfile","Geometry image",true,"","Geometry image",cmd);
     TCLAP::ValueArg<std::string> outArg("o","outputfile","output image",true,"","output image",cmd);

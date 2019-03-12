@@ -8,7 +8,7 @@
 int main(int argc, char **argv)
 {
     std::string descriptionMessage = "Performs very basic mathematical operations on images: performs (I * M / D) * c + a - s\n";
-    descriptionMessage += "INRIA / IRISA - Visages Team";
+    descriptionMessage += "INRIA / IRISA - VisAGeS/Empenn Team";
 
     TCLAP::CmdLine cmd(descriptionMessage, ' ',ANIMA_VERSION);
 

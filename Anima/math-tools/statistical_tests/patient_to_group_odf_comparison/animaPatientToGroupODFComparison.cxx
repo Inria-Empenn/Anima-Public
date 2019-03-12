@@ -15,7 +15,7 @@ void eventCallback (itk::Object* caller, const itk::EventObject& event, void* cl
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> refODFArg("i","inputodf","ODF Test Image",true,"","ODF test image",cmd);
 

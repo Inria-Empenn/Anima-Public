@@ -10,7 +10,7 @@
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
     
     TCLAP::ValueArg<std::string> inputArg("i","input","Input image",true,"","Input image",cmd);
     TCLAP::ValueArg<std::string> maskArg("m","mask","Mask image for faster computation in a bounding box",false,"","Mask image",cmd);

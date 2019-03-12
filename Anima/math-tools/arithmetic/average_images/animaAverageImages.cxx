@@ -8,7 +8,7 @@
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
     
     TCLAP::ValueArg<std::string> inArg("i","inputfiles","Input image list in text file",true,"","input image list",cmd);
     TCLAP::ValueArg<std::string> maskArg("m","maskfiles","Input masks list in text file (mask images should contain only zeros or ones)",false,"","input masks list",cmd);

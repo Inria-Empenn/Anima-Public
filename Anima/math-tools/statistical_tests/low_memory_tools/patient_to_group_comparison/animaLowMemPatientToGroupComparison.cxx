@@ -7,7 +7,7 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
     
     TCLAP::ValueArg<std::string> refLTArg("i","inputlogtens","Log-Tensor Test Image",true,"","log-tensor test image",cmd);    
     TCLAP::ValueArg<std::string> dataLTArg("I","databaselogtens","Log-Tensor Database Image List",true,"","log-tensor database image list",cmd);

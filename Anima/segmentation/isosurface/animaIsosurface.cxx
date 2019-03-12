@@ -12,7 +12,7 @@
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("Performs isosurface extraction followed by mesh decimation and surface smoothing. INRIA / IRISA - Visages Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("Performs isosurface extraction followed by mesh decimation and surface smoothing. INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inArg("i","input","Input binary image",true,"","input binary image",cmd);
     TCLAP::ValueArg<std::string> outArg("o","output","Output surface (.vtk or .vtp)",true,"","output surface",cmd);
