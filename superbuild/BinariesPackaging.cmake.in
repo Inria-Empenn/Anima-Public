@@ -41,6 +41,7 @@ set(BINARY_TOOLS_LIST
   animaInfluenceZones
   animaIsosurface
   animaKMeansClustering
+  animaLesionEvolutionDetection
   animaLinearTransformArithmetic
   animaLinearTransformToSVF
   animaLocalPatchCovarianceDistance
