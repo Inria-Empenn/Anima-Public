@@ -12,7 +12,7 @@
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ', ANIMA_VERSION);
+    TCLAP::CmdLine cmd("Computes from two segmentations the connected components that grew (L=3), were already there (L=1), or are new (L=2).\n INRIA / IRISA - VisAGeS/Empenn Team", ' ', ANIMA_VERSION);
 
     TCLAP::ValueArg <std::string> refArg("r", "ref", "Reference binary segmentation", true, "", "reference segmentation", cmd);
     TCLAP::ValueArg <std::string> testArg("t", "test", "Test binary segmentation", true, "", "test segmentation", cmd);
