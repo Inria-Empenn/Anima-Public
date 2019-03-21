@@ -71,7 +71,7 @@ BaseOrientedModelImageToImageMetric<TFixedImage,TMovingImage>
 template <class TFixedImage, class TMovingImage>
 void
 BaseOrientedModelImageToImageMetric<TFixedImage,TMovingImage>
-::Initialize(void) throw ( itk::ExceptionObject )
+::Initialize(void)
 {
 
     if( !m_Transform )

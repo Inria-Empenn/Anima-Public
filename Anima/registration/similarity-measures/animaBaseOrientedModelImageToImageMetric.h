@@ -136,7 +136,7 @@ public:
 
     /** Initialize the Metric by making sure that all the components
      *  are present and plugged together correctly     */
-    virtual void Initialize() throw ( itk::ExceptionObject );
+    virtual void Initialize();
 
     //! Should not be used
     void GetDerivative( const ParametersType & parameters,
