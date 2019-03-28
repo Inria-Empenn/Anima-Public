@@ -633,6 +633,10 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     ParametersType p(dimension);
     MCMType::ListType workVec(dimension);
 
+    workVec = mcmValue->GetParametersAsVector();
+    for (unsigned int i = 0;i < dimension;++i)
+        p[i] = workVec[i];
+
     double costValue = this->GetCostValue(cost,p);
     itk::Array<double> lowerBounds(dimension), upperBounds(dimension);
 
@@ -645,10 +649,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         workVec = mcmValue->GetParameterUpperBounds();
         for (unsigned int i = 0;i < dimension;++i)
             upperBounds[i] = workVec[i];
-
-        workVec = mcmValue->GetParametersAsVector();
-        for (unsigned int i = 0;i < dimension;++i)
-            p[i] = workVec[i];
 
         costValue = this->PerformSingleOptimization(p,cost,lowerBounds,upperBounds);
 
