@@ -171,10 +171,15 @@ void StaniszCompartment::SetParametersFromVector(const ListType &params)
     if (params.size() != this->GetNumberOfParameters())
         return;
 
-    this->SetTissueRadius(params[0]);
+    unsigned int pos = 0;
+    if (m_EstimateTissueRadius)
+    {
+        this->SetTissueRadius(params[pos]);
+        ++pos;
+    }
 
     if (m_EstimateAxialDiffusivity)
-        this->SetAxialDiffusivity(params[1]);
+        this->SetAxialDiffusivity(params[pos]);
 }
 
 StaniszCompartment::ListType &StaniszCompartment::GetParametersAsVector()
