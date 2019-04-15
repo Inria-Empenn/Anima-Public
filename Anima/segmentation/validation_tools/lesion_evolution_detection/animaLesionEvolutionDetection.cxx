@@ -14,15 +14,27 @@ int main(int argc, char **argv)
 {
     TCLAP::CmdLine cmd("Computes from two segmentations the connected components that grew (L=3), were already there (L=1), or are new (L=2).\n INRIA / IRISA - VisAGeS/Empenn Team", ' ', ANIMA_VERSION);
 
+    /*
+     * Computes the labels following this algorithm:
+     * - connected components in test image (newest timepoint)
+     * - For each CC, test the accordance with older time point:
+     *     - Compute overlapping and non overlapping parts with previous timepoint (ref)
+     *     - If non overlap below an absolute threshold or ratio non overlap / overlap < beta -> classify as L1 and go on
+     *     - If overlap / ccSize < alpha -> classify as new = L2 and go on
+     *     - If ratio non overlap / overlap > gamma and non overlap volume > gammaAbsolute -> classify as new = L2 and go on
+     *     - Else -> classify as growing = L3 and go on
+    */
+
     TCLAP::ValueArg <std::string> refArg("r", "ref", "Reference binary segmentation", true, "", "reference segmentation", cmd);
     TCLAP::ValueArg <std::string> testArg("t", "test", "Test binary segmentation", true, "", "test segmentation", cmd);
     TCLAP::ValueArg <std::string> outArg("o", "out", "output image with labeled lesions", true, "", "output labeled lesions", cmd);
 
     TCLAP::ValueArg <double> alphaArg("a", "alpha", "Alpha threshold (in between 0 and 1, default: 0)", false, 0, "alpha threshold", cmd);
     TCLAP::ValueArg <double> gammaArg("g", "gamma", "Gamma threshold (*100 %, default: 0.5)", false, 0.5, "gamma threshold", cmd);
+    TCLAP::ValueArg <double> gammaAbsoluteArg("G", "gamma-abs", "Gamma threshold (in mm3, default: 12)", false, 12, "gamma absolute threshold", cmd);
     TCLAP::ValueArg <double> betaArg("b", "beta", "Beta threshold (in between 0 and 1, default: 0.05)", false, 0.05, "beta threshold", cmd);
 
-    TCLAP::ValueArg <unsigned int> minVolumeArg("m", "min-vol", "Minimal volume for the component to be considered (default: 3 mm3)", false, 3, "minimal volume", cmd);
+    TCLAP::ValueArg <unsigned int> minVolumeArg("m", "min-vol", "Minimal volume for the component to be considered (default: 6 mm3)", false, 6, "minimal volume", cmd);
     TCLAP::ValueArg <unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     TCLAP::SwitchArg fullConnectArg("F","full-connect","Use 26-connectivity instead of 6-connectivity",cmd,false);
@@ -57,7 +69,7 @@ int main(int argc, char **argv)
     for (unsigned int i = 1;i < 3;++i)
         spacingTot *= spacing[i];
 
-    // Compute minsize in voxels
+    // Compute minsize in voxels for connected component
     unsigned int minSizeInVoxel = static_cast <unsigned int> (std::ceil(minVolumeArg.getValue() / spacingTot));
 
     // Remove too small reference objects
@@ -164,7 +176,7 @@ int main(int argc, char **argv)
         }
 
         // Test for growing lesion too large
-        if (ratioNonOverlapOverlap > gammaArg.getValue())
+        if ((ratioNonOverlapOverlap > gammaArg.getValue()) && (labelsNonOverlapping[i] * spacingTot > gammaAbsoluteArg.getValue()))
         {
             // New lesion -> label = maxTestLabel + 2
             while (!testItr.IsAtEnd())
