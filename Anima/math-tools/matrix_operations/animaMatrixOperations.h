@@ -10,6 +10,9 @@ template <class ScalarType> itk::Matrix <double,3,3> GetRotationMatrixFromVector
 template <class ScalarType, unsigned int NDimension> itk::Matrix <double,3,3> GetRotationMatrixFromVectors(const itk::Vector<ScalarType,NDimension> &first_direction, const itk::Vector<ScalarType,NDimension> &second_direction);
 template <class ScalarType, unsigned int NDimension> itk::Matrix <double,3,3> GetRotationMatrixFromVectors(const vnl_vector_fixed<ScalarType,NDimension> &first_direction, const vnl_vector_fixed<ScalarType,NDimension> &second_direction);
 
+//! Solves lower triangular system maxtrix * result = rhs using Gauss elimination. Can be used with rhs and result pointing to the same address in which case, result will be erased. result has to be the same size as rhs
+template <class ScalarType, class VectorType> void LowerTriangularSolver(vnl_matrix <ScalarType> &matrix, VectorType &rhs, VectorType &result);
+
 } // end of namespace anima
 
 #include "animaMatrixOperations.hxx"

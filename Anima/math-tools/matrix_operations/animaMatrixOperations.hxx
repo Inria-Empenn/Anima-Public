@@ -71,4 +71,21 @@ GetRotationMatrixFromVectors(const vnl_vector_fixed<ScalarType,NDimension> &firs
     return GetRotationMatrixFromVectors(first_direction, second_direction, NDimension);
 }
 
+template <class ScalarType, class VectorType>
+void
+LowerTriangularSolver(vnl_matrix <ScalarType> &matrix, VectorType &rhs, VectorType &result)
+{
+    unsigned int nrows = matrix.rows();
+    unsigned int ncols = matrix.cols();
+
+    for (unsigned int i = 0;i < nrows;++i)
+    {
+        double resValue = rhs[i];
+        for (unsigned int j = 0;j < i;++j)
+            resValue -= matrix(i,j) * result[j];
+
+        result[i] = resValue / matrix(i,i);
+    }
+}
+
 } // end of namespace anima

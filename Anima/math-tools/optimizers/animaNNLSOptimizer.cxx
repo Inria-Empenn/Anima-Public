@@ -1,5 +1,5 @@
 #include <animaNNLSOptimizer.h>
-#include <vnl_qr.h>
+#include <vnl/algo/vnl_qr.h>
 
 namespace anima
 {

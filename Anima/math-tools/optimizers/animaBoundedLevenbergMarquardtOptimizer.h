@@ -68,7 +68,11 @@ protected:
     double EvaluateCostFunctionAtParameters(ParametersType &parameters, ParametersType &scaledParameters,
                                             MeasureType &residualValues);
 
-    void UpdateLambdaParameter(DerivativeType &derivative);
+    void UpdateLambdaParameter(DerivativeType &derivative, ParametersType &dValues,
+                               std::vector <unsigned int> &pivotVector,
+                               std::vector <unsigned int> &inversePivotVector,
+                               ParametersType &qtResiduals, unsigned int rank);
+
     bool CheckConditions(unsigned int numIterations, ParametersType &lastTestedParams,
                          ParametersType &newParams, DerivativeType &newDerivative);
 

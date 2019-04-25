@@ -5,7 +5,7 @@
 namespace anima
 {
 
-template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType> &aMatrix, std::vector <unsigned int> &transposePivotVector,
+template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType> &aMatrix, std::vector <unsigned int> &pivotVector,
                                                          std::vector <ScalarType> &houseBetaValues, unsigned int &rank)
 {
     unsigned int m = aMatrix.rows();
@@ -14,12 +14,12 @@ template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType>
     if (m < n)
         return;
 
-    transposePivotVector.resize(n);
+    pivotVector.resize(n);
     houseBetaValues.resize(n);
 
     for (unsigned int i = 0;i < n;++i)
     {
-        transposePivotVector[i] = i;
+        pivotVector[i] = i;
         houseBetaValues[i] = 0.0;
     }
 
@@ -51,9 +51,9 @@ template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType>
     {
         ++rank;
         unsigned int r = rank - 1;
-        unsigned int tmpIndex = transposePivotVector[k];
-        transposePivotVector[k] = transposePivotVector[r];
-        transposePivotVector[r] = tmpIndex;
+        unsigned int tmpIndex = pivotVector[k];
+        pivotVector[k] = pivotVector[r];
+        pivotVector[r] = tmpIndex;
         double tmp = cVector[k];
         cVector[k] = cVector[r];
         cVector[r] = tmp;
@@ -149,6 +149,43 @@ template <typename ScalarType> void GetQtBFromQRDecomposition(vnl_matrix <Scalar
 
         for (unsigned int i = j + 1;i < m;++i)
             bVector[i] -= houseBetaValues[j] * qrMatrix(i,j) * vtB;
+    }
+}
+
+template <typename ScalarType> void GetQMatrixQRDecomposition(vnl_matrix <ScalarType> &qrMatrix, std::vector <ScalarType> &houseBetaValues,
+                                                              vnl_matrix <ScalarType> &qMatrix, unsigned int rank)
+{
+    unsigned int m = qrMatrix.rows();
+    unsigned int n = qrMatrix.cols();
+
+    if (m < n)
+        return;
+
+    qMatrix.set_size(m,m);
+    qMatrix.set_identity();
+
+    for (int j = rank - 1;j >= 0;--j)
+    {
+        unsigned int vecSize = m - j;
+        vnl_vector <double> vtQ(vecSize);
+
+        // Compute v^T B
+        for (unsigned int i = 0;i < vecSize;++i)
+        {
+            vtQ[i] = qMatrix(j,i + j);
+            for (unsigned int k = j + 1;k < m;++k)
+                vtQ[i] += qrMatrix(k,j) * qMatrix(k,i + j);
+        }
+
+        for (unsigned int i = 0;i < vecSize;++i)
+        {
+            double constantValue = houseBetaValues[j];
+            if (i != 0)
+                constantValue *= qrMatrix(i + j,j);
+
+            for (unsigned int k = 0;k < vecSize;++k)
+                qMatrix(i + j,k + j) -= constantValue * vtQ[k];
+        }
     }
 }
 

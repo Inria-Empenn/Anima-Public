@@ -15,7 +15,7 @@ int main()
         for (unsigned int j = 0;j < dimY;++j)
             testData(i,j) = pos++;
 
-        if (i != 1)
+        if (i != 0)
             testData(i,0) = 1;
     }
 
@@ -43,6 +43,11 @@ int main()
     anima::GetQtBFromQRDecomposition(testData,bVector,betaValues,rank);
 
     std::cout << "QtB " << bVector << std::endl;
+
+    vnl_matrix <double> qMatrix (dimX,dimX);
+    anima::GetQMatrixQRDecomposition(testData,betaValues,qMatrix,rank);
+
+    std::cout << "Q matrix " << qMatrix << std::endl;
 
     return EXIT_SUCCESS;
 }
