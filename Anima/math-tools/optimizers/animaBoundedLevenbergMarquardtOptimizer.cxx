@@ -70,18 +70,18 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
         double normValue = 0.0;
         for (unsigned int j = 0;j < numResiduals;++j)
             normValue += derivativeMatrix(j,i) * derivativeMatrix(j,i);
-
-        normValue = std::sqrt(normValue);
+        
         if (normValue <= 0.0)
             normValue = 1.0;
-        dValues[i] = normValue;
 
-        m_DeltaParameter += dValues[i] * parameters[i] * dValues[i] * parameters[i];
+        dValues[i] = std::sqrt(normValue);
+        m_DeltaParameter += normValue * parameters[i] * parameters[i];
     }
 
-    m_DeltaParameter = std::sqrt(m_DeltaParameter);
-    if (m_DeltaParameter == 0.0)
+    if (m_DeltaParameter <= 0.0)
         m_DeltaParameter = 1.0;
+    else
+        m_DeltaParameter = std::sqrt(m_DeltaParameter);
 
     m_DeltaParameter *= 100.0;
 
@@ -178,10 +178,10 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
 
         if (!rejectedStep)
         {
-            acceptRatio = 1.0 - (tentativeNewCostValue / m_CurrentValue) * (tentativeNewCostValue / m_CurrentValue);
+            acceptRatio = 1.0 - tentativeNewCostValue / m_CurrentValue;
 
-            double denomAcceptRatio = jpNorm / (m_CurrentValue * m_CurrentValue);
-            denomAcceptRatio += 2.0 * m_LambdaParameter * dpValue / (m_CurrentValue * m_CurrentValue);
+            double denomAcceptRatio = jpNorm / m_CurrentValue;
+            denomAcceptRatio += 2.0 * m_LambdaParameter * dpValue / m_CurrentValue;
 
             acceptRatio /= denomAcceptRatio;
         }
@@ -196,9 +196,9 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
             double mu = 0.5;
             if (tentativeNewCostValue > 10.0 * m_CurrentValue)
                 mu = 0.1;
-            else
+            else if (tentativeNewCostValue > m_CurrentValue)
             {
-                double gamma = - (jpNorm / m_CurrentValue + m_LambdaParameter * dpValue / m_CurrentValue);
+                double gamma = - (jpNorm + m_LambdaParameter * dpValue) / m_CurrentValue;
 
                 if (gamma < - 1.0)
                     gamma = - 1.0;
@@ -206,12 +206,8 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
                     gamma = 0.0;
 
                 mu = 0.5 * gamma;
-                double denomMu = gamma + 0.5 * (1.0 - (tentativeNewCostValue / m_CurrentValue) * (tentativeNewCostValue / m_CurrentValue));
+                double denomMu = gamma + 0.5 * (1.0 - tentativeNewCostValue / m_CurrentValue);
                 mu /= denomMu;
-                if (mu < 0.1)
-                    mu = 0.1;
-                else if (mu > 0.5)
-                    mu = 0.5;
             }
 
             m_DeltaParameter *= mu;
@@ -430,7 +426,7 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
             upperBound = alpha;
 
         // Compute new alpha
-        double addonValue = phiNorm * (phiNorm - m_DeltaParameter) / (denom * m_DeltaParameter);
+        double addonValue = phiNorm * (phiNorm + m_DeltaParameter) / (denom * m_DeltaParameter);
         alpha += addonValue;
 
         if ((alpha < lowerBound)||(alpha > upperBound))
