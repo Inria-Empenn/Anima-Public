@@ -73,15 +73,38 @@ GetRotationMatrixFromVectors(const vnl_vector_fixed<ScalarType,NDimension> &firs
 
 template <class ScalarType, class VectorType>
 void
-LowerTriangularSolver(vnl_matrix <ScalarType> &matrix, VectorType &rhs, VectorType &result)
+LowerTriangularSolver(vnl_matrix <ScalarType> &matrix, VectorType &rhs, VectorType &result, unsigned int rank)
 {
     unsigned int nrows = matrix.rows();
-    unsigned int ncols = matrix.cols();
+    if (rank != 0)
+        nrows = rank;
 
     for (unsigned int i = 0;i < nrows;++i)
     {
         double resValue = rhs[i];
         for (unsigned int j = 0;j < i;++j)
+            resValue -= matrix(i,j) * result[j];
+
+        result[i] = resValue / matrix(i,i);
+    }
+}
+
+template <class ScalarType, class VectorType>
+void
+UpperTriangularSolver(vnl_matrix <ScalarType> &matrix, VectorType &rhs, VectorType &result, unsigned int rank)
+{
+    unsigned int nrows = matrix.rows();
+    unsigned int ncols = matrix.cols();
+    if (rank != 0)
+    {
+        nrows = rank;
+        ncols = rank;
+    }
+
+    for (int i = nrows - 1;i >= 0;--i)
+    {
+        double resValue = rhs[i];
+        for (unsigned int j = i + 1;j < ncols;++j)
             resValue -= matrix(i,j) * result[j];
 
         result[i] = resValue / matrix(i,i);
