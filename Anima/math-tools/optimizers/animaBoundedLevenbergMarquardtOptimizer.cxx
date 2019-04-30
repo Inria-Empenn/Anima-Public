@@ -83,8 +83,6 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     if (m_DeltaParameter > 0.0)
         m_DeltaParameter = std::sqrt(m_DeltaParameter);
 
-    m_DeltaParameter *= 100.0;
-
     unsigned int rank = 0;
     // indicates ones in pivot matrix as pivot(pivotVector(i),i) = 1
     std::vector <unsigned int> pivotVector(nbParams);
@@ -188,21 +186,19 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
 
         // Compute || Jp ||^2 and || Dp ||^2
         double jpNorm = 0.0;
-        double dpValue = 0.0;
         for (unsigned int i = 0;i < numResiduals;++i)
         {
             double jpAddonValue = 0.0;
             
             for (unsigned int j = 0;j < nbParams;++j)
-            {
                 jpAddonValue += derivativeMatrixCopy(i,j) * addonVector[j];
-                
-                if (i == 0)
-                    dpValue += dValues[j] * addonVector[j] * dValues[j] * addonVector[j];
-            }
-            
+
             jpNorm += jpAddonValue * jpAddonValue;
         }
+
+        double dpValue = 0.0;
+        for (unsigned int i = 0;i < nbParams;++i)
+            dpValue += dValues[i] * addonVector[i] * dValues[i] * addonVector[i];
 
         if (!rejectedStep)
         {
@@ -421,10 +417,10 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
             alphaBaseMatrix(i,j) = derivative(i,j);
     }
 
-    double ratio = 1.0;
-    while (ratio > 1.0e-6)
+    bool continueLoop = true;
+    while (continueLoop)
     {
-        std::cout << "Test alpha " << alpha << " " << ratio << ", value ";
+        std::cout << "Test alpha " << alpha << ", value ";
         if (alpha <= 0.0)
             std::cerr << "Arg, alpha value is below zero " << alpha << std::endl;
         
@@ -465,7 +461,12 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
 
         phiNorm = std::sqrt(phiNorm);
 
-        std::cout << phiNorm - m_DeltaParameter << std::endl;
+        std::cout << phiNorm - m_DeltaParameter << " ";
+        if (std::abs(phiNorm - m_DeltaParameter) < 0.1 * m_DeltaParameter)
+        {
+            continueLoop = false;
+            continue;
+        }
 
         for (unsigned int i = 0;i < n;++i)
             phip_in[pivotVector[i]] = dValues[i] * phi_in[i] / phiNorm;
@@ -497,10 +498,10 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
         double addonValue = phiNorm * (phiNorm - m_DeltaParameter) / (denom * m_DeltaParameter);
         alpha += addonValue;
 
-        if ((alpha <= lowerBound)||(alpha >= upperBound))
-            alpha = std::max(0.001 * upperBound, std::sqrt(lowerBound * upperBound));
+        std::cout << denom << std::endl;
 
-        ratio = std::abs(alpha - prevAlpha) / alpha;
+        if ((alpha <= lowerBound)||(alpha >= upperBound))
+            alpha = std::max(0.001 * upperBound, std::sqrt(std::abs(lowerBound * upperBound)));
     }
 
     m_LambdaParameter = alpha;
