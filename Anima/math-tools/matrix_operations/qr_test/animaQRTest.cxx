@@ -1,22 +1,38 @@
 #include <animaQRPivotDecomposition.h>
 #include <iostream>
+#include <fstream>
 
-int main()
-{
-    unsigned int dimX = 4;
-    unsigned int dimY = 3;
+int main(int argc, char **argv)
+{        
+    unsigned int dimX = 12;
+    unsigned int dimY = 6;
+
     vnl_matrix <double> testData (dimX,dimY);
     vnl_vector <double> bVector(dimX);
     bVector.fill(1.0);
 
-    unsigned int pos = 1;
-    for (unsigned int i = 0;i < dimX;++i)
+    if (argc <= 1)
     {
-        for (unsigned int j = 0;j < dimY;++j)
-            testData(i,j) = pos++;
+        unsigned int pos = 10;
+        for (unsigned int i = 0;i < dimX;++i)
+        {
+            for (unsigned int j = 0;j < dimY;++j)
+                testData(i,j) = pos++;
 
-        if (i != 0)
-            testData(i,0) = 1;
+            if (i != 0)
+                testData(i,0) = 10;
+        }
+    }
+    else
+    {
+        std::ifstream inputData(argv[1]);
+        for (unsigned int i = 0;i < dimX;++i)
+        {
+            for (unsigned int j = 0;j < dimY;++j)
+                inputData >> testData(i,j);
+        }
+
+        inputData.close();
     }
 
     std::cout << "Test data " << testData << std::endl;
@@ -27,6 +43,7 @@ int main()
 
     anima::QRPivotDecomposition(testData,pivotVector,betaValues,rank);
 
+    std::cout.precision(20);
     std::cout << "Matrix rank " << rank << std::endl;
     std::cout << "Transformed matrix " << testData << std::endl;
 
