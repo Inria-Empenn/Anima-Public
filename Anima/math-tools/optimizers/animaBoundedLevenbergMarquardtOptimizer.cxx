@@ -105,7 +105,7 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     workMatrix.fill(0.0);
     for (unsigned int i = 0;i < rank;++i)
     {
-        for (unsigned int j = 0;j < nbParams;++j)
+        for (unsigned int j = i;j < nbParams;++j)
             workMatrix(i,j) = derivativeMatrix(i,j);
     }
 
@@ -292,7 +292,9 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
                                                                std::vector <unsigned int> &inversePivotVector,
                                                                ParametersType &qtResiduals, unsigned int rank)
 {
+    // Number of residuals
     unsigned int m = derivative.rows();
+    // Number of parameters
     unsigned int n = derivative.cols();
 
     // Compute constant vector in estimation process: pi * (R^t 0) * Qt * b
@@ -359,6 +361,7 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
 
         anima::LowerTriangularSolver(RalphaTranspose,phip_in,phip_in);
 
+        // denom is -phi'(0)
         double denom = 0.0;
         for (unsigned int i = 0;i < n;++i)
             denom += phip_in[i] * phip_in[i];
@@ -397,7 +400,7 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
         m_LambdaParameter = 0.0;
         return;
     }
-
+    
     // Normally from here, we shouldn't reach again phi(0)
     double upperBound = 0.0;
     for (unsigned int i = 0;i < n;++i)
@@ -406,7 +409,7 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     upperBound = std::sqrt(upperBound) / m_DeltaParameter;
 
     // Alright so now we have initial bounds, let's go for algorithm 5.5 of More et al
-    double alpha = std::max(0.001 * upperBound, std::sqrt(std::abs(lowerBound * upperBound)));
+    double alpha = std::max(0.001 * upperBound, std::sqrt(lowerBound * upperBound));
     double prevAlpha = alpha - 1;
 
     DerivativeType alphaBaseMatrix(m+n,n);
@@ -424,6 +427,9 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
         std::cout << "Test alpha " << alpha << " " << ratio << ", value ";
         if (alpha <= 0.0)
             std::cerr << "Arg, alpha value is below zero " << alpha << std::endl;
+        
+        if (lowerBound < 0.0)
+            std::cerr << "Lowerbound cannot be negative: " << lowerBound << std::endl;
 
         prevAlpha = alpha;
         // Compute phi_alpha and phip_alpha
@@ -491,10 +497,10 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
         double addonValue = phiNorm * (phiNorm - m_DeltaParameter) / (denom * m_DeltaParameter);
         alpha += addonValue;
 
-        if ((alpha < lowerBound)||(alpha > upperBound))
-            alpha = std::max(0.001 * upperBound, std::sqrt(std::abs(lowerBound * upperBound)));
+        if ((alpha <= lowerBound)||(alpha >= upperBound))
+            alpha = std::max(0.001 * upperBound, std::sqrt(lowerBound * upperBound));
 
-        ratio = std::abs(alpha - prevAlpha) / std::max(std::abs(alpha),std::abs(prevAlpha));
+        ratio = std::abs(alpha - prevAlpha) / alpha;
     }
 
     m_LambdaParameter = alpha;
