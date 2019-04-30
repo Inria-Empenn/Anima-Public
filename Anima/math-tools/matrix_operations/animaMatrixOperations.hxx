@@ -75,11 +75,11 @@ template <class ScalarType, class VectorType>
 void
 LowerTriangularSolver(vnl_matrix <ScalarType> &matrix, VectorType &rhs, VectorType &result, unsigned int rank)
 {
-    unsigned int nrows = matrix.rows();
+    unsigned int n = matrix.rows();
     if (rank != 0)
-        nrows = rank;
+        n = rank;
 
-    for (unsigned int i = 0;i < nrows;++i)
+    for (unsigned int i = 0;i < n;++i)
     {
         double resValue = rhs[i];
         for (unsigned int j = 0;j < i;++j)
@@ -93,18 +93,14 @@ template <class ScalarType, class VectorType>
 void
 UpperTriangularSolver(vnl_matrix <ScalarType> &matrix, VectorType &rhs, VectorType &result, unsigned int rank)
 {
-    unsigned int nrows = matrix.rows();
-    unsigned int ncols = matrix.cols();
+    unsigned int n = matrix.cols();
     if (rank != 0)
-    {
-        nrows = rank;
-        ncols = rank;
-    }
+        n = rank;
 
-    for (int i = nrows - 1;i >= 0;--i)
+    for (int i = n - 1;i >= 0;--i)
     {
         double resValue = rhs[i];
-        for (unsigned int j = i + 1;j < ncols;++j)
+        for (unsigned int j = i + 1;j < n;++j)
             resValue -= matrix(i,j) * result[j];
 
         result[i] = resValue / matrix(i,i);

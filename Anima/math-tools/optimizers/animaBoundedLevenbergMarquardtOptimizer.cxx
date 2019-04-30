@@ -364,6 +364,7 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     {
         // Evaluate phi(0) as ||D pi R^- Q^t f||
         RZero.fill(0.0);
+        RZero.fill(0.0);
         phi_in_zero.fill(0.0);
 
         for (unsigned int i = 0;i < rank;++i)
@@ -496,7 +497,7 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
         std::cout << denom << std::endl;
 
         if ((alpha <= lowerBound)||(alpha >= upperBound))
-            alpha = std::max(0.001 * upperBound, std::sqrt(std::abs(lowerBound * upperBound)));
+            alpha = std::max(0.001 * upperBound, std::sqrt(lowerBound * upperBound));
     }
 
     m_LambdaParameter = alpha;
