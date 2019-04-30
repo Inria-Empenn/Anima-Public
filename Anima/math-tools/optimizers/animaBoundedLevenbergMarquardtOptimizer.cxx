@@ -72,16 +72,11 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
         for (unsigned int j = 0;j < numResiduals;++j)
             normValue += derivativeMatrix(j,i) * derivativeMatrix(j,i);
         
-        if (normValue <= 0.0)
-            normValue = 1.0;
-
         dValues[i] = std::sqrt(normValue);
         m_DeltaParameter += normValue * parameters[i] * parameters[i];
     }
-
-    m_DeltaParameter = 1.0;
-    if (m_DeltaParameter > 0.0)
-        m_DeltaParameter = std::sqrt(m_DeltaParameter);
+    
+    m_DeltaParameter = std::sqrt(m_DeltaParameter);
 
     unsigned int rank = 0;
     // indicates ones in pivot matrix as pivot(pivotVector(i),i) = 1
@@ -249,7 +244,7 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
                 double normValue = 0;
                 for (unsigned int j = 0;j < numResiduals;++j)
                     normValue += derivativeMatrix(i,j) * derivativeMatrix(i,j);
-
+                
                 normValue = std::sqrt(normValue);
                 dValues[i] = std::max(dValues[i], normValue);
             }
