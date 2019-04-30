@@ -105,7 +105,7 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     workMatrix.fill(0.0);
     for (unsigned int i = 0;i < rank;++i)
     {
-        for (unsigned int j = i;j < nbParams;++j)
+        for (unsigned int j = 0;j < nbParams;++j)
             workMatrix(i,j) = derivativeMatrix(i,j);
     }
 
@@ -186,17 +186,22 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
 
         double acceptRatio = 0.0;
 
+        // Compute || Jp ||^2 and || Dp ||^2
         double jpNorm = 0.0;
         double dpValue = 0.0;
         for (unsigned int i = 0;i < numResiduals;++i)
         {
+            double jpAddonValue = 0.0;
+            
             for (unsigned int j = 0;j < nbParams;++j)
             {
-                double jpAddonValue = derivativeMatrixCopy(i,j) * addonVector[j];
-                jpNorm += jpAddonValue * jpAddonValue;
+                jpAddonValue += derivativeMatrixCopy(i,j) * addonVector[j];
+                
+                if (i == 0)
+                    dpValue += dValues[j] * addonVector[j] * dValues[j] * addonVector[j];
             }
-
-            dpValue += dValues[i] * addonVector[i] * dValues[i] * addonVector[i];
+            
+            jpNorm += jpAddonValue * jpAddonValue;
         }
 
         if (!rejectedStep)
