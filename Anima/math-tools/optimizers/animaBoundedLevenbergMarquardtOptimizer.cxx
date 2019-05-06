@@ -32,7 +32,6 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     DerivativeType RZeroMatrix(nbParams,nbParams);
     ParametersType oldParameters = parameters;
     ParametersType workVector(numResiduals + nbParams);
-    ParametersType fZeroResiduals(numResiduals);
     workVector.Fill(0.0);
     ParametersType addonVector(nbParams), addonVectorPermutted(nbParams);
     ParametersType dValues(nbParams);
@@ -66,6 +65,8 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     }
 
     m_DeltaParameter = 0.0;
+    double minDValue = 0.0;
+
     for (unsigned int i = 0;i < nbParams;++i)
     {
         double normValue = 0.0;
@@ -73,9 +74,21 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
             normValue += derivativeMatrix(j,i) * derivativeMatrix(j,i);
         
         dValues[i] = std::sqrt(normValue);
+        if (dValues[i] != 0)
+        {
+            if ((i == 0) || (dValues[i] < minDValue))
+                minDValue = dValues[i];
+        }
+
         m_DeltaParameter += normValue * parameters[i] * parameters[i];
     }
     
+    for (unsigned int i = 0;i < nbParams;++i)
+    {
+        if (dValues[i] == 0.0)
+            dValues[i] = minDValue;
+    }
+
     m_DeltaParameter = std::sqrt(m_DeltaParameter);
 
     unsigned int rank = 0;
@@ -105,13 +118,10 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     while (!stopConditionReached)
     {
         ++numIterations;
-        std::cout << "Hop " << numIterations << " " << m_DeltaParameter << " " << m_LambdaParameter << std::endl;
-
         this->UpdateLambdaParameter(derivativeMatrix,dValues,pivotVector,inversePivotVector,qtResiduals,rank);
-        std::cout << "Glop " << numIterations << " " << m_DeltaParameter << " " << m_LambdaParameter << std::endl;
 
         // Solve (JtJ + lambda d^2) x = - Jt r
-        // Use the fact that pi^T D pi and pi a permutation matrix when D diagonal is diagonal, is equivalent to d[vecPi[i]] in vector form
+        // Use the fact that pi^T D pi and pi a permutation matrix when D diagonal is diagonal, is equivalent to d[pivotVector[i]] in vector form
         if (m_LambdaParameter > 0.0)
         {
             for (unsigned int i = 0;i < nbParams;++i)
@@ -123,24 +133,18 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
         {
             // If lambda parameter is null, different solver: - pi R^- Q^T f
             RZeroMatrix.fill(0.0);
-            fZeroResiduals.fill(0.0);
             for (unsigned int i = 0;i < rank;++i)
             {
                 for (unsigned int j = i;j < rank;++j)
                     RZeroMatrix(i,j) = derivativeMatrix(i,j);
-
-                fZeroResiduals[i] = - qtResiduals[i];
             }
 
             addonVectorPermutted.fill(0.0);
-            anima::UpperTriangularSolver(RZeroMatrix,fZeroResiduals,addonVectorPermutted,rank);
+            anima::UpperTriangularSolver(RZeroMatrix,wResiduals,addonVectorPermutted,rank);
         }
 
         for (unsigned int i = 0;i < nbParams;++i)
-        {
-            unsigned int indexPermutted = inversePivotVector[i];
-            addonVector[indexPermutted] = addonVectorPermutted[i];
-        }
+            addonVector[i] = addonVectorPermutted[inversePivotVector[i]];
 
         parameters = oldParameters;
         parameters += addonVector;
@@ -288,61 +292,53 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     // Number of parameters
     unsigned int n = derivative.cols();
 
-    // Compute constant vector in estimation process: pi * (R^t 0) * Qt * b
-    vnl_vector <double> constantVector (n,0.0);
-    for (unsigned int i = 0;i < n;++i)
+    // Compute phi(0) base
+    DerivativeType RZeroMatrix(n,n);
+    RZeroMatrix.fill(0.0);
+    for (unsigned int i = 0;i < rank;++i)
     {
-        double value = 0.0;
-        unsigned int upIndex = std::min(rank,i);
-        for (unsigned int j = 0;j < upIndex;++j)
-            value += derivative(j,i) * qtResiduals[i];
-
-        constantVector[inversePivotVector[i]] = value;
+        for (unsigned int j = i;j < rank;++j)
+            RZeroMatrix(i,j) = derivative(i,j);
     }
 
-    DerivativeType workMatrixSquare(n,n);
-    DerivativeType RalphaTranspose(n,n);
-    DerivativeType RZero(n,n);
-    vnl_vector <double> phi_in_zero(n);
-    vnl_vector <double> phi_in(n);
-    vnl_vector <double> phip_in(n);
+    ParametersType wResiduals(m + n);
+    wResiduals.fill(0.0);
+    for (unsigned int i = 0;i < m;++i)
+        wResiduals[i] = - qtResiduals[i];
 
-    double lowerBound = 0.0;
+    ParametersType pPermuted(n);
+    pPermuted.fill(0.0);
+    anima::UpperTriangularSolver(RZeroMatrix,wResiduals,pPermuted,rank);
+
+    vnl_vector <double> phi_in(n);
     double phiNorm = 0.0;
+
+    for (unsigned int i = 0;i < n;++i)
+    {
+        phi_in[i] = dValues[i] * pPermuted[inversePivotVector[i]];
+        phiNorm += phi_in[i] * phi_in[i];
+    }
+    phiNorm = std::sqrt(phiNorm);
+
+    // If phi(0) <= 0, it is useless to estimate alpha and we set it to 0
+    if (phiNorm - m_DeltaParameter <= 0.0)
+    {
+        m_LambdaParameter = 0.0;
+        return;
+    }
+
+    DerivativeType RalphaTranspose(n,n);
+    RalphaTranspose.fill(0.0);
+    vnl_vector <double> phip_in(n);
+    double lowerBound = 0.0;
 
     if (rank == n)
     {
         // Compute initial lower bound as phi(0) / phi'(0)
-        // Special case for alpha = 0, R_alpha = R
-
-        for (unsigned int i = 0;i < n;++i)
-        {
-            for (unsigned int j = i;j < n;++j)
-            {
-                workMatrixSquare(i,j) = 0.0;
-                // At least one of the two values under index is zero
-                unsigned int index = std::min(inversePivotVector[i],inversePivotVector[j]);
-                for (unsigned int k = 0;k <= index;++k)
-                    workMatrixSquare(i,j) += derivative(k,inversePivotVector[i]) * derivative(k,inversePivotVector[j]);
-
-                if (i != j)
-                    workMatrixSquare(j,i) = workMatrixSquare(i,j);
-            }
-        }
-
-        phi_in = vnl_qr <double> (workMatrixSquare).solve(constantVector);
-
-        for (unsigned int i = 0;i < n;++i)
-        {
-            phi_in[i] *= dValues[i];
-            phiNorm += phi_in[i] * phi_in[i];
-        }
-
-        phiNorm = std::sqrt(phiNorm);
         lowerBound = phiNorm - m_DeltaParameter;
 
         for (unsigned int i = 0;i < n;++i)
-            phip_in[pivotVector[i]] = dValues[i] * phi_in[i] / phiNorm;
+            phip_in[i] = dValues[pivotVector[i]] * phi_in[pivotVector[i]] / phiNorm;
 
         for (unsigned int i = 0;i < n;++i)
         {
@@ -360,43 +356,23 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
         denom *= phiNorm;
         lowerBound /= denom;
     }
-    else
-    {
-        // Evaluate phi(0) as ||D pi R^- Q^t f||
-        RZero.fill(0.0);
-        RZero.fill(0.0);
-        phi_in_zero.fill(0.0);
 
-        for (unsigned int i = 0;i < rank;++i)
-        {
-            for (unsigned int j = i;j < rank;++j)
-                RZero(i,j) = derivative(i,j);
-
-            phi_in_zero[i] = qtResiduals[i];
-        }
-
-        anima::UpperTriangularSolver(RZero,phi_in_zero,phi_in_zero,rank);
-
-        for (unsigned int i = 0;i < rank;++i)
-        {
-            phi_in_zero[inversePivotVector[i]] *= dValues[i];
-            phiNorm += phi_in_zero[inversePivotVector[i]] * phi_in_zero[inversePivotVector[i]];
-        }
-
-        phiNorm = std::sqrt(phiNorm);
-    }
-
-    // If phi(0) <= 0, it is useless to estimate alpha and we set it to 0
-    if (phiNorm - m_DeltaParameter <= 0.0)
-    {
-        m_LambdaParameter = 0.0;
-        return;
-    }
-    
     // Normally from here, we shouldn't reach again phi(0)
     double upperBound = 0.0;
+    vnl_vector <double> u0InVector(n);
+    u0InVector.fill(0.0);
     for (unsigned int i = 0;i < n;++i)
-        upperBound += (constantVector[i] / dValues[i]) * (constantVector[i] / dValues[i]);
+    {
+        u0InVector[i] = 0.0;
+        for (unsigned int j = 0;j < rank;++j)
+        {
+            if (j <= i)
+                u0InVector[i] += derivative(j,i) * qtResiduals[j];
+        }
+    }
+
+    for (unsigned int i = 0;i < n;++i)
+        upperBound += (u0InVector[inversePivotVector[i]] / dValues[i]) * (u0InVector[inversePivotVector[i]] / dValues[i]);
 
     upperBound = std::sqrt(upperBound) / m_DeltaParameter;
 
@@ -416,48 +392,24 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     bool continueLoop = true;
     while (continueLoop)
     {
-        std::cout << "Test alpha " << alpha << ", value ";
-        if (alpha <= 0.0)
-            std::cerr << "Arg, alpha value is below zero " << alpha << std::endl;
-        
-        if (lowerBound < 0.0)
-            std::cerr << "Lowerbound cannot be negative: " << lowerBound << std::endl;
-
         prevAlpha = alpha;
         // Compute phi_alpha and phip_alpha
         for (unsigned int i = 0;i < n;++i)
             alphaBaseMatrix(m + i,i) = std::sqrt(alpha) * dValues[pivotVector[i]];
 
-        vnl_qr <double> simpleQR(alphaBaseMatrix);
-        Ralpha = simpleQR.R();
+        vnl_qr <double> alphaQR(alphaBaseMatrix);
+        Ralpha = alphaQR.R();
+        pPermuted = alphaQR.solve(wResiduals);
 
+        phiNorm = 0.0;
         for (unsigned int i = 0;i < n;++i)
         {
-            for (unsigned int j = i;j < n;++j)
-            {
-                workMatrixSquare(i,j) = 0.0;
-                // At least one of the two values under index is zero
-                unsigned int index = std::min(inversePivotVector[i],inversePivotVector[j]);
-                for (unsigned int k = 0;k <= index;++k)
-                    workMatrixSquare(i,j) += Ralpha(k,inversePivotVector[i]) * Ralpha(k,inversePivotVector[j]);
-
-                if (i != j)
-                    workMatrixSquare(j,i) = workMatrixSquare(i,j);
-            }
-        }
-
-        phi_in = vnl_qr <double> (workMatrixSquare).solve(constantVector);
-
-        double phiNorm = 0.0;
-        for (unsigned int i = 0;i < n;++i)
-        {
-            phi_in[i] *= dValues[i];
+            phi_in[i] = dValues[i] * pPermuted[inversePivotVector[i]];
             phiNorm += phi_in[i] * phi_in[i];
         }
 
         phiNorm = std::sqrt(phiNorm);
 
-        std::cout << phiNorm - m_DeltaParameter << " ";
         if (std::abs(phiNorm - m_DeltaParameter) < 0.1 * m_DeltaParameter)
         {
             continueLoop = false;
@@ -465,7 +417,7 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
         }
 
         for (unsigned int i = 0;i < n;++i)
-            phip_in[pivotVector[i]] = dValues[i] * phi_in[i] / phiNorm;
+            phip_in[i] = dValues[pivotVector[i]] * phi_in[pivotVector[i]] / phiNorm;
 
         for (unsigned int i = 0;i < n;++i)
         {
@@ -482,22 +434,26 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
         // denom is -phi'(alpha)
         denom *= phiNorm;
 
-        // Update lk and uk
-        double candidateLKp1 = alpha + (phiNorm - m_DeltaParameter) / denom;
-        if (candidateLKp1 > lowerBound)
-            lowerBound = candidateLKp1;
-
+        // Update lk and uk. Taken from vnl implementation: update upper only when phi(alpha) < 0, update only lower otherwise
         if (phiNorm - m_DeltaParameter < 0.0)
             upperBound = alpha;
+        else
+        {
+            double candidateLKp1 = alpha + (phiNorm - m_DeltaParameter) / denom;
+
+            if (candidateLKp1 > lowerBound)
+                lowerBound = candidateLKp1;
+        }
 
         // Compute new alpha
         double addonValue = phiNorm * (phiNorm - m_DeltaParameter) / (denom * m_DeltaParameter);
         alpha += addonValue;
 
-        std::cout << denom << std::endl;
-
         if ((alpha <= lowerBound)||(alpha >= upperBound))
             alpha = std::max(0.001 * upperBound, std::sqrt(lowerBound * upperBound));
+
+        if (std::abs(alpha - prevAlpha) / prevAlpha < 1.0e-6)
+            continueLoop = false;
     }
 
     m_LambdaParameter = alpha;
