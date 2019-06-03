@@ -92,7 +92,7 @@ int main(int argc, char **argv)
     }
 
     resampler->SetInterpolator(interpolator);
-    resampler->SetNumberOfThreads(nbpArg.getValue());
+    resampler->SetNumberOfWorkUnits(nbpArg.getValue());
     resampler->Update();
 
     anima::writeImage <ImageType> (outArg.getValue(),resampler->GetOutput());

@@ -503,7 +503,7 @@ filterInputs(WeightImageType *weights, typename itk::Image < itk::Vector <Scalar
     typename ExtrapolateFilterType::Pointer extrapolateFilter = ExtrapolateFilterType::New();
     extrapolateFilter->SetInput(output);
     extrapolateFilter->SetExtrapolationSigma(m_ExtrapolationSigma);
-    extrapolateFilter->SetNumberOfThreads(m_NumberOfThreads);
+    extrapolateFilter->SetNumberOfWorkUnits(m_NumberOfThreads);
     extrapolateFilter->SetWeightImage(smoothedWeights);
     extrapolateFilter->Update();
 

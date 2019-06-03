@@ -61,7 +61,7 @@ int main(int argc, char **argv)
     CCFilterType::Pointer refCCFilter = CCFilterType::New();
     refCCFilter->SetInput(refSegmentation);
     refCCFilter->SetFullyConnected(fullConnectArg.isSet());
-    refCCFilter->SetNumberOfThreads(nbpArg.getValue());
+    refCCFilter->SetNumberOfWorkUnits(nbpArg.getValue());
     refCCFilter->Update();
 
     ImageType::SpacingType spacing = refSegmentation->GetSpacing();
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
     RelabelComponentFilterType::Pointer relabelRefFilter = RelabelComponentFilterType::New();
     relabelRefFilter->SetInput(refCCFilter->GetOutput());
     relabelRefFilter->SetMinimumObjectSize(minSizeInVoxel);
-    relabelRefFilter->SetNumberOfThreads(nbpArg.getValue());
+    relabelRefFilter->SetNumberOfWorkUnits(nbpArg.getValue());
     relabelRefFilter->Update();
 
     // Reference segmentation is now labeled per connected objects
@@ -86,14 +86,14 @@ int main(int argc, char **argv)
     CCFilterType::Pointer testCCFilter = CCFilterType::New();
     testCCFilter->SetInput(testSegmentation);
     testCCFilter->SetFullyConnected(fullConnectArg.isSet());
-    testCCFilter->SetNumberOfThreads(nbpArg.getValue());
+    testCCFilter->SetNumberOfWorkUnits(nbpArg.getValue());
     testCCFilter->Update();
 
     // Remove too small test objects
     RelabelComponentFilterType::Pointer relabelTestFilter = RelabelComponentFilterType::New();
     relabelTestFilter->SetInput(testCCFilter->GetOutput());
     relabelTestFilter->SetMinimumObjectSize(minSizeInVoxel);
-    relabelTestFilter->SetNumberOfThreads(nbpArg.getValue());
+    relabelTestFilter->SetNumberOfWorkUnits(nbpArg.getValue());
     relabelTestFilter->Update();
 
     // Test segmentation is now labeled per connected objects
@@ -207,14 +207,14 @@ int main(int argc, char **argv)
         CCFilterType::Pointer tmpCCFilter = CCFilterType::New();
         tmpCCFilter->SetInput(subImage);
         tmpCCFilter->SetFullyConnected(fullConnectArg.isSet());
-        tmpCCFilter->SetNumberOfThreads(nbpArg.getValue());
+        tmpCCFilter->SetNumberOfWorkUnits(nbpArg.getValue());
         tmpCCFilter->Update();
 
         // Remove too small test objects
         RelabelComponentFilterType::Pointer relabelTmpCCFilter = RelabelComponentFilterType::New();
         relabelTmpCCFilter->SetInput(tmpCCFilter->GetOutput());
         relabelTmpCCFilter->SetMinimumObjectSize(0);
-        relabelTmpCCFilter->SetNumberOfThreads(nbpArg.getValue());
+        relabelTmpCCFilter->SetNumberOfWorkUnits(nbpArg.getValue());
         relabelTmpCCFilter->Update();
 
         ImageIteratorType subCCItr(relabelTmpCCFilter->GetOutput(),testSegmentation->GetLargestPossibleRegion());

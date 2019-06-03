@@ -32,7 +32,7 @@ BeforeThreadedGenerateData ()
 
     typename ThresholdFilterType::Pointer thrFilter = ThresholdFilterType::New();
     thrFilter->SetInput(m_WeightImage);
-    thrFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    thrFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     thrFilter->ThresholdBelow(1.0e-3);
 
     typename LabelerFilterType::Pointer labelFilter = LabelerFilterType::New();
@@ -41,14 +41,14 @@ BeforeThreadedGenerateData ()
     thrVals.push_back(0);
 
     labelFilter->SetRealThresholds(thrVals);
-    labelFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    labelFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     labelFilter->Update();
 
     typedef itk::SignedMaurerDistanceMapImageFilter <MaskImageType, WeightImageType> DistanceFilterType;
     typename DistanceFilterType::Pointer distFilter = DistanceFilterType::New();
 
     distFilter->SetInput(labelFilter->GetOutput());
-    distFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    distFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     distFilter->SetSquaredDistance(false);
     distFilter->SetBackgroundValue(0);
     distFilter->InsideIsPositiveOff();
