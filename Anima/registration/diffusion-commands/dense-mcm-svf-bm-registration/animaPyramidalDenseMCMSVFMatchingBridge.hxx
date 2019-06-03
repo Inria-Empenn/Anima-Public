@@ -8,7 +8,7 @@
 #include <animaSymmetricBMRegistrationMethod.h>
 #include <animaKissingSymmetricBMRegistrationMethod.h>
 
-#include <itkVectorResampleImageFilter.h>
+#include <itkResampleImageFilter.h>
 
 #include <animaVelocityUtils.h>
 #include <animaMCMResampleImageFilter.h>
@@ -116,7 +116,7 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
         // Update field to match the current resolution
         if (m_OutputTransform->GetParametersAsVectorField() != NULL)
         {
-            typedef itk::VectorResampleImageFilter<VelocityFieldType,VelocityFieldType> VectorResampleFilterType;
+            typedef itk::ResampleImageFilter<VelocityFieldType,VelocityFieldType> VectorResampleFilterType;
             typedef typename VectorResampleFilterType::Pointer VectorResampleFilterPointer;
 
             AffineTransformPointer tmpIdentity = AffineTransformType::New();

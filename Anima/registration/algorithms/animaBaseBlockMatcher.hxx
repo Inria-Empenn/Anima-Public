@@ -158,7 +158,7 @@ BaseBlockMatcher <TInputImageType>
 }
 
 template <typename TInputImageType>
-ITK_THREAD_RETURN_TYPE
+itk::ITK_THREAD_RETURN_TYPE
 BaseBlockMatcher <TInputImageType>
 ::ThreadedMatching(void *arg)
 {
@@ -183,11 +183,11 @@ BaseBlockMatcher <TInputImageType>
 
     while (continueLoop)
     {
-        m_LockHighestProcessedBlock.Lock();
+        m_LockHighestProcessedBlock.lock();
 
         if (m_HighestProcessedBlock >= highestToleratedBlockIndex)
         {
-            m_LockHighestProcessedBlock.Unlock();
+            m_LockHighestProcessedBlock.unlock();
             continueLoop = false;
             continue;
         }
@@ -199,7 +199,7 @@ BaseBlockMatcher <TInputImageType>
 
         m_HighestProcessedBlock = endPoint;
 
-        m_LockHighestProcessedBlock.Unlock();
+        m_LockHighestProcessedBlock.unlock();
 
         this->BlockMatch(startPoint,endPoint);
     }

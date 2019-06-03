@@ -1,7 +1,7 @@
 #pragma once
 
 #include <itkImageToImageFilter.h>
-#include <itkFastMutexLock.h>
+#include <mutex>
 
 namespace anima
 {
@@ -51,10 +51,10 @@ protected:
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(NumberedThreadImageToImageFilter);
 
-    itk::SimpleFastMutexLock m_LockThreadIdNumber;
+    std::mutex m_LockThreadIdNumber;
     std::vector <unsigned int> m_ThreadIdsVector;
 
-    itk::SimpleFastMutexLock m_LockProcessedPoints;
+    std::mutex m_LockProcessedPoints;
     unsigned int m_NumberOfProcessedPoints;
     unsigned int m_NumberOfPointsToProcess;
 };

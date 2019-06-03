@@ -28,6 +28,7 @@ public:
     typedef typename Superclass::InputImageType InputImageType;
     typedef typename TInputImage::PixelType     PixelType;
     typedef typename Superclass::RealType       RealType;
+    typedef typename Superclass::SizeType       SizeType;
 
     /** Dimension underlying input image. */
     itkStaticConstMacro(ImageDimension, unsigned int,Superclass::ImageDimension);
@@ -51,6 +52,11 @@ public:
          * ImageFunction::IsInsideBuffer() can be used to check bounds before
          * calling the method. */
     virtual OutputType EvaluateAtContinuousIndex(const ContinuousIndexType & index) const ITK_OVERRIDE;
+
+    SizeType GetRadius() const override
+    {
+        return SizeType::Filled(1);
+    }
 
 protected:
     VectorModelLinearInterpolateImageFunction();

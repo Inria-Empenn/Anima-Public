@@ -376,7 +376,7 @@ Update()
 }
 
 template <class TInputScalarType, class TOutputScalarType, unsigned int NDimensions, unsigned int NDegreesOfFreedom>
-ITK_THREAD_RETURN_TYPE
+itk::ITK_THREAD_RETURN_TYPE
 MatrixLoggerFilter<TInputScalarType,TOutputScalarType,NDimensions,NDegreesOfFreedom>::
 ThreadedLogging(void *arg)
 {

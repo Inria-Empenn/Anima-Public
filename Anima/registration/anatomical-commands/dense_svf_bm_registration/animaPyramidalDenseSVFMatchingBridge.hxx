@@ -1,7 +1,7 @@
 #pragma once
 #include "animaPyramidalDenseSVFMatchingBridge.h"
 
-#include <itkVectorResampleImageFilter.h>
+#include <itkResampleImageFilter.h>
 
 #include <animaReadWriteFunctions.h>
 #include <animaVelocityUtils.h>
@@ -122,7 +122,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
         // Update field to match the current resolution
         if (m_OutputTransform->GetParametersAsVectorField() != NULL)
         {
-            typedef itk::VectorResampleImageFilter<VelocityFieldType,VelocityFieldType> VectorResampleFilterType;
+            typedef itk::ResampleImageFilter<VelocityFieldType,VelocityFieldType> VectorResampleFilterType;
             typedef typename VectorResampleFilterType::Pointer VectorResampleFilterPointer;
 
             AffineTransformPointer tmpIdentity = AffineTransformType::New();

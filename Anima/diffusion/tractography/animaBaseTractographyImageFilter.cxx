@@ -171,7 +171,7 @@ void BaseTractographyImageFilter::PrepareTractography()
     std::cout << "Generated " << m_PointsToProcess.size() << " seed points from ROI mask" << std::endl;
 }
 
-ITK_THREAD_RETURN_TYPE BaseTractographyImageFilter::ThreadTracker(void *arg)
+itk::ITK_THREAD_RETURN_TYPE BaseTractographyImageFilter::ThreadTracker(void *arg)
 {
     itk::MultiThreaderBase::WorkUnitInfo *threadArgs = (itk::MultiThreaderBase::WorkUnitInfo *)arg;
     unsigned int nbThread = threadArgs->WorkUnitID;
@@ -193,11 +193,11 @@ void BaseTractographyImageFilter::ThreadTrack(unsigned int numThread, std::vecto
 
     while (continueLoop)
     {
-        m_LockHighestProcessedSeed.Lock();
+        m_LockHighestProcessedSeed.lock();
 
         if (m_HighestProcessedSeed >= highestToleratedSeedIndex)
         {
-            m_LockHighestProcessedSeed.Unlock();
+            m_LockHighestProcessedSeed.unlock();
             continueLoop = false;
             continue;
         }
@@ -209,13 +209,13 @@ void BaseTractographyImageFilter::ThreadTrack(unsigned int numThread, std::vecto
 
         m_HighestProcessedSeed = endPoint;
 
-        m_LockHighestProcessedSeed.Unlock();
+        m_LockHighestProcessedSeed.unlock();
 
         this->ThreadedTrackComputer(numThread,resultFibers,startPoint,endPoint);
 
-        m_LockHighestProcessedSeed.Lock();
+        m_LockHighestProcessedSeed.lock();
         m_ProgressReport->CompletedPixel();
-        m_LockHighestProcessedSeed.Unlock();
+        m_LockHighestProcessedSeed.unlock();
     }
 }
 

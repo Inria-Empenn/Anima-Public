@@ -264,7 +264,7 @@ BaseProbabilisticTractographyImageFilter <TInputModelImageType>::GetModelInterpo
 }
 
 template <class TInputModelImageType>
-ITK_THREAD_RETURN_TYPE
+itk::ITK_THREAD_RETURN_TYPE
 BaseProbabilisticTractographyImageFilter <TInputModelImageType>
 ::ThreadTracker(void *arg)
 {
@@ -292,11 +292,11 @@ BaseProbabilisticTractographyImageFilter <TInputModelImageType>
 
     while (continueLoop)
     {
-        m_LockHighestProcessedSeed.Lock();
+        m_LockHighestProcessedSeed.lock();
 
         if (m_HighestProcessedSeed >= highestToleratedSeedIndex)
         {
-            m_LockHighestProcessedSeed.Unlock();
+            m_LockHighestProcessedSeed.unlock();
             continueLoop = false;
             continue;
         }
@@ -308,13 +308,13 @@ BaseProbabilisticTractographyImageFilter <TInputModelImageType>
 
         m_HighestProcessedSeed = endPoint;
 
-        m_LockHighestProcessedSeed.Unlock();
+        m_LockHighestProcessedSeed.unlock();
 
         this->ThreadedTrackComputer(numThread,resultFibers,resultWeights,startPoint,endPoint);
 
-        m_LockHighestProcessedSeed.Lock();
+        m_LockHighestProcessedSeed.lock();
         m_ProgressReport->CompletedPixel();
-        m_LockHighestProcessedSeed.Unlock();
+        m_LockHighestProcessedSeed.unlock();
     }
 }
 

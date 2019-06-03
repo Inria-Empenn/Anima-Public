@@ -3,7 +3,7 @@
 #include <itkConnectedComponentImageFilter.h>
 #include <itkRelabelComponentImageFilter.h>
 #include <itkImageRegionIterator.h>
-#include <itkMultiThreader.h>
+#include <itkMultiThreaderBase.h>
 #include <vnl/vnl_matrix.h>
 
 #include <tclap/CmdLine.h>
@@ -35,7 +35,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg <double> betaArg("b", "beta", "Beta threshold (in between 0 and 1, default: 0.05)", false, 0.05, "beta threshold", cmd);
 
     TCLAP::ValueArg <unsigned int> minVolumeArg("m", "min-vol", "Minimal volume for the component to be considered (default: 6 mm3)", false, 6, "minimal volume", cmd);
-    TCLAP::ValueArg <unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg <unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     TCLAP::SwitchArg fullConnectArg("F","full-connect","Use 26-connectivity instead of 6-connectivity",cmd,false);
 

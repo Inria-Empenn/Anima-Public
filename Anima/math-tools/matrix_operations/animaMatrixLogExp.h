@@ -82,7 +82,7 @@ protected:
         Self* loggerFilter;
     };
 
-    static ITK_THREAD_RETURN_TYPE ThreadedLogging(void *arg);
+    static itk::ITK_THREAD_RETURN_TYPE ThreadedLogging(void *arg);
     void InternalLogger(unsigned int threadId, unsigned int numThreads);
 
 private:

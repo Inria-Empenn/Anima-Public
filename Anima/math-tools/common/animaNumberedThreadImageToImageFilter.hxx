@@ -55,14 +55,14 @@ void
 NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
 ::IncrementNumberOfProcessedPoints()
 {
-    m_LockProcessedPoints.Lock();
+    m_LockProcessedPoints.lock();
 
     ++m_NumberOfProcessedPoints;
 
     double ratio = static_cast <double> (m_NumberOfProcessedPoints) / m_NumberOfPointsToProcess;
     this->UpdateProgress(ratio);
 
-    m_LockProcessedPoints.Unlock();
+    m_LockProcessedPoints.unlock();
 }
 
 template <typename TInputImage, typename TOutputImage>
@@ -70,7 +70,7 @@ unsigned int
 NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
 ::GetSafeThreadId()
 {
-    m_LockThreadIdNumber.Lock();
+    m_LockThreadIdNumber.lock();
 
     unsigned int threadId = 0;
     bool presentInIdsVector = true;
@@ -92,7 +92,7 @@ NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
 
     m_ThreadIdsVector.push_back(threadId);
 
-    m_LockThreadIdNumber.Unlock();
+    m_LockThreadIdNumber.unlock();
 
     return threadId;
 }
@@ -102,7 +102,7 @@ void
 NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
 ::SafeReleaseThreadId(unsigned int threadId)
 {
-    m_LockThreadIdNumber.Lock();
+    m_LockThreadIdNumber.lock();
 
     unsigned int indexThreadId = 0;
     for (unsigned int i = 0;i < m_ThreadIdsVector.size();++i)
@@ -116,7 +116,7 @@ NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
 
     m_ThreadIdsVector.erase(m_ThreadIdsVector.begin() + indexThreadId);
 
-    m_LockThreadIdNumber.Unlock();
+    m_LockThreadIdNumber.unlock();
 }
 
 } // end namespace anima

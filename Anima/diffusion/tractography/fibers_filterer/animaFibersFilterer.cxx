@@ -94,7 +94,7 @@ typedef struct
     std::vector <unsigned int> forbiddenLabels;
 } ThreaderArguments;
 
-ITK_THREAD_RETURN_TYPE ThreadFilterer(void *arg)
+itk::ITK_THREAD_RETURN_TYPE ThreadFilterer(void *arg)
 {
     itk::MultiThreaderBase::WorkUnitInfo *threadArgs = (itk::MultiThreaderBase::WorkUnitInfo *)arg;
     unsigned int nbThread = threadArgs->WorkUnitID;

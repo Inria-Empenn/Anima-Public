@@ -7,7 +7,7 @@
 #include <vtkSmartPointer.h>
 #include <itkProcessObject.h>
 #include <itkLinearInterpolateImageFunction.h>
-#include <itkFastMutexLock.h>
+#include <mutex>
 #include <itkProgressReporter.h>
 
 #include <vector>
@@ -173,7 +173,7 @@ protected:
     virtual ~BaseProbabilisticTractographyImageFilter();
 
     //! Multithread util function
-    static ITK_THREAD_RETURN_TYPE ThreadTracker(void *arg);
+    static itk::ITK_THREAD_RETURN_TYPE ThreadTracker(void *arg);
 
     //! Doing the thread work dispatch
     void ThreadTrack(unsigned int numThread, FiberProcessVectorType &resultFibers, ListType &resultWeights);
@@ -273,7 +273,7 @@ private:
 
     vtkSmartPointer<vtkPolyData> m_Output;
 
-    itk::SimpleFastMutexLock m_LockHighestProcessedSeed;
+    std::mutex m_LockHighestProcessedSeed;
     int m_HighestProcessedSeed;
     itk::ProgressReporter *m_ProgressReport;
 };

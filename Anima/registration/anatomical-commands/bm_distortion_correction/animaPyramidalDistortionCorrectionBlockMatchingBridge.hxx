@@ -6,7 +6,7 @@
 #include <animaDistortionCorrectionBlockMatcher.h>
 #include <animaResampleImageFilter.h>
 
-#include <itkVectorResampleImageFilter.h>
+#include <itkResampleImageFilter.h>
 
 #include <animaVelocityUtils.h>
 #include <animaReadWriteFunctions.h>
@@ -97,7 +97,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
         // Update fields to match the current resolution
         if (m_OutputTransform->GetParametersAsVectorField() != NULL)
         {
-            typedef itk::VectorResampleImageFilter<VectorFieldType,VectorFieldType> VectorResampleFilterType;
+            typedef itk::ResampleImageFilter<VectorFieldType,VectorFieldType> VectorResampleFilterType;
             typedef typename VectorResampleFilterType::Pointer VectorResampleFilterPointer;
             
             AffineTransformPointer tmpIdentity = AffineTransformType::New();
@@ -123,7 +123,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
         
         if (m_InitialTransform)
         {
-            typedef itk::VectorResampleImageFilter<VectorFieldType,VectorFieldType> VectorResampleFilterType;
+            typedef itk::ResampleImageFilter<VectorFieldType,VectorFieldType> VectorResampleFilterType;
             typedef typename VectorResampleFilterType::Pointer VectorResampleFilterPointer;
             
             AffineTransformPointer tmpIdentity = AffineTransformType::New();
@@ -264,7 +264,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
     if (m_LastPyramidLevel != 0)
     {
         // Resample output transform to go back to full resolution
-        typedef itk::VectorResampleImageFilter<VectorFieldType,VectorFieldType> VectorResampleFilterType;
+        typedef itk::ResampleImageFilter<VectorFieldType,VectorFieldType> VectorResampleFilterType;
         typedef typename VectorResampleFilterType::Pointer VectorResampleFilterPointer;
         
         AffineTransformPointer tmpIdentity = AffineTransformType::New();

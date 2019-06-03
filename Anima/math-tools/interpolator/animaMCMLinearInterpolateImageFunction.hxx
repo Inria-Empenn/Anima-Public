@@ -122,7 +122,7 @@ unsigned int
 MCMLinearInterpolateImageFunction< TInputImage, TCoordRep >
 ::GetFreeWorkIndex() const
 {
-    m_LockUsedModels.Lock();
+    m_LockUsedModels.lock();
 
     unsigned int workIndex = 0;
     bool workIndexOk = false;
@@ -144,7 +144,7 @@ MCMLinearInterpolateImageFunction< TInputImage, TCoordRep >
     }
 
     m_UsedModels.push_back(workIndex);
-    m_LockUsedModels.Unlock();
+    m_LockUsedModels.unlock();
 
     return workIndex;
 }
@@ -154,7 +154,7 @@ void
 MCMLinearInterpolateImageFunction< TInputImage, TCoordRep >
 ::UnlockWorkIndex(unsigned int index) const
 {
-    m_LockUsedModels.Lock();
+    m_LockUsedModels.lock();
 
     for (unsigned int i = 0;i < m_UsedModels.size();++i)
     {
@@ -165,7 +165,7 @@ MCMLinearInterpolateImageFunction< TInputImage, TCoordRep >
         }
     }
 
-    m_LockUsedModels.Unlock();
+    m_LockUsedModels.unlock();
 }
 
 /**

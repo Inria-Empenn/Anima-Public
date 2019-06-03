@@ -27,7 +27,7 @@ int main(int argc, char **argv)
                                                   false,"linear","interpolation method",cmd);
 
     TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default : all cores)",
-                                         false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+                                         false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     try
     {

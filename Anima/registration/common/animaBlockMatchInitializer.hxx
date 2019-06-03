@@ -347,7 +347,7 @@ BlockMatchingInitializer<PixelType, NDimensions>
 }
 
 template <class PixelType, unsigned int NDimensions>
-ITK_THREAD_RETURN_TYPE
+itk::ITK_THREAD_RETURN_TYPE
 BlockMatchingInitializer<PixelType,NDimensions>
 ::ThreadBlockGenerator(void *arg)
 {

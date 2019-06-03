@@ -100,25 +100,28 @@ void
 evaluateOutputType(const arguments &args)
 {
     unsigned int imageDim = InputImageType::ImageDimension;
+
     switch(imageDim)
     {
-    case 2:
+        case 2:
         {
             unsigned int outputDim = 2;
             outputDim -= (args.xsize == 0)? 1 :0;
             outputDim -= (args.ysize == 0)? 1 :0;
             switch(outputDim)
             {
-            case 1:
-                extract<InputImageType, 1>(args);
-                break;
-            case 2:
-                extract<InputImageType, 2>(args);
-                break;
-            default:
-                std::string msg = "Number of collapsed dimension not supported.";
-                itk::ExceptionObject excp(__FILE__, __LINE__,msg , ITK_LOCATION);
-                throw excp;
+                case 1:
+                    if constexpr (InputImageType::ImageDimension >= 1)
+                        extract<InputImageType, 1>(args);
+                    break;
+                case 2:
+                    if constexpr (InputImageType::ImageDimension >= 2)
+                        extract<InputImageType, 2>(args);
+                    break;
+                default:
+                    std::string msg = "Number of collapsed dimension not supported.";
+                    itk::ExceptionObject excp(__FILE__, __LINE__,msg , ITK_LOCATION);
+                    throw excp;
             }
             break;
         }
@@ -130,19 +133,22 @@ evaluateOutputType(const arguments &args)
             outputDim -= (args.zsize == 0)? 1 :0;
             switch(outputDim)
             {
-            case 1:
-                extract<InputImageType, 1>(args);
-                break;
-            case 2:
-                extract<InputImageType, 2>(args);
-                break;
-            case 3:
-                extract<InputImageType, 3>(args);
-                break;
-            default:
-                std::string msg = "Number of collapsed dimension not supported.";
-                itk::ExceptionObject excp(__FILE__, __LINE__,msg , ITK_LOCATION);
-                throw excp;
+                case 1:
+                    if constexpr (InputImageType::ImageDimension >= 1)
+                        extract<InputImageType, 1>(args);
+                    break;
+                case 2:
+                    if constexpr (InputImageType::ImageDimension >= 2)
+                        extract<InputImageType, 2>(args);
+                    break;
+                case 3:
+                    if constexpr (InputImageType::ImageDimension >= 3)
+                        extract<InputImageType, 3>(args);
+                    break;
+                default:
+                    std::string msg = "Number of collapsed dimension not supported.";
+                    itk::ExceptionObject excp(__FILE__, __LINE__,msg , ITK_LOCATION);
+                    throw excp;
             }
             break;
         }
@@ -155,22 +161,26 @@ evaluateOutputType(const arguments &args)
             outputDim -= (args.tsize == 0)? 1 :0;
             switch(outputDim)
             {
-            case 1:
-                extract<InputImageType, 1>(args);
-                break;
-            case 2:
-                extract<InputImageType, 2>(args);
-                break;
-            case 3:
-                extract<InputImageType, 3>(args);
-                break;
-            case 4:
-                extract<InputImageType, 4>(args);
-                break;
-            default:
-                std::string msg = "Number of collapsed dimension not supported.";
-                itk::ExceptionObject excp(__FILE__, __LINE__,msg , ITK_LOCATION);
-                throw excp;
+                case 1:
+                    if constexpr (InputImageType::ImageDimension >= 1)
+                        extract<InputImageType, 1>(args);
+                    break;
+                case 2:
+                    if constexpr (InputImageType::ImageDimension >= 2)
+                        extract<InputImageType, 2>(args);
+                    break;
+                case 3:
+                    if constexpr (InputImageType::ImageDimension >= 3)
+                        extract<InputImageType, 3>(args);
+                    break;
+                case 4:
+                    if constexpr (InputImageType::ImageDimension >= 4)
+                        extract<InputImageType, 4>(args);
+                    break;
+                default:
+                    std::string msg = "Number of collapsed dimension not supported.";
+                    itk::ExceptionObject excp(__FILE__, __LINE__,msg , ITK_LOCATION);
+                    throw excp;
             }
             break;
         }
@@ -215,90 +225,90 @@ int main(int ac, const char** av)
                        ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inputArg("i",
-            "input",
-            "Input image to crop",
-            true,
-            "",
-            "Input image to crop",
-            cmd);
+                                          "input",
+                                          "Input image to crop",
+                                          true,
+                                          "",
+                                          "Input image to crop",
+                                          cmd);
 
     TCLAP::ValueArg<std::string> outputArg("o",
-            "output",
-            "Output cropped image",
-            true,
-            "",
-            "Output cropped image",
-            cmd);
+                                           "output",
+                                           "Output cropped image",
+                                           true,
+                                           "",
+                                           "Output cropped image",
+                                           cmd);
 
     TCLAP::ValueArg<std::string> maskArg("m",
-            "mask",
-            "A mask used instead of other arguments to determine a bounding box",
-            false,
-            "",
-            "Bounding box mask",
-            cmd);
+                                         "mask",
+                                         "A mask used instead of other arguments to determine a bounding box",
+                                         false,
+                                         "",
+                                         "Bounding box mask",
+                                         cmd);
 
     TCLAP::ValueArg<unsigned int> xArg("x",
-            "xindex",
-            "The resulting croped image will go from xindex to xsize along the xindex axis.",
-            false,
-            0,
-            "Start of ROI for the xindex dimension",
-            cmd);
+                                       "xindex",
+                                       "The resulting croped image will go from xindex to xsize along the xindex axis.",
+                                       false,
+                                       0,
+                                       "Start of ROI for the xindex dimension",
+                                       cmd);
 
     TCLAP::ValueArg<unsigned int> XArg("X",
-            "xsize",
-            "The resulting croped image will go from xindex to xsize along the xindex axis. If 0 the dimension is collapsed.",
-            false,
-            -1,
-            "Size of ROI for the xindex dimension",
-            cmd);
+                                       "xsize",
+                                       "The resulting croped image will go from xindex to xsize along the xindex axis. If 0 the dimension is collapsed.",
+                                       false,
+                                       -1,
+                                       "Size of ROI for the xindex dimension",
+                                       cmd);
 
     TCLAP::ValueArg<unsigned int> yArg("y",
-            "yindex",
-            "The resulting croped image will go from yindex to ysize along the yindex axis.",
-            false,
-            0,
-            "Start of ROI for the yindex dimension",
-            cmd);
+                                       "yindex",
+                                       "The resulting croped image will go from yindex to ysize along the yindex axis.",
+                                       false,
+                                       0,
+                                       "Start of ROI for the yindex dimension",
+                                       cmd);
 
     TCLAP::ValueArg<unsigned int> YArg("Y",
-            "ysize",
-            "The resulting croped image will go from yindex to ysize along the yindex axis. If 0 the dimension is collapsed.",
-            false,
-            -1,
-            "Size of ROI for the yindex dimension",
-            cmd);
+                                       "ysize",
+                                       "The resulting croped image will go from yindex to ysize along the yindex axis. If 0 the dimension is collapsed.",
+                                       false,
+                                       -1,
+                                       "Size of ROI for the yindex dimension",
+                                       cmd);
     TCLAP::ValueArg<unsigned int> zArg("z",
-            "zindex",
-            "The resulting croped image will go from yindex to ysize along the zindex axis.",
-            false,
-            0,
-            "Start of ROI for the zindex dimension",
-            cmd);
+                                       "zindex",
+                                       "The resulting croped image will go from yindex to ysize along the zindex axis.",
+                                       false,
+                                       0,
+                                       "Start of ROI for the zindex dimension",
+                                       cmd);
 
     TCLAP::ValueArg<unsigned int> ZArg("Z",
-            "zsize",
-            "The resulting croped image will go from zindex to zsize along the zindex axis. If 0 the dimension is collapsed.",
-            false,
-            -1,
-            "Size of ROI for the zindex dimension",
-            cmd);
+                                       "zsize",
+                                       "The resulting croped image will go from zindex to zsize along the zindex axis. If 0 the dimension is collapsed.",
+                                       false,
+                                       -1,
+                                       "Size of ROI for the zindex dimension",
+                                       cmd);
     TCLAP::ValueArg<unsigned int> tArg("t",
-            "tindex",
-            "The resulting croped image will go from tindex to tsize along the tindex axis.",
-            false,
-            0,
-            "Start of ROI for the tindex dimension",
-            cmd);
+                                       "tindex",
+                                       "The resulting croped image will go from tindex to tsize along the tindex axis.",
+                                       false,
+                                       0,
+                                       "Start of ROI for the tindex dimension",
+                                       cmd);
 
     TCLAP::ValueArg<unsigned int> TArg("T",
-            "tsize",
-            "The resulting croped image will go from tindex to tsize along the tindex axis. If 0 the dimension is collapsed.",
-            false,
-            -1,
-            "Size of ROI for the tindex dimension",
-            cmd);
+                                       "tsize",
+                                       "The resulting croped image will go from tindex to tsize along the tindex axis. If 0 the dimension is collapsed.",
+                                       false,
+                                       -1,
+                                       "Size of ROI for the tindex dimension",
+                                       cmd);
 
     try
     {
