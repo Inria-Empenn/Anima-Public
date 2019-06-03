@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.10.2)
 
 cmake_policy(SET CMP0048 NEW)
 project(ANIMA VERSION 3.3)
