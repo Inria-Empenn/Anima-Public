@@ -11,18 +11,16 @@ B1T2RelaxometryDistributionCostFunction::GetValue(const ParametersType & paramet
     unsigned int numValues = m_T2WorkingValues.size();
     unsigned int numDistributions = m_T2DistributionSamples.size();
 
-    m_T2SignalSimulator.SetB1OnExcitationAngle(m_B1OnExcitationAngle);
     m_T2SignalSimulator.SetNumberOfEchoes(numT2Signals);
     m_T2SignalSimulator.SetEchoSpacing(m_EchoSpacing);
     m_T2SignalSimulator.SetExcitationFlipAngle(m_ExcitationFlipAngle);
-    m_T2SignalSimulator.SetFlipAngle(m_T2FlipAngles[0]);
 
     m_SimulatedEPGValues.resize(numValues);
     m_SimulatedSignalValues.resize(numT2Signals);
     std::fill(m_SimulatedSignalValues.begin(),m_SimulatedSignalValues.end(),0.0);
 
     for (unsigned int i = 0;i < numValues;++i)
-        m_SimulatedEPGValues[i] = m_T2SignalSimulator.GetValue(m_T1Value,m_T2WorkingValues[i],parameters[0],m_M0Value);
+        m_SimulatedEPGValues[i] = m_T2SignalSimulator.GetValue(m_T1Value,m_T2WorkingValues[i],parameters[0] * m_T2FlipAngles[0],m_M0Value);
 
     for (unsigned int i = 0;i < numDistributions;++i)
     {

@@ -29,6 +29,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> resM0Arg("","out-m0","Result M0 image",false,"","result M0 image",cmd);
     TCLAP::ValueArg<std::string> resMWFArg("o","out-mwf","Result MWF image",true,"","result MWF image",cmd);
     TCLAP::ValueArg<std::string> resB1Arg("","out-b1","Result B1 image",false,"","result B1 image",cmd);
+    TCLAP::ValueArg<std::string> resSigmaSqArg("","out-sig","Result sigma square image",false,"","result sigma square image",cmd);
 
     TCLAP::ValueArg<double> echoSpacingArg("e","echo-spacing","Spacing between two successive echoes (default: 10)",false,10,"Spacing between echoes",cmd);
     TCLAP::ValueArg<double> excitationT2FlipAngleArg("","t2-ex-flip","Excitation flip angle for T2 (in degrees, default: 90)",false,90,"T2 excitation flip angle",cmd);
@@ -39,9 +40,6 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> t2LowerBoundArg("","low-t2","Lower T2 value (default: 1.0e-4)",false,1.0e-4,"T2 lower value",cmd);
     TCLAP::ValueArg<double> t2UpperBoundArg("","up-t2","Upper T2 value (default: 4000)",false,4000,"T2 upper value",cmd);
     TCLAP::ValueArg<double> gaussianToleranceApproxArg("","g-tol","Gaussian approximation tolerance (default: 1.0e-6)",false,1.0e-6,"Gaussian approximation tolerance",cmd);
-
-    TCLAP::SwitchArg b1OnExcAngleArg("B", "b1-exc", "B1 is also applied to excitation angle",cmd,false);
-    TCLAP::ValueArg<double> b1ToleranceArg("","b1-tol","B1 tolerance threshold of convergence (default: 1.0e-4)",false,1.0e-4,"B1 tolerance for optimization convergence",cmd);
 
     TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 	
@@ -69,8 +67,6 @@ int main(int argc, char **argv)
     mainFilter->SetEchoSpacing(echoSpacingArg.getValue());
     mainFilter->SetT2FlipAngles(t2FlipAngleArg.getValue() * M_PI / 180.0,numInputs);
     mainFilter->SetT2ExcitationFlipAngle(excitationT2FlipAngleArg.getValue() * M_PI / 180.0);
-    mainFilter->SetB1OnExcitationAngle(b1OnExcAngleArg.isSet());
-    mainFilter->SetB1Tolerance(b1ToleranceArg.getValue());
 
     mainFilter->SetLowerT2Bound(t2LowerBoundArg.getValue());
     mainFilter->SetUpperT2Bound(t2UpperBoundArg.getValue());
@@ -136,6 +132,9 @@ int main(int argc, char **argv)
 
     if (resB1Arg.getValue() != "")
         anima::writeImage<OutputImageType> (resB1Arg.getValue(),mainFilter->GetB1OutputImage());
+
+    if (resSigmaSqArg.getValue() != "")
+        anima::writeImage<OutputImageType> (resSigmaSqArg.getValue(),mainFilter->GetSigmaSquareOutputImage());
 
     return EXIT_SUCCESS;
 }

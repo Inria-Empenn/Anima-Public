@@ -1,3 +1,6 @@
+#pragma once
+#include "animaMultiT2RelaxometryEstimationImageFilter.h"
+
 #include <itkImageRegionIterator.h>
 #include <itkImageRegionConstIterator.h>
 
@@ -173,9 +176,7 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
     anima::EPGSignalSimulator epgSimulator;
     epgSimulator.SetEchoSpacing(m_EchoSpacing);
     epgSimulator.SetNumberOfEchoes(numInputs);
-    epgSimulator.SetB1OnExcitationAngle(m_B1OnExcitationAngle);
     epgSimulator.SetExcitationFlipAngle(m_T2ExcitationFlipAngle);
-    epgSimulator.SetFlipAngle(m_T2FlipAngles[0]);
 
     anima::EPGSignalSimulator::RealVectorType epgSignalValues(numInputs);
 
@@ -188,7 +189,6 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
     cost->SetEchoSpacing(m_EchoSpacing);
     cost->SetExcitationFlipAngle(m_T2ExcitationFlipAngle);
     cost->SetT2FlipAngles(m_T2FlipAngles);
-    cost->SetB1OnExcitationAngle(m_B1OnExcitationAngle);
     cost->SetM0Value(1.0);
 
     unsigned int dimension = cost->GetNumberOfParameters();

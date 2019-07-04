@@ -41,8 +41,6 @@ public:
     itkSetMacro(B1Value, double)
     itkGetMacro(M0Value, double)
 
-    itkSetMacro(B1OnExcitationAngle, bool)
-
     unsigned int GetNumberOfParameters() const ITK_OVERRIDE
     {
         // T2, B1
@@ -58,8 +56,6 @@ protected:
         m_M0Value = 1;
 
         m_T2EchoSpacing = 1;
-
-        m_B1OnExcitationAngle = false;
     }
 
     virtual ~T2EPGRelaxometryCostFunction() {}
@@ -73,8 +69,6 @@ private:
 
     double m_T2ExcitationFlipAngle;
     std::vector <double> m_T2FlipAngles;
-
-    bool m_B1OnExcitationAngle;
 
     mutable double m_T1Value, m_T2Value, m_B1Value, m_M0Value;
 };

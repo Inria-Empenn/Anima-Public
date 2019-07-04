@@ -22,8 +22,6 @@ int main(int argc, char *argv[] )
     TCLAP::ValueArg<double> teArg("e","te","TE echo spacing (ms), default: 10ms",false, 10,"TE value",cmd);
     TCLAP::ValueArg<double> xfaArg("x","excite-fa","Excitation flip angle (degrees), default: 90 degrees", false, 90,"excitation flip angle value",cmd);
     TCLAP::ValueArg<double> faArg("f","fa","Flip angle (degrees), default: 180 degrees", false, 180,"flip angle value",cmd);
-    
-    TCLAP::SwitchArg b1OnExcAngleArg("B", "b1-exc", "B1 is also applied to excitation angle",cmd,false);
 
     TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
@@ -84,7 +82,6 @@ int main(int argc, char *argv[] )
     filter->SetFlipAngle(faArg.getValue() * M_PI / 180.0);
     filter->SetNumberOfEchoes(neArg.getValue());
     filter->SetExcitationFlipAngle(xfaArg.getValue() * M_PI / 180.0);
-    filter->SetB1OnExcitationAngle(b1OnExcAngleArg.isSet());
     
     filter->Update();
     

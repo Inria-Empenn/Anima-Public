@@ -60,13 +60,11 @@ public:
     InputImageType *GetM0OutputImage() {return this->GetOutput(0);}
     InputImageType *GetMWFOutputImage() {return this->GetOutput(1);}
     InputImageType *GetB1OutputImage() {return this->GetOutput(2);}
+    InputImageType *GetSigmaSquareOutputImage() {return this->GetOutput(3);}
     VectorOutputImageType *GetWeightsImage() {return m_WeightsImage;}
 
     itkSetMacro(T2ExcitationFlipAngle, double)
     itkSetMacro(T2IntegrationStep, double)
-
-    itkSetMacro(B1OnExcitationAngle, bool)
-    itkSetMacro(B1Tolerance, double)
 
     void SetGaussianMeans(std::string fileName);
     void SetGaussianVariances(std::string fileName);
@@ -79,10 +77,10 @@ protected:
     GMMT2RelaxometryEstimationImageFilter()
     : Superclass()
     {
-        // There are 3 outputs: M0, MWF, B1
-        this->SetNumberOfRequiredOutputs(3);
+        // There are 3 outputs: M0, MWF, B1, sigma square
+        this->SetNumberOfRequiredOutputs(4);
 
-        for (unsigned int i = 0;i < 3;++i)
+        for (unsigned int i = 0;i < 4;++i)
             this->SetNthOutput(i, this->MakeOutput(i));
 
         m_AverageSignalThreshold = 0;
@@ -105,8 +103,6 @@ protected:
         m_GaussianIntegralTolerance = 1.0e-6;
 
         m_T2ExcitationFlipAngle = M_PI / 6;
-        m_B1OnExcitationAngle = false;
-        m_B1Tolerance = 1.0e-4;
         m_GaussianMeansTolerance = 0.1;
     }
 
@@ -118,8 +114,6 @@ protected:
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
     void PrepareGaussianValues();
-
-    bool endConditionReached(double b1Value, double previousB1Value);
 
 private:
     GMMT2RelaxometryEstimationImageFilter(const Self&); //purposely not implemented
@@ -151,8 +145,6 @@ private:
     std::vector <double> m_T2FlipAngles;
     double m_T2ExcitationFlipAngle;
 
-    bool m_B1OnExcitationAngle;
-    double m_B1Tolerance;
     double m_GaussianMeansTolerance;
 };
     

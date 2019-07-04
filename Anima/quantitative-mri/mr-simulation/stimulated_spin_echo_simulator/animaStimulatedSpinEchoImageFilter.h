@@ -41,8 +41,6 @@ public:
     itkSetMacro(ExcitationFlipAngle, double)
     itkGetMacro(ExcitationFlipAngle, double)
 
-    itkSetMacro(B1OnExcitationAngle, bool)
-
     /** T1 map */
     void SetInputT1(const TImage* T1);
 
@@ -74,8 +72,6 @@ private:
     double m_ExcitationFlipAngle;
     double m_FlipAngle;
     unsigned int m_NumberOfEchoes;
-
-    bool m_B1OnExcitationAngle;
 
     Image4DPointer m_Output4D;
 };

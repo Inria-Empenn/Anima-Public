@@ -6,7 +6,7 @@
 
 #include <animaEPGSignalSimulator.h>
 #include <animaNLOPTOptimizers.h>
-#include <animaB1T2RelaxometryDistributionCostFunction.h>
+#include <animaB1GMMRelaxometryCostFunction.h>
 
 #include <fstream>
 #include <boost/lexical_cast.hpp>
@@ -175,6 +175,7 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
     ImageIteratorType outM0Iterator(this->GetM0OutputImage(),outputRegionForThread);
     ImageIteratorType outMWFIterator(this->GetMWFOutputImage(),outputRegionForThread);
     ImageIteratorType outB1Iterator(this->GetB1OutputImage(),outputRegionForThread);
+    ImageIteratorType outSigmaSqIterator(this->GetSigmaSquareOutputImage(),outputRegionForThread);
 
     unsigned int numInputs = this->GetNumberOfIndexedInputs();
     std::vector <ImageConstIteratorType> inIterators;
@@ -190,31 +191,25 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
 
     T2VectorType signalValues(numInputs);
     unsigned int numberOfGaussians = m_GaussianMeans.size();
-    T2VectorType t2OptimizedWeights(numberOfGaussians);
-
     OutputVectorType outputT2Weights(numberOfGaussians);
-    DataMatrixType AMatrix(numInputs,numberOfGaussians,0);
 
     anima::EPGSignalSimulator epgSimulator;
     epgSimulator.SetEchoSpacing(m_EchoSpacing);
     epgSimulator.SetNumberOfEchoes(numInputs);
-    epgSimulator.SetB1OnExcitationAngle(m_B1OnExcitationAngle);
     epgSimulator.SetExcitationFlipAngle(m_T2ExcitationFlipAngle);
-    epgSimulator.SetFlipAngle(m_T2FlipAngles[0]);
 
     std::vector <anima::EPGSignalSimulator::RealVectorType> epgSignalValues;
 
     NNLSOptimizerPointer nnlsOpt = NNLSOptimizerType::New();
 
     typedef anima::NLOPTOptimizers B1OptimizerType;
-    typedef anima::B1T2RelaxometryDistributionCostFunction B1CostFunctionType;
+    typedef anima::B1GMMRelaxometryCostFunction B1CostFunctionType;
+    B1OptimizerType::ParametersType t2OptimizedWeights(numberOfGaussians);
 
     typename B1CostFunctionType::Pointer cost = B1CostFunctionType::New();
     cost->SetEchoSpacing(m_EchoSpacing);
     cost->SetExcitationFlipAngle(m_T2ExcitationFlipAngle);
     cost->SetT2FlipAngles(m_T2FlipAngles);
-    cost->SetB1OnExcitationAngle(m_B1OnExcitationAngle);
-    cost->SetM0Value(1.0);
 
     cost->SetLowerT2Bound(m_LowerT2Bound);
     cost->SetUpperT2Bound(m_UpperT2Bound);
@@ -224,12 +219,13 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
     itk::Array<double> lowerBounds(dimension);
     itk::Array<double> upperBounds(dimension);
     B1OptimizerType::ParametersType p(dimension);
-    lowerBounds[0] = 1;
-    upperBounds[0] = 2;
+    lowerBounds[0] = 1.0 * m_T2FlipAngles[0];
+    upperBounds[0] = 2.0 * m_T2FlipAngles[0];
 
     cost->SetT2DistributionSamples(m_SampledGaussianValues);
     cost->SetT2WorkingValues(m_T2WorkingValues);
     cost->SetDistributionSamplesT2Correspondences(m_SampledGaussT2Correspondences);
+    cost->SetUseDerivative(false);
 
     unsigned int numSteps = m_T2WorkingValues.size();
     epgSignalValues.resize(numSteps);
@@ -244,12 +240,14 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
             outM0Iterator.Set(0);
             outMWFIterator.Set(0.0);
             outB1Iterator.Set(0.0);
+            outSigmaSqIterator.Set(0.0);
 
             ++maskItr;
             ++outWeightsIterator;
             ++outM0Iterator;
             ++outMWFIterator;
             ++outB1Iterator;
+            ++outSigmaSqIterator;
 
             for (unsigned int i = 0;i < numInputs;++i)
                 ++inIterators[i];
@@ -260,79 +258,52 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
             continue;
         }
 
-        double previousB1Value = -1.0;
-        double t1Value = 1000;
+        double t1Value = 1000.0;
         double m0Value = 0.0;
 
         for (unsigned int i = 0;i < numInputs;++i)
             signalValues[i] = inIterators[i].Get();
 
         if (m_T1Map)
+        {
             t1Value = t1MapItr.Get();
+            if (t1Value <= 0.0)
+                t1Value = 1000.0;
+        }
+
         cost->SetT1Value(t1Value);
         cost->SetT2RelaxometrySignals(signalValues);
 
-        double b1Value = outB1Iterator.Get();
-        unsigned int numGlobalIterations = 0;
+        B1OptimizerType::Pointer b1Optimizer = B1OptimizerType::New();
+        b1Optimizer->SetAlgorithm(NLOPT_LN_BOBYQA);
+        b1Optimizer->SetCostFunction(cost);
+        b1Optimizer->SetXTolRel(1.0e-5);
+        b1Optimizer->SetFTolRel(1.0e-7);
+        b1Optimizer->SetMaxEval(500);
+        b1Optimizer->SetVectorStorageSize(2000);
+        b1Optimizer->SetLowerBoundParameters(lowerBounds);
+        b1Optimizer->SetUpperBoundParameters(upperBounds);
 
-        while ((!this->endConditionReached(b1Value,previousB1Value))&&(numGlobalIterations < 100))
+        p[0] = 1.1 * m_T2FlipAngles[0];
+
+        b1Optimizer->SetInitialPosition(p);
+        b1Optimizer->SetCostFunction(cost);
+
+        b1Optimizer->StartOptimization();
+        p = b1Optimizer->GetCurrentPosition();
+
+        t2OptimizedWeights = cost->GetOptimalT2Weights();
+
+        m0Value = 0;
+        for (unsigned int i = 0;i < numberOfGaussians;++i)
+            m0Value += t2OptimizedWeights[i];
+
+        for (unsigned int i = 0;i < numberOfGaussians;++i)
         {
-            ++numGlobalIterations;
-            previousB1Value = b1Value;
-            // T2 weights estimation
-            AMatrix.fill(0);
-
-            for (unsigned int i = 0;i < numSteps;++i)
-                epgSignalValues[i] = epgSimulator.GetValue(t1Value,m_T2WorkingValues[i],b1Value,1.0);
-
-            for (unsigned int i = 0;i < numberOfGaussians;++i)
-            {
-                unsigned int numSamples = m_SampledGaussianValues[i].size();
-                for (unsigned int j = 0;j < numInputs;++j)
-                {
-                    double integralValue = m_SampledGaussianValues[i][0] * epgSignalValues[m_SampledGaussT2Correspondences[i][0]][j] * m_T2IntegrationStep / 2.0;
-
-                    for (unsigned int k = 1;k < numSamples;++k)
-                        integralValue += (m_SampledGaussianValues[i][k] * epgSignalValues[m_SampledGaussT2Correspondences[i][k]][j] + m_SampledGaussianValues[i][k-1] * epgSignalValues[m_SampledGaussT2Correspondences[i][k-1]][j]) * m_T2IntegrationStep / 2.0;
-
-                    AMatrix(j,i) = integralValue;
-                }
-            }
-
-            // Regular NNLS optimization
-            nnlsOpt->SetDataMatrix(AMatrix);
-            nnlsOpt->SetPoints(signalValues);
-
-            nnlsOpt->StartOptimization();
-            t2OptimizedWeights = nnlsOpt->GetCurrentPosition();
-
-            m0Value = 0.0;
-            for (unsigned int i = 0;i < numberOfGaussians;++i)
-                m0Value += t2OptimizedWeights[i];
-
-            for (unsigned int i = 0;i < numberOfGaussians;++i)
+            if (m0Value > 0.0)
                 outputT2Weights[i] = t2OptimizedWeights[i] / m0Value;
-
-            // B1 value estimation
-            cost->SetT2Weights(t2OptimizedWeights);
-
-            B1OptimizerType::Pointer b1Optimizer = B1OptimizerType::New();
-            b1Optimizer->SetAlgorithm(NLOPT_LN_BOBYQA);
-            b1Optimizer->SetXTolRel(1.0e-4);
-            b1Optimizer->SetFTolRel(1.0e-6);
-            b1Optimizer->SetMaxEval(500);
-            b1Optimizer->SetVectorStorageSize(2000);
-
-            b1Optimizer->SetLowerBoundParameters(lowerBounds);
-            b1Optimizer->SetUpperBoundParameters(upperBounds);
-            p[0] = b1Value;
-            b1Optimizer->SetInitialPosition(p);
-            b1Optimizer->SetMaximize(false);
-            b1Optimizer->SetCostFunction(cost);
-
-            b1Optimizer->StartOptimization();
-            p = b1Optimizer->GetCurrentPosition();
-            b1Value = p[0];
+            else
+                outputT2Weights[i] = 0.0;
         }
 
         outM0Iterator.Set(m0Value);
@@ -341,13 +312,17 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
         double mwfValue = outputT2Weights[0];
 
         outMWFIterator.Set(mwfValue);
+
+        double b1Value = p[0] / m_T2FlipAngles[0];
         outB1Iterator.Set(b1Value);
+        outSigmaSqIterator.Set(cost->GetSigmaSquare());
 
         ++maskItr;
         ++outWeightsIterator;
         ++outM0Iterator;
         ++outMWFIterator;
         ++outB1Iterator;
+        ++outSigmaSqIterator;
 
         for (unsigned int i = 0;i < numInputs;++i)
             ++inIterators[i];
@@ -355,17 +330,6 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
         if (m_T1Map)
             ++t1MapItr;
     }
-}
-
-template <class TPixelScalarType>
-bool
-GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
-::endConditionReached(double b1Value, double previousB1Value)
-{
-    if (std::abs(b1Value - previousB1Value) > m_B1Tolerance)
-        return false;
-
-    return true;
 }
 
 template <class TPixelScalarType>

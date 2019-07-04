@@ -46,7 +46,6 @@ public:
     itkSetMacro(OptimizerStopCondition, double)
 
     itkSetMacro(T2ExcitationFlipAngle, double)
-    itkSetMacro(B1OnExcitationAngle, bool)
 
     void SetT2FlipAngles(std::vector <double> & flipAngles) {m_T2FlipAngles = flipAngles;}
     void SetT2FlipAngles(double singleAngle, unsigned int numAngles) {m_T2FlipAngles = std::vector <double> (numAngles,singleAngle);}
@@ -70,8 +69,6 @@ protected:
 
         m_MaximumOptimizerIterations = 5000;
         m_OptimizerStopCondition = 1.0e-4;
-
-        m_B1OnExcitationAngle = false;
     }
 
     virtual ~T2EPGRelaxometryEstimationImageFilter() {}
@@ -101,8 +98,6 @@ private:
     std::vector <double> m_T2FlipAngles;
     double m_T2ExcitationFlipAngle;
     double m_TRValue;
-
-    bool m_B1OnExcitationAngle;
 
     double m_T2UpperBound;
 };

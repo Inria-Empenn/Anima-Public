@@ -122,7 +122,6 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
     cost->SetT2EchoSpacing(m_EchoSpacing);
     cost->SetT2ExcitationFlipAngle(m_T2ExcitationFlipAngle);
     cost->SetT2FlipAngles(m_T2FlipAngles);
-    cost->SetB1OnExcitationAngle(m_B1OnExcitationAngle);
 
     unsigned int dimension = cost->GetNumberOfParameters();
     itk::Array<double> lowerBounds(dimension);
