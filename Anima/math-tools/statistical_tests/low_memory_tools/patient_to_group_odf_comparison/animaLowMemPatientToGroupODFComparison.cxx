@@ -19,7 +19,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> expVarArg("e","expvar","PCA threshold: threshold on eigenvalues to compute the new basis (default: 0.9)",false,0.9,"PCA threshold",cmd);
 	TCLAP::ValueArg<unsigned int> numEigenArg("E","numeigenpca","Number of eigenvalues to keep (default: 6)",false,6,"Number of PCA eigen values",cmd);
     
-    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);	
+    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);	
 	TCLAP::ValueArg<unsigned int> nbThetaArg("T","theta","Number of theta values (theta varies between 0 and pi/2",false,0,"number of theta values",cmd);
     TCLAP::ValueArg<unsigned int> nbPhiArg("P","phi","Number of phi values (theta varies between 0 and 2 pi",false,0,"number of phi values",cmd);
 	
@@ -47,7 +47,7 @@ int main(int argc, char **argv)
     
     MultiAtlasZScoreBridgeType *mainFilter = new MultiAtlasZScoreBridgeType;
     mainFilter->SetComputationMask(maskName);
-    mainFilter->SetNumberOfThreads(nbpArg.getValue());
+    mainFilter->SetNumberOfWorkUnits(nbpArg.getValue());
 	
 	mainFilter->SetNumEigenValuesPCA(numEigenArg.getValue());
 	mainFilter->SetExplainedRatio(expVarArg.getValue());

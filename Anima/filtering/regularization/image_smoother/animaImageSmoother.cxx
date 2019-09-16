@@ -22,7 +22,7 @@ void performSmoothing (std::string &inStr, std::string &outStr, double sigma, un
     typename SmoothingFilterType::Pointer smoothFilter = SmoothingFilterType::New();
 
     smoothFilter->SetInput(currentImage);
-    smoothFilter->SetNumberOfThreads(nThreads);
+    smoothFilter->SetNumberOfWorkUnits(nThreads);
     smoothFilter->SetSigma(sigma * meanSpacing);
 
     smoothFilter->Update();
@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 
     TCLAP::ValueArg<double> sigmaArg("s","sigma","sigma value of Gaussian kernel",false,1.0,"sigma value",cmd);
 
-    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     try
     {

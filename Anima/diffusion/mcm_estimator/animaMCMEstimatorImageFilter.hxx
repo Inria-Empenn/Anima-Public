@@ -204,8 +204,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     Superclass::BeforeThreadedGenerateData();
 
-    m_MCMCreators.resize(this->GetNumberOfThreads());
-    for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
+    m_MCMCreators.resize(this->GetNumberOfWorkUnits());
+    for (unsigned int i = 0;i < this->GetNumberOfWorkUnits();++i)
         m_MCMCreators[i] = this->GetNewMCMCreatorInstance();
 
     std::cout << "Initial diffusivities:" << std::endl;
@@ -220,7 +220,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         std::cout << " - Stanisz diffusivity: " << m_StaniszDiffusivityValue << " mm2/s," << std::endl;
 
     // Setting up creators
-    for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
+    for (unsigned int i = 0;i < this->GetNumberOfWorkUnits();++i)
     {
         m_MCMCreators[i]->SetAxialDiffusivityValue(m_AxialDiffusivityValue);
         m_MCMCreators[i]->SetFreeWaterDiffusivityValue(3.0e-3);
@@ -418,7 +418,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 template <class InputPixelType, class OutputPixelType>
 void
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionConstIterator <InputImageType> ConstImageIteratorType;
 
@@ -427,7 +427,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         inIterators[i] = ConstImageIteratorType(this->GetInput(i),outputRegionForThread);
 
     typedef itk::ImageRegionIterator <OutputImageType> OutImageIteratorType;
-    typedef itk::ImageRegionConstIterator <VectorImageType> VectorImageIteratorType;
     OutImageIteratorType outIterator(this->GetOutput(),outputRegionForThread);
 
     typedef itk::ImageRegionIterator <MaskImageType> MaskIteratorType;
@@ -445,11 +444,13 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     typename OutputImageType::PixelType resVec(this->GetOutput()->GetNumberOfComponentsPerPixel());
 
-    MCMPointer mcmData = 0;
+    MCMPointer mcmData = ITK_NULLPTR;
     MCMPointer outputMCMData = this->GetOutput()->GetDescriptionModel()->Clone();
     MCMType::ListType outputWeights(outputMCMData->GetNumberOfCompartments(),0);
 
     double aiccValue, b0Value, sigmaSqValue;
+
+    unsigned int threadId = this->GetSafeThreadId();
 
     while (!outIterator.IsAtEnd())
     {
@@ -559,6 +560,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         for (unsigned int i = 0;i < m_NumberOfImages;++i)
             ++inIterators[i];
 
+        this->IncrementNumberOfProcessedPoints();
         ++outIterator;
         ++maskItr;
         ++aiccIterator;
@@ -566,6 +568,8 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         ++sigmaIterator;
         ++moseIterator;
     }
+
+    this->SafeReleaseThreadId(threadId);
 }
 
 template <class InputPixelType, class OutputPixelType>

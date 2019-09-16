@@ -66,7 +66,7 @@ MCMAverageImagesImageFilter <TPixelType>
 template <class TPixelType>
 void
 MCMAverageImagesImageFilter <TPixelType>
-::ThreadedGenerateData(const InputRegionType &region, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const InputRegionType &region)
 {
     unsigned int numInputs = this->GetNumberOfIndexedInputs();
 

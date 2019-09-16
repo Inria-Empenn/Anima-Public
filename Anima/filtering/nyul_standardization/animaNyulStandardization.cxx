@@ -24,7 +24,7 @@ standardize(itk::ImageIOBase::Pointer imageIO, const arguments &args)
     mainFilter->SetInput(anima::readImage<ImageType>(args.moving));
     mainFilter->SetNumberOfHistogramLevels(args.nlevels);
     mainFilter->SetNumberOfMatchPoints(args.npoints);
-    mainFilter->SetNumberOfThreads(args.nthreads);
+    mainFilter->SetNumberOfWorkUnits(args.nthreads);
     mainFilter->Update();
     
     anima::writeImage<ImageType>(args.output, mainFilter->GetOutput());
@@ -48,7 +48,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<unsigned int> nlvlArg("","nhl","Number of histogram levels (default: 100)",false,100,"number of histogram levels",cmd);
     TCLAP::ValueArg<unsigned int> nptsArg("","nmp","Number of match points (default: 15)",false,15,"number of match points",cmd);
 
-    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     try
     {

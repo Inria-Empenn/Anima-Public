@@ -3,7 +3,7 @@
 
 #include <itkSingleValuedNonLinearOptimizer.h>
 #include <itkSingleValuedCostFunction.h>
-#include <itkFastMutexLock.h>
+#include <mutex>
 
 namespace anima
 {
@@ -50,8 +50,8 @@ public:
     virtual typename AgregatorType::TRANSFORM_TYPE GetAgregatorInputTransformType() = 0;
 
     void SetForceComputeBlocks(bool val) {m_ForceComputeBlocks = val;}
-    void SetNumberOfThreads(unsigned int val) {m_NumberOfThreads = val;}
-    unsigned int GetNumberOfThreads() {return m_NumberOfThreads;}
+    void SetNumberOfWorkUnits(unsigned int val) {m_NumberOfThreads = val;}
+    unsigned int GetNumberOfWorkUnits() {return m_NumberOfThreads;}
 
     void SetBlockVarianceThreshold(double val) {m_BlockVarianceThreshold = val;}
     double GetBlockVarianceThreshold() {return m_BlockVarianceThreshold;}
@@ -102,7 +102,7 @@ protected:
     };
 
     /** Do the matching for a batch of regions (splited according to the thread id + nb threads) */
-    static ITK_THREAD_RETURN_TYPE ThreadedMatching(void *arg);
+    static itk::ITK_THREAD_RETURN_TYPE ThreadedMatching(void *arg);
 
     void ProcessBlockMatch();
     void BlockMatch(unsigned int startIndex, unsigned int endIndex);
@@ -157,7 +157,7 @@ private:
     unsigned int m_OptimizerMaximumIterations;
     double m_StepSize;
 
-    itk::SimpleFastMutexLock m_LockHighestProcessedBlock;
+    std::mutex m_LockHighestProcessedBlock;
     int m_HighestProcessedBlock;
 };
 

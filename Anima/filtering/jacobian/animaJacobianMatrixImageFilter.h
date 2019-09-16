@@ -67,7 +67,7 @@ protected:
     virtual ~JacobianMatrixImageFilter() {}
 
     void BeforeThreadedGenerateData() ITK_OVERRIDE;
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
+    void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
 
     bool CheckFaceConnectivity(const IndexType &internalIndex, const IndexType &currentIndex);
 

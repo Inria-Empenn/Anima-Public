@@ -129,7 +129,7 @@ protected:
         m_NbTissus = 3;     // 3 NABT tissus to estimate.
         m_NbModalities = 3; // use of 3 images.
 
-        this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
+        this->SetNumberOfWorkUnits(itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads());
 
     }
 
@@ -147,7 +147,7 @@ protected:
     itk::DataObject::Pointer MakeOutput(unsigned int idx);
 
     void BeforeThreadedGenerateData() ITK_OVERRIDE;
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
+    void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
 
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(ComputeMahalanobisImagesFilter);

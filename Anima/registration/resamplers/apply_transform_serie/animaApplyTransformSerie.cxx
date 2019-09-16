@@ -35,7 +35,7 @@ void applyTransformationToGradients(std::string &inputGradientsFileName, std::st
     trReader->SetInput(args.transfo);
     trReader->SetInvertTransform(!args.invert);
     trReader->SetExponentiationOrder(args.exponentiationOrder);
-    trReader->SetNumberOfThreads(args.pthread);
+    trReader->SetNumberOfWorkUnits(args.pthread);
     trReader->Update();
     typename TransformType::Pointer transfo = trReader->GetOutputTransform();
 
@@ -106,7 +106,7 @@ applyVectorTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
     trReader->SetInput(args.transfo);
     trReader->SetInvertTransform(args.invert);
     trReader->SetExponentiationOrder(args.exponentiationOrder);
-    trReader->SetNumberOfThreads(args.pthread);
+    trReader->SetNumberOfWorkUnits(args.pthread);
     trReader->Update();
     typename TransformType::Pointer transfo = trReader->GetOutputTransform();
 
@@ -162,7 +162,7 @@ applyVectorTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
     vectorResampler->SetOutputDirection(direction);
 
     vectorResampler->SetInput(anima::readImage<ImageType>(args.input));
-    vectorResampler->SetNumberOfThreads(args.pthread);
+    vectorResampler->SetNumberOfWorkUnits(args.pthread);
     vectorResampler->Update();
 
     anima::writeImage<OutputType>(args.output, vectorResampler->GetOutput());
@@ -182,7 +182,7 @@ applyScalarTransfo4D(itk::ImageIOBase::Pointer geometryImageIO, const arguments 
     trReader->SetInput(args.transfo);
     trReader->SetInvertTransform(args.invert);
     trReader->SetExponentiationOrder(args.exponentiationOrder);
-    trReader->SetNumberOfThreads(args.pthread);
+    trReader->SetNumberOfWorkUnits(args.pthread);
     trReader->Update();
     typename TransformType::Pointer transfo = trReader->GetOutputTransform();
 
@@ -278,12 +278,12 @@ applyScalarTransfo4D(itk::ImageIOBase::Pointer geometryImageIO, const arguments 
         extractRegion.SetSize(InternalImageDimension,0);
 
         extractFilter->SetExtractionRegion(extractRegion);
-        extractFilter->SetNumberOfThreads(args.pthread);
+        extractFilter->SetNumberOfWorkUnits(args.pthread);
 
         extractFilter->Update();
 
         scalarResampler->SetInput(extractFilter->GetOutput());
-        scalarResampler->SetNumberOfThreads(args.pthread);
+        scalarResampler->SetNumberOfWorkUnits(args.pthread);
         scalarResampler->Update();
 
         extractRegion.SetSize(InternalImageDimension,1);
@@ -323,7 +323,7 @@ applyScalarTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
     trReader->SetInput(args.transfo);
     trReader->SetInvertTransform(args.invert);
     trReader->SetExponentiationOrder(args.exponentiationOrder);
-    trReader->SetNumberOfThreads(args.pthread);
+    trReader->SetNumberOfWorkUnits(args.pthread);
     trReader->Update();
     typename TransformType::Pointer transfo = trReader->GetOutputTransform();
 
@@ -381,7 +381,7 @@ applyScalarTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
     scalarResampler->SetOutputDirection(direction);
 
     scalarResampler->SetInput(anima::readImage<ImageType>(args.input));
-    scalarResampler->SetNumberOfThreads(args.pthread);
+    scalarResampler->SetNumberOfWorkUnits(args.pthread);
     scalarResampler->Update();
 
     anima::writeImage<OutputType>(args.output, scalarResampler->GetOutput());
@@ -460,7 +460,7 @@ int main(int ac, const char** av)
                                                   cmd);
 
     TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default : all cores)",
-                                         false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+                                         false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     try
     {
@@ -603,7 +603,7 @@ int main(int ac, const char** av)
         dispFieldGenerator->SetSize(sizeOutput);
 
         dispFieldGenerator->SetTransform(transfo);
-        dispFieldGenerator->SetNumberOfThreads(nbpArg.getValue());
+        dispFieldGenerator->SetNumberOfWorkUnits(nbpArg.getValue());
         dispFieldGenerator->Update();
 
         anima::writeImage <DisplacementFieldImageType>(outTrArg.getValue(), dispFieldGenerator->GetOutput());

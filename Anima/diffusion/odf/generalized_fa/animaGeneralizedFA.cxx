@@ -9,7 +9,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> inArg("i","inputodf","ODF volume",true,"","ODF volume",cmd);
     TCLAP::ValueArg<std::string> resArg("o","output","Result image",true,"","result GFA image",cmd);
 
-    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     try
     {
@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 
     MainFilterType::Pointer mainFilter = MainFilterType::New();
     mainFilter->SetInput(anima::readImage <MainFilterType::TInputImage> (inArg.getValue()));
-    mainFilter->SetNumberOfThreads(nbpArg.getValue());
+    mainFilter->SetNumberOfWorkUnits(nbpArg.getValue());
 
     mainFilter->Update();
 

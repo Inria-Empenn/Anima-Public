@@ -42,7 +42,7 @@ public:
     void SetExtrapolationSigma(double sigma) {m_ExtrapolationSigma = sigma;}
     void SetOutlierRejectionSigma(double sigma) {m_OutlierRejectionSigma = sigma;}
 
-    void SetNumberOfThreads(unsigned int num) {m_NumberOfThreads = num;}
+    void SetNumberOfWorkUnits(unsigned int num) {m_NumberOfThreads = num;}
 
     void SetNeighborhoodHalfSize(unsigned int num) {m_NeighborhoodHalfSize = num;}
     void SetDistanceBoundary(double num) {m_DistanceBoundary = num;}

@@ -40,7 +40,7 @@ void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *
     bchAdder->SetInput(1,addonTrsf->GetParametersAsVectorField());
 
     if (numThreads > 0)
-        bchAdder->SetNumberOfThreads(numThreads);
+        bchAdder->SetNumberOfWorkUnits(numThreads);
 
     bchAdder->Update();
 
@@ -60,7 +60,7 @@ void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *
         lieBracketFilter->SetInput(1,addonTrsf->GetParametersAsVectorField());
 
         if (numThreads > 0)
-            lieBracketFilter->SetNumberOfThreads(numThreads);
+            lieBracketFilter->SetNumberOfWorkUnits(numThreads);
 
         lieBracketFilter->Update();
         baseTrsfJac = lieBracketFilter->GetFirstFieldJacobian();
@@ -75,7 +75,7 @@ void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *
         bracketMultiplier->SetConstant(0.5);
 
         if (numThreads > 0)
-            bracketMultiplier->SetNumberOfThreads(numThreads);
+            bracketMultiplier->SetNumberOfWorkUnits(numThreads);
 
         bracketMultiplier->Update();
 
@@ -84,7 +84,7 @@ void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *
         bchSecondAdder->SetInput(1,bracketMultiplier->GetOutput());
 
         if (numThreads > 0)
-            bchSecondAdder->SetNumberOfThreads(numThreads);
+            bchSecondAdder->SetNumberOfWorkUnits(numThreads);
 
         bchSecondAdder->Update();
 
@@ -102,7 +102,7 @@ void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *
         lieBracketFilter->SetFirstFieldJacobian(baseTrsfJac);
 
         if (numThreads > 0)
-            lieBracketFilter->SetNumberOfThreads(numThreads);
+            lieBracketFilter->SetNumberOfWorkUnits(numThreads);
 
         lieBracketFilter->Update();
 
@@ -111,7 +111,7 @@ void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *
         bracketMultiplier->SetConstant(1.0 / 12);
 
         if (numThreads > 0)
-            bracketMultiplier->SetNumberOfThreads(numThreads);
+            bracketMultiplier->SetNumberOfWorkUnits(numThreads);
 
         bracketMultiplier->Update();
 
@@ -120,7 +120,7 @@ void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *
         bchSecondAdder->SetInput(1,bracketMultiplier->GetOutput());
 
         if (numThreads > 0)
-            bchSecondAdder->SetNumberOfThreads(numThreads);
+            bchSecondAdder->SetNumberOfWorkUnits(numThreads);
 
         bchSecondAdder->Update();
 
@@ -136,7 +136,7 @@ void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *
         reverseLieBracketFilter->SetSecondFieldJacobian(addonTrsfJac);
 
         if (numThreads > 0)
-            reverseLieBracketFilter->SetNumberOfThreads(numThreads);
+            reverseLieBracketFilter->SetNumberOfWorkUnits(numThreads);
 
         reverseLieBracketFilter->Update();
 
@@ -145,7 +145,7 @@ void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *
         bracketMultiplier->SetConstant(1.0 / 12);
 
         if (numThreads > 0)
-            bracketMultiplier->SetNumberOfThreads(numThreads);
+            bracketMultiplier->SetNumberOfWorkUnits(numThreads);
 
         bracketMultiplier->Update();
 
@@ -154,7 +154,7 @@ void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *
         bchSecondAdder->SetInput(1,bracketMultiplier->GetOutput());
 
         if (numThreads > 0)
-            bchSecondAdder->SetNumberOfThreads(numThreads);
+            bchSecondAdder->SetNumberOfWorkUnits(numThreads);
 
         bchSecondAdder->Update();
 
@@ -175,7 +175,7 @@ void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *
         lieBracketFilter->SetSecondFieldJacobian(addonTrsfJac);
 
         if (numThreads > 0)
-            lieBracketFilter->SetNumberOfThreads(numThreads);
+            lieBracketFilter->SetNumberOfWorkUnits(numThreads);
 
         lieBracketFilter->Update();
 
@@ -184,7 +184,7 @@ void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *
         bracketMultiplier->SetConstant(1.0 / 24);
 
         if (numThreads > 0)
-            bracketMultiplier->SetNumberOfThreads(numThreads);
+            bracketMultiplier->SetNumberOfWorkUnits(numThreads);
 
         bracketMultiplier->Update();
 
@@ -193,7 +193,7 @@ void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *
         bchSecondAdder->SetInput(1,bracketMultiplier->GetOutput());
 
         if (numThreads > 0)
-            bchSecondAdder->SetNumberOfThreads(numThreads);
+            bchSecondAdder->SetNumberOfWorkUnits(numThreads);
 
         bchSecondAdder->Update();
 
@@ -226,7 +226,7 @@ void GetSVFExponential(itk::StationaryVelocityFieldTransform <ScalarType,NDimens
         multiplier->SetInput(tmpPtr);
         multiplier->SetConstant(-1.0);
 
-        multiplier->SetNumberOfThreads(numThreads);
+        multiplier->SetNumberOfWorkUnits(numThreads);
         multiplier->Update();
 
         tmpPtr = multiplier->GetOutput();
@@ -236,7 +236,7 @@ void GetSVFExponential(itk::StationaryVelocityFieldTransform <ScalarType,NDimens
     typename ExponentialFilterType::Pointer expFilter = ExponentialFilterType::New();
     expFilter->SetInput(tmpPtr);
     expFilter->SetExponentiationOrder(exponentiationOrder);
-    expFilter->SetNumberOfThreads(numThreads);
+    expFilter->SetNumberOfWorkUnits(numThreads);
     expFilter->SetMaximalDisplacementAmplitude(0.25);
 
     expFilter->Update();
@@ -266,7 +266,7 @@ void composeDistortionCorrections(typename rpi::DisplacementFieldTransform <Scal
     typename ComposeFilterType::Pointer composePositiveFilter = ComposeFilterType::New();
     composePositiveFilter->SetWarpingField(positiveAddOn->GetParametersAsVectorField());
     composePositiveFilter->SetDisplacementField(baseTrsf->GetParametersAsVectorField());
-    composePositiveFilter->SetNumberOfThreads(numThreads);
+    composePositiveFilter->SetNumberOfWorkUnits(numThreads);
 
     typename VectorInterpolateFunctionType::Pointer interpolator = VectorInterpolateFunctionType::New();
 
@@ -279,7 +279,7 @@ void composeDistortionCorrections(typename rpi::DisplacementFieldTransform <Scal
     multiplyFilter->SetConstant(-1.0);
 
     if (numThreads > 0)
-        multiplyFilter->SetNumberOfThreads(numThreads);
+        multiplyFilter->SetNumberOfWorkUnits(numThreads);
 
     multiplyFilter->InPlaceOn();
 
@@ -290,7 +290,7 @@ void composeDistortionCorrections(typename rpi::DisplacementFieldTransform <Scal
     composeNegativeFilter->SetDisplacementField(multiplyFilter->GetOutput());
 
     if (numThreads > 0)
-        composeNegativeFilter->SetNumberOfThreads(numThreads);
+        composeNegativeFilter->SetNumberOfWorkUnits(numThreads);
 
     interpolator = VectorInterpolateFunctionType::New();
 

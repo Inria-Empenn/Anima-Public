@@ -3,7 +3,6 @@
 
 #include <animaReadWriteFunctions.h>
 #include <animaLogTensorImageFilter.h>
-#include <itkMultiThreader.h>
 #include <itkCommand.h>
 
 #include <tclap/CmdLine.h>
@@ -40,7 +39,7 @@ int main(int argc,  char*  argv[])
     TCLAP::ValueArg<double> minLengthArg("","min-length","Minimum length for a fiber to be considered for computation (default: 10mm)",false,10.0,"minimum length",cmd);
     TCLAP::ValueArg<double> maxLengthArg("","max-length","Maximum length of a tract (default: 150mm)",false,150.0,"maximum length",cmd);
 
-    TCLAP::ValueArg<unsigned int> nbThreadsArg("T","nb-threads","Number of threads to run on (default: all available)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbThreadsArg("T","nb-threads","Number of threads to run on (default: all available)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     try
     {
@@ -63,7 +62,7 @@ int main(int argc,  char*  argv[])
 
     tensorLogger->SetInput(anima::readImage <DTIImageType> (dtiArg.getValue()));
     tensorLogger->SetScaleNonDiagonal(false);
-    tensorLogger->SetNumberOfThreads(nbThreadsArg.getValue());
+    tensorLogger->SetNumberOfWorkUnits(nbThreadsArg.getValue());
 
     tensorLogger->Update();
 
@@ -80,7 +79,7 @@ int main(int argc,  char*  argv[])
     if (forbiddenMaskArg.getValue() != "")
         dtiTracker->SetForbiddenMask(anima::readImage <MaskImageType> (forbiddenMaskArg.getValue()));
 
-    dtiTracker->SetNumberOfThreads(nbThreadsArg.getValue());
+    dtiTracker->SetNumberOfWorkUnits(nbThreadsArg.getValue());
     dtiTracker->SetNumberOfFibersPerPixel(nbFibersArg.getValue());
     dtiTracker->SetStepProgression(stepLengthArg.getValue());
     dtiTracker->SetStopFAThreshold(faThrArg.getValue());

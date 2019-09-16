@@ -19,7 +19,7 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<std::string> outArg("o", "outputVectorField", "Distortion vector field", true, "","Output vector field", cmd );
 
     TCLAP::ValueArg<double> sigmaArg("s", "sigma-smooth", "Sigma for gaussian smoothing of the transformation (in pixels, default: 2)",false,1,"gaussian smoothing sigma", cmd );
-    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     try
     {
@@ -54,7 +54,7 @@ int main(int ac, const char** av)
     filter->SetInput(1, backwardImage);
     filter->SetDirection(distortionDirection.getValue());
     filter->SetFieldSmoothingSigma(sigmaArg.getValue() * meanSpacing);
-    filter->SetNumberOfThreads(nbpArg.getValue());
+    filter->SetNumberOfWorkUnits(nbpArg.getValue());
     filter->Update();
 
     anima::writeImage<VectorFieldType>(outArg.getValue(),filter->GetOutput());

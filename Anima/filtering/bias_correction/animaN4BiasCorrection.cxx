@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
     TCLAP::ValueArg<int> oArgSplineOrder("O", "splineOrder", "BSpline Order, default=3", false, 3, "spline Order", cmd);
     TCLAP::ValueArg<float> oArgSplineDistance("D", "splineDistance", "B-Spline distance, default=0.0", false, 0.0, "spline Distance", cmd);
     TCLAP::ValueArg<std::string> oArgInitialMeshResolutionString("G", "splineGrid", "B-Spline grid resolution. It is ignored if splineDistance>0 or if dimention of it <>3, default=1x1x1", false, "1x1x1", "spline Grid", cmd);
-    TCLAP::ValueArg<unsigned int> oArgNbP("p", "numberofthreads", "Number of threads to run on (default: all cores)", false, itk::MultiThreader::GetGlobalDefaultNumberOfThreads(), "number of threads", cmd);
+    TCLAP::ValueArg<unsigned int> oArgNbP("p", "numberofthreads", "Number of threads to run on (default: all cores)", false, itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(), "number of threads", cmd);
 
     try
     {
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
     otsu->SetInsideValue(0);
     otsu->SetOutsideValue(1);
 
-    otsu->SetNumberOfThreads(oArgNbP.getValue());
+    otsu->SetNumberOfWorkUnits(oArgNbP.getValue());
     otsu->Update();
     maskImage = otsu->GetOutput();
 
@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
         imagePadder->SetPadLowerBound(lowerBound);
         imagePadder->SetPadUpperBound(upperBound);
         imagePadder->SetConstant(0);
-        imagePadder->SetNumberOfThreads(oArgNbP.getValue());
+        imagePadder->SetNumberOfWorkUnits(oArgNbP.getValue());
         imagePadder->Update();
 
         image = imagePadder->GetOutput();
@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
         maskPadder->SetPadUpperBound(upperBound);
         maskPadder->SetConstant(0);
 
-        maskPadder->SetNumberOfThreads(oArgNbP.getValue());
+        maskPadder->SetNumberOfWorkUnits(oArgNbP.getValue());
         maskPadder->Update();
 
         maskImage = maskPadder->GetOutput();
@@ -236,8 +236,8 @@ int main(int argc, char *argv[])
     /*** 12 ******************* Shrink mask and image *************************/
     imageShrinker->SetShrinkFactors(oArgShrinkFactors.getValue());
     maskShrinker->SetShrinkFactors(oArgShrinkFactors.getValue());
-    imageShrinker->SetNumberOfThreads(oArgNbP.getValue());
-    maskShrinker->SetNumberOfThreads(oArgNbP.getValue());
+    imageShrinker->SetNumberOfWorkUnits(oArgNbP.getValue());
+    maskShrinker->SetNumberOfWorkUnits(oArgNbP.getValue());
     imageShrinker->Update();
     maskShrinker->Update();
 
@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
     filter->AddObserver(itk::ProgressEvent(), callback);
     try
     {
-        filter->SetNumberOfThreads(oArgNbP.getValue());
+        filter->SetNumberOfWorkUnits(oArgNbP.getValue());
         filter->Update();
     }
     catch (itk::ExceptionObject & err)
@@ -277,7 +277,7 @@ int main(int argc, char *argv[])
     bspliner->SetOrigin(newOrigin);
     bspliner->SetDirection(image->GetDirection());
     bspliner->SetSpacing(image->GetSpacing());
-    bspliner->SetNumberOfThreads(oArgNbP.getValue());
+    bspliner->SetNumberOfWorkUnits(oArgNbP.getValue());
     bspliner->Update();
 
     ImageType::Pointer logField = ImageType::New();
@@ -298,13 +298,13 @@ int main(int argc, char *argv[])
 
     ExpFilterType::Pointer expFilter = ExpFilterType::New();
     expFilter->SetInput(logField);
-    expFilter->SetNumberOfThreads(oArgNbP.getValue());
+    expFilter->SetNumberOfWorkUnits(oArgNbP.getValue());
     expFilter->Update();
 
     DividerType::Pointer divider = DividerType::New();
     divider->SetInput1(image);
     divider->SetInput2(expFilter->GetOutput());
-    divider->SetNumberOfThreads(oArgNbP.getValue());
+    divider->SetNumberOfWorkUnits(oArgNbP.getValue());
     divider->Update();
 
     ImageType::RegionType inputRegion;
@@ -315,7 +315,7 @@ int main(int argc, char *argv[])
     cropper->SetInput(divider->GetOutput());
     cropper->SetExtractionRegion(inputRegion);
     cropper->SetDirectionCollapseToSubmatrix();
-    cropper->SetNumberOfThreads(oArgNbP.getValue());
+    cropper->SetNumberOfWorkUnits(oArgNbP.getValue());
     cropper->Update();
 
     timer.Stop();

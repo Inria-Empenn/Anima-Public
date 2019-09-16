@@ -295,7 +295,7 @@ Graph3DFilter<TInput, TOutput>
     m_NLinksFilter->SetMatrix( this->GetMatrix() );
     m_NLinksFilter->SetMatFilename( this->GetMatFilename() );
     m_NLinksFilter->SetVerbose( this->GetVerbose() );
-    m_NLinksFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    m_NLinksFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     m_NLinksFilter->SetTol( m_Tol );
 
     m_NLinksFilter->SetInputSeedProbaSources( this->GetInputSeedProbaSources() );
@@ -356,7 +356,7 @@ Graph3DFilter<TInput, TOutput>::FindDownsampleFactor()
         resampleMask->SetSize( outputSize );
         resampleMask->SetOutputSpacing( outputSpacing );
         resampleMask->SetTransform( TransformType::New() );
-        resampleMask->SetNumberOfThreads( this->GetNumberOfThreads() );
+        resampleMask->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
         resampleMask->SetCoordinateTolerance( m_Tol );
         resampleMask->SetDirectionTolerance( m_Tol );
         resampleMask->Update();
@@ -408,7 +408,7 @@ Graph3DFilter<TInput, TOutput>
     m_ResampleMask->SetOutputOrigin(m_OutputOrigin);
     m_ResampleMask->SetInput(this->GetMask());
     m_ResampleMask->SetTransform(TransformType::New());
-    m_ResampleMask->SetNumberOfThreads(this->GetNumberOfThreads());
+    m_ResampleMask->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     m_ResampleMask->SetCoordinateTolerance(m_Tol);
     m_ResampleMask->SetDirectionTolerance(m_Tol);
 
@@ -417,7 +417,7 @@ Graph3DFilter<TInput, TOutput>
     m_ResampleSources->SetOutputOrigin(m_OutputOrigin);
     m_ResampleSources->SetInput(this->GetInputSeedProbaSources());
     m_ResampleSources->SetTransform(TransformType::New());
-    m_ResampleSources->SetNumberOfThreads(this->GetNumberOfThreads());
+    m_ResampleSources->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     m_ResampleSources->SetCoordinateTolerance(m_Tol);
     m_ResampleSources->SetDirectionTolerance(m_Tol);
 
@@ -426,7 +426,7 @@ Graph3DFilter<TInput, TOutput>
     m_ResampleSinks->SetOutputOrigin(m_OutputOrigin);
     m_ResampleSinks->SetInput(this->GetInputSeedProbaSinks());
     m_ResampleSinks->SetTransform(TransformType::New());
-    m_ResampleSinks->SetNumberOfThreads(this->GetNumberOfThreads());
+    m_ResampleSinks->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     m_ResampleSinks->SetCoordinateTolerance(m_Tol);
     m_ResampleSinks->SetDirectionTolerance(m_Tol);
 
@@ -435,7 +435,7 @@ Graph3DFilter<TInput, TOutput>
     m_Resample1->SetOutputOrigin(m_OutputOrigin);
     m_Resample1->SetInput(this->GetInputImage1());
     m_Resample1->SetTransform(TransformType::New());
-    m_Resample1->SetNumberOfThreads(this->GetNumberOfThreads());
+    m_Resample1->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     m_Resample1->SetCoordinateTolerance(m_Tol);
     m_Resample1->SetDirectionTolerance(m_Tol);
 
@@ -444,7 +444,7 @@ Graph3DFilter<TInput, TOutput>
     m_Resample2->SetOutputOrigin(m_OutputOrigin);
     m_Resample2->SetInput(this->GetInputImage2());
     m_Resample2->SetTransform(TransformType::New());
-    m_Resample2->SetNumberOfThreads(this->GetNumberOfThreads());
+    m_Resample2->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     m_Resample2->SetCoordinateTolerance(m_Tol);
     m_Resample2->SetDirectionTolerance(m_Tol);
 
@@ -453,7 +453,7 @@ Graph3DFilter<TInput, TOutput>
     m_Resample3->SetOutputOrigin(m_OutputOrigin);
     m_Resample3->SetInput(this->GetInputImage4());
     m_Resample3->SetTransform(TransformType::New());
-    m_Resample3->SetNumberOfThreads(this->GetNumberOfThreads());
+    m_Resample3->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     m_Resample3->SetCoordinateTolerance(m_Tol);
     m_Resample3->SetDirectionTolerance(m_Tol);
 
@@ -462,7 +462,7 @@ Graph3DFilter<TInput, TOutput>
     m_Resample4->SetOutputOrigin(m_OutputOrigin);
     m_Resample4->SetInput(this->GetInputImage4());
     m_Resample4->SetTransform(TransformType::New());
-    m_Resample4->SetNumberOfThreads(this->GetNumberOfThreads());
+    m_Resample4->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     m_Resample4->SetCoordinateTolerance(m_Tol);
     m_Resample4->SetDirectionTolerance(m_Tol);
 
@@ -471,7 +471,7 @@ Graph3DFilter<TInput, TOutput>
     m_Resample5->SetOutputOrigin(m_OutputOrigin);
     m_Resample5->SetInput(this->GetInputImage5());
     m_Resample5->SetTransform(TransformType::New());
-    m_Resample5->SetNumberOfThreads(this->GetNumberOfThreads());
+    m_Resample5->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     m_Resample5->SetCoordinateTolerance(m_Tol);
     m_Resample5->SetDirectionTolerance(m_Tol);
 }
@@ -487,7 +487,7 @@ Graph3DFilter<TInput, TOutput>
     m_NLinksFilterDecim->SetMatrix( this->GetMatrix() );
     m_NLinksFilterDecim->SetMatFilename( this->GetMatFilename() );
     m_NLinksFilterDecim->SetVerbose( this->GetVerbose() );
-    m_NLinksFilterDecim->SetNumberOfThreads(this->GetNumberOfThreads());
+    m_NLinksFilterDecim->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     m_NLinksFilterDecim->SetTol( m_Tol );
     m_NLinksFilterDecim->SetMask( m_CurrentMask ); // mandatory brain mask
 
@@ -539,7 +539,7 @@ Graph3DFilter<TInput, TOutput>
     DilateFilterType::Pointer dilateFilter = DilateFilterType::New();
     dilateFilter->SetInput(input);
     dilateFilter->SetKernel(structuringElement);
-    dilateFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    dilateFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     dilateFilter->SetCoordinateTolerance(m_Tol);
     dilateFilter->SetDirectionTolerance(m_Tol);
 
@@ -626,7 +626,7 @@ Graph3DFilter<TInput, TOutput>
     ResizeFilter->SetInput(input);
     ResizeFilter->SetCoordinateTolerance(m_Tol);
     ResizeFilter->SetDirectionTolerance(m_Tol);
-    ResizeFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    ResizeFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     ResizeFilter->Update();
 
     return ResizeFilter->GetOutput();

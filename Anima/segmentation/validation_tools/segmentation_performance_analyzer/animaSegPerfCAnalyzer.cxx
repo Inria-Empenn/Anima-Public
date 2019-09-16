@@ -7,7 +7,7 @@
 #include <itkConnectedComponentImageFilter.h>
 #include <itkRelabelComponentImageFilter.h>
 #include <itkImageIterator.h>
-#include <itkMultiThreader.h>
+#include <itkMultiThreaderBase.h>
 #include <itkImageDuplicator.h>
 
 namespace anima
@@ -22,7 +22,7 @@ namespace anima
 */
 SegPerfCAnalyzer::SegPerfCAnalyzer(std::string &pi_pchImageTestName, std::string &pi_pchImageRefName, bool bAdvancedEvaluation)
 {
-    m_ThreadNb = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
+    m_ThreadNb = itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
 
     m_dfDetectionThresholdAlpha = 0.05;
     m_dfDetectionThresholdBeta = 0.50;
@@ -289,7 +289,7 @@ void SegPerfCAnalyzer::computeITKMeasures()
 {
     m_oFilter = FilterType::New();
 
-    m_oFilter->SetNumberOfThreads(m_ThreadNb);
+    m_oFilter->SetNumberOfWorkUnits(m_ThreadNb);
     m_oFilter->SetSourceImage( m_imageTest);
     m_oFilter->SetTargetImage( m_imageRef );
 
@@ -807,8 +807,8 @@ void SegPerfCAnalyzer::getOverlapTab(int&po_iNbLabelsRef, int&po_iNbLabelsTest, 
 
     //Variable declaration
     connectedComponentImageFilterType::Pointer poLesionSeparatorFilter = connectedComponentImageFilterType::New();
-    ImageType::Pointer poImageRefLesionsByLabels =  NULL;
-    ImageType::Pointer poImageTestLesionsByLabels =  NULL;
+    ImageType::Pointer poImageRefLesionsByLabels = ITK_NULLPTR;
+    ImageType::Pointer poImageTestLesionsByLabels = ITK_NULLPTR;
     relabelComponentImageFilterType::Pointer poRelabelFilter = relabelComponentImageFilterType::New();
     int&iNbLabelsRef = po_iNbLabelsRef;
     int&iNbLabelsTest = po_iNbLabelsTest;
@@ -818,7 +818,7 @@ void SegPerfCAnalyzer::getOverlapTab(int&po_iNbLabelsRef, int&po_iNbLabelsTest, 
     iNbLabelsRef = 1;
     iNbLabelsTest = 1;
 
-    poLesionSeparatorFilter->SetNumberOfThreads(m_ThreadNb);
+    poLesionSeparatorFilter->SetNumberOfWorkUnits(m_ThreadNb);
 
     //Create a label per connected component into ground truth
     poLesionSeparatorFilter->SetInput(m_imageRef);
@@ -841,7 +841,7 @@ void SegPerfCAnalyzer::getOverlapTab(int&po_iNbLabelsRef, int&po_iNbLabelsTest, 
 
     poRelabelFilter->SetInput( poLesionSeparatorFilter->GetOutput() );
     poRelabelFilter->SetMinimumObjectSize(minSizeInVoxel);
-    poRelabelFilter->SetNumberOfThreads(m_ThreadNb);
+    poRelabelFilter->SetNumberOfWorkUnits(m_ThreadNb);
     poRelabelFilter->Update();
 
     iNbLabelsRef += poRelabelFilter->GetNumberOfObjects();
@@ -857,7 +857,7 @@ void SegPerfCAnalyzer::getOverlapTab(int&po_iNbLabelsRef, int&po_iNbLabelsTest, 
 
     poRelabelFilter->SetInput( poLesionSeparatorFilter->GetOutput() );
     poRelabelFilter->SetMinimumObjectSize(minSizeInVoxel);
-    poRelabelFilter->SetNumberOfThreads(m_ThreadNb);
+    poRelabelFilter->SetNumberOfWorkUnits(m_ThreadNb);
     poRelabelFilter->Update();
 
     iNbLabelsTest += poRelabelFilter->GetNumberOfObjects();

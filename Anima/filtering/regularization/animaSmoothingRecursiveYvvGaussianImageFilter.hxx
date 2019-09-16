@@ -55,14 +55,14 @@ SmoothingRecursiveYvvGaussianImageFilter<TInputImage,TOutputImage>
 template <typename TInputImage, typename TOutputImage>
 void
 SmoothingRecursiveYvvGaussianImageFilter<TInputImage,TOutputImage>
-::SetNumberOfThreads( itk::ThreadIdType nb )
+::SetNumberOfWorkUnits( itk::ThreadIdType nb )
 {
-    Superclass::SetNumberOfThreads( nb );
+    Superclass::SetNumberOfWorkUnits( nb );
     for( unsigned int i = 0; i<ImageDimension-1; i++ )
     {
-        m_SmoothingFilters[ i ]->SetNumberOfThreads( nb );
+        m_SmoothingFilters[ i ]->SetNumberOfWorkUnits( nb );
     }
-    m_FirstSmoothingFilter->SetNumberOfThreads( nb );
+    m_FirstSmoothingFilter->SetNumberOfWorkUnits( nb );
 
 }
 

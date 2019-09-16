@@ -165,7 +165,7 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
 template <class TPixelScalarType>
 void
 GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionConstIterator <InputImageType> ImageConstIteratorType;
     typedef itk::ImageRegionIterator <InputImageType> ImageIteratorType;
@@ -317,6 +317,7 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
         outB1Iterator.Set(b1Value);
         outSigmaSqIterator.Set(cost->GetSigmaSquare());
 
+        this->IncrementNumberOfProcessedPoints();
         ++maskItr;
         ++outWeightsIterator;
         ++outM0Iterator;

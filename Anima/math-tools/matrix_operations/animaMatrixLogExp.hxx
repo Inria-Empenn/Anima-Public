@@ -6,6 +6,7 @@
 #include <vnl/algo/vnl_real_eigensystem.h>
 #include <vnl/algo/vnl_matrix_inverse.h>
 #include <vnl/vnl_inverse.h>
+#include <itkPoolMultiThreader.h>
 
 namespace anima
 {
@@ -358,14 +359,14 @@ Update()
 
     m_Output.resize(m_InputTransforms.size());
 
-    itk::MultiThreader::Pointer threaderLog = itk::MultiThreader::New();
+    itk::PoolMultiThreader::Pointer threaderLog = itk::PoolMultiThreader::New();
 
     ThreadedLogData *tmpStr = new ThreadedLogData;
     tmpStr->loggerFilter = this;
 
     unsigned int actualNumberOfThreads = std::min(m_NumberOfThreads,(unsigned int)m_InputTransforms.size());
 
-    threaderLog->SetNumberOfThreads(actualNumberOfThreads);
+    threaderLog->SetNumberOfWorkUnits(actualNumberOfThreads);
     threaderLog->SetSingleMethod(this->ThreadedLogging,tmpStr);
     threaderLog->SingleMethodExecute();
 
@@ -375,14 +376,14 @@ Update()
 }
 
 template <class TInputScalarType, class TOutputScalarType, unsigned int NDimensions, unsigned int NDegreesOfFreedom>
-ITK_THREAD_RETURN_TYPE
+itk::ITK_THREAD_RETURN_TYPE
 MatrixLoggerFilter<TInputScalarType,TOutputScalarType,NDimensions,NDegreesOfFreedom>::
 ThreadedLogging(void *arg)
 {
-    itk::MultiThreader::ThreadInfoStruct *threadArgs = (itk::MultiThreader::ThreadInfoStruct *)arg;
+    itk::MultiThreaderBase::WorkUnitInfo *threadArgs = (itk::MultiThreaderBase::WorkUnitInfo *)arg;
 
-    unsigned int nbThread = threadArgs->ThreadID;
-    unsigned int nbProcs = threadArgs->NumberOfThreads;
+    unsigned int nbThread = threadArgs->WorkUnitID;
+    unsigned int nbProcs = threadArgs->NumberOfWorkUnits;
 
     ThreadedLogData *tmpStr = (ThreadedLogData *)threadArgs->UserData;
 

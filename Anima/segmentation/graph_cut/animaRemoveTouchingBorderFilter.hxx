@@ -111,7 +111,7 @@ GenerateData()
     typename LabelImageToLabelMapFilterType::Pointer labelImageToLabelMapFilter = LabelImageToLabelMapFilterType::New();
     typename LabelImageToLabelMapFilterType2::Pointer labelImageToLabelMapFilter2 = LabelImageToLabelMapFilterType2::New();
     typename LabelMapToLabelImageFilterType::Pointer labelMapToLabelImageFilter = LabelMapToLabelImageFilterType::New();
-    typename TOutputMap::Pointer labelMap = 0;
+    typename TOutputMap::Pointer labelMap = ITK_NULLPTR;
     int originalNumberOfObject = 0;
     bool connectivity = false;
     
@@ -120,11 +120,11 @@ GenerateData()
         // Create the labeled image of the input segmentation
         connectedComponentImageFilter->SetInput( InputImageSeg );
         connectedComponentImageFilter->SetFullyConnected( connectivity );
-        connectedComponentImageFilter->SetNumberOfThreads( this->GetNumberOfThreads() );
+        connectedComponentImageFilter->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
         connectedComponentImageFilter->Update();
 
         labelImageToLabelMapFilter->SetInput( connectedComponentImageFilter->GetOutput() );
-        labelImageToLabelMapFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+        labelImageToLabelMapFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
         labelImageToLabelMapFilter->Update(); // The output of this filter is an itk::LabelMap, which contains itk::LabelObject's
         originalNumberOfObject = labelImageToLabelMapFilter->GetOutput()->GetNumberOfLabelObjects() ;
 
@@ -134,7 +134,7 @@ GenerateData()
     else
     {
         labelImageToLabelMapFilter2->SetInput( InputImageSeg );
-        labelImageToLabelMapFilter2->SetNumberOfThreads(this->GetNumberOfThreads());
+        labelImageToLabelMapFilter2->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
         labelImageToLabelMapFilter2->Update(); // The output of this filter is an itk::LabelMap, which contains itk::LabelObject's
         originalNumberOfObject = labelImageToLabelMapFilter2->GetOutput()->GetNumberOfLabelObjects() ;
 
@@ -144,7 +144,7 @@ GenerateData()
 
     // Convert a LabelMap to a normal image with different values representing each region
     labelMapToLabelImageFilter->SetInput( labelMap );
-    labelMapToLabelImageFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    labelMapToLabelImageFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     labelMapToLabelImageFilter->Update();
 
     // ------------------------------------- Mask bordure
@@ -159,13 +159,13 @@ GenerateData()
         // Generate connected components
         typename ConnectedComponentImageFilterType2::Pointer connectedComponentImageFilter2  = ConnectedComponentImageFilterType2::New();
         connectedComponentImageFilter2->SetInput( this->GetMask() );
-        connectedComponentImageFilter2->SetNumberOfThreads(this->GetNumberOfThreads());
+        connectedComponentImageFilter2->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
         // Generate contours for each component
         itk::LabelContourImageFilter<ImageTypeInt, ImageTypeInt>::Pointer labelContourImageFilter = itk::LabelContourImageFilter<ImageTypeInt, ImageTypeInt>::New();
         labelContourImageFilter->SetInput( connectedComponentImageFilter2->GetOutput() );
         labelContourImageFilter->SetFullyConnected(true);
-        labelContourImageFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+        labelContourImageFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
         labelContourImageFilter->Update();
 
 
@@ -220,7 +220,7 @@ GenerateData()
     // Convert a LabelMap to a normal image with different values representing each region
     typename LabelMapToLabelImageFilterType::Pointer labelMapToLabelImageFilter2 = LabelMapToLabelImageFilterType::New();
     labelMapToLabelImageFilter2->SetInput( labelMap );
-    labelMapToLabelImageFilter2->SetNumberOfThreads(this->GetNumberOfThreads());
+    labelMapToLabelImageFilter2->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     labelMapToLabelImageFilter2->Update();
 
     MaskConstIteratorType maskIt (this->GetMask(), this->GetMask()->GetLargestPossibleRegion() );

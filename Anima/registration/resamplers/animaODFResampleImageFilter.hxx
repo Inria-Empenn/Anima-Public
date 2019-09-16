@@ -19,10 +19,10 @@ ODFResampleImageFilter<TImageType, TInterpolatorPrecisionType>
     unsigned int vectorSize = this->GetInput(0)->GetNumberOfComponentsPerPixel();
     m_LOrder = (unsigned int)floor((-3 + sqrt(8*vectorSize + 1))/2);
 
-    m_EulerAngles.resize(this->GetNumberOfThreads());
-    m_ODFRotationMatrices.resize(this->GetNumberOfThreads());
+    m_EulerAngles.resize(this->GetNumberOfWorkUnits());
+    m_ODFRotationMatrices.resize(this->GetNumberOfWorkUnits());
 
-    for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
+    for (unsigned int i = 0;i < this->GetNumberOfWorkUnits();++i)
         m_EulerAngles[i].resize(3);
 }
 

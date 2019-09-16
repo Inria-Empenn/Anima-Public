@@ -1,7 +1,7 @@
 #include "animaBaseTractographyImageFilter.h"
 
 #include <itkImageRegionIteratorWithIndex.h>
-#include <itkMultiThreader.h>
+#include <itkMultiThreaderBase.h>
 #include <itkProgressReporter.h>
 
 #include <animaVectorOperations.h>
@@ -24,7 +24,7 @@ BaseTractographyImageFilter::BaseTractographyImageFilter()
 
     m_ComputeLocalColors = true;
     m_HighestProcessedSeed = 0;
-    m_ProgressReport = 0;
+    m_ProgressReport = ITK_NULLPTR;
 }
 
 BaseTractographyImageFilter::~BaseTractographyImageFilter()
@@ -55,14 +55,14 @@ void BaseTractographyImageFilter::Update()
     
     trackerArguments tmpStr;
     tmpStr.trackerPtr = this;
-    for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
+    for (unsigned int i = 0;i < this->GetNumberOfWorkUnits();++i)
         tmpStr.resultFibersFromThreads.push_back(resultFibers);
 
-    this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
+    this->GetMultiThreader()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     this->GetMultiThreader()->SetSingleMethod(this->ThreadTracker,&tmpStr);
     this->GetMultiThreader()->SingleMethodExecute();
     
-    for (unsigned int j = 0;j < this->GetNumberOfThreads();++j)
+    for (unsigned int j = 0;j < this->GetNumberOfWorkUnits();++j)
     {
         resultFibers.insert(resultFibers.end(),tmpStr.resultFibersFromThreads[j].begin(),
                             tmpStr.resultFibersFromThreads[j].end());
@@ -171,10 +171,10 @@ void BaseTractographyImageFilter::PrepareTractography()
     std::cout << "Generated " << m_PointsToProcess.size() << " seed points from ROI mask" << std::endl;
 }
 
-ITK_THREAD_RETURN_TYPE BaseTractographyImageFilter::ThreadTracker(void *arg)
+itk::ITK_THREAD_RETURN_TYPE BaseTractographyImageFilter::ThreadTracker(void *arg)
 {
-    itk::MultiThreader::ThreadInfoStruct *threadArgs = (itk::MultiThreader::ThreadInfoStruct *)arg;
-    unsigned int nbThread = threadArgs->ThreadID;
+    itk::MultiThreaderBase::WorkUnitInfo *threadArgs = (itk::MultiThreaderBase::WorkUnitInfo *)arg;
+    unsigned int nbThread = threadArgs->WorkUnitID;
     
     trackerArguments *tmpArg = (trackerArguments *)threadArgs->UserData;
     tmpArg->trackerPtr->ThreadTrack(nbThread,tmpArg->resultFibersFromThreads[nbThread]);
@@ -193,11 +193,11 @@ void BaseTractographyImageFilter::ThreadTrack(unsigned int numThread, std::vecto
 
     while (continueLoop)
     {
-        m_LockHighestProcessedSeed.Lock();
+        m_LockHighestProcessedSeed.lock();
 
         if (m_HighestProcessedSeed >= highestToleratedSeedIndex)
         {
-            m_LockHighestProcessedSeed.Unlock();
+            m_LockHighestProcessedSeed.unlock();
             continueLoop = false;
             continue;
         }
@@ -209,13 +209,13 @@ void BaseTractographyImageFilter::ThreadTrack(unsigned int numThread, std::vecto
 
         m_HighestProcessedSeed = endPoint;
 
-        m_LockHighestProcessedSeed.Unlock();
+        m_LockHighestProcessedSeed.unlock();
 
         this->ThreadedTrackComputer(numThread,resultFibers,startPoint,endPoint);
 
-        m_LockHighestProcessedSeed.Lock();
+        m_LockHighestProcessedSeed.lock();
         m_ProgressReport->CompletedPixel();
-        m_LockHighestProcessedSeed.Unlock();
+        m_LockHighestProcessedSeed.unlock();
     }
 }
 

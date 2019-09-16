@@ -227,7 +227,7 @@ CreateLevelVectorImage(unsigned int level)
     typedef anima::OrientedModelBaseResampleImageFilter <InputImageType,double> ResamplerType;
 
     typename ResamplerType::Pointer resample = dynamic_cast <ResamplerType *> (m_ImageResampler->Clone().GetPointer());
-    resample->SetNumberOfThreads(this->GetNumberOfThreads());
+    resample->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
     // Compute new origin
     itk::ContinuousIndex <double,TInputImage::ImageDimension> borderOrigin;
@@ -289,7 +289,7 @@ CreateLevelImage(unsigned int level)
     typename ResamplerType::Pointer resample = dynamic_cast <ResamplerType *> (m_ImageResampler->Clone().GetPointer());
 
     resample->SetTransform(idTrsf);
-    resample->SetNumberOfThreads(this->GetNumberOfThreads());
+    resample->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
     // Compute new origin
     itk::ContinuousIndex <double,TInputImage::ImageDimension> borderOrigin;

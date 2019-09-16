@@ -26,7 +26,7 @@ LocalPatchCovarianceDistanceImageFilter<PixelScalarType>
 template <class PixelScalarType>
 void
 LocalPatchCovarianceDistanceImageFilter<PixelScalarType>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionIteratorWithIndex< OutputImageType > OutRegionIteratorType;
     typedef itk::ImageRegionConstIteratorWithIndex < MaskImageType > MaskRegionIteratorType;
@@ -105,6 +105,7 @@ LocalPatchCovarianceDistanceImageFilter<PixelScalarType>
         outMeanIterator.Set(meanDist);
         outStdIterator.Set(sqrt(varDist));
 
+        this->IncrementNumberOfProcessedPoints();
         ++outMeanIterator;
         ++outStdIterator;
         ++maskIterator;

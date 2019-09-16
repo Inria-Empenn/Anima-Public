@@ -41,7 +41,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> t2UpperBoundArg("","up-t2","Upper T2 value (default: 4000)",false,4000,"T2 upper value",cmd);
     TCLAP::ValueArg<double> gaussianToleranceApproxArg("","g-tol","Gaussian approximation tolerance (default: 1.0e-6)",false,1.0e-6,"Gaussian approximation tolerance",cmd);
 
-    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 	
     try
     {
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
     }
     
     mainFilter->SetAverageSignalThreshold(backgroundSignalThresholdArg.getValue());
-    mainFilter->SetNumberOfThreads(nbpArg.getValue());
+    mainFilter->SetNumberOfWorkUnits(nbpArg.getValue());
 
     itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
     callback->SetCallback(eventCallback);

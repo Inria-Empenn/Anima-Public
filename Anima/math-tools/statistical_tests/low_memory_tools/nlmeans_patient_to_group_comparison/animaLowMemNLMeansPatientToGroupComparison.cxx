@@ -26,7 +26,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> varThrArg("c","patchcovthr","Tolerance for covariance test (test if covDist > meanDatabase + c * stdDatabase, default: c=2.5)",false,2.5,"NL covariance patch proportion",cmd);
     TCLAP::ValueArg<double> betaArg("b","beta","Beta parameter for local noise estimation (default: 1)",false,1,"Beta for local noise estimation",cmd);
     
-    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
     
     TCLAP::ValueArg<unsigned int> patchHSArg("","patchhalfsize","Patch half size in each direction (default: 1)",false,1,"patch half size",cmd);
     TCLAP::ValueArg<unsigned int> patchSSArg("","patchstepsize","Patch step size for searching (default: 1)",false,1,"patch search step size",cmd);
@@ -54,7 +54,7 @@ int main(int argc, char **argv)
     
     NLMeansPatientToGroupComparisonBridgeType *mainFilter = new NLMeansPatientToGroupComparisonBridgeType;
     mainFilter->SetComputationMask(maskName);
-    mainFilter->SetNumberOfThreads(nbpArg.getValue());
+    mainFilter->SetNumberOfWorkUnits(nbpArg.getValue());
     
     mainFilter->SetPatchHalfSize(patchHSArg.getValue());
     mainFilter->SetSearchNeighborhood(patchNeighArg.getValue());

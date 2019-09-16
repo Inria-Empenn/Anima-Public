@@ -20,7 +20,7 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<unsigned int> pyrNumArg("p","pyr-num","number of pyramid levels",false,4,"number of pyramid level",cmd);
     TCLAP::ValueArg<unsigned int> pyrLevelArg("l","pyr-level","pyramid level image required",false,1,"pyramid level",cmd);
 
-    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     try
     {
@@ -80,7 +80,7 @@ int main(int ac, const char** av)
         ResampleFilterType::Pointer resampler = ResampleFilterType::New();
         imagePyramid->SetImageResampler(resampler);
         imagePyramid->SetNumberOfLevels(pyrNumArg.getValue());
-        imagePyramid->SetNumberOfThreads(nbpArg.getValue());
+        imagePyramid->SetNumberOfWorkUnits(nbpArg.getValue());
         imagePyramid->Update();
 
         if (pyrLevelArg.getValue() >= imagePyramid->GetNumberOfLevels())
@@ -114,7 +114,7 @@ int main(int ac, const char** av)
 
     tensorLogger->SetInput(vectorReader->GetOutput());
     tensorLogger->SetScaleNonDiagonal(false);
-    tensorLogger->SetNumberOfThreads(nbpArg.getValue());
+    tensorLogger->SetNumberOfWorkUnits(nbpArg.getValue());
 
     tensorLogger->Update();
 
@@ -128,7 +128,7 @@ int main(int ac, const char** av)
     vectorImagePyramid->SetInput(vectorReader->GetOutput());
     vectorImagePyramid->SetImageResampler(vectorResampler);
     vectorImagePyramid->SetNumberOfLevels(pyrNumArg.getValue());
-    vectorImagePyramid->SetNumberOfThreads(nbpArg.getValue());
+    vectorImagePyramid->SetNumberOfWorkUnits(nbpArg.getValue());
     vectorImagePyramid->Update();
 
     if (pyrLevelArg.getValue() >= vectorImagePyramid->GetNumberOfLevels())
@@ -145,7 +145,7 @@ int main(int ac, const char** av)
 
     tensorExper->SetInput(vectorOutputImage);
     tensorExper->SetScaleNonDiagonal(false);
-    tensorExper->SetNumberOfThreads(nbpArg.getValue());
+    tensorExper->SetNumberOfWorkUnits(nbpArg.getValue());
 
     tensorExper->Update();
 

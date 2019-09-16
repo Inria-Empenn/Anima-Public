@@ -75,7 +75,7 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
     initFilter->SetT1Map(m_T1Map);
 
     initFilter->SetEchoSpacing(m_EchoSpacing);
-    initFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    initFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     initFilter->SetComputationMask(this->GetComputationMask());
     initFilter->SetTRValue(m_TRValue);
     initFilter->SetT2UpperBoundValue(m_T2UpperBound);
@@ -91,7 +91,7 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
 template <typename TInputImage, typename TOutputImage>
 void
 T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionConstIterator <InputImageType> ImageIteratorType;
     typedef itk::ImageRegionIterator <OutputImageType> OutImageIteratorType;
@@ -204,6 +204,7 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
         outM0Iterator.Set(cost->GetM0Value());
         outB1Iterator.Set(b1Value);
 
+        this->IncrementNumberOfProcessedPoints();
         ++maskItr;
         ++outT2Iterator;
         ++outM0Iterator;

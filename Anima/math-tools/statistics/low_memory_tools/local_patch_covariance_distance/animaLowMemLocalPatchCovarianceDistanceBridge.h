@@ -33,7 +33,7 @@ public:
     void SetOutputStdName(std::string &pref) {m_OutputStdName = pref;}
 
     void SetNbSplits(unsigned int nbSplits) {m_NbSplits = nbSplits;}
-    void SetNumberOfThreads(unsigned int nbT) {m_NumThreads = nbT;}
+    void SetNumberOfWorkUnits(unsigned int nbT) {m_NumThreads = nbT;}
 
     void SetPatchHalfSize(unsigned int patchHalf) {m_PatchHalfSize = patchHalf;}
 

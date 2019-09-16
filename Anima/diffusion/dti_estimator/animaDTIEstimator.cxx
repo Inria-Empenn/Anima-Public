@@ -11,8 +11,8 @@
 //Update progression of the process
 void eventCallback (itk::Object* caller, const itk::EventObject& event, void* clientData)
 {
-    itk::ProcessObject * processObject = (itk::ProcessObject*) caller;
-    std::cout<<"\033[K\rProgression: "<<(int)(processObject->GetProgress() * 100)<<"%"<<std::flush;
+    itk::ProcessObject * processObject = static_cast<itk::ProcessObject *> (caller);
+    std::cout<<"\033[K\rProgression: " << static_cast<int>(processObject->GetProgress() * 100) <<"%" << std::flush;
 }
 
 int main(int argc,  char **argv)
@@ -30,7 +30,7 @@ int main(int argc,  char **argv)
     TCLAP::ValueArg<std::string> computationMaskArg("m","mask","Computation mask", false,"","computation mask",cmd);
 
     TCLAP::ValueArg<unsigned int> b0ThrArg("t","b0thr","bot_treshold",false,0,"B0 threshold (default : 0)",cmd);
-    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","nb_thread",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"Number of threads to run on (default: all cores)",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","nb_thread",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"Number of threads to run on (default: all cores)",cmd);
     TCLAP::ValueArg<std::string> reorientArg("r","reorient","dwi_reoriented",false,"","Reorient DWI given as input",cmd);
     TCLAP::ValueArg<std::string> reorientGradArg("R","reorient-G","gradient reoriented output",false,"","Reorient gradients so that they are in MrTrix format (in image coordinates)",cmd);
 
@@ -108,7 +108,7 @@ int main(int argc,  char **argv)
         mainFilter->SetComputationMask(anima::readImage<MaskImageType>(computationMaskArg.getValue()));
 
     mainFilter->SetB0Threshold(b0ThrArg.getValue());
-    mainFilter->SetNumberOfThreads(nbpArg.getValue());
+    mainFilter->SetNumberOfWorkUnits(nbpArg.getValue());
     mainFilter->AddObserver(itk::ProgressEvent(), callback);
 
     itk::TimeProbe tmpTimer;
@@ -127,7 +127,6 @@ int main(int argc,  char **argv)
     tmpTimer.Stop();
 
     std::cout << "\nEstimation done in " << tmpTimer.GetTotal() << " s" << std::endl;
-
     std::cout << "Writing result to : " << resArg.getValue() << std::endl;
 
     VectorImageType::Pointer output = mainFilter->GetOutput();

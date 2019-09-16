@@ -77,7 +77,7 @@ int main(int ac, const char** av)
                                          "nbp",
                                          "Number of threads to run on -> default : automatically determine",
                                          false,
-                                         itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),
+                                         itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),
                                          "Number of threads",
                                          cmd);
 
@@ -158,7 +158,7 @@ int main(int ac, const char** av)
             if (weightMethod.getValue())
                 filter->SetWeightMethod(FilterType::RICIAN);
 
-            filter->SetNumberOfThreads(nbpArg.getValue());
+            filter->SetNumberOfWorkUnits(nbpArg.getValue());
 
             filter->AddObserver(itk::ProgressEvent(), callback );
             filter->Update();
@@ -197,7 +197,7 @@ int main(int ac, const char** av)
             if (weightMethod.getValue())
                 filter->SetWeightMethod(FilterType::RICIAN);
 
-            filter->SetNumberOfThreads(nbpArg.getValue());
+            filter->SetNumberOfWorkUnits(nbpArg.getValue());
 
             filter->AddObserver(itk::ProgressEvent(), callback );
             filter->Update();
@@ -250,7 +250,7 @@ int main(int ac, const char** av)
             if (weightMethod.getValue())
                 filter->SetWeightMethod(FilterType::RICIAN);
 
-            filter->SetNumberOfThreads(nbpArg.getValue());
+            filter->SetNumberOfWorkUnits(nbpArg.getValue());
 
             filter->AddObserver(itk::ProgressEvent(), callback );
             filter->Update();

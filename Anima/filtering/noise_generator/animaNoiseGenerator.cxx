@@ -25,7 +25,7 @@ addNoise(itk::ImageIOBase::Pointer imageIO, const arguments &args)
     typedef anima::NoiseGeneratorImageFilter<ImageType> NoiseFilterType;
     
     typename NoiseFilterType::Pointer mainFilter = NoiseFilterType::New();
-    mainFilter->SetNumberOfThreads(args.nthreads);
+    mainFilter->SetNumberOfWorkUnits(args.nthreads);
     mainFilter->SetInput(anima::readImage<ImageType>(args.input));
     mainFilter->SetStandardDeviation(args.stddev);
     mainFilter->SetUseGaussianDistribution(args.gaussianNoise);
@@ -70,7 +70,7 @@ int main(int argc, char **argv)
     TCLAP::SwitchArg gaussArg("G","gauss-noise","Adds Gaussian noise instead of Rician noise.",cmd,false);
     TCLAP::SwitchArg verboseArg("V","verbose","Outputs noise calculations to the console.",cmd,false);
 
-    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default : all cores).",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default : all cores).",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     try
     {

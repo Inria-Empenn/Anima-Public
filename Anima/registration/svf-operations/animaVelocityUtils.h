@@ -2,7 +2,6 @@
 
 #include <itkStationaryVelocityFieldTransform.h>
 #include <rpiDisplacementFieldTransform.h>
-#include <itkMultiThreader.h>
 
 namespace anima
 {

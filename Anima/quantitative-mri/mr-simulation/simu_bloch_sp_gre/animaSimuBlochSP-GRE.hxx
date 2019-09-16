@@ -1,37 +1,3 @@
-/**
- * SimuBlochSP-GRE
- * Version 0.3
- *
- * Description: A MRI simulator for the sequence of Spoiled Gradient Echo (possible called SPGR, FLASH, or T1-FFE on the scanner)
- *
- * Filename: SimuBlochSP-GRE.txx
- *
- * Libraries: This source file uses the open source library ITK 3.0
- * that is available through the following URI:
- * http://www.itk.org/
- * and the open source library TCLAP:
- * http://tclap.sourceforge.net/
- *
- *
- * @category   SimuBloch
- * @package    SimuBlochSP-GRE
- * @author     F. Cao <fang.cao@inria.fr>
- * @author     O. Commowick <Olivier.Commowick@inria.fr>
- * @copyright  INRIA Rennes - Bretagne Atlantique, VISAGES Team
- * @version    0.3
- *
- * Compile:    Install ITK
- *             Install TCLAP
- *             $Cmake
- *             $make
- *             (See readme for more information)
- *
- * Example:    $./SimuBlochSP-GRE  --t1 ./SampleData/T1.nii.gz --t2s ./SampleData/T2s.nii.gz --m0 ./SampleData/M0.nii.gz -o testing_SP-GRE_T1W.nii.gz --tr 35 --te 6 --fa 40
- *             (See readme for more information)
- *
- * Date:       Nov 16, 2012
- */
-
 #pragma once
 #include "animaSimuBlochSP-GRE.h"
 
@@ -74,8 +40,7 @@ void SimuBlochSPGRE<TImage>::SetInputB1(const TImage* B1)
 
 template< class TImage>
 void SimuBlochSPGRE< TImage>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread,
-                       itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typename TImage::ConstPointer T1 = this->GetInput(0);
     typename TImage::ConstPointer T2s = this->GetInput(1);
@@ -98,7 +63,7 @@ void SimuBlochSPGRE< TImage>
     // For each voxel, calculate the signal of SP-GRE
     while(!outputIterator.IsAtEnd())
     {
-        if ((inputIteratorT1.Get() <= 0) || ( inputIteratorT2s.Get() <= 0))
+        if ((inputIteratorT1.Get() <= 0) || (inputIteratorT2s.Get() <= 0))
         {
             outputIterator.Set(0);
 
@@ -133,7 +98,6 @@ void SimuBlochSPGRE< TImage>
 
         ++outputIterator;
     }
-
 }
     
 }// end of namespace anima

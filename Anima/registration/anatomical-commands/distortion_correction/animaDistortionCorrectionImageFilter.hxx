@@ -23,15 +23,6 @@ DistortionCorrectionImageFilter < TInputImage >
 {
     m_Direction = 0;
     this->SetNumberOfRequiredInputs( 2 );
-    m_ImageRegionSplitter = itk::ImageRegionSplitterDirection::New();
-}
-
-template< typename TInputImage >
-const itk::ImageRegionSplitterBase *
-DistortionCorrectionImageFilter < TInputImage >
-::GetImageRegionSplitter(void) const
-{
-    return this->m_ImageRegionSplitter;
 }
 
 template< typename TInputImage >
@@ -49,10 +40,31 @@ void DistortionCorrectionImageFilter < TInputImage >
 
 template< typename TInputImage >
 void DistortionCorrectionImageFilter < TInputImage >
+::GenerateData()
+{
+  // Call a method that can be overridden by a subclass to allocate
+  // memory for the filter's outputs
+  this->AllocateOutputs();
+
+  // Call a method that can be overridden by a subclass to perform
+  // some calculations prior to splitting the main computations into
+  // separate threads
+  this->BeforeThreadedGenerateData();
+
+  using RegionType = itk::ImageRegion <TInputImage::ImageDimension>;
+  typename OutputImageType::Pointer outputImage(this->GetOutput());
+  const RegionType region = outputImage->GetRequestedRegion();
+
+  this->GetMultiThreader()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
+  this->GetMultiThreader()->template ParallelizeImageRegionRestrictDirection<OutputImageType::ImageDimension>(
+    this->m_Direction, region, [this](const RegionType & lambdaRegion) { this->DynamicThreadedGenerateData(lambdaRegion); }, this);
+}
+
+template< typename TInputImage >
+void DistortionCorrectionImageFilter < TInputImage >
 ::BeforeThreadedGenerateData()
 {
     Superclass::BeforeThreadedGenerateData();
-    this->m_ImageRegionSplitter->SetDirection(m_Direction);
 
     m_ReferenceGeometry = this->GetInput(0)->GetDirection();
 
@@ -63,7 +75,7 @@ void DistortionCorrectionImageFilter < TInputImage >
 
 template< typename TInputImage >
 void DistortionCorrectionImageFilter < TInputImage >
-::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType& outputRegionForThread)
 {
     InputImagePointer  forwardImage = this->GetInput(0);
     InputImagePointer  backwardImage = this->GetInput(1);
@@ -178,7 +190,7 @@ void DistortionCorrectionImageFilter < TInputImage >
         
         typename SmoothingFilterType::Pointer fieldSmoother = SmoothingFilterType::New();
         fieldSmoother->SetInput(this->GetOutput());
-        fieldSmoother->SetNumberOfThreads(this->GetNumberOfThreads());
+        fieldSmoother->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
         fieldSmoother->SetSigma(m_FieldSmoothingSigma);
         
         fieldSmoother->Update();

@@ -8,6 +8,7 @@
 #include <itkDanielssonDistanceMapImageFilter.h>
 #include <itkGrayscaleDilateImageFilter.h>
 #include <itkBinaryBallStructuringElement.h>
+#include <itkPoolMultiThreader.h>
 
 namespace anima
 {
@@ -187,12 +188,12 @@ void
 BlockMatchingInitializer<PixelType,NDimensions>
 ::ComputeBlocksOnGenerationMask(unsigned int maskIndex)
 {
-    itk::MultiThreader::Pointer threaderBlockGenerator = itk::MultiThreader::New();
+    itk::PoolMultiThreader::Pointer threaderBlockGenerator = itk::PoolMultiThreader::New();
 
     BlockGeneratorThreadStruct *tmpStr = 0;
     this->InitializeThreading(maskIndex,tmpStr);
 
-    threaderBlockGenerator->SetNumberOfThreads(this->GetNumberOfThreads());
+    threaderBlockGenerator->SetNumberOfWorkUnits(this->GetNumberOfThreads());
     threaderBlockGenerator->SetSingleMethod(this->ThreadBlockGenerator,tmpStr);
     threaderBlockGenerator->SingleMethodExecute();
 
@@ -346,13 +347,13 @@ BlockMatchingInitializer<PixelType, NDimensions>
 }
 
 template <class PixelType, unsigned int NDimensions>
-ITK_THREAD_RETURN_TYPE
+itk::ITK_THREAD_RETURN_TYPE
 BlockMatchingInitializer<PixelType,NDimensions>
 ::ThreadBlockGenerator(void *arg)
 {
-    itk::MultiThreader::ThreadInfoStruct *threadArgs = (itk::MultiThreader::ThreadInfoStruct *)arg;
+    itk::MultiThreaderBase::WorkUnitInfo *threadArgs = (itk::MultiThreaderBase::WorkUnitInfo *)arg;
 
-    unsigned int nbThread = threadArgs->ThreadID;
+    unsigned int nbThread = threadArgs->WorkUnitID;
 
     BlockGeneratorThreadStruct *tmpStr = (BlockGeneratorThreadStruct *)threadArgs->UserData;
 

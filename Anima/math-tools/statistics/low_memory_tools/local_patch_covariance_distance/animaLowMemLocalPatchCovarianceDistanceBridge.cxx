@@ -8,7 +8,7 @@ namespace anima
 LowMemoryLocalPatchCovarianceDistanceBridge::LowMemoryLocalPatchCovarianceDistanceBridge()
 {
     m_NbSplits = 2;
-    m_NumThreads = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
+    m_NumThreads = itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
 
     m_DatabaseImages = new ImageSplitterType;
     m_ComputationMask = NULL;
@@ -95,10 +95,9 @@ void LowMemoryLocalPatchCovarianceDistanceBridge::Update(int specificSplitToDo, 
             mainFilter->SetInput(j,m_DatabaseImages->GetOutput(j));
 
         mainFilter->SetComputationMask(m_DatabaseImages->GetSmallMaskWithMargin());
-        mainFilter->SetNumberOfThreads(m_NumThreads);
+        mainFilter->SetNumberOfWorkUnits(m_NumThreads);
 
         mainFilter->SetPatchHalfSize(m_PatchHalfSize);
-        mainFilter->SetComputationRegion(m_DatabaseImages->GetBlockRegionInsideMargin());
 
         mainFilter->Update();
 

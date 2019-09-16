@@ -8,7 +8,7 @@ set (cmake_args
 
 set (location "")
 if (NOT DEFINED ${proj}_SRC_DIR)
-  set(location GIT_REPOSITORY ${GITHUB_PREFIX}Inria-Asclepios/RPI.git GIT_TAG origin/master)
+  set(location GIT_REPOSITORY ${GITHUB_PREFIX}Inria-Asclepios/RPI.git GIT_TAG origin/ITK5)
 endif()
 
 set(${proj}_DEPS "")

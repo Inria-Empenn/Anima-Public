@@ -2,7 +2,6 @@
 
 #include <itkImageRegion.h>
 #include <itkObject.h>
-#include <itkMultiThreader.h>
 
 #include <itkVectorImage.h>
 #include <itkImage.h>
@@ -73,7 +72,7 @@ public:
     void Update();
 
     // Does the splitting and calls RegionBlockGenerator on a sub region
-    static ITK_THREAD_RETURN_TYPE ThreadBlockGenerator(void *arg);
+    static itk::ITK_THREAD_RETURN_TYPE ThreadBlockGenerator(void *arg);
 
     std::vector <ImageRegionType> &GetOutput();
     std::vector <unsigned int> &GetMaskStartingIndexes();
@@ -102,7 +101,7 @@ protected:
     {
         m_BlockSize = 5;
         m_BlockSpacing = 3;
-        m_NumberOfThreads = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
+        m_NumberOfThreads = itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
 
         m_ScalarVarianceThreshold = 5.0;
         m_OrientedModelVarianceThreshold = 0.0;

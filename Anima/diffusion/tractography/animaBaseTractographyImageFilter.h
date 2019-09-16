@@ -7,7 +7,7 @@
 #include <vtkSmartPointer.h>
 #include <itkLinearInterpolateImageFunction.h>
 #include <itkProcessObject.h>
-#include <itkFastMutexLock.h>
+#include <mutex>
 #include <itkProgressReporter.h>
 
 #include "AnimaTractographyExport.h"
@@ -83,7 +83,7 @@ protected:
     BaseTractographyImageFilter();
     virtual ~BaseTractographyImageFilter();
 
-    static ITK_THREAD_RETURN_TYPE ThreadTracker(void *arg);
+    static itk::ITK_THREAD_RETURN_TYPE ThreadTracker(void *arg);
     void ThreadTrack(unsigned int numThread, std::vector <FiberType> &resultFibers);
     void ThreadedTrackComputer(unsigned int numThread, std::vector <FiberType> &resultFibers,
                                unsigned int startSeedIndex, unsigned int endSeedIndex);
@@ -130,7 +130,7 @@ private:
     bool m_ComputeLocalColors;
     vtkSmartPointer<vtkPolyData> m_Output;
 
-    itk::SimpleFastMutexLock m_LockHighestProcessedSeed;
+    std::mutex m_LockHighestProcessedSeed;
     int m_HighestProcessedSeed;
     itk::ProgressReporter *m_ProgressReport;
 };

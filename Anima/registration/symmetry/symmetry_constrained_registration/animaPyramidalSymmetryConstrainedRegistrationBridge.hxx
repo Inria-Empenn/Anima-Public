@@ -47,7 +47,7 @@ PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::PyramidalSymmetryCon
 
     m_NumberOfPyramidLevels = 3;
     m_FastRegistration = false;
-    this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
+    this->SetNumberOfWorkUnits(itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads());
 }
 
 template <typename ScalarType>
@@ -108,7 +108,7 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::Update()
         // Init matcher
         typename RegistrationType::Pointer reg = RegistrationType::New();
 
-        reg->SetNumberOfThreads(this->GetNumberOfThreads());
+        reg->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
         typedef anima::NLOPTOptimizers OptimizerType;
 

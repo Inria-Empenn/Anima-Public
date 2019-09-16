@@ -89,18 +89,22 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 template <typename TImageType, typename TInterpolatorPrecisionType>
 void
 OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
+    unsigned int threadId = this->GetSafeThreadId();
+
     if (m_Transform->IsLinear())
         this->LinearThreadedGenerateData(outputRegionForThread,threadId);
     else
         this->NonLinearThreadedGenerateData(outputRegionForThread,threadId);
+
+    this->SafeReleaseThreadId(threadId);
 }
 
 template <typename TImageType, typename TInterpolatorPrecisionType>
 void
 OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
-::LinearThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::LinearThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, unsigned int threadId)
 {
     typedef itk::ImageRegionIteratorWithIndex <InputImageType> IteratorType;
 
@@ -152,7 +156,7 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 template <typename TImageType, typename TInterpolatorPrecisionType>
 void
 OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
-::NonLinearThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::NonLinearThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, unsigned int threadId)
 {
     typedef itk::ImageRegionIteratorWithIndex <InputImageType> IteratorType;
 

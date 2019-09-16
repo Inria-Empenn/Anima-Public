@@ -6,9 +6,8 @@
 #include <itkImage.h>
 #include <itkCommand.h>
 
-
 //Update progression of the process
-void eventCallback ( itk::Object* caller, const itk::EventObject& event, void* clientData )
+void eventCallback (itk::Object* caller, const itk::EventObject& event, void* clientData)
 {
     itk::ProcessObject * processObject = (itk::ProcessObject*) caller;
     std::cout<<"\033[K\rProgression: "<<(int)(processObject->GetProgress() * 100)<<"%"<<std::flush;
@@ -79,7 +78,7 @@ int main(int ac, const char** av)
                                          "nbp",
                                          "Number of threads to run on -> default : automatically determine",
                                          false,
-                                         itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),
+                                         itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),
                                          "Number of threads",
                                          cmd);
 
@@ -183,7 +182,7 @@ int main(int ac, const char** av)
             if (weightMethod.getValue())
                 filter->SetWeightMethod(FilterType::RICIAN);
 
-            filter->SetNumberOfThreads(nbpArg.getValue());
+            filter->SetNumberOfWorkUnits(nbpArg.getValue());
 
             filter->Update();
 
@@ -220,7 +219,7 @@ int main(int ac, const char** av)
             if (weightMethod.getValue())
                 filter->SetWeightMethod(FilterType::RICIAN);
 
-            filter->SetNumberOfThreads(nbpArg.getValue());
+            filter->SetNumberOfWorkUnits(nbpArg.getValue());
 
             filter->AddObserver(itk::ProgressEvent(), callback );
             filter->Update();

@@ -7,7 +7,7 @@ namespace anima
 LowMemoryPatientToGroupComparisonBridge::LowMemoryPatientToGroupComparisonBridge()
 {
     m_NbSplits = 2;
-    m_NumThreads = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
+    m_NumThreads = itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
 
     m_DataLTImages = new ImageSplitterLTType;
     m_TestLTImage = new ImageSplitterLTType;
@@ -96,10 +96,9 @@ void LowMemoryPatientToGroupComparisonBridge::Update(int specificSplitToDo, bool
             mainFilter->AddDatabaseInput(m_DataLTImages->GetOutput(j));
 
         mainFilter->SetComputationMask(m_DataLTImages->GetSmallMaskWithMargin());
-        mainFilter->SetNumberOfThreads(m_NumThreads);
+        mainFilter->SetNumberOfWorkUnits(m_NumThreads);
 
         mainFilter->SetInput(0,m_TestLTImage->GetOutput(0));
-        mainFilter->SetComputationRegion(m_TestLTImage->GetBlockRegionInsideMargin());
 
         mainFilter->SetStatisticalTestType(m_StatisticalTestType);
         mainFilter->SetExplainedRatio(m_ExplainedRatio);

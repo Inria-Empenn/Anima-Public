@@ -7,7 +7,7 @@ namespace anima
 LowMemoryPatientToGroupODFComparisonBridge::LowMemoryPatientToGroupODFComparisonBridge()
 {
     m_NbSplits = 2;
-    m_NumThreads = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
+    m_NumThreads = itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
 
     m_DataODFImages = new ImageSplitterODFType;
     m_TestODFImage = new ImageSplitterODFType;
@@ -98,7 +98,7 @@ void LowMemoryPatientToGroupODFComparisonBridge::Update(int specificSplitToDo, b
             mainFilter->AddDatabaseInput(m_DataODFImages->GetOutput(j));
 
         mainFilter->SetComputationMask(m_DataODFImages->GetSmallMaskWithMargin());
-        mainFilter->SetNumberOfThreads(m_NumThreads);
+        mainFilter->SetNumberOfWorkUnits(m_NumThreads);
 
         mainFilter->SetStatisticalTestType(m_StatisticalTestType);
         mainFilter->SetExplainedRatio(m_ExplainedRatio);
@@ -107,7 +107,6 @@ void LowMemoryPatientToGroupODFComparisonBridge::Update(int specificSplitToDo, b
         mainFilter->SetSampleDirections(m_SampleDirections);
 
         mainFilter->SetInput(0,m_TestODFImage->GetOutput(0));
-        mainFilter->SetComputationRegion(m_TestODFImage->GetBlockRegionInsideMargin());
 
         mainFilter->Update();
 

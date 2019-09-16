@@ -12,7 +12,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> outArg("o","outputfile","output image",true,"","output image",cmd);
     TCLAP::ValueArg<unsigned int> numClassArg("c","numclass","Number of classes",false,4,"number of classes",cmd);
     TCLAP::ValueArg<int> keptClassArg("k","class","Class to keep",false,-1,"class to be kept",cmd);
-    TCLAP::ValueArg<unsigned int> nbpArg("n","ncores","Number of cores (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of cores",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("n","ncores","Number of cores (default: all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of cores",cmd);
     
     try
     {
@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     for (unsigned int i = 0;i < numClassArg.getValue();++i)
         kmeansFilter->AddClassWithInitialMean(i * 100);
 
-    kmeansFilter->SetNumberOfThreads(nbpArg.getValue());
+    kmeansFilter->SetNumberOfWorkUnits(nbpArg.getValue());
     kmeansFilter->Update();
     
     MainFilterType::ParametersType estimatedMeans = kmeansFilter->GetFinalMeans();

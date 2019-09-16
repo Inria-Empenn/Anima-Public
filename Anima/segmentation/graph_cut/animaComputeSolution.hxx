@@ -187,7 +187,7 @@ ComputeSolution <TInputImage, TMaskImage, TAtlasImage>
     rescaleFilter1->SetInput( this->GetInputImage1() );
     rescaleFilter1->SetOutputMinimum( desiredMinimum );
     rescaleFilter1->SetOutputMaximum( desiredMaximum );
-    rescaleFilter1->SetNumberOfThreads(this->GetNumberOfThreads());
+    rescaleFilter1->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     rescaleFilter1->UpdateLargestPossibleRegion();
     m_InputImage_T1_UC = rescaleFilter1->GetOutput();
 
@@ -195,7 +195,7 @@ ComputeSolution <TInputImage, TMaskImage, TAtlasImage>
     rescaleFilter2->SetInput( this->GetInputImage2() );
     rescaleFilter2->SetOutputMinimum( desiredMinimum );
     rescaleFilter2->SetOutputMaximum( desiredMaximum );
-    rescaleFilter2->SetNumberOfThreads(this->GetNumberOfThreads());
+    rescaleFilter2->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     rescaleFilter2->UpdateLargestPossibleRegion();
     m_InputImage_T2_DP_UC = rescaleFilter2->GetOutput();
 
@@ -203,7 +203,7 @@ ComputeSolution <TInputImage, TMaskImage, TAtlasImage>
     rescaleFilter3->SetInput( this->GetInputImage3() );
     rescaleFilter3->SetOutputMinimum( desiredMinimum );
     rescaleFilter3->SetOutputMaximum( desiredMaximum );
-    rescaleFilter3->SetNumberOfThreads(this->GetNumberOfThreads());
+    rescaleFilter3->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     rescaleFilter3->UpdateLargestPossibleRegion();
     m_InputImage_DP_FLAIR_UC = rescaleFilter3->GetOutput();
 }

@@ -52,7 +52,7 @@ CheckStructureNeighborFilter< TInput, TMask, TOutput >
     // Create labeled map
     typename ConnectedComponentFilterType::Pointer ConnectedComponentFilter = ConnectedComponentFilterType::New();
     ConnectedComponentFilter->SetInput( this->GetInputClassification() );
-    ConnectedComponentFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    ConnectedComponentFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     ConnectedComponentFilter->SetCoordinateTolerance(m_Tol);
     ConnectedComponentFilter->SetDirectionTolerance(m_Tol);
     ConnectedComponentFilter->SetFullyConnected( fullyConnected );
@@ -66,7 +66,7 @@ CheckStructureNeighborFilter< TInput, TMask, TOutput >
     DilateFilterType::Pointer dilateFilter = DilateFilterType::New();
     dilateFilter->SetInput(ConnectedComponentFilter->GetOutput());
     dilateFilter->SetKernel(structuringElement);
-    dilateFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    dilateFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     dilateFilter->SetCoordinateTolerance(m_Tol);
     dilateFilter->SetDirectionTolerance(m_Tol);
     dilateFilter->Update();
@@ -75,7 +75,7 @@ CheckStructureNeighborFilter< TInput, TMask, TOutput >
     typename LabelContourFilterType::Pointer filterLabelContour = LabelContourFilterType::New();
     filterLabelContour->SetInput(dilateFilter->GetOutput());
     filterLabelContour->SetFullyConnected( fullyConnected );
-    filterLabelContour->SetNumberOfThreads(this->GetNumberOfThreads());
+    filterLabelContour->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     filterLabelContour->SetCoordinateTolerance(m_Tol);
     filterLabelContour->SetDirectionTolerance(m_Tol);
     filterLabelContour->Update();

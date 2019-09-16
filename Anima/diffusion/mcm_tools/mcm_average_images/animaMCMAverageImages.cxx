@@ -14,7 +14,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> inFileArg("i","input","list of MCM images (one per line)",true,"","MCM images",cmd);
     TCLAP::ValueArg<std::string> resArg("o","output", "Average MCM volume",true,"","result MCM volume",cmd);
     TCLAP::ValueArg<int> outputFascicleArg("n", "nb-of-output-fascicle", "number of output fascicles", true, 0, "number of output fascicles",cmd);
-    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     try
     {
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
     anima::MultiCompartmentModel::Pointer outputReferenceModel = mcmCreator.GetNewMultiCompartmentModel();
 
     mainFilter->SetReferenceOutputModel(outputReferenceModel);
-    mainFilter->SetNumberOfThreads(nbpArg.getValue());
+    mainFilter->SetNumberOfWorkUnits(nbpArg.getValue());
     mainFilter->Update();
 
     MCMWriterType mcmWriter;

@@ -54,7 +54,7 @@ protected:
     virtual ~SVFExponentialImageFilter() {}
 
     void BeforeThreadedGenerateData() ITK_OVERRIDE;
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
+    void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
     void AfterThreadedGenerateData() ITK_OVERRIDE;
 
 private:

@@ -22,7 +22,7 @@ SVFLieBracketImageFilter <TPixelType, Dimension>
         typename JacobianFilterType::Pointer jacFilter = JacobianFilterType::New();
         jacFilter->SetInput(this->GetInput(0));
         jacFilter->SetNoIdentity(true);
-        jacFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+        jacFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
         jacFilter->SetNeighborhood(0);
 
         jacFilter->Update();
@@ -36,7 +36,7 @@ SVFLieBracketImageFilter <TPixelType, Dimension>
         typename JacobianFilterType::Pointer jacFilter = JacobianFilterType::New();
         jacFilter->SetInput(this->GetInput(1));
         jacFilter->SetNoIdentity(true);
-        jacFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+        jacFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
         jacFilter->SetNeighborhood(0);
 
         jacFilter->Update();
@@ -49,7 +49,7 @@ SVFLieBracketImageFilter <TPixelType, Dimension>
 template <typename TPixelType, unsigned int Dimension>
 void
 SVFLieBracketImageFilter <TPixelType, Dimension>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionConstIterator <InputImageType> InputIteratorType;
     typedef itk::ImageRegionConstIterator <JacobianImageType> JacobianIteratorType;

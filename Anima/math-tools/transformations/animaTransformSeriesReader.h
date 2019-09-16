@@ -31,7 +31,7 @@ public:
 
     void SetInput(std::string const& trListName) {m_Input = trListName;}
     void SetInvertTransform(bool val) {m_InvertTransform = val;}
-    void SetNumberOfThreads(unsigned int num) {m_NumberOfThreads = num;}
+    void SetNumberOfWorkUnits(unsigned int num) {m_NumberOfThreads = num;}
     void SetExponentiationOrder(unsigned int val) {m_ExponentiationOrder = val;}
 
     void Update();

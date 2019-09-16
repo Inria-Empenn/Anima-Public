@@ -53,7 +53,7 @@ JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
 template <typename TPixelType, typename TOutputPixelType, unsigned int Dimension>
 void
 JacobianMatrixImageFilter <TPixelType, TOutputPixelType, Dimension>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionConstIteratorWithIndex <InputImageType> InputIteratorType;
     typedef itk::ImageRegionIterator <OutputImageType> OutputIteratorType;

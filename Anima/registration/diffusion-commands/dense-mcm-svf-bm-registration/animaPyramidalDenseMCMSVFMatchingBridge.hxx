@@ -8,7 +8,7 @@
 #include <animaSymmetricBMRegistrationMethod.h>
 #include <animaKissingSymmetricBMRegistrationMethod.h>
 
-#include <itkVectorResampleImageFilter.h>
+#include <itkResampleImageFilter.h>
 
 #include <animaVelocityUtils.h>
 #include <animaMCMResampleImageFilter.h>
@@ -66,7 +66,7 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::PyramidalDenseMCMSVFMatching
     m_NumberOfPyramidLevels = 3;
     m_LastPyramidLevel = 0;
     m_PercentageKept = 0.8;
-    this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
+    this->SetNumberOfWorkUnits(itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads());
 }
 
 template <unsigned int ImageDimension>
@@ -116,7 +116,7 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
         // Update field to match the current resolution
         if (m_OutputTransform->GetParametersAsVectorField() != NULL)
         {
-            typedef itk::VectorResampleImageFilter<VelocityFieldType,VelocityFieldType> VectorResampleFilterType;
+            typedef itk::ResampleImageFilter<VelocityFieldType,VelocityFieldType> VectorResampleFilterType;
             typedef typename VectorResampleFilterType::Pointer VectorResampleFilterPointer;
 
             AffineTransformPointer tmpIdentity = AffineTransformType::New();
@@ -156,8 +156,8 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
             agreg->SetOutlierRejectionSigma(m_OutlierSigma);
             agreg->SetOutputTransformType(BaseAgregatorType::SVF);
 
-            if (this->GetNumberOfThreads() != 0)
-                agreg->SetNumberOfThreads(this->GetNumberOfThreads());
+            if (this->GetNumberOfWorkUnits() != 0)
+                agreg->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
             agreg->SetGeometryInformation(refImage.GetPointer());
 
@@ -174,8 +174,8 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
             agreg->SetOutlierRejectionSigma(m_OutlierSigma);
             agreg->SetOutputTransformType(BaseAgregatorType::SVF);
 
-            if (this->GetNumberOfThreads() != 0)
-                agreg->SetNumberOfThreads(this->GetNumberOfThreads());
+            if (this->GetNumberOfWorkUnits() != 0)
+                agreg->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
             agreg->SetGeometryInformation(refImage.GetPointer());
 
@@ -236,8 +236,8 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
         m_bmreg->SetBCHCompositionOrder(m_BCHCompositionOrder);
         m_bmreg->SetExponentiationOrder(m_ExponentiationOrder);
 
-        if (this->GetNumberOfThreads() != 0)
-            m_bmreg->SetNumberOfThreads(this->GetNumberOfThreads());
+        if (this->GetNumberOfWorkUnits() != 0)
+            m_bmreg->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
         m_bmreg->SetFixedImage(refImage);
         m_bmreg->SetMovingImage(floImage);
@@ -253,7 +253,7 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
         refResampler->SetOutputOrigin(floImage->GetOrigin());
         refResampler->SetOutputSpacing(floImage->GetSpacing());
         refResampler->SetOutputDirection(floImage->GetDirection());
-        refResampler->SetNumberOfThreads(GetNumberOfThreads());
+        refResampler->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
         refResampler->SetReferenceOutputModel(floImage->GetDescriptionModel());
         refResampler->SetFiniteStrainReorientation(this->GetFiniteStrainImageReorientation());
         refResampler->SetInterpolator(interpolator.GetPointer());
@@ -266,7 +266,7 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
         movingResampler->SetOutputOrigin(refImage->GetOrigin());
         movingResampler->SetOutputSpacing(refImage->GetSpacing());
         movingResampler->SetOutputDirection(refImage->GetDirection());
-        movingResampler->SetNumberOfThreads(GetNumberOfThreads());
+        movingResampler->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
         movingResampler->SetReferenceOutputModel(refImage->GetDescriptionModel());
         movingResampler->SetFiniteStrainReorientation(this->GetFiniteStrainImageReorientation());
         movingResampler->SetInterpolator(interpolator.GetPointer());
@@ -390,7 +390,7 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
 
         if (reverseMatcher)
         {
-            reverseMatcher->SetNumberOfThreads(GetNumberOfThreads());
+            reverseMatcher->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
             reverseMatcher->SetOptimizerMaximumIterations(GetOptimizerMaximumIterations());
 
             reverseMatcher->SetSearchRadius(sr);
@@ -429,7 +429,7 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
         typename MultiplyFilterType::Pointer fieldMultiplier = MultiplyFilterType::New();
         fieldMultiplier->SetInput(finalTrsfField);
         fieldMultiplier->SetConstant(2.0);
-        fieldMultiplier->SetNumberOfThreads(GetNumberOfThreads());
+        fieldMultiplier->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
         fieldMultiplier->InPlaceOn();
 
         fieldMultiplier->Update();
@@ -440,7 +440,7 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
     }
 
     DisplacementFieldTransformPointer outputDispTrsf = DisplacementFieldTransformType::New();
-    anima::GetSVFExponential(m_OutputTransform.GetPointer(), outputDispTrsf.GetPointer(), m_ExponentiationOrder, GetNumberOfThreads(), false);
+    anima::GetSVFExponential(m_OutputTransform.GetPointer(), outputDispTrsf.GetPointer(), m_ExponentiationOrder, GetNumberOfWorkUnits(), false);
 
     typedef typename anima::MCMResampleImageFilter<InputImageType,typename BaseAgregatorType::ScalarType> ResampleFilterType;
     typename ResampleFilterType::Pointer tmpResample = ResampleFilterType::New();
@@ -453,8 +453,8 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
     tmpResample->SetFiniteStrainReorientation(this->GetFiniteStrainImageReorientation());
     tmpResample->SetInput(m_FloatingImage);
 
-    if (this->GetNumberOfThreads() != 0)
-        tmpResample->SetNumberOfThreads(this->GetNumberOfThreads());
+    if (this->GetNumberOfWorkUnits() != 0)
+        tmpResample->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
     tmpResample->SetOutputLargestPossibleRegion(m_ReferenceImage->GetLargestPossibleRegion());
     tmpResample->SetOutputOrigin(m_ReferenceImage->GetOrigin());
@@ -497,8 +497,8 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::SetupPyramids()
     m_ReferencePyramid->SetInput(m_ReferenceImage);
     m_ReferencePyramid->SetNumberOfLevels(m_NumberOfPyramidLevels);
 
-    if (this->GetNumberOfThreads() != 0)
-        m_ReferencePyramid->SetNumberOfThreads(this->GetNumberOfThreads());
+    if (this->GetNumberOfWorkUnits() != 0)
+        m_ReferencePyramid->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
     typedef typename anima::MCMResampleImageFilter<InputImageType,typename BaseAgregatorType::ScalarType> ResampleFilterType;
     typename InterpolatorType::Pointer interpolator = this->CreateInterpolator(m_ReferenceImage);
@@ -517,8 +517,8 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::SetupPyramids()
     m_FloatingPyramid->SetInput(m_FloatingImage);
     m_FloatingPyramid->SetNumberOfLevels(m_NumberOfPyramidLevels);
 
-    if (this->GetNumberOfThreads() != 0)
-        m_FloatingPyramid->SetNumberOfThreads(this->GetNumberOfThreads());
+    if (this->GetNumberOfWorkUnits() != 0)
+        m_FloatingPyramid->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
     typename ResampleFilterType::Pointer floResampler = ResampleFilterType::New();
     interpolator = this->CreateInterpolator(m_FloatingImage);

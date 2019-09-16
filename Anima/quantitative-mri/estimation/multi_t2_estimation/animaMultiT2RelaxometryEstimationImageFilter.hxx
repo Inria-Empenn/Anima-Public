@@ -127,7 +127,7 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
 template <class TPixelScalarType>
 void
 MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionConstIterator <InputImageType> ImageConstIteratorType;
     typedef itk::ImageRegionIterator <InputImageType> ImageIteratorType;
@@ -201,6 +201,8 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
     // NL specific variables
     std::vector <double> workDataWeights;
     std::vector <OutputVectorType> workDataSamples;
+
+    unsigned int threadId = this->GetSafeThreadId();
 
     while (!maskItr.IsAtEnd())
     {
@@ -353,6 +355,7 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
         outMWFIterator.Set(mwfValue);
         outB1Iterator.Set(b1Value);
 
+        this->IncrementNumberOfProcessedPoints();
         ++maskItr;
         ++outT2Iterator;
         ++outM0Iterator;
@@ -373,6 +376,8 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
             ++initM0Iterator;
         }
     }
+
+    this->SafeReleaseThreadId(threadId);
 }
 
 template <class TPixelScalarType>
@@ -380,7 +385,7 @@ void
 MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
 ::PrepareNLPatchSearchers()
 {
-    unsigned int numThreads = this->GetNumberOfThreads();
+    unsigned int numThreads = this->GetNumberOfWorkUnits();
     m_NLPatchSearchers.resize(numThreads);
     unsigned int maxAbsDisp = floor((float)(m_SearchNeighborhood / m_SearchStepSize)) * m_SearchStepSize;
 
@@ -398,7 +403,7 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
         filter->SetInput(this->GetInput(i));
 
         filter->SetRadius(radius);
-        filter->SetNumberOfThreads(this->GetNumberOfThreads());
+        filter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
         filter->Update();
 
         OutputImagePointer meanImage = filter->GetMeanImage();

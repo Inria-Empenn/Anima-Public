@@ -4,7 +4,7 @@
 #include <animaBobyqaOptimizer.h>
 #include <animaVoxelExhaustiveOptimizer.h>
 #include <animaBlockMatchInitializer.h>
-#include <itkMultiThreader.h>
+#include <itkPoolMultiThreader.h>
 
 namespace anima
 {
@@ -14,7 +14,7 @@ BaseBlockMatcher <TInputImageType>
 ::BaseBlockMatcher()
 {
     m_ForceComputeBlocks = false;
-    m_NumberOfThreads = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
+    m_NumberOfThreads = itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
 
     m_BlockPercentageKept = 0.8;
     m_BlockSize = 5;
@@ -146,11 +146,11 @@ BaseBlockMatcher <TInputImageType>
         this->InitializeBlocks();
 
     m_HighestProcessedBlock = 0;
-    itk::MultiThreader::Pointer threadWorker = itk::MultiThreader::New();
+    itk::PoolMultiThreader::Pointer threadWorker = itk::PoolMultiThreader::New();
     ThreadedMatchData *tmpStr = new ThreadedMatchData;
     tmpStr->BlockMatch = this;
 
-    threadWorker->SetNumberOfThreads(m_NumberOfThreads);
+    threadWorker->SetNumberOfWorkUnits(m_NumberOfThreads);
     threadWorker->SetSingleMethod(this->ThreadedMatching,tmpStr);
     threadWorker->SingleMethodExecute();
 
@@ -158,11 +158,11 @@ BaseBlockMatcher <TInputImageType>
 }
 
 template <typename TInputImageType>
-ITK_THREAD_RETURN_TYPE
+itk::ITK_THREAD_RETURN_TYPE
 BaseBlockMatcher <TInputImageType>
 ::ThreadedMatching(void *arg)
 {
-    itk::MultiThreader::ThreadInfoStruct *threadArgs = (itk::MultiThreader::ThreadInfoStruct *)arg;
+    itk::MultiThreaderBase::WorkUnitInfo *threadArgs = (itk::MultiThreaderBase::WorkUnitInfo *)arg;
     ThreadedMatchData* data = (ThreadedMatchData *)threadArgs->UserData;
 
     data->BlockMatch->ProcessBlockMatch();
@@ -183,11 +183,11 @@ BaseBlockMatcher <TInputImageType>
 
     while (continueLoop)
     {
-        m_LockHighestProcessedBlock.Lock();
+        m_LockHighestProcessedBlock.lock();
 
         if (m_HighestProcessedBlock >= highestToleratedBlockIndex)
         {
-            m_LockHighestProcessedBlock.Unlock();
+            m_LockHighestProcessedBlock.unlock();
             continueLoop = false;
             continue;
         }
@@ -199,7 +199,7 @@ BaseBlockMatcher <TInputImageType>
 
         m_HighestProcessedBlock = endPoint;
 
-        m_LockHighestProcessedBlock.Unlock();
+        m_LockHighestProcessedBlock.unlock();
 
         this->BlockMatch(startPoint,endPoint);
     }

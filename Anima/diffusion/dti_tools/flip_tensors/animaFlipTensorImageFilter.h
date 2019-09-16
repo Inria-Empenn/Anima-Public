@@ -51,8 +51,7 @@ protected:
     virtual ~FlipTensorImageFilter() {}
 
     void GenerateOutputInformation() ITK_OVERRIDE;
-    void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                              itk::ThreadIdType threadId) ITK_OVERRIDE;
+    void DynamicThreadedGenerateData(const OutputImageRegionType& outputRegionForThread) ITK_OVERRIDE;
 
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(FlipTensorImageFilter);

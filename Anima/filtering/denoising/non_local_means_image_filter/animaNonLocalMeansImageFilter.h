@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include <itkImageToImageFilter.h>
+#include <animaNumberedThreadImageToImageFilter.h>
 #include <itkVectorImage.h>
 #include <itkImage.h>
 #include <itkVector.h>
@@ -13,7 +13,7 @@ namespace anima
 
 template <class TInputImage >
 class NonLocalMeansImageFilter :
-    public itk::ImageToImageFilter < TInputImage, TInputImage >
+    public anima::NumberedThreadImageToImageFilter <TInputImage, TInputImage>
 {
 public:
 
@@ -33,7 +33,7 @@ public:
 
     /** Standard "Self" & Superclass typedef. */
     typedef NonLocalMeansImageFilter Self;
-    typedef itk::ImageToImageFilter< InputImageType, OutputImageType> Superclass;
+    typedef anima::NumberedThreadImageToImageFilter <InputImageType, OutputImageType> Superclass;
 
     /** SmartPointer typedef support  */
     typedef itk::SmartPointer<Self> Pointer;
@@ -43,7 +43,7 @@ public:
     itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(NonLocalMeansImageFilter, ImageToImageFilter)
+    itkTypeMacro(NonLocalMeansImageFilter, anima::NumberedThreadImageToImageFilter)
 
     /** Extract dimension from input image. */
     itkStaticConstMacro(InputImageDimension, unsigned int,
@@ -83,24 +83,7 @@ protected:
 
     virtual ~NonLocalMeansImageFilter() {}
 
-    /**
-    * NonLocalMeansImageFilter can be implemented as a multithreaded filter.
-    * Therefore,this implementation provides a ThreadedGenerateData() routine which
-    * is called for each processing thread. The output image data is allocated
-    * automatically by the superclass prior to calling ThreadedGenerateData().
-    * ThreadedGenerateData can only write to the portion of the output image
-    * specified by the parameter "outputRegionForThread"
-    *
-    * \sa ImageToImageFilter::ThreadedGenerateData(),
-    *     ImageToImageFilter::GenerateData()
-    */
-    void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                              itk::ThreadIdType threadId) ITK_OVERRIDE;
-    /**
-    * We need to compute mean and variance images before threads are spawned.
-    * It is also a good time to check the consistency of
-    * the data and parameters.
-    */
+    void DynamicThreadedGenerateData(const OutputImageRegionType& outputRegionForThread) ITK_OVERRIDE;
     void BeforeThreadedGenerateData() ITK_OVERRIDE;
 
 private:

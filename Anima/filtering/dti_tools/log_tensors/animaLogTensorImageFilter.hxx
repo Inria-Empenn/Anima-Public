@@ -41,7 +41,7 @@ BeforeThreadedGenerateData ()
 template <class TScalarType, unsigned int NDimensions>
 void
 LogTensorImageFilter<TScalarType,NDimensions>::
-ThreadedGenerateData (const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+DynamicThreadedGenerateData (const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionConstIterator< TInputImage > InIteratorType;
     typedef itk::ImageRegionIterator< TOutputImage > OutRegionIteratorType;

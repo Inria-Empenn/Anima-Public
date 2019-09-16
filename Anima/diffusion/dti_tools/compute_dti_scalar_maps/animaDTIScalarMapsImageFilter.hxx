@@ -28,7 +28,6 @@ DTIScalarMapsImageFilter < ImageDimension >::DTIScalarMapsImageFilter() :
     this->SetNthOutput(3, this->MakeOutput(3));
 }
 
-
 /**
  *   Make Ouput
  */
@@ -41,8 +40,8 @@ DTIScalarMapsImageFilter< ImageDimension >::MakeOutput(itk::ProcessObject::DataO
 
 template < unsigned int ImageDimension>
 void
-DTIScalarMapsImageFilter< ImageDimension >::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                       itk::ThreadIdType threadId)
+DTIScalarMapsImageFilter< ImageDimension >
+::DynamicThreadedGenerateData(const OutputImageRegionType& outputRegionForThread)
 {
     itk::ImageRegionConstIterator<TensorImageType> tensorIterator;
     itk::ImageRegionIterator<ADCImageType> adcIterator;
@@ -50,9 +49,6 @@ DTIScalarMapsImageFilter< ImageDimension >::ThreadedGenerateData(const OutputIma
     // Allocate output
     typename  InputImageType::ConstPointer tensorImage  = this->GetInput();
     typename ADCImageType::Pointer adcImage = this->GetOutput(0);
-
-    // support progress methods/callbacks
-    itk::ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
 
     TensorImageRegionType tensorRegionForThread;
     tensorRegionForThread.SetIndex(outputRegionForThread.GetIndex());
@@ -113,12 +109,12 @@ DTIScalarMapsImageFilter< ImageDimension >::ThreadedGenerateData(const OutputIma
         axialIterator.Set(l1);
         radialIterator.Set((l2+l3) / 2.0);
 
+        this->IncrementNumberOfProcessedPoints();
         ++tensorIterator;
         ++adcIterator;
         ++faIterator;
         ++axialIterator;
         ++radialIterator;
-        progress.CompletedPixel();
     }
 }
 

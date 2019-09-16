@@ -29,7 +29,7 @@ SVFExponentialImageFilter <TPixelType, Dimension>
         typename JacobianFilterType::Pointer jacFilter = JacobianFilterType::New();
         jacFilter->SetInput(this->GetInput());
         jacFilter->SetNoIdentity(true);
-        jacFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+        jacFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
         jacFilter->SetNeighborhood(0);
 
         jacFilter->Update();
@@ -78,7 +78,7 @@ SVFExponentialImageFilter <TPixelType, Dimension>
 template <typename TPixelType, unsigned int Dimension>
 void
 SVFExponentialImageFilter <TPixelType, Dimension>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionConstIterator <InputImageType> InputIteratorType;
     typedef itk::ImageRegionConstIterator <JacobianImageType> JacobianIteratorType;
@@ -140,7 +140,7 @@ SVFExponentialImageFilter <TPixelType, Dimension>
         typename ComposeFilterType::Pointer composer = ComposeFilterType::New();
         composer->SetWarpingField(outputPtr);
         composer->SetDisplacementField(outputPtr);
-        composer->SetNumberOfThreads(this->GetNumberOfThreads());
+        composer->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
         typename VectorInterpolateFunctionType::Pointer interpolator = VectorInterpolateFunctionType::New();
 

@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<unsigned int> expOrderArg("e","exp-order","Order of field exponentiation approximation (in between 0 and 1, default: 0)",false,0,"exponentiation order",cmd);
     TCLAP::ValueArg<unsigned int> dividerArg("d","div-order","If BCH composition of order > 1, divide input fields by d (default: 1)",false,1,"BCH field divider",cmd);
 
-    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
     
     try
     {
@@ -46,7 +46,7 @@ int main(int argc, char **argv)
     typedef SVFTransformType::VectorFieldType FieldType;
     
     FieldType::Pointer inputField = anima::readImage <FieldType> (inArg.getValue());
-    FieldType::Pointer composeField = 0;
+    FieldType::Pointer composeField = ITK_NULLPTR;
     if (composeArg.getValue() != "")
         composeField = anima::readImage <FieldType> (composeArg.getValue());
 
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
             ComposeFilterType::Pointer composeFilter = ComposeFilterType::New();
             composeFilter->SetWarpingField(composeField);
             composeFilter->SetDisplacementField(inputField);
-            composeFilter->SetNumberOfThreads(nbpArg.getValue());
+            composeFilter->SetNumberOfWorkUnits(nbpArg.getValue());
 
             VectorInterpolateFunctionType::Pointer interpolator = VectorInterpolateFunctionType::New();
 
@@ -109,7 +109,7 @@ int main(int argc, char **argv)
                 MultiplyConstantFilterType::Pointer inputFieldDivider = MultiplyConstantFilterType::New();
                 inputFieldDivider->SetInput(inputField);
                 inputFieldDivider->SetConstant(1.0 / dividerValue);
-                inputFieldDivider->SetNumberOfThreads(nbpArg.getValue());
+                inputFieldDivider->SetNumberOfWorkUnits(nbpArg.getValue());
 
                 inputFieldDivider->Update();
                 inputField = inputFieldDivider->GetOutput();
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
                 MultiplyConstantFilterType::Pointer composeFieldDivider = MultiplyConstantFilterType::New();
                 composeFieldDivider->SetInput(composeField);
                 composeFieldDivider->SetConstant(1.0 / dividerValue);
-                composeFieldDivider->SetNumberOfThreads(nbpArg.getValue());
+                composeFieldDivider->SetNumberOfWorkUnits(nbpArg.getValue());
 
                 composeFieldDivider->Update();
                 composeField = composeFieldDivider->GetOutput();

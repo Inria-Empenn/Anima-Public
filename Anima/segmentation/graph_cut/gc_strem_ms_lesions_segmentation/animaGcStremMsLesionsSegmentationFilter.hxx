@@ -440,7 +440,7 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::RescaleImages()
         rescaleFilter1->SetInput( this->GetInputImageT1() );
         rescaleFilter1->SetOutputMinimum( desiredMinimum );
         rescaleFilter1->SetOutputMaximum( desiredMaximum );
-        rescaleFilter1->SetNumberOfThreads( this->GetNumberOfThreads() );
+        rescaleFilter1->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
         rescaleFilter1->SetCoordinateTolerance( m_Tol );
         rescaleFilter1->SetDirectionTolerance( m_Tol );
         rescaleFilter1->UpdateLargestPossibleRegion();
@@ -452,7 +452,7 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::RescaleImages()
         rescaleFilter2->SetInput( this->GetInputImageT2() );
         rescaleFilter2->SetOutputMinimum( desiredMinimum );
         rescaleFilter2->SetOutputMaximum( desiredMaximum );
-        rescaleFilter2->SetNumberOfThreads( this->GetNumberOfThreads() );
+        rescaleFilter2->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
         rescaleFilter2->SetCoordinateTolerance( m_Tol );
         rescaleFilter2->SetDirectionTolerance( m_Tol );
         rescaleFilter2->UpdateLargestPossibleRegion();
@@ -464,7 +464,7 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::RescaleImages()
         rescaleFilter3->SetInput( this->GetInputImageFLAIR() );
         rescaleFilter3->SetOutputMinimum( desiredMinimum );
         rescaleFilter3->SetOutputMaximum( desiredMaximum );
-        rescaleFilter3->SetNumberOfThreads( this->GetNumberOfThreads() );
+        rescaleFilter3->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
         rescaleFilter3->SetCoordinateTolerance( m_Tol );
         rescaleFilter3->SetDirectionTolerance( m_Tol );
         rescaleFilter3->UpdateLargestPossibleRegion();
@@ -476,7 +476,7 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::RescaleImages()
         rescaleFilter4->SetInput( this->GetInputImageDP() );
         rescaleFilter4->SetOutputMinimum( desiredMinimum );
         rescaleFilter4->SetOutputMaximum( desiredMaximum );
-        rescaleFilter4->SetNumberOfThreads( this->GetNumberOfThreads() );
+        rescaleFilter4->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
         rescaleFilter4->SetCoordinateTolerance( m_Tol );
         rescaleFilter4->SetDirectionTolerance( m_Tol );
         rescaleFilter4->UpdateLargestPossibleRegion();
@@ -583,7 +583,7 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::ComputeAutomaticInitialization
     m_MahalanobisFilter->SetInputImage2( m_InputImage_1_UC );
     m_MahalanobisFilter->SetInputImage3( m_InputImage_2_UC );
     m_MahalanobisFilter->SetTol( m_Tol );
-    m_MahalanobisFilter->SetNumberOfThreads( this->GetNumberOfThreads() );
+    m_MahalanobisFilter->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
 
     m_MahalanobisFilter->SetOutputMahaCSFFilename( m_OutputMahaCSFFilename );
     m_MahalanobisFilter->SetOutputMahaGMFilename( m_OutputMahaGMFilename );
@@ -619,14 +619,14 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::StremThreshold()
     thresholdFilterCSF->SetUpperThreshold( m_MahalanobisThCSF );
     thresholdFilterCSF->SetInsideValue( insideValue );
     thresholdFilterCSF->SetOutsideValue( outsideValue );
-    thresholdFilterCSF->SetNumberOfThreads( this->GetNumberOfThreads() );
+    thresholdFilterCSF->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
     thresholdFilterCSF->SetCoordinateTolerance( m_Tol );
     thresholdFilterCSF->SetDirectionTolerance( m_Tol );
 
     MaskFilterType_UC_UC::Pointer maskFilterCSF = MaskFilterType_UC_UC::New();
     maskFilterCSF->SetInput( thresholdFilterCSF->GetOutput()) ;
     maskFilterCSF->SetMaskImage( m_MaskUC );
-    maskFilterCSF->SetNumberOfThreads( this->GetNumberOfThreads() );
+    maskFilterCSF->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
     maskFilterCSF->SetCoordinateTolerance( m_Tol );
     maskFilterCSF->SetDirectionTolerance( m_Tol );
     maskFilterCSF->GraftOutput( this->GetOutputStremCSF() );
@@ -638,14 +638,14 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::StremThreshold()
     thresholdFilterGM->SetUpperThreshold( m_MahalanobisThGM );
     thresholdFilterGM->SetInsideValue( insideValue );
     thresholdFilterGM->SetOutsideValue( outsideValue );
-    thresholdFilterGM->SetNumberOfThreads( this->GetNumberOfThreads() );
+    thresholdFilterGM->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
     thresholdFilterGM->SetCoordinateTolerance( m_Tol );
     thresholdFilterGM->SetDirectionTolerance( m_Tol );
 
     MaskFilterType_UC_UC::Pointer maskFilterGM = MaskFilterType_UC_UC::New();
     maskFilterGM->SetInput( thresholdFilterGM->GetOutput() );
     maskFilterGM->SetMaskImage( m_MaskUC );
-    maskFilterGM->SetNumberOfThreads( this->GetNumberOfThreads() );
+    maskFilterGM->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
     maskFilterGM->SetCoordinateTolerance( m_Tol );
     maskFilterGM->SetDirectionTolerance( m_Tol );
     maskFilterGM->GraftOutput( this->GetOutputStremGM() );
@@ -657,14 +657,14 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::StremThreshold()
     thresholdFilterWM->SetUpperThreshold( m_MahalanobisThWM );
     thresholdFilterWM->SetInsideValue( insideValue );
     thresholdFilterWM->SetOutsideValue( outsideValue );
-    thresholdFilterWM->SetNumberOfThreads( this->GetNumberOfThreads() );
+    thresholdFilterWM->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
     thresholdFilterWM->SetCoordinateTolerance( m_Tol );
     thresholdFilterWM->SetDirectionTolerance( m_Tol );
 
     MaskFilterType_UC_UC::Pointer maskFilterWM = MaskFilterType_UC_UC::New();
     maskFilterWM->SetInput( thresholdFilterWM->GetOutput() );
     maskFilterWM->SetMaskImage( m_MaskUC );
-    maskFilterWM->SetNumberOfThreads( this->GetNumberOfThreads() );
+    maskFilterWM->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
     maskFilterWM->SetCoordinateTolerance( m_Tol );
     maskFilterWM->SetDirectionTolerance( m_Tol );
     maskFilterWM->GraftOutput( this->GetOutputStremWM() );
@@ -676,13 +676,13 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::StremThreshold()
 
     filtermin1->SetInput1( maskFilterCSF->GetOutput() );
     filtermin1->SetInput2( maskFilterGM->GetOutput() );
-    filtermin1->SetNumberOfThreads( this->GetNumberOfThreads() );
+    filtermin1->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
     filtermin1->SetCoordinateTolerance( m_Tol);
     filtermin1->SetDirectionTolerance( m_Tol);
 
     filtermin2->SetInput1( filtermin1->GetOutput() );
     filtermin2->SetInput2( maskFilterWM->GetOutput() );
-    filtermin2->SetNumberOfThreads( this->GetNumberOfThreads() );
+    filtermin2->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
     filtermin2->SetCoordinateTolerance( m_Tol );
     filtermin2->SetDirectionTolerance( m_Tol );
     filtermin2->GraftOutput( this->GetOutputStrem() );
@@ -716,7 +716,7 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::CreateFuzzyRuleImage()
     intensityWindowFilter1->SetWindowMaximum( intensityWindowUpperInputValue1 );
     intensityWindowFilter1->SetOutputMinimum( minimumOutputValue );
     intensityWindowFilter1->SetOutputMaximum( maximumOutputValue );
-    intensityWindowFilter1->SetNumberOfThreads( this->GetNumberOfThreads() );
+    intensityWindowFilter1->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
     intensityWindowFilter1->SetCoordinateTolerance( m_Tol );
     intensityWindowFilter1->SetDirectionTolerance( m_Tol );
 
@@ -730,18 +730,15 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::CreateFuzzyRuleImage()
     intensityWindowFilter2->SetWindowMaximum( intensityWindowUpperInputValue2 );
     intensityWindowFilter2->SetOutputMinimum( minimumOutputValue );
     intensityWindowFilter2->SetOutputMaximum( maximumOutputValue );
-    intensityWindowFilter2->SetNumberOfThreads( this->GetNumberOfThreads() );
+    intensityWindowFilter2->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
     intensityWindowFilter2->SetCoordinateTolerance( m_Tol );
     intensityWindowFilter2->SetDirectionTolerance( m_Tol );
 
     filtermin1->SetInput1( intensityWindowFilter1->GetOutput() );
     filtermin1->SetInput2( intensityWindowFilter2->GetOutput() );
-    filtermin1->SetNumberOfThreads( this->GetNumberOfThreads() );
+    filtermin1->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
     filtermin1->SetCoordinateTolerance( m_Tol );
     filtermin1->SetDirectionTolerance( m_Tol );
-
-    typename ImageTypeD::Pointer mahaMinimum = ImageTypeD::New();
-    mahaMinimum->Graft(m_MahalanobisFilter->GetOutputMahaMinimum());
 
     if (this->GetInputLesionPrior().IsNotNull())
     {
@@ -763,15 +760,15 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::CreateFuzzyRuleImage()
     }
 
     filtermin2->SetInput1( filtermin1->GetOutput() );
-    filtermin2->SetInput2( mahaMinimum );
-    filtermin2->SetNumberOfThreads( this->GetNumberOfThreads() );
+    filtermin2->SetInput2(m_MahalanobisFilter->GetOutputMahaMinimum());
+    filtermin2->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
     filtermin2->SetCoordinateTolerance( m_Tol );
     filtermin2->SetDirectionTolerance( m_Tol );
 
     MaskFilterType_F_UC::Pointer maskFilter = MaskFilterType_F_UC::New();
     maskFilter->SetInput( filtermin2->GetOutput() ) ;
     maskFilter->SetMaskImage( m_MaskUC );
-    maskFilter->SetNumberOfThreads( this->GetNumberOfThreads() );
+    maskFilter->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
     maskFilter->SetCoordinateTolerance( m_Tol );
     maskFilter->SetDirectionTolerance( m_Tol );
     maskFilter->GraftOutput( this->GetOutputFuzzyObjectImage() );
@@ -794,7 +791,7 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::GraphCut()
     m_GraphCutFilter->SetMatrixGradFilename( m_MatrixGradFilename );
     m_GraphCutFilter->SetOutputFilename( m_OutputGCFilename );
     m_GraphCutFilter->SetVerbose( m_Verbose );
-    m_GraphCutFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+    m_GraphCutFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     m_GraphCutFilter->SetTol( m_Tol );
 
     unsigned int index = 0;
@@ -821,7 +818,7 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::GraphCut()
         m_TLinksFilter->SetMultiVarSources( m_MultiVarSources );
         m_TLinksFilter->SetMultiVarSinks( m_MultiVarSinks );
         m_TLinksFilter->SetTLinkMode( singleGaussianTLink );
-        m_TLinksFilter->SetNumberOfThreads( this->GetNumberOfThreads() );
+        m_TLinksFilter->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
         m_TLinksFilter->SetTol( m_Tol );
 
         index = 0;
@@ -838,7 +835,7 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::GraphCut()
         {
             m_FilterMaxSources->SetInput1( m_FuzzyObject );
             m_FilterMaxSources->SetInput2( m_TLinksFilter->GetOutputSources() );
-            m_FilterMaxSources->SetNumberOfThreads( this->GetNumberOfThreads() );
+            m_FilterMaxSources->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
             m_FilterMaxSources->SetCoordinateTolerance( m_Tol );
             m_FilterMaxSources->SetDirectionTolerance( m_Tol );
         }
@@ -846,7 +843,7 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::GraphCut()
         {
             m_FilterMaxSinks->SetInput1( m_MahalanobisFilter->GetOutputMahaMaximum() );
             m_FilterMaxSinks->SetInput2( m_TLinksFilter->GetOutputSinks() );
-            m_FilterMaxSinks->SetNumberOfThreads( this->GetNumberOfThreads() );
+            m_FilterMaxSinks->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
             m_FilterMaxSinks->SetCoordinateTolerance( m_Tol );
             m_FilterMaxSinks->SetDirectionTolerance( m_Tol );
         }
@@ -867,9 +864,6 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::GraphCut()
         }
         else if (this->GetInputLesionPrior().IsNotNull())
         {
-            typename ImageTypeD::Pointer sinkProbas = ImageTypeD::New();
-            sinkProbas->Graft(m_MahalanobisFilter->GetOutputMahaMaximum());
-
             typedef itk::ImageRegionIterator <ImageTypeD> IteratorType;
             IteratorType sinkProbasIterator(m_MahalanobisFilter->GetOutputMahaMaximum(),m_MahalanobisFilter->GetOutputMahaMaximum()->GetLargestPossibleRegion());
             typedef itk::ImageRegionConstIterator <ImageTypeD> ConstIteratorType;
@@ -886,7 +880,7 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::GraphCut()
                 ++lesionPriorIterator;
             }
 
-            m_GraphCutFilter->SetInputSeedSinksProba(sinkProbas);
+            m_GraphCutFilter->SetInputSeedSinksProba(m_MahalanobisFilter->GetOutputMahaMaximum());
         }
         else
         {
@@ -975,14 +969,14 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::ApplyHeuristicRules()
         IntensityFilter1->SetLowerThreshold( m_HyperIntensityThreshold1 );
         IntensityFilter1->SetInsideValue( insideValue );
         IntensityFilter1->SetOutsideValue( outsideValue );
-        IntensityFilter1->SetNumberOfThreads( this->GetNumberOfThreads() );
+        IntensityFilter1->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
         IntensityFilter1->SetCoordinateTolerance( m_Tol );
         IntensityFilter1->SetDirectionTolerance( m_Tol );
 
         MaskFilterType_UC_UC::Pointer maskFilterIntensity1 = MaskFilterType_UC_UC::New();
         maskFilterIntensity1->SetInput( IntensityFilter1->GetOutput() ) ;
         maskFilterIntensity1->SetMaskImage( m_MaskUC );
-        maskFilterIntensity1->SetNumberOfThreads( this->GetNumberOfThreads() );
+        maskFilterIntensity1->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
         maskFilterIntensity1->SetCoordinateTolerance( m_Tol );
         maskFilterIntensity1->SetDirectionTolerance( m_Tol );
         maskFilterIntensity1->GraftOutput( this->GetOutputIntensityImage1() );
@@ -994,14 +988,14 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::ApplyHeuristicRules()
         IntensityFilter2->SetLowerThreshold( m_HyperIntensityThreshold2 );
         IntensityFilter2->SetInsideValue( insideValue );
         IntensityFilter2->SetOutsideValue( outsideValue );
-        IntensityFilter2->SetNumberOfThreads( this->GetNumberOfThreads() );
+        IntensityFilter2->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
         IntensityFilter2->SetCoordinateTolerance( m_Tol );
         IntensityFilter2->SetDirectionTolerance( m_Tol );
 
         MaskFilterType_UC_UC::Pointer maskFilterIntensity2 = MaskFilterType_UC_UC::New();
         maskFilterIntensity2->SetInput( IntensityFilter2->GetOutput() ) ;
         maskFilterIntensity2->SetMaskImage( m_MaskUC );
-        maskFilterIntensity2->SetNumberOfThreads( this->GetNumberOfThreads() );
+        maskFilterIntensity2->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
         maskFilterIntensity2->SetCoordinateTolerance( m_Tol );
         maskFilterIntensity2->SetDirectionTolerance( m_Tol );
         maskFilterIntensity2->GraftOutput( this->GetOutputIntensityImage2() );
@@ -1011,14 +1005,14 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::ApplyHeuristicRules()
         MinimumFilterTypeUC::Pointer filtermin1 = MinimumFilterTypeUC::New();
         filtermin1->SetInput1( maskFilterIntensity1->GetOutput() );
         filtermin1->SetInput2( maskFilterIntensity2->GetOutput() );
-        filtermin1->SetNumberOfThreads( this->GetNumberOfThreads() );
+        filtermin1->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
         filtermin1->SetCoordinateTolerance( m_Tol );
         filtermin1->SetDirectionTolerance( m_Tol );
 
         MinimumFilterTypeUC::Pointer filtermin2 = MinimumFilterTypeUC::New();
         filtermin2->SetInput1( filtermin1->GetOutput() );
         filtermin2->SetInput2( m_LesionsDetectionImage );
-        filtermin2->SetNumberOfThreads( this->GetNumberOfThreads() );
+        filtermin2->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
         filtermin2->SetCoordinateTolerance( m_Tol );
         filtermin2->SetDirectionTolerance( m_Tol );
         filtermin2->Update();
@@ -1039,7 +1033,7 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::ApplyHeuristicRules()
         BorderMaskFilter->SetInputImageSeg( OutliersIntense );
         BorderMaskFilter->SetVerbose( m_Verbose );
         BorderMaskFilter->SetTol( m_Tol );
-        BorderMaskFilter->SetNumberOfThreads( this->GetNumberOfThreads() );
+        BorderMaskFilter->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
         BorderMaskFilter->Update();
     }
 
@@ -1053,13 +1047,13 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::ApplyHeuristicRules()
         thresholdFilterMapWM->SetLowerThreshold( m_ThresoldWMmap );
         thresholdFilterMapWM->SetInsideValue( insideValue );
         thresholdFilterMapWM->SetOutsideValue( outsideValue );
-        thresholdFilterMapWM->SetNumberOfThreads( this->GetNumberOfThreads() );
+        thresholdFilterMapWM->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
         thresholdFilterMapWM->SetCoordinateTolerance( m_Tol );
         thresholdFilterMapWM->SetDirectionTolerance( m_Tol );
 
         CheckStructureNeighborFilterFilterType::Pointer CheckStructureNeighborFilterFilter = CheckStructureNeighborFilterFilterType::New();
         CheckStructureNeighborFilterFilter->SetInputMap( thresholdFilterMapWM->GetOutput() );
-        CheckStructureNeighborFilterFilter->SetNumberOfThreads( this->GetNumberOfThreads() );
+        CheckStructureNeighborFilterFilter->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
         CheckStructureNeighborFilterFilter->SetTol( m_Tol );
         if( m_RemoveBorder )
         {
@@ -1112,14 +1106,14 @@ GcStremMsLesionsSegmentationFilter <TInputImage>::ApplyHeuristicRules()
     ConnectedComponentType::Pointer ccFilterSize = ConnectedComponentType::New();
     ccFilterSize->SetInput( bigLesionsImage );
     ccFilterSize->SetFullyConnected( connectivity );
-    ccFilterSize->SetNumberOfThreads( this->GetNumberOfThreads() );
+    ccFilterSize->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
     ccFilterSize->SetCoordinateTolerance( m_Tol );
     ccFilterSize->SetDirectionTolerance( m_Tol );
 
     RelabelComponentType::Pointer relabelFilterSize = RelabelComponentType::New();
     relabelFilterSize->SetInput( ccFilterSize->GetOutput() );
     relabelFilterSize->SetMinimumObjectSize( minSizeInVoxel );
-    relabelFilterSize->SetNumberOfThreads( this->GetNumberOfThreads() );
+    relabelFilterSize->SetNumberOfWorkUnits( this->GetNumberOfWorkUnits() );
     relabelFilterSize->SetCoordinateTolerance( m_Tol );
     relabelFilterSize->SetDirectionTolerance( m_Tol );
     relabelFilterSize->Update();

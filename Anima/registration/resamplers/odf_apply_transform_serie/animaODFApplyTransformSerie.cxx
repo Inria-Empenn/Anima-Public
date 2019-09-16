@@ -35,7 +35,7 @@ int main(int ac, const char** av)
     TCLAP::SwitchArg invertArg("I","invert","Invert the transformation series",cmd,false);
     TCLAP::SwitchArg nearestArg("N","nearest","Use nearest neighbor interpolation",cmd,false);
     
-    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
     
     try
     {
@@ -78,7 +78,7 @@ int main(int ac, const char** av)
     trReader->SetInput(trArg.getValue());
     trReader->SetInvertTransform(invertArg.isSet());
     trReader->SetExponentiationOrder(expOrderArg.getValue());
-    trReader->SetNumberOfThreads(nbpArg.getValue());
+    trReader->SetNumberOfWorkUnits(nbpArg.getValue());
 
     try
     {
@@ -106,7 +106,7 @@ int main(int ac, const char** av)
     resample->SetTransform(trsf);
     resample->SetFiniteStrainReorientation(true);
     resample->SetInterpolator(interpolator.GetPointer());
-    resample->SetNumberOfThreads(nbpArg.getValue());
+    resample->SetNumberOfWorkUnits(nbpArg.getValue());
 
     ImageType::DirectionType directionMatrix;
     ImageType::PointType origin;

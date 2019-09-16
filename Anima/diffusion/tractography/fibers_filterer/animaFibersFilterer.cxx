@@ -12,7 +12,7 @@
 #include <vtkGenericCell.h>
 
 #include <itkNearestNeighborInterpolateImageFunction.h>
-#include <itkMultiThreader.h>
+#include <itkPoolMultiThreader.h>
 
 void FilterTracks(vtkPolyData *tracks, unsigned int startIndex, unsigned int endIndex,
                   itk::NearestNeighborInterpolateImageFunction < itk::Image <unsigned short, 3> > * interpolator,
@@ -45,7 +45,7 @@ void FilterTracks(vtkPolyData *tracks, unsigned int startIndex, unsigned int end
             if (!interpolator->IsInsideBuffer(currentIndex))
                 continue;
 
-            unsigned int value = interpolator->EvaluateAtContinuousIndex(currentIndex);
+            unsigned int value = static_cast <unsigned int> (std::round(interpolator->EvaluateAtContinuousIndex(currentIndex)));
 
             for (unsigned int k = 0;k < forbiddenLabels.size();++k)
             {
@@ -94,11 +94,11 @@ typedef struct
     std::vector <unsigned int> forbiddenLabels;
 } ThreaderArguments;
 
-ITK_THREAD_RETURN_TYPE ThreadFilterer(void *arg)
+itk::ITK_THREAD_RETURN_TYPE ThreadFilterer(void *arg)
 {
-    itk::MultiThreader::ThreadInfoStruct *threadArgs = (itk::MultiThreader::ThreadInfoStruct *)arg;
-    unsigned int nbThread = threadArgs->ThreadID;
-    unsigned int numTotalThread = threadArgs->NumberOfThreads;
+    itk::MultiThreaderBase::WorkUnitInfo *threadArgs = (itk::MultiThreaderBase::WorkUnitInfo *)arg;
+    unsigned int nbThread = threadArgs->WorkUnitID;
+    unsigned int numTotalThread = threadArgs->NumberOfWorkUnits;
 
     ThreaderArguments *tmpArg = (ThreaderArguments *)threadArgs->UserData;
     unsigned int nbTotalCells = tmpArg->tracks->GetNumberOfCells();
@@ -112,7 +112,7 @@ ITK_THREAD_RETURN_TYPE ThreadFilterer(void *arg)
 
     FilterTracks(tmpArg->tracks, startIndex, endIndex, tmpArg->interpolator, tmpArg->touchLabels, tmpArg->forbiddenLabels);
 
-    return NULL;
+    return ITK_NULLPTR;
 }
 
 int main(int argc, char **argv)
@@ -126,7 +126,7 @@ int main(int argc, char **argv)
     TCLAP::MultiArg<unsigned int> touchArg("t", "touch", "Labels that have to be touched",false,"touched labels",cmd);
     TCLAP::MultiArg<unsigned int> forbiddenArg("f", "forbid", "Labels that must not to be touched",false,"forbidden labels",cmd);
 
-    TCLAP::ValueArg<unsigned int> nbThreadsArg("T","nb-threads","Number of threads to run on (default: all available)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbThreadsArg("T","nb-threads","Number of threads to run on (default: all available)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
     try
     {
         cmd.parse(argc,argv);
@@ -163,8 +163,8 @@ int main(int argc, char **argv)
     tmpStr.touchLabels = touchLabels;
     tmpStr.forbiddenLabels = forbiddenLabels;
 
-    itk::MultiThreader::Pointer mThreader = itk::MultiThreader::New();
-    mThreader->SetNumberOfThreads(nbThreadsArg.getValue());
+    itk::PoolMultiThreader::Pointer mThreader = itk::PoolMultiThreader::New();
+    mThreader->SetNumberOfWorkUnits(nbThreadsArg.getValue());
     mThreader->SetSingleMethod(ThreadFilterer,&tmpStr);
     mThreader->SingleMethodExecute();
 

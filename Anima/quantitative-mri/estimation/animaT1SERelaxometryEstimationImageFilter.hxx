@@ -61,7 +61,7 @@ T1SERelaxometryEstimationImageFilter <TInputImage,TOutputImage>
 template <typename TInputImage, typename TOutputImage>
 void
 T1SERelaxometryEstimationImageFilter <TInputImage,TOutputImage>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionConstIterator <InputImageType> ImageIteratorType;
     typedef itk::ImageRegionIterator <OutputImageType> OutImageIteratorType;

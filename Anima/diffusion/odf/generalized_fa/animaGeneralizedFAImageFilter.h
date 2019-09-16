@@ -41,7 +41,7 @@ protected:
 
     virtual ~GeneralizedFAImageFilter() {}
 
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
+    void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
 
     bool isZero(InputImagePixel &testVal)
     {

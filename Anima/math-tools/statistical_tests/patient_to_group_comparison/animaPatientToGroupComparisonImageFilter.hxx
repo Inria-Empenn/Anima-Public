@@ -40,7 +40,7 @@ PatientToGroupComparisonImageFilter<PixelScalarType>
 template <class PixelScalarType>
 void
 PatientToGroupComparisonImageFilter<PixelScalarType>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionConstIteratorWithIndex< InputImageType > InIteratorType;
 
@@ -189,6 +189,7 @@ PatientToGroupComparisonImageFilter<PixelScalarType>
                 resValue *= -1;
         }
 
+        this->IncrementNumberOfProcessedPoints();
         outIterator.Set(resValue);
         ++outIterator;
         ++outPValIterator;

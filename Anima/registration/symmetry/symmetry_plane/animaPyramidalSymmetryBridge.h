@@ -129,7 +129,7 @@ protected:
         m_optMaxIterations = 100;
         m_histogramSize = 120;
         m_numberOfPyramidLevels = 3;
-        this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
+        this->SetNumberOfWorkUnits(itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads());
         m_fixedfile = "";
         m_outputRealignTransformFile = "";
         m_outputTransformFile = "";

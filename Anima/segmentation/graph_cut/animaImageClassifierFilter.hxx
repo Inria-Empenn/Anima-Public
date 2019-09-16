@@ -111,7 +111,7 @@ ImageClassifierFilter <TInput, TMask, TOutput>::WriteOutputs()
 template <typename TInput, typename TMask, typename TOutput>
 void
 ImageClassifierFilter<TInput, TMask, TOutput>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     OutputIteratorType classificationIt(this->GetOutput(), outputRegionForThread);
     MaskConstIteratorType maskIt(this->GetMask(), outputRegionForThread);

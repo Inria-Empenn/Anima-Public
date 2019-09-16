@@ -8,7 +8,7 @@ namespace anima
 LowMemoryNLMeansPatientToGroupComparisonBridge::LowMemoryNLMeansPatientToGroupComparisonBridge()
 {
     m_NbSplits = 2;
-    m_NumThreads = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
+    m_NumThreads = itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
 
     m_DatabaseImages = new ImageSplitterType;
     m_TestImage = new ImageSplitterType;
@@ -152,7 +152,7 @@ void LowMemoryNLMeansPatientToGroupComparisonBridge::Update(int specificSplitToD
             mainFilter->AddDatabaseInput(m_DatabaseImages->GetOutput(j));
 
         mainFilter->SetComputationMask(m_DatabaseImages->GetSmallMaskWithMargin());
-        mainFilter->SetNumberOfThreads(m_NumThreads);
+        mainFilter->SetNumberOfWorkUnits(m_NumThreads);
 
         mainFilter->SetDatabaseMeanDistanceAverage(m_DatabaseMeanDistanceAverage->GetOutput(0));
         mainFilter->SetDatabaseMeanDistanceStd(m_DatabaseMeanDistanceStd->GetOutput(0));
@@ -168,7 +168,6 @@ void LowMemoryNLMeansPatientToGroupComparisonBridge::Update(int specificSplitToD
         mainFilter->SetBetaParameter(m_BetaParameter);
 
         mainFilter->SetInput(0,m_TestImage->GetOutput(0));
-        mainFilter->SetComputationRegion(m_TestImage->GetBlockRegionInsideMargin());
 
         mainFilter->Update();
 

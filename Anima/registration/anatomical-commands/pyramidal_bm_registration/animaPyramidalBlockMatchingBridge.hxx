@@ -4,7 +4,6 @@
 #include <animaReadWriteFunctions.h>
 #include <itkTransformFileReader.h>
 #include <itkTransformFileWriter.h>
-#include <itkMultiThreader.h>
 #include <itkCenteredTransformInitializer.h>
 
 #include <animaAsymmetricBMRegistrationMethod.h>
@@ -65,7 +64,7 @@ PyramidalBlockMatchingBridge<ImageDimension>::PyramidalBlockMatchingBridge()
     m_PercentageKept = 0.8;
     m_TransformInitializationType = ClosestTransform;
 
-    this->SetNumberOfThreads(itk::MultiThreader::GetGlobalDefaultNumberOfThreads());
+    this->SetNumberOfWorkUnits(itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads());
 
     m_Abort = false;
     m_Verbose = true;
@@ -168,7 +167,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
         typename InputImageType::Pointer floImage = m_FloatingPyramid->GetOutput(i);
         floImage->DisconnectPipeline();
 
-        typename MaskImageType::Pointer maskGenerationImage = 0;
+        typename MaskImageType::Pointer maskGenerationImage = ITK_NULLPTR;
         if (m_BlockGenerationPyramid)
         {
             maskGenerationImage = m_BlockGenerationPyramid->GetOutput(i);
@@ -237,8 +236,8 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
             m_bmreg->AddObserver(itk::ProgressEvent(), m_callback);
         }
 
-        if (this->GetNumberOfThreads() != 0)
-            m_bmreg->SetNumberOfThreads(this->GetNumberOfThreads());
+        if (this->GetNumberOfWorkUnits() != 0)
+            m_bmreg->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
         m_bmreg->SetFixedImage(refImage);
         m_bmreg->SetMovingImage(floImage);
@@ -252,7 +251,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
         refResampler->SetOutputSpacing(floImage->GetSpacing());
         refResampler->SetOutputDirection(floImage->GetDirection());
         refResampler->SetDefaultPixelValue(0);
-        refResampler->SetNumberOfThreads(GetNumberOfThreads());
+        refResampler->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
         m_bmreg->SetReferenceImageResampler(refResampler);
 
         typename ResampleFilterType::Pointer movingResampler = ResampleFilterType::New();
@@ -261,7 +260,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
         movingResampler->SetOutputSpacing(refImage->GetSpacing());
         movingResampler->SetOutputDirection(refImage->GetDirection());
         movingResampler->SetDefaultPixelValue(0);
-        movingResampler->SetNumberOfThreads(GetNumberOfThreads());
+        movingResampler->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
         m_bmreg->SetMovingImageResampler(movingResampler);
 
         BaseAgreg *agreg = NULL;
@@ -392,7 +391,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
         m_bmreg->SetMinimalTransformError(GetMinimalTransformError());
         m_bmreg->SetInitialTransform(m_OutputTransform);
 
-        mainMatcher->SetNumberOfThreads(GetNumberOfThreads());
+        mainMatcher->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
         mainMatcher->SetOptimizerMaximumIterations(GetOptimizerMaximumIterations());
 
         double sr = GetSearchRadius();
@@ -421,7 +420,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
 
         if (reverseMatcher)
         {
-            reverseMatcher->SetNumberOfThreads(GetNumberOfThreads());
+            reverseMatcher->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
             reverseMatcher->SetOptimizerMaximumIterations(GetOptimizerMaximumIterations());
 
             reverseMatcher->SetSearchRadius(sr);
@@ -611,7 +610,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
 
     m_ReferencePyramid->SetInput(m_ReferenceImage);
     m_ReferencePyramid->SetNumberOfLevels(GetNumberOfPyramidLevels());
-    m_ReferencePyramid->SetNumberOfThreads(GetNumberOfThreads());
+    m_ReferencePyramid->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
 
     typename ResampleFilterType::Pointer refResampler = ResampleFilterType::New();
     m_ReferencePyramid->SetImageResampler(refResampler);
@@ -712,7 +711,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
 
     m_FloatingPyramid->SetInput(initialFloatingImage);
     m_FloatingPyramid->SetNumberOfLevels(GetNumberOfPyramidLevels());
-    m_FloatingPyramid->SetNumberOfThreads(GetNumberOfThreads());
+    m_FloatingPyramid->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
 
     typename ResampleFilterType::Pointer floResampler = ResampleFilterType::New();
     m_FloatingPyramid->SetImageResampler(floResampler);
@@ -731,7 +730,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
         m_BlockGenerationPyramid->SetImageResampler(maskResampler);
         m_BlockGenerationPyramid->SetInput(m_BlockGenerationMask);
         m_BlockGenerationPyramid->SetNumberOfLevels(GetNumberOfPyramidLevels());
-        m_BlockGenerationPyramid->SetNumberOfThreads(GetNumberOfThreads());
+        m_BlockGenerationPyramid->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
         m_BlockGenerationPyramid->Update();
     }
 }

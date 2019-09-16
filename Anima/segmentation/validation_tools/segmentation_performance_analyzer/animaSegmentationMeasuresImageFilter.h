@@ -1,6 +1,6 @@
 #pragma once
 
-#include <itkImageToImageFilter.h>
+#include <animaNumberedThreadImageToImageFilter.h>
 #include <itkNumericTraits.h>
 
 namespace anima
@@ -51,12 +51,12 @@ public:
 };
 
 template<typename TLabelImage>
-class SegmentationMeasuresImageFilter : public itk::ImageToImageFilter<TLabelImage, TLabelImage>
+class SegmentationMeasuresImageFilter : public anima::NumberedThreadImageToImageFilter <TLabelImage, TLabelImage>
 {
 public:
     /** Standard Self typedef */
     typedef SegmentationMeasuresImageFilter Self;
-    typedef itk::ImageToImageFilter<TLabelImage, TLabelImage> Superclass;
+    typedef anima::NumberedThreadImageToImageFilter <TLabelImage, TLabelImage> Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self> ConstPointer;
 
@@ -64,7 +64,7 @@ public:
     itkNewMacro(Self)
 
     /** Runtime information support. */
-    itkTypeMacro(SegmentationMeasuresImageFilter, itk::ImageToImageFilter)
+    itkTypeMacro(SegmentationMeasuresImageFilter, anima::NumberedThreadImageToImageFilter)
 
     /** Image related typedefs. */
     typedef TLabelImage LabelImageType;
@@ -169,7 +169,7 @@ protected:
     void AfterThreadedGenerateData() ITK_OVERRIDE;
 
     /** Multi-thread version GenerateData. */
-    void ThreadedGenerateData(const RegionType &, itk::ThreadIdType) ITK_OVERRIDE;
+    void DynamicThreadedGenerateData(const RegionType &) ITK_OVERRIDE;
 
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(SegmentationMeasuresImageFilter);

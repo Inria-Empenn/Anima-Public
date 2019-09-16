@@ -73,7 +73,7 @@ protected:
 
     void GenerateOutputInformation() ITK_OVERRIDE;
     void BeforeThreadedGenerateData() ITK_OVERRIDE;
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
+    void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
 
     static double OptimizationFunction(const std::vector<double> &x, std::vector<double> &grad, void *func_data);
     double ComputeCostAtPosition(const std::vector<double> &x, const std::vector <double> &observedData,

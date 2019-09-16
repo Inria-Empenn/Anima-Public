@@ -103,7 +103,7 @@ GammaMixtureT2RelaxometryEstimationImageFilter <TPixelScalarType>
 template <class TPixelScalarType>
 void
 GammaMixtureT2RelaxometryEstimationImageFilter <TPixelScalarType>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionConstIterator <InputImageType> ImageConstIteratorType;
     typedef itk::ImageRegionIterator <InputImageType> ImageIteratorType;
@@ -376,6 +376,7 @@ GammaMixtureT2RelaxometryEstimationImageFilter <TPixelScalarType>
         outMWFIterator.Set(mwfValue);
         outB1Iterator.Set(b1Value);
 
+        this->IncrementNumberOfProcessedPoints();
         ++maskItr;
         ++outWeightsIterator;
         ++outMeanParamsIterator;

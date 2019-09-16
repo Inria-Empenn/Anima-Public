@@ -166,8 +166,7 @@ ResampleImageFilter<TInputImage,TOutputImage,TInterpolatorPrecisionType>
 template <class TInputImage, class TOutputImage, class TInterpolatorPrecisionType>
 void
 ResampleImageFilter<TInputImage,TOutputImage,TInterpolatorPrecisionType>
-::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                       itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType& outputRegionForThread)
 {
     // Get the output pointers
     OutputImagePointer      outputPtr = this->GetOutput();
@@ -187,9 +186,6 @@ ResampleImageFilter<TInputImage,TOutputImage,TInterpolatorPrecisionType>
 
     typedef itk::ContinuousIndex<TInterpolatorPrecisionType, ImageDimension> ContinuousIndexType;
     ContinuousIndexType inputIndex;
-
-    // Support for progress methods/callbacks
-    itk::ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
 
     typedef typename InterpolatorType::OutputType OutputType;
 
@@ -249,7 +245,6 @@ ResampleImageFilter<TInputImage,TOutputImage,TInterpolatorPrecisionType>
             outIt.Set(m_DefaultPixelValue); // default background value
         }
 
-        progress.CompletedPixel();
         ++outIt;
     }
 }

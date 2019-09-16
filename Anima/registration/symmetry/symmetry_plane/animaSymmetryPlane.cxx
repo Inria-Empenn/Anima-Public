@@ -52,7 +52,7 @@ int main(int ac, const char** av)
     matcher->SetNumberOfPyramidLevels(numPyramidLevelsArg.getValue());
 
     if (numThreadsArg.getValue() != 0)
-        matcher->SetNumberOfThreads(numThreadsArg.getValue());
+        matcher->SetNumberOfWorkUnits(numThreadsArg.getValue());
 
     matcher->SetResultFile(outArg.getValue());
     matcher->SetOutputRealignTransformFile(outputRealignTransformArg.getValue());

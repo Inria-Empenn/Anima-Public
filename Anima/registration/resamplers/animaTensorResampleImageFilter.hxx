@@ -13,10 +13,10 @@ TensorResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 {
     this->Superclass::BeforeThreadedGenerateData();
 
-    m_WorkMats.resize(this->GetNumberOfThreads());
-    m_TmpTensors.resize(this->GetNumberOfThreads());
+    m_WorkMats.resize(this->GetNumberOfWorkUnits());
+    m_TmpTensors.resize(this->GetNumberOfWorkUnits());
 
-    for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
+    for (unsigned int i = 0;i < this->GetNumberOfWorkUnits();++i)
     {
         m_WorkMats[i].set_size(m_TensorDimension,m_TensorDimension);
         m_TmpTensors[i].set_size(m_TensorDimension,m_TensorDimension);
@@ -24,9 +24,9 @@ TensorResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 
     if (!this->GetFiniteStrainReorientation())
     {
-        m_WorkEigenValues.resize(this->GetNumberOfThreads());
-        m_WorkEigenVectors.resize(this->GetNumberOfThreads());
-        m_WorkPPDOrientationMatrices.resize(this->GetNumberOfThreads());
+        m_WorkEigenValues.resize(this->GetNumberOfWorkUnits());
+        m_WorkEigenVectors.resize(this->GetNumberOfWorkUnits());
+        m_WorkPPDOrientationMatrices.resize(this->GetNumberOfWorkUnits());
     }
 }
 

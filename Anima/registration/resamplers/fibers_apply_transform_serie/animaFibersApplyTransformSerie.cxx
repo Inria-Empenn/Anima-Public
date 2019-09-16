@@ -35,7 +35,7 @@ int main(int ac, const char** av)
 
     TCLAP::ValueArg<unsigned int> expOrderArg("e","exp-order","Order of field exponentiation approximation (in between 0 and 1, default: 0)",false,0,"exponentiation order",cmd);
     TCLAP::SwitchArg invertArg("I","invert","Invert the transformation series",cmd,false);
-    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     try
     {
@@ -52,7 +52,7 @@ int main(int ac, const char** av)
     trsfReader.SetInput(trArg.getValue());
     trsfReader.SetInvertTransform(!invertArg.isSet());
     trsfReader.SetExponentiationOrder(expOrderArg.getValue());
-    trsfReader.SetNumberOfThreads(nbpArg.getValue());
+    trsfReader.SetNumberOfWorkUnits(nbpArg.getValue());
     trsfReader.Update();
 
     anima::ShapesReader trackReader;

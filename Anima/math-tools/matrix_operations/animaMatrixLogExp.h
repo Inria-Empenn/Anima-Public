@@ -6,7 +6,7 @@
 
 #include <itkTransform.h>
 #include <itkMatrixOffsetTransformBase.h>
-#include <itkMultiThreader.h>
+#include <itkMultiThreaderBase.h>
 
 namespace anima
 {
@@ -51,13 +51,13 @@ public:
 
         m_UseRigidTransforms = false;
 
-        m_NumberOfThreads = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
+        m_NumberOfThreads = itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
     }
 
     ~MatrixLoggerFilter() {}
 
     void SetInput(InputType &input) {m_InputTransforms = input;m_Modified = true;}
-    void SetNumberOfThreads(unsigned int &numThreads) {m_NumberOfThreads = numThreads;}
+    void SetNumberOfWorkUnits(unsigned int &numThreads) {m_NumberOfThreads = numThreads;}
     void SetUseRigidTransforms(bool rigTrsfs)
     {
         if (m_UseRigidTransforms != rigTrsfs)
@@ -82,7 +82,7 @@ protected:
         Self* loggerFilter;
     };
 
-    static ITK_THREAD_RETURN_TYPE ThreadedLogging(void *arg);
+    static itk::ITK_THREAD_RETURN_TYPE ThreadedLogging(void *arg);
     void InternalLogger(unsigned int threadId, unsigned int numThreads);
 
 private:

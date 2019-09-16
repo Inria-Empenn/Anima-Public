@@ -72,7 +72,7 @@ NonLocalMeansTemporalImageFilter < TInputImage >
                 nLMeansFilter->SetWeightMethod(NLMEansFilterType::EXP);
         else nLMeansFilter->SetWeightMethod(NLMEansFilterType::RICIAN);
 
-        nLMeansFilter->SetNumberOfThreads(this->GetNumberOfThreads());
+        nLMeansFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
         nLMeansFilter->Update();
 

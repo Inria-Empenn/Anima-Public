@@ -36,7 +36,7 @@ flipTensors(itk::ImageIOBase::Pointer imageIO, const arguments &args)
     if (args.mask != "")
         filter->SetComputationMask(anima::readImage<MaskImageType>(args.mask));
     
-    filter->SetNumberOfThreads(args.nthreads);
+    filter->SetNumberOfWorkUnits(args.nthreads);
     filter->AddObserver(itk::ProgressEvent(), callback);
     filter->Update();
     
@@ -63,7 +63,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> maskArg("m", "mask", "Computation mask", false, "", "mask image", cmd);
     TCLAP::ValueArg<std::string> axisArg("a", "axis", "Axis to be flipped (choices are X, Y [default] or Z).", false, "Y", "axis name", cmd);
 
-    TCLAP::ValueArg<unsigned int> nbpArg("p", "nthreads", "Number of thread to use (default: all)", false, itk::MultiThreader::GetGlobalDefaultNumberOfThreads(), "number of thread", cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("p", "nthreads", "Number of thread to use (default: all)", false, itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(), "number of thread", cmd);
 
     try
     {

@@ -47,7 +47,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> b1ToleranceArg("","b1-tol","B1 tolerance threshold of convergence (default: 1.0e-4)",false,1.0e-4,"B1 tolerance for optimization convergence",cmd);
     TCLAP::ValueArg<double> costToleranceArg("c","cost-tol","Cost tolerance threshold of convergence (default: 1.0e-4)",false,1.0e-4,"Cost tolerance for optimization convergence",cmd);
 
-    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 	
     try
     {
@@ -101,7 +101,7 @@ int main(int argc, char **argv)
     }
     
     mainFilter->SetAverageSignalThreshold(backgroundSignalThresholdArg.getValue());
-    mainFilter->SetNumberOfThreads(nbpArg.getValue());
+    mainFilter->SetNumberOfWorkUnits(nbpArg.getValue());
 
     itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
     callback->SetCallback(eventCallback);

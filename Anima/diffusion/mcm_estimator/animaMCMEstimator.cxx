@@ -76,7 +76,7 @@ int main(int argc,  char **argv)
     TCLAP::ValueArg<double> gTolArg("G", "g-tol", "Tolerance for gradient in optimization (default: 0 -> function of position tolerance)", false, 0, "gradient tolerance", cmd);
     TCLAP::ValueArg<unsigned int> maxEvalArg("e", "max-eval", "Maximum evaluations (default: 0 -> function of number of unknowns)", false, 0, "max evaluations", cmd);
 
-    TCLAP::ValueArg<unsigned int> nbThreadsArg("T", "nb-threads", "Number of threads to run on (default: all cores)", false, itk::MultiThreader::GetGlobalDefaultNumberOfThreads(), "number of threads", cmd);
+    TCLAP::ValueArg<unsigned int> nbThreadsArg("T", "nb-threads", "Number of threads to run on (default: all cores)", false, itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(), "number of threads", cmd);
 
     try
     {
@@ -91,7 +91,6 @@ int main(int argc,  char **argv)
     typedef anima::MCMEstimatorImageFilter <float, double> FilterType;
     typedef FilterType::InputImageType InputImageType;
     typedef FilterType::MaskImageType MaskImageType;
-    typedef FilterType::CompartmentType CompartmentType;
     typedef FilterType::Pointer FilterPointer;
 
     itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
@@ -203,7 +202,7 @@ int main(int argc,  char **argv)
     else
         filter->SetUseCommonDiffusivities(false);
 
-    filter->SetNumberOfThreads(nbThreadsArg.getValue());
+    filter->SetNumberOfWorkUnits(nbThreadsArg.getValue());
     filter->AddObserver(itk::ProgressEvent(), callback);
 
     itk::TimeProbe tmpTimer;

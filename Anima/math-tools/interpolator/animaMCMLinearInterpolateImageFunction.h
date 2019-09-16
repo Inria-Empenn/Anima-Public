@@ -2,7 +2,7 @@
 
 #include <itkInterpolateImageFunction.h>
 #include <animaMultiCompartmentModel.h>
-#include <itkFastMutexLock.h>
+#include <mutex>
 #include <animaMCMWeightedAverager.h>
 
 namespace anima
@@ -30,6 +30,7 @@ public:
     typedef typename Superclass::InputImageType InputImageType;
     typedef typename TInputImage::PixelType PixelType;
     typedef typename Superclass::RealType RealType;
+    typedef typename Superclass::SizeType SizeType;
 
     /** Dimension underlying input image. */
     itkStaticConstMacro(ImageDimension, unsigned int,Superclass::ImageDimension);
@@ -65,6 +66,11 @@ public:
     virtual void SetInputImage(const InputImageType *ptr) ITK_OVERRIDE;
 
     std::vector <AveragerPointer> &GetAveragers() const {return m_MCMAveragers;}
+
+    SizeType GetRadius() const override
+    {
+        return SizeType::Filled(1);
+    }
 
 protected:
     MCMLinearInterpolateImageFunction();
@@ -111,7 +117,7 @@ private:
     static const unsigned long m_Neighbors;
     static const unsigned int m_SphereDimension = 3;
 
-    mutable itk::SimpleFastMutexLock m_LockUsedModels;
+    mutable std::mutex m_LockUsedModels;
     mutable std::vector <int> m_UsedModels;
 
     mutable std::vector < std::vector <MCModelPointer> > m_ReferenceInputModels;

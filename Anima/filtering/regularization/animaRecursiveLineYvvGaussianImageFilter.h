@@ -2,7 +2,6 @@
 
 #include <itkInPlaceImageFilter.h>
 #include <itkNumericTraits.h>
-#include <itkImageRegionSplitterDirection.h>
 #include <itkVector.h>
 #include <itkVariableLengthVector.h>
 
@@ -88,9 +87,8 @@ protected:
 
     /** GenerateData (apply) the filter. */
     void BeforeThreadedGenerateData() ITK_OVERRIDE;
-    void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
-
-    virtual const itk::ImageRegionSplitterBase* GetImageRegionSplitter(void) const ITK_OVERRIDE;
+    void GenerateData() ITK_OVERRIDE;
+    void DynamicThreadedGenerateData(const OutputImageRegionType& outputRegionForThread) ITK_OVERRIDE;
 
     /** RecursiveLineYvvGaussianImageFilter needs all of the input only in the
      *  "Direction" dimension. Therefore we enlarge the output's
@@ -266,8 +264,6 @@ private:
 
     /** Normalize the image across scale space */
     bool m_NormalizeAcrossScale;
-
-    itk::ImageRegionSplitterDirection::Pointer m_ImageRegionSplitter;
 };
 
 

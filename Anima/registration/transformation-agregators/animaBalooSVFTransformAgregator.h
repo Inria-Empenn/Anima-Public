@@ -44,8 +44,8 @@ public:
     void SetOutlierRejectionSigma(double sigma) {m_OutlierRejectionSigma = sigma;}
     double GetOutlierRejectionSigma() {return m_OutlierRejectionSigma;}
 
-    void SetNumberOfThreads(unsigned int num) {m_NumberOfThreads = num;}
-    unsigned int GetNumberOfThreads() {return m_NumberOfThreads;}
+    void SetNumberOfWorkUnits(unsigned int num) {m_NumberOfThreads = num;}
+    unsigned int GetNumberOfWorkUnits() {return m_NumberOfThreads;}
 
     template <class TInputImageType> void SetGeometryInformation(const TInputImageType *geomImage)
     {

@@ -37,7 +37,7 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
         typename MultiplyFilterType::Pointer multFilter = MultiplyFilterType::New();
         multFilter->SetInput1(currentImage);
         multFilter->SetInput2(multImReader->GetOutput());
-        multFilter->SetNumberOfThreads(nThreads);
+        multFilter->SetNumberOfWorkUnits(nThreads);
         multFilter->InPlaceOn();
         
         multFilter->Update();
@@ -50,7 +50,7 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
         typename MultiplyFilterType::Pointer multFilter = MultiplyFilterType::New();
         multFilter->SetInput1(currentImage);
         multFilter->SetConstant(multConstant);
-        multFilter->SetNumberOfThreads(nThreads);
+        multFilter->SetNumberOfWorkUnits(nThreads);
         multFilter->InPlaceOn();
         
         multFilter->Update();
@@ -63,7 +63,7 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
         typename DivideFilterType::Pointer divFilter = DivideFilterType::New();
         divFilter->SetInput1(currentImage);
         divFilter->SetConstant(divideConstant);
-        divFilter->SetNumberOfThreads(nThreads);
+        divFilter->SetNumberOfWorkUnits(nThreads);
         divFilter->InPlaceOn();
         
         divFilter->Update();
@@ -81,7 +81,7 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
         typename DivideFilterType::Pointer divFilter = DivideFilterType::New();
         divFilter->SetInput1(currentImage);
         divFilter->SetInput2(divImReader->GetOutput());
-        divFilter->SetNumberOfThreads(nThreads);
+        divFilter->SetNumberOfWorkUnits(nThreads);
         divFilter->InPlaceOn();
         
         divFilter->Update();
@@ -109,7 +109,7 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
         typename AddFilterType::Pointer addFilter = AddFilterType::New();
         addFilter->SetInput1(currentImage);
         addFilter->SetInput2(addedImage);
-        addFilter->SetNumberOfThreads(nThreads);
+        addFilter->SetNumberOfWorkUnits(nThreads);
         addFilter->InPlaceOn();
         
         addFilter->Update();
@@ -124,7 +124,7 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
         typename SubtractFilterType::Pointer subFilter = SubtractFilterType::New();
         subFilter->SetInput1(currentImage);
         subFilter->SetInput2(subtractedImage);
-        subFilter->SetNumberOfThreads(nThreads);
+        subFilter->SetNumberOfWorkUnits(nThreads);
         subFilter->InPlaceOn();
         
         subFilter->Update();
@@ -137,7 +137,7 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
         typename AddConstantFilterType::Pointer addFilter = AddConstantFilterType::New();
         addFilter->SetInput1(currentImage);
         addFilter->SetConstant(addConstant);
-        addFilter->SetNumberOfThreads(nThreads);
+        addFilter->SetNumberOfWorkUnits(nThreads);
         addFilter->InPlaceOn();
         
         addFilter->Update();
@@ -156,7 +156,7 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
             typename PowConstantFilterType::Pointer powFilter = PowConstantFilterType::New();
             powFilter->SetInput1(castImage);
             powFilter->SetConstant(powConstant);
-            powFilter->SetNumberOfThreads(nThreads);
+            powFilter->SetNumberOfWorkUnits(nThreads);
             powFilter->InPlaceOn();
 
             powFilter->Update();
@@ -192,7 +192,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> addConstantArg("A","add-constant","add constant value",false,0.0,"add constant value",cmd);
     TCLAP::ValueArg<double> powArg("P","pow-constant","power constant value (only for scalar images)",false,1.0,"power constant value",cmd);
 
-    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
     
     try
     {

@@ -141,7 +141,7 @@ protected:
     void CheckComputationMask() ITK_OVERRIDE;
 
     void BeforeThreadedGenerateData() ITK_OVERRIDE;
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
+    void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
 
     void PrepareNLPatchSearchers();
     void ComputeTikhonovPrior(const IndexType &refIndex, OutputVectorType &refDistribution,

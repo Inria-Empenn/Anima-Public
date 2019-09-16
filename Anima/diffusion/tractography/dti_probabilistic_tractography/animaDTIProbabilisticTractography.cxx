@@ -71,7 +71,7 @@ int main(int argc,  char*  argv[])
     
     TCLAP::SwitchArg averageClustersArg("M","average-clusters","Output only cluster mean",cmd,false);
     
-    TCLAP::ValueArg<unsigned int> nbThreadsArg("T","nb-threads","Number of threads to run on (default: all available)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbThreadsArg("T","nb-threads","Number of threads to run on (default: all available)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
     
     try
     {
@@ -95,7 +95,7 @@ int main(int argc,  char*  argv[])
 
     LogFilterType::Pointer logFilter = LogFilterType::New();
     logFilter->SetInput(anima::readImage <InputModelImageType> (dtiArg.getValue()));
-    logFilter->SetNumberOfThreads(nbThreadsArg.getValue());
+    logFilter->SetNumberOfWorkUnits(nbThreadsArg.getValue());
 
     logFilter->Update();
     dtiTracker->SetInputModelImage(logFilter->GetOutput());
@@ -147,7 +147,7 @@ int main(int argc,  char*  argv[])
     
     dtiTracker->SetComputeLocalColors(fibersArg.getValue().find(".fds") != std::string::npos);
     dtiTracker->SetMAPMergeFibers(averageClustersArg.isSet());
-    dtiTracker->SetNumberOfThreads(nbThreadsArg.getValue());
+    dtiTracker->SetNumberOfWorkUnits(nbThreadsArg.getValue());
 
     itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
     callback->SetCallback(eventCallback);

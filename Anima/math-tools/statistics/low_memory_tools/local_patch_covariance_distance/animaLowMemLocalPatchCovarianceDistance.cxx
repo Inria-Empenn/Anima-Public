@@ -14,7 +14,7 @@ int main(int argc, char **argv)
     
     TCLAP::ValueArg<std::string> resStdArg("O","outputstd","Standard deviation output image",false,"","Standard deviation output image",cmd);
     
-    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreader::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
     
     TCLAP::ValueArg<unsigned int> patchHSArg("","patchhalfsize","Patch half size in each direction (default: 1)",false,1,"patch half size",cmd);
 
@@ -40,7 +40,7 @@ int main(int argc, char **argv)
     
     MainBridgeType *mainFilter = new MainBridgeType;
     mainFilter->SetComputationMask(maskName);
-    mainFilter->SetNumberOfThreads(nbpArg.getValue());
+    mainFilter->SetNumberOfWorkUnits(nbpArg.getValue());
     
     mainFilter->SetPatchHalfSize(patchHSArg.getValue());
 	mainFilter->SetDatabaseNames(dataName);

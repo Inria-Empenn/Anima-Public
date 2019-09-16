@@ -18,7 +18,7 @@ SymmetricBMRegistrationMethod <TInputImageType>
     this->GetBlockMatcher()->SetForceComputeBlocks(false);
     this->GetBlockMatcher()->SetReferenceImage(this->GetFixedImage());
     this->GetBlockMatcher()->SetMovingImage(movingImage);
-    this->GetBlockMatcher()->SetNumberOfThreads(this->GetNumberOfThreads());
+    this->GetBlockMatcher()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     this->GetBlockMatcher()->Update();
 
     tmpTime.Stop();
@@ -39,7 +39,7 @@ SymmetricBMRegistrationMethod <TInputImageType>
     m_ReverseBlockMatcher->SetForceComputeBlocks(false);
     m_ReverseBlockMatcher->SetReferenceImage(this->GetMovingImage());
     m_ReverseBlockMatcher->SetMovingImage(refImage);
-    m_ReverseBlockMatcher->SetNumberOfThreads(this->GetNumberOfThreads());
+    m_ReverseBlockMatcher->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     m_ReverseBlockMatcher->Update();
 
     tmpTimeReverse.Stop();

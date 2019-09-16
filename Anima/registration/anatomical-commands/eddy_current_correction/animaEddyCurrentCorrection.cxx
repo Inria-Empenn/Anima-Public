@@ -143,7 +143,7 @@ int main(int argc, const char** argv)
         matcher->SetVerbose(false);
 
         if (numThreadsArg.getValue() != 0)
-            matcher->SetNumberOfThreads( numThreadsArg.getValue() );
+            matcher->SetNumberOfWorkUnits( numThreadsArg.getValue() );
 
         matcher->SetPercentageKept( percentageKeptArg.getValue() );
         matcher->SetTransformInitializationType(PyramidBMType::GravityCenters);
@@ -223,7 +223,7 @@ int main(int argc, const char** argv)
         nonLinearMatcher->SetVerbose(false);
 
         if (numThreadsArg.getValue() != 0)
-            nonLinearMatcher->SetNumberOfThreads(numThreadsArg.getValue());
+            nonLinearMatcher->SetNumberOfWorkUnits(numThreadsArg.getValue());
 
         nonLinearMatcher->SetPercentageKept(percentageKeptArg.getValue());
 
@@ -286,7 +286,7 @@ int main(int argc, const char** argv)
 
         scalarResampler->SetInput(extractFilter->GetOutput());
         if (numThreadsArg.getValue() != 0)
-            scalarResampler->SetNumberOfThreads(numThreadsArg.getValue());
+            scalarResampler->SetNumberOfWorkUnits(numThreadsArg.getValue());
         scalarResampler->Update();
 
         InputSubImageType::RegionType regionSubImage = scalarResampler->GetOutput()->GetLargestPossibleRegion();
