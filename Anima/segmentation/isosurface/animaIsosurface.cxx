@@ -78,14 +78,16 @@ int main(int argc, char **argv)
     itk::ContinuousIndex <double, 3> currentIndex;
     double currentPoint[3];
     typedef ImageType::PointType PointType;
+    typedef ImageType::SpacingType SpacingType;
     PointType outputPoint;
     PointType origin = inputImage->GetOrigin();
+    SpacingType spacing = inputImage->GetSpacing();
 
     for (unsigned int i = 0;i < outputSurface->GetNumberOfPoints();++i)
     {
         outputSurface->GetPoint(i,currentPoint);
         for (unsigned int j = 0;j < 3;++j)
-            currentIndex[j] = currentPoint[j] - origin[j];
+            currentIndex[j] = (currentPoint[j] - origin[j]) / spacing[j];
 
         inputImage->TransformContinuousIndexToPhysicalPoint(currentIndex,outputPoint);
 
