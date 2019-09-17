@@ -49,7 +49,7 @@ if(NOT ANIMA_USE_FILE_INCLUDED)
    set(USE_VTK ${USE_VTK})
    if (USE_VTK)
      set(VTK_DIR ${VTK_DIR})
-     find_package(VTK REQUIRED)
+     find_package(VTK REQUIRED COMPONENTS vtkCommonCore vtkFiltersCore vtkIOXML vtkIOLegacy vtksys)
      include(${VTK_USE_FILE})
    endif(USE_VTK)
    
