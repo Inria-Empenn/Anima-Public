@@ -384,7 +384,7 @@ itk::ModifiedTimeType
 ResampleImageFilter<TInputImage,TOutputImage,TInterpolatorPrecisionType>
 ::GetMTime() const
 {
-    ModifiedTimeType latestTime = itk::Object::GetMTime();
+    itk::ModifiedTimeType latestTime = itk::Object::GetMTime();
 
     if( m_Transform )
     {
