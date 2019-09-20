@@ -380,11 +380,11 @@ ResampleImageFilter<TInputImage,TOutputImage,TInterpolatorPrecisionType>
      * Verify if any of the components has been modified.
      */
 template <class TInputImage, class TOutputImage, class TInterpolatorPrecisionType>
-unsigned long
+itk::ModifiedTimeType
 ResampleImageFilter<TInputImage,TOutputImage,TInterpolatorPrecisionType>
 ::GetMTime() const
 {
-    unsigned long latestTime = itk::Object::GetMTime();
+    ModifiedTimeType latestTime = itk::Object::GetMTime();
 
     if( m_Transform )
     {

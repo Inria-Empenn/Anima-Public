@@ -181,7 +181,7 @@ public:
     virtual void AfterThreadedGenerateData() ITK_OVERRIDE;
 
     /** Method Compute the Modified Time based on changed to the components. */
-    unsigned long GetMTime() const ITK_OVERRIDE;
+    itk::ModifiedTimeType GetMTime() const ITK_OVERRIDE;
 
     void SetScaleIntensitiesWithJacobian(bool scale) {m_ScaleIntensitiesWithJacobian = scale;}
 
