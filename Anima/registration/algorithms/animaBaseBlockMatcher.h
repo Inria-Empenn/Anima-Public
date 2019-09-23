@@ -102,7 +102,7 @@ protected:
     };
 
     /** Do the matching for a batch of regions (splited according to the thread id + nb threads) */
-    static itk::ITK_THREAD_RETURN_TYPE ThreadedMatching(void *arg);
+    static ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION ThreadedMatching(void *arg);
 
     void ProcessBlockMatch();
     void BlockMatch(unsigned int startIndex, unsigned int endIndex);

@@ -158,7 +158,7 @@ BaseBlockMatcher <TInputImageType>
 }
 
 template <typename TInputImageType>
-itk::ITK_THREAD_RETURN_TYPE
+ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
 BaseBlockMatcher <TInputImageType>
 ::ThreadedMatching(void *arg)
 {
@@ -166,7 +166,7 @@ BaseBlockMatcher <TInputImageType>
     ThreadedMatchData* data = (ThreadedMatchData *)threadArgs->UserData;
 
     data->BlockMatch->ProcessBlockMatch();
-    return NULL;
+    return ITK_THREAD_RETURN_DEFAULT_VALUE;
 }
 
 template <typename TInputImageType>

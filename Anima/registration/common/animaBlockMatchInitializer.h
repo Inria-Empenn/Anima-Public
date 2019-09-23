@@ -72,7 +72,7 @@ public:
     void Update();
 
     // Does the splitting and calls RegionBlockGenerator on a sub region
-    static itk::ITK_THREAD_RETURN_TYPE ThreadBlockGenerator(void *arg);
+    static ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION ThreadBlockGenerator(void *arg);
 
     std::vector <ImageRegionType> &GetOutput();
     std::vector <unsigned int> &GetMaskStartingIndexes();

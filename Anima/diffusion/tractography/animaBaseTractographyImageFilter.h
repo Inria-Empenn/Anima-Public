@@ -83,7 +83,7 @@ protected:
     BaseTractographyImageFilter();
     virtual ~BaseTractographyImageFilter();
 
-    static itk::ITK_THREAD_RETURN_TYPE ThreadTracker(void *arg);
+    static ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION ThreadTracker(void *arg);
     void ThreadTrack(unsigned int numThread, std::vector <FiberType> &resultFibers);
     void ThreadedTrackComputer(unsigned int numThread, std::vector <FiberType> &resultFibers,
                                unsigned int startSeedIndex, unsigned int endSeedIndex);

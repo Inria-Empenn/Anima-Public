@@ -94,7 +94,7 @@ typedef struct
     std::vector <unsigned int> forbiddenLabels;
 } ThreaderArguments;
 
-itk::ITK_THREAD_RETURN_TYPE ThreadFilterer(void *arg)
+ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION ThreadFilterer(void *arg)
 {
     itk::MultiThreaderBase::WorkUnitInfo *threadArgs = (itk::MultiThreaderBase::WorkUnitInfo *)arg;
     unsigned int nbThread = threadArgs->WorkUnitID;
@@ -112,7 +112,7 @@ itk::ITK_THREAD_RETURN_TYPE ThreadFilterer(void *arg)
 
     FilterTracks(tmpArg->tracks, startIndex, endIndex, tmpArg->interpolator, tmpArg->touchLabels, tmpArg->forbiddenLabels);
 
-    return nullptr;
+    return ITK_THREAD_RETURN_DEFAULT_VALUE;
 }
 
 int main(int argc, char **argv)

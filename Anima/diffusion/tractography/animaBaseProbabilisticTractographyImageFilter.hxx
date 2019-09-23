@@ -264,7 +264,7 @@ BaseProbabilisticTractographyImageFilter <TInputModelImageType>::GetModelInterpo
 }
 
 template <class TInputModelImageType>
-itk::ITK_THREAD_RETURN_TYPE
+ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
 BaseProbabilisticTractographyImageFilter <TInputModelImageType>
 ::ThreadTracker(void *arg)
 {
@@ -274,7 +274,7 @@ BaseProbabilisticTractographyImageFilter <TInputModelImageType>
     trackerArguments *tmpArg = (trackerArguments *)threadArgs->UserData;
     tmpArg->trackerPtr->ThreadTrack(nbThread,tmpArg->resultFibersFromThreads[nbThread],tmpArg->resultWeightsFromThreads[nbThread]);
 
-    return NULL;
+    return ITK_THREAD_RETURN_DEFAULT_VALUE;
 }
 
 template <class TInputModelImageType>

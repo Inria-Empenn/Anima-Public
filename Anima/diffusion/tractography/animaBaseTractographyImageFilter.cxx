@@ -171,7 +171,7 @@ void BaseTractographyImageFilter::PrepareTractography()
     std::cout << "Generated " << m_PointsToProcess.size() << " seed points from ROI mask" << std::endl;
 }
 
-itk::ITK_THREAD_RETURN_TYPE BaseTractographyImageFilter::ThreadTracker(void *arg)
+ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION BaseTractographyImageFilter::ThreadTracker(void *arg)
 {
     itk::MultiThreaderBase::WorkUnitInfo *threadArgs = (itk::MultiThreaderBase::WorkUnitInfo *)arg;
     unsigned int nbThread = threadArgs->WorkUnitID;
@@ -179,7 +179,7 @@ itk::ITK_THREAD_RETURN_TYPE BaseTractographyImageFilter::ThreadTracker(void *arg
     trackerArguments *tmpArg = (trackerArguments *)threadArgs->UserData;
     tmpArg->trackerPtr->ThreadTrack(nbThread,tmpArg->resultFibersFromThreads[nbThread]);
     
-    return NULL;
+    return ITK_THREAD_RETURN_DEFAULT_VALUE;
 }
 
 void BaseTractographyImageFilter::ThreadTrack(unsigned int numThread, std::vector <FiberType> &resultFibers)

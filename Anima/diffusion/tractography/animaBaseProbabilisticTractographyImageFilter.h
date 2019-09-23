@@ -173,7 +173,7 @@ protected:
     virtual ~BaseProbabilisticTractographyImageFilter();
 
     //! Multithread util function
-    static itk::ITK_THREAD_RETURN_TYPE ThreadTracker(void *arg);
+    static ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION ThreadTracker(void *arg);
 
     //! Doing the thread work dispatch
     void ThreadTrack(unsigned int numThread, FiberProcessVectorType &resultFibers, ListType &resultWeights);
