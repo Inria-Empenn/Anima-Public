@@ -112,7 +112,7 @@ itk::ITK_THREAD_RETURN_TYPE ThreadFilterer(void *arg)
 
     FilterTracks(tmpArg->tracks, startIndex, endIndex, tmpArg->interpolator, tmpArg->touchLabels, tmpArg->forbiddenLabels);
 
-    return ITK_NULLPTR;
+    return nullptr;
 }
 
 int main(int argc, char **argv)
