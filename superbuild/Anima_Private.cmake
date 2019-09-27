@@ -12,7 +12,7 @@ set (cmake_args
 
 set (location "")
 if (NOT DEFINED ${proj}_SRC_DIR)
-  set(location GIT_REPOSITORY ${GITHUB_PREFIX}Inria-Visages/Anima.git GIT_TAG origin/master)
+  set(location GIT_REPOSITORY ${GITHUB_PREFIX}Inria-Visages/Anima.git GIT_TAG music-v3.1)
 endif()
 
 ExternalProject_Add(${proj}
