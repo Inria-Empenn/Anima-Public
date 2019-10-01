@@ -33,24 +33,9 @@ int main()
 
     std::cout << "Test points " << testPoints << std::endl;
 
-//    OptimizerType::ParametersType lowerBounds(dim);
-//    std::ifstream lowBounds("/Users/ocommowi/Documents/Tmp2/lb.txt");
-
-//    for (unsigned int i = 0;i < dim;++i)
-//        lowBounds >> lowerBounds[i];
-
-//    OptimizerType::ParametersType upperBounds(dim);
-//    std::ifstream upBounds("/Users/ocommowi/Documents/Tmp2/ub.txt");
-
-//    for (unsigned int i = 0;i < dim;++i)
-//        upBounds >> upperBounds[i];
-
     optTest->SetDataMatrix(testData);
     optTest->SetPoints(testPoints);
     optTest->SetSquaredProblem(false);
-
-//    optTest->SetLowerBounds(lowerBounds);
-//    optTest->SetUpperBounds(upperBounds);
 
     optTest->StartOptimization();
 
