@@ -16,7 +16,7 @@ template <class ScalarType, class VectorType> void LowerTriangularSolver(vnl_mat
 
 //! Solves upper triangular system matrix * result = rhs using Gauss elimination. Matrix is a square matrix. Can be used with rhs and result pointing to the same address in which case, result will be erased. result has to be the same size as rhs
 //! If the matrix is not of full rank, rank can be set to something different than zero, in which case the solver will take only the first rank rows and columns
-template <class ScalarType, class VectorType> void UpperTriangularSolver(vnl_matrix <ScalarType> &matrix, VectorType &rhs, VectorType &result, unsigned int rank = 0);
+template <class ScalarType, class VectorType> void UpperTriangularSolver(const vnl_matrix <ScalarType> &matrix, const VectorType &rhs, VectorType &result, unsigned int rank = 0);
 
 } // end of namespace anima
 

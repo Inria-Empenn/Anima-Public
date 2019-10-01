@@ -1,6 +1,7 @@
 #pragma once
 #include "animaQRPivotDecomposition.h"
 #include <animaVectorOperations.h>
+#include <limits>
 
 namespace anima
 {
@@ -46,8 +47,9 @@ template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType>
     std::vector <double> housedVector;
     vnl_matrix <double> workMatrixHouse(m,m);
     vnl_matrix <double> workMatrix(m,n);
+    double epsilon = std::numeric_limits<double>::epsilon();
 
-    while (tau > 1.0e-16)
+    while (tau > 0.0)
     {
         ++rank;
         unsigned int r = rank - 1;
@@ -58,11 +60,14 @@ template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType>
         cVector[k] = cVector[r];
         cVector[r] = tmp;
 
-        for (unsigned int i = 0;i < m;++i)
+        if (r != k)
         {
-            tmp = aMatrix(i,k);
-            aMatrix(i,k) = aMatrix(i,r);
-            aMatrix(i,r) = tmp;
+            for (unsigned int i = 0;i < m;++i)
+            {
+                tmp = aMatrix(i,k);
+                aMatrix(i,k) = aMatrix(i,r);
+                aMatrix(i,r) = tmp;
+            }
         }
 
         housedVector.resize(m - r);
@@ -89,10 +94,55 @@ template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType>
             }
         }
 
+        double diagonalValueTest = 0.0;
+        for (unsigned int l = r;l < m;++l)
+        {
+            unsigned int lIndex = l - r;
+            diagonalValueTest += workMatrixHouse(0,lIndex) * workMatrix(l,r);
+        }
+
+        if (r > 0)
+        {
+            if (std::abs(diagonalValueTest) < epsilon)
+            {
+                // cancel modifications so far and exit
+                --rank;
+                houseBetaValues[r] = 0.0;
+                tmpIndex = pivotVector[k];
+                pivotVector[k] = pivotVector[r];
+                pivotVector[r] = tmpIndex;
+                tmp = cVector[k];
+                cVector[k] = cVector[r];
+                cVector[r] = tmp;
+
+                if (r != k)
+                {
+                    for (unsigned int i = 0;i < m;++i)
+                    {
+                        tmp = aMatrix(i,k);
+                        aMatrix(i,k) = aMatrix(i,r);
+                        aMatrix(i,r) = tmp;
+                    }
+                }
+
+                tau = 0.0;
+                continue;
+            }
+        }
+        else
+        {
+            // Compute reference value for diagonal value test
+            // taken from GSL rank test
+            double basePower = std::floor(std::log(std::abs(diagonalValueTest)) / std::log(2.0));
+            epsilon *= 20.0 * (m + n) * std::pow(2.0,basePower);
+        }
+
+        aMatrix(r,r) = diagonalValueTest;
         for (unsigned int i = r;i < m;++i)
         {
             unsigned int iIndex = i - r;
-            for (unsigned int j = r;j < n;++j)
+            unsigned int startJ = r + (i == r);
+            for (unsigned int j = startJ;j < n;++j)
             {
                 aMatrix(i,j) = 0.0;
                 for (unsigned int l = r;l < m;++l)
@@ -118,7 +168,7 @@ template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType>
 
             for (unsigned int i = rank + 1;i < n;++i)
             {
-                if (tau < cVector[i] - 1.0e-16)
+                if (tau < cVector[i])
                 {
                     k = i;
                     tau = cVector[i];

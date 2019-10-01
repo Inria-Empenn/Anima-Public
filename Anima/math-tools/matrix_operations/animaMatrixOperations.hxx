@@ -91,7 +91,7 @@ LowerTriangularSolver(vnl_matrix <ScalarType> &matrix, VectorType &rhs, VectorTy
 
 template <class ScalarType, class VectorType>
 void
-UpperTriangularSolver(vnl_matrix <ScalarType> &matrix, VectorType &rhs, VectorType &result, unsigned int rank)
+UpperTriangularSolver(const vnl_matrix <ScalarType> &matrix, const VectorType &rhs, VectorType &result, unsigned int rank)
 {
     unsigned int n = matrix.cols();
     if (rank != 0)
