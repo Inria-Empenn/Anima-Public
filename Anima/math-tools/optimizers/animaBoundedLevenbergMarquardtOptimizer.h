@@ -65,13 +65,16 @@ protected:
 
     virtual ~BoundedLevenbergMarquardtOptimizer() ITK_OVERRIDE {}
 
-    double EvaluateCostFunctionAtParameters(ParametersType &parameters, ParametersType &scaledParameters,
-                                            MeasureType &residualValues);
+    double EvaluateCostFunctionAtParameters(ParametersType &parameters, MeasureType &residualValues);
+
+    bool CheckSolutionIsInBounds(ParametersType &solutionVector, ParametersType &lowerBounds,
+                                 ParametersType &upperBounds, unsigned int rank);
 
     void UpdateLambdaParameter(DerivativeType &derivative, ParametersType &dValues,
                                std::vector <unsigned int> &pivotVector,
                                std::vector <unsigned int> &inversePivotVector,
-                               ParametersType &qtResiduals, unsigned int rank);
+                               ParametersType &qtResiduals, ParametersType &lowerBoundsPermutted,
+                               ParametersType &upperBoundsPermutted, unsigned int rank);
 
     bool CheckConditions(unsigned int numIterations, ParametersType &lastTestedParams,
                          ParametersType &newParams, DerivativeType &newDerivative);
@@ -88,8 +91,8 @@ private:
     double m_CurrentValue;
 
     anima::CholeskyDecomposition m_CholeskySolver;
-    ParametersType m_LowerBounds, m_WorkLowerBounds;
-    ParametersType m_UpperBounds, m_WorkUpperBounds;
+    ParametersType m_LowerBounds, m_UpperBounds;
+    ParametersType m_CurrentAddonVector;
     MeasureType m_ResidualValues;
 };
 
