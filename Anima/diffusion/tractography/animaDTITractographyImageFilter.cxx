@@ -129,32 +129,36 @@ dtiTractographyImageFilter::GetNextDirection(PointType &previousDirection, Vecto
 
     vnl_diag_matrix <double> eVals(3);
     itk::SymmetricEigenAnalysis <MatrixType,vnl_diag_matrix <double>,MatrixType> EigenAnalysis(3);
-    EigenAnalysis.ComputeEigenValues(tmpMat,eVals);
+    MatrixType eVecs(3,3);
+    EigenAnalysis.ComputeEigenValuesAndVectors(tmpMat,eVals, eVecs);
 
-    double meanEvals = 0;
+    double sumEigs = 0.0;
     for (unsigned int i = 0;i < 3;++i)
     {
         eVals[i] = std::exp(eVals[i]);
-        meanEvals += eVals[i];
+        sumEigs += eVals[i];
     }
 
-    meanEvals /= 3.0;
+    anima::RecomposeTensor(eVals,eVecs,tmpMat);
 
-    double num = 0;
-    double denom = 0;
+    // Compute advected direction as in Weinstein et al.
+    PointType advectedDirection;
+
     for (unsigned int i = 0;i < 3;++i)
     {
-        num += (eVals[i] - meanEvals) * (eVals[i] - meanEvals);
-        denom += eVals[i] * eVals[i];
+        advectedDirection[i] = 0.0;
+        for (unsigned int j = 0;j < 3;++j)
+            advectedDirection[i] += tmpMat(i,j) * previousDirection[j];
     }
 
-    double FAValue = std::sqrt(3.0 * num / (2.0 * denom));
+    anima::Normalize(advectedDirection,advectedDirection);
+    if (anima::ComputeScalarProduct(previousDirection, advectedDirection) < 0)
+        anima::Revert(advectedDirection,advectedDirection);
 
-    double modelWeight = (FAValue - m_StopFAThreshold) / (1.0 - m_StopFAThreshold);
-    modelWeight = (1.0 - this->GetMinimalModelWeight()) * modelWeight + this->GetMinimalModelWeight();
+    double linearCoefficient = (eVals[2] - eVals[0]) / sumEigs;
 
     for (unsigned int i = 0;i < 3;++i)
-        newDirection[i] = newDirection[i] * modelWeight + previousDirection[i] * (1.0 - modelWeight);
+        newDirection[i] = newDirection[i] * linearCoefficient + (1.0 - linearCoefficient) * ((1.0 - this->GetPunctureWeight()) * previousDirection[i] + this->GetPunctureWeight() * advectedDirection[i]);
 
     anima::Normalize(newDirection,newDirection);
 

@@ -30,7 +30,7 @@ int main(int argc,  char*  argv[])
 
     TCLAP::ValueArg<double> adcThrArg("A","adc-thr","ADC threshold (default: 2.0e-3)",false,2.0e-3,"ADC threshold",cmd);
     TCLAP::ValueArg<double> faThrArg("","fa-thr","FA threshold (default: 0.1)",false,0.1,"FA threshold",cmd);
-    TCLAP::ValueArg<double> minNewModelWeightArg("w","min-weight","Minimal model direction weight wrt previous (default: 0.25)",false,0.25,"minimal model direction weight",cmd);
+    TCLAP::ValueArg<double> punctureWeightArg("p","punc-weight","Puncture weight to go through planar tensors (default: 0.2)",false,0.2,"puncture weight",cmd);
 
     TCLAP::ValueArg<double> stopAngleArg("a","angle-max","Maximum angle for tracking (default: 60)",false,60.0,"maximum track angle",cmd);
     TCLAP::ValueArg<double> stepLengthArg("","step-length","Length of each step (default: 1)",false,1.0,"step length",cmd);
@@ -84,7 +84,7 @@ int main(int argc,  char*  argv[])
     dtiTracker->SetStepProgression(stepLengthArg.getValue());
     dtiTracker->SetStopFAThreshold(faThrArg.getValue());
     dtiTracker->SetStopADCThreshold(adcThrArg.getValue());
-    dtiTracker->SetMinimalModelWeight(minNewModelWeightArg.getValue());
+    dtiTracker->SetPunctureWeight(punctureWeightArg.getValue());
     dtiTracker->SetMaxFiberAngle(stopAngleArg.getValue());
     dtiTracker->SetMinLengthFiber(minLengthArg.getValue());
     dtiTracker->SetMaxLengthFiber(maxLengthArg.getValue());
