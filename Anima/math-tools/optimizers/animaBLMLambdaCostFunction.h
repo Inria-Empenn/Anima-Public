@@ -40,6 +40,7 @@ public:
 
     itkSetMacro(JRank, unsigned int)
     itkSetMacro(DeltaParameter, double)
+    itkSetMacro(ApproximateDerivativeEpsilon, double)
 
     void SetDValues(ParametersType &dVal) {m_DValues = dVal;}
     void SetInversePivotVector(std::vector <unsigned int> &invPiv) {m_InversePivotVector = invPiv;}
@@ -50,7 +51,7 @@ public:
     void SetWorkMatricesAndVectorsFromQRDerivative(vnl_matrix <double> &qrDerivative,
                                                    ParametersType &qtResiduals, unsigned int rank);
 
-    ParametersType &GetLastSolutionVector() {return m_LastSolutionVector;}
+    ParametersType &GetSolutionVector() {return m_SolutionVector;}
 
 protected:
     BLMLambdaCostFunction()
@@ -68,8 +69,10 @@ private:
     std::vector <unsigned int> m_InversePivotVector, m_PivotVector;
     ParametersType m_LowerBoundsPermutted, m_UpperBoundsPermutted;
     mutable vnl_matrix <double> m_WorkMatrix;
-    mutable vnl_matrix <double> m_ZeroWorkMatrix;
-    mutable ParametersType m_LastSolutionVector;
+    mutable vnl_matrix <double> m_ZeroWorkMatrix, m_RAlphaTranspose;
+    mutable ParametersType m_SolutionVector;
+    mutable bool m_SolutionInBounds;
+    double m_ApproximateDerivativeEpsilon;
     double m_DeltaParameter;
     unsigned int m_JRank;
 };
