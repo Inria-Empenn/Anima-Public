@@ -6,11 +6,6 @@ namespace anima
 
 void BVLSOptimizer::StartOptimization()
 {
-//    std::cout << "Optim with data " << m_DataMatrix << std::endl;
-//    std::cout << "And vector " << m_Points << std::endl;
-//    std::cout << "With lower bounds " << m_LowerBounds << std::endl;
-//    std::cout << "With upper bounds " << m_UpperBounds << std::endl;
-
     unsigned int parametersSize = m_DataMatrix.cols();
     unsigned int numEquations = m_DataMatrix.rows();
 
@@ -37,19 +32,15 @@ void BVLSOptimizer::StartOptimization()
         // Find t*
         double maxVal = 0.0;
         unsigned int maxIndex = 0;
-//        std::cout << "Finding T*..." << std::endl;
         for (unsigned int i = 0;i < parametersSize;++i)
         {
             double testVal = m_WVector[i] * m_ParametersAtBoundsVector[i];
-//            std::cout << i << " " << m_WVector[i] << " " << m_ParametersAtBoundsVector[i] << " " << testVal << std::endl;
             if (testVal > maxVal)
             {
                 maxVal = testVal;
                 maxIndex = i;
             }
         }
-
-//        std::cout << "T* value " << maxIndex << " " << maxVal << std::endl;
 
         // Set it to F
         m_ParametersAtBoundsVector[maxIndex] = 0;
@@ -62,7 +53,9 @@ void BVLSOptimizer::StartOptimization()
             for (unsigned int i = 0;i < parametersSize;++i)
                 numReducedParameters += (m_ParametersAtBoundsVector[i] == 0);
 
-//            std::cout << "Number of reduced parameters " << numReducedParameters << std::endl;
+            if (numReducedParameters == 0)
+                break;
+
             m_ReducedDataMatrix.set_size(numEquations,numReducedParameters);
             for (unsigned int j = 0;j < numEquations;++j)
             {
@@ -74,19 +67,14 @@ void BVLSOptimizer::StartOptimization()
                         m_bPrimeVector[j] -= m_DataMatrix(j,k) * m_CurrentPosition[k];
                     else
                     {
-                        m_ReducedDataMatrix(j,pos) = m_DataMatrix(j,k);
+                        m_ReducedDataMatrix[j][pos] = m_DataMatrix[j][k];
                         ++pos;
                     }
                 }
             }
 
-//            std::cout << "Reduced data " << m_ReducedDataMatrix << std::endl;
-//            std::cout << "b' vector " << m_bPrimeVector << std::endl;
-
             // Compute reduced solution
             m_ReducedSolution = vnl_qr <double> (m_ReducedDataMatrix).solve(m_bPrimeVector);
-
-//            std::cout << m_ReducedSolution << std::endl;
 
             // Test reduced solution
             bool reducedOk = true;
@@ -118,8 +106,6 @@ void BVLSOptimizer::StartOptimization()
                     m_CurrentPosition[i] = m_ReducedSolution[pos];
                     ++pos;
                 }
-
-//                std::cout << "Reduced ok, done " << m_CurrentPosition << std::endl;
             }
             else
             {
@@ -129,7 +115,6 @@ void BVLSOptimizer::StartOptimization()
                 double minAlpha = 2.0;
                 unsigned int minIndex = 0;
 
-//                std::cout << "Reduced not ok " << std::endl;
                 pos = 0;
                 for (unsigned int i = 0;i < parametersSize;++i)
                 {
@@ -159,8 +144,6 @@ void BVLSOptimizer::StartOptimization()
                     ++pos;
                 }
 
-//                std::cout << "Min alpha and index " << minAlpha << " " << minIndex << " " << maxIndex << std::endl;
-
                 if ((minAlpha == 0.0) && (minIndex == maxIndex))
                 {
                     m_WVector[maxIndex] = 0.0;
@@ -176,13 +159,10 @@ void BVLSOptimizer::StartOptimization()
                 }
 
                 pos = 0;
-//                std::cout << "Bounding again some paramters" << std::endl;
                 for (unsigned int i = 0;i < parametersSize;++i)
                 {
                     if (m_ParametersAtBoundsVector[i] != 0)
                         continue;
-
-//                    std::cout << i << " " << m_CurrentPosition[i] << " " << minAlpha << " " << m_ReducedSolution[pos];
 
                     if (i != minIndex)
                     {
@@ -197,7 +177,6 @@ void BVLSOptimizer::StartOptimization()
                             m_CurrentPosition[i] = m_UpperBounds[i];
                     }
 
-//                    std::cout << " " << m_CurrentPosition[i] << " " << m_LowerBounds[i] << " " << m_UpperBounds[i];
                     if (m_CurrentPosition[i] <= m_LowerBounds[i])
                     {
                         m_ParametersAtBoundsVector[i] = 1;
@@ -209,8 +188,6 @@ void BVLSOptimizer::StartOptimization()
                         m_CurrentPosition[i] = m_UpperBounds[i];
                     }
 
-//                    std::cout << " " << m_ParametersAtBoundsVector[i] << std::endl;
-
                     ++pos;
                 }
             }
@@ -218,35 +195,67 @@ void BVLSOptimizer::StartOptimization()
             wRequired = true;
         }
     }
-
-//    std::cout << "Done optimizing" << std::endl;
 }
 
 void BVLSOptimizer::InitializeSolutionByProjection()
 {
-    m_CurrentPosition = vnl_qr <double> (m_DataMatrix).solve(m_Points);
-
-    unsigned int parametersSize = m_CurrentPosition.size();
+    unsigned int parametersSize = m_DataMatrix.cols();
+    m_CurrentPosition.SetSize(parametersSize);
     m_ParametersAtBoundsVector.resize(parametersSize);
+    std::fill(m_ParametersAtBoundsVector.begin(), m_ParametersAtBoundsVector.end(),0);
 
-    for (unsigned int i = 0;i < parametersSize;++i)
+    unsigned int countBounded = 0;
+    unsigned int diffCountBounded = 1;
+    unsigned int numEquations = m_DataMatrix.rows();
+
+    while ((diffCountBounded != 0) && (countBounded < parametersSize))
     {
-        m_ParametersAtBoundsVector[i] = 0;
-        if (m_CurrentPosition[i] <= m_LowerBounds[i])
+        unsigned int numParameters = parametersSize - countBounded;
+
+        m_ReducedDataMatrix.set_size(numEquations,numParameters);
+        for (unsigned int j = 0;j < numEquations;++j)
         {
-            m_CurrentPosition[i] = m_LowerBounds[i];
-            m_ParametersAtBoundsVector[i] = 1;
+            m_bPrimeVector[j] = m_Points[j];
+            unsigned int pos = 0;
+            for (unsigned int k = 0;k < parametersSize;++k)
+            {
+                if (m_ParametersAtBoundsVector[k] != 0)
+                    m_bPrimeVector[j] -= m_DataMatrix[j][k] * m_CurrentPosition[k];
+                else
+                {
+                    m_ReducedDataMatrix[j][pos] = m_DataMatrix[j][k];
+                    ++pos;
+                }
+            }
         }
-        else if (m_CurrentPosition[i] >= m_UpperBounds[i])
+
+        m_ReducedSolution = vnl_qr <double> (m_ReducedDataMatrix).solve(m_bPrimeVector);
+        diffCountBounded = 0;
+        unsigned int pos = 0;
+        for (unsigned int i = 0;i < parametersSize;++i)
         {
-            m_CurrentPosition[i] = m_UpperBounds[i];
-            m_ParametersAtBoundsVector[i] = -1;
+            if (m_ParametersAtBoundsVector[i] != 0)
+                continue;
+
+            if (m_ReducedSolution[pos] <= m_LowerBounds[i])
+            {
+                m_CurrentPosition[i] = m_LowerBounds[i];
+                m_ParametersAtBoundsVector[i] = 1;
+                ++diffCountBounded;
+            }
+            else if (m_ReducedSolution[pos] >= m_UpperBounds[i])
+            {
+                m_CurrentPosition[i] = m_UpperBounds[i];
+                m_ParametersAtBoundsVector[i] = -1;
+                ++diffCountBounded;
+            }
+            else
+                m_CurrentPosition[i] = m_ReducedSolution[pos];
+
+            ++pos;
         }
-        else
-        {
-            // Warm start as in Stark and Parker
-            m_CurrentPosition[i] = (m_LowerBounds[i] + m_UpperBounds[i]) / 2.0;
-        }
+
+        countBounded += diffCountBounded;
     }
 }
 
@@ -261,7 +270,7 @@ void BVLSOptimizer::ComputeWVector()
     {
         m_TmpVector[i] = m_Points[i];
         for (unsigned int j = 0;j < numParameters;++j)
-            m_TmpVector[i] -= m_DataMatrix(i,j) * m_CurrentPosition[j];
+            m_TmpVector[i] -= m_DataMatrix[i][j] * m_CurrentPosition[j];
     }
 
     for (unsigned int i = 0;i < numParameters;++i)
@@ -269,7 +278,7 @@ void BVLSOptimizer::ComputeWVector()
         m_WVector[i] = 0.0;
 
         for (unsigned int j = 0;j < numEqs;++j)
-            m_WVector[i] += m_DataMatrix(j,i) * m_TmpVector[j];
+            m_WVector[i] += m_DataMatrix[j][i] * m_TmpVector[j];
     }
 }
 
@@ -302,10 +311,18 @@ bool BVLSOptimizer::TestKuhnTuckerConvergence()
         }
     }
 
-    if ((freeSetFull) || (encounteredL && allNegativeWsForL) || (encounteredU && allPositiveWsForU))
-        return false;
+    bool returnValue = !freeSetFull;
+    if (returnValue)
+    {
+        if (encounteredL && encounteredU)
+            returnValue = !(allNegativeWsForL && allPositiveWsForU);
+        else if (encounteredL)
+            returnValue = !allNegativeWsForL;
+        else if (encounteredU)
+            returnValue = !allPositiveWsForU;
+    }
 
-    return true;
+    return returnValue;
 }
 
 double BVLSOptimizer::GetCurrentResidual()
@@ -316,7 +333,7 @@ double BVLSOptimizer::GetCurrentResidual()
     {
         double tmpVal = 0;
         for (unsigned int j = 0;j < m_DataMatrix.cols();++j)
-            tmpVal += m_DataMatrix(i,j) * m_CurrentPosition[j];
+            tmpVal += m_DataMatrix[i][j] * m_CurrentPosition[j];
 
         residualValue += (tmpVal - m_Points[i]) * (tmpVal - m_Points[i]);
     }

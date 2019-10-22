@@ -24,20 +24,20 @@ BLMLambdaCostFunction::GetValue(const ParametersType &parameters) const
     {
         // Compute QR solution for any lambda > 0.0
         for (unsigned int i = 0;i < nbParams;++i)
-            m_WorkMatrix(m_JRank + i,i) = std::sqrt(parameters[0]) * m_DValues[m_PivotVector[i]];
+            m_WorkMatrix[m_JRank + i][i] = std::sqrt(parameters[0]) * m_DValues[m_PivotVector[i]];
 
         vnl_qr <double> qrData(m_WorkMatrix);
 
         for (unsigned int i = 0;i < nbParams;++i)
         {
             for (unsigned int j = i;j < nbParams;++j)
-                m_RAlphaTranspose(j,i) = qrData.R()(i,j);
+                m_RAlphaTranspose[j][i] = qrData.R()[i][j];
         }
 
         pPermutted = qrData.solve(m_WResiduals);
-        m_SolutionInBounds = this->CheckSolutionIsInBounds(pPermutted);
+        bool inBounds = this->CheckSolutionIsInBounds(pPermutted);
 
-        if (!m_SolutionInBounds)
+        if (!inBounds)
         {
 //            anima::BVLSOptimizer::Pointer bvlsOpt = anima::BVLSOptimizer::New();
 //            bvlsOpt->SetDataMatrix(m_WorkMatrix);
@@ -57,16 +57,15 @@ BLMLambdaCostFunction::GetValue(const ParametersType &parameters) const
         // Compute simpler solution if tested parameter is zero
         // (solver uses only square rank subpart of work matrix, and rank first wresiduals)
         anima::UpperTriangularSolver(m_ZeroWorkMatrix,m_ZeroWResiduals,pPermuttedShrunk,m_JRank);
-        m_SolutionInBounds = this->CheckSolutionIsInBounds(pPermuttedShrunk);
+        bool inBounds = this->CheckSolutionIsInBounds(pPermuttedShrunk);
 
         for (unsigned int i = 0;i < m_JRank;++i)
         {
             for (unsigned int j = i;j < m_JRank;++j)
-                m_RAlphaTranspose(j,i) = m_ZeroWorkMatrix(i,j);
+                m_RAlphaTranspose[j][i] = m_ZeroWorkMatrix[i][j];
         }
 
-
-        if (!m_SolutionInBounds)
+        if (!inBounds)
         {
 //            anima::BVLSOptimizer::Pointer bvlsOpt = anima::BVLSOptimizer::New();
 //            bvlsOpt->SetDataMatrix(m_ZeroWorkMatrix);
@@ -104,7 +103,12 @@ BLMLambdaCostFunction::GetValue(const ParametersType &parameters) const
     }
 
     phiNorm = std::sqrt(phiNorm);
-    return phiNorm - m_DeltaParameter;
+
+    double costValue = phiNorm - m_DeltaParameter;
+    if (m_SquareCostFunction)
+        costValue *= costValue;
+
+    return costValue;
 }
 
 bool BLMLambdaCostFunction::CheckSolutionIsInBounds(ParametersType &solutionVector) const
@@ -125,39 +129,7 @@ bool BLMLambdaCostFunction::CheckSolutionIsInBounds(ParametersType &solutionVect
 void
 BLMLambdaCostFunction::GetDerivative(const ParametersType &parameters, DerivativeType &derivative) const
 {
-    // Computes the derivative assuming GetValue has ben called right before and RAlphaTranspose is thus defined
-    derivative.set_size(1);
-
-    // Regular case when in bounds
-    unsigned int nbParams = m_LowerBoundsPermutted.size();
-    ParametersType q(nbParams), workQ(nbParams);
-
-    double normQ = 0.0;
-    for (unsigned int i = 0;i < nbParams;++i)
-    {
-        q[i] = m_DValues[i] * m_SolutionVector[i];
-        normQ += q[i] * q[i];
-    }
-
-    normQ = std::sqrt(normQ);
-    for (unsigned int i = 0;i < nbParams;++i)
-        workQ[i] = m_DValues[m_PivotVector[i]] * q[m_PivotVector[i]] / normQ;
-
-    derivative[0] = 0.0;
-    if (parameters[0] == 0.0)
-    {
-        anima::LowerTriangularSolver(m_RAlphaTranspose,workQ,q,m_JRank);
-        for (unsigned int i = 0;i < m_JRank;++i)
-            derivative[0] -= q[i] * q[i];
-    }
-    else
-    {
-        anima::LowerTriangularSolver(m_RAlphaTranspose,workQ,q);
-        for (unsigned int i = 0;i < nbParams;++i)
-            derivative[0] -= q[i] * q[i];
-    }
-
-    derivative[0] *= normQ;
+    // No derivative as projections can lead to non linearities and non differentiabilities
 }
 
 void
@@ -181,12 +153,12 @@ BLMLambdaCostFunction::SetWorkMatricesAndVectorsFromQRDerivative(vnl_matrix <dou
     {
         for (unsigned int j = i;j < rank;++j)
         {
-            m_ZeroWorkMatrix(i,j) = qrDerivative(i,j);
-            m_WorkMatrix(i,j) = qrDerivative(i,j);
+            m_ZeroWorkMatrix[i][j] = qrDerivative[i][j];
+            m_WorkMatrix[i][j] = qrDerivative[i][j];
         }
 
         for (unsigned int j = rank;j < nbParams;++j)
-            m_WorkMatrix(i,j) = qrDerivative(i,j);
+            m_WorkMatrix[i][j] = qrDerivative[i][j];
 
         m_WResiduals[i] = - qtResiduals[i];
         m_ZeroWResiduals[i] = - qtResiduals[i];

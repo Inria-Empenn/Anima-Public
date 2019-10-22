@@ -40,7 +40,7 @@ public:
 
     itkSetMacro(JRank, unsigned int)
     itkSetMacro(DeltaParameter, double)
-    itkSetMacro(ApproximateDerivativeEpsilon, double)
+    itkSetMacro(SquareCostFunction, bool)
 
     void SetDValues(ParametersType &dVal) {m_DValues = dVal;}
     void SetInversePivotVector(std::vector <unsigned int> &invPiv) {m_InversePivotVector = invPiv;}
@@ -56,6 +56,7 @@ public:
 protected:
     BLMLambdaCostFunction()
     {
+        m_SquareCostFunction = true;
     }
 
     virtual ~BLMLambdaCostFunction() ITK_OVERRIDE {}
@@ -72,7 +73,7 @@ private:
     mutable vnl_matrix <double> m_ZeroWorkMatrix, m_RAlphaTranspose;
     mutable ParametersType m_SolutionVector;
     mutable bool m_SolutionInBounds;
-    double m_ApproximateDerivativeEpsilon;
+    bool m_SquareCostFunction;
     double m_DeltaParameter;
     unsigned int m_JRank;
 };

@@ -52,5 +52,7 @@ set_lib_install_rules(${PROJECT_NAME})
 
 if (BUILD_TESTING)
     add_subdirectory(nnls_test)
-    add_subdirectory(bvls_test)
+    if (USE_NLOPT)
+      add_subdirectory(bvls_test)
+    endif()
 endif()

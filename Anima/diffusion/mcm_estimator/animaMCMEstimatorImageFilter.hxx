@@ -444,7 +444,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     typename OutputImageType::PixelType resVec(this->GetOutput()->GetNumberOfComponentsPerPixel());
 
-    MCMPointer mcmData = ITK_NULLPTR;
+    MCMPointer mcmData = nullptr;
     MCMPointer outputMCMData = this->GetOutput()->GetDescriptionModel()->Clone();
     MCMType::ListType outputWeights(outputMCMData->GetNumberOfCompartments(),0);
 
@@ -456,7 +456,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     {
         resVec.Fill(0.0);
 
-        //if ((maskItr.Get() == 0)||(maskItr.GetIndex()[0] != 61)||(maskItr.GetIndex()[1] != 102)||(maskItr.GetIndex()[2] != 53))
+        //if ((maskItr.Get() == 0)||(maskItr.GetIndex()[0] != 61)||(maskItr.GetIndex()[1] != 52)||(maskItr.GetIndex()[2] != 53))
         if (maskItr.Get() == 0)
         {
             outIterator.Set(resVec);
