@@ -62,7 +62,7 @@ BeforeThreadedGenerateData ()
 template <class TScalarType, unsigned int NDegreesOfFreedom, unsigned int NDimensions>
 void
 BalooExternalExtrapolateImageFilter<TScalarType,NDegreesOfFreedom,NDimensions>::
-ThreadedGenerateData (const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionIterator <TOutputImage> OutRegionIteratorType;
     OutRegionIteratorType outIterator(this->GetOutput(), outputRegionForThread);
