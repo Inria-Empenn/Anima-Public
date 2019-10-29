@@ -604,7 +604,6 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
     // Create pyramid here, check images actually are of the same size.
     typedef anima::ResampleImageFilter<InputImageType, InputImageType,
             typename AgregatorType::ScalarType> ResampleFilterType;
-    typedef typename itk::CenteredTransformInitializer<AffineTransformType, InputImageType, InputImageType> TransformInitializerType;
 
     m_ReferencePyramid = PyramidType::New();
 
