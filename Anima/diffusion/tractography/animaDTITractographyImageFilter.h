@@ -8,6 +8,10 @@
 namespace anima
 {
 
+/**
+ * @brief DTI tractography image filter. Simple step by step tratpography, using advection-diffusion
+ * tricks from Weinstein et al. 1999. Tensorlines: Advection-Diffusion based Propagation through Diffusion Tensor Fields.
+ */
 class ANIMATRACTOGRAPHY_EXPORT dtiTractographyImageFilter : public anima::BaseTractographyImageFilter
 {
 public:
@@ -33,6 +37,9 @@ public:
     void SetStopFAThreshold(double num) {m_StopFAThreshold = num;}
     void SetStopADCThreshold(double num) {m_StopADCThreshold = num;}
 
+    itkGetMacro(PunctureWeight, double)
+    itkSetMacro(PunctureWeight, double)
+
 protected:
     dtiTractographyImageFilter();
     virtual ~dtiTractographyImageFilter();
@@ -51,6 +58,7 @@ private:
 
     double m_StopFAThreshold;
     double m_StopADCThreshold;
+    double m_PunctureWeight;
 
     DTIInterpolatorPointer m_DTIInterpolator;
 };

@@ -69,9 +69,6 @@ public:
     void SetMaxFiberAngle(double num) {m_MaxFiberAngle = num;}
     void SetMinLengthFiber(double num) {m_MinLengthFiber = num;}
     void SetMaxLengthFiber(double num) {m_MaxLengthFiber = num;}
-
-    void SetMinimalModelWeight(double num) {m_MinimalModelWeight = num;}
-    double GetMinimalModelWeight() {return m_MinimalModelWeight;}
     
     void Update() ITK_OVERRIDE;
     
@@ -118,8 +115,6 @@ private:
     
     double m_MinLengthFiber;
     double m_MaxLengthFiber;
-    
-    double m_MinimalModelWeight;
 
     ModelImagePointer m_InputImage;
     MaskImagePointer m_SeedingImage, m_FilteringImage, m_ForbiddenMaskImage, m_CutMaskImage;

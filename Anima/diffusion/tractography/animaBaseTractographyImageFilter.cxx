@@ -20,7 +20,6 @@ BaseTractographyImageFilter::BaseTractographyImageFilter()
     
     m_StepProgression = 1;
     m_MaxFiberAngle = M_PI / 2.0;
-    m_MinimalModelWeight = 0.25;
 
     m_ComputeLocalColors = true;
     m_HighestProcessedSeed = 0;
@@ -291,64 +290,14 @@ void BaseTractographyImageFilter::createVTKOutput(std::vector < FiberType > &fil
     m_Output->Initialize();
     m_Output->Allocate();
     
-    vtkSmartPointer <vtkPoints> myPoints = vtkPoints::New();
-    vtkSmartPointer <vtkUnsignedCharArray> myColors = vtkUnsignedCharArray::New();
-    vtkSmartPointer <vtkUnsignedCharArray> myCellColors = vtkUnsignedCharArray::New();
-    myColors->SetNumberOfComponents (3);
-    myCellColors->SetNumberOfComponents (3);
-    PointType tmpDiff;
-    
+    vtkSmartPointer <vtkPoints> myPoints = vtkPoints::New();    
     for (unsigned int i = 0;i < filteredFibers.size();++i)
     {
         unsigned int npts = filteredFibers[i].size();
         vtkIdType* ids = new vtkIdType[npts];
         
         for (unsigned int j = 0;j < npts;++j)
-        {
             ids[j] = myPoints->InsertNextPoint(filteredFibers[i][j][0],filteredFibers[i][j][1],filteredFibers[i][j][2]);
-
-            if (m_ComputeLocalColors)
-            {
-                if ((j > 0)&&(j < npts-1))
-                {
-                    for(unsigned int k = 0;k < 3;++k)
-                        tmpDiff[k] = filteredFibers[i][j+1][k] - filteredFibers[i][j-1][k];
-                }
-                else if (j == 0)
-                {
-                    for(unsigned int k = 0;k < 3;++k)
-                        tmpDiff[k] = filteredFibers[i][j+1][k] - filteredFibers[i][j][k];
-                }
-                else
-                {
-                    for(unsigned int k = 0;k < 3;++k)
-                        tmpDiff[k] = filteredFibers[i][j][k] - filteredFibers[i][j-1][k];
-                }
-
-                double normDiff = std::sqrt(tmpDiff[0] * tmpDiff[0] + tmpDiff[1] * tmpDiff[1] + tmpDiff[2] * tmpDiff[2]);
-
-                for( unsigned int k = 0;k < 3;++k)
-                {
-                    double c = std::abs (tmpDiff[k] / normDiff) * 255.0;
-                    myColors->InsertNextValue( (unsigned char)(c > 255.0 ? 255.0 : c) );
-                }
-            }
-        }
-
-        // cell color
-        double normDiff = 0;
-        for (unsigned int k = 0;k < 3;++k)
-        {
-            tmpDiff[k] = filteredFibers[i][0][k] - filteredFibers[i][npts-1][k];
-            normDiff += tmpDiff[k] * tmpDiff[k];
-        }
-
-        normDiff = std::sqrt(normDiff);
-        for (unsigned int i = 0;i < 3;++i)
-        {
-            double c = std::abs (tmpDiff[i] / normDiff) * 255.0;
-            myCellColors->InsertNextValue ((unsigned char)(c > 255.0 ? 255.0 : c));
-        }
         
         m_Output->InsertNextCell (VTK_POLY_LINE, npts, ids);
         delete[] ids;
@@ -358,8 +307,6 @@ void BaseTractographyImageFilter::createVTKOutput(std::vector < FiberType > &fil
     if (m_ComputeLocalColors)
     {
         std::cout << "Computing local colors and microstructure maps" << std::endl;
-        m_Output->GetPointData()->SetScalars (myColors);
-        m_Output->GetCellData()->SetScalars (myCellColors);
         this->ComputeAdditionalScalarMaps();
     }
 }
