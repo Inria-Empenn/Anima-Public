@@ -376,9 +376,7 @@ Update()
 }
 
 template <class TInputScalarType, class TOutputScalarType, unsigned int NDimensions, unsigned int NDegreesOfFreedom>
-itk::ITK_THREAD_RETURN_TYPE
-MatrixLoggerFilter<TInputScalarType,TOutputScalarType,NDimensions,NDegreesOfFreedom>::
-ThreadedLogging(void *arg)
+itk::ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION MatrixLoggerFilter<TInputScalarType, TOutputScalarType, NDimensions, NDegreesOfFreedom>::ThreadedLogging(void *arg)
 {
     itk::MultiThreaderBase::WorkUnitInfo *threadArgs = (itk::MultiThreaderBase::WorkUnitInfo *)arg;
 
@@ -389,7 +387,7 @@ ThreadedLogging(void *arg)
 
     tmpStr->loggerFilter->InternalLogger(nbThread,nbProcs);
 
-    return NULL;
+    return ITK_THREAD_RETURN_DEFAULT_VALUE;
 }
 
 template <class TInputScalarType, class TOutputScalarType, unsigned int NDimensions, unsigned int NDegreesOfFreedom>
