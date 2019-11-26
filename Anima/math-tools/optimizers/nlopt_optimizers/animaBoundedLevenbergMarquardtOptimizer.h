@@ -43,8 +43,7 @@ public:
 
     itkSetMacro(NumberOfIterations, unsigned int)
     itkSetMacro(ValueTolerance, double)
-    itkSetMacro(GradientTolerance, double)
-    itkSetMacro(LambdaParameter, double)
+    itkSetMacro(CostTolerance, double)
 
     itkGetMacro(CurrentValue, double)
 
@@ -56,7 +55,7 @@ protected:
     {
         m_NumberOfIterations = 2000;
         m_ValueTolerance = 1e-8;
-        m_GradientTolerance = 1e-5;
+        m_CostTolerance = 1e-5;
         m_LambdaParameter = 1.0e-8;
         m_DeltaParameter = 0.0;
 
@@ -76,15 +75,15 @@ protected:
                                ParametersType &qtResiduals, ParametersType &lowerBoundsPermutted,
                                ParametersType &upperBoundsPermutted, unsigned int rank);
 
-    bool CheckConditions(unsigned int numIterations, ParametersType &lastTestedParams,
-                         ParametersType &newParams, DerivativeType &newDerivative);
+    bool CheckConditions(unsigned int numIterations, ParametersType &newParams,
+                         ParametersType &dValues, double newCostValue);
 
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(BoundedLevenbergMarquardtOptimizer);
 
     unsigned int m_NumberOfIterations;
     double m_ValueTolerance;
-    double m_GradientTolerance;
+    double m_CostTolerance;
 
     double m_LambdaParameter;
     double m_DeltaParameter;

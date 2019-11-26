@@ -72,8 +72,8 @@ int main(int argc,  char **argv)
     TCLAP::ValueArg<std::string> optimizerArg("", "optimizer", "Optimizer for estimation: bobyqa (default), ccsaq, bfgs or levenberg", false, "bobyqa", "optimizer", cmd);
     TCLAP::ValueArg<double> absCostChangeArg("", "abs-cost-change", "Cost function change to stop estimation (default: 0.01)", false, 0.01, "cost change threshold", cmd);
     TCLAP::ValueArg <unsigned int> mlModeArg("", "ml-mode", "ML estimation strategy: marginal likelihood (0), profile likelihood (1, default), Variable projection (2)", false, 1, "ML mode", cmd);
-    TCLAP::ValueArg<double> xTolArg("x", "x-tol", "Tolerance for position in optimization (default: 0 -> 1.0e-4 or 1.0e-7 for bobyqa)", false, 0, "position tolerance", cmd);
-    TCLAP::ValueArg<double> gTolArg("G", "g-tol", "Tolerance for gradient in optimization (default: 0 -> function of position tolerance)", false, 0, "gradient tolerance", cmd);
+    TCLAP::ValueArg<double> xTolArg("x", "x-tol", "Tolerance for relative position in optimization (default: 0 -> 1.0e-4 or 1.0e-7 for bobyqa)", false, 0, "position relative tolerance", cmd);
+    TCLAP::ValueArg<double> fTolArg("", "f-tol", "Tolerance for relative cost in optimization (default: 0 -> function of position tolerance)", false, 0, "cost relative tolerance", cmd);
     TCLAP::ValueArg<unsigned int> maxEvalArg("e", "max-eval", "Maximum evaluations (default: 0 -> function of number of unknowns)", false, 0, "max evaluations", cmd);
 
     TCLAP::ValueArg<unsigned int> nbThreadsArg("T", "nb-threads", "Number of threads to run on (default: all cores)", false, itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(), "number of threads", cmd);
@@ -188,7 +188,7 @@ int main(int argc,  char **argv)
     filter->SetMLEstimationStrategy((FilterType::MaximumLikelihoodEstimationMode)mlModeArg.getValue());
 
     filter->SetXTolerance(xTolArg.getValue());
-    filter->SetGTolerance(gTolArg.getValue());
+    filter->SetFTolerance(fTolArg.getValue());
     filter->SetMaxEval(maxEvalArg.getValue());
 
     filter->SetUseConstrainedDiffusivity(fixDiffArg.isSet());

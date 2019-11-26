@@ -42,7 +42,7 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     {
         for (unsigned int j = 0;j < numResiduals;++j)
         {
-            if (std::abs(derivativeMatrix[i][j]) > m_GradientTolerance)
+            if (std::abs(derivativeMatrix[i][j]) > std::sqrt(std::numeric_limits <double>::epsilon()))
             {
                 derivativeCheck = true;
                 break;
@@ -107,8 +107,8 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
 
         for (unsigned int i = 0;i < nbParams;++i)
         {
-            lowerBoundsPermutted[i] = m_LowerBounds[pivotVector[i]] - m_CurrentPosition[pivotVector[i]];
-            upperBoundsPermutted[i] = m_UpperBounds[pivotVector[i]] - m_CurrentPosition[pivotVector[i]];
+            lowerBoundsPermutted[i] = m_LowerBounds[pivotVector[i]] - oldParameters[pivotVector[i]];
+            upperBoundsPermutted[i] = m_UpperBounds[pivotVector[i]] - oldParameters[pivotVector[i]];
         }
 
         // Updates lambda and get new addon vector at the same time
@@ -190,9 +190,7 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
 
         if (!rejectedStep)
         {
-            oldParameters = parameters;
             m_ResidualValues = newResidualValues;
-            m_CurrentValue = tentativeNewCostValue;
             m_CostFunction->GetDerivative(parameters,derivativeMatrix);
 
             for (unsigned int i = 0;i < nbParams;++i)
@@ -216,8 +214,14 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
         }
 
         if (numIterations != 1)
-            stopConditionReached = this->CheckConditions(numIterations,oldParameters,parameters,
-                                                         derivativeMatrix);
+            stopConditionReached = this->CheckConditions(numIterations,parameters,dValues,
+                                                         tentativeNewCostValue);
+
+        if (!rejectedStep)
+        {
+            oldParameters = parameters;
+            m_CurrentValue = tentativeNewCostValue;
+        }
     }
 
     this->SetCurrentPosition(oldParameters);
@@ -313,7 +317,7 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     p = optimizer->GetCurrentPosition();
     m_LambdaParameter = p[0];
 
-    double absCost = cost->GetValue(p);
+    cost->GetValue(p);
     m_CurrentAddonVector = cost->GetSolutionVector();
 }
 
@@ -329,37 +333,27 @@ double BoundedLevenbergMarquardtOptimizer::EvaluateCostFunctionAtParameters(Para
     return costValue;
 }
 
-bool BoundedLevenbergMarquardtOptimizer::CheckConditions(unsigned int numIterations, ParametersType &oldParams,
-                                                         ParametersType &newParams, DerivativeType &newDerivative)
+bool BoundedLevenbergMarquardtOptimizer::CheckConditions(unsigned int numIterations, ParametersType &newParams,
+                                                         ParametersType &dValues, double newCostValue)
 {
     if (numIterations == m_NumberOfIterations)
         return true;
 
-    if ((m_LambdaParameter == 0.0)||(m_LambdaParameter >= std::numeric_limits<double>::max() / 2.0))
-        return true;
-
-    double normDiffParams = 0.0;
-    double normOldParams = 0.0;
+    // Criteria as in More, 8.3 and 8.4 equations
+    double dxNorm = 0.0;
     for (unsigned int i = 0;i < newParams.size();++i)
-    {
-        double diffValue = newParams[i] - oldParams[i];
-        normDiffParams += diffValue * diffValue;
-        normOldParams += newParams[i] * newParams[i];
-    }
+        dxNorm += (dValues[i] * newParams[i]) * (dValues[i] * newParams[i]);
 
-    if (normDiffParams <= m_ValueTolerance * (normOldParams + m_ValueTolerance))
+    dxNorm = std::sqrt(dxNorm);
+    if (m_DeltaParameter < m_ValueTolerance * dxNorm)
         return true;
 
-    for (unsigned int i = 0;i < newDerivative.rows();++i)
-    {
-        for (unsigned int j = 0;j < newDerivative.cols();++j)
-        {
-            if (std::abs(newDerivative[i][j]) > m_GradientTolerance)
-                return false;
-        }
-    }
+    double relativeDiff = (m_CurrentValue - newCostValue) / m_CurrentValue;
 
-    return true;
+    if ((relativeDiff >= 0.0) && (relativeDiff < m_CostTolerance))
+        return true;
+
+    return false;
 }
 
 } // end namespace anima

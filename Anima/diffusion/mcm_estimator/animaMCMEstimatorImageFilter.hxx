@@ -456,7 +456,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     {
         resVec.Fill(0.0);
 
-        //if ((maskItr.Get() == 0)||(maskItr.GetIndex()[0] != 61)||(maskItr.GetIndex()[1] != 52)||(maskItr.GetIndex()[2] != 53))
+        //if ((maskItr.Get() == 0)||(maskItr.GetIndex()[0] != 60)||(maskItr.GetIndex()[1] != 41)||(maskItr.GetIndex()[2] != 53))
         if (maskItr.Get() == 0)
         {
             outIterator.Set(resVec);
@@ -1173,13 +1173,17 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         else if (m_Optimizer == "bfgs")
             tmpOpt->SetAlgorithm(NLOPT_LD_LBFGS);
 
+        double fTol = m_FTolerance;
+        if (m_FTolerance == 0)
+            fTol = 1.0e-2 * xTol;
+
         anima::MCMSingleValuedCostFunction *costCast =
                 dynamic_cast <anima::MCMSingleValuedCostFunction *> (cost.GetPointer());
         tmpOpt->SetCostFunction(costCast);
 
         tmpOpt->SetMaximize(false);
         tmpOpt->SetXTolRel(xTol);
-        tmpOpt->SetFTolRel(xTol * 1.0e-2);
+        tmpOpt->SetFTolRel(fTol);
         tmpOpt->SetMaxEval(maxEvals);
         tmpOpt->SetVectorStorageSize(2000);
 
@@ -1199,13 +1203,12 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         anima::MCMMultipleValuedCostFunction *costCast =
                 dynamic_cast <anima::MCMMultipleValuedCostFunction *> (cost.GetPointer());
 
-        double gTol = m_GTolerance;
-        if (m_GTolerance == 0)
-            gTol = 1.0e-5;
+        double fTol = m_FTolerance;
+        if (m_FTolerance == 0)
+            fTol = 1.0e-2 * xTol;
 
         tmpOpt->SetCostFunction(costCast);
-        tmpOpt->SetLambdaParameter(1.0e-11);
-        tmpOpt->SetGradientTolerance(gTol);
+        tmpOpt->SetCostTolerance(fTol);
         tmpOpt->SetNumberOfIterations(maxEvals);
         tmpOpt->SetValueTolerance(xTol);
 
