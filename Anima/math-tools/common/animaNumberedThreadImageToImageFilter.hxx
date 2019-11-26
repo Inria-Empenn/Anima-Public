@@ -12,42 +12,101 @@ NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
     m_ThreadIdsVector.clear();
     Superclass::BeforeThreadedGenerateData();
 
+    if (m_ComputationRegion.GetSize(0) == 0)
+    {
+        m_ComputationRegion = this->GetOutput(0)->GetRequestedRegion();
+        m_NumberOfPointsToProcess = m_ComputationRegion.GetNumberOfPixels();
+    }
+
+    unsigned int maxNumSlices = m_ComputationRegion.GetSize()[0];
+    m_ProcessedDimension = 0;
+    for (unsigned int i = 1;i < OutputImageRegionType::ImageDimension;++i)
+    {
+        if (maxNumSlices <= m_ComputationRegion.GetSize()[i])
+        {
+            maxNumSlices = m_ComputationRegion.GetSize()[i];
+            m_ProcessedDimension = i;
+        }
+    }
+
     m_NumberOfProcessedPoints = 0;
-    m_NumberOfPointsToProcess = this->GetOutput(0)->GetRequestedRegion().GetNumberOfPixels();
+
+    // Since image requested region may now be smaller than the image, fill the outputs with zeros
+    typedef typename TOutputImage::PixelType OutputPixelType;
+
+    for (unsigned int i = 0;i < this->GetNumberOfOutputs();++i)
+    {
+        OutputPixelType zeroPixel;
+        this->InitializeZeroPixel(this->GetOutput(i),zeroPixel);
+        this->GetOutput(i)->FillBuffer(zeroPixel);
+    }
 }
 
-template <typename TInputImage, typename TOutputImage>
+template< typename TInputImage, typename TOutputImage >
 void
 NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
 ::GenerateData()
 {
-    // Copy pasted from itk Image source to de-activate progress handling by ITK
-
-    // Call a method that can be overriden by a subclass to allocate
-    // memory for the filter's outputs
     this->AllocateOutputs();
-
-    // Call a method that can be overridden by a subclass to perform
-    // some calculations prior to splitting the main computations into
-    // separate threads
     this->BeforeThreadedGenerateData();
 
-    if (!this->GetDynamicMultiThreading())
-    {
-        this->ClassicMultiThread(this->ThreaderCallback);
-    }
-    else
-    {
-        this->GetMultiThreader()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
-        this->GetMultiThreader()->template ParallelizeImageRegion<OutputImageDimension>(
-                    this->GetOutput()->GetRequestedRegion(),
-                    [this](const OutputImageRegionType & outputRegionForThread)
-        { this->DynamicThreadedGenerateData(outputRegionForThread); }, ITK_NULLPTR);
-    }
+    m_HighestProcessedSlice = 0;
 
-    // Call a method that can be overridden by a subclass to perform
-    // some calculations after all the threads have completed
+    ThreadStruct str;
+    str.Filter = this;
+
+    this->GetMultiThreader()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
+    this->GetMultiThreader()->SetSingleMethod(this->ThreaderMultiSplitCallback, &str);
+
+    this->GetMultiThreader()->SingleMethodExecute();
+
     this->AfterThreadedGenerateData();
+}
+
+template< typename TInputImage, typename TOutputImage >
+ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
+NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
+::ThreaderMultiSplitCallback(void *arg)
+{
+    ThreadStruct *str;
+    itk::ThreadIdType threadId;
+
+    str = (ThreadStruct *)( ( (itk::MultiThreaderBase::WorkUnitInfo *)( arg ) )->UserData );
+
+    Self *filterPtr = dynamic_cast <Self *> (str->Filter.GetPointer());
+    filterPtr->ThreadProcessSlices();
+
+    return ITK_THREAD_RETURN_DEFAULT_VALUE;
+}
+
+template< typename TInputImage, typename TOutputImage >
+void
+NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
+::ThreadProcessSlices()
+{
+    OutputImageRegionType processedRegion = m_ComputationRegion;
+    processedRegion.SetSize(m_ProcessedDimension,1);
+    unsigned int highestToleratedSliceValue = m_ComputationRegion.GetSize()[m_ProcessedDimension] - 1;
+
+    bool continueLoop = true;
+    while (continueLoop)
+    {
+        m_LockHighestProcessedSlice.lock();
+
+        if (m_HighestProcessedSlice > highestToleratedSliceValue)
+        {
+            m_LockHighestProcessedSlice.unlock();
+            continueLoop = false;
+            continue;
+        }
+
+        processedRegion.SetIndex(m_ProcessedDimension, m_ComputationRegion.GetIndex()[m_ProcessedDimension] + m_HighestProcessedSlice);
+        m_HighestProcessedSlice++;
+
+        m_LockHighestProcessedSlice.unlock();
+
+        this->DynamicThreadedGenerateData(processedRegion);
+    }
 }
 
 template <typename TInputImage, typename TOutputImage>

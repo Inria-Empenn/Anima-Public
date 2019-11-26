@@ -3,7 +3,6 @@
 #include <iostream>
 #include <animaNumberedThreadImageToImageFilter.h>
 #include <itkNumericTraits.h>
-#include <itkVariableLengthVector.h>
 
 namespace anima
 {
@@ -50,25 +49,8 @@ protected:
     virtual ~MaskedImageToImageFilter() {}
 
     virtual void CheckComputationMask();
+    void InitializeComputationRegionFromMask();
     virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
-
-    //! Utility function to initialize output images pixel to zero for vector images
-    template <typename ScalarRealType>
-    void
-    InitializeZeroPixel(TOutputImage *image, itk::VariableLengthVector <ScalarRealType> &zeroPixel)
-    {
-        unsigned int vectorSize = image->GetVectorLength();
-        zeroPixel = itk::VariableLengthVector <ScalarRealType> (vectorSize);
-        zeroPixel.Fill(0.0);
-    }
-
-    //! Utility function to initialize output images pixel to zero for all images except vector images
-    template <typename PixelType>
-    void
-    InitializeZeroPixel(TOutputImage *itkNotUsed(image), PixelType &zeroPixel)
-    {
-        zeroPixel = itk::NumericTraits <PixelType>::ZeroValue();
-    }
 
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(MaskedImageToImageFilter);

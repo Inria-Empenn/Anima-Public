@@ -31,30 +31,65 @@ void
 MaskedImageToImageFilter < TInputImage, TOutputImage >
 ::BeforeThreadedGenerateData()
 {
+    if (this->GetComputationRegion().GetSize(0) == 0)
+        this->InitializeComputationRegionFromMask();
+
     Superclass::BeforeThreadedGenerateData();
+}
+
+
+template< typename TInputImage, typename TOutputImage >
+void
+MaskedImageToImageFilter < TInputImage, TOutputImage >
+::InitializeComputationRegionFromMask()
+{
     this->CheckComputationMask();
 
-    itk::ImageRegionConstIterator <MaskImageType> maskItr(m_ComputationMask, m_ComputationMask->GetLargestPossibleRegion());
-    unsigned int numPointsToProcess = 0;
+    typedef itk::ImageRegionConstIterator< MaskImageType > MaskRegionIteratorType;
+
+    MaskRegionIteratorType maskItr(m_ComputationMask,m_ComputationMask->GetLargestPossibleRegion());
+    maskItr.GoToBegin();
+
+    MaskIndexType minPos, maxPos;
+
+    for (unsigned int i = 0;i < m_ComputationMask->GetImageDimension();++i)
+    {
+        minPos[i] = m_ComputationMask->GetLargestPossibleRegion().GetIndex()[i] + m_ComputationMask->GetLargestPossibleRegion().GetSize()[i];
+        maxPos[i] = 0;
+    }
+
+    unsigned int numPoints = 0;
     while (!maskItr.IsAtEnd())
     {
         if (maskItr.Get() != 0)
-            ++numPointsToProcess;
+        {
+            ++numPoints;
+            MaskIndexType tmpInd = maskItr.GetIndex();
+
+            for (unsigned int i = 0;i < m_ComputationMask->GetImageDimension();++i)
+            {
+                if (minPos[i] > tmpInd[i])
+                    minPos[i] = tmpInd[i];
+
+                if (maxPos[i] < tmpInd[i])
+                    maxPos[i] = tmpInd[i];
+            }
+        }
 
         ++maskItr;
     }
 
-    this->SetNumberOfPointsToProcess(numPointsToProcess);
+    this->SetNumberOfPointsToProcess(numPoints);
 
-    // Since image requested region may now be smaller than the image, fill the outputs with zeros
-    typedef typename TOutputImage::PixelType OutputPixelType;
+    OutputImageRegionType computationRegion;
+    computationRegion.SetIndex(minPos);
 
-    for (unsigned int i = 0;i < this->GetNumberOfOutputs();++i)
-    {
-        OutputPixelType zeroPixel;
-        this->InitializeZeroPixel(this->GetOutput(i),zeroPixel);
-        this->GetOutput(i)->FillBuffer(zeroPixel);
-    }
+    MaskSizeType tmpSize;
+    for (unsigned int i = 0;i < m_ComputationMask->GetImageDimension();++i)
+        tmpSize[i] = maxPos[i] - minPos[i] + 1;
+
+    computationRegion.SetSize(tmpSize);
+    this->SetComputationRegion(computationRegion);
 }
 
 } // end namespace anima
