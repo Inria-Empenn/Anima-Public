@@ -5,7 +5,6 @@
 #include <vnl/algo/vnl_qr.h>
 #include <animaQRPivotDecomposition.h>
 #include <animaBLMLambdaCostFunction.h>
-#include <animaNLOPTOptimizers.h>
 
 namespace anima
 {
@@ -273,7 +272,6 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     lowerBoundLambda[0] = 0.0;
     upperBoundLambda[0] = 0.0;
 
-    // If full rank, compute lower bound for lambda
     unsigned int n = derivative.cols();
 
     // Compute upper bound for lambda
@@ -295,29 +293,19 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     upperBoundLambda[0] = std::sqrt(upperBoundLambda[0]) / m_DeltaParameter;
     p[0] = upperBoundLambda[0] / 2.0;
 
-    anima::NLOPTOptimizers::Pointer optimizer = anima::NLOPTOptimizers::New();
+    double tentativeCost = cost->GetValue(p);
+    while (std::abs(tentativeCost) >= 0.1 * m_DeltaParameter)
+    {
+        if (tentativeCost < 0.0)
+            upperBoundLambda[0] = p[0];
+        else
+            lowerBoundLambda[0] = p[0];
 
-    optimizer->SetAlgorithm(NLOPT_LN_BOBYQA);
+        p[0] = (lowerBoundLambda[0] + upperBoundLambda[0]) / 2.0;
+        tentativeCost = cost->GetValue(p);
+    }
 
-    cost->SetSquareCostFunction(true);
-    optimizer->SetCostFunction(cost);
-
-    optimizer->SetMaximize(false);
-    optimizer->SetXTolRel(1.0e-3);
-    optimizer->SetFTolRel(1.0e-3);
-    optimizer->SetMaxEval(500);
-    optimizer->SetVectorStorageSize(2000);
-
-    optimizer->SetLowerBoundParameters(lowerBoundLambda);
-    optimizer->SetUpperBoundParameters(upperBoundLambda);
-
-    optimizer->SetInitialPosition(p);
-    optimizer->StartOptimization();
-
-    p = optimizer->GetCurrentPosition();
     m_LambdaParameter = p[0];
-
-    cost->GetValue(p);
     m_CurrentAddonVector = cost->GetSolutionVector();
 }
 
