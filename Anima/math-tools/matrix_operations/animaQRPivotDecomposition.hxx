@@ -28,7 +28,10 @@ template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType>
     for (unsigned int i = 0;i < n;++i)
     {
         for (unsigned int j = 0;j < m;++j)
-            cVector[i] += aMatrix[j][i] * aMatrix[j][i];
+        {
+            double tmpVal = aMatrix.get(j,i);
+            cVector[i] += tmpVal * tmpVal;
+        }
     }
 
     rank = 0;
@@ -64,33 +67,36 @@ template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType>
         {
             for (unsigned int i = 0;i < m;++i)
             {
-                tmp = aMatrix[i][k];
-                aMatrix[i][k] = aMatrix[i][r];
-                aMatrix[i][r] = tmp;
+                tmp = aMatrix(i,k);
+                aMatrix.put(i,k,aMatrix.get(i,r));
+                aMatrix.put(i,r,tmp);
             }
         }
 
         housedVector.resize(m - r);
         for (unsigned int i = r;i < m;++i)
-            housedVector[i - r] = aMatrix[i][r];
+            housedVector[i - r] = aMatrix.get(i,r);
 
         ComputeHouseholderVector(housedVector,vVector,houseBetaValues[r]);
 
         for (unsigned int i = r;i < m;++i)
         {
             for (unsigned int j = r;j < n;++j)
-                workMatrix(i,j) = aMatrix[i][j];
+                workMatrix.put(i,j,aMatrix.get(i,j));
         }
 
         for (unsigned int i = 0;i < m - r;++i)
         {
             for (unsigned int j = i;j < m - r;++j)
             {
-                workMatrixHouse[i][j] = - houseBetaValues[r] * vVector[i] * vVector[j];
-                if (i != j)
-                    workMatrixHouse[j][i] = workMatrixHouse[i][j];
+                double tmpVal = - houseBetaValues[r] * vVector[i] * vVector[j];
+                if (i == j)
+                    workMatrixHouse.put(i,j,1.0 + tmpVal);
                 else
-                    workMatrixHouse[i][j] += 1.0;
+                {
+                    workMatrixHouse.put(j,i,tmpVal);
+                    workMatrixHouse.put(i,j,tmpVal);
+                }
             }
         }
 
@@ -98,7 +104,7 @@ template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType>
         for (unsigned int l = r;l < m;++l)
         {
             unsigned int lIndex = l - r;
-            diagonalValueTest += workMatrixHouse[0][lIndex] * workMatrix[l][r];
+            diagonalValueTest += workMatrixHouse.get(0,lIndex) * workMatrix.get(l,r);
         }
 
         if (r > 0)
@@ -119,9 +125,9 @@ template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType>
                 {
                     for (unsigned int i = 0;i < m;++i)
                     {
-                        tmp = aMatrix[i][k];
-                        aMatrix[i][k] = aMatrix[i][r];
-                        aMatrix[i][r] = tmp;
+                        tmp = aMatrix.get(i,k);
+                        aMatrix.put(i,k,aMatrix.get(i,r));
+                        aMatrix.put(i,r,tmp);
                     }
                 }
 
@@ -137,27 +143,43 @@ template <typename ScalarType> void QRPivotDecomposition(vnl_matrix <ScalarType>
             epsilon *= 20.0 * (m + n) * std::pow(2.0,basePower);
         }
 
-        aMatrix[r][r] = diagonalValueTest;
+        aMatrix.put(r,r,diagonalValueTest);
+        unsigned int iIndex = 0;
+        std::vector <double> tmpVector(m-r);
         for (unsigned int i = r;i < m;++i)
         {
-            unsigned int iIndex = i - r;
+            unsigned int lIndex = 0;
+            for (unsigned int l = r;l < m;++l)
+            {
+                tmpVector[lIndex] = workMatrixHouse.get(iIndex,lIndex);
+                ++lIndex;
+            }
+
             unsigned int startJ = r + (i == r);
             for (unsigned int j = startJ;j < n;++j)
             {
-                aMatrix[i][j] = 0.0;
+                double aijValue = 0.0;
+                lIndex = 0;
                 for (unsigned int l = r;l < m;++l)
                 {
-                    unsigned int lIndex = l - r;
-                    aMatrix[i][j] += workMatrixHouse[iIndex][lIndex] * workMatrix[l][j];
+                    aijValue += tmpVector[lIndex] * workMatrix.get(l,j);
+                    ++lIndex;
                 }
+
+                aMatrix.put(i,j,aijValue);
             }
+
+            ++iIndex;
         }
 
         for (unsigned int i = rank;i < m;++i)
-            aMatrix[i][r] = vVector[i - r];
+            aMatrix.put(i,r,vVector[i - r]);
 
         for (unsigned int i = rank;i < n;++i)
-            cVector[i] -= aMatrix[r][i] * aMatrix[r][i];
+        {
+            double tmpVal = aMatrix.get(r,i);
+            cVector[i] -= tmpVal * tmpVal;
+        }
 
         tau = 0.0;
 
@@ -192,13 +214,13 @@ template <typename ScalarType> void GetQtBFromQRDecomposition(vnl_matrix <Scalar
         // Compute v^T B
         double vtB = bVector[j];
         for (unsigned int i = j + 1;i < m;++i)
-            vtB += qrMatrix[i][j] * bVector[i];
+            vtB += qrMatrix.get(i,j) * bVector[i];
 
         // bVector -= beta * v * vtB
         bVector[j] -= houseBetaValues[j] * vtB;
 
         for (unsigned int i = j + 1;i < m;++i)
-            bVector[i] -= houseBetaValues[j] * qrMatrix[i][j] * vtB;
+            bVector[i] -= houseBetaValues[j] * qrMatrix.get(i,j) * vtB;
     }
 }
 
@@ -222,19 +244,22 @@ template <typename ScalarType> void GetQMatrixQRDecomposition(vnl_matrix <Scalar
         // Compute v^T B
         for (unsigned int i = 0;i < vecSize;++i)
         {
-            vtQ[i] = qMatrix[j][i + j];
+            vtQ[i] = qMatrix(j,i + j);
             for (unsigned int k = j + 1;k < m;++k)
-                vtQ[i] += qrMatrix[k][j] * qMatrix[k][i + j];
+                vtQ[i] += qrMatrix.get(k,j) * qMatrix.get(k,i + j);
         }
 
         for (unsigned int i = 0;i < vecSize;++i)
         {
             double constantValue = houseBetaValues[j];
             if (i != 0)
-                constantValue *= qrMatrix[i + j][j];
+                constantValue *= qrMatrix.get(i + j,j);
 
             for (unsigned int k = 0;k < vecSize;++k)
-                qMatrix[i + j][k + j] -= constantValue * vtQ[k];
+            {
+                double tmpVal = qMatrix.get(i + j,k + j) - constantValue * vtQ[k];
+                qMatrix.put(i + j,k + j,tmpVal);
+            }
         }
     }
 }
