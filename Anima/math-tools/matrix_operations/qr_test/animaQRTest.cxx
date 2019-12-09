@@ -57,12 +57,12 @@ int main(int argc, char **argv)
         std::cout << betaValues[i] << " ";
     std::cout << std::endl;
 
-    anima::GetQtBFromQRDecomposition(testData,bVector,betaValues,rank);
+    anima::GetQtBFromQRPivotDecomposition(testData,bVector,betaValues,rank);
 
     std::cout << "QtB " << bVector << std::endl;
 
     vnl_matrix <double> qMatrix (dimX,dimX);
-    anima::GetQMatrixQRDecomposition(testData,betaValues,qMatrix,rank);
+    anima::GetQMatrixQRPivotDecomposition(testData,betaValues,qMatrix,rank);
 
     std::cout << "Q matrix " << qMatrix << std::endl;
 

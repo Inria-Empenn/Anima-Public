@@ -40,7 +40,6 @@ public:
 
     itkSetMacro(JRank, unsigned int)
     itkSetMacro(DeltaParameter, double)
-    itkSetMacro(SquareCostFunction, bool)
 
     void SetDValues(ParametersType &dVal) {m_DValues = dVal;}
     void SetInversePivotVector(std::vector <unsigned int> &invPiv) {m_InversePivotVector = invPiv;}
@@ -48,15 +47,14 @@ public:
     void SetLowerBoundsPermutted(ParametersType &lb) {m_LowerBoundsPermutted = lb;}
     void SetUpperBoundsPermutted(ParametersType &ub) {m_UpperBoundsPermutted = ub;}
 
-    void SetWorkMatricesAndVectorsFromQRDerivative(vnl_matrix <double> &qrDerivative,
-                                                   ParametersType &qtResiduals, unsigned int rank);
+    void SetInputWorkMatricesAndVectorsFromQRDerivative(vnl_matrix <double> &qrDerivative,
+                                                        ParametersType &qtResiduals, unsigned int rank);
 
     ParametersType &GetSolutionVector() {return m_SolutionVector;}
 
 protected:
     BLMLambdaCostFunction()
     {
-        m_SquareCostFunction = true;
     }
 
     virtual ~BLMLambdaCostFunction() ITK_OVERRIDE {}
@@ -66,14 +64,15 @@ protected:
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(BLMLambdaCostFunction);
 
-    ParametersType m_DValues, m_WResiduals, m_ZeroWResiduals;
+    ParametersType m_DValues, m_InputWResiduals, m_ZeroWResiduals;
+    mutable ParametersType m_WResiduals;
     std::vector <unsigned int> m_InversePivotVector, m_PivotVector;
     ParametersType m_LowerBoundsPermutted, m_UpperBoundsPermutted;
+    vnl_matrix <double> m_InputWorkMatrix;
     mutable vnl_matrix <double> m_WorkMatrix;
     mutable vnl_matrix <double> m_ZeroWorkMatrix, m_RAlphaTranspose;
     mutable ParametersType m_SolutionVector;
     mutable bool m_SolutionInBounds;
-    bool m_SquareCostFunction;
     double m_DeltaParameter;
     unsigned int m_JRank;
 };

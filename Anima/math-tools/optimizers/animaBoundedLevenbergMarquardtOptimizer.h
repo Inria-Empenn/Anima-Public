@@ -1,8 +1,7 @@
 #pragma once
 
 #include <itkMultipleValuedNonLinearOptimizer.h>
-
-#include <animaCholeskyDecomposition.h>
+#include <animaBLMLambdaCostFunction.h>
 #include "AnimaOptimizersExport.h"
 
 namespace anima
@@ -60,6 +59,7 @@ protected:
         m_DeltaParameter = 0.0;
 
         m_CurrentValue = 0.0;
+        m_LambdaCostFunction = anima::BLMLambdaCostFunction::New();
     }
 
     virtual ~BoundedLevenbergMarquardtOptimizer() ITK_OVERRIDE {}
@@ -70,10 +70,8 @@ protected:
                                  ParametersType &upperBounds, unsigned int rank);
 
     void UpdateLambdaParameter(DerivativeType &derivative, ParametersType &dValues,
-                               std::vector <unsigned int> &pivotVector,
                                std::vector <unsigned int> &inversePivotVector,
-                               ParametersType &qtResiduals, ParametersType &lowerBoundsPermutted,
-                               ParametersType &upperBoundsPermutted, unsigned int rank);
+                               ParametersType &qtResiduals, unsigned int rank);
 
     bool CheckConditions(unsigned int numIterations, ParametersType &newParams,
                          ParametersType &dValues, double newCostValue);
@@ -89,7 +87,7 @@ private:
     double m_DeltaParameter;
     double m_CurrentValue;
 
-    anima::CholeskyDecomposition m_CholeskySolver;
+    anima::BLMLambdaCostFunction::Pointer m_LambdaCostFunction;
     ParametersType m_LowerBounds, m_UpperBounds;
     ParametersType m_CurrentAddonVector;
     MeasureType m_ResidualValues;

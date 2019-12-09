@@ -2,6 +2,7 @@
 #include <animaMatrixOperations.h>
 #include <animaBVLSOptimizer.h>
 #include <vnl/algo/vnl_qr.h>
+#include <animaQRPivotDecomposition.h>
 
 namespace anima
 {
@@ -23,18 +24,23 @@ BLMLambdaCostFunction::GetValue(const ParametersType &parameters) const
     if (parameters[0] > 0.0)
     {
         // Compute QR solution for any lambda > 0.0
+        m_WorkMatrix = m_InputWorkMatrix;
         for (unsigned int i = 0;i < nbParams;++i)
-            m_WorkMatrix[m_JRank + i][i] = std::sqrt(parameters[0]) * m_DValues[m_PivotVector[i]];
+            m_WorkMatrix.put(m_JRank + i,i,std::sqrt(parameters[0]) * m_DValues[m_PivotVector[i]]);
+        m_WResiduals = m_InputWResiduals;
 
-        vnl_qr <double> qrData(m_WorkMatrix);
+        //vnl_qr <double> qrData(m_WorkMatrix);
+
+        anima::QRGivensDecomposition(m_WorkMatrix,m_WResiduals);
+        anima::UpperTriangularSolver(m_WorkMatrix,m_WResiduals,pPermutted,nbParams);
 
         for (unsigned int i = 0;i < nbParams;++i)
         {
             for (unsigned int j = i;j < nbParams;++j)
-                m_RAlphaTranspose[j][i] = qrData.R()[i][j];
+                m_RAlphaTranspose.put(j,i,m_WorkMatrix.get(i,j));//qrData.R().get(i,j));
         }
 
-        pPermutted = qrData.solve(m_WResiduals);
+        //pPermutted = qrData.solve(m_WResiduals);
         bool inBounds = this->CheckSolutionIsInBounds(pPermutted);
 
         if (!inBounds)
@@ -62,7 +68,7 @@ BLMLambdaCostFunction::GetValue(const ParametersType &parameters) const
         for (unsigned int i = 0;i < m_JRank;++i)
         {
             for (unsigned int j = i;j < m_JRank;++j)
-                m_RAlphaTranspose[j][i] = m_ZeroWorkMatrix[i][j];
+                m_RAlphaTranspose.put(j,i,m_ZeroWorkMatrix.get(i,j));
         }
 
         if (!inBounds)
@@ -105,8 +111,6 @@ BLMLambdaCostFunction::GetValue(const ParametersType &parameters) const
     phiNorm = std::sqrt(phiNorm);
 
     double costValue = phiNorm - m_DeltaParameter;
-    if (m_SquareCostFunction)
-        costValue *= costValue;
 
     return costValue;
 }
@@ -133,8 +137,8 @@ BLMLambdaCostFunction::GetDerivative(const ParametersType &parameters, Derivativ
 }
 
 void
-BLMLambdaCostFunction::SetWorkMatricesAndVectorsFromQRDerivative(vnl_matrix <double> &qrDerivative,
-                                                                 ParametersType &qtResiduals, unsigned int rank)
+BLMLambdaCostFunction::SetInputWorkMatricesAndVectorsFromQRDerivative(vnl_matrix <double> &qrDerivative,
+                                                                      ParametersType &qtResiduals, unsigned int rank)
 {
     unsigned int nbParams = qrDerivative.cols();
     unsigned int numLinesWorkMatrix = rank + nbParams;
@@ -143,6 +147,11 @@ BLMLambdaCostFunction::SetWorkMatricesAndVectorsFromQRDerivative(vnl_matrix <dou
     m_ZeroWorkMatrix.fill(0.0);
     m_ZeroWResiduals.set_size(rank);
     m_ZeroWResiduals.fill(0.0);
+
+    m_InputWorkMatrix.set_size(numLinesWorkMatrix,nbParams);
+    m_InputWorkMatrix.fill(0.0);
+    m_InputWResiduals.set_size(numLinesWorkMatrix);
+    m_InputWResiduals.fill(0.0);
 
     m_WorkMatrix.set_size(numLinesWorkMatrix,nbParams);
     m_WorkMatrix.fill(0.0);
@@ -153,14 +162,14 @@ BLMLambdaCostFunction::SetWorkMatricesAndVectorsFromQRDerivative(vnl_matrix <dou
     {
         for (unsigned int j = i;j < rank;++j)
         {
-            m_ZeroWorkMatrix[i][j] = qrDerivative[i][j];
-            m_WorkMatrix[i][j] = qrDerivative[i][j];
+            m_ZeroWorkMatrix.put(i,j,qrDerivative.get(i,j));
+            m_InputWorkMatrix.put(i,j,qrDerivative.get(i,j));
         }
 
         for (unsigned int j = rank;j < nbParams;++j)
-            m_WorkMatrix[i][j] = qrDerivative[i][j];
+            m_InputWorkMatrix.put(i,j,qrDerivative.get(i,j));
 
-        m_WResiduals[i] = - qtResiduals[i];
+        m_InputWResiduals[i] = - qtResiduals[i];
         m_ZeroWResiduals[i] = - qtResiduals[i];
     }
 }

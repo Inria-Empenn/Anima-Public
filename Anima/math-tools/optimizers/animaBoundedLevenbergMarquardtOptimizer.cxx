@@ -41,7 +41,7 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     {
         for (unsigned int j = 0;j < numResiduals;++j)
         {
-            if (std::abs(derivativeMatrix[i][j]) > std::sqrt(std::numeric_limits <double>::epsilon()))
+            if (std::abs(derivativeMatrix.get(i,j)) > std::sqrt(std::numeric_limits <double>::epsilon()))
             {
                 derivativeCheck = true;
                 break;
@@ -62,7 +62,10 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     {
         double normValue = 0.0;
         for (unsigned int j = 0;j < numResiduals;++j)
-            normValue += derivativeMatrix[j][i] * derivativeMatrix[j][i];
+        {
+            double tmpVal = derivativeMatrix.get(j,i);
+            normValue += tmpVal * tmpVal;
+        }
         
         dValues[i] = std::sqrt(normValue);
         if (dValues[i] != 0.0)
@@ -96,9 +99,15 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     ParametersType lowerBoundsPermutted(nbParams);
     ParametersType upperBoundsPermutted(nbParams);
     anima::QRPivotDecomposition(derivativeMatrix,pivotVector,qrBetaValues,rank);
-    anima::GetQtBFromQRDecomposition(derivativeMatrix,qtResiduals,qrBetaValues,rank);
+    anima::GetQtBFromQRPivotDecomposition(derivativeMatrix,qtResiduals,qrBetaValues,rank);
     for (unsigned int i = 0;i < nbParams;++i)
         inversePivotVector[pivotVector[i]] = i;
+
+    m_LambdaCostFunction->SetInputWorkMatricesAndVectorsFromQRDerivative(derivativeMatrix,qtResiduals,rank);
+    m_LambdaCostFunction->SetJRank(rank);
+    m_LambdaCostFunction->SetDValues(dValues);
+    m_LambdaCostFunction->SetPivotVector(pivotVector);
+    m_LambdaCostFunction->SetInversePivotVector(inversePivotVector);
 
     while (!stopConditionReached)
     {
@@ -110,9 +119,11 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
             upperBoundsPermutted[i] = m_UpperBounds[pivotVector[i]] - oldParameters[pivotVector[i]];
         }
 
+        m_LambdaCostFunction->SetLowerBoundsPermutted(lowerBoundsPermutted);
+        m_LambdaCostFunction->SetUpperBoundsPermutted(upperBoundsPermutted);
+
         // Updates lambda and get new addon vector at the same time
-        this->UpdateLambdaParameter(derivativeMatrix,dValues,pivotVector,inversePivotVector,
-                                    qtResiduals,lowerBoundsPermutted,upperBoundsPermutted,rank);
+        this->UpdateLambdaParameter(derivativeMatrix,dValues,inversePivotVector, qtResiduals,rank);
 
         parameters = oldParameters;
         parameters += m_CurrentAddonVector;
@@ -130,7 +141,7 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
             double fjpAddonValue = m_ResidualValues[i];
 
             for (unsigned int j = 0;j < nbParams;++j)
-                fjpAddonValue += derivativeMatrixCopy[i][j] * m_CurrentAddonVector[j];
+                fjpAddonValue += derivativeMatrixCopy.get(i,j) * m_CurrentAddonVector[j];
 
             fjpNorm += fjpAddonValue * fjpAddonValue;
         }
@@ -165,7 +176,7 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
                 {
                     double jtFValue = 0.0;
                     for (unsigned int j = 0;j < numResiduals;++j)
-                        jtFValue += derivativeMatrixCopy[j][i] * m_ResidualValues[i];
+                        jtFValue += derivativeMatrixCopy.get(j,i) * m_ResidualValues[i];
 
                     gamma += m_CurrentAddonVector[i] * jtFValue;
                 }
@@ -196,7 +207,10 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
             {
                 double normValue = 0;
                 for (unsigned int j = 0;j < numResiduals;++j)
-                    normValue += derivativeMatrix[i][j] * derivativeMatrix[i][j];
+                {
+                    double tmpVal = derivativeMatrix.get(i,j);
+                    normValue += tmpVal * tmpVal;
+                }
                 
                 normValue = std::sqrt(normValue);
                 dValues[i] = std::max(dValues[i], normValue);
@@ -207,9 +221,15 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
 
             qtResiduals = m_ResidualValues;
             anima::QRPivotDecomposition(derivativeMatrix,pivotVector,qrBetaValues,rank);
-            anima::GetQtBFromQRDecomposition(derivativeMatrix,qtResiduals,qrBetaValues,rank);
+            anima::GetQtBFromQRPivotDecomposition(derivativeMatrix,qtResiduals,qrBetaValues,rank);
             for (unsigned int i = 0;i < nbParams;++i)
                 inversePivotVector[pivotVector[i]] = i;
+
+            m_LambdaCostFunction->SetInputWorkMatricesAndVectorsFromQRDerivative(derivativeMatrix,qtResiduals,rank);
+            m_LambdaCostFunction->SetJRank(rank);
+            m_LambdaCostFunction->SetDValues(dValues);
+            m_LambdaCostFunction->SetPivotVector(pivotVector);
+            m_LambdaCostFunction->SetInversePivotVector(inversePivotVector);
         }
 
         if (numIterations != 1)
@@ -242,29 +262,18 @@ bool BoundedLevenbergMarquardtOptimizer::CheckSolutionIsInBounds(ParametersType 
 }
 
 void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &derivative, ParametersType &dValues,
-                                                               std::vector <unsigned int> &pivotVector,
                                                                std::vector <unsigned int> &inversePivotVector,
-                                                               ParametersType &qtResiduals, ParametersType &lowerBoundsPermutted,
-                                                               ParametersType &upperBoundsPermutted, unsigned int rank)
+                                                               ParametersType &qtResiduals, unsigned int rank)
 {
-    anima::BLMLambdaCostFunction::Pointer cost = anima::BLMLambdaCostFunction::New();
-    cost->SetWorkMatricesAndVectorsFromQRDerivative(derivative,qtResiduals,rank);
-    cost->SetJRank(rank);
-    cost->SetDValues(dValues);
-    cost->SetPivotVector(pivotVector);
-    cost->SetInversePivotVector(inversePivotVector);
-    cost->SetLowerBoundsPermutted(lowerBoundsPermutted);
-    cost->SetUpperBoundsPermutted(upperBoundsPermutted);
-    cost->SetDeltaParameter(m_DeltaParameter);
-    cost->SetSquareCostFunction(false);
+    m_LambdaCostFunction->SetDeltaParameter(m_DeltaParameter);
 
-    ParametersType p(cost->GetNumberOfParameters());
+    ParametersType p(m_LambdaCostFunction->GetNumberOfParameters());
     p[0] = 0.0;
-    double zeroCost = cost->GetValue(p);
+    double zeroCost = m_LambdaCostFunction->GetValue(p);
     if (zeroCost <= 0.0)
     {
         m_LambdaParameter = 0.0;
-        m_CurrentAddonVector = cost->GetSolutionVector();
+        m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
         return;
     }
 
@@ -283,7 +292,7 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
         for (unsigned int j = 0;j < rank;++j)
         {
             if (j <= i)
-                u0InVector[i] += derivative(j,i) * qtResiduals[j];
+                u0InVector[i] += derivative.get(j,i) * qtResiduals[j];
         }
     }
 
@@ -293,8 +302,9 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     upperBoundLambda[0] = std::sqrt(upperBoundLambda[0]) / m_DeltaParameter;
     p[0] = upperBoundLambda[0] / 2.0;
 
-    double tentativeCost = cost->GetValue(p);
-    while (std::abs(tentativeCost) >= 0.1 * m_DeltaParameter)
+    double tentativeCost = m_LambdaCostFunction->GetValue(p);
+    double fTol = std::min(1.0e-3, 0.001 * m_DeltaParameter);
+    while (std::abs(tentativeCost) >= fTol)
     {
         if (tentativeCost < 0.0)
             upperBoundLambda[0] = p[0];
@@ -302,11 +312,11 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
             lowerBoundLambda[0] = p[0];
 
         p[0] = (lowerBoundLambda[0] + upperBoundLambda[0]) / 2.0;
-        tentativeCost = cost->GetValue(p);
+        tentativeCost = m_LambdaCostFunction->GetValue(p);
     }
 
     m_LambdaParameter = p[0];
-    m_CurrentAddonVector = cost->GetSolutionVector();
+    m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
 }
 
 double BoundedLevenbergMarquardtOptimizer::EvaluateCostFunctionAtParameters(ParametersType &parameters, MeasureType &residualValues)
