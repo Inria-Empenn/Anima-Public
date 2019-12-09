@@ -411,6 +411,12 @@ template <class ScalarType> void ComputeHouseholderVector(const std::vector <Sca
     ComputeHouseholderVector(inputVector,outputVector,beta,dimension);
 }
 
+// for std vector in place
+template <class ScalarType> void ComputeHouseholderVector(std::vector <ScalarType> &vector, double &beta)
+{
+    ComputeHouseholderVector(vector,vector,beta);
+}
+
 /**********************************/
 
 template <class VectorType> double ComputeAngle(const VectorType &v1, const VectorType &v2)

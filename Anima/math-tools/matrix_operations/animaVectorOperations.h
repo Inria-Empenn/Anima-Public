@@ -108,6 +108,8 @@ template <class ScalarType> void Normalize(const std::vector <ScalarType> &v, st
 template <class VectorType> void ComputeHouseholderVector(const VectorType &inputVector, VectorType &outputVector, double &beta, unsigned int dimension);
 // For std::vector
 template <class ScalarType> void ComputeHouseholderVector(const std::vector <ScalarType> &inputVector, std::vector <ScalarType> &outputVector, double &beta);
+// For std::vector in place
+template <class ScalarType> void ComputeHouseholderVector(std::vector <ScalarType> &vector, double &beta);
 /**********************************/
 
 template <class VectorType> double ComputeAngle(const VectorType &v1, const VectorType &v2);
