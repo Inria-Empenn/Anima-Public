@@ -1,10 +1,6 @@
 #include <animaBoundedLevenbergMarquardtOptimizer.h>
-#include <animaBVLSOptimizer.h>
-#include <animaBaseTensorTools.h>
 #include <limits>
-#include <vnl/algo/vnl_qr.h>
 #include <animaQRDecomposition.h>
-#include <animaBLMLambdaCostFunction.h>
 
 namespace anima
 {

@@ -1,7 +1,5 @@
 #include "animaBLMLambdaCostFunction.h"
 #include <animaMatrixOperations.h>
-#include <animaBVLSOptimizer.h>
-#include <vnl/algo/vnl_qr.h>
 #include <animaQRDecomposition.h>
 
 namespace anima
@@ -29,31 +27,19 @@ BLMLambdaCostFunction::GetValue(const ParametersType &parameters) const
             m_WorkMatrix.put(m_JRank + i,i,std::sqrt(parameters[0]) * m_DValues[m_PivotVector[i]]);
         m_WResiduals = m_InputWResiduals;
 
-        //vnl_qr <double> qrData(m_WorkMatrix);
-
         anima::QRGivensDecomposition(m_WorkMatrix,m_WResiduals);
         anima::UpperTriangularSolver(m_WorkMatrix,m_WResiduals,pPermutted,nbParams);
 
         for (unsigned int i = 0;i < nbParams;++i)
         {
             for (unsigned int j = i;j < nbParams;++j)
-                m_RAlphaTranspose.put(j,i,m_WorkMatrix.get(i,j));//qrData.R().get(i,j));
+                m_RAlphaTranspose.put(j,i,m_WorkMatrix.get(i,j));
         }
 
-        //pPermutted = qrData.solve(m_WResiduals);
         bool inBounds = this->CheckSolutionIsInBounds(pPermutted);
 
         if (!inBounds)
         {
-//            anima::BVLSOptimizer::Pointer bvlsOpt = anima::BVLSOptimizer::New();
-//            bvlsOpt->SetDataMatrix(m_WorkMatrix);
-//            bvlsOpt->SetPoints(m_WResiduals);
-//            bvlsOpt->SetLowerBounds(m_LowerBoundsPermutted);
-//            bvlsOpt->SetUpperBounds(m_UpperBoundsPermutted);
-//            bvlsOpt->StartOptimization();
-
-//            pPermutted = bvlsOpt->GetCurrentPosition();
-
             for (unsigned int i = 0;i < nbParams;++i)
                 pPermutted[i] = std::min(m_UpperBoundsPermutted[i],std::max(m_LowerBoundsPermutted[i],pPermutted[i]));
         }
@@ -73,15 +59,6 @@ BLMLambdaCostFunction::GetValue(const ParametersType &parameters) const
 
         if (!inBounds)
         {
-//            anima::BVLSOptimizer::Pointer bvlsOpt = anima::BVLSOptimizer::New();
-//            bvlsOpt->SetDataMatrix(m_ZeroWorkMatrix);
-//            bvlsOpt->SetPoints(m_ZeroWResiduals);
-//            bvlsOpt->SetLowerBounds(m_LowerBoundsPermutted);
-//            bvlsOpt->SetUpperBounds(m_UpperBoundsPermutted);
-//            bvlsOpt->StartOptimization();
-
-//            pPermuttedShrunk = bvlsOpt->GetCurrentPosition();
-
             for (unsigned int i = 0;i < m_JRank;++i)
                 pPermuttedShrunk[i] = std::min(m_UpperBoundsPermutted[i],std::max(m_LowerBoundsPermutted[i],pPermuttedShrunk[i]));
         }
