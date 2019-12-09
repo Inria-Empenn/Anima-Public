@@ -35,4 +35,4 @@ template <typename ScalarType> void GetQMatrixQRPivoDecomposition(vnl_matrix <Sc
 
 } // end namespace anima
 
-#include "animaQRPivotDecomposition.hxx"
+#include "animaQRDecomposition.hxx"

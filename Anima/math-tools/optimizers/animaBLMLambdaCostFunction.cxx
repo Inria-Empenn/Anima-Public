@@ -2,7 +2,7 @@
 #include <animaMatrixOperations.h>
 #include <animaBVLSOptimizer.h>
 #include <vnl/algo/vnl_qr.h>
-#include <animaQRPivotDecomposition.h>
+#include <animaQRDecomposition.h>
 
 namespace anima
 {

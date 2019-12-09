@@ -1,4 +1,4 @@
-#include <animaQRPivotDecomposition.h>
+#include <animaQRDecomposition.h>
 #include <iostream>
 #include <fstream>
 

@@ -3,7 +3,7 @@
 #include <animaBaseTensorTools.h>
 #include <limits>
 #include <vnl/algo/vnl_qr.h>
-#include <animaQRPivotDecomposition.h>
+#include <animaQRDecomposition.h>
 #include <animaBLMLambdaCostFunction.h>
 
 namespace anima

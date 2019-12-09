@@ -1,5 +1,5 @@
 #pragma once
-#include "animaQRPivotDecomposition.h"
+#include "animaQRDecomposition.h"
 #include <animaVectorOperations.h>
 #include <limits>
 
