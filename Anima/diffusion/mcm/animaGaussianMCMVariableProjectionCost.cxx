@@ -1,5 +1,6 @@
 #include <animaGaussianMCMVariableProjectionCost.h>
 #include <cmath>
+#include <algorithm>
 
 #include <animaBaseTensorTools.h>
 #include <boost/math/special_functions/gamma.hpp>
@@ -95,6 +96,7 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
 
     numCompartments = pos;
     m_IndexesUsefulCompartments.resize(numCompartments);
+    std::sort(m_IndexesUsefulCompartments.begin(),m_IndexesUsefulCompartments.end());
 
     // Compute predicted signals and jacobian
     m_PredictedSignalAttenuations.set_size(nbValues,numCompartments);
@@ -227,24 +229,18 @@ GaussianMCMVariableProjectionCost::PrepareDataForDerivative()
     m_FMatrixInverseG.set_size(nbValues,numOnCompartments);
     for (unsigned int i = 0;i < nbValues;++i)
     {
-        unsigned int pos = 0;
-        for (unsigned int j = 0;j < numCompartments;++j)
+        for (unsigned int j = 0;j < numOnCompartments;++j)
         {
-            if (!m_CompartmentSwitches[j])
-                continue;
-
-            m_FMatrixInverseG(i,pos) = 0.0;
+            m_FMatrixInverseG(i,j) = 0.0;
             unsigned int posK = 0;
             for (unsigned int k = 0;k < numCompartments;++k)
             {
                 if (!m_CompartmentSwitches[k])
                     continue;
 
-                m_FMatrixInverseG(i,pos) += m_PredictedSignalAttenuations(i,k) * m_InverseGramMatrix(posK,pos);
+                m_FMatrixInverseG(i,j) += m_PredictedSignalAttenuations(i,k) * m_InverseGramMatrix(posK,j);
                 ++posK;
             }
-
-            ++pos;
         }
     }
 
