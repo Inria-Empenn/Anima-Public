@@ -73,7 +73,7 @@ public:
     void SetAlphas(std::vector<double> &model) {m_Alphas=model;}
     void SetOutputFilename(std::string filename){m_OutputFilename=filename;}
     std::vector<GaussianFunctionType::Pointer> GetGaussiabModel() {return m_GaussianModel;}
-    std::vector<GaussianFunctionType::Pointer> GetAlphas() {return m_Alphas;}
+    std::vector<double> GetAlphas() {return m_Alphas;}
 
 protected:
     ImageClassifierFilter()
