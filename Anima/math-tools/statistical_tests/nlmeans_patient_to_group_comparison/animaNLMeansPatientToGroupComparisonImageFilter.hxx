@@ -191,7 +191,7 @@ NLMeansPatientToGroupComparisonImageFilter<PixelScalarType>
                 covMatrixDatabase(k,j) = covMatrixDatabase(j,k);
         }
 
-    vnl_matrix <double> covInvDatabase = vnl_matrix_inverse <double> (covMatrixDatabase);
+    vnl_matrix <double> covInvDatabase = vnl_matrix_inverse <double> (covMatrixDatabase).as_matrix();
 
     diffScore = 0;
     for (unsigned int j = 0;j < ndim;++j)
