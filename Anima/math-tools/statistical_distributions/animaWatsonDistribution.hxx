@@ -5,7 +5,7 @@
 #include <animaVectorOperations.h>
 #include <animaErrorFunctions.h>
 
-#include <itkExceptionObject.h>
+#include <itkMacro.h>
 #include <itkObjectFactory.h>
 
 #include <boost/math/special_functions/bessel.hpp>

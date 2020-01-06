@@ -4,7 +4,7 @@
 #include <animaLogarithmFunctions.h>
 
 #include <vnl/vnl_diag_matrix.h>
-#include <itkExceptionObject.h>
+#include <itkMacro.h>
 
 namespace anima
 {

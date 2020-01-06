@@ -5,7 +5,7 @@
 #include <animaLinearTransformEstimationTools.h>
 
 #include <algorithm>
-#include <itkExceptionObject.h>
+#include <itkMacro.h>
 
 namespace anima
 {

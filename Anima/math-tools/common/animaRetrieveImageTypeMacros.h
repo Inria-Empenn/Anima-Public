@@ -1,7 +1,7 @@
 #pragma once
 
 #include <itkImageIOBase.h>
-#include <itkExceptionObject.h>
+#include <itkMacro.h>
 #include <itkImage.h>
 #include <itkVectorImage.h>
 #include <itkVector.h>

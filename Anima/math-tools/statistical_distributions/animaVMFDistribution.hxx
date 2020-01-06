@@ -7,7 +7,7 @@
 
 #include <vnl/vnl_matrix.h>
 
-#include <itkExceptionObject.h>
+#include <itkMacro.h>
 
 namespace anima
 {

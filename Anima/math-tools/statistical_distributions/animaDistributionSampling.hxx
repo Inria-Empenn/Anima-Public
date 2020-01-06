@@ -9,7 +9,7 @@
 #include <animaBaseTensorTools.h>
 #include <animaMatrixOperations.h>
 
-#include <itkExceptionObject.h>
+#include <itkMacro.h>
 
 namespace anima
 {

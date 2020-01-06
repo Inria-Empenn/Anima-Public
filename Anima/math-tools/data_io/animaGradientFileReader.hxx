@@ -5,7 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
-#include <itkExceptionObject.h>
+#include <itkMacro.h>
 
 #include <animaVectorOperations.h>
 #include <animaMCMConstants.h>

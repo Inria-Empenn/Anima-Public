@@ -5,7 +5,7 @@
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIterator.h>
 
-#include <itkExceptionObject.h>
+#include <itkMacro.h>
 
 namespace anima
 {
