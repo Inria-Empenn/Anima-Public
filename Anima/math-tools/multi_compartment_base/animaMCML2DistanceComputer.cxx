@@ -156,8 +156,8 @@ double MCML2DistanceComputer::ComputeTensorDistance(const MCMPointer &firstModel
     unsigned int fixedNumCompartments = firstModel->GetNumberOfCompartments();
     unsigned int movingNumCompartments = secondModel->GetNumberOfCompartments();
 
-    std::vector < vnl_matrix <double> > firstModelMatrices(fixedNumCompartments);
-    std::vector < vnl_matrix <double> > secondModelMatrices(movingNumCompartments);
+    std::vector < vnl_matrix_fixed <double, 3, 3> > firstModelMatrices(fixedNumCompartments);
+    std::vector < vnl_matrix_fixed <double, 3, 3> > secondModelMatrices(movingNumCompartments);
     std::vector <double> firstModelWeights(fixedNumCompartments);
     std::vector <double> secondModelWeights(movingNumCompartments);
 

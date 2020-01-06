@@ -309,7 +309,7 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
         return;
     }
 
-    deltaMatrix = vnl_matrix_inverse <double> (deltaMatrix);
+    deltaMatrix = vnl_matrix_inverse <double> (deltaMatrix).as_matrix();
 
     for (unsigned int i = 0;i < ImageDimension;++i)
     {

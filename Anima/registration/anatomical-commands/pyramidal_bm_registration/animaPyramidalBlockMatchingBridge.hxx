@@ -531,7 +531,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::WriteOutputs()
 
     typename AffineTransformType::MatrixType linearMatrix = tmpTrsf->GetMatrix();
     typename AffineTransformType::OffsetType transformOffset = tmpTrsf->GetOffset();
-    vnl_svd<typename AffineTransformType::MatrixType::ValueType> UWVLinearMatrixSVD(linearMatrix.GetVnlMatrix());
+    vnl_svd<typename AffineTransformType::MatrixType::ValueType> UWVLinearMatrixSVD(linearMatrix.GetVnlMatrix().as_matrix());
     vnl_matrix<typename AffineTransformType::MatrixType::ValueType> leftRot = UWVLinearMatrixSVD.U()*vnl_determinant(UWVLinearMatrixSVD.U());
     vnl_matrix<typename AffineTransformType::MatrixType::ValueType> rightRot = UWVLinearMatrixSVD.V()*vnl_determinant(UWVLinearMatrixSVD.V());
     vnl_diag_matrix<typename AffineTransformType::MatrixType::ValueType> scal = UWVLinearMatrixSVD.W();

@@ -28,6 +28,7 @@ target_link_libraries(${PROJECT_NAME}
   ${ITK_TRANSFORM_LIBRARIES}
   ITKStatistics
   ITKOptimizers
+  ITKSmoothing
   ITKCommon
   AnimaOptimizers
   )

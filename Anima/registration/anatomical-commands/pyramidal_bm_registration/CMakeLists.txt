@@ -30,6 +30,7 @@ target_link_libraries(${PROJECT_NAME}
   ${ITKIO_LIBRARIES}
   ${ITK_TRANSFORM_LIBRARIES}
   ITKOptimizers
+  ITKSmoothing
   ITKStatistics
   )
 

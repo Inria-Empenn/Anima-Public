@@ -366,7 +366,7 @@ void TensorCompartment::Reorient(vnl_matrix <double> &orientationMatrix, bool af
 {
     this->UpdateDiffusionTensor();
 
-    m_WorkVnlMatrix1 = m_DiffusionTensor.GetVnlMatrix();
+    m_WorkVnlMatrix1 = m_DiffusionTensor.GetVnlMatrix().as_matrix();
 
     if (!affineTransform)
         anima::RotateSymmetricMatrix(m_WorkVnlMatrix1,orientationMatrix,m_WorkVnlMatrix2);
@@ -443,7 +443,7 @@ void TensorCompartment::UpdateInverseDiffusionTensor()
     }
 
     m_WorkVnlMatrix1.set_size(m_SpaceDimension,m_SpaceDimension);
-    m_WorkVnlMatrix1 = m_DiffusionTensor.GetVnlMatrix();
+    m_WorkVnlMatrix1 = m_DiffusionTensor.GetVnlMatrix().as_matrix();
     anima::GetTensorPower(m_WorkVnlMatrix1, m_WorkVnlMatrix2, -1.0);
     m_InverseDiffusionTensor = m_WorkVnlMatrix2;
 
