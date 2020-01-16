@@ -482,7 +482,8 @@ ResampleImageFilter<TInputImage,TOutputImage,TInterpolatorPrecisionType>
             resDiff(i,j) -= tmpPos[j];
     }
 
-    deltaMatrix = vnl_matrix_inverse <double> (deltaMatrix.as_matrix()).as_matrix();
+    vnl_matrix_inverse <double> invDeltaMatrix(deltaMatrix.as_matrix());
+    deltaMatrix = invDeltaMatrix.inverse();
 
     for (unsigned int i = 0;i < ImageDimension;++i)
     {
