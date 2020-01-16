@@ -189,7 +189,9 @@ double VectorMeansTest(itk::VariableLengthVector <T> &refPatchMean, itk::Variabl
 
     S_pooled = refPatchCov * refPatchNumElts + movingPatchCov * movingPatchNumElts;
     S_pooled /= (refPatchNumElts + movingPatchNumElts - 2.0);
-    S_pooled_inv = vnl_matrix_inverse <double> (S_pooled).as_matrix();
+
+    vnl_matrix_inverse <double> spoolInverter(S_pooled);
+    S_pooled_inv = spoolInverter.inverse();
 
     meansDiff = refPatchMean - movingPatchMean;
     double distMeans = 0;

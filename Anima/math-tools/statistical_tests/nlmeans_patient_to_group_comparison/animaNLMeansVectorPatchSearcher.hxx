@@ -53,7 +53,9 @@ NLMeansVectorPatchSearcher <ImageScalarType, DataImageType>
     }
 
     anima::computeAverageLocalCovariance(m_NoiseCovariance,this->GetInputImage(),m_DataMask.GetPointer(),regionLocalVariance,2);
-    m_NoiseSigma = vnl_matrix_inverse <double> (m_NoiseCovariance).as_matrix();
+
+    vnl_matrix_inverse <double> covInverse(m_NoiseCovariance);
+    m_NoiseSigma = covInverse.inverse();
 }
 
 template <class ImageScalarType, class DataImageType>
