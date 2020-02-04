@@ -22,23 +22,14 @@ template <typename ScalarType> void QRGivensDecomposition(vnl_matrix <ScalarType
         {
             double bValue = aMatrix.get(i,j);
             double aValue = aMatrix.get(j,j);
-            if (bValue == 0.0)
+            if (std::abs(bValue) <= std::numeric_limits <double>::epsilon())
                 continue;
 
             // Compute Givens cos and sine values
             double cosValue, sinValue;
-            if (std::abs(bValue) > std::abs(aValue))
-            {
-                double tau = - aValue / bValue;
-                sinValue = 1.0 / std::sqrt(1.0 + tau * tau);
-                cosValue = sinValue * tau;
-            }
-            else
-            {
-                double tau = - bValue / aValue;
-                cosValue = 1.0 / std::sqrt(1.0 + tau * tau);
-                sinValue = cosValue * tau;
-            }
+            double r = std::hypot(aValue,bValue);
+            cosValue = aValue / r;
+            sinValue = - bValue / r;
 
             for (unsigned int k = j;k < n;++k)
             {

@@ -291,7 +291,7 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
         }
     }
 
-    derivative.SetSize(nbParams, nbValues);
+    derivative.SetSize(nbValues, nbParams);
     derivative.Fill(0.0);
     ListType DFw(nbValues,0.0);
 
@@ -329,17 +329,19 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
         // - derivative = FMatrixInverseG tmpVec - DFw
         for (unsigned int i = 0;i < nbValues;++i)
         {
-            derivative(k,i) = - DFw[i];
+            double derivativeVal = - DFw[i];
 
             for (unsigned int j = 0;j < numOnCompartments;++j)
-                derivative(k,i) += m_FMatrixInverseG.get(i,j) * tmpVec[j];
+                derivativeVal += m_FMatrixInverseG.get(i,j) * tmpVec[j];
+
+            derivative.put(i,k,derivativeVal);
         }
     }
 
     bool problem = false;
     for (unsigned int i = 0;i < nbParams;++i)
     {
-        if (!boost::math::isfinite(derivative(i,0)))
+        if (!boost::math::isfinite(derivative.get(0,i)))
         {
             problem = true;
             break;
@@ -361,8 +363,8 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
 void
 GaussianMCMVariableProjectionCost::GetCurrentDerivative(DerivativeMatrixType &derivativeMatrix, DerivativeType &derivative)
 {
-    unsigned int nbParams = derivativeMatrix.rows();
-    unsigned int nbValues = derivativeMatrix.columns();
+    unsigned int nbParams = derivativeMatrix.columns();
+    unsigned int nbValues = derivativeMatrix.rows();
 
     // Current derivative of the system is 2 residual^T derivativeMatrix
     // To handle the fact that the cost function is -2 log(L) and not the rms problem itself
@@ -371,7 +373,7 @@ GaussianMCMVariableProjectionCost::GetCurrentDerivative(DerivativeMatrixType &de
     {
         derivative[i] = 0.0;
         for (unsigned int j = 0;j < nbValues;++j)
-            derivative[i] += m_Residuals[j] * derivativeMatrix.get(i,j);
+            derivative[i] += m_Residuals[j] * derivativeMatrix.get(j,i);
 
         derivative[i] *= 2.0 / m_SigmaSquare;
     }

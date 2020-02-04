@@ -77,7 +77,7 @@ GaussianMCMCost::GetDerivativeMatrix(const ParametersType &parameters, Derivativ
             itkExceptionMacro("Get derivative not called with the same parameters as GetValue, suggestive of NaN...");
     }
 
-    derivative.SetSize(nbParams, nbValues);
+    derivative.SetSize(nbValues, nbParams);
     derivative.Fill(0.0);
 
     std::vector<ListType> signalJacobians(nbValues);
@@ -88,15 +88,15 @@ GaussianMCMCost::GetDerivativeMatrix(const ParametersType &parameters, Derivativ
                                                                m_GradientStrengths[i],m_Gradients[i]);
 
         for (unsigned int j = 0;j < nbParams;++j)
-            derivative(j,i) = signalJacobians[i][j];
+            derivative.put(i,j,signalJacobians[i][j]);
     }
 }
 
 void
 GaussianMCMCost::GetCurrentDerivative(DerivativeMatrixType &derivativeMatrix, DerivativeType &derivative)
 {
-    unsigned int nbParams = derivativeMatrix.rows();
-    unsigned int nbValues = derivativeMatrix.columns();
+    unsigned int nbParams = derivativeMatrix.columns();
+    unsigned int nbValues = derivativeMatrix.rows();
 
     derivative.set_size(nbParams);
 
@@ -104,7 +104,7 @@ GaussianMCMCost::GetCurrentDerivative(DerivativeMatrixType &derivativeMatrix, De
     {
         double residualJacobianResidualProduct = 0;
         for (unsigned int i = 0;i < nbValues;++i)
-            residualJacobianResidualProduct += derivativeMatrix(j,i) * m_Residuals[i];
+            residualJacobianResidualProduct += derivativeMatrix(i,j) * m_Residuals[i];
 
         if (!m_MarginalEstimation)
             derivative[j] = 2.0 * residualJacobianResidualProduct / m_SigmaSquare;

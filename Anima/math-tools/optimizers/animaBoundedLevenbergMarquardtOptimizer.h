@@ -70,7 +70,7 @@ protected:
                                  ParametersType &upperBounds, unsigned int rank);
 
     void UpdateLambdaParameter(DerivativeType &derivative, ParametersType &dValues,
-                               std::vector <unsigned int> &inversePivotVector,
+                               std::vector <unsigned int> &pivotVector,
                                ParametersType &qtResiduals, unsigned int rank);
 
     bool CheckConditions(unsigned int numIterations, ParametersType &newParams,

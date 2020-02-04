@@ -9,15 +9,13 @@ BLMLambdaCostFunction::MeasureType
 BLMLambdaCostFunction::GetValue(const ParametersType &parameters) const
 {
     unsigned int nbParams = m_LowerBoundsPermutted.size();
+    unsigned int numLines = m_InputWResiduals.size();
 
-    ParametersType pPermutted(nbParams), pPermuttedShrunk(m_JRank);
-    pPermutted.fill(0.0);
+    m_PPermutted.set_size(nbParams);
+    m_PPermuttedShrunk.set_size(m_JRank);
 
     // Solve (JtJ + lambda d^2) x = - Jt r, for a given lambda as parameter
     // Use the fact that pi^T D pi and pi a permutation matrix when D diagonal is diagonal, is equivalent to d[pivotVector[i]] in vector form
-
-    m_RAlphaTranspose.set_size(nbParams,nbParams);
-    m_RAlphaTranspose.fill(0.0);
 
     if (parameters[0] > 0.0)
     {
@@ -25,71 +23,47 @@ BLMLambdaCostFunction::GetValue(const ParametersType &parameters) const
         m_WorkMatrix = m_InputWorkMatrix;
         for (unsigned int i = 0;i < nbParams;++i)
             m_WorkMatrix.put(m_JRank + i,i,std::sqrt(parameters[0]) * m_DValues[m_PivotVector[i]]);
-        m_WResiduals = m_InputWResiduals;
+
+        for (unsigned int i = 0;i < numLines;++i)
+            m_WResiduals[i] = m_InputWResiduals[i];
 
         anima::QRGivensDecomposition(m_WorkMatrix,m_WResiduals);
-        anima::UpperTriangularSolver(m_WorkMatrix,m_WResiduals,pPermutted,nbParams);
+        anima::UpperTriangularSolver(m_WorkMatrix,m_WResiduals,m_PPermutted,nbParams);
 
-        for (unsigned int i = 0;i < nbParams;++i)
-        {
-            for (unsigned int j = i;j < nbParams;++j)
-                m_RAlphaTranspose.put(j,i,m_WorkMatrix.get(i,j));
-        }
-
-        bool inBounds = this->CheckSolutionIsInBounds(pPermutted);
-
-        if (!inBounds)
-        {
-            for (unsigned int i = 0;i < nbParams;++i)
-                pPermutted[i] = std::min(m_UpperBoundsPermutted[i],std::max(m_LowerBoundsPermutted[i],pPermutted[i]));
-        }
+        m_SolutionInBounds = this->CheckSolutionIsInBounds(m_PPermutted);
     }
     else
     {
         // Compute simpler solution if tested parameter is zero
         // (solver uses only square rank subpart of work matrix, and rank first wresiduals)
-        anima::UpperTriangularSolver(m_ZeroWorkMatrix,m_ZeroWResiduals,pPermuttedShrunk,m_JRank);
-        bool inBounds = this->CheckSolutionIsInBounds(pPermuttedShrunk);
+        anima::UpperTriangularSolver(m_ZeroWorkMatrix,m_ZeroWResiduals,m_PPermuttedShrunk,m_JRank);
+        m_SolutionInBounds = this->CheckSolutionIsInBounds(m_PPermuttedShrunk);
 
         for (unsigned int i = 0;i < m_JRank;++i)
-        {
-            for (unsigned int j = i;j < m_JRank;++j)
-                m_RAlphaTranspose.put(j,i,m_ZeroWorkMatrix.get(i,j));
-        }
-
-        if (!inBounds)
-        {
-            for (unsigned int i = 0;i < m_JRank;++i)
-                pPermuttedShrunk[i] = std::min(m_UpperBoundsPermutted[i],std::max(m_LowerBoundsPermutted[i],pPermuttedShrunk[i]));
-        }
-
-        for (unsigned int i = 0;i < m_JRank;++i)
-            pPermutted[i] = pPermuttedShrunk[i];
-
+            m_PPermutted[i] = m_PPermuttedShrunk[i];
         for (unsigned int i = m_JRank;i < nbParams;++i)
-        {
-            pPermutted[i] = std::min(pPermutted[i],m_UpperBoundsPermutted[i]);
-            pPermutted[i] = std::max(pPermutted[i],m_LowerBoundsPermutted[i]);
-        }
+            m_PPermutted[i] = 0.0;
     }
 
-    double phiNorm = 0.0;
+    if (!m_SolutionInBounds)
+    {
+        for (unsigned int i = 0;i < nbParams;++i)
+            m_PPermutted[i] = std::min(m_UpperBoundsPermutted[i],std::max(m_LowerBoundsPermutted[i],m_PPermutted[i]));
+    }
 
     m_SolutionVector.set_size(nbParams);
-    m_SolutionVector.fill(0.0);
 
+    double phiNorm = 0.0;
     for (unsigned int i = 0;i < nbParams;++i)
     {
-        m_SolutionVector[i] = pPermutted[m_InversePivotVector[i]];
-        double phiVal = m_DValues[i] * pPermutted[m_InversePivotVector[i]];
+        m_SolutionVector[i] = m_PPermutted[m_InversePivotVector[i]];
+        double phiVal = m_DValues[i] * m_SolutionVector[i];
         phiNorm += phiVal * phiVal;
     }
 
     phiNorm = std::sqrt(phiNorm);
 
-    double costValue = phiNorm - m_DeltaParameter;
-
-    return costValue;
+    return phiNorm - m_DeltaParameter;
 }
 
 bool BLMLambdaCostFunction::CheckSolutionIsInBounds(ParametersType &solutionVector) const
@@ -110,7 +84,7 @@ bool BLMLambdaCostFunction::CheckSolutionIsInBounds(ParametersType &solutionVect
 void
 BLMLambdaCostFunction::GetDerivative(const ParametersType &parameters, DerivativeType &derivative) const
 {
-    // No derivative as projections can lead to non linearities and non differentiabilities
+    // Not implemented yet
 }
 
 void
@@ -139,8 +113,9 @@ BLMLambdaCostFunction::SetInputWorkMatricesAndVectorsFromQRDerivative(vnl_matrix
     {
         for (unsigned int j = i;j < rank;++j)
         {
-            m_ZeroWorkMatrix.put(i,j,qrDerivative.get(i,j));
-            m_InputWorkMatrix.put(i,j,qrDerivative.get(i,j));
+            double tmpVal = qrDerivative.get(i,j);
+            m_ZeroWorkMatrix.put(i,j,tmpVal);
+            m_InputWorkMatrix.put(i,j,tmpVal);
         }
 
         for (unsigned int j = rank;j < nbParams;++j)

@@ -40,6 +40,7 @@ public:
 
     itkSetMacro(JRank, unsigned int)
     itkSetMacro(DeltaParameter, double)
+    itkGetMacro(SolutionInBounds, bool)
 
     void SetDValues(ParametersType &dVal) {m_DValues = dVal;}
     void SetInversePivotVector(std::vector <unsigned int> &invPiv) {m_InversePivotVector = invPiv;}
@@ -65,12 +66,13 @@ private:
     ITK_DISALLOW_COPY_AND_ASSIGN(BLMLambdaCostFunction);
 
     ParametersType m_DValues, m_InputWResiduals, m_ZeroWResiduals;
+    mutable ParametersType m_PPermutted, m_PPermuttedShrunk;
     mutable ParametersType m_WResiduals;
     std::vector <unsigned int> m_InversePivotVector, m_PivotVector;
     ParametersType m_LowerBoundsPermutted, m_UpperBoundsPermutted;
     vnl_matrix <double> m_InputWorkMatrix;
     mutable vnl_matrix <double> m_WorkMatrix;
-    mutable vnl_matrix <double> m_ZeroWorkMatrix, m_RAlphaTranspose;
+    mutable vnl_matrix <double> m_ZeroWorkMatrix;
     mutable ParametersType m_SolutionVector;
     mutable bool m_SolutionInBounds;
     double m_DeltaParameter;
