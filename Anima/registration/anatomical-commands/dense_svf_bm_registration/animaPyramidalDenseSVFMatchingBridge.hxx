@@ -415,6 +415,8 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
         delete mainMatcher;
         if (reverseMatcher)
             delete reverseMatcher;
+        if (agregPtr)
+            delete agregPtr;
     }
 
     if (m_Abort)

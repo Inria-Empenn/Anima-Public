@@ -99,8 +99,8 @@ public:
     /**
      * Setter for images
      * */
-    void SetReferenceImage(InputImageConstPointer referenceImage) {m_ReferenceImage = referenceImage;}
-    void SetFloatingImage(InputImageConstPointer floatingImage) {m_FloatingImage = floatingImage;}
+    void SetReferenceImage(InputImagePointer referenceImage) {m_ReferenceImage = referenceImage;}
+    void SetFloatingImage(InputImagePointer floatingImage) {m_FloatingImage = floatingImage;}
 
     InputImagePointer GetOutputImage() {return m_OutputImage;}
 
@@ -235,7 +235,7 @@ private:
     BaseTransformPointer m_OutputTransform;
     InputImagePointer m_OutputImage;
 
-    InputImageConstPointer m_ReferenceImage, m_FloatingImage;
+    InputImagePointer m_ReferenceImage, m_FloatingImage;
     MaskImagePointer m_BlockGenerationMask;
     PyramidPointer m_ReferencePyramid, m_FloatingPyramid;
     MaskPyramidPointer m_BlockGenerationPyramid;

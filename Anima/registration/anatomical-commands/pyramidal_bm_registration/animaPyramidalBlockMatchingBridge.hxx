@@ -455,6 +455,8 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
         delete mainMatcher;
         if (reverseMatcher)
             delete reverseMatcher;
+        if (agreg)
+            delete agreg;
     }
 
     if (m_Abort)
@@ -490,6 +492,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
     tmpResample->Update();
 
     m_OutputImage = tmpResample->GetOutput();
+    m_OutputImage->DisconnectPipeline();
 }
 
 template <unsigned int ImageDimension>

@@ -170,7 +170,7 @@ int main(int argc, const char** argv)
         InputSubImageType::Pointer rigidReference = matcher->GetOutputImage();
 
         // Then perform directional affine registration
-        matcher->SetReferenceImage(rigidReference.GetPointer());
+        matcher->SetReferenceImage(rigidReference);
         matcher->SetFloatingImage(extractFilter->GetOutput());
         matcher->SetTransform(PyramidBMType::Directional_Affine);
         matcher->SetOutputTransformType(PyramidBMType::outAffine);
@@ -193,8 +193,8 @@ int main(int argc, const char** argv)
         typedef anima::PyramidalDenseSVFMatchingBridge <Dimension> NonLinearPyramidBMType;
         NonLinearPyramidBMType::Pointer nonLinearMatcher = NonLinearPyramidBMType::New();
 
-        nonLinearMatcher->SetReferenceImage(rigidReference.GetPointer());
-        nonLinearMatcher->SetFloatingImage(matcher->GetOutputImage().GetPointer());
+        nonLinearMatcher->SetReferenceImage(rigidReference);
+        nonLinearMatcher->SetFloatingImage(matcher->GetOutputImage());
 
         // Setting matcher arguments
         nonLinearMatcher->SetBlockSize(blockSizeArg.getValue());
