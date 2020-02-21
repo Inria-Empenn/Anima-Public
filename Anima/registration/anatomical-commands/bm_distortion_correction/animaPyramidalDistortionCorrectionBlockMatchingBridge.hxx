@@ -259,6 +259,11 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
 
         const DisplacementFieldTransformType *resTrsf = dynamic_cast <const DisplacementFieldTransformType *> (bmreg->GetOutput()->Get());
         m_OutputTransform->SetParametersAsVectorField(resTrsf->GetParametersAsVectorField());
+
+        if (agregPtr)
+            delete agregPtr;
+        if (mainMatcher)
+            delete mainMatcher;
     }
     
     if (m_LastPyramidLevel != 0)
