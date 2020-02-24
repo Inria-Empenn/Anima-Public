@@ -119,7 +119,7 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
         m_LambdaCostFunction->SetUpperBoundsPermutted(upperBoundsPermutted);
 
         // Updates lambda and get new addon vector at the same time
-        this->UpdateLambdaParameter(derivativeMatrix,dValues,pivotVector, qtResiduals,rank);
+        this->UpdateLambdaParameter(derivativeMatrix,dValues,pivotVector,qtResiduals,rank);
 
         parameters = oldParameters;
         parameters += m_CurrentAddonVector;
@@ -277,7 +277,7 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
 
     unsigned int n = derivative.cols();
 
-    // Compute upper bound for lambda
+    // Compute upper bound for lambda: D^-1 * pi * R^t * Q^t * residuals
     double u0InVectorPart;
     for (unsigned int i = 0;i < n;++i)
     {
@@ -286,6 +286,7 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
         for (unsigned int j = 0;j < maxIndex;++j)
             u0InVectorPart += derivative.get(j,i) * qtResiduals[j];
 
+        // u0InVectorPart is the one that goes into pivotVector[i] so we divide by the good d value
         upperBoundLambda += (u0InVectorPart / dValues[pivotVector[i]]) * (u0InVectorPart / dValues[pivotVector[i]]);
     }
 
