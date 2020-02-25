@@ -78,6 +78,7 @@ CheckStructureNeighborFilter< TInput, TMask, TOutput >
     filterLabelContour->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     filterLabelContour->SetCoordinateTolerance(m_Tol);
     filterLabelContour->SetDirectionTolerance(m_Tol);
+    filterLabelContour->SetBackgroundValue(0);
     filterLabelContour->Update();
 
     unsigned int objectCount = ConnectedComponentFilter->GetObjectCount();

@@ -166,6 +166,7 @@ GenerateData()
         labelContourImageFilter->SetInput( connectedComponentImageFilter2->GetOutput() );
         labelContourImageFilter->SetFullyConnected(true);
         labelContourImageFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
+        labelContourImageFilter->SetBackgroundValue(0);
         labelContourImageFilter->Update();
 
 
