@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10.2)
 
 cmake_policy(SET CMP0048 NEW)
-project(ANIMA VERSION 3.3)
+project(ANIMA VERSION 3.4)
 
 ## #############################################################################
 ## Add additional cmake modules
