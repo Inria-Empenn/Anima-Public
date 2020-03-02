@@ -1,8 +1,7 @@
 #pragma once
 
 #include <itkMultipleValuedNonLinearOptimizer.h>
-
-#include <animaCholeskyDecomposition.h>
+#include <animaBLMLambdaCostFunction.h>
 #include "AnimaOptimizersExport.h"
 
 namespace anima
@@ -43,8 +42,7 @@ public:
 
     itkSetMacro(NumberOfIterations, unsigned int)
     itkSetMacro(ValueTolerance, double)
-    itkSetMacro(GradientTolerance, double)
-    itkSetMacro(LambdaParameter, double)
+    itkSetMacro(CostTolerance, double)
 
     itkGetMacro(CurrentValue, double)
 
@@ -56,35 +54,42 @@ protected:
     {
         m_NumberOfIterations = 2000;
         m_ValueTolerance = 1e-8;
-        m_GradientTolerance = 1e-5;
+        m_CostTolerance = 1e-5;
         m_LambdaParameter = 1.0e-8;
+        m_DeltaParameter = 0.0;
 
         m_CurrentValue = 0.0;
+        m_LambdaCostFunction = anima::BLMLambdaCostFunction::New();
     }
 
     virtual ~BoundedLevenbergMarquardtOptimizer() ITK_OVERRIDE {}
 
-    void GetDerivativeSquared(DerivativeType &derivativeMatrix, DerivativeType &derivativeSquared);
+    double EvaluateCostFunctionAtParameters(ParametersType &parameters, MeasureType &residualValues);
 
-    double EvaluateCostFunctionAtParameters(ParametersType &parameters, ParametersType &scaledParameters,
-                                            MeasureType &residualValues);
+    bool CheckSolutionIsInBounds(ParametersType &solutionVector, ParametersType &lowerBounds,
+                                 ParametersType &upperBounds, unsigned int rank);
 
-    bool CheckConditions(unsigned int numIterations, ParametersType &lastTestedParams,
-                         ParametersType &newParams, DerivativeType &newDerivative);
+    void UpdateLambdaParameter(DerivativeType &derivative, ParametersType &dValues,
+                               std::vector <unsigned int> &pivotVector,
+                               ParametersType &qtResiduals, unsigned int rank);
+
+    bool CheckConditions(unsigned int numIterations, ParametersType &newParams,
+                         ParametersType &dValues, double newCostValue);
 
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(BoundedLevenbergMarquardtOptimizer);
 
     unsigned int m_NumberOfIterations;
     double m_ValueTolerance;
-    double m_GradientTolerance;
+    double m_CostTolerance;
 
     double m_LambdaParameter;
+    double m_DeltaParameter;
     double m_CurrentValue;
 
-    anima::CholeskyDecomposition m_CholeskySolver;
-    ParametersType m_LowerBounds, m_WorkLowerBounds;
-    ParametersType m_UpperBounds, m_WorkUpperBounds;
+    anima::BLMLambdaCostFunction::Pointer m_LambdaCostFunction;
+    ParametersType m_LowerBounds, m_UpperBounds;
+    ParametersType m_CurrentAddonVector;
     MeasureType m_ResidualValues;
 };
 

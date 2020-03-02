@@ -156,7 +156,7 @@ public:
     itkSetMacro(RadialDiffusivity2Value, double)
 
     itkSetMacro(XTolerance, double)
-    itkSetMacro(GTolerance, double)
+    itkSetMacro(FTolerance, double)
     itkSetMacro(MaxEval, unsigned int)
 
 protected:
@@ -211,7 +211,7 @@ protected:
 
         m_MaxEval = 0;
         m_XTolerance = 0;
-        m_GTolerance = 0;
+        m_FTolerance = 0;
 
         m_SmallDelta = anima::DiffusionSmallDelta;
         m_BigDelta = anima::DiffusionBigDelta;
@@ -349,8 +349,8 @@ private:
 
     unsigned int m_MaxEval;
     double m_XTolerance;
-    double m_GTolerance;
-    
+    double m_FTolerance;
+
     //! Coarse grid values for complex model initialization
     std::vector < std::vector <double> > m_ValuesCoarseGrid;
 };

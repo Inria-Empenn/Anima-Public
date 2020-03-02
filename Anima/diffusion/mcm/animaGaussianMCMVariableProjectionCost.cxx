@@ -1,5 +1,6 @@
 #include <animaGaussianMCMVariableProjectionCost.h>
 #include <cmath>
+#include <algorithm>
 
 #include <animaBaseTensorTools.h>
 #include <boost/math/special_functions/gamma.hpp>
@@ -52,7 +53,7 @@ GaussianMCMVariableProjectionCost::SolveLinearLeastSquares()
     {
         m_Residuals[i] = m_ObservedSignals[i];
         for (unsigned int j = 0;j < numCompartments;++j)
-            m_Residuals[i] -= m_PredictedSignalAttenuations(i,j) * m_OptimalUsefulWeights[j];
+            m_Residuals[i] -= m_PredictedSignalAttenuations.get(i,j) * m_OptimalUsefulWeights[j];
 
         m_SigmaSquare += m_Residuals[i] * m_Residuals[i];
     }
@@ -95,6 +96,7 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
 
     numCompartments = pos;
     m_IndexesUsefulCompartments.resize(numCompartments);
+    std::sort(m_IndexesUsefulCompartments.begin(),m_IndexesUsefulCompartments.end());
 
     // Compute predicted signals and jacobian
     m_PredictedSignalAttenuations.set_size(nbValues,numCompartments);
@@ -104,7 +106,7 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
         {
             unsigned int indexComp = m_IndexesUsefulCompartments[j];
             double predictedSignal = m_MCMStructure->GetCompartment(indexComp)->GetFourierTransformedDiffusionProfile(m_SmallDelta, m_BigDelta, m_GradientStrengths[i], m_Gradients[i]);
-            m_PredictedSignalAttenuations(i,j) = predictedSignal;
+            m_PredictedSignalAttenuations.put(i,j,predictedSignal);
         }
     }
 
@@ -116,19 +118,20 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
     {
         m_FSignals[i] = 0.0;
         for (unsigned int j = 0;j < nbValues;++j)
-            m_FSignals[i] += m_PredictedSignalAttenuations(j,i) * m_ObservedSignals[j];
+            m_FSignals[i] += m_PredictedSignalAttenuations.get(j,i) * m_ObservedSignals[j];
 
         if (negativeWeights)
             m_FSignals[i] *= -1;
 
         for (unsigned int j = i;j < numCompartments;++j)
         {
-            m_CholeskyMatrix(i,j) = 0;
+            double cholValue = 0.0;
             for (unsigned int k = 0;k < nbValues;++k)
-                m_CholeskyMatrix(i,j) += m_PredictedSignalAttenuations(k,i) * m_PredictedSignalAttenuations(k,j);
+                cholValue += m_PredictedSignalAttenuations.get(k,i) * m_PredictedSignalAttenuations.get(k,j);
 
+            m_CholeskyMatrix.put(i,j,cholValue);
             if (i != j)
-                m_CholeskyMatrix(j,i) = m_CholeskyMatrix(i,j);
+                m_CholeskyMatrix.put(j,i,cholValue);
         }
     }
 
@@ -205,15 +208,17 @@ GaussianMCMVariableProjectionCost::PrepareDataForDerivative()
         if (!m_CompartmentSwitches[i])
             continue;
 
-        m_GramMatrix(posX,posX) = m_CholeskyMatrix(i,i);
+        m_GramMatrix.put(posX,posX,m_CholeskyMatrix.get(i,i));
         posY = posX + 1;
         for (unsigned int j = i + 1;j < numCompartments;++j)
         {
             if (!m_CompartmentSwitches[j])
                 continue;
 
-            m_GramMatrix(posX,posY) = m_CholeskyMatrix(i,j);
-            m_GramMatrix(posY,posX) = m_GramMatrix(posX,posY);
+            double val = m_CholeskyMatrix(i,j);
+
+            m_GramMatrix.put(posX,posY,val);
+            m_GramMatrix.put(posY,posX,val);
             ++posY;
         }
 
@@ -227,25 +232,20 @@ GaussianMCMVariableProjectionCost::PrepareDataForDerivative()
     m_FMatrixInverseG.set_size(nbValues,numOnCompartments);
     for (unsigned int i = 0;i < nbValues;++i)
     {
-        unsigned int pos = 0;
-        for (unsigned int j = 0;j < numCompartments;++j)
+        for (unsigned int j = 0;j < numOnCompartments;++j)
         {
-            if (!m_CompartmentSwitches[j])
-                continue;
-
-            m_FMatrixInverseG(i,pos) = 0.0;
+            double fInvGValue = 0.0;
             unsigned int posK = 0;
             for (unsigned int k = 0;k < numCompartments;++k)
             {
                 if (!m_CompartmentSwitches[k])
                     continue;
 
-                m_FMatrixInverseG(i,pos) += m_PredictedSignalAttenuations(i,k) * m_InverseGramMatrix(posK,pos);
+                fInvGValue += m_PredictedSignalAttenuations(i,k) * m_InverseGramMatrix(posK,j);
                 ++posK;
             }
 
-            ++pos;
-        }
+            m_FMatrixInverseG.put(i,j,fInvGValue);        }
     }
 
     for (unsigned int i = 0;i < nbValues;++i)
@@ -261,7 +261,7 @@ GaussianMCMVariableProjectionCost::PrepareDataForDerivative()
 
             unsigned int compartmentSize = compartmentJacobian.size();
             for (unsigned int k = 0;k < compartmentSize;++k)
-                m_SignalAttenuationsJacobian[pos+k](i,j) = compartmentJacobian[k];
+                m_SignalAttenuationsJacobian[pos+k].put(i,j,compartmentJacobian[k]);
 
             pos += compartmentSize;
         }
@@ -291,7 +291,7 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
         }
     }
 
-    derivative.SetSize(nbParams, nbValues);
+    derivative.SetSize(nbValues, nbParams);
     derivative.Fill(0.0);
     ListType DFw(nbValues,0.0);
 
@@ -306,7 +306,7 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
         {
             DFw[i] = 0.0;
             for (unsigned int j = 0;j < numCompartments;++j)
-                DFw[i] += m_SignalAttenuationsJacobian[k](i,j) * m_OptimalUsefulWeights[j];
+                DFw[i] += m_SignalAttenuationsJacobian[k].get(i,j) * m_OptimalUsefulWeights[j];
         }
 
         // Then, compute
@@ -320,7 +320,7 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
             tmpVec[pos] = 0.0;
 
             for (unsigned int i = 0;i < nbValues;++i)
-                tmpVec[pos] += m_PredictedSignalAttenuations(i,j) * DFw[i] - m_SignalAttenuationsJacobian[k](i,j) * m_Residuals[i];
+                tmpVec[pos] += m_PredictedSignalAttenuations.get(i,j) * DFw[i] - m_SignalAttenuationsJacobian[k].get(i,j) * m_Residuals[i];
 
             ++pos;
         }
@@ -329,17 +329,19 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
         // - derivative = FMatrixInverseG tmpVec - DFw
         for (unsigned int i = 0;i < nbValues;++i)
         {
-            derivative(k,i) = - DFw[i];
+            double derivativeVal = - DFw[i];
 
             for (unsigned int j = 0;j < numOnCompartments;++j)
-                derivative(k,i) += m_FMatrixInverseG(i,j) * tmpVec[j];
+                derivativeVal += m_FMatrixInverseG.get(i,j) * tmpVec[j];
+
+            derivative.put(i,k,derivativeVal);
         }
     }
 
     bool problem = false;
     for (unsigned int i = 0;i < nbParams;++i)
     {
-        if (!boost::math::isfinite(derivative(i,0)))
+        if (!boost::math::isfinite(derivative.get(0,i)))
         {
             problem = true;
             break;
@@ -361,8 +363,8 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
 void
 GaussianMCMVariableProjectionCost::GetCurrentDerivative(DerivativeMatrixType &derivativeMatrix, DerivativeType &derivative)
 {
-    unsigned int nbParams = derivativeMatrix.rows();
-    unsigned int nbValues = derivativeMatrix.columns();
+    unsigned int nbParams = derivativeMatrix.columns();
+    unsigned int nbValues = derivativeMatrix.rows();
 
     // Current derivative of the system is 2 residual^T derivativeMatrix
     // To handle the fact that the cost function is -2 log(L) and not the rms problem itself
@@ -371,7 +373,7 @@ GaussianMCMVariableProjectionCost::GetCurrentDerivative(DerivativeMatrixType &de
     {
         derivative[i] = 0.0;
         for (unsigned int j = 0;j < nbValues;++j)
-            derivative[i] += m_Residuals[j] * derivativeMatrix(i,j);
+            derivative[i] += m_Residuals[j] * derivativeMatrix.get(j,i);
 
         derivative[i] *= 2.0 / m_SigmaSquare;
     }

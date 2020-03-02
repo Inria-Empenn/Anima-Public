@@ -1,5 +1,5 @@
 #include <animaNNLSOptimizer.h>
-#include <vnl_qr.h>
+#include <vnl/algo/vnl_qr.h>
 
 namespace anima
 {
@@ -145,10 +145,10 @@ void NNLSOptimizer::ComputeWVector()
         {
             double tmpValue = m_Points[i];
             for (unsigned int j = 0;j < parametersSize;++j)
-                tmpValue -= m_DataMatrix(i,j) * m_CurrentPosition[j];
+                tmpValue -= m_DataMatrix.get(i,j) * m_CurrentPosition[j];
 
             for (unsigned int j = 0;j < parametersSize;++j)
-                m_WVector[j] += m_DataMatrix(i,j) * tmpValue;
+                m_WVector[j] += m_DataMatrix.get(i,j) * tmpValue;
         }
     }
     else
@@ -157,7 +157,7 @@ void NNLSOptimizer::ComputeWVector()
         {
             m_WVector[i] = m_Points[i];
             for (unsigned int j = 0;j < parametersSize;++j)
-                m_WVector[i] -= m_DataMatrix(i,j) * m_CurrentPosition[j];
+                m_WVector[i] -= m_DataMatrix.get(i,j) * m_CurrentPosition[j];
         }
     }
 }
@@ -199,7 +199,7 @@ void NNLSOptimizer::ComputeSPVector()
         for (unsigned int i = 0;i < numEquations;++i)
         {
             for (unsigned int j = 0;j < numProcessedIndexes;++j)
-                m_DataMatrixP(i,j) = m_DataMatrix(i,m_ProcessedIndexes[j]);
+                m_DataMatrixP.put(i,j,m_DataMatrix.get(i,m_ProcessedIndexes[j]));
         }
 
         m_SPVector = vnl_qr <double> (m_DataMatrixP).solve(m_Points);
@@ -218,10 +218,10 @@ void NNLSOptimizer::ComputeSPVector()
             for (unsigned int j = i;j < numProcessedIndexes;++j)
             {
                 unsigned int jIndex = m_ProcessedIndexes[j];
-                m_DataMatrixP(i,j) = m_DataMatrix(iIndex,jIndex);
+                m_DataMatrixP.put(i,j,m_DataMatrix.get(iIndex,jIndex));
 
                 if (i != j)
-                    m_DataMatrixP(j,i) = m_DataMatrixP(i,j);
+                    m_DataMatrixP.put(j,i,m_DataMatrixP.get(i,j));
             }
         }
 
@@ -239,7 +239,7 @@ double NNLSOptimizer::GetCurrentResidual()
     {
         double tmpVal = 0;
         for (unsigned int j = 0;j < m_DataMatrix.cols();++j)
-            tmpVal += m_DataMatrix(i,j) * m_CurrentPosition[j];
+            tmpVal += m_DataMatrix.get(i,j) * m_CurrentPosition[j];
 
         residualValue += (tmpVal - m_Points[i]) * (tmpVal - m_Points[i]);
     }

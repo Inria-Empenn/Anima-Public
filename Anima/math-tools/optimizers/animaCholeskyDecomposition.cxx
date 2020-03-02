@@ -19,17 +19,21 @@ void CholeskyDecomposition::PerformDecomposition()
 \
     for (unsigned int i = 0;i < m_MatrixSize;++i)
     {
-        m_DMatrix[i] = m_InputMatrix(i,i);
+        m_DMatrix[i] = m_InputMatrix.get(i,i);
         for (unsigned int j = 0;j < i;++j)
-            m_DMatrix[i] -= m_LMatrix(i,j) * m_LMatrix(i,j) * m_DMatrix[j];
+        {
+            double tmpVal = m_LMatrix.get(i,j);
+            m_DMatrix[i] -= tmpVal * tmpVal * m_DMatrix[j];
+        }
 
         for (unsigned int j = i + 1;j < m_MatrixSize;++j)
         {
             double diffVal = 0;
             for (unsigned int k = 0;k < i;++k)
-                diffVal += m_LMatrix(j,k) * m_LMatrix(i,k) * m_DMatrix[k];
+                diffVal += m_LMatrix.get(j,k) * m_LMatrix.get(i,k) * m_DMatrix[k];
 
-            m_LMatrix(j,i) = (m_InputMatrix(j,i) - diffVal) / m_DMatrix[i];
+            double lVal = (m_InputMatrix.get(j,i) - diffVal) / m_DMatrix[i];
+            m_LMatrix.put(j,i,lVal);
         }
     }
 }
@@ -67,7 +71,7 @@ void CholeskyDecomposition::SolveLinearSystemInPlace(VectorType &b)
     for (unsigned int i = 1;i < m_MatrixSize;++i)
     {
         for (unsigned int j = 0;j < i;++j)
-            b[i] -= m_LMatrix(i,j) * b[j];
+            b[i] -= m_LMatrix.get(i,j) * b[j];
     }
 
     for (unsigned int i = 0;i < m_MatrixSize;++i)
@@ -76,7 +80,7 @@ void CholeskyDecomposition::SolveLinearSystemInPlace(VectorType &b)
     for (int i = m_MatrixSize - 2;i >= 0;--i)
     {
         for (unsigned int j = i + 1;j < m_MatrixSize;++j)
-            b[i] -= m_LMatrix(j,i) * b[j];
+            b[i] -= m_LMatrix.get(j,i) * b[j];
     }
 }
 
@@ -95,7 +99,7 @@ void CholeskyDecomposition::Update(const VectorType &x)
 
         for (unsigned int j = i + 1;j < m_MatrixSize;++j)
         {
-            m_WorkVector[j] -= p * m_LMatrix(j,i);
+            m_WorkVector[j] -= p * m_LMatrix.get(j,i);
             m_LMatrix(j,i) += b * m_WorkVector[j];
         }
     }
@@ -107,12 +111,13 @@ void CholeskyDecomposition::Recompose()
     {
         for (unsigned int j = i;j < m_MatrixSize;++j)
         {
-            m_InputMatrix(i,j) = 0.0;
+            double iValue = 0.0;
             for (unsigned int k = 0;k <= i;++k)
-                m_InputMatrix(i,j) += m_LMatrix(i,k) * m_DMatrix[k] * m_LMatrix(j,k);
+                iValue += m_LMatrix.get(i,k) * m_DMatrix[k] * m_LMatrix.get(j,k);
 
+            m_InputMatrix.put(i,j,iValue);
             if (i != j)
-                m_InputMatrix(j,i) = m_InputMatrix(i,j);
+                m_InputMatrix.put(j,i,iValue);
         }
     }
 }

@@ -370,6 +370,55 @@ template <class ScalarType> void Normalize(const std::vector <ScalarType> &v, st
 }
 /**********************************/
 
+/******* Householder vector functions *******/
+
+// Main
+template <class VectorType> void ComputeHouseholderVector(const VectorType &inputVector, VectorType &outputVector, double &beta, unsigned int dimension)
+{
+    double sigma = 0.0;
+    outputVector[0] = 1.0;
+    for (unsigned int i = 1;i < dimension;++i)
+    {
+        sigma += inputVector[i] * inputVector[i];
+        outputVector[i] = inputVector[i];
+    }
+
+    if (sigma == 0.0)
+        beta = 0.0;
+    else
+    {
+        double mu = std::sqrt(inputVector[0] * inputVector[0] + sigma);
+        if (inputVector[0] <= 0.0)
+            outputVector[0] = inputVector[0] - mu;
+        else
+            outputVector[0] = - sigma / (inputVector[0] + mu);
+
+        beta = 2 * outputVector[0] * outputVector[0] / (sigma + outputVector[0] * outputVector[0]);
+
+        for (unsigned int i = 1;i < dimension;++i)
+            outputVector[i] /= outputVector[0];
+
+        outputVector[0] = 1.0;
+    }
+}
+
+// for std vector
+template <class ScalarType> void ComputeHouseholderVector(const std::vector <ScalarType> &inputVector, std::vector <ScalarType> &outputVector, double &beta)
+{
+    unsigned int dimension = inputVector.size();
+    outputVector.resize(dimension);
+
+    ComputeHouseholderVector(inputVector,outputVector,beta,dimension);
+}
+
+// for std vector in place
+template <class ScalarType> void ComputeHouseholderVector(std::vector <ScalarType> &vector, double &beta)
+{
+    ComputeHouseholderVector(vector,vector,beta);
+}
+
+/**********************************/
+
 template <class VectorType> double ComputeAngle(const VectorType &v1, const VectorType &v2)
 {
     double normV1 = ComputeNorm(v1);

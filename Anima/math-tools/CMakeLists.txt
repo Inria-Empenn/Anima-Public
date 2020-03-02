@@ -18,3 +18,7 @@ add_subdirectory(sphere_operations)
 add_subdirectory(spherical_harmonics)
 add_subdirectory(statistics)
 add_subdirectory(statistical_tests)
+
+if (BUILD_TESTING)
+  add_subdirectory(matrix_operations/qr_test)
+endif()

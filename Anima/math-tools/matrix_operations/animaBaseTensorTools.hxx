@@ -160,12 +160,14 @@ ExtractRotationFromJacobianMatrix(vnl_matrix <RealType> &jacobianMatrix, vnl_mat
     for (unsigned int l = 0;l < tensorDimension;++l)
         for (unsigned int m = l;m < tensorDimension;++m)
         {
-            tmpMat(l,m) = 0;
+            double tmpVal = 0.0;
             for (unsigned int n = 0;n < tensorDimension;++n)
-                tmpMat(l,m) += jacobianMatrix(l,n)*jacobianMatrix(m,n);
+                tmpVal += jacobianMatrix(l,n)*jacobianMatrix(m,n);
+
+            tmpMat.put(l,m,tmpVal);
 
             if (m != l)
-                tmpMat(m,l) = tmpMat(l,m);
+                tmpMat.put(m,l,tmpVal);
         }
 
     itk::SymmetricEigenAnalysis < vnl_matrix <RealType>, vnl_diag_matrix<RealType>, vnl_matrix <RealType> > eigenComputer(tensorDimension);
@@ -175,7 +177,7 @@ ExtractRotationFromJacobianMatrix(vnl_matrix <RealType> &jacobianMatrix, vnl_mat
     eigenComputer.ComputeEigenValuesAndVectors(tmpMat, eVals, eVec);
 
     for (unsigned int i = 0;i < tensorDimension;++i)
-        eVals[i] = pow(eVals[i], -0.5);
+        eVals[i] = std::pow(eVals[i], -0.5);
 
     RecomposeTensor(eVals,eVec,rotationMatrix);
 
@@ -198,8 +200,9 @@ ExtractPPDRotationFromJacobianMatrix(vnl_matrix <RealType> &jacobianMatrix, vnl_
         transformedSecondary[i] = 0;
         for (unsigned int j = 0;j < tensorDimension;++j)
         {
-            transformedPrincipal[i] += jacobianMatrix(i,j) * eigenVectors(2,j);
-            transformedSecondary[i] += jacobianMatrix(i,j) * eigenVectors(1,j);
+            double jacVal = jacobianMatrix.get(i,j);
+            transformedPrincipal[i] += jacVal * eigenVectors(2,j);
+            transformedSecondary[i] += jacVal * eigenVectors(1,j);
         }
     }
 
@@ -234,8 +237,11 @@ ExtractPPDRotationFromJacobianMatrix(vnl_matrix <RealType> &jacobianMatrix, vnl_
     {
         for (unsigned int j = 0;j < tensorDimension;++j)
         {
+            double rotVal = 0.0;
             for (unsigned int k = 0;k < tensorDimension;++k)
-                rotationMatrix(i,j) += secondRotation(i,k) * firstRotation(k,j);
+                rotVal += secondRotation(i,k) * firstRotation(k,j);
+
+            rotationMatrix.put(i,j,rotVal);
         }
     }
 }
@@ -251,12 +257,14 @@ RecomposeTensor(vnl_diag_matrix <T1> &eigs, vnl_matrix <T1> &eigVecs, vnl_matrix
     {
         for (unsigned int j = i;j < tensorDimension;++j)
         {
-            resMatrix(i,j) = 0;
+            double resVal = 0.0;
             for (unsigned int k = 0;k < tensorDimension;++k)
-                resMatrix(i,j) += eigs[k] * eigVecs(k,i) * eigVecs(k,j);
+                resVal += eigs[k] * eigVecs.get(k,i) * eigVecs.get(k,j);
+
+            resMatrix.put(i,j,resVal);
 
             if (j != i)
-                resMatrix(j,i) = resMatrix(i,j);
+                resMatrix.put(j,i,resVal);
         }
     }
 }
@@ -267,19 +275,21 @@ void RotateSymmetricMatrix(T1 &tensor, T2 &rotationMatrix, T3 &rotated_tensor, u
     for (unsigned int i = 0;i < tensorDim;++i)
         for (unsigned int j = i;j < tensorDim;++j)
         {
-            rotated_tensor(i,j) = 0;
+            double rotatedValue = 0.0;
             for (unsigned int a = 0;a < tensorDim;++a)
                 for (unsigned int b = a;b < tensorDim;++b)
                 {
-                    double factor = rotationMatrix(b,i) * rotationMatrix(a,j);
+                    double factor = rotationMatrix.get(b,i) * rotationMatrix.get(a,j);
                     if (b != a)
-                        factor += rotationMatrix(a,i) * rotationMatrix(b,j);
+                        factor += rotationMatrix.get(a,i) * rotationMatrix.get(b,j);
 
-                    rotated_tensor(i,j) += tensor(a,b) * factor;
+                    rotatedValue += tensor.get(a,b) * factor;
                 }
 
+            rotated_tensor.put(i,j,rotatedValue);
+
             if (i != j)
-                rotated_tensor(j,i) = rotated_tensor(i,j);
+                rotated_tensor.put(j,i,rotatedValue);
         }
 }
 
@@ -313,7 +323,7 @@ ovlScore(vnl_diag_matrix <T1> &eigsX, vnl_matrix <T1> &eigVecsX,
     {
         long double dotProd = 0;
         for (unsigned int j = 0;j < sizeData;++j)
-            dotProd += eigVecsX(i,j)*eigVecsY(i,j);
+            dotProd += eigVecsX.get(i,j)*eigVecsY.get(i,j);
 
         resVal += dotProd * dotProd * eigsX[i] * eigsY[i];
         denomVal += eigsX[i] * eigsY[i];

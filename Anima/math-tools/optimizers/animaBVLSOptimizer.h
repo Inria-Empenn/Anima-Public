@@ -4,23 +4,19 @@
 #include <vector>
 
 #include <itkOptimizer.h>
-
-#include <animaCholeskyDecomposition.h>
 #include "AnimaOptimizersExport.h"
 
 namespace anima
 {
-/** \class NNLSOptimizer
- * \brief Non negative least squares optimizer. Implements Lawson et al method,
- * of squared problem is activated, assumes we pass AtA et AtB and uses Bro and de Jong method
- *
- * \ingroup Numerics Optimizers
+/** \class BVLSOptimizer
+ * \brief Bounded variable least squares optimizer. Coming from Stark and Parker paper
+ * P.B. Stark and R.L. Parker. Bounded-variable least-squares: an algorithm and applications. Computational Statistics, 1995
  */
-class ANIMAOPTIMIZERS_EXPORT NNLSOptimizer : public itk::Optimizer
+class ANIMAOPTIMIZERS_EXPORT BVLSOptimizer : public itk::Optimizer
 {
 public:
     /** Standard class typedefs. */
-    typedef NNLSOptimizer Self;
+    typedef BVLSOptimizer Self;
     typedef itk::Optimizer Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self> ConstPointer;
@@ -31,7 +27,7 @@ public:
     itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(NNLSOptimizer, Optimizer)
+    itkTypeMacro(BVLSOptimizer, Optimizer)
 
     /** Type of the input matrix data */
     typedef vnl_matrix <double> MatrixType;
@@ -42,42 +38,34 @@ public:
 
     void SetDataMatrix(const MatrixType &data) {m_DataMatrix = data;}
     void SetPoints(const ParametersType &points) {m_Points = points;}
+    void SetLowerBounds(const ParametersType &lb) {m_LowerBounds = lb;}
+    void SetUpperBounds(const ParametersType &ub) {m_UpperBounds = ub;}
 
     double GetCurrentResidual();
 
-    itkSetMacro(SquaredProblem, bool)
-
 protected:
-    NNLSOptimizer()
-    {
-        m_SquaredProblem = false;
-    }
-
-    virtual ~NNLSOptimizer() ITK_OVERRIDE {}
+    BVLSOptimizer() {}
+    virtual ~BVLSOptimizer() ITK_OVERRIDE {}
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(NNLSOptimizer);
+    ITK_DISALLOW_COPY_AND_ASSIGN(BVLSOptimizer);
 
-    unsigned int UpdateProcessedIndexes();
-    void ComputeSPVector();
+    void InitializeSolutionByProjection();
     void ComputeWVector();
+    bool TestKuhnTuckerConvergence();
 
     MatrixType m_DataMatrix;
     ParametersType m_Points;
 
-    static const double m_EpsilonValue;
-
-    //! Flag to indicate if the inputs are already AtA and AtB
-    bool m_SquaredProblem;
+    ParametersType m_LowerBounds, m_UpperBounds;
 
     // Working values
-    std::vector <unsigned short> m_TreatedIndexes;
-    std::vector <unsigned int> m_ProcessedIndexes;
+    //! Vector holding parameters at bounds: 0: free parameter, 1: parameter at lower bound, -1: parameter at upper bound
+    std::vector <short> m_ParametersAtBoundsVector;
+    std::vector <double> m_TmpVector;
     std::vector <double> m_WVector;
-    VectorType m_SPVector;
-    MatrixType m_DataMatrixP;
-
-    anima::CholeskyDecomposition m_CholeskySolver;
+    vnl_vector <double> m_bPrimeVector, m_ReducedSolution;
+    MatrixType m_ReducedDataMatrix;
 };
 
 } // end of namespace anima

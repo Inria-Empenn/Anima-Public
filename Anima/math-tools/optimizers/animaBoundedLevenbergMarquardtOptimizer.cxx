@@ -1,53 +1,43 @@
 #include <animaBoundedLevenbergMarquardtOptimizer.h>
-#include <animaBaseTensorTools.h>
 #include <limits>
-#include <vnl_qr.h>
+#include <animaQRDecomposition.h>
 
 namespace anima
 {
 
 void BoundedLevenbergMarquardtOptimizer::StartOptimization()
 {
-    ParametersType initialPosition = this->GetInitialPosition();
-    ParametersType parameters(initialPosition);
-    ParametersType workParameters(initialPosition);
+    m_CurrentPosition = this->GetInitialPosition();
+    ParametersType parameters(m_CurrentPosition);
 
     unsigned int nbParams = parameters.size();
 
     MeasureType newResidualValues;
 
-    m_WorkLowerBounds.set_size(m_LowerBounds.size());
-    m_WorkUpperBounds.set_size(m_UpperBounds.size());
-
-    if (m_ScalesInitialized)
-    {
-        const ScalesType &scales = this->GetScales();
-        for (unsigned int i = 0;i < nbParams;++i)
-            parameters[i] *= scales[i];
-    }
-
-    m_CurrentValue = this->EvaluateCostFunctionAtParameters(parameters,workParameters,m_ResidualValues);
+    m_CurrentValue = this->EvaluateCostFunctionAtParameters(parameters,m_ResidualValues);
     unsigned int numResiduals = m_ResidualValues.size();
 
     unsigned int numIterations = 0;
     bool stopConditionReached = false;
     bool rejectedStep = false;
 
-    DerivativeType derivativeMatrix, derivativeSquared, workMatrix;
+    DerivativeType derivativeMatrix(numResiduals,nbParams);
+    DerivativeType derivativeMatrixCopy;
     ParametersType oldParameters = parameters;
-    ParametersType workVector(nbParams);
-    ParametersType addonVector(nbParams);
+    ParametersType dValues(nbParams);
 
-    double nuValue = 2.0;
     // Be careful here: we consider the problem of the form |f(x)|^2, J is thus the Jacobian of f
-    // If f is itself y - g(x), then J = - J_g which is what is onn the wikipedia page
+    // If f is itself y - g(x), then J = - J_g which is what is on the wikipedia page
+    // We assume each entry of derivativeMatrix(i,j) is df_i / dx_j
     m_CostFunction->GetDerivative(parameters,derivativeMatrix);
+    derivativeMatrixCopy = derivativeMatrix;
+
     bool derivativeCheck = false;
     for (unsigned int i = 0;i < nbParams;++i)
     {
         for (unsigned int j = 0;j < numResiduals;++j)
         {
-            if (std::abs(derivativeMatrix(i,j)) > m_GradientTolerance)
+            if (std::abs(derivativeMatrix.get(i,j)) > std::sqrt(std::numeric_limits <double>::epsilon()))
             {
                 derivativeCheck = true;
                 break;
@@ -59,177 +49,275 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     }
 
     if (!derivativeCheck)
-    {
-        this->SetCurrentPosition(initialPosition);
         return;
-    }
 
-    this->GetDerivativeSquared(derivativeMatrix,derivativeSquared);
+    m_DeltaParameter = 0.0;
+    double maxDValue = 0.0;
 
-    double maxSquaredDiag = 0.0;
     for (unsigned int i = 0;i < nbParams;++i)
     {
-        if ((maxSquaredDiag < derivativeSquared(i,i))||(i == 0))
-            maxSquaredDiag = derivativeSquared(i,i);
+        double normValue = 0.0;
+        for (unsigned int j = 0;j < numResiduals;++j)
+        {
+            double tmpVal = derivativeMatrix.get(j,i);
+            normValue += tmpVal * tmpVal;
+        }
+        
+        dValues[i] = std::sqrt(normValue);
+        if (dValues[i] != 0.0)
+        {
+            if ((i == 0) || (dValues[i] > maxDValue))
+                maxDValue = dValues[i];
+        }
+    }
+    
+    double basePower = std::floor(std::log(maxDValue) / std::log(2.0));
+    double epsilon = 20.0 * std::numeric_limits <double>::epsilon() * (numResiduals + nbParams) * std::pow(2.0,basePower);
+
+    // Change the scaling d-values if they are below a threshold of matrix rank (as in QR decomposition)
+    for (unsigned int i = 0;i < nbParams;++i)
+    {
+        if (dValues[i] < epsilon)
+            dValues[i] = epsilon;
+
+        m_DeltaParameter += dValues[i] * parameters[i] * parameters[i];
     }
 
-    m_LambdaParameter *= maxSquaredDiag;
+    m_DeltaParameter = std::sqrt(m_DeltaParameter);
+
+    unsigned int rank = 0;
+    // indicates ones in pivot matrix as pivot(pivotVector(i),i) = 1
+    std::vector <unsigned int> pivotVector(nbParams);
+    // indicates ones in pivot matrix as pivot(i,inversePivotVector(i)) = 1
+    std::vector <unsigned int> inversePivotVector(nbParams);
+    std::vector <double> qrBetaValues(nbParams);
+    ParametersType qtResiduals = m_ResidualValues;
+    ParametersType lowerBoundsPermutted(nbParams);
+    ParametersType upperBoundsPermutted(nbParams);
+    anima::QRPivotDecomposition(derivativeMatrix,pivotVector,qrBetaValues,rank);
+    anima::GetQtBFromQRPivotDecomposition(derivativeMatrix,qtResiduals,qrBetaValues,rank);
+    for (unsigned int i = 0;i < nbParams;++i)
+        inversePivotVector[pivotVector[i]] = i;
+
+    m_LambdaCostFunction->SetInputWorkMatricesAndVectorsFromQRDerivative(derivativeMatrix,qtResiduals,rank);
+    m_LambdaCostFunction->SetJRank(rank);
+    m_LambdaCostFunction->SetDValues(dValues);
+    m_LambdaCostFunction->SetPivotVector(pivotVector);
+    m_LambdaCostFunction->SetInversePivotVector(inversePivotVector);
 
     while (!stopConditionReached)
     {
         ++numIterations;
 
-        // Solve (JtJ + lambda I) x = - Jt r
-        workMatrix = derivativeSquared;
-
         for (unsigned int i = 0;i < nbParams;++i)
         {
-            derivativeMatrix(i,i) += std::sqrt(m_LambdaParameter);
-            workVector[i] = 0.0;
-            for (unsigned int j = 0;j < numResiduals;++j)
-                workVector[i] -= derivativeMatrix(i,j) * m_ResidualValues[j];
+            lowerBoundsPermutted[i] = m_LowerBounds[pivotVector[i]] - oldParameters[pivotVector[i]];
+            upperBoundsPermutted[i] = m_UpperBounds[pivotVector[i]] - oldParameters[pivotVector[i]];
         }
 
-        m_CholeskySolver.SetInputMatrix(workMatrix);
-        m_CholeskySolver.PerformDecomposition();
-        addonVector = m_CholeskySolver.SolveLinearSystem(workVector);
+        m_LambdaCostFunction->SetLowerBoundsPermutted(lowerBoundsPermutted);
+        m_LambdaCostFunction->SetUpperBoundsPermutted(upperBoundsPermutted);
 
-//        std::cout.precision(30);
-//        std::cout << workMatrix << std::endl;
-//        std::cout << workVector << std::endl;
-//        std::cout << "solution " << addonVector << std::endl;
-
-//        if (m_CholeskySolver.GetConditionNumber() > 1.0e12)
-//            std::cout << "Arg " << m_CholeskySolver.GetConditionNumber() << std::endl;
+        // Updates lambda and get new addon vector at the same time
+        this->UpdateLambdaParameter(derivativeMatrix,dValues,pivotVector,qtResiduals,rank);
 
         parameters = oldParameters;
-        parameters += addonVector;
+        parameters += m_CurrentAddonVector;
 
-        if (m_LowerBounds.size() == nbParams)
-        {
-            const ScalesType &scales = this->GetScales();
-            for (unsigned int i = 0;i < nbParams;++i)
-            {
-                double lowBound = m_LowerBounds[i];
-                if (m_ScalesInitialized)
-                    lowBound *= scales[i];
+        // Check acceptability of step, careful because EvaluateCostFunctionAtParameters returns the squared cost
+        double tentativeNewCostValue = this->EvaluateCostFunctionAtParameters(parameters,newResidualValues);
+        rejectedStep = (tentativeNewCostValue > m_CurrentValue);
 
-                if (parameters[i] < lowBound)
-                {
-                    parameters[i] = lowBound;
-                    addonVector[i] = parameters[i] - oldParameters[i];
-                }
-            }
-        }
+        double acceptRatio = 0.0;
 
-        if (m_UpperBounds.size() == nbParams)
-        {
-            const ScalesType &scales = this->GetScales();
-            for (unsigned int i = 0;i < nbParams;++i)
-            {
-                double upBound = m_UpperBounds[i];
-                if (m_ScalesInitialized)
-                    upBound *= scales[i];
-
-                if (parameters[i] > upBound)
-                {
-                    parameters[i] = upBound;
-                    addonVector[i] = parameters[i] - oldParameters[i];
-                }
-            }
-        }
-
-        // Check acceptability of step
-        double tentativeNewCostValue = this->EvaluateCostFunctionAtParameters(parameters,workParameters,newResidualValues);
-        double acceptRatio = m_CurrentValue - tentativeNewCostValue;
-
-        double LDiff = m_CurrentValue;
-        double addonCost = 0.0;
+        // Compute || f + Jp ||^2
+        double fjpNorm = 0.0;
         for (unsigned int i = 0;i < numResiduals;++i)
         {
-            double jacAddonValue = 0.0;
-            for (unsigned int j = 0;j < nbParams;++j)
-                jacAddonValue += derivativeMatrix(j,i) * addonVector[j];
+            double fjpAddonValue = m_ResidualValues[i];
 
-            addonCost += jacAddonValue * (jacAddonValue + 2.0 * m_ResidualValues[i]);
+            for (unsigned int j = 0;j < nbParams;++j)
+                fjpAddonValue += derivativeMatrixCopy.get(i,j) * m_CurrentAddonVector[j];
+
+            fjpNorm += fjpAddonValue * fjpAddonValue;
         }
 
-        LDiff -= addonCost;
+        if (!rejectedStep)
+        {
+            acceptRatio = 1.0 - tentativeNewCostValue / m_CurrentValue;
 
-        rejectedStep = (acceptRatio <= 0.0);
+            double denomAcceptRatio = 1.0 - fjpNorm / m_CurrentValue;
 
-        if (LDiff != 0.0)
-            acceptRatio /= LDiff;
-        else
-            acceptRatio = 0.0;
+            if (denomAcceptRatio > 0.0)
+                acceptRatio /= denomAcceptRatio;
+            else
+                acceptRatio = 0.0;
+        }
+
+        if (acceptRatio >= 0.75)
+        {
+            // Increase Delta
+            m_DeltaParameter *= 2.0;
+        }
+        else if (acceptRatio <= 0.25)
+        {
+            double mu = 0.5;
+            if (tentativeNewCostValue > 100.0 * m_CurrentValue)
+                mu = 0.1;
+            else if (tentativeNewCostValue > m_CurrentValue)
+            {
+                // Gamma is p^T J^T f / |f|^2
+                double gamma = 0.0;
+                for (unsigned int i = 0;i < nbParams;++i)
+                {
+                    double jtFValue = 0.0;
+                    for (unsigned int j = 0;j < numResiduals;++j)
+                        jtFValue += derivativeMatrixCopy.get(j,i) * m_ResidualValues[i];
+
+                    gamma += m_CurrentAddonVector[i] * jtFValue / m_CurrentValue;
+                }
+
+                if (gamma < - 1.0)
+                    gamma = - 1.0;
+                else if (gamma > 0.0)
+                    gamma = 0.0;
+
+                mu = 0.5 * gamma;
+                double denomMu = gamma + 0.5 * (1.0 - tentativeNewCostValue / m_CurrentValue);
+                mu /= denomMu;
+
+                mu = std::min(0.5,std::max(0.1,mu));
+            }
+
+            m_DeltaParameter *= mu;
+        }
+
+        if (!rejectedStep)
+        {
+            m_ResidualValues = newResidualValues;
+            m_CostFunction->GetDerivative(parameters,derivativeMatrix);
+
+            for (unsigned int i = 0;i < nbParams;++i)
+            {
+                double normValue = 0;
+                for (unsigned int j = 0;j < numResiduals;++j)
+                {
+                    double tmpVal = derivativeMatrix.get(j,i);
+                    normValue += tmpVal * tmpVal;
+                }
+                
+                normValue = std::sqrt(normValue);
+                dValues[i] = std::max(dValues[i], normValue);
+            }
+
+            derivativeMatrixCopy = derivativeMatrix;
+
+            qtResiduals = m_ResidualValues;
+            anima::QRPivotDecomposition(derivativeMatrix,pivotVector,qrBetaValues,rank);
+            anima::GetQtBFromQRPivotDecomposition(derivativeMatrix,qtResiduals,qrBetaValues,rank);
+            for (unsigned int i = 0;i < nbParams;++i)
+                inversePivotVector[pivotVector[i]] = i;
+
+            m_LambdaCostFunction->SetInputWorkMatricesAndVectorsFromQRDerivative(derivativeMatrix,qtResiduals,rank);
+            m_LambdaCostFunction->SetJRank(rank);
+            m_LambdaCostFunction->SetDValues(dValues);
+            m_LambdaCostFunction->SetPivotVector(pivotVector);
+            m_LambdaCostFunction->SetInversePivotVector(inversePivotVector);
+        }
+
+        if (numIterations != 1)
+            stopConditionReached = this->CheckConditions(numIterations,parameters,dValues,
+                                                         tentativeNewCostValue);
 
         if (!rejectedStep)
         {
             oldParameters = parameters;
-            m_ResidualValues = newResidualValues;
             m_CurrentValue = tentativeNewCostValue;
-            m_CostFunction->GetDerivative(parameters,derivativeMatrix);
-            this->GetDerivativeSquared(derivativeMatrix,derivativeSquared);
-            m_LambdaParameter /= 3.0;
-            //m_LambdaParameter *= std::max(1.0 / 3.0, 1.0 - std::pow(2.0 * acceptRatio - 1,3.0));
-            nuValue = 2.0;
         }
-        else
-        {
-            m_LambdaParameter *= 2.0;
-//            m_LambdaParameter *= nuValue;
-            nuValue *= 2.0;
-        }
-
-        if (numIterations != 1)
-            stopConditionReached = this->CheckConditions(numIterations,oldParameters,parameters,
-                                                         derivativeMatrix);
-    }
-
-    // we scale the parameters down if scales are defined, parameters optimal in the end are oldParameters
-    if (m_ScalesInitialized)
-    {
-        const ScalesType &invScales = this->GetInverseScales();
-        for (unsigned int i = 0;i < nbParams;++i)
-            oldParameters[i] *= invScales[i];
     }
 
     this->SetCurrentPosition(oldParameters);
 }
 
-void BoundedLevenbergMarquardtOptimizer::GetDerivativeSquared(DerivativeType &derivativeMatrix, DerivativeType &derivativeSquared)
+bool BoundedLevenbergMarquardtOptimizer::CheckSolutionIsInBounds(ParametersType &solutionVector, ParametersType &lowerBounds,
+                                                                 ParametersType &upperBounds, unsigned int rank)
 {
-    unsigned int nbParams = derivativeMatrix.rows();
-    unsigned int numResiduals = derivativeMatrix.cols();
-    derivativeSquared.set_size(nbParams,nbParams);
-
-    for (unsigned int i = 0;i < nbParams;++i)
+    for (unsigned int i = 0;i < rank;++i)
     {
-        for (unsigned int j = i;j < nbParams;++j)
-        {
-            derivativeSquared(i,j) = 0.0;
-            for (unsigned int k = 0;k < numResiduals;++k)
-                derivativeSquared(i,j) += derivativeMatrix(i,k) * derivativeMatrix(j,k);
+        if (solutionVector[i] < lowerBounds[i])
+            return false;
 
-            if (i != j)
-                derivativeSquared(j,i) = derivativeSquared(i,j);
-        }
+        if (solutionVector[i] > upperBounds[i])
+            return false;
     }
+
+    return true;
 }
 
-double BoundedLevenbergMarquardtOptimizer::EvaluateCostFunctionAtParameters(ParametersType &parameters, ParametersType &scaledParameters,
-                                                                     MeasureType &residualValues)
+void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &derivative, ParametersType &dValues,
+                                                               std::vector <unsigned int> &pivotVector,
+                                                               ParametersType &qtResiduals, unsigned int rank)
 {
-    unsigned int nbParams = parameters.size();
-    scaledParameters = parameters;
-    if (m_ScalesInitialized)
+    m_LambdaCostFunction->SetDeltaParameter(m_DeltaParameter);
+
+    ParametersType p(m_LambdaCostFunction->GetNumberOfParameters());
+    p[0] = 0.0;
+
+    double zeroCost = m_LambdaCostFunction->GetValue(p);
+    if (zeroCost <= 0.0)
     {
-        const ScalesType & invScales = this->GetInverseScales();
-        for (unsigned int i = 0;i < nbParams;++i)
-            scaledParameters[i] *= invScales[i];
+        m_LambdaParameter = 0.0;
+        m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
+        return;
     }
 
-    residualValues = m_CostFunction->GetValue(scaledParameters);
+    double lowerBoundLambda, upperBoundLambda;
+    lowerBoundLambda = 0.0;
+    upperBoundLambda = 0.0;
+
+    unsigned int n = derivative.cols();
+
+    // Compute upper bound for lambda: D^-1 * pi * R^t * Q^t * residuals
+    double u0InVectorPart;
+    for (unsigned int i = 0;i < n;++i)
+    {
+        u0InVectorPart = 0.0;
+        unsigned int maxIndex = std::min(i + 1,rank);
+        for (unsigned int j = 0;j < maxIndex;++j)
+            u0InVectorPart += derivative.get(j,i) * qtResiduals[j];
+
+        // u0InVectorPart is the one that goes into pivotVector[i] so we divide by the good d value
+        upperBoundLambda += (u0InVectorPart / dValues[pivotVector[i]]) * (u0InVectorPart / dValues[pivotVector[i]]);
+    }
+
+    upperBoundLambda = std::sqrt(upperBoundLambda) / m_DeltaParameter;
+
+    p[0] = std::max(0.001 * upperBoundLambda, std::sqrt(lowerBoundLambda * upperBoundLambda));
+
+    bool continueLoop = true;
+    double fTol = 0.001 * m_DeltaParameter;
+    while (continueLoop)
+    {
+        double tentativeCost = m_LambdaCostFunction->GetValue(p);
+
+        if (tentativeCost < 0.0)
+            upperBoundLambda = p[0];
+        else
+            lowerBoundLambda = p[0];
+
+        p[0] = (lowerBoundLambda + upperBoundLambda) / 2.0;
+        tentativeCost = m_LambdaCostFunction->GetValue(p);
+
+        continueLoop = (std::abs(tentativeCost) >= fTol);
+    }
+
+    m_LambdaParameter = p[0];
+    m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
+}
+
+double BoundedLevenbergMarquardtOptimizer::EvaluateCostFunctionAtParameters(ParametersType &parameters, MeasureType &residualValues)
+{
+    residualValues = m_CostFunction->GetValue(parameters);
 
     unsigned int numResiduals = residualValues.size();
     double costValue = 0.0;
@@ -239,37 +327,27 @@ double BoundedLevenbergMarquardtOptimizer::EvaluateCostFunctionAtParameters(Para
     return costValue;
 }
 
-bool BoundedLevenbergMarquardtOptimizer::CheckConditions(unsigned int numIterations, ParametersType &oldParams,
-                                                  ParametersType &newParams, DerivativeType &newDerivative)
+bool BoundedLevenbergMarquardtOptimizer::CheckConditions(unsigned int numIterations, ParametersType &newParams,
+                                                         ParametersType &dValues, double newCostValue)
 {
     if (numIterations == m_NumberOfIterations)
         return true;
 
-    if ((m_LambdaParameter == 0.0)||(m_LambdaParameter >= std::numeric_limits<double>::max() / 2.0))
-        return true;
-
-    double normDiffParams = 0.0;
-    double normOldParams = 0.0;
+    // Criteria as in More, 8.3 and 8.4 equations
+    double dxNorm = 0.0;
     for (unsigned int i = 0;i < newParams.size();++i)
-    {
-        double diffValue = newParams[i] - oldParams[i];
-        normDiffParams += diffValue * diffValue;
-        normOldParams += newParams[i] * newParams[i];
-    }
+        dxNorm += (dValues[i] * newParams[i]) * (dValues[i] * newParams[i]);
 
-    if (normDiffParams <= m_ValueTolerance * (normOldParams + m_ValueTolerance))
+    dxNorm = std::sqrt(dxNorm);
+    if (m_DeltaParameter < m_ValueTolerance * dxNorm)
         return true;
 
-    for (unsigned int i = 0;i < newDerivative.rows();++i)
-    {
-        for (unsigned int j = 0;j < newDerivative.cols();++j)
-        {
-            if (std::abs(newDerivative(i,j)) > m_GradientTolerance)
-                return false;
-        }
-    }
+    double relativeDiff = (m_CurrentValue - newCostValue) / m_CurrentValue;
 
-    return true;
+    if ((relativeDiff >= 0.0) && (relativeDiff < m_CostTolerance))
+        return true;
+
+    return false;
 }
 
 } // end namespace anima

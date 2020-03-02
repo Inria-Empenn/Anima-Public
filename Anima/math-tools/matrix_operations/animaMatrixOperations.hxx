@@ -71,4 +71,40 @@ GetRotationMatrixFromVectors(const vnl_vector_fixed<ScalarType,NDimension> &firs
     return GetRotationMatrixFromVectors(first_direction, second_direction, NDimension);
 }
 
+template <class ScalarType, class VectorType>
+void
+LowerTriangularSolver(vnl_matrix <ScalarType> &matrix, VectorType &rhs, VectorType &result, unsigned int rank)
+{
+    unsigned int n = matrix.rows();
+    if (rank != 0)
+        n = rank;
+
+    for (unsigned int i = 0;i < n;++i)
+    {
+        double resValue = rhs[i];
+        for (unsigned int j = 0;j < i;++j)
+            resValue -= matrix.get(i,j) * result[j];
+
+        result[i] = resValue / matrix(i,i);
+    }
+}
+
+template <class ScalarType, class VectorType>
+void
+UpperTriangularSolver(const vnl_matrix <ScalarType> &matrix, const VectorType &rhs, VectorType &result, unsigned int rank)
+{
+    unsigned int n = matrix.cols();
+    if (rank != 0)
+        n = rank;
+
+    for (int i = n - 1;i >= 0;--i)
+    {
+        double resValue = rhs[i];
+        for (unsigned int j = i + 1;j < n;++j)
+            resValue -= matrix.get(i,j) * result[j];
+
+        result[i] = resValue / matrix.get(i,i);
+    }
+}
+
 } // end of namespace anima

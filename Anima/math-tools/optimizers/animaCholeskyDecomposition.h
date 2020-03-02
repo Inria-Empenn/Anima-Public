@@ -1,8 +1,8 @@
 #pragma once
 
-#include <vnl_matrix.h>
-#include <vnl_diag_matrix.h>
-#include <vnl_vector.h>
+#include <vnl/vnl_matrix.h>
+#include <vnl/vnl_diag_matrix.h>
+#include <vnl/vnl_vector.h>
 
 #include "AnimaOptimizersExport.h"
 
