@@ -31,7 +31,6 @@ void NODDICompartment::UpdateSignals(double bValue, const Vector3DType &gradient
     
     double theta = this->GetOrientationTheta();
     double phi = this->GetOrientationPhi();
-    double kappa = this->GetOrientationConcentration();
     double nuic = 1.0 - this->GetExtraAxonalFraction();
     double dpara = this->GetAxialDiffusivity();
     
@@ -109,7 +108,6 @@ NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(doubl
     
     double theta = this->GetOrientationTheta();
     double phi = this->GetOrientationPhi();
-    double kappa = this->GetOrientationConcentration();
     double nuic = 1.0 - this->GetExtraAxonalFraction();
     double dpara = this->GetAxialDiffusivity();
     
