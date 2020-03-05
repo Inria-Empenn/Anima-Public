@@ -24,6 +24,8 @@ set(BINARY_TOOLS_LIST
   animaDisplacementFieldJacobian
   animaDistanceMap
   animaDistortionCorrection
+  animaDWISimulationFromDTI
+  animaDWISimulationFromMCM
   animaEddyCurrentCorrection
   animaExpTensors
   animaFDRCorrectPValues
@@ -53,6 +55,7 @@ set(BINARY_TOOLS_LIST
   animaLowMemNLMeansPatientToGroupComparison
   animaLowMemPatientToGroupComparison
   animaLowMemPatientToGroupODFComparison
+  animaMajorityLabelVoting
   animaMCMApplyTransformSerie
   animaMCMAverageImages
   animaMCMEstimator
