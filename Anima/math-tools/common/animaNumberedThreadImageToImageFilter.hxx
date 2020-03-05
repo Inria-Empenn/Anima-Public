@@ -69,7 +69,6 @@ NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
 ::ThreaderMultiSplitCallback(void *arg)
 {
     ThreadStruct *str;
-    itk::ThreadIdType threadId;
 
     str = (ThreadStruct *)( ( (itk::MultiThreaderBase::WorkUnitInfo *)( arg ) )->UserData );
 
