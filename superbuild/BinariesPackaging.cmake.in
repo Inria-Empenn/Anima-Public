@@ -24,7 +24,7 @@ set(BINARY_TOOLS_LIST
   animaDisplacementFieldJacobian
   animaDistanceMap
   animaDistortionCorrection
-  animaDWISimulationFromDTI
+  animaDWISimulatorFromDTI
   animaDWISimulationFromMCM
   animaEddyCurrentCorrection
   animaExpTensors
