@@ -9,10 +9,15 @@ int main(int argc, char **argv)
 {
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 	
-    TCLAP::ValueArg<std::string> inArg("i","inputlist","File containing a list of diffusion weighted images",true,"","input diffusion images",cmd);
-	TCLAP::ValueArg<std::string> gradArg("g","gradientlist","List of gradients (text file)",true,"","list of gradients",cmd);
-	TCLAP::ValueArg<std::string> resArg("o","outputfile","Result ODF image",true,"","result ODF image",cmd);
-    
+    TCLAP::ValueArg<std::string> inArg("i","input","List of diffusion weighted images or 4D volume",true,"","input diffusion images",cmd);
+    TCLAP::ValueArg<std::string> resArg("o","outputfile","Result ODF image",true,"","result ODF image",cmd);
+
+    TCLAP::ValueArg<std::string> gradArg("g","gradientlist","List of gradients (text file)",true,"","list of gradients",cmd);
+    TCLAP::ValueArg<std::string> bvalArg("b","bval","input b-values (for checking single shell)",true,"","Input b-values",cmd);
+    TCLAP::ValueArg<std::string> refB0Arg("r","ref-b0","Externally estimated B0 (otherwise mean of B0s is used)",false,"","External B0 image",cmd);
+    TCLAP::SwitchArg bvalueScaleArg("B","b-no-scale","Do not scale b-values according to gradient norm",cmd);
+    TCLAP::ValueArg <int> selectedBvalArg("v","select-bval","B-value shell used to estimate ODFs (default: first one in data volume above 10)",false,-1,"b-value shell selection",cmd);
+
     TCLAP::ValueArg<float> lambdaArg("l","lambda","Lambda regularization parameter (see Descoteaux MRM 2007)",false,0.006,"lambda for regularization",cmd);
     TCLAP::ValueArg<unsigned int> orderArg("k","order","Order of spherical harmonics basis",false,4,"Order of SH basis",cmd);
     
@@ -60,17 +65,26 @@ int main(int argc, char **argv)
     
     anima::setMultipleImageFilterInputsFromFileName<InputImageType,MainFilterType>(inArg.getValue(), mainFilter);
     
+    if (refB0Arg.getValue() != "")
+        mainFilter->SetReferenceB0Image(anima::readImage <InputImageType> (refB0Arg.getValue()));
+
     typedef anima::GradientFileReader < std::vector < double >, double > GFReaderType;
     GFReaderType gfReader;
     gfReader.SetGradientFileName(gradArg.getValue());
-    gfReader.SetGradientIndependentNormalization(true);
-    
+    gfReader.SetBValueBaseString(bvalArg.getValue());
+    gfReader.SetGradientIndependentNormalization(bvalueScaleArg.isSet());
+    gfReader.SetB0ValueThreshold(10);
+
     gfReader.Update();
     
     GFReaderType::GradientVectorType directions = gfReader.GetGradients();
-    
+    GFReaderType::BValueVectorType mb = gfReader.GetBValues();
+
     for(unsigned int i = 0;i < directions.size();++i)
         mainFilter->AddGradientDirection(i,directions[i]);
+
+    mainFilter->SetBValuesList(mb);
+    mainFilter->SetBValueShellSelected(selectedBvalArg.getValue());
     
 	itk::TimeProbe tmpTime;
 	tmpTime.Start();

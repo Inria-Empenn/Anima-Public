@@ -63,6 +63,28 @@ ODFEstimatorImageFilter<TInputPixelType,TOutputPixelType>
         m_Sharpen = false;
     }
 
+    if (m_BValueShellSelected < 0)
+        m_BValueShellSelected = m_BValuesList[m_GradientIndexes[0]];
+
+    std::vector <unsigned int> bvalKeptIndexes;
+    std::vector < std::vector <double> > keptGradients;
+    // First filter out unwanted b-values (keeping only b = m_BValueShellSelected)
+    for (unsigned int i = 0;i < numGrads;++i)
+    {
+        if ((m_BValuesList[m_GradientIndexes[i]] >= m_BValueShellSelected - m_BValueShellTolerance) &&
+                (m_BValuesList[m_GradientIndexes[i]] <= m_BValueShellSelected + m_BValueShellTolerance))
+        {
+            bvalKeptIndexes.push_back(m_GradientIndexes[i]);
+            keptGradients.push_back(m_GradientDirections[i]);
+        }
+    }
+
+    m_GradientIndexes = bvalKeptIndexes;
+    m_GradientDirections = keptGradients;
+    numGrads = m_GradientIndexes.size();
+
+    std::cout << "Running ODF estimation using " << m_B0Indexes.size() << " B0 images and " << numGrads << " gradient images with b-value at " << m_BValueShellSelected << "s.mm^-2" << std::endl;
+
     // Compute TMatrix as expressed in Descoteaux MRM 2007
 
     unsigned int posValue = 0;
@@ -208,29 +230,43 @@ ODFEstimatorImageFilter<TInputPixelType,TOutputPixelType>
     unsigned int numB0 = m_B0Indexes.size();
 
     OutputIteratorType resIt(this->GetOutput(),outputRegionForThread);
-    InputIteratorType b0It(this->GetInput(0),outputRegionForThread);
 
-    std::vector<InputIteratorType> diffusionIt(this->GetNumberOfIndexedInputs());
-    for (unsigned int i = 0;i < this->GetNumberOfIndexedInputs();++i)
-        diffusionIt[i] = InputIteratorType(this->GetInput(i),outputRegionForThread);
+    std::vector<InputIteratorType> diffusionIts(numGrads);
+    std::vector<InputIteratorType> b0Its(numGrads);
+    for (unsigned int i = 0;i < numGrads;++i)
+        diffusionIts[i] = InputIteratorType(this->GetInput(m_GradientIndexes[i]),outputRegionForThread);
+    for (unsigned int i = 0;i < numB0;++i)
+        b0Its[i] = InputIteratorType(this->GetInput(m_B0Indexes[i]),outputRegionForThread);
+
+    InputIteratorType refB0Itr;
+    if (m_ReferenceB0Image.IsNotNull())
+        refB0Itr = InputIteratorType(m_ReferenceB0Image, outputRegionForThread);
 
     itk::VariableLengthVector <TOutputPixelType> outputData(vectorLength);
     std::vector <double> tmpData(numGrads,0);
-    while (!diffusionIt[0].IsAtEnd())
+    while (!diffusionIts[0].IsAtEnd())
     {
         double b0Value = 0;
-        for (unsigned int i = 0;i < numB0;++i)
+        if (m_ReferenceB0Image.IsNotNull())
         {
-            b0Value += diffusionIt[m_B0Indexes[i]].Get();
-            ++diffusionIt[m_B0Indexes[i]];
+            b0Value = refB0Itr.Get();
+            ++refB0Itr;
         }
+        else
+        {
+            for (unsigned int i = 0;i < numB0;++i)
+            {
+                b0Value += b0Its[i].Get();
+                ++b0Its[i];
+            }
 
-        b0Value /= numB0;
+            b0Value /= numB0;
+        }
 
         for (unsigned int i = 0;i < numGrads;++i)
         {
-            tmpData[i] = diffusionIt[m_GradientIndexes[i]].Get();
-            ++diffusionIt[m_GradientIndexes[i]];
+            tmpData[i] = diffusionIts[i].Get();
+            ++diffusionIts[i];
         }
 
         for (unsigned int i = 0;i < vectorLength;++i)

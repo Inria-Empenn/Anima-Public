@@ -36,6 +36,8 @@ public:
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
     void AddGradientDirection(unsigned int i, std::vector <double> &grad);
+    void SetBValuesList(std::vector <double> bValuesList) {m_BValuesList = bValuesList;}
+    itkSetMacro(BValueShellSelected, int)
 
     itkSetMacro(Lambda,double);
     itkSetMacro(LOrder,unsigned int);
@@ -49,11 +51,17 @@ public:
     itkSetMacro(UseAganjEstimation,bool);
     itkSetMacro(DeltaAganjRegularization, double);
 
+    void SetReferenceB0Image(TInputImage *refB0) {m_ReferenceB0Image = refB0;}
+
 protected:
     ODFEstimatorImageFilter()
     {
         m_GradientDirections.clear();
         m_PVector.clear();
+        m_ReferenceB0Image = nullptr;
+
+        m_BValueShellSelected = -1;
+        m_BValueShellTolerance = 20;
 
         m_Lambda = 0.006;
         m_DeltaAganjRegularization = 0.001;
@@ -94,6 +102,13 @@ private:
     }
 
     std::vector < std::vector <double> > m_GradientDirections;
+    std::vector <double> m_BValuesList;
+    InputImagePointer m_ReferenceB0Image;
+
+    int m_BValueShellSelected;
+    double m_BValueShellTolerance;
+    std::vector <unsigned int> m_SelectedDWIIndexes;
+
     vnl_matrix <double> m_TMatrix; // evaluation matrix computed once and for all before threaded generate data
     std::vector <double> m_DeconvolutionVector;
     std::vector <double> m_PVector;
