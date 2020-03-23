@@ -226,7 +226,7 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
         }
 
         if (numIterations != 1)
-            stopConditionReached = this->CheckConditions(numIterations,parameters,dValues,
+            stopConditionReached = this->CheckConditions(numIterations,parameters,oldParameters,
                                                          tentativeNewCostValue);
 
         if (!rejectedStep)
@@ -299,6 +299,7 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     while (continueLoop)
     {
         double tentativeCost = m_LambdaCostFunction->GetValue(p);
+        continueLoop = (std::abs(tentativeCost) >= fTol);
 
         if (tentativeCost < 0.0)
             upperBoundLambda = p[0];
@@ -306,9 +307,6 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
             lowerBoundLambda = p[0];
 
         p[0] = (lowerBoundLambda + upperBoundLambda) / 2.0;
-        tentativeCost = m_LambdaCostFunction->GetValue(p);
-
-        continueLoop = (std::abs(tentativeCost) >= fTol);
     }
 
     m_LambdaParameter = p[0];
@@ -328,20 +326,31 @@ double BoundedLevenbergMarquardtOptimizer::EvaluateCostFunctionAtParameters(Para
 }
 
 bool BoundedLevenbergMarquardtOptimizer::CheckConditions(unsigned int numIterations, ParametersType &newParams,
-                                                         ParametersType &dValues, double newCostValue)
+                                                         ParametersType &oldParams, double newCostValue)
 {
     if (numIterations == m_NumberOfIterations)
         return true;
 
-    // Criteria as in More, 8.3 and 8.4 equations
-    double dxNorm = 0.0;
-    for (unsigned int i = 0;i < newParams.size();++i)
-        dxNorm += (dValues[i] * newParams[i]) * (dValues[i] * newParams[i]);
+    // xTol relative tolerance check
+    unsigned int numParams = newParams.size();
+    double normOld = 0.0;
+    double normDiff = 0.0;
+    for (unsigned int i = 0;i < numParams;++i)
+    {
+        normOld += oldParams[i] * oldParams[i];
+        normDiff += (newParams[i] - oldParams[i]) * (newParams[i] - oldParams[i]);
+    }
 
-    dxNorm = std::sqrt(dxNorm);
-    if (m_DeltaParameter < m_ValueTolerance * dxNorm)
-        return true;
+    normOld = std::sqrt(normOld);
+    normDiff = std::sqrt(normDiff);
+    if (normOld != 0.0)
+    {
+        normDiff /= normOld;
+        if (normDiff < m_ValueTolerance)
+            return true;
+    }
 
+    // Criterion as in More, 8.4 equation
     double relativeDiff = (m_CurrentValue - newCostValue) / m_CurrentValue;
 
     if ((relativeDiff >= 0.0) && (relativeDiff < m_CostTolerance))
