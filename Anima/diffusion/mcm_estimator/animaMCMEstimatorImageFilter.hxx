@@ -98,6 +98,9 @@ void
 MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 ::CheckComputationMask()
 {
+    if (this->GetComputationMask())
+        return;
+
     typedef itk::ImageRegionConstIterator <InputImageType> B0IteratorType;
     typedef itk::ImageRegionIterator <MaskImageType> MaskIteratorType;
 
@@ -456,7 +459,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     {
         resVec.Fill(0.0);
 
-        //if ((maskItr.Get() == 0)||(maskItr.GetIndex()[0] != 68)||(maskItr.GetIndex()[1] != 42)||(maskItr.GetIndex()[2] != 53))
+        //if ((maskItr.Get() == 0)||(maskItr.GetIndex()[0] != 3)||(maskItr.GetIndex()[1] != 7)||(maskItr.GetIndex()[2] != 84))
         if (maskItr.Get() == 0)
         {
             outIterator.Set(resVec);
