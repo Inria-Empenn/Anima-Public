@@ -12,13 +12,13 @@ namespace anima
 
 template <class ImageType>
 class NoiseGeneratorImageFilter :
-public anima::NumberedThreadImageToImageFilter <ImageType,ImageType>
+public anima::NumberedThreadImageToImageFilter <ImageType,itk::Image<float,ImageType::ImageDimension> >
 {
 public:
     /** Standard class typedefs. */
     typedef NoiseGeneratorImageFilter Self;
     typedef ImageType TInputImage;
-    typedef ImageType TOutputImage;
+    typedef itk::Image<float,ImageType::ImageDimension> TOutputImage;
     typedef anima::NumberedThreadImageToImageFilter <TInputImage, TOutputImage> Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self>  ConstPointer;
@@ -44,8 +44,8 @@ public:
     itkSetMacro(NumberOfReplicates, unsigned int)
     itkGetConstMacro(NumberOfReplicates, unsigned int)
     
-    itkSetMacro(StandardDeviation, double)
-    itkGetConstMacro(StandardDeviation, double)
+    itkSetMacro(NoiseSigma, double)
+    itkGetConstMacro(NoiseSigma, double)
     
     itkSetMacro(UseGaussianDistribution, bool)
     itkGetConstMacro(UseGaussianDistribution, bool)
@@ -54,7 +54,7 @@ protected:
     NoiseGeneratorImageFilter()
     {
         m_NumberOfReplicates = 1;
-        m_StandardDeviation = 1.0;
+        m_NoiseSigma = 1.0;
         m_UseGaussianDistribution = false;
     }
 
@@ -70,7 +70,7 @@ private:
     ITK_DISALLOW_COPY_AND_ASSIGN(NoiseGeneratorImageFilter);
 
     unsigned int m_NumberOfReplicates;
-    double m_StandardDeviation;
+    double m_NoiseSigma;
     bool m_UseGaussianDistribution;
     std::vector <std::mt19937> m_Generators;
 };
