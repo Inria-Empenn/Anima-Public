@@ -129,12 +129,12 @@ double OneHalfLaguerreFunction(const double &x)
     double bessel0Value = arf_get_d(arb_midref(bessel0Ball), MPFR_RNDN);
     
     precision = 64;
-    arb_hypgeom_bessel_i_scaled(bessel1Ball, oneBall, inputBall, precision)
+    arb_hypgeom_bessel_i_scaled(bessel1Ball, oneBall, inputBall, precision);
 
     while (arb_can_round_arf(bessel1Ball, 53, MPFR_RNDN) == 0)
     {
         precision *= 2;
-        arb_hypgeom_bessel_i_scaled(bessel1Ball, oneBall, inputBall, precision)
+        arb_hypgeom_bessel_i_scaled(bessel1Ball, oneBall, inputBall, precision);
     }
 
     double bessel1Value = arf_get_d(arb_midref(bessel1Ball), MPFR_RNDN);
@@ -142,9 +142,10 @@ double OneHalfLaguerreFunction(const double &x)
     double resVal = (1.0 - x) * bessel0Value - x * bessel1Value;
 
     arb_clear(inputBall);
-    arb_clear(outputBall);
-    arb_clear(aBall);
-    arb_clear(bBall);
+    arb_clear(bessel0Ball);
+    arb_clear(bessel1Ball);
+    arb_clear(zeroBall);
+    arb_clear(oneBall);
 
     return resVal;
     
