@@ -8,11 +8,12 @@
 #include <animaNoiseGeneratorImageFilter.h>
 #include <animaReadWriteFunctions.h>
 #include <animaRetrieveImageTypeMacros.h>
+#include <animaKummerFunctions.h>
 
 struct arguments
 {
     std::string input, output;
-    double stddev;
+    double sigma;
     unsigned int nreplicates, nthreads;
     bool gaussianNoise;
 };
@@ -21,19 +22,20 @@ template <class ComponentType, unsigned int InputDim>
 void
 addNoise(itk::ImageIOBase::Pointer imageIO, const arguments &args)
 {
-    typedef itk::Image<ComponentType,InputDim> ImageType;
-    typedef anima::NoiseGeneratorImageFilter<ImageType> NoiseFilterType;
+    typedef itk::Image<ComponentType,InputDim> InputImageType;
+    typedef anima::NoiseGeneratorImageFilter<InputImageType> NoiseFilterType;
+    typedef typename NoiseFilterType::OutputImageType OutputImageType;
     
     typename NoiseFilterType::Pointer mainFilter = NoiseFilterType::New();
     mainFilter->SetNumberOfWorkUnits(args.nthreads);
-    mainFilter->SetInput(anima::readImage<ImageType>(args.input));
-    mainFilter->SetStandardDeviation(args.stddev);
+    mainFilter->SetInput(anima::readImage<InputImageType>(args.input));
+    mainFilter->SetNoiseSigma(args.sigma);
     mainFilter->SetUseGaussianDistribution(args.gaussianNoise);
     mainFilter->SetNumberOfReplicates(args.nreplicates);
     mainFilter->Update();
     
     if (args.nreplicates == 1)
-        anima::writeImage<ImageType>(args.output, mainFilter->GetOutput(0));
+        anima::writeImage<OutputImageType>(args.output, mainFilter->GetOutput(0));
     else
     {
         std::string filePrefix = itksys::SystemTools::GetFilenameWithoutExtension(args.output);
@@ -44,7 +46,7 @@ addNoise(itk::ImageIOBase::Pointer imageIO, const arguments &args)
             std::stringstream ss;
             ss << std::setw(3) << std::setfill('0') << (i + 1);
             std::string tmpStr = ss.str();
-            anima::writeImage<ImageType>(filePrefix + tmpStr + fileExtension, mainFilter->GetOutput(i));
+            anima::writeImage<OutputImageType>(filePrefix + tmpStr + fileExtension, mainFilter->GetOutput(i));
         }
     }
 }
@@ -68,6 +70,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<unsigned int> repArg("n","num-replicates","Number of independent noisy datasets to generate (default: 1).",false,1,"number of replicates",cmd);
     
     TCLAP::SwitchArg gaussArg("G","gauss-noise","Adds Gaussian noise instead of Rician noise.",cmd,false);
+    TCLAP::SwitchArg matchArg("M","match-snr","Make Gaussian noise comparable to Rician noise in terms of SNR.",cmd,false);
     TCLAP::SwitchArg verboseArg("V","verbose","Outputs noise calculations to the console.",cmd,false);
 
     TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default : all cores).",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
@@ -87,10 +90,10 @@ int main(int argc, char **argv)
     
     // Find average signal value in reference image
     typedef itk::Image<float,3> Input3DImageType;
-    typedef itk::ImageRegionConstIterator<Input3DImageType> Iterator3DImageType;
+    typedef itk::ImageRegionConstIterator<Input3DImageType> Input3DIteratorType;
     
     Input3DImageType::Pointer referenceImage = anima::readImage<Input3DImageType>(refArg.getValue());
-    Iterator3DImageType refItr(referenceImage, referenceImage->GetLargestPossibleRegion());
+    Input3DIteratorType refItr(referenceImage, referenceImage->GetLargestPossibleRegion());
     
     double meanReferenceValue = 0;
     unsigned int numNonZeroVoxels = 0;
@@ -111,8 +114,30 @@ int main(int argc, char **argv)
         ++refItr;
     }
     
-    // Retrieve standard deviation of noise
-    double stdDev = meanReferenceValue / snr;
+    // Retrieve Rice sigma parameter
+    double riceSigmaParameter = meanReferenceValue / snr;
+    
+    // Compute mean and variance from Rice distribution
+    double snrValue = meanReferenceValue / riceSigmaParameter;
+    double laguerreArgument = -1.0 * snrValue * snrValue / 2.0;
+    double laguerreValue = anima::KummerFunction(laguerreArgument, -0.5, 1.0);
+    double riceMeanValue = riceSigmaParameter * std::sqrt(M_PI / 2.0) * laguerreValue;
+    double riceStdValue = 2.0 * riceSigmaParameter * riceSigmaParameter + meanReferenceValue * meanReferenceValue - M_PI * riceSigmaParameter * riceSigmaParameter * laguerreValue * laguerreValue / 2.0;
+    if (riceStdValue < 0.0)
+    {
+        std::cerr << "The evaluation of the Kummer M function was too imprecise and produced a negative variance." << std::endl;
+        return EXIT_FAILURE;
+    }
+    riceStdValue = std::sqrt(riceStdValue);
+    
+    // Deduce effective SNR
+    double effSnrValue = riceMeanValue / riceStdValue;
+    
+    // Compute Gaussian sigma parameter
+    double gaussSigmaParameter = (matchArg.isSet()) ? meanReferenceValue / effSnrValue : riceSigmaParameter;
+    
+    // Set noise standard deviation
+    double noiseSigmaParameter = (gaussArg.isSet()) ? gaussSigmaParameter : riceSigmaParameter;
     
     if (verboseArg.isSet())
     {
@@ -120,11 +145,17 @@ int main(int argc, char **argv)
         std::cout << " - User-defined average SNR: " << snrArg.getValue() << " dB." << std::endl;
         std::cout << " - Reference image used for noise variance calculation: " << refArg.getValue() << std:: endl;
         std::cout << " - Average signal in foreground voxels of the reference image: " << meanReferenceValue << std::endl;
+        std::cout << " - Resulting coil standard deviation (Rice sigma parameter): " << riceSigmaParameter << std::endl;
+        std::cout << " - Mean value of Rice distribution: " << riceMeanValue << std::endl;
+        std::cout << " - Standard deviation of Rice distribution: " << riceStdValue << std::endl;
+        std::cout << " - Effective average SNR: " << 20.0 * std::log10(effSnrValue) << " dB." << std::endl;
+        
         if (gaussArg.isSet())
             std::cout << " - Noise distribution: Gaussian" << std::endl;
         else
             std::cout << " - Noise distribution: Rician" << std::endl;
-        std::cout << " - Resulting standard deviation for noise simulation: " << stdDev << std::endl;
+        
+        std::cout << " - Resulting noise sigma parameter: " << noiseSigmaParameter << std::endl;
     }
 
     // Find out the type of the image in file
@@ -144,7 +175,7 @@ int main(int argc, char **argv)
     
     args.input = inArg.getValue();
     args.output = outArg.getValue();
-    args.stddev = stdDev;
+    args.sigma = noiseSigmaParameter;
     args.nreplicates = repArg.getValue();
     args.nthreads = nbpArg.getValue();
     args.gaussianNoise = gaussArg.isSet();
