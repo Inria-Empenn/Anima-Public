@@ -21,4 +21,5 @@ add_subdirectory(statistical_tests)
 
 if (BUILD_TESTING)
   add_subdirectory(matrix_operations/qr_test)
+  add_subdirectory(special_functions/kummer_function_test)
 endif()

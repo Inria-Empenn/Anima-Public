@@ -102,5 +102,57 @@ KummerFunction(const double &x,
 
 #endif
 }
+
+double OneHalfLaguerreFunction(const double &x)
+{
+#ifdef WITH_ARB_FUNCTIONS
+    
+    arb_t inputBall, bessel0Ball, bessel1Ball, zeroBall, oneBall;
+    arb_init(inputBall);
+    arb_init(bessel0Ball);
+    arb_init(bessel1Ball);
+    arb_init(zeroBall);
+    arb_init(oneBall);
+    arb_set_d(inputBall, - x / 2.0);
+    arb_set_d(zeroBall, 0.0);
+    arb_set_d(oneBall, 1.0);
+
+    unsigned int precision = 64;
+    arb_hypgeom_bessel_i_scaled(bessel0Ball, zeroBall, inputBall, precision);
+    
+    while (arb_can_round_arf(bessel0Ball, 53, MPFR_RNDN) == 0)
+    {
+        precision *= 2;
+        arb_hypgeom_bessel_i_scaled(bessel0Ball, zeroBall, inputBall, precision);
+    }
+
+    double bessel0Value = arf_get_d(arb_midref(bessel0Ball), MPFR_RNDN);
+    
+    precision = 64;
+    arb_hypgeom_bessel_i_scaled(bessel1Ball, oneBall, inputBall, precision)
+
+    while (arb_can_round_arf(bessel1Ball, 53, MPFR_RNDN) == 0)
+    {
+        precision *= 2;
+        arb_hypgeom_bessel_i_scaled(bessel1Ball, oneBall, inputBall, precision)
+    }
+
+    double bessel1Value = arf_get_d(arb_midref(bessel1Ball), MPFR_RNDN);
+    
+    double resVal = (1.0 - x) * bessel0Value - x * bessel1Value;
+
+    arb_clear(inputBall);
+    arb_clear(outputBall);
+    arb_clear(aBall);
+    arb_clear(bBall);
+
+    return resVal;
+    
+#else
+    
+    return 0.0;
+    
+#endif
+}
     
 } // end of namespace anima

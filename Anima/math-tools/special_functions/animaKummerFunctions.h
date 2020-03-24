@@ -64,4 +64,8 @@ KummerFunction(const double &x,
                const bool scaled = false,
                const bool normalized = false);
 
+ANIMASPECIALFUNCTIONS_EXPORT
+double
+OneHalfLaguerreFunction(const double &x);
+
 } // end namespace anima
