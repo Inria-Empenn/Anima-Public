@@ -167,7 +167,7 @@ performTransformation(const typename itk::Image<ComponentType,ImageDimension>::P
     mainFilter->SetMaximumNumberOfIterations(args.maxiters);
     mainFilter->SetEpsilon(args.epsilon);
     mainFilter->SetSigma(args.sigma);
-    mainFilter->SetNumberOfThreads(args.nthreads);
+    mainFilter->SetNumberOfWorkUnits(args.nthreads);
     
     if (maskImage)
         mainFilter->SetComputationMask(maskImage);
@@ -197,7 +197,7 @@ performTransformation(const typename itk::Image<ComponentType,ImageDimension>::P
     mainFilter->SetEpsilon(args.epsilon);
     mainFilter->SetSigma(args.sigma);
     mainFilter->SetScale(scale);
-    mainFilter->SetNumberOfThreads(args.nthreads);
+    mainFilter->SetNumberOfWorkUnits(args.nthreads);
     
     if (maskImage)
         mainFilter->SetComputationMask(maskImage);
@@ -274,7 +274,7 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<double> sigmaArg("S", "sigma", "Gaussian standard deviation for defining neighbor weights (default: 1.0)", false, 1.0, "Gaussian standard deviation for defining neighbor weights", cmd);
     
     TCLAP::ValueArg<unsigned int> maxiterArg("I", "maxiter", "Maximum number of iterations (default: 100)", false, 100, "Maximum number of iterations", cmd);
-    TCLAP::ValueArg<unsigned int> nbpArg("T", "nbp", "Number of threads to run on -> default : automatically determine", false, itk::MultiThreader::GetGlobalDefaultNumberOfThreads(), "Number of threads", cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg("T", "nbp", "Number of threads to run on -> default : automatically determine", false, itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(), "Number of threads", cmd);
     
     try
     {

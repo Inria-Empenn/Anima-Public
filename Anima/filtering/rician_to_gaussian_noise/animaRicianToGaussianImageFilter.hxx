@@ -47,7 +47,7 @@ RicianToGaussianImageFilter<ComponentType,ImageDimension>
     }
     
     // Initialize thread containers for global scale estimation
-    unsigned int numThreads = this->GetNumberOfThreads();
+    unsigned int numThreads = this->GetNumberOfWorkUnits();
     m_ThreadScaleSamples.resize(numThreads);
     this->Superclass::BeforeThreadedGenerateData();
 }
@@ -235,7 +235,7 @@ RicianToGaussianImageFilter<ComponentType,ImageDimension>
     if (m_Scale == 0)
     {
         std::vector<double> scaleSamples;
-        for (unsigned int i = 0;i < this->GetNumberOfThreads();++i)
+        for (unsigned int i = 0;i < this->GetNumberOfWorkUnits();++i)
             scaleSamples.insert(scaleSamples.end(), m_ThreadScaleSamples[i].begin(), m_ThreadScaleSamples[i].end());
         
         m_Scale = anima::GetMedian(scaleSamples);

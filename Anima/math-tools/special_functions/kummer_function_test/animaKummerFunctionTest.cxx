@@ -19,7 +19,7 @@ int main(int argc, char **argv)
     
     std::cout << "Input value: " << inArg.getValue() << std::endl;
     std::cout << "Kummer M value via direct ARB: " << anima::KummerFunction(inArg.getValue(), -0.5, 1.0) << std::endl;
-    std::cout << "Kummer M value via direct ARB: " << anima::OneHalfLaguerreFunction(inArg.getValue()) << std::endl;
+    std::cout << "Kummer M value via exponentially-scaled modified Bessel functions: " << anima::OneHalfLaguerreFunction(inArg.getValue()) << std::endl;
 
     return EXIT_SUCCESS;
 }

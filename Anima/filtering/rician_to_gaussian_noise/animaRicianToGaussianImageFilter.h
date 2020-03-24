@@ -81,8 +81,7 @@ protected:
     virtual ~RicianToGaussianImageFilter() {}
     
     void BeforeThreadedGenerateData(void) ITK_OVERRIDE;
-    void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                              itk::ThreadIdType threadId) ITK_OVERRIDE;
+    void DynamicThreadedGenerateData(const OutputImageRegionType& outputRegionForThread) ITK_OVERRIDE;
     void AfterThreadedGenerateData(void) ITK_OVERRIDE;
     
 private:
