@@ -55,8 +55,7 @@ RicianToGaussianImageFilter<ComponentType,ImageDimension>
 template <class ComponentType,unsigned int ImageDimension>
 void
 RicianToGaussianImageFilter<ComponentType,ImageDimension>
-::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                       itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType& outputRegionForThread)
 {
     typedef itk::ConstNeighborhoodIterator<InputImageType> InputIteratorType;
     typedef itk::ConstNeighborhoodIterator<MaskImageType> MaskIteratorType;
@@ -83,6 +82,8 @@ RicianToGaussianImageFilter<ComponentType,ImageDimension>
     typename InputImageType::IndexType currentIndex, neighborIndex;
     typename InputImageType::PointType currentPoint, neighborPoint;
     
+    unsigned int threadId = this->GetSafeThreadId();
+
     while (!maskItr.IsAtEnd())
     {
         // Discard voxels outside of the brain
@@ -222,6 +223,8 @@ RicianToGaussianImageFilter<ComponentType,ImageDimension>
         ++scaleItr;
         ++signalItr;
     }
+
+    this->SafeReleaseThreadId(threadId);
 }
 
 template <class ComponentType,unsigned int ImageDimension>
