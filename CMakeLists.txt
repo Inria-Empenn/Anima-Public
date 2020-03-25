@@ -19,6 +19,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(USE_VTK "Build VTK dependencies" ON)
 option(USE_RPI "Build RPI dependencies" ON)
 option(USE_NLOPT "Build NLOPT dependencies" ON)
+option(USE_ARB "Build ARB dependencies" ON)
 option(BUILD_ANIMA_TOOLS "Build ANIMA tools" ON)
 option(BUILD_ANIMA_TESTING "Build ANIMA testing executables" OFF)
 option(BUILD_ANIMA_DOCUMENTATION "Build ANIMA doxygen" OFF)
@@ -93,6 +94,34 @@ if (USE_NLOPT)
   else()
     include(NLOPT)
   endif()
+endif()
+
+# GMP
+if (USE_GMP)
+  find_package(GMP REQUIRED)
+  set(GMP_SRC_DIR ${GMP_INCLUDE_DIR})
+  set(GMP_BUILD_DIR ${GMP_LIBRARY_DIR})
+endif()
+
+# MPFR
+if (USE_MPFR)
+  find_package(MPFR REQUIRED)
+  set(MPFR_SRC_DIR ${MPFR_INCLUDE_DIR})
+  set(MPFR_BUILD_DIR ${MPFR_LIBRARY_DIR})
+endif()
+
+# FLINT
+if (USE_FLINT)
+  find_package(FLINT REQUIRED)
+  set(FLINT_SRC_DIR ${FLINT_INCLUDE_DIR})
+  set(FLINT_BUILD_DIR ${FLINT_LIBRARY_DIR})
+endif()
+
+# ARB
+if (USE_ARB)
+  find_package(ARB REQUIRED)
+  set(ARB_SRC_DIR ${ARB_INCLUDE_DIR})
+  set(ARB_BUILD_DIR ${ARB_LIBRARY_DIR})
 endif()
 
 # VTK

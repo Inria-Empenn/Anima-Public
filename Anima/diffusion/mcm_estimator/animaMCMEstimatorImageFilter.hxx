@@ -480,7 +480,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
         // Load DWI
         for (unsigned int i = 0;i < m_NumberOfImages;++i)
             observedSignals[i] = inIterators[i].Get();
-
+        
         int moseValue = -1;
         bool estimateNonIsoCompartments = false;
         if (m_ExternalMoseVolume)
@@ -876,7 +876,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     workVec = mcmUpdateValue->GetParametersAsVector();
     for (unsigned int i = 0;i < dimension;++i)
         p[i] = workVec[i];
-
+    
     double costValue = this->PerformSingleOptimization(p,cost,lowerBounds,upperBounds);
     this->GetProfiledInformation(cost,mcmUpdateValue,b0Value,sigmaSqValue);
 
@@ -890,7 +890,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
 
     if ((m_CompartmentType == Stick)||(b0Value == 0.0))
         return;
-
+    
     // We're done with ball and stick, next up is ball and zeppelin
     // - First create model
     mcmCreator->SetCompartmentType(Zeppelin);

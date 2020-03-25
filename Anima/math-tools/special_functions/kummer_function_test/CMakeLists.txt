@@ -1,6 +1,6 @@
-if(BUILD_TOOLS AND USE_VTK AND VTK_FOUND)
+if(BUILD_TOOLS)
 
-project(animaConvertShape)
+project(animaKummerFunctionTest)
 
 ## #############################################################################
 ## List Sources
@@ -24,8 +24,9 @@ add_executable(${PROJECT_NAME}
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME}
-  AnimaDataIO
+  AnimaSpecialFunctions
   )
+
 
 ## #############################################################################
 ## install

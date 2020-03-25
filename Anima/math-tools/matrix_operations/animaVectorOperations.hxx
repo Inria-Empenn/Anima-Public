@@ -9,6 +9,66 @@
 namespace anima
 {
 
+/******* Main function GetMedian *******/
+// Main
+template <class VectorType> double GetMedian(const VectorType &data, const unsigned int NDimension)
+{
+    std::vector <double> array(NDimension, 0);
+    
+    for (unsigned int i = 0;i < NDimension;++i)
+        array[i] = data[i];
+    
+    std::nth_element(array.begin(), array.begin() + NDimension / 2, array.end());
+    
+    double median = array[NDimension / 2];
+    
+    if (NDimension % 2 == 0)
+    {
+        median += *std::max_element(array.begin(), array.begin() + NDimension / 2);
+        median /= 2.0;
+    }
+    
+    return median;
+}
+// For itkVector
+template <class ScalarType, unsigned int NDimension> double GetMedian(const itk::Vector <ScalarType,NDimension> &data)
+{
+    return GetMedian(data, NDimension);
+}
+// For itkVariableLengthVector
+template <class ScalarType> double GetMedian(const itk::VariableLengthVector <ScalarType> &data)
+{
+    unsigned int NDimension = data.GetSize();
+    return GetMedian(data, NDimension);
+}
+// For itkPoint
+template <class ScalarType, unsigned int NDimension> double GetMedian(const itk::Point<ScalarType,NDimension> &data)
+{
+    return GetMedian(data, NDimension);
+}
+// For vnl_vector
+template <class ScalarType> double GetMedian(const vnl_vector <ScalarType> &data)
+{
+    unsigned int NDimension = data.size();
+    return GetMedian(data, NDimension);
+}
+// For vnl_vector_fixed
+template <class ScalarType, unsigned int NDimension>
+double GetMedian(const vnl_vector_fixed <ScalarType,NDimension> &data)
+{
+    return GetMedian(data, NDimension);
+}
+// For std::vector
+template <class ScalarType> double GetMedian(const std::vector <ScalarType> &data)
+{
+    unsigned int NDimension = data.size();
+    return GetMedian(data, NDimension);
+}
+/******************************************************/
+
+
+
+
 /******* Main function ComputeEuclideanDistance *******/
 // Main
 template <class VectorType> double ComputeEuclideanDistance(const VectorType &x1, const VectorType &x2, const unsigned int NDimension)

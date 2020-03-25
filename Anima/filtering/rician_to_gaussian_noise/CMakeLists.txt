@@ -1,6 +1,6 @@
-if(BUILD_TOOLS AND USE_VTK AND VTK_FOUND)
+if(BUILD_TOOLS AND USE_ARB)
 
-project(animaConvertShape)
+project(animaRicianToGaussianNoise)
 
 ## #############################################################################
 ## List Sources
@@ -24,7 +24,8 @@ add_executable(${PROJECT_NAME}
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME}
-  AnimaDataIO
+  ${ITKIO_LIBRARIES}
+  AnimaSpecialFunctions
   )
 
 ## #############################################################################

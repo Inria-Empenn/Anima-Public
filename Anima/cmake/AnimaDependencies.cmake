@@ -30,6 +30,22 @@ if(USE_NLOPT)
   find_package(NLOPT REQUIRED)
 endif()
 
+# ARB
+option(USE_ARB 
+  "Use ARB external library (necessary for some special functions)" 
+  OFF
+  )
+
+if(USE_ARB)
+  find_package(GMP REQUIRED)
+  find_package(MPFR REQUIRED)
+  find_package(FLINT REQUIRED)
+  find_package(ARB REQUIRED)
+  if (ARB_FOUND)
+    add_definitions(-DWITH_ARB_FUNCTIONS)
+  endif()
+endif()
+
 # TinyXML2
 if (BUILD_MODULE_REGISTRATION OR BUILD_MODULE_DIFFUSION)
 	find_package(TinyXML2 REQUIRED)
