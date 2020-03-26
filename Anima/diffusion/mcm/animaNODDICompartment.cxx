@@ -50,7 +50,7 @@ void NODDICompartment::UpdateSignals(double bValue, const Vector3DType &gradient
         double coefVal = m_WatsonSHCoefficients[i];
         double sqrtVal = std::sqrt((4.0 * i + 1.0) / (4.0 * M_PI));
         double legendreVal = boost::math::legendre_p(2 * i, innerProd);
-        double kummerVal = anima::KummerFunction(-x, i + 0.5, 2.0 * i + 1.5, false, true);
+        double kummerVal = std::tgamma(i + 0.5) * anima::KummerFunction(-x, i + 0.5, 2.0 * i + 1.5) / std::tgamma(2.0 * i + 1.5);
         double xPowVal = std::pow(-x, (double)i);
         double cVal = xPowVal * kummerVal;
         
@@ -64,7 +64,7 @@ void NODDICompartment::UpdateSignals(double bValue, const Vector3DType &gradient
         double cDerivVal = 0.0;
         if (m_EstimateAxialDiffusivity)
         {
-            cDerivVal = -xPowVal * anima::KummerFunction(-x, i + 1.5, 2.0 * i + 2.5, false, true);
+            cDerivVal = - xPowVal * kummerVal;
             if (i > 0)
                 cDerivVal += xPowVal * i * kummerVal / x;
         }
