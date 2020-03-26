@@ -109,6 +109,12 @@ KummerFunction(const double &x,
                const unsigned int maxIter,
                const double tol)
 {
+    if ((a == 0)|| (x == 0))
+        return 1.0;
+
+    if (a == b)
+        return std::exp(x);
+
     if (a > 0 && b > a)
     {
         KummerIntegrand integrand;
