@@ -123,6 +123,10 @@ KummerFunction(const double &x,
         integrand.SetBValue(b);
         double resVal = boost::math::quadrature::gauss<double, 15>::integrate(integrand, 0.0, 1.0);
         resVal *= std::tgamma(b) / std::tgamma(a) / std::tgamma(b - a);
+
+        if (x > 0)
+            resVal = std::exp(x + std::log(resVal));
+
         return resVal;
     }
 
