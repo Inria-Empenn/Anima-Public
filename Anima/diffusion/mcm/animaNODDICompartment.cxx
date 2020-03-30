@@ -101,6 +101,8 @@ double NODDICompartment::GetFourierTransformedDiffusionProfile(double smallDelta
     
 NODDICompartment::ListType &NODDICompartment::GetSignalAttenuationJacobian(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient)
 {
+    itkExceptionMacro("As of now, derivative is not functional for NODDI, please use bobyqa optimizer");
+
     double bValue = anima::GetBValueFromAcquisitionParameters(smallDelta, bigDelta, gradientStrength);
     this->UpdateSignals(bValue, gradient);
     
