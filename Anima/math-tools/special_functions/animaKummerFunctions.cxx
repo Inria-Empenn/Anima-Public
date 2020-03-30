@@ -18,11 +18,8 @@ PochHammer(const double &x,
 }
 
 double
-KummerMethod1(const double &x,
-              const double &a,
-              const double &b,
-              const unsigned int maxIter,
-              const double tol)
+KummerMethod1(const double &x, const double &a, const double &b,
+              const unsigned int maxIter, const double tol)
 {
     double resVal = 1.0;
     
@@ -54,11 +51,8 @@ KummerMethod1(const double &x,
 }
 
 double
-KummerMethod2(const double &x,
-              const double &a,
-              const double &b,
-              const unsigned int maxIter,
-              const double tol)
+KummerMethod2(const double &x, const double &a, const double &b,
+              const unsigned int maxIter, const double tol)
 {
     double resVal = 1.0;
     
@@ -102,12 +96,19 @@ KummerMethod2(const double &x,
     return resVal;
 }
 
+double KummerIntegrandMethod(const double &x, const double &a, const double &b)
+{
+    KummerIntegrand integrand;
+    integrand.SetXValue(x);
+    integrand.SetAValue(a);
+    integrand.SetBValue(b);
+    double resVal = boost::math::quadrature::gauss<double, 15>::integrate(integrand, 0.0, 1.0);
+    resVal *= std::tgamma(b) / std::tgamma(a) / std::tgamma(b - a);
+}
+
 double
-KummerFunction(const double &x,
-               const double &a,
-               const double &b,
-               const unsigned int maxIter,
-               const double tol)
+GetKummerFunctionValue(const double &x, const double &a, const double &b,
+                       const unsigned int maxIter, const double tol)
 {
     if ((a == 0)|| (x == 0))
         return 1.0;
@@ -117,12 +118,7 @@ KummerFunction(const double &x,
 
     if (a > 0 && b > a)
     {
-        KummerIntegrand integrand;
-        integrand.SetXValue(x);
-        integrand.SetAValue(a);
-        integrand.SetBValue(b);
-        double resVal = boost::math::quadrature::gauss<double, 15>::integrate(integrand, 0.0, 1.0);
-        resVal *= std::tgamma(b) / std::tgamma(a) / std::tgamma(b - a);
+        double resVal = KummerIntegrandMethod(x,a,b);
 
         if (x > 0)
             resVal = std::exp(x + std::log(resVal));
@@ -131,7 +127,6 @@ KummerFunction(const double &x,
     }
 
     double rFactor = std::abs(x * a / b);
-
     if (rFactor < 20.0)
         return KummerMethod1(x,a,b,maxIter,tol);
     else
@@ -152,5 +147,47 @@ KummerFunction(const double &x,
         return KummerMethod2(x,a,b,maxIter,tol);
     }
 }
-    
+
+double
+GetScaledKummerFunctionValue(const double &x, const double &a, const double &b,
+                             const unsigned int maxIter, const double tol)
+{
+    if ((a == 0)|| (x == 0))
+        return std::exp(-x);
+
+    if (a == b)
+        return 1.0;
+
+    if (a > 0 && b > a)
+    {
+        double resVal = KummerIntegrandMethod(x,a,b);
+
+        if (x < 0)
+            resVal = std::exp(- x + std::log(resVal));
+
+        return resVal;
+    }
+
+    double rFactor = std::abs(x * a / b);
+    if (rFactor < 20.0)
+        return std::exp(-x + std::log(KummerMethod1(x,a,b,maxIter,tol)));
+    else
+    {
+        if (a > b)
+        {
+            double ap = b - a;
+            double xp = -x;
+            if (ap > b)
+                throw itk::ExceptionObject(__FILE__, __LINE__,"Invalid inputs for Kummer function using method 2",ITK_LOCATION);
+
+            double tmpVal = KummerMethod2(xp,ap,b,maxIter,tol);
+            double logResVal = std::log(std::abs(tmpVal));
+            double factor = (0 < tmpVal) - (0 > tmpVal);
+            return factor * std::exp(logResVal);
+        }
+
+        return std::exp(-x + std::log(KummerMethod2(x,a,b,maxIter,tol)));
+    }
+}
+
 } // end of namespace anima
