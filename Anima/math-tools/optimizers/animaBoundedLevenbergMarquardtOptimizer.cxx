@@ -291,7 +291,6 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     }
 
     upperBoundLambda = std::sqrt(upperBoundLambda) / m_DeltaParameter;
-
     p[0] = std::max(0.001 * upperBoundLambda, std::sqrt(lowerBoundLambda * upperBoundLambda));
 
     bool continueLoop = true;
@@ -307,6 +306,12 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
             lowerBoundLambda = p[0];
 
         p[0] = (lowerBoundLambda + upperBoundLambda) / 2.0;
+
+        if (upperBoundLambda - lowerBoundLambda < std::sqrt(std::numeric_limits<double>::epsilon()))
+        {
+            tentativeCost = m_LambdaCostFunction->GetValue(p);
+            continueLoop = false;
+        }
     }
 
     m_LambdaParameter = p[0];
