@@ -10,34 +10,34 @@ ANIMASPECIALFUNCTIONS_EXPORT
 double PochHammer(const double &x,
                   const unsigned int n);
 
-//! According to Muller, K. E. (2001) ‘Computing the confluent hypergeometric function, M (a, b, x)’, Numerische Mathematik, pp. 179–196. Method 1, p.5
+//! According to Muller, K. E. (2001) ‘Computing the confluent hypergeometric function, M (a, b, x)’, Numerische Mathematik, pp. 179–196. Method 1.C, p.5
 ANIMASPECIALFUNCTIONS_EXPORT
 double
-KummerMethod1(const double &x,
-              const double &a,
-              const double &b,
-              const unsigned int maxIter = 10000,
-              const double tol = 1.0e-15);
+KummerMethod1(const double &x, const double &a, const double &b,
+              const unsigned int maxIter = 1000, const double tol = 1.0e-8);
 
 //! According to Muller, K. E. (2001) ‘Computing the confluent hypergeometric function, M (a, b, x)’, Numerische Mathematik, pp. 179–196. Method 2, p.6
 ANIMASPECIALFUNCTIONS_EXPORT
 double
-KummerMethod2(const double &x,
-              const double &a,
-              const double &b,
-              const unsigned int maxIter = 10000,
-              const double tol = 1.0e-15);
+KummerMethod2(const double &x, const double &a, const double &b,
+              const unsigned int maxIter = 1000, const double tol = 1.0e-8);
 
-//! Computes the confluent hypergeometric function 1F1 also known as the Kummer function M because it is the solution of Kummer's equation. This code implements some of the methods from Muller, K. E. (2001) ‘Computing the confluent hypergeometric function, M (a, b, x)’, Numerische Mathematik, pp. 179–196. It switches between Method 1 and 2 according to recommendation at the end of page 5. Covers most situations (at least all common situations encountered in MR image processing).
+//! According to Muller, K. E. (2001) ‘Computing the confluent hypergeometric function, M (a, b, x)’, Numerische Mathematik, pp. 179–196. Method with integral if b > a > 0
 ANIMASPECIALFUNCTIONS_EXPORT
 double
-KummerFunction(const double &x,
-               const double &a,
-               const double &b,
-               const bool scaled = false,
-               const bool normalized = false,
-               const unsigned int maxIter = 10000,
-               const double tol = 1.0e-15);
+KummerIntegrandMethod(const double &x, const double &a, const double &b);
+
+//! Computes the confluent hypergeometric function 1F1 also known as the Kummer function M. It calls Kummer function core to get the value.
+ANIMASPECIALFUNCTIONS_EXPORT
+double
+GetKummerFunctionValue(const double &x, const double &a, const double &b,
+                       const unsigned int maxIter = 1000, const double tol = 1.0e-8);
+
+//! Computes the confluent hypergeometric function 1F1 also known as the Kummer function M. It returns a scaled value: exp(-x) * M(x,a,b).
+ANIMASPECIALFUNCTIONS_EXPORT
+double
+GetScaledKummerFunctionValue(const double &x, const double &a, const double &b,
+                             const unsigned int maxIter = 1000, const double tol = 1.0e-8);
 
 class KummerIntegrand
 {
@@ -48,7 +48,9 @@ public:
     
     double operator() (const double t)
     {
-        return std::exp(m_XValue * (t - (double)(m_XValue > 0))) * std::pow(t, m_AValue - 1.0) * std::pow(1.0 - t, m_BValue - m_AValue - 1.0);
+        // For better numerical stability
+        double tModified = t - (m_XValue > 0.0);
+        return std::exp(m_XValue * tModified) * std::pow(t, m_AValue - 1.0) * std::pow(1.0 - t, m_BValue - m_AValue - 1.0);
     }
     
 private:
