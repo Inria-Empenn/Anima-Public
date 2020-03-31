@@ -50,10 +50,10 @@ double KFunction(const double theta, const double r, const unsigned int N, const
 {
     double thetaSq = theta * theta;
     double rSq = r * r;
-    k1Value = anima::KummerFunction(-thetaSq / 2.0, -0.5, N);
+    k1Value = anima::GetKummerFunctionValue(-thetaSq / 2.0, -0.5, N);
     double gValue = anima::GFunction(thetaSq, rSq, N, k1Value, betaNSq);
     double num = gValue * (gValue - theta);
-    double k2Value = anima::KummerFunction(-thetaSq / 2.0, 0.5, N + 1);
+    double k2Value = anima::GetKummerFunctionValue(-thetaSq / 2.0, 0.5, N + 1);
     double denom = theta * (1.0 + rSq) * (1.0 - betaNSq / (2.0 * N) * k1Value * k2Value) - gValue;
     return theta - num / denom;
 }
@@ -97,8 +97,8 @@ double KFunction2(const double eta, const double m, const double sigma, const un
     double etaSq = eta * eta;
     double sigmaSq = sigma * sigma;
     double thetaSq = etaSq / sigmaSq;
-    k1Value = anima::KummerFunction(-thetaSq / 2.0, -0.5, N);
-    double k2Value = anima::KummerFunction(-thetaSq / 2.0, 0.5, N + 1);
+    k1Value = anima::GetKummerFunctionValue(-thetaSq / 2.0, -0.5, N);
+    double k2Value = anima::GetKummerFunctionValue(-thetaSq / 2.0, 0.5, N + 1);
     double gValue = anima::GFunction2(etaSq, mSq, sigmaSq, N, k1Value, betaNSq);
     double num = gValue * (gValue - eta);
     double denom = eta * (1.0 - betaNSq / (2.0 * N) * k1Value * k2Value) - gValue;
@@ -163,7 +163,7 @@ void GetRiceParameters(const std::vector<double> &samples, const std::vector<dou
         
         double rValue = meanValue / sigmaValue;
         double thetaValue = FixedPointFinder(rValue, 1, k1Value);
-        k1Value = anima::KummerFunction(-thetaValue * thetaValue / 2.0, -0.5, 1);
+        k1Value = anima::GetKummerFunctionValue(-thetaValue * thetaValue / 2.0, -0.5, 1);
         
         scale = sigmaValue / std::sqrt(anima::XiFunction(thetaValue * thetaValue, 1, k1Value, M_PI / 2.0));
         location = thetaValue * scale;

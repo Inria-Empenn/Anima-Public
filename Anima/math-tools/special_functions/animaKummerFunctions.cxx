@@ -1,8 +1,5 @@
 #include <animaKummerFunctions.h>
-
 #include <boost/math/quadrature/gauss.hpp>
-#include <boost/math/tools/fraction.hpp>
-
 #include <itkMacro.h>
 
 #ifdef WITH_ARB_FUNCTIONS
@@ -12,17 +9,112 @@
 namespace anima
 {
 
-double KummerIntegrand::operator() (const double t)
+double
+PochHammer(const double &x,
+           const unsigned int n)
 {
-    return std::exp(m_XValue * (t - (double)(m_XValue > 0))) * std::pow(t, m_AValue - 1.0) * std::pow(1.0 - t, m_BValue - m_AValue - 1.0);
+    double resVal = 1.0;
+    
+    for (unsigned int i = 0;i < n;++i)
+        resVal *= (x + i);
+    
+    return resVal;
 }
 
 double
-KummerFunction(const double &x,
-               const double &a,
-               const double &b,
-               const bool scaled,
-               const bool normalized)
+KummerMethod1(const double &x, const double &a, const double &b,
+              const unsigned int maxIter, const double tol)
+{
+    double resVal = 1.0;
+    
+    bool stopLoop = false;
+    unsigned int counter = 2;
+
+    std::vector <double> aVals(2);
+    aVals[0] = 1;
+    aVals[1] = 1.0 + x * a / b;
+
+    while (counter < maxIter && !stopLoop)
+    {
+        double r = (a + counter - 1.0) / (counter * (b + counter - 1.0));
+        double newVal = aVals[1] + (aVals[1] - aVals[0]) * r * x;
+
+        if ((counter != 2) && (std::abs(newVal - resVal) < tol * std::abs(resVal)))
+            stopLoop = true;
+        else
+        {
+            resVal = newVal;
+            aVals[0] = aVals[1];
+            aVals[1] = newVal;
+        }
+
+        ++counter;
+    }
+    
+    return resVal;
+}
+
+double
+KummerMethod2(const double &x, const double &a, const double &b,
+              const unsigned int maxIter, const double tol)
+{
+    double resVal = 1.0;
+    
+    bool stopLoop = false;
+    unsigned int counter = 0;
+    double factorial_counter = 1;
+    
+    while (counter < maxIter && !stopLoop)
+    {
+        ++counter;
+        factorial_counter *= counter;
+        
+        double tmpVal = resVal;
+        
+        double poch_a, poch_b;
+        
+        if (x > 0)
+        {
+            poch_a = PochHammer(1.0 - a,counter);
+            poch_b = PochHammer(b - a,counter);
+        }
+        else
+        {
+            poch_a = PochHammer(a,counter);
+            poch_b = PochHammer(1.0 + a - b,counter);
+        }
+        
+        resVal += poch_a * poch_b * std::pow(std::abs(x),-1.0 * counter) / factorial_counter;
+        
+        if ((counter != 1) && (std::abs(resVal - tmpVal) < tol * std::abs(tmpVal)))
+            stopLoop = true;
+    }
+    
+    if (x > 0)
+        resVal *= std::exp(x) * std::pow(x,(double)(a-b)) / std::tgamma(a);
+    else
+        resVal *= std::pow(-x,-1.0 * a) / std::tgamma(b-a);
+    
+    resVal *= std::tgamma(b);
+    
+    return resVal;
+}
+
+double KummerIntegrandMethod(const double &x, const double &a, const double &b)
+{
+    KummerIntegrand integrand;
+    integrand.SetXValue(x);
+    integrand.SetAValue(a);
+    integrand.SetBValue(b);
+    double resVal = boost::math::quadrature::gauss<double, 15>::integrate(integrand, 0.0, 1.0);
+    resVal *= std::tgamma(b) / std::tgamma(a) / std::tgamma(b - a);
+
+    return resVal;
+}
+
+double
+GetKummerFunctionValue(const double &x, const double &a, const double &b,
+                       const unsigned int maxIter, const double tol)
 {
 #ifdef WITH_ARB_FUNCTIONS
 
@@ -55,105 +147,98 @@ KummerFunction(const double &x,
 
 #else
 
-    if (a > 0 && b > a) // This seems to work fine
+    if ((a == 0) || (x == 0))
+        return 1.0;
+
+    if (a == b)
+        return std::exp(x);
+
+    if (a > 0 && b > a)
     {
-        KummerIntegrand integrand;
-        integrand.SetXValue(x);
-        integrand.SetAValue(a);
-        integrand.SetBValue(b);
-        double resVal = boost::math::quadrature::gauss<double, 15>::integrate(integrand, 0.0, 1.0) / std::tgamma(b - a);
+        double resVal = KummerIntegrandMethod(x, a, b);
 
-        if (!normalized)
-            resVal *= (std::tgamma(b) / std::tgamma(a));
-
-        if ((scaled && x <= 0) || (!scaled && x > 0))
-            resVal *= std::exp(x);
+        if (x > 0)
+            resVal = std::exp(x + std::log(resVal));
 
         return resVal;
     }
+
+    double rFactor = std::abs(x * a / b);
+    if (rFactor < 20.0)
+        return KummerMethod1(x, a, b, maxIter, tol);
     else
     {
-        // This is the weak part to be improved
-        // Maybe monitor future release of Boost if they make a header-only implementation
-        if (std::abs(x) > 25.0)
+        if (a > b)
         {
-            double resVal = std::tgamma(b);
-            
-            if (x > 0)
-                resVal *= std::exp(x) * std::pow(x, a - b) * (1.0 / std::tgamma(a) + (a - b) / (std::tgamma(a - 1) * x));
-            else
-                resVal *= std::pow(-x, -a) * (1.0 / std::tgamma(b - a) + a / (std::tgamma(b - a - 1) * x));
+            double ap = b - a;
+            double xp = -x;
+            if (ap > b)
+                throw itk::ExceptionObject(__FILE__, __LINE__,"Invalid inputs for Kummer function using method 2",ITK_LOCATION);
 
-            return resVal;
+            double tmpVal = KummerMethod2(xp,ap,b,maxIter,tol);
+            double logResVal = x + std::log(std::abs(tmpVal));
+            double factor = (0.0 < tmpVal) - (0.0 > tmpVal);
+            return factor * std::exp(logResVal);
         }
 
-        // This is a generic implementation based on continued fraction approximation suggested by Wolfram.
-        // Seems to behave badly for large negative arguments (hence the previous special case)
-        // Not tested for large positive arguments yet
-        double epsilon = std::numeric_limits<double>::epsilon();
-        KummerFraction generator;
-        generator.SetInputValue(x);
-        generator.SetAParameter(a);
-        generator.SetBParameter(b);
+        return KummerMethod2(x, a, b, maxIter, tol);
+    }
 
-        double resVal = 1.0 + a * x / (b * (1.0 + boost::math::tools::continued_fraction_a(generator, epsilon)));
+#endif
+}
+
+double
+GetScaledKummerFunctionValue(const double &x, const double &a, const double &b,
+                             const unsigned int maxIter, const double tol)
+{
+#ifdef WITH_ARB_FUNCTIONS
+
+	double kummerValue = GetKummerFunctionValue(x, a, b, maxIter, tol);
+	bool negativeValue = (kummerValue < 0);
+	double resVal = std::exp(-x + std::log(std::abs(kummerValue)));
+
+	if (negativeValue)
+		resVal *= -1.0;
+
+	return resVal;
+
+#else
+
+    if ((a == 0) || (x == 0))
+        return std::exp(-x);
+
+    if (a == b)
+        return 1.0;
+
+    if (a > 0 && b > a)
+    {
+        double resVal = KummerIntegrandMethod(x, a, b);
+
+        if (x < 0)
+            resVal = std::exp(- x + std::log(resVal));
+
         return resVal;
     }
 
+    double rFactor = std::abs(x * a / b);
+    if (rFactor < 20.0)
+        return std::exp(-x + std::log(KummerMethod1(x, a, b, maxIter, tol)));
+    else
+    {
+        if (a > b)
+        {
+            double ap = b - a;
+            double xp = -x;
+            if (ap > b)
+                throw itk::ExceptionObject(__FILE__, __LINE__,"Invalid inputs for Kummer function using method 2",ITK_LOCATION);
+
+            return KummerMethod2(xp, ap, b, maxIter, tol);
+        }
+
+        return std::exp(-x + std::log(KummerMethod2(x, a, b, maxIter, tol)));
+    }
+
 #endif
 }
 
-double OneHalfLaguerreFunction(const double &x)
-{
-#ifdef WITH_ARB_FUNCTIONS
-    
-    arb_t inputBall, bessel0Ball, bessel1Ball, zeroBall, oneBall;
-    arb_init(inputBall);
-    arb_init(bessel0Ball);
-    arb_init(bessel1Ball);
-    arb_init(zeroBall);
-    arb_init(oneBall);
-    arb_set_d(inputBall, - x / 2.0);
-    arb_set_d(zeroBall, 0.0);
-    arb_set_d(oneBall, 1.0);
-
-    unsigned int precision = 64;
-    arb_hypgeom_bessel_i_scaled(bessel0Ball, zeroBall, inputBall, precision);
-    
-    while (arb_can_round_arf(bessel0Ball, 53, MPFR_RNDN) == 0)
-    {
-        precision *= 2;
-        arb_hypgeom_bessel_i_scaled(bessel0Ball, zeroBall, inputBall, precision);
-    }
-
-    double bessel0Value = arf_get_d(arb_midref(bessel0Ball), MPFR_RNDN);
-    
-    precision = 64;
-    arb_hypgeom_bessel_i_scaled(bessel1Ball, oneBall, inputBall, precision);
-
-    while (arb_can_round_arf(bessel1Ball, 53, MPFR_RNDN) == 0)
-    {
-        precision *= 2;
-        arb_hypgeom_bessel_i_scaled(bessel1Ball, oneBall, inputBall, precision);
-    }
-
-    double bessel1Value = arf_get_d(arb_midref(bessel1Ball), MPFR_RNDN);
-    
-    double resVal = (1.0 - x) * bessel0Value - x * bessel1Value;
-
-    arb_clear(inputBall);
-    arb_clear(bessel0Ball);
-    arb_clear(bessel1Ball);
-    arb_clear(zeroBall);
-    arb_clear(oneBall);
-
-    return resVal;
-    
-#else
-    
-    return 0.0;
-    
-#endif
-}
-    
 } // end of namespace anima

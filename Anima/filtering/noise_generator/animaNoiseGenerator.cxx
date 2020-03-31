@@ -122,7 +122,7 @@ int main(int argc, char **argv)
     // Compute mean and variance from Rice distribution
     double snrValue = meanReferenceValue / riceSigmaParameter;
     double laguerreArgument = -1.0 * snrValue * snrValue / 2.0;
-    double laguerreValue = anima::KummerFunction(laguerreArgument, -0.5, 1.0);
+    double laguerreValue = anima::GetKummerFunctionValue(laguerreArgument, -0.5, 1.0);
     double riceMeanValue = riceSigmaParameter * std::sqrt(M_PI / 2.0) * laguerreValue;
     double riceStdValue = 2.0 * riceSigmaParameter * riceSigmaParameter + meanReferenceValue * meanReferenceValue - M_PI * riceSigmaParameter * riceSigmaParameter * laguerreValue * laguerreValue / 2.0;
     if (riceStdValue < 0.0)
