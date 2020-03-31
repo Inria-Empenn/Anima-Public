@@ -1,10 +1,4 @@
-#include <sstream>
-#include <iomanip>
-
 #include <tclap/CmdLine.h>
-
-#include <itksys/SystemTools.hxx>
-
 #include <animaNoiseGeneratorImageFilter.h>
 #include <animaReadWriteFunctions.h>
 #include <animaRetrieveImageTypeMacros.h>
@@ -38,8 +32,16 @@ addNoise(itk::ImageIOBase::Pointer imageIO, const arguments &args)
         anima::writeImage<OutputImageType>(args.output, mainFilter->GetOutput(0));
     else
     {
-        std::string filePrefix = itksys::SystemTools::GetFilenameWithoutExtension(args.output);
-        std::string fileExtension = itksys::SystemTools::GetFilenameExtension(args.output);
+        std::size_t pointLocation = args.output.find_last_of(".");
+        std::string filePrefix = args.output.substr(0, pointLocation);
+        std::string fileExtension = args.output.substr(pointLocation);
+
+        if (fileExtension == ".gz")
+        {
+            pointLocation = filePrefix.find_last_of(".");
+            filePrefix = filePrefix.substr(0, pointLocation);
+            fileExtension = filePrefix.substr(pointLocation) + ".gz";
+        }
         
         for (unsigned int i = 0;i < args.nreplicates;++i)
         {
