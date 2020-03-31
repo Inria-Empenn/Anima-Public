@@ -49,7 +49,7 @@ public:
     double operator() (const double t)
     {
         // For better numerical stability
-        double tModified = t - (m_XValue > 0);
+        double tModified = t - (m_XValue > 0.0);
         return std::exp(m_XValue * tModified) * std::pow(t, m_AValue - 1.0) * std::pow(1.0 - t, m_BValue - m_AValue - 1.0);
     }
     

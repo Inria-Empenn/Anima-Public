@@ -104,13 +104,15 @@ double KummerIntegrandMethod(const double &x, const double &a, const double &b)
     integrand.SetBValue(b);
     double resVal = boost::math::quadrature::gauss<double, 15>::integrate(integrand, 0.0, 1.0);
     resVal *= std::tgamma(b) / std::tgamma(a) / std::tgamma(b - a);
+
+    return resVal;
 }
 
 double
 GetKummerFunctionValue(const double &x, const double &a, const double &b,
                        const unsigned int maxIter, const double tol)
 {
-    if ((a == 0)|| (x == 0))
+    if ((a == 0) || (x == 0))
         return 1.0;
 
     if (a == b)
@@ -118,7 +120,7 @@ GetKummerFunctionValue(const double &x, const double &a, const double &b,
 
     if (a > 0 && b > a)
     {
-        double resVal = KummerIntegrandMethod(x,a,b);
+        double resVal = KummerIntegrandMethod(x, a, b);
 
         if (x > 0)
             resVal = std::exp(x + std::log(resVal));
@@ -128,7 +130,7 @@ GetKummerFunctionValue(const double &x, const double &a, const double &b,
 
     double rFactor = std::abs(x * a / b);
     if (rFactor < 20.0)
-        return KummerMethod1(x,a,b,maxIter,tol);
+        return KummerMethod1(x, a, b, maxIter, tol);
     else
     {
         if (a > b)
@@ -140,11 +142,11 @@ GetKummerFunctionValue(const double &x, const double &a, const double &b,
 
             double tmpVal = KummerMethod2(xp,ap,b,maxIter,tol);
             double logResVal = x + std::log(std::abs(tmpVal));
-            double factor = (0 < tmpVal) - (0 > tmpVal);
+            double factor = (0.0 < tmpVal) - (0.0 > tmpVal);
             return factor * std::exp(logResVal);
         }
 
-        return KummerMethod2(x,a,b,maxIter,tol);
+        return KummerMethod2(x, a, b, maxIter, tol);
     }
 }
 
@@ -152,7 +154,7 @@ double
 GetScaledKummerFunctionValue(const double &x, const double &a, const double &b,
                              const unsigned int maxIter, const double tol)
 {
-    if ((a == 0)|| (x == 0))
+    if ((a == 0) || (x == 0))
         return std::exp(-x);
 
     if (a == b)
@@ -160,7 +162,7 @@ GetScaledKummerFunctionValue(const double &x, const double &a, const double &b,
 
     if (a > 0 && b > a)
     {
-        double resVal = KummerIntegrandMethod(x,a,b);
+        double resVal = KummerIntegrandMethod(x, a, b);
 
         if (x < 0)
             resVal = std::exp(- x + std::log(resVal));
@@ -170,7 +172,7 @@ GetScaledKummerFunctionValue(const double &x, const double &a, const double &b,
 
     double rFactor = std::abs(x * a / b);
     if (rFactor < 20.0)
-        return std::exp(-x + std::log(KummerMethod1(x,a,b,maxIter,tol)));
+        return std::exp(-x + std::log(KummerMethod1(x, a, b, maxIter, tol)));
     else
     {
         if (a > b)
@@ -180,13 +182,10 @@ GetScaledKummerFunctionValue(const double &x, const double &a, const double &b,
             if (ap > b)
                 throw itk::ExceptionObject(__FILE__, __LINE__,"Invalid inputs for Kummer function using method 2",ITK_LOCATION);
 
-            double tmpVal = KummerMethod2(xp,ap,b,maxIter,tol);
-            double logResVal = std::log(std::abs(tmpVal));
-            double factor = (0 < tmpVal) - (0 > tmpVal);
-            return factor * std::exp(logResVal);
+            return KummerMethod2(xp, ap, b, maxIter, tol);
         }
 
-        return std::exp(-x + std::log(KummerMethod2(x,a,b,maxIter,tol)));
+        return std::exp(-x + std::log(KummerMethod2(x, a, b, maxIter, tol)));
     }
 }
 
