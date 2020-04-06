@@ -1,6 +1,8 @@
 #pragma once
 #include "animaMCMLinearInterpolateImageFunction.h"
 
+#include <itkMultiThreaderBase.h>
+
 namespace anima
 {
 /**
