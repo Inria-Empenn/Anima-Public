@@ -17,6 +17,9 @@ BLMLambdaCostFunction::GetValue(const ParametersType &parameters) const
     // Solve (JtJ + lambda d^2) x = - Jt r, for a given lambda as parameter
     // Use the fact that pi^T D pi and pi a permutation matrix when D diagonal is diagonal, is equivalent to d[pivotVector[i]] in vector form
 
+    m_RAlphaTranspose.set_size(nbParams,nbParams);
+    m_RAlphaTranspose.fill(0.0);
+
     if (parameters[0] > 0.0)
     {
         // Compute QR solution for any lambda > 0.0
@@ -30,6 +33,12 @@ BLMLambdaCostFunction::GetValue(const ParametersType &parameters) const
         anima::QRGivensDecomposition(m_WorkMatrix,m_WResiduals);
         anima::UpperTriangularSolver(m_WorkMatrix,m_WResiduals,m_PPermutted,nbParams);
 
+        for (unsigned int i = 0;i < nbParams;++i)
+        {
+            for (unsigned int j = i;j < nbParams;++j)
+                m_RAlphaTranspose.put(j,i,m_WorkMatrix.get(i,j));
+        }
+
         m_SolutionInBounds = this->CheckSolutionIsInBounds(m_PPermutted);
     }
     else
@@ -38,6 +47,12 @@ BLMLambdaCostFunction::GetValue(const ParametersType &parameters) const
         // (solver uses only square rank subpart of work matrix, and rank first wresiduals)
         anima::UpperTriangularSolver(m_ZeroWorkMatrix,m_ZeroWResiduals,m_PPermuttedShrunk,m_JRank);
         m_SolutionInBounds = this->CheckSolutionIsInBounds(m_PPermuttedShrunk);
+
+        for (unsigned int i = 0;i < m_JRank;++i)
+        {
+            for (unsigned int j = i;j < m_JRank;++j)
+                m_RAlphaTranspose.put(j,i,m_ZeroWorkMatrix.get(i,j));
+        }
 
         for (unsigned int i = 0;i < m_JRank;++i)
             m_PPermutted[i] = m_PPermuttedShrunk[i];
@@ -84,7 +99,40 @@ bool BLMLambdaCostFunction::CheckSolutionIsInBounds(ParametersType &solutionVect
 void
 BLMLambdaCostFunction::GetDerivative(const ParametersType &parameters, DerivativeType &derivative) const
 {
-    // Not implemented yet
+    // Computes the derivative assuming GetValue has ben called right before and RAlphaTranspose is thus defined
+    // Valid only if the solution is in bounds, otherwise barely an approximation that should not be trusted
+     derivative.set_size(1);
+
+     // Regular case when in bounds
+     unsigned int nbParams = m_LowerBoundsPermutted.size();
+     ParametersType q(nbParams), workQ(nbParams);
+
+     double normQ = 0.0;
+     for (unsigned int i = 0;i < nbParams;++i)
+     {
+         q[i] = m_DValues[i] * m_SolutionVector[i];
+         normQ += q[i] * q[i];
+     }
+
+     normQ = std::sqrt(normQ);
+     for (unsigned int i = 0;i < nbParams;++i)
+         workQ[i] = m_DValues[m_PivotVector[i]] * q[m_PivotVector[i]] / normQ;
+
+     derivative[0] = 0.0;
+     if (parameters[0] == 0.0)
+     {
+         anima::LowerTriangularSolver(m_RAlphaTranspose,workQ,q,m_JRank);
+         for (unsigned int i = 0;i < m_JRank;++i)
+             derivative[0] -= q[i] * q[i];
+     }
+     else
+     {
+         anima::LowerTriangularSolver(m_RAlphaTranspose,workQ,q);
+         for (unsigned int i = 0;i < nbParams;++i)
+             derivative[0] -= q[i] * q[i];
+     }
+
+     derivative[0] *= normQ;
 }
 
 void
