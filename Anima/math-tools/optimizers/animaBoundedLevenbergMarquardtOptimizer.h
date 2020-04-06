@@ -74,7 +74,7 @@ protected:
                                ParametersType &qtResiduals, unsigned int rank);
 
     bool CheckConditions(unsigned int numIterations, ParametersType &newParams,
-                         ParametersType &oldParams, double newCostValue);
+                         ParametersType &oldParams, ParametersType &dValues, double newCostValue);
 
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(BoundedLevenbergMarquardtOptimizer);
