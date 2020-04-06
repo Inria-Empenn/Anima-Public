@@ -296,8 +296,15 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
 
     bool continueLoop = true;
     double fTol = 0.001 * m_DeltaParameter;
+
+    unsigned int counter = 0;
+    // Computing maximal number of dichotomy iterations: min spacing tolerated at the end is 10^-8
+    double logsDiff = std::log(upperBoundLambda) - 0.5 * std::log(std::numeric_limits<double>::epsilon());
+    unsigned int maxCount = static_cast<unsigned int> (1.0 + logsDiff / std::log(2.0));
+
     while (continueLoop)
     {
+        ++counter;
         p[0] = (lowerBoundLambda + upperBoundLambda) / 2.0;
         double tentativeCost = m_LambdaCostFunction->GetValue(p);
         continueLoop = (std::abs(tentativeCost) >= fTol);
@@ -307,7 +314,7 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
         else
             lowerBoundLambda = p[0];
 
-        if (upperBoundLambda - lowerBoundLambda < std::sqrt(std::numeric_limits<double>::epsilon()))
+        if (counter < maxCount)
             continueLoop = false;
     }
 
