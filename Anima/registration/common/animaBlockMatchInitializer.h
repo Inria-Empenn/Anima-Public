@@ -2,6 +2,7 @@
 
 #include <itkImageRegion.h>
 #include <itkObject.h>
+#include <itkMultiThreaderBase.h>
 
 #include <itkVectorImage.h>
 #include <itkImage.h>
