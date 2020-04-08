@@ -1,6 +1,7 @@
 #include <animaBoundedLevenbergMarquardtOptimizer.h>
 #include <limits>
 #include <animaQRDecomposition.h>
+#include <boost/math/tools/roots.hpp>
 
 namespace anima
 {
@@ -130,22 +131,22 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
 
         double acceptRatio = 0.0;
 
-        // Compute || f + Jp ||^2
-        double fjpNorm = 0.0;
-        for (unsigned int i = 0;i < numResiduals;++i)
-        {
-            double fjpAddonValue = m_ResidualValues[i];
-
-            for (unsigned int j = 0;j < nbParams;++j)
-                fjpAddonValue += derivativeMatrixCopy.get(i,j) * m_CurrentAddonVector[j];
-
-            fjpNorm += fjpAddonValue * fjpAddonValue;
-        }
-
         if (!rejectedStep)
         {
             acceptRatio = 1.0 - tentativeNewCostValue / m_CurrentValue;
+            
+            // Compute || f + Jp ||^2
+            double fjpNorm = 0.0;
+            for (unsigned int i = 0;i < numResiduals;++i)
+            {
+                double fjpAddonValue = m_ResidualValues[i];
 
+                for (unsigned int j = 0;j < nbParams;++j)
+                    fjpAddonValue += derivativeMatrixCopy.get(i,j) * m_CurrentAddonVector[j];
+                
+                fjpNorm += fjpAddonValue * fjpAddonValue;
+            }
+            
             double denomAcceptRatio = 1.0 - fjpNorm / m_CurrentValue;
 
             if (denomAcceptRatio > 0.0)
@@ -263,6 +264,7 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     m_LambdaCostFunction->SetDeltaParameter(m_DeltaParameter);
 
     ParametersType p(m_LambdaCostFunction->GetNumberOfParameters());
+    ParametersType ptest(m_LambdaCostFunction->GetNumberOfParameters());
     p[0] = 0.0;
 
     double zeroCost = m_LambdaCostFunction->GetValue(p);
@@ -278,7 +280,7 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     upperBoundLambda = 0.0;
 
     unsigned int n = derivative.cols();
-
+    
     // Compute upper bound for lambda: D^-1 * pi * R^t * Q^t * residuals
     double u0InVectorPart;
     for (unsigned int i = 0;i < n;++i)
@@ -287,39 +289,320 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
         unsigned int maxIndex = std::min(i + 1,rank);
         for (unsigned int j = 0;j < maxIndex;++j)
             u0InVectorPart += derivative.get(j,i) * qtResiduals[j];
-
+        
         // u0InVectorPart is the one that goes into pivotVector[i] so we divide by the good d value
         upperBoundLambda += (u0InVectorPart / dValues[pivotVector[i]]) * (u0InVectorPart / dValues[pivotVector[i]]);
     }
-
+    
     upperBoundLambda = std::sqrt(upperBoundLambda) / m_DeltaParameter;
-
-    bool continueLoop = true;
+    
     double fTol = 0.001 * m_DeltaParameter;
-
+    double xTolRel = std::pow(2.0, 1.0 - (std::numeric_limits<double>::digits - 1.0) / 2.0);
     unsigned int counter = 0;
     // Computing maximal number of dichotomy iterations: min spacing tolerated at the end is 10^-8
     double logsDiff = std::log(upperBoundLambda) - 0.5 * std::log(std::numeric_limits<double>::epsilon());
     unsigned int maxCount = static_cast<unsigned int> (1.0 + logsDiff / std::log(2.0));
-
-    while (continueLoop)
+    
+    std::string version = "Dekker";
+    
+    if (version == "BoostTOMS")
     {
-        ++counter;
-        p[0] = (lowerBoundLambda + upperBoundLambda) / 2.0;
+        p[0] = upperBoundLambda;
+        double fValAtUpperBound = m_LambdaCostFunction->GetValue(p);
+        
+        LambdaCostFunction costFunction;
+        costFunction.SetCostFunction(m_LambdaCostFunction);
+        costFunction.SetDeltaParameter(m_DeltaParameter);
+        boost::uintmax_t it = maxCount;
+        eps_tolerance tol;
+        tol.SetTolerance(xTolRel);
+        std::pair <double,double> r = boost::math::tools::toms748_solve(costFunction, lowerBoundLambda, upperBoundLambda, zeroCost, fValAtUpperBound, tol, it);
+        m_LambdaParameter = r.first + (r.second - r.first) / 2.0;
+        p[0] = m_LambdaParameter;
         double tentativeCost = m_LambdaCostFunction->GetValue(p);
-        continueLoop = (std::abs(tentativeCost) >= fTol);
-
-        if (tentativeCost < 0.0)
-            upperBoundLambda = p[0];
-        else
-            lowerBoundLambda = p[0];
-
-        if (counter < maxCount)
-            continueLoop = false;
+        m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
     }
-
-    m_LambdaParameter = p[0];
-    m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
+    else if (version == "BoostBisection")
+    {
+        LambdaCostFunction costFunction;
+        costFunction.SetCostFunction(m_LambdaCostFunction);
+        costFunction.SetDeltaParameter(m_DeltaParameter);
+        boost::uintmax_t it = maxCount;
+        eps_tolerance tol;
+        tol.SetTolerance(xTolRel);
+        std::pair <double,double> r = boost::math::tools::bisect(costFunction, lowerBoundLambda, upperBoundLambda, tol, it);
+        m_LambdaParameter = r.first + (r.second - r.first) / 2.0;
+        p[0] = m_LambdaParameter;
+        double tentativeCost = m_LambdaCostFunction->GetValue(p);
+        m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
+    }
+    else if (version == "BoostBS")
+    {
+        LambdaCostFunction costFunction;
+        costFunction.SetCostFunction(m_LambdaCostFunction);
+        costFunction.SetDeltaParameter(m_DeltaParameter);
+        boost::uintmax_t it = maxCount;
+        eps_tolerance tol;
+        tol.SetTolerance(xTolRel);
+        std::pair <double,double> r = boost::math::tools::bracket_and_solve_root(costFunction, (lowerBoundLambda + upperBoundLambda) / 2.0, 2.0, false, tol, it);
+        m_LambdaParameter = r.first + (r.second - r.first) / 2.0;
+        p[0] = m_LambdaParameter;
+        double tentativeCost = m_LambdaCostFunction->GetValue(p);
+        m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
+    }
+    else if (version == "More")
+    {
+        bool continueLoop = true;
+        
+        // try setting up a smarter lower bound
+        itk::Array<double> phiPrime(1);
+        m_LambdaCostFunction->GetDerivative(p, phiPrime);
+        
+        if (phiPrime[0] < 0)
+        {
+            double candidateLowerBound = - zeroCost / phiPrime[0];
+            ptest[0] = candidateLowerBound;
+            if (m_LambdaCostFunction->GetValue(ptest) > 0.0)
+                lowerBoundLambda = candidateLowerBound;
+        }
+        
+        while (continueLoop)
+        {
+            ++counter;
+            
+            if (p[0] <= lowerBoundLambda || p[0] >= upperBoundLambda)
+                p[0] = std::max(0.001 * upperBoundLambda, std::sqrt(lowerBoundLambda * upperBoundLambda));
+            
+            double tentativeCost = m_LambdaCostFunction->GetValue(p);
+            continueLoop = (std::abs(tentativeCost) >= fTol);
+            
+            if (tentativeCost < 0.0)
+                upperBoundLambda = p[0];
+            
+            m_LambdaCostFunction->GetDerivative(p, phiPrime);
+            
+            double previousLowerBound = lowerBoundLambda;
+            
+            lowerBoundLambda = p[0];
+            
+            if (phiPrime[0] < 0)
+            {
+                double candidateLowerBound = p[0] - tentativeCost / phiPrime[0];
+                ptest[0] = candidateLowerBound;
+                if (m_LambdaCostFunction->GetValue(ptest) > 0.0)
+                    lowerBoundLambda = candidateLowerBound;
+            }
+            
+            lowerBoundLambda = std::max(lowerBoundLambda, previousLowerBound);
+            
+            p[0] -= (tentativeCost + m_DeltaParameter) / m_DeltaParameter * tentativeCost / phiPrime[0];
+            
+            if (counter >= maxCount || std::abs(upperBoundLambda - lowerBoundLambda) < xTolRel * (lowerBoundLambda + upperBoundLambda) / 2.0)
+            {
+                if (p[0] <= lowerBoundLambda || p[0] >= upperBoundLambda)
+                p[0] = std::max(0.001 * upperBoundLambda, std::sqrt(lowerBoundLambda * upperBoundLambda));
+                continueLoop = false;
+            }
+        }
+        
+        double tentativeCost = m_LambdaCostFunction->GetValue(p);
+        m_LambdaParameter = p[0];
+        m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
+    }
+    else if (version == "Bisection")
+    {
+        bool continueLoop = true;
+        
+        while (continueLoop)
+        {
+            ++counter;
+            p[0] = (lowerBoundLambda + upperBoundLambda) / 2.0;
+            double tentativeCost = m_LambdaCostFunction->GetValue(p);
+            continueLoop = (std::abs(tentativeCost) >= fTol);
+            
+            if (tentativeCost < 0.0)
+                upperBoundLambda = p[0];
+            else
+                lowerBoundLambda = p[0];
+            
+            if (counter >= maxCount || std::abs(upperBoundLambda - lowerBoundLambda) < xTolRel * (lowerBoundLambda + upperBoundLambda) / 2.0)
+                continueLoop = false;
+        }
+        
+        m_LambdaParameter = p[0];
+        m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
+    }
+    else if (version == "Dekker")
+    {
+        //---------------
+        // Dekker
+        // https://en.m.wikipedia.org/wiki/Brent's_method
+        //---------------
+        
+        bool continueLoop = true;
+        double fValAtLowerBound = zeroCost;
+        p[0] = upperBoundLambda;
+        double fValAtUpperBound = m_LambdaCostFunction->GetValue(p);
+        
+        if (std::abs(fValAtLowerBound) < std::abs(fValAtUpperBound))
+        {
+            double workValue = lowerBoundLambda;
+            lowerBoundLambda = upperBoundLambda;
+            upperBoundLambda = workValue;
+            workValue = fValAtLowerBound;
+            fValAtLowerBound = fValAtUpperBound;
+            fValAtUpperBound = workValue;
+        }
+        
+        double previousUpperBound = lowerBoundLambda;
+        double previousFValAtUpperBound = fValAtLowerBound;
+        
+        while (continueLoop)
+        {
+            ++counter;
+            
+            double fDiff = fValAtUpperBound - previousFValAtUpperBound;
+            
+            if (fDiff == 0.0)
+                p[0] = (lowerBoundLambda + upperBoundLambda) / 2.0;
+            else
+                p[0] = upperBoundLambda - (upperBoundLambda - previousUpperBound) * fValAtUpperBound / fDiff;
+            
+            previousUpperBound = upperBoundLambda;
+            previousFValAtUpperBound = fValAtUpperBound;
+            
+            upperBoundLambda = p[0];
+            fValAtUpperBound = m_LambdaCostFunction->GetValue(p);
+            continueLoop = (std::abs(fValAtUpperBound) >= fTol);
+            
+            if (fValAtLowerBound * fValAtUpperBound > 0.0)
+            {
+                lowerBoundLambda = previousUpperBound;
+                fValAtLowerBound = previousFValAtUpperBound;
+            }
+            
+            if (std::abs(fValAtLowerBound) < std::abs(fValAtUpperBound))
+            {
+                double workValue = lowerBoundLambda;
+                lowerBoundLambda = upperBoundLambda;
+                upperBoundLambda = workValue;
+                workValue = fValAtLowerBound;
+                fValAtLowerBound = fValAtUpperBound;
+                fValAtUpperBound = workValue;
+            }
+            
+            if (counter >= maxCount || std::abs(upperBoundLambda - lowerBoundLambda) < xTolRel * (lowerBoundLambda + upperBoundLambda) / 2.0)
+                continueLoop = false;
+        }
+        
+        m_LambdaParameter = p[0];
+        m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
+    }
+    else
+    {
+        //---------------
+        // Brent
+        // https://en.m.wikipedia.org/wiki/Brent's_method
+        //---------------
+        
+        bool continueLoop = true;
+        double fValAtLowerBound = zeroCost;
+        p[0] = upperBoundLambda;
+        double fValAtUpperBound = m_LambdaCostFunction->GetValue(p);
+        
+        if (std::abs(fValAtLowerBound) < std::abs(fValAtUpperBound))
+        {
+            double workValue = lowerBoundLambda;
+            lowerBoundLambda = upperBoundLambda;
+            upperBoundLambda = workValue;
+            workValue = fValAtLowerBound;
+            fValAtLowerBound = fValAtUpperBound;
+            fValAtUpperBound = workValue;
+        }
+        
+        double cValue = lowerBoundLambda;
+        double fValAtCValue = fValAtLowerBound;
+        double dValue = 0.0;
+        bool mFlag = true;
+        double deltaValue = xTolRel * upperBoundLambda;
+        
+        while (continueLoop)
+        {
+            ++counter;
+            
+            double fDiffAC = fValAtLowerBound - fValAtCValue;
+            double fDiffBC = fValAtUpperBound - fValAtCValue;
+            double fDiffAB = fValAtLowerBound - fValAtUpperBound;
+            if (fDiffAC == 0.0 || fDiffBC == 0.0)
+            {
+                // secant
+                p[0] = upperBoundLambda + fValAtUpperBound * (upperBoundLambda - lowerBoundLambda) / fDiffAB;
+            }
+            else
+            {
+                // inverse quadratic interpolation
+                double firstTerm = lowerBoundLambda * fValAtUpperBound * fValAtCValue / (fDiffAB * fDiffAC);
+                double secondTerm = upperBoundLambda * fValAtLowerBound * fValAtCValue / (-fDiffAB * fDiffBC);
+                double thirdTerm = cValue * fValAtLowerBound * fValAtUpperBound / (fDiffAC * fDiffBC);
+                p[0] = firstTerm + secondTerm + thirdTerm;
+            }
+            
+            bool condition1 = (p[0] < (3.0 * lowerBoundLambda + upperBoundLambda) / 4.0) || (p[0] > upperBoundLambda);
+            bool condition2 = (mFlag) && (std::abs(p[0] - upperBoundLambda) >= std::abs(upperBoundLambda - cValue) / 2.0);
+            bool condition3 = (!mFlag) && (std::abs(p[0] - upperBoundLambda) >= std::abs(cValue - dValue) / 2.0);
+            bool condition4 = (mFlag) && (std::abs(upperBoundLambda - cValue) < deltaValue);
+            bool condition5 = (!mFlag) && (std::abs(cValue - dValue) < deltaValue);
+            
+            if (condition1 || condition2 || condition3 || condition4 || condition5)
+            {
+                // bisection
+                p[0] = (lowerBoundLambda + upperBoundLambda) / 2.0;
+                mFlag = true;
+            }
+            else
+                mFlag = false;
+            
+            double tentativeCost = m_LambdaCostFunction->GetValue(p);
+            continueLoop = (std::abs(tentativeCost) >= fTol);
+            
+            dValue = cValue;
+            cValue = upperBoundLambda;
+            fValAtCValue = fValAtUpperBound;
+            
+            if (fValAtLowerBound * tentativeCost < 0.0)
+            {
+                upperBoundLambda = p[0];
+                fValAtUpperBound = tentativeCost;
+            }
+            else
+            {
+                lowerBoundLambda = p[0];
+                fValAtLowerBound = tentativeCost;
+            }
+            
+            if (std::abs(fValAtLowerBound) < std::abs(fValAtUpperBound))
+            {
+                double workValue = lowerBoundLambda;
+                lowerBoundLambda = upperBoundLambda;
+                upperBoundLambda = workValue;
+                workValue = fValAtLowerBound;
+                fValAtLowerBound = fValAtUpperBound;
+                fValAtUpperBound = workValue;
+            }
+            
+            deltaValue = xTolRel * upperBoundLambda;
+            
+            if (counter >= maxCount || std::abs(upperBoundLambda - lowerBoundLambda) < xTolRel * (lowerBoundLambda + upperBoundLambda) / 2.0)
+                continueLoop = false;
+        }
+        
+        m_LambdaParameter = p[0];
+        m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
+        
+    }
+    
+//    std::cout << version << "," << m_LambdaCostFunction->GetValue(p) << "," << fTol << "," << m_LambdaParameter << std::endl;
+//    exit(-1);
 }
 
 double BoundedLevenbergMarquardtOptimizer::EvaluateCostFunctionAtParameters(ParametersType &parameters, MeasureType &residualValues)

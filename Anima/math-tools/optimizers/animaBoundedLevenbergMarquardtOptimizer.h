@@ -93,4 +93,41 @@ private:
     MeasureType m_ResidualValues;
 };
 
+struct LambdaCostFunction
+{
+public:
+    LambdaCostFunction()
+    {
+        m_CurrentPosition.SetSize(1);
+    }
+    
+    void SetDeltaParameter(const double val) {m_DeltaParameter = val;}
+    
+    void SetCostFunction(const anima::BLMLambdaCostFunction::Pointer& ptr)
+    {
+        m_LambdaCostFunction = ptr;
+    }
+    
+    double operator()(const double &x)
+    {
+        m_CurrentPosition[0] = x;
+        return m_LambdaCostFunction->GetValue(m_CurrentPosition) / m_DeltaParameter;
+    }
+    
+private:
+    anima::BLMLambdaCostFunction::Pointer m_LambdaCostFunction;
+    itk::Array<double> m_CurrentPosition;
+    double m_DeltaParameter;
+};
+
+struct eps_tolerance
+{
+public:
+    void SetTolerance(const double tol) {m_Tolerance = tol;}
+    bool operator()(const double& a, const double& b)const { return std::abs(b - a) < m_Tolerance * (a + b) / 2.0; }
+    
+private:
+    double m_Tolerance;
+};
+
 } // end namespace anima
