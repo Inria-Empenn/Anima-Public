@@ -71,6 +71,7 @@ private:
     std::vector <unsigned int> m_InversePivotVector, m_PivotVector;
     ParametersType m_LowerBoundsPermutted, m_UpperBoundsPermutted;
     vnl_matrix <double> m_InputWorkMatrix;
+    mutable vnl_matrix <double> m_RAlphaTranspose;
     mutable vnl_matrix <double> m_WorkMatrix;
     mutable vnl_matrix <double> m_ZeroWorkMatrix;
     mutable ParametersType m_SolutionVector;

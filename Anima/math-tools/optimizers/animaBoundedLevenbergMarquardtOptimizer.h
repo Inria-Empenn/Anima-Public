@@ -74,7 +74,7 @@ protected:
                                ParametersType &qtResiduals, unsigned int rank);
 
     bool CheckConditions(unsigned int numIterations, ParametersType &newParams,
-                         ParametersType &oldParams, double newCostValue);
+                         ParametersType &oldParams, ParametersType &dValues, double newCostValue);
 
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(BoundedLevenbergMarquardtOptimizer);
@@ -91,6 +91,43 @@ private:
     ParametersType m_LowerBounds, m_UpperBounds;
     ParametersType m_CurrentAddonVector;
     MeasureType m_ResidualValues;
+};
+
+class LambdaCostFunction
+{
+public:
+    LambdaCostFunction()
+    {
+        m_CurrentPosition.SetSize(1);
+    }
+
+    void SetDeltaParameter(const double val) {m_DeltaParameter = val;}
+
+    void SetCostFunction(const anima::BLMLambdaCostFunction::Pointer& ptr)
+    {
+        m_LambdaCostFunction = ptr;
+    }
+
+    double operator()(const double &x)
+    {
+        m_CurrentPosition[0] = x;
+        return m_LambdaCostFunction->GetValue(m_CurrentPosition) / m_DeltaParameter;
+    }
+
+private:
+    anima::BLMLambdaCostFunction::Pointer m_LambdaCostFunction;
+    itk::Array<double> m_CurrentPosition;
+    double m_DeltaParameter;
+};
+
+struct eps_tolerance
+{
+public:
+    void SetTolerance(const double tol) {m_Tolerance = tol;}
+    bool operator()(const double& a, const double& b)const { return std::abs(b - a) < m_Tolerance * (a + b) / 2.0; }
+    
+private:
+    double m_Tolerance;
 };
 
 } // end namespace anima

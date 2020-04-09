@@ -1,6 +1,7 @@
 #include <animaBoundedLevenbergMarquardtOptimizer.h>
 #include <limits>
 #include <animaQRDecomposition.h>
+#include <animaDekkerRootFindingAlgorithm.h>
 
 namespace anima
 {
@@ -130,22 +131,22 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
 
         double acceptRatio = 0.0;
 
-        // Compute || f + Jp ||^2
-        double fjpNorm = 0.0;
-        for (unsigned int i = 0;i < numResiduals;++i)
-        {
-            double fjpAddonValue = m_ResidualValues[i];
-
-            for (unsigned int j = 0;j < nbParams;++j)
-                fjpAddonValue += derivativeMatrixCopy.get(i,j) * m_CurrentAddonVector[j];
-
-            fjpNorm += fjpAddonValue * fjpAddonValue;
-        }
-
         if (!rejectedStep)
         {
             acceptRatio = 1.0 - tentativeNewCostValue / m_CurrentValue;
+            
+            // Compute || f + Jp ||^2
+            double fjpNorm = 0.0;
+            for (unsigned int i = 0;i < numResiduals;++i)
+            {
+                double fjpAddonValue = m_ResidualValues[i];
 
+                for (unsigned int j = 0;j < nbParams;++j)
+                    fjpAddonValue += derivativeMatrixCopy.get(i,j) * m_CurrentAddonVector[j];
+                
+                fjpNorm += fjpAddonValue * fjpAddonValue;
+            }
+            
             double denomAcceptRatio = 1.0 - fjpNorm / m_CurrentValue;
 
             if (denomAcceptRatio > 0.0)
@@ -153,6 +154,8 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
             else
                 acceptRatio = 0.0;
         }
+        
+//        rejectedStep = rejectedStep || (acceptRatio < 1.0e-4); // As in Algorithm 7.1 from Moré.
 
         if (acceptRatio >= 0.75)
         {
@@ -226,7 +229,7 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
         }
 
         if (numIterations != 1)
-            stopConditionReached = this->CheckConditions(numIterations,parameters,oldParameters,
+            stopConditionReached = this->CheckConditions(numIterations,parameters,oldParameters,dValues,
                                                          tentativeNewCostValue);
 
         if (!rejectedStep)
@@ -261,6 +264,7 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     m_LambdaCostFunction->SetDeltaParameter(m_DeltaParameter);
 
     ParametersType p(m_LambdaCostFunction->GetNumberOfParameters());
+    ParametersType ptest(m_LambdaCostFunction->GetNumberOfParameters());
     p[0] = 0.0;
 
     double zeroCost = m_LambdaCostFunction->GetValue(p);
@@ -276,7 +280,7 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     upperBoundLambda = 0.0;
 
     unsigned int n = derivative.cols();
-
+    
     // Compute upper bound for lambda: D^-1 * pi * R^t * Q^t * residuals
     double u0InVectorPart;
     for (unsigned int i = 0;i < n;++i)
@@ -285,36 +289,31 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
         unsigned int maxIndex = std::min(i + 1,rank);
         for (unsigned int j = 0;j < maxIndex;++j)
             u0InVectorPart += derivative.get(j,i) * qtResiduals[j];
-
+        
         // u0InVectorPart is the one that goes into pivotVector[i] so we divide by the good d value
         upperBoundLambda += (u0InVectorPart / dValues[pivotVector[i]]) * (u0InVectorPart / dValues[pivotVector[i]]);
     }
-
+    
     upperBoundLambda = std::sqrt(upperBoundLambda) / m_DeltaParameter;
-    p[0] = std::max(0.001 * upperBoundLambda, std::sqrt(lowerBoundLambda * upperBoundLambda));
-
-    bool continueLoop = true;
+    
     double fTol = 0.001 * m_DeltaParameter;
-    while (continueLoop)
-    {
-        double tentativeCost = m_LambdaCostFunction->GetValue(p);
-        continueLoop = (std::abs(tentativeCost) >= fTol);
-
-        if (tentativeCost < 0.0)
-            upperBoundLambda = p[0];
-        else
-            lowerBoundLambda = p[0];
-
-        p[0] = (lowerBoundLambda + upperBoundLambda) / 2.0;
-
-        if (upperBoundLambda - lowerBoundLambda < std::sqrt(std::numeric_limits<double>::epsilon()))
-        {
-            tentativeCost = m_LambdaCostFunction->GetValue(p);
-            continueLoop = false;
-        }
-    }
-
-    m_LambdaParameter = p[0];
+    double xTolRel = 2.0 * std::sqrt(std::numeric_limits<double>::epsilon());
+    // Computing maximal number of dichotomy iterations: min spacing tolerated at the end is 10^-8
+    double logsDiff = std::log(upperBoundLambda) - 0.5 * std::log(std::numeric_limits<double>::epsilon());
+    unsigned int maxCount = static_cast<unsigned int> (1.0 + logsDiff / std::log(2.0));
+    
+    DekkerRootFindingAlgorithm algorithm;
+    
+    algorithm.SetRootRelativeTolerance(xTolRel);
+    algorithm.SetZeroRelativeTolerance(fTol);
+    algorithm.SetRootFindingFunction(m_LambdaCostFunction);
+    algorithm.SetUseZeroTolerance(false);
+    algorithm.SetMaximumNumberOfIterations(maxCount);
+    algorithm.SetLowerBound(lowerBoundLambda);
+    algorithm.SetUpperBound(upperBoundLambda);
+    algorithm.SetFunctionValueAtInitialLowerBound(zeroCost);
+    
+    m_LambdaParameter = algorithm.Optimize();
     m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
 }
 
@@ -331,36 +330,40 @@ double BoundedLevenbergMarquardtOptimizer::EvaluateCostFunctionAtParameters(Para
 }
 
 bool BoundedLevenbergMarquardtOptimizer::CheckConditions(unsigned int numIterations, ParametersType &newParams,
-                                                         ParametersType &oldParams, double newCostValue)
+                                                         ParametersType &oldParams, ParametersType &dValues, double newCostValue)
 {
     if (numIterations == m_NumberOfIterations)
         return true;
-
-    // xTol relative tolerance check
+    
+    // Criterion as in More, equation 8.3
     unsigned int numParams = newParams.size();
-    double normOld = 0.0;
-    double normDiff = 0.0;
+    double dxNew = 0.0;
+    double dxDiff = 0.0;
     for (unsigned int i = 0;i < numParams;++i)
     {
-        normOld += oldParams[i] * oldParams[i];
-        normDiff += (newParams[i] - oldParams[i]) * (newParams[i] - oldParams[i]);
+        double oldValue = dValues[i] * oldParams[i];
+        double newValue = dValues[i] * newParams[i];
+        dxNew += newValue * newValue;
+        dxDiff += (newValue - oldValue) * (newValue - oldValue);
     }
-
-    normOld = std::sqrt(normOld);
-    normDiff = std::sqrt(normDiff);
-    if (normOld != 0.0)
-    {
-        normDiff /= normOld;
-        if (normDiff < m_ValueTolerance)
-            return true;
-    }
-
-    // Criterion as in More, 8.4 equation
-    double relativeDiff = (m_CurrentValue - newCostValue) / m_CurrentValue;
-
-    if ((relativeDiff >= 0.0) && (relativeDiff < m_CostTolerance))
+    
+    dxNew = std::sqrt(dxNew);
+    
+    if (m_DeltaParameter <= m_ValueTolerance * dxNew)
         return true;
 
+    // Criterion as in More, 8.4 equation
+    double fDiff = m_CurrentValue - newCostValue;
+
+    if ((fDiff >= 0.0) && (fDiff <= m_CostTolerance * m_CurrentValue))
+        return true;
+    
+    // xTol relative tolerance check "a la NLOpt"
+    dxDiff = std::sqrt(dxDiff);
+    
+    if (dxDiff <= m_ValueTolerance * dxNew)
+        return true;
+    
     return false;
 }
 
