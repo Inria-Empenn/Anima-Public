@@ -94,27 +94,27 @@ private:
     MeasureType m_ResidualValues;
 };
 
-class LambdaCostFunction : public BaseRootFindingFunction
+class LambdaCostFunction
 {
 public:
     LambdaCostFunction()
     {
         m_CurrentPosition.SetSize(1);
     }
-    
+
     void SetDeltaParameter(const double val) {m_DeltaParameter = val;}
-    
+
     void SetCostFunction(const anima::BLMLambdaCostFunction::Pointer& ptr)
     {
         m_LambdaCostFunction = ptr;
     }
-    
+
     double operator()(const double &x)
     {
         m_CurrentPosition[0] = x;
         return m_LambdaCostFunction->GetValue(m_CurrentPosition) / m_DeltaParameter;
     }
-    
+
 private:
     anima::BLMLambdaCostFunction::Pointer m_LambdaCostFunction;
     itk::Array<double> m_CurrentPosition;

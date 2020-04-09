@@ -1,10 +1,14 @@
 #pragma once
-
 #include "AnimaOptimizersExport.h"
+#include <itkSingleValuedCostFunction.h>
+
+#include <limits>
+#include <cmath>
 
 namespace anima
 {
-struct CheckRootTolerance
+
+class CheckRootTolerance
 {
 public:
     CheckRootTolerance()
@@ -19,26 +23,52 @@ private:
     double m_RootRelativeTolerance;
 };
 
-class BaseRootFindingFunction
+class RootFindingFunctionBoostBridge
 {
 public:
-    virtual double operator()(const double &x) {return 0.0;}
+    using BaseCostFunctionType = itk::SingleValuedCostFunction;
+    using BaseCostFunctionPointer = BaseCostFunctionType::Pointer;
+    using ParametersType = BaseCostFunctionType::ParametersType;
+
+    double operator()(const double &x);
+
+    void SetRootFindingFunction(BaseCostFunctionType *f) {m_RootFindingFunction = f;}
+
+    RootFindingFunctionBoostBridge()
+    {
+        m_ParametersVector.set_size(1);
+    }
+
+private:
+    BaseCostFunctionPointer m_RootFindingFunction;
+    ParametersType m_ParametersVector;
 };
 
 class ANIMAOPTIMIZERS_EXPORT BaseRootFindingAlgorithm
 {
 public:
+    using BaseCostFunctionType = itk::SingleValuedCostFunction;
+    using BaseCostFunctionPointer = BaseCostFunctionType::Pointer;
+    using ParametersType = BaseCostFunctionType::ParametersType;
+
     void SetRootRelativeTolerance(const double &val) {m_RootRelativeTolerance = val;}
     void SetZeroRelativeTolerance(const double &val) {m_ZeroRelativeTolerance = val;}
     void SetUseZeroTolerance(const bool &val) {m_UseZeroTolerance = val;}
-    void SetMaximumNumberOfIterations(const double &val) {m_MaximumNumberOfIterations = val;}
-    void SetRootFindingFunction(const BaseRootFindingFunction &f) {m_RootFindingFunction = f;}
+    void SetMaximumNumberOfIterations(const unsigned int &val) {m_MaximumNumberOfIterations = val;}
+    void SetRootFindingFunction(BaseCostFunctionType *f) {m_RootFindingFunction = f;}
     void SetLowerBound(const double &val) {m_LowerBound = val;}
     void SetUpperBound(const double &val) {m_UpperBound = val;}
-    
+
+    double GetLowerBound() {return m_LowerBound;}
+    double GetUpperBound() {return m_UpperBound;}
+    bool GetUseZeroTolerance() {return m_UseZeroTolerance;}
+    unsigned int GetMaximumNumberOfIterations() {return m_MaximumNumberOfIterations;}
+    double GetRootRelativeTolerance() {return m_RootRelativeTolerance;}
+    double GetZeroRelativeTolerance() {return m_ZeroRelativeTolerance;}
+    BaseCostFunctionType *GetRootFindingFunction() {return m_RootFindingFunction;}
+
     virtual double Optimize() = 0;
 
-protected:
     BaseRootFindingAlgorithm()
     {
         m_RootRelativeTolerance = std::sqrt(std::numeric_limits<double>::epsilon());
@@ -56,13 +86,15 @@ private:
     unsigned int m_MaximumNumberOfIterations;
     double m_LowerBound;
     double m_UpperBound;
-    BaseRootFindingFunction m_RootFindingFunction;
+    BaseCostFunctionPointer m_RootFindingFunction;
 };
 
 class ANIMAOPTIMIZERS_EXPORT BisectionRootFindingAlgorithm : public BaseRootFindingAlgorithm
 {
 public:
-    double Optimize();
+    using Superclass = BaseRootFindingAlgorithm;
+    using ParametersType = Superclass::ParametersType;
+    double Optimize() ITK_OVERRIDE;
 };
 
 } // end of namespace anima

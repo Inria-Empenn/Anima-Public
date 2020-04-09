@@ -412,16 +412,12 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     else if (version == "Bisection")
     {
         BisectionRootFindingAlgorithm algorithm;
+
         algorithm.SetRootRelativeTolerance(xTolRel);
         algorithm.SetZeroRelativeTolerance(fTol);
+        algorithm.SetRootFindingFunction(m_LambdaCostFunction);
         algorithm.SetUseZeroTolerance(false);
         algorithm.SetMaximumNumberOfIterations(maxCount);
-        
-        LambdaCostFunction costFunction;
-        costFunction.SetCostFunction(m_LambdaCostFunction);
-        costFunction.SetDeltaParameter(m_DeltaParameter);
-        algorithm.SetRootFindingFunction(costFunction);
-        
         algorithm.SetLowerBound(lowerBoundLambda);
         algorithm.SetUpperBound(upperBoundLambda);
         
