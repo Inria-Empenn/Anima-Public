@@ -2,7 +2,6 @@
 
 #include <itkMultipleValuedNonLinearOptimizer.h>
 #include <animaBLMLambdaCostFunction.h>
-#include <animaRootFindingAlgorithms.h>
 #include "AnimaOptimizersExport.h"
 
 namespace anima

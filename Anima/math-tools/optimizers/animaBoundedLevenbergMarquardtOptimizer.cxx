@@ -1,6 +1,7 @@
 #include <animaBoundedLevenbergMarquardtOptimizer.h>
 #include <limits>
 #include <animaQRDecomposition.h>
+#include <animaBisectionRootFindingAlgorithm.h>
 #include <boost/math/tools/roots.hpp>
 
 namespace anima

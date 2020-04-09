@@ -89,12 +89,4 @@ private:
     BaseCostFunctionPointer m_RootFindingFunction;
 };
 
-class ANIMAOPTIMIZERS_EXPORT BisectionRootFindingAlgorithm : public BaseRootFindingAlgorithm
-{
-public:
-    using Superclass = BaseRootFindingAlgorithm;
-    using ParametersType = Superclass::ParametersType;
-    double Optimize() ITK_OVERRIDE;
-};
-
 } // end of namespace anima
