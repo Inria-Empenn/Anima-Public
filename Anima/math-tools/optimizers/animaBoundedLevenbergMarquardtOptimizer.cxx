@@ -1,13 +1,7 @@
 #include <animaBoundedLevenbergMarquardtOptimizer.h>
 #include <limits>
 #include <animaQRDecomposition.h>
-#include <animaBisectionRootFindingAlgorithm.h>
 #include <animaDekkerRootFindingAlgorithm.h>
-#include <animaBrentRootFindingAlgorithm.h>
-#include <animaBoostBisectionRootFindingAlgorithm.h>
-#include <animaTOMS748RootFindingAlgorithm.h>
-#include <animaBracketAndSolveRootFindingAlgorithm.h>
-#include <boost/math/tools/roots.hpp>
 
 namespace anima
 {
@@ -303,174 +297,24 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     upperBoundLambda = std::sqrt(upperBoundLambda) / m_DeltaParameter;
     
     double fTol = 0.001 * m_DeltaParameter;
-    double xTolRel = std::pow(2.0, 1.0 - (std::numeric_limits<double>::digits - 1.0) / 2.0);
-    unsigned int counter = 0;
+    double xTolRel = 2.0 * std::sqrt(std::numeric_limits<double>::epsilon());
     // Computing maximal number of dichotomy iterations: min spacing tolerated at the end is 10^-8
     double logsDiff = std::log(upperBoundLambda) - 0.5 * std::log(std::numeric_limits<double>::epsilon());
     unsigned int maxCount = static_cast<unsigned int> (1.0 + logsDiff / std::log(2.0));
     
-    std::string version = "Dekker";
+    DekkerRootFindingAlgorithm algorithm;
     
-    if (version == "BoostTOMS")
-    {
-        p[0] = upperBoundLambda;
-        double fValAtUpperBound = m_LambdaCostFunction->GetValue(p);
-        
-        TOMS748RootFindingAlgorithm algorithm;
-
-        algorithm.SetRootRelativeTolerance(xTolRel);
-        algorithm.SetRootFindingFunction(m_LambdaCostFunction);
-        algorithm.SetMaximumNumberOfIterations(maxCount);
-        algorithm.SetLowerBound(lowerBoundLambda);
-        algorithm.SetUpperBound(upperBoundLambda);
-        algorithm.SetFunctionValueAtInitialLowerBound(zeroCost);
-        algorithm.SetFunctionValueAtInitialUpperBound(fValAtUpperBound);
-        
-        m_LambdaParameter = algorithm.Optimize();
-        p[0] = m_LambdaParameter;
-        double tentativeCost = m_LambdaCostFunction->GetValue(p);
-        m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
-    }
-    else if (version == "BoostBisection")
-    {
-        BoostBisectionRootFindingAlgorithm algorithm;
-
-        algorithm.SetRootRelativeTolerance(xTolRel);
-        algorithm.SetRootFindingFunction(m_LambdaCostFunction);
-        algorithm.SetMaximumNumberOfIterations(maxCount);
-        algorithm.SetLowerBound(lowerBoundLambda);
-        algorithm.SetUpperBound(upperBoundLambda);
-        
-        m_LambdaParameter = algorithm.Optimize();
-        p[0] = m_LambdaParameter;
-        double tentativeCost = m_LambdaCostFunction->GetValue(p);
-        m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
-    }
-    else if (version == "BoostBS")
-    {
-        BracketAndSolveRootFindingAlgorithm algorithm;
-
-        algorithm.SetRootRelativeTolerance(xTolRel);
-        algorithm.SetRootFindingFunction(m_LambdaCostFunction);
-        algorithm.SetMaximumNumberOfIterations(maxCount);
-        algorithm.SetLowerBound(lowerBoundLambda);
-        algorithm.SetUpperBound(upperBoundLambda);
-        algorithm.SetFunctionValueAtInitialLowerBound(zeroCost);
-        
-        m_LambdaParameter = algorithm.Optimize();
-        p[0] = m_LambdaParameter;
-        double tentativeCost = m_LambdaCostFunction->GetValue(p);
-        m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
-    }
-    else if (version == "More")
-    {
-        bool continueLoop = true;
-        
-        // try setting up a smarter lower bound
-        itk::Array<double> phiPrime(1);
-        m_LambdaCostFunction->GetDerivative(p, phiPrime);
-        
-        if (phiPrime[0] < 0)
-        {
-            double candidateLowerBound = - zeroCost / phiPrime[0];
-            ptest[0] = candidateLowerBound;
-            if (m_LambdaCostFunction->GetValue(ptest) > 0.0)
-                lowerBoundLambda = candidateLowerBound;
-        }
-        
-        while (continueLoop)
-        {
-            ++counter;
-            
-            if (p[0] <= lowerBoundLambda || p[0] >= upperBoundLambda)
-                p[0] = std::max(0.001 * upperBoundLambda, std::sqrt(lowerBoundLambda * upperBoundLambda));
-            
-            double tentativeCost = m_LambdaCostFunction->GetValue(p);
-            continueLoop = (std::abs(tentativeCost) >= fTol);
-            
-            if (tentativeCost < 0.0)
-                upperBoundLambda = p[0];
-            
-            m_LambdaCostFunction->GetDerivative(p, phiPrime);
-            
-            double previousLowerBound = lowerBoundLambda;
-            
-            lowerBoundLambda = p[0];
-            
-            if (phiPrime[0] < 0)
-            {
-                double candidateLowerBound = p[0] - tentativeCost / phiPrime[0];
-                ptest[0] = candidateLowerBound;
-                if (m_LambdaCostFunction->GetValue(ptest) > 0.0)
-                    lowerBoundLambda = candidateLowerBound;
-            }
-            
-            lowerBoundLambda = std::max(lowerBoundLambda, previousLowerBound);
-            
-            p[0] -= (tentativeCost + m_DeltaParameter) / m_DeltaParameter * tentativeCost / phiPrime[0];
-            
-            if (counter >= maxCount || std::abs(upperBoundLambda - lowerBoundLambda) < xTolRel * (lowerBoundLambda + upperBoundLambda) / 2.0)
-            {
-                if (p[0] <= lowerBoundLambda || p[0] >= upperBoundLambda)
-                p[0] = std::max(0.001 * upperBoundLambda, std::sqrt(lowerBoundLambda * upperBoundLambda));
-                continueLoop = false;
-            }
-        }
-        
-        double tentativeCost = m_LambdaCostFunction->GetValue(p);
-        m_LambdaParameter = p[0];
-        m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
-    }
-    else if (version == "Bisection")
-    {
-        BisectionRootFindingAlgorithm algorithm;
-
-        algorithm.SetRootRelativeTolerance(xTolRel);
-        algorithm.SetZeroRelativeTolerance(fTol);
-        algorithm.SetRootFindingFunction(m_LambdaCostFunction);
-        algorithm.SetUseZeroTolerance(false);
-        algorithm.SetMaximumNumberOfIterations(maxCount);
-        algorithm.SetLowerBound(lowerBoundLambda);
-        algorithm.SetUpperBound(upperBoundLambda);
-        
-        m_LambdaParameter = algorithm.Optimize();
-        m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
-    }
-    else if (version == "Dekker")
-    {
-        DekkerRootFindingAlgorithm algorithm;
-
-        algorithm.SetRootRelativeTolerance(xTolRel);
-        algorithm.SetZeroRelativeTolerance(fTol);
-        algorithm.SetRootFindingFunction(m_LambdaCostFunction);
-        algorithm.SetUseZeroTolerance(false);
-        algorithm.SetMaximumNumberOfIterations(maxCount);
-        algorithm.SetLowerBound(lowerBoundLambda);
-        algorithm.SetUpperBound(upperBoundLambda);
-        algorithm.SetFunctionValueAtInitialLowerBound(zeroCost);
-        
-        m_LambdaParameter = algorithm.Optimize();
-        m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
-    }
-    else
-    {
-        BrentRootFindingAlgorithm algorithm;
-
-        algorithm.SetRootRelativeTolerance(xTolRel);
-        algorithm.SetZeroRelativeTolerance(fTol);
-        algorithm.SetRootFindingFunction(m_LambdaCostFunction);
-        algorithm.SetUseZeroTolerance(false);
-        algorithm.SetMaximumNumberOfIterations(maxCount);
-        algorithm.SetLowerBound(lowerBoundLambda);
-        algorithm.SetUpperBound(upperBoundLambda);
-        algorithm.SetFunctionValueAtInitialLowerBound(zeroCost);
-        
-        m_LambdaParameter = algorithm.Optimize();
-        m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
-    }
+    algorithm.SetRootRelativeTolerance(xTolRel);
+    algorithm.SetZeroRelativeTolerance(fTol);
+    algorithm.SetRootFindingFunction(m_LambdaCostFunction);
+    algorithm.SetUseZeroTolerance(false);
+    algorithm.SetMaximumNumberOfIterations(maxCount);
+    algorithm.SetLowerBound(lowerBoundLambda);
+    algorithm.SetUpperBound(upperBoundLambda);
+    algorithm.SetFunctionValueAtInitialLowerBound(zeroCost);
     
-//    std::cout << version << "," << m_LambdaCostFunction->GetValue(p) << "," << fTol << "," << m_LambdaParameter << std::endl;
-//    exit(-1);
+    m_LambdaParameter = algorithm.Optimize();
+    m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
 }
 
 double BoundedLevenbergMarquardtOptimizer::EvaluateCostFunctionAtParameters(ParametersType &parameters, MeasureType &residualValues)
