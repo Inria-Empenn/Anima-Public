@@ -10,12 +10,13 @@ double BisectionRootFindingAlgorithm::Optimize()
 
     unsigned int numParameters = this->GetRootFindingFunction()->GetNumberOfParameters();
     if (numParameters > 1)
-        throw itk::ExceptionObject(__FILE__, __LINE__, "Bisection does not implement multi-dimensional optimization. Only one parameter allowed.");
+        throw itk::ExceptionObject(__FILE__, __LINE__, "Bisection algorithm does not implement multi-dimensional optimization. Only one parameter allowed.");
 
     ParametersType p(1);
 
     double internalLowerBound = this->GetLowerBound();
     double internalUpperBound = this->GetUpperBound();
+    
     while (continueLoop)
     {
         ++nbIterations;

@@ -15,4 +15,16 @@ double RootFindingFunctionBoostBridge::operator()(const double &x)
     return m_RootFindingFunction->GetValue(m_ParametersVector);
 }
 
+void BaseRootFindingAlgorithm::SetFunctionValueAtInitialLowerBound(const double &val)
+{
+    m_FunctionValueAtInitialLowerBound = val;
+    m_ProvidedFunctionValueAtInitialLowerBound = true;
+}
+
+void BaseRootFindingAlgorithm::SetFunctionValueAtInitialUpperBound(const double &val)
+{
+    m_FunctionValueAtInitialUpperBound = val;
+    m_ProvidedFunctionValueAtInitialUpperBound = true;
+}
+
 }

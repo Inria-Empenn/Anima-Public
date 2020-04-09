@@ -58,7 +58,13 @@ public:
     void SetRootFindingFunction(BaseCostFunctionType *f) {m_RootFindingFunction = f;}
     void SetLowerBound(const double &val) {m_LowerBound = val;}
     void SetUpperBound(const double &val) {m_UpperBound = val;}
-
+    void SetFunctionValueAtInitialLowerBound(const double &val);
+    void SetFunctionValueAtInitialUpperBound(const double &val);
+    
+    bool GetProvidedFunctionValueAtInitialLowerBound() {return m_ProvidedFunctionValueAtInitialLowerBound;}
+    bool GetProvidedFunctionValueAtInitialUpperBound() {return m_ProvidedFunctionValueAtInitialUpperBound;}
+    double GetFunctionValueAtInitialLowerBound() {return m_FunctionValueAtInitialLowerBound;}
+    double GetFunctionValueAtInitialUpperBound() {return m_FunctionValueAtInitialUpperBound;}
     double GetLowerBound() {return m_LowerBound;}
     double GetUpperBound() {return m_UpperBound;}
     bool GetUseZeroTolerance() {return m_UseZeroTolerance;}
@@ -75,6 +81,10 @@ public:
         m_ZeroRelativeTolerance = std::sqrt(std::numeric_limits<double>::epsilon());
         m_UseZeroTolerance = false;
         m_MaximumNumberOfIterations = 50;
+        m_ProvidedFunctionValueAtInitialLowerBound = false;
+        m_ProvidedFunctionValueAtInitialUpperBound = false;
+        m_FunctionValueAtInitialLowerBound = 0.0;
+        m_FunctionValueAtInitialUpperBound = 0.0;
     }
 
     virtual ~BaseRootFindingAlgorithm() {}
@@ -86,6 +96,10 @@ private:
     unsigned int m_MaximumNumberOfIterations;
     double m_LowerBound;
     double m_UpperBound;
+    bool m_ProvidedFunctionValueAtInitialLowerBound;
+    bool m_ProvidedFunctionValueAtInitialUpperBound;
+    double m_FunctionValueAtInitialLowerBound;
+    double m_FunctionValueAtInitialUpperBound;
     BaseCostFunctionPointer m_RootFindingFunction;
 };
 
