@@ -2,6 +2,7 @@
 
 #include <itkMultipleValuedNonLinearOptimizer.h>
 #include <animaBLMLambdaCostFunction.h>
+#include <animaRootFindingAlgorithms.h>
 #include "AnimaOptimizersExport.h"
 
 namespace anima
@@ -93,7 +94,7 @@ private:
     MeasureType m_ResidualValues;
 };
 
-struct LambdaCostFunction
+class LambdaCostFunction : public BaseRootFindingFunction
 {
 public:
     LambdaCostFunction()

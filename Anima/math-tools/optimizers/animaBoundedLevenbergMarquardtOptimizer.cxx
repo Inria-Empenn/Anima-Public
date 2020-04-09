@@ -411,25 +411,21 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     }
     else if (version == "Bisection")
     {
-        bool continueLoop = true;
+        BisectionRootFindingAlgorithm algorithm;
+        algorithm.SetRootRelativeTolerance(xTolRel);
+        algorithm.SetZeroRelativeTolerance(fTol);
+        algorithm.SetUseZeroTolerance(false);
+        algorithm.SetMaximumNumberOfIterations(maxCount);
         
-        while (continueLoop)
-        {
-            ++counter;
-            p[0] = (lowerBoundLambda + upperBoundLambda) / 2.0;
-            double tentativeCost = m_LambdaCostFunction->GetValue(p);
-            continueLoop = (std::abs(tentativeCost) >= fTol);
-            
-            if (tentativeCost < 0.0)
-                upperBoundLambda = p[0];
-            else
-                lowerBoundLambda = p[0];
-            
-            if (counter >= maxCount || std::abs(upperBoundLambda - lowerBoundLambda) < xTolRel * (lowerBoundLambda + upperBoundLambda) / 2.0)
-                continueLoop = false;
-        }
+        LambdaCostFunction costFunction;
+        costFunction.SetCostFunction(m_LambdaCostFunction);
+        costFunction.SetDeltaParameter(m_DeltaParameter);
+        algorithm.SetRootFindingFunction(costFunction);
         
-        m_LambdaParameter = p[0];
+        algorithm.SetLowerBound(lowerBoundLambda);
+        algorithm.SetUpperBound(upperBoundLambda);
+        
+        m_LambdaParameter = algorithm.Optimize();
         m_CurrentAddonVector = m_LambdaCostFunction->GetSolutionVector();
     }
     else if (version == "Dekker")
