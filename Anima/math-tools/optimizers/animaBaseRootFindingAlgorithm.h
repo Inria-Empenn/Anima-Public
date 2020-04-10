@@ -8,10 +8,10 @@
 namespace anima
 {
 
-class CheckRootTolerance
+class RootToleranceBoostBridge
 {
 public:
-    CheckRootTolerance()
+    RootToleranceBoostBridge()
     {
         m_RootRelativeTolerance = std::sqrt(std::numeric_limits<double>::epsilon());
     }
@@ -53,7 +53,6 @@ public:
 
     void SetRootRelativeTolerance(const double &val) {m_RootRelativeTolerance = val;}
     void SetZeroRelativeTolerance(const double &val) {m_ZeroRelativeTolerance = val;}
-    void SetUseZeroTolerance(const bool &val) {m_UseZeroTolerance = val;}
     void SetMaximumNumberOfIterations(const unsigned int &val) {m_MaximumNumberOfIterations = val;}
     void SetRootFindingFunction(BaseCostFunctionType *f) {m_RootFindingFunction = f;}
     void SetLowerBound(const double &val) {m_LowerBound = val;}
@@ -67,7 +66,6 @@ public:
     double GetFunctionValueAtInitialUpperBound() {return m_FunctionValueAtInitialUpperBound;}
     double GetLowerBound() {return m_LowerBound;}
     double GetUpperBound() {return m_UpperBound;}
-    bool GetUseZeroTolerance() {return m_UseZeroTolerance;}
     unsigned int GetMaximumNumberOfIterations() {return m_MaximumNumberOfIterations;}
     double GetRootRelativeTolerance() {return m_RootRelativeTolerance;}
     double GetZeroRelativeTolerance() {return m_ZeroRelativeTolerance;}
@@ -79,7 +77,6 @@ public:
     {
         m_RootRelativeTolerance = std::sqrt(std::numeric_limits<double>::epsilon());
         m_ZeroRelativeTolerance = std::sqrt(std::numeric_limits<double>::epsilon());
-        m_UseZeroTolerance = false;
         m_MaximumNumberOfIterations = 50;
         m_ProvidedFunctionValueAtInitialLowerBound = false;
         m_ProvidedFunctionValueAtInitialUpperBound = false;
@@ -90,9 +87,10 @@ public:
     virtual ~BaseRootFindingAlgorithm() {}
 
 private:
+    //! Root relative tolerance: if upper bound and lower bound are too close to each other -> consider solution is found
     double m_RootRelativeTolerance;
+    //! Zero relative tolerance: if solution is close enough to zero -> consider solution is found
     double m_ZeroRelativeTolerance;
-    bool m_UseZeroTolerance;
     unsigned int m_MaximumNumberOfIterations;
     double m_LowerBound;
     double m_UpperBound;

@@ -13,7 +13,7 @@ namespace anima
  * Implementation of the original algorithmm, very well described in
  * K. Madsen, H.B. Nielsen and O. Tingleff. Methods for non-linear least squares problems. 2004
  * http://www2.imm.dtu.dk/pubdb/views/edoc_download.php/3215/pdf/imm3215.pdf
- * Bounded version by projection as suggested by Kanzow et al.
+ * Bounded version by projection as suggested by Kanzow et al. but with a lot of modifications, including calculation of optimal lambda
  * C. Kanzow, N. Yamashita and M. Fukushima. Levenberg-Marquardt methods with strong local convergence
  * properties for solving nonlinear equations with convex constraints. Journal of computational and
  * applied mathematics. 172:375-397, 2004.
@@ -91,43 +91,6 @@ private:
     ParametersType m_LowerBounds, m_UpperBounds;
     ParametersType m_CurrentAddonVector;
     MeasureType m_ResidualValues;
-};
-
-class LambdaCostFunction
-{
-public:
-    LambdaCostFunction()
-    {
-        m_CurrentPosition.SetSize(1);
-    }
-
-    void SetDeltaParameter(const double val) {m_DeltaParameter = val;}
-
-    void SetCostFunction(const anima::BLMLambdaCostFunction::Pointer& ptr)
-    {
-        m_LambdaCostFunction = ptr;
-    }
-
-    double operator()(const double &x)
-    {
-        m_CurrentPosition[0] = x;
-        return m_LambdaCostFunction->GetValue(m_CurrentPosition) / m_DeltaParameter;
-    }
-
-private:
-    anima::BLMLambdaCostFunction::Pointer m_LambdaCostFunction;
-    itk::Array<double> m_CurrentPosition;
-    double m_DeltaParameter;
-};
-
-struct eps_tolerance
-{
-public:
-    void SetTolerance(const double tol) {m_Tolerance = tol;}
-    bool operator()(const double& a, const double& b)const { return std::abs(b - a) < m_Tolerance * (a + b) / 2.0; }
-    
-private:
-    double m_Tolerance;
 };
 
 } // end namespace anima

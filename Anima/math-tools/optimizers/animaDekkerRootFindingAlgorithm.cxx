@@ -63,8 +63,7 @@ double DekkerRootFindingAlgorithm::Optimize()
         internalUpperBound = p[0];
         fValAtUpperBound = this->GetRootFindingFunction()->GetValue(p);
         
-        if (this->GetUseZeroTolerance())
-            continueLoop = (std::abs(fValAtUpperBound) >= this->GetZeroRelativeTolerance());
+        continueLoop = (std::abs(fValAtUpperBound) >= this->GetZeroRelativeTolerance());
         
         if (fValAtLowerBound * fValAtUpperBound > 0.0)
         {
@@ -90,4 +89,4 @@ double DekkerRootFindingAlgorithm::Optimize()
     return p[0];
 }
 
-}
+} // end namespace anima

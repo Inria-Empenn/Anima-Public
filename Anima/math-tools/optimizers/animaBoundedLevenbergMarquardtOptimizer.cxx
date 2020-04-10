@@ -154,8 +154,6 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
             else
                 acceptRatio = 0.0;
         }
-        
-//        rejectedStep = rejectedStep || (acceptRatio < 1.0e-4); // As in Algorithm 7.1 from Moré.
 
         if (acceptRatio >= 0.75)
         {
@@ -264,7 +262,6 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     m_LambdaCostFunction->SetDeltaParameter(m_DeltaParameter);
 
     ParametersType p(m_LambdaCostFunction->GetNumberOfParameters());
-    ParametersType ptest(m_LambdaCostFunction->GetNumberOfParameters());
     p[0] = 0.0;
 
     double zeroCost = m_LambdaCostFunction->GetValue(p);
@@ -296,7 +293,8 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     
     upperBoundLambda = std::sqrt(upperBoundLambda) / m_DeltaParameter;
     
-    double fTol = 0.001 * m_DeltaParameter;
+    // More advises 0.001 * m_DeltaParameter but given reprojection, it is better to use zero here
+    double fTol = 0.0;
     double xTolRel = 2.0 * std::sqrt(std::numeric_limits<double>::epsilon());
     // Computing maximal number of dichotomy iterations: min spacing tolerated at the end is 10^-8
     double logsDiff = std::log(upperBoundLambda) - 0.5 * std::log(std::numeric_limits<double>::epsilon());
@@ -307,7 +305,6 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     algorithm.SetRootRelativeTolerance(xTolRel);
     algorithm.SetZeroRelativeTolerance(fTol);
     algorithm.SetRootFindingFunction(m_LambdaCostFunction);
-    algorithm.SetUseZeroTolerance(false);
     algorithm.SetMaximumNumberOfIterations(maxCount);
     algorithm.SetLowerBound(lowerBoundLambda);
     algorithm.SetUpperBound(upperBoundLambda);
@@ -358,7 +355,7 @@ bool BoundedLevenbergMarquardtOptimizer::CheckConditions(unsigned int numIterati
     if ((fDiff >= 0.0) && (fDiff <= m_CostTolerance * m_CurrentValue))
         return true;
     
-    // xTol relative tolerance check "a la NLOpt"
+    // xTol relative tolerance check "NLOpt style"
     dxDiff = std::sqrt(dxDiff);
     
     if (dxDiff <= m_ValueTolerance * dxNew)

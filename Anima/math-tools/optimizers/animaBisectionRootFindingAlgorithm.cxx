@@ -24,8 +24,7 @@ double BisectionRootFindingAlgorithm::Optimize()
         p[0] = (internalLowerBound + internalUpperBound) / 2.0;
         double zeroValue = this->GetRootFindingFunction()->GetValue(p);
 
-        if (this->GetUseZeroTolerance())
-            continueLoop = (std::abs(zeroValue) >= this->GetZeroRelativeTolerance());
+        continueLoop = (std::abs(zeroValue) >= this->GetZeroRelativeTolerance());
 
         if (zeroValue < 0.0)
             internalUpperBound = p[0];
@@ -40,4 +39,4 @@ double BisectionRootFindingAlgorithm::Optimize()
     return p[0];
 }
 
-}
+} // end namespace anima

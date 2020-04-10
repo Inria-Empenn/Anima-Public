@@ -18,7 +18,7 @@ double BracketAndSolveRootFindingAlgorithm::Optimize()
     
     boost::uintmax_t maximumNumberOfIterations = this->GetMaximumNumberOfIterations();
     
-    CheckRootTolerance rootTolerance;
+    RootToleranceBoostBridge rootTolerance;
     rootTolerance.SetRootRelativeTolerance(this->GetRootRelativeTolerance());
     
     bool risingValue = true;
@@ -30,7 +30,7 @@ double BracketAndSolveRootFindingAlgorithm::Optimize()
     
     std::pair <double,double> r = boost::math::tools::bracket_and_solve_root(boostFunction, (this->GetLowerBound() + this->GetUpperBound()) / 2.0, 2.0, risingValue, rootTolerance, maximumNumberOfIterations);
     
-    return r.first + (r.second - r.first) / 2.0;
+    return (r.first + r.second) / 2.0;
 }
 
-}
+} // end namespace anima

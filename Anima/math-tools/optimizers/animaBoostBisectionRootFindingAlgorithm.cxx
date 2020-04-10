@@ -15,12 +15,12 @@ double BoostBisectionRootFindingAlgorithm::Optimize()
     
     boost::uintmax_t maximumNumberOfIterations = this->GetMaximumNumberOfIterations();
     
-    CheckRootTolerance rootTolerance;
+    RootToleranceBoostBridge rootTolerance;
     rootTolerance.SetRootRelativeTolerance(this->GetRootRelativeTolerance());
     
     std::pair <double,double> r = boost::math::tools::bisect(boostFunction, this->GetLowerBound(), this->GetUpperBound(), rootTolerance, maximumNumberOfIterations);
     
-    return r.first + (r.second - r.first) / 2.0;
+    return (r.first + r.second) / 2.0;
 }
 
-}
+} // end namespace anima

@@ -1,10 +1,9 @@
 #include "animaBaseRootFindingAlgorithm.h"
-#include <itkMacro.h>
 
 namespace anima
 {
 
-bool CheckRootTolerance::operator()(const double &a, const double &b)
+bool RootToleranceBoostBridge::operator()(const double &a, const double &b)
 {
     return std::abs(b - a) < m_RootRelativeTolerance * (a + b) / 2.0;
 }
@@ -27,4 +26,4 @@ void BaseRootFindingAlgorithm::SetFunctionValueAtInitialUpperBound(const double 
     m_ProvidedFunctionValueAtInitialUpperBound = true;
 }
 
-}
+} // end namespace anima

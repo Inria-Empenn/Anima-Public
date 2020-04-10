@@ -86,9 +86,8 @@ double BrentRootFindingAlgorithm::Optimize()
             mFlag = false;
         
         double tentativeCost = this->GetRootFindingFunction()->GetValue(p);
-        
-        if (this->GetUseZeroTolerance())
-            continueLoop = (std::abs(tentativeCost) >= this->GetZeroRelativeTolerance());
+
+        continueLoop = (std::abs(tentativeCost) >= this->GetZeroRelativeTolerance());
         
         dValue = cValue;
         cValue = internalUpperBound;
@@ -125,4 +124,4 @@ double BrentRootFindingAlgorithm::Optimize()
     return p[0];
 }
 
-}
+} // end namespace anima
