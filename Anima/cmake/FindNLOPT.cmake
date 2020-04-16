@@ -2,13 +2,19 @@
 # Once done this will define
 #
 # NLOPT_FOUND         - system has nlopt and it can be used
-# NLOPT_INCLUDE_DIR   - directory where the header file can be found
+# NLOPT_INCLUDE_DIR   - directory where nlopt.hpp can be found
+# NLOPT_SECONDARY_INCLUDE_DIR   - directory where nlopt.h can be found
 # NLOPT_LIBRARY       - Path where nlopt library file can be found
 #
 
 SET (NLOPT_FOUND FALSE)
 
-FIND_PATH(NLOPT_INCLUDE_DIR nlopt.h
+FIND_PATH(NLOPT_INCLUDE_DIR nlopt.hpp
+  /usr/include
+  /usr/local/include
+)
+
+FIND_PATH(NLOPT_SECONDARY_INCLUDE_DIR nlopt.h
   /usr/include
   /usr/local/include
 )
@@ -21,7 +27,7 @@ FIND_LIBRARY(NLOPT_LIBRARY NAMES nlopt libnlopt
 
 mark_as_advanced(NLOPT_LIBRARY)
 
-IF( EXISTS "${NLOPT_INCLUDE_DIR}" AND EXISTS "${NLOPT_LIBRARY}" )
+IF( EXISTS "${NLOPT_INCLUDE_DIR}" AND EXISTS "${NLOPT_SECONDARY_INCLUDE_DIR}" AND EXISTS "${NLOPT_LIBRARY}" )
   set(NLOPT_FOUND TRUE)
 else()
   message(FATAL_ERROR "NLOPT not found")

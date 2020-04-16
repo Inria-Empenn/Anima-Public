@@ -28,8 +28,9 @@ ExternalProject_Add(${proj}
   INSTALL_COMMAND ""
   )
 
-ExternalProject_Get_Property(${proj} binary_dir)
+ExternalProject_Get_Property(${proj} binary_dir source_dir)
 set(${proj}_BUILD_DIR ${binary_dir})
 set(${proj}_INCLUDE_DIR ${binary_dir})
+set(${proj}_SECONDARY_INCLUDE_DIR ${source_dir}/src/api)
 
 set(Anima_DEPS "${Anima_DEPS};${proj}")
