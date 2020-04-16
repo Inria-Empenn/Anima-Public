@@ -52,7 +52,7 @@ public:
     using ParametersType = BaseCostFunctionType::ParametersType;
 
     void SetRootRelativeTolerance(const double &val) {m_RootRelativeTolerance = val;}
-    void SetZeroRelativeTolerance(const double &val) {m_ZeroRelativeTolerance = val;}
+    void SetCostFunctionTolerance(const double &val) {m_CostFunctionTolerance = val;}
     void SetMaximumNumberOfIterations(const unsigned int &val) {m_MaximumNumberOfIterations = val;}
     void SetRootFindingFunction(BaseCostFunctionType *f) {m_RootFindingFunction = f;}
     void SetLowerBound(const double &val) {m_LowerBound = val;}
@@ -68,7 +68,7 @@ public:
     double GetUpperBound() {return m_UpperBound;}
     unsigned int GetMaximumNumberOfIterations() {return m_MaximumNumberOfIterations;}
     double GetRootRelativeTolerance() {return m_RootRelativeTolerance;}
-    double GetZeroRelativeTolerance() {return m_ZeroRelativeTolerance;}
+    double GetCostFunctionTolerance() {return m_CostFunctionTolerance;}
     BaseCostFunctionType *GetRootFindingFunction() {return m_RootFindingFunction;}
 
     virtual double Optimize() = 0;
@@ -76,7 +76,7 @@ public:
     BaseRootFindingAlgorithm()
     {
         m_RootRelativeTolerance = std::sqrt(std::numeric_limits<double>::epsilon());
-        m_ZeroRelativeTolerance = std::sqrt(std::numeric_limits<double>::epsilon());
+        m_CostFunctionTolerance = std::sqrt(std::numeric_limits<double>::epsilon());
         m_MaximumNumberOfIterations = 50;
         m_ProvidedFunctionValueAtInitialLowerBound = false;
         m_ProvidedFunctionValueAtInitialUpperBound = false;
@@ -89,8 +89,8 @@ public:
 private:
     //! Root relative tolerance: if upper bound and lower bound are too close to each other -> consider solution is found
     double m_RootRelativeTolerance;
-    //! Zero relative tolerance: if solution is close enough to zero -> consider solution is found
-    double m_ZeroRelativeTolerance;
+    //! ZCost function tolerance: if cost function value at root is close enough to zero -> consider solution is found
+    double m_CostFunctionTolerance;
     unsigned int m_MaximumNumberOfIterations;
     double m_LowerBound;
     double m_UpperBound;

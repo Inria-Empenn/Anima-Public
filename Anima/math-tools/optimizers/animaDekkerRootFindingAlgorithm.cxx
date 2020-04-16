@@ -63,7 +63,7 @@ double DekkerRootFindingAlgorithm::Optimize()
         internalUpperBound = p[0];
         fValAtUpperBound = this->GetRootFindingFunction()->GetValue(p);
         
-        continueLoop = (std::abs(fValAtUpperBound) >= this->GetZeroRelativeTolerance());
+        continueLoop = (std::abs(fValAtUpperBound) >= this->GetCostFunctionTolerance());
         
         if (fValAtLowerBound * fValAtUpperBound > 0.0)
         {

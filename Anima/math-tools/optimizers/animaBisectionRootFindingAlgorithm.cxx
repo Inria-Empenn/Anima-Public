@@ -24,7 +24,7 @@ double BisectionRootFindingAlgorithm::Optimize()
         p[0] = (internalLowerBound + internalUpperBound) / 2.0;
         double zeroValue = this->GetRootFindingFunction()->GetValue(p);
 
-        continueLoop = (std::abs(zeroValue) >= this->GetZeroRelativeTolerance());
+        continueLoop = (std::abs(zeroValue) >= this->GetCostFunctionTolerance());
 
         if (zeroValue < 0.0)
             internalUpperBound = p[0];

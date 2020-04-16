@@ -87,7 +87,7 @@ double BrentRootFindingAlgorithm::Optimize()
         
         double tentativeCost = this->GetRootFindingFunction()->GetValue(p);
 
-        continueLoop = (std::abs(tentativeCost) >= this->GetZeroRelativeTolerance());
+        continueLoop = (std::abs(tentativeCost) >= this->GetCostFunctionTolerance());
         
         dValue = cValue;
         cValue = internalUpperBound;

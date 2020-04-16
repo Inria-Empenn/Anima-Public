@@ -303,7 +303,7 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     DekkerRootFindingAlgorithm algorithm;
     
     algorithm.SetRootRelativeTolerance(xTolRel);
-    algorithm.SetZeroRelativeTolerance(fTol);
+    algorithm.SetCostFunctionTolerance(fTol);
     algorithm.SetRootFindingFunction(m_LambdaCostFunction);
     algorithm.SetMaximumNumberOfIterations(maxCount);
     algorithm.SetLowerBound(lowerBoundLambda);
