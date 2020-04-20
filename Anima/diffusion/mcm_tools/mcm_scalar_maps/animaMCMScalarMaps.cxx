@@ -21,7 +21,7 @@ int main(int argc,  char **argv)
 
     TCLAP::SwitchArg includeIsoArg("I", "inc-iso", "Include isotropic contributions in FA and MD?", cmd, false);
 
-    TCLAP::ValueArg<unsigned int> nbThreadsArg("T", "nb-threads", "Number of threads to run on (default: all cores)", false, itk::MultiThreader::GetGlobalDefaultNumberOfThreads(), "number of threads", cmd);
+    TCLAP::ValueArg<unsigned int> nbThreadsArg("T", "nb-threads", "Number of threads to run on (default: all cores)", false, itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(), "number of threads", cmd);
 
     try
     {
@@ -44,7 +44,7 @@ int main(int argc,  char **argv)
 
     mainFilter->SetInput(mcmReader.GetModelVectorImage());
     mainFilter->SetIncludeIsotropicWeights(includeIsoArg.isSet());
-    mainFilter->SetNumberOfThreads(nbThreadsArg.getValue());
+    mainFilter->SetNumberOfWorkUnits(nbThreadsArg.getValue());
     mainFilter->Update();
 
     anima::writeImage <MainFilterType::OutputImageType> (outFAArg.getValue(),mainFilter->GetOutput(3));

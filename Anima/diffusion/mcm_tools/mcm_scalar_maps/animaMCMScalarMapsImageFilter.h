@@ -70,7 +70,7 @@ protected:
         return true;
     }
 
-    void ThreadedGenerateData(const InputRegionType &region, itk::ThreadIdType threadId) ITK_OVERRIDE;
+    void DynamicThreadedGenerateData(const InputRegionType &outputRegionForThread) ITK_OVERRIDE;
 
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(MCMScalarMapsImageFilter);

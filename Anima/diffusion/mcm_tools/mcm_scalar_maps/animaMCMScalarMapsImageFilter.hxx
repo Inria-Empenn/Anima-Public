@@ -10,17 +10,17 @@ namespace anima
 template <class TPixelType>
 void
 MCMScalarMapsImageFilter <TPixelType>
-::ThreadedGenerateData(const InputRegionType &region, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const InputRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionConstIterator <InputImageType> InputIteratorType;
     typedef itk::ImageRegionIterator <OutputImageType> OutputIteratorType;
 
-    InputIteratorType inItr(this->GetInput(), region);
+    InputIteratorType inItr(this->GetInput(), outputRegionForThread);
     unsigned int numOutputs = this->GetNumberOfIndexedOutputs();
     std::vector <OutputIteratorType> outItrs(numOutputs);
 
     for (unsigned int i = 0;i < numOutputs;++i)
-        outItrs[i] = OutputIteratorType(this->GetOutput(i), region);
+        outItrs[i] = OutputIteratorType(this->GetOutput(i), outputRegionForThread);
 
     InputImageType *input = const_cast <InputImageType *> (this->GetInput());
     MCModelPointer mcmPtr = input->GetDescriptionModel()->Clone();
