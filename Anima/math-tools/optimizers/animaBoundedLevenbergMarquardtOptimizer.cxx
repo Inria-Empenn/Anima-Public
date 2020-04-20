@@ -293,8 +293,11 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     
     upperBoundLambda = std::sqrt(upperBoundLambda) / m_DeltaParameter;
     
-    // More advises 0.001 * m_DeltaParameter but given reprojection, it is better to use zero here
-    double fTol = 0.0;
+    // More advises 0.1 * m_DeltaParameter but
+    // - results suggest that it is recommended to be more precise in the search of the zero;
+    // - a relative tolerance w.r.t. Delta might lead to solutions far from zero when Delta is large.
+    // hence we set up an absolute fTol to the machine precision.
+    double fTolAbs = 2.0 * std::sqrt(std::numeric_limits<double>::epsilon());
     double xTolRel = 2.0 * std::sqrt(std::numeric_limits<double>::epsilon());
     // Computing maximal number of dichotomy iterations: min spacing tolerated at the end is 10^-8
     double logsDiff = std::log(upperBoundLambda) - 0.5 * std::log(std::numeric_limits<double>::epsilon());
@@ -303,7 +306,7 @@ void BoundedLevenbergMarquardtOptimizer::UpdateLambdaParameter(DerivativeType &d
     DekkerRootFindingAlgorithm algorithm;
     
     algorithm.SetRootRelativeTolerance(xTolRel);
-    algorithm.SetCostFunctionTolerance(fTol);
+    algorithm.SetCostFunctionTolerance(fTolAbs);
     algorithm.SetRootFindingFunction(m_LambdaCostFunction);
     algorithm.SetMaximumNumberOfIterations(maxCount);
     algorithm.SetLowerBound(lowerBoundLambda);
