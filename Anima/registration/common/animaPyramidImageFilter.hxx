@@ -316,7 +316,6 @@ CreateLevelImage(unsigned int level)
     resample->SetSize(m_LevelRegions[level].GetSize());
     resample->SetOutputSpacing(m_LevelSpacings[level]);
     resample->SetOutputDirection(previousLevelImage->GetDirection());
-    resample->SetDefaultPixelValue(0);
 
     resample->SetInput(previousLevelImage);
     resample->Update();

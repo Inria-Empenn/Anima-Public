@@ -203,11 +203,8 @@ private:
 
     SizeType                m_Size;              // Size of the output image
     TransformPointerType    m_Transform;         // Coordinate transform to use
-    InterpolatorPointerType m_Interpolator;      // Image function for
-    // interpolation
-    PixelType               m_DefaultPixelValue; // default pixel value
-    // if the point is
-    // outside the image
+    InterpolatorPointerType m_Interpolator;      // Image function for interpolation
+    PixelType               m_DefaultPixelValue; // default pixel value if the point is outside the image
     SpacingType             m_OutputSpacing;     // output image spacing
     OriginPointType         m_OutputOrigin;      // output image origin
     DirectionType           m_OutputDirection;   // output image direction cosines
@@ -218,6 +215,6 @@ private:
     bool                    m_LinearTransform;
 };
 
-} // end namespace itk
+} // end namespace anima
 
 #include "animaResampleImageFilter.hxx"

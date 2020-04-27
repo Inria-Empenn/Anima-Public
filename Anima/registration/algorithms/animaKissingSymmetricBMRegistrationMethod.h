@@ -26,15 +26,25 @@ public:
 
     itkNewMacro(Self)
 
+    itkSetMacro(ReferenceBackgroundValue, float)
+    itkSetMacro(FloatingBackgroundValue, float)
+
 protected:
-    KissingSymmetricBMRegistrationMethod() {}
+    KissingSymmetricBMRegistrationMethod()
+    {
+        m_ReferenceBackgroundValue = 0;
+        m_FloatingBackgroundValue = 0;
+    }
+
     virtual ~KissingSymmetricBMRegistrationMethod() {}
 
     virtual void PerformOneIteration(InputImageType *refImage, InputImageType *movingImage, TransformPointer &addOn) ITK_OVERRIDE;
 
 private:
-    KissingSymmetricBMRegistrationMethod(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(KissingSymmetricBMRegistrationMethod);
+
+    float m_ReferenceBackgroundValue;
+    float m_FloatingBackgroundValue;
 };
 
 } // end namespace anima

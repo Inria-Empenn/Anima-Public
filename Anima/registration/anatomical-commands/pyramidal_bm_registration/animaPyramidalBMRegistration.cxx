@@ -1,9 +1,9 @@
 #include <tclap/CmdLine.h>
 
 #include <animaPyramidalBlockMatchingBridge.h>
+#include <animaReadWriteFunctions.h>
 
 #include <itkTimeProbe.h>
-#include <itkImageFileReader.h>
 #include <itkTransformFileReader.h>
 
 int main(int argc, const char** argv)
@@ -123,19 +123,8 @@ int main(int argc, const char** argv)
     matcher->SetOutputNearestRigidTransformFile(outputNRTransformArg.getValue());
     matcher->SetOutputNearestSimilarityTransformFile(outputNSTransformArg.getValue());
 
-    typedef itk::ImageFileReader<InputImageType> ReaderType;
-
-    ReaderType::Pointer tmpRead = ReaderType::New();
-    tmpRead->SetFileName(fixedArg.getValue());
-    tmpRead->Update();
-
-    matcher->SetReferenceImage(tmpRead->GetOutput());
-
-    tmpRead = ReaderType::New();
-    tmpRead->SetFileName(movingArg.getValue());
-    tmpRead->Update();
-
-    matcher->SetFloatingImage(tmpRead->GetOutput());
+    matcher->SetReferenceImage(anima::readImage <InputImageType> (fixedArg.getValue()));
+    matcher->SetFloatingImage(anima::readImage <InputImageType> (movingArg.getValue()));
 
     if (initialTransformArg.getValue() != "")
         matcher->SetInitialTransform(initialTransformArg.getValue());

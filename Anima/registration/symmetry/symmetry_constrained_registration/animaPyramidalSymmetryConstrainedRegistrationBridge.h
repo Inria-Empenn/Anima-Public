@@ -2,7 +2,7 @@
 #include <cmath>
 
 #include <itkImage.h>
-#include <itkMultiResolutionPyramidImageFilter.h>
+#include <animaPyramidImageFilter.h>
 #include <animaAxisRotationTransform.h>
 #include <itkAffineTransform.h>
 #include <itkProcessObject.h>
@@ -34,7 +34,7 @@ public:
     typedef itk::AffineTransform<ScalarType,3> BaseTransformType;
     typedef typename BaseTransformType::Pointer BaseTransformPointer;
 
-    typedef itk::MultiResolutionPyramidImageFilter <InputImageType,InputImageType> PyramidType;
+    typedef anima::PyramidImageFilter <InputImageType,InputImageType> PyramidType;
     typedef typename PyramidType::Pointer PyramidPointer;
 
     /** SmartPointer typedef support  */
@@ -107,6 +107,7 @@ private:
 
     Metric m_Metric;
 
+    float m_ReferenceMinimalValue, m_FloatingMinimalValue;
     double m_TranslateUpperBound;
     double m_UpperBoundAngle;
     unsigned int m_OptimizerMaximumIterations;

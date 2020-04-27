@@ -253,6 +253,7 @@ private:
     Metric m_Metric;
     Optimizer m_Optimizer;
 
+    float m_ReferenceMinimalValue, m_FloatingMinimalValue;
     unsigned int m_MaximumIterations;
     float m_MinimalTransformError;
     unsigned int m_OptimizerMaximumIterations;

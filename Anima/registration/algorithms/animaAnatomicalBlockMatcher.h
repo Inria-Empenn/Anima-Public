@@ -28,6 +28,7 @@ public:
 
     bool GetMaximizedMetric();
     void SetSimilarityType(SimilarityDefinition val) {m_SimilarityType = val;}
+    void SetDefaultBackgroundValue(double val) {m_DefaultBackgroundValue = val;}
 
 protected:
     virtual MetricPointer SetupMetric();
@@ -37,6 +38,7 @@ protected:
 
 private:
     SimilarityDefinition m_SimilarityType;
+    double m_DefaultBackgroundValue;
 };
 
 } // end namespace anima

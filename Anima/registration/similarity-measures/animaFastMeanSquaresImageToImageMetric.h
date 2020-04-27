@@ -56,19 +56,20 @@ public:
                                MeasureType& Value, DerivativeType& Derivative) const ITK_OVERRIDE;
 
     itkSetMacro(ScaleIntensities, bool)
+    itkSetMacro(DefaultBackgroundValue, double)
 
     void PreComputeFixedValues();
 
 protected:
     FastMeanSquaresImageToImageMetric();
     virtual ~FastMeanSquaresImageToImageMetric() {}
-    void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
 
 private:
     FastMeanSquaresImageToImageMetric(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
 
     bool m_ScaleIntensities;
+    double m_DefaultBackgroundValue;
 
     std::vector <InputPointType> m_FixedImagePoints;
     std::vector <RealType> m_FixedImageValues;

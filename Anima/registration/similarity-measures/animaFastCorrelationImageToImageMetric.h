@@ -57,8 +57,9 @@ public:
                                MeasureType& Value, DerivativeType& Derivative) const ITK_OVERRIDE;
 
     void PreComputeFixedValues();
-    itkSetMacro(SquaredCorrelation, bool);
-    itkSetMacro(ScaleIntensities, bool);
+    itkSetMacro(SquaredCorrelation, bool)
+    itkSetMacro(ScaleIntensities, bool)
+    itkSetMacro(DefaultBackgroundValue, double)
 
 protected:
     FastCorrelationImageToImageMetric();
@@ -66,14 +67,14 @@ protected:
     void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
 
 private:
-    FastCorrelationImageToImageMetric(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(FastCorrelationImageToImageMetric);
 
     RealType m_SumFixed;
     RealType m_VarFixed;
 
     bool m_SquaredCorrelation;
     bool m_ScaleIntensities;
+    double m_DefaultBackgroundValue;
 
     std::vector <InputPointType> m_FixedImagePoints;
     std::vector <RealType> m_FixedImageValues;
