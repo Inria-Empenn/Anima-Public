@@ -34,7 +34,7 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<std::string> outArg("o","output","Output resampled image",true,"","output image",cmd);
     TCLAP::ValueArg<std::string> geomArg("g","geometry","Geometry image",true,"","geometry image",cmd);
 
-    TCLAP::ValueArg<int> numFasciclesOut("n","num-fasc","Number of DDI output fascicles (default: same as input)",false,-1,"number of DDI output fascicles",cmd);
+    TCLAP::ValueArg<int> numFasciclesOut("n","num-fasc","Number of MCM output fascicles (default: same as input)",false,-1,"number of MCM output fascicles",cmd);
     TCLAP::ValueArg<unsigned int> expOrderArg("e","exp-order","Order of field exponentiation approximation (in between 0 and 1, default: 0)",false,0,"exponentiation order",cmd);
 
     TCLAP::SwitchArg ppdArg("P","ppd","Use PPD re-orientation scheme (default: no)",cmd,false);
