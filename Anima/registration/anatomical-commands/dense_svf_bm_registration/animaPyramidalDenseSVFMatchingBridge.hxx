@@ -21,15 +21,15 @@ namespace anima
 template <unsigned int ImageDimension>
 PyramidalDenseSVFMatchingBridge<ImageDimension>::PyramidalDenseSVFMatchingBridge()
 {
-    m_ReferenceImage = NULL;
-    m_FloatingImage = NULL;
+    m_ReferenceImage = nullptr;
+    m_FloatingImage = nullptr;
 
     m_OutputTransform = BaseTransformType::New();
     m_OutputTransform->SetIdentity();
 
     m_outputTransformFile = "";
 
-    m_OutputImage = NULL;
+    m_OutputImage = nullptr;
 
     m_ReferenceMinimalValue = 0.0;
     m_FloatingMinimalValue = 0.0;

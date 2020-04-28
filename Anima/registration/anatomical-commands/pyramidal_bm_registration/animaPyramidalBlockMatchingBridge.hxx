@@ -23,17 +23,17 @@ namespace anima
 template <unsigned int ImageDimension>
 PyramidalBlockMatchingBridge<ImageDimension>::PyramidalBlockMatchingBridge()
 {
-    m_InitialTransform = NULL;
-    m_DirectionTransform = NULL;
-    m_ReferenceImage = NULL;
-    m_FloatingImage = NULL;
+    m_InitialTransform = nullptr;
+    m_DirectionTransform = nullptr;
+    m_ReferenceImage = nullptr;
+    m_FloatingImage = nullptr;
 
-    m_OutputTransform = NULL;
+    m_OutputTransform = nullptr;
     m_outputTransformFile = "";
     m_outputNearestRigidTransformFile = "";
     m_outputNearestSimilarityTransformFile = "";
 
-    m_OutputImage = NULL;
+    m_OutputImage = nullptr;
 
     m_ReferenceMinimalValue = 0.0;
     m_FloatingMinimalValue = 0.0;
