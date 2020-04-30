@@ -1,6 +1,7 @@
 #include <tclap/CmdLine.h>
 
 #include <itkResampleImageFilter.h>
+#include <itkMinimumMaximumImageFilter.h>
 
 #include <itkNearestNeighborInterpolateImageFunction.h>
 #include <itkLinearInterpolateImageFunction.h>
@@ -238,6 +239,18 @@ applyScalarTransfo4D(itk::ImageIOBase::Pointer geometryImageIO, const arguments 
     outputImage->SetDirection(direction);
     outputImage->Allocate();
 
+    typedef itk::MinimumMaximumImageFilter <ImageType> MinMaxFilterType;
+    typename MinMaxFilterType::Pointer minMaxFilter = MinMaxFilterType::New();
+    minMaxFilter->SetInput(inputImage);
+    minMaxFilter->SetNumberOfWorkUnits(args.pthread);
+    minMaxFilter->Update();
+
+    double minImageValue = minMaxFilter->GetMinimum();
+    if (minImageValue < 0)
+        minImageValue = -1024;
+    else
+        minImageValue = 0;
+
     unsigned int numImages = inputImage->GetLargestPossibleRegion().GetSize()[InternalImageDimension];
 
     for (unsigned int i = 0;i < numImages;++i)
@@ -267,6 +280,7 @@ applyScalarTransfo4D(itk::ImageIOBase::Pointer geometryImageIO, const arguments 
         scalarResampler->SetOutputOrigin(internalOrigin);
         scalarResampler->SetOutputSpacing(internalSpacing);
         scalarResampler->SetOutputDirection(internalDirection);
+        scalarResampler->SetDefaultPixelValue(minImageValue);
 
         typedef itk::ExtractImageFilter <ImageType, InternalImageType> ExtractFilterType;
         typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
@@ -380,7 +394,22 @@ applyScalarTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
     scalarResampler->SetOutputSpacing(spacing);
     scalarResampler->SetOutputDirection(direction);
 
-    scalarResampler->SetInput(anima::readImage<ImageType>(args.input));
+    typename ImageType::Pointer inputImage = anima::readImage<ImageType>(args.input);
+
+    typedef itk::MinimumMaximumImageFilter <ImageType> MinMaxFilterType;
+    typename MinMaxFilterType::Pointer minMaxFilter = MinMaxFilterType::New();
+    minMaxFilter->SetInput(inputImage);
+    minMaxFilter->SetNumberOfWorkUnits(args.pthread);
+    minMaxFilter->Update();
+
+    double minImageValue = minMaxFilter->GetMinimum();
+    if (minImageValue < 0)
+        minImageValue = -1024;
+    else
+        minImageValue = 0;
+
+    scalarResampler->SetDefaultPixelValue(minImageValue);
+    scalarResampler->SetInput(inputImage);
     scalarResampler->SetNumberOfWorkUnits(args.pthread);
     scalarResampler->Update();
 
@@ -520,7 +549,7 @@ int main(int ac, const char** av)
         }
     }
 
-    if(badInterpolation)
+    if (badInterpolation)
         std::cerr << "Interpolation method not supported, it must be one of [nearest, linear, bspline, sinc]." << std::endl;
 
     try
