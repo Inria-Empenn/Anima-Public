@@ -12,6 +12,7 @@
 #include <itkMutualInformationHistogramImageToImageMetric.h>
 #include <itkImageMomentsCalculator.h>
 #include <itkProgressReporter.h>
+#include <itkMinimumMaximumImageFilter.h>
 
 #include <animaVectorOperations.h>
 #include <animaResampleImageFilter.h>
@@ -205,7 +206,21 @@ void PyramidalSymmetryBridge<PixelType,ScalarType>::Update()
     tmpResample->SetOutputOrigin(m_ReferenceImage->GetOrigin());
     tmpResample->SetOutputSpacing(m_ReferenceImage->GetSpacing());
     tmpResample->SetOutputDirection(m_ReferenceImage->GetDirection());
-    tmpResample->SetDefaultPixelValue(0);
+
+    using MinMaxFilterType = itk::MinimumMaximumImageFilter <InputImageType>;
+    typename MinMaxFilterType::Pointer minMaxFilter = MinMaxFilterType::New();
+    minMaxFilter->SetInput(m_ReferenceImage);
+    if (this->GetNumberOfWorkUnits() != 0)
+        minMaxFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
+    minMaxFilter->Update();
+
+    double minValue = minMaxFilter->GetMinimum();
+
+    if (minValue < 0.0)
+        tmpResample->SetDefaultPixelValue(-1024.0);
+    else
+        tmpResample->SetDefaultPixelValue(0.0);
+
     tmpResample->Update();
 
     m_OutputImage = tmpResample->GetOutput();

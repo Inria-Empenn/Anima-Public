@@ -16,8 +16,7 @@
 #include <itkMutualInformationHistogramImageToImageMetric.h>
 #include <itkNormalizedMutualInformationHistogramImageToImageMetric.h>
 #include <itkCenteredTransformInitializer.h>
-
-// ------------------------------
+#include <itkMinimumMaximumImageFilter.h>
 
 namespace anima
 {
@@ -41,6 +40,9 @@ PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::PyramidalSymmetryCon
     m_Metric = MutualInformation;
     m_OptimizerMaximumIterations = 100;
 
+    m_ReferenceMinimalValue = 0.0;
+    m_FloatingMinimalValue = 0.0;
+
     m_UpperBoundAngle = M_PI;
     m_TranslateUpperBound = 10;
     m_HistogramSize = 128;
@@ -59,6 +61,36 @@ template <typename ScalarType>
 void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::Update()
 {
     typedef typename itk::ImageRegistrationMethod<InputImageType, InputImageType> RegistrationType;
+
+    // Compute minimal value of reference and floating images
+    using MinMaxFilterType = itk::MinimumMaximumImageFilter <InputImageType>;
+    typename MinMaxFilterType::Pointer minMaxFilter = MinMaxFilterType::New();
+    minMaxFilter->SetInput(m_ReferenceImage);
+    if (this->GetNumberOfWorkUnits() != 0)
+        minMaxFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
+    minMaxFilter->Update();
+
+    m_ReferenceMinimalValue = minMaxFilter->GetMinimum();
+
+    minMaxFilter = MinMaxFilterType::New();
+    minMaxFilter->SetInput(m_FloatingImage);
+    if (this->GetNumberOfWorkUnits() != 0)
+        minMaxFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
+    minMaxFilter->Update();
+
+    m_FloatingMinimalValue = minMaxFilter->GetMinimum();
+
+    // Only CT images are below zero, little hack to set minimal values to either -1024 or 0
+    if (m_ReferenceMinimalValue < 0.0)
+        m_ReferenceMinimalValue = -1024;
+    else
+        m_ReferenceMinimalValue = 0.0;
+
+    if (m_FloatingMinimalValue < 0.0)
+        m_FloatingMinimalValue = -1024;
+    else
+        m_FloatingMinimalValue = 0.0;
+
     this->SetupPyramids();
 
     typename TransformType::ParametersType initialParams(TransformType::ParametersDimension);
@@ -270,7 +302,7 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::Update()
     tmpResample->SetOutputOrigin(m_ReferenceImage->GetOrigin());
     tmpResample->SetOutputSpacing(m_ReferenceImage->GetSpacing());
     tmpResample->SetOutputDirection(m_ReferenceImage->GetDirection());
-    tmpResample->SetDefaultPixelValue(0);
+    tmpResample->SetDefaultPixelValue(m_FloatingMinimalValue);
     tmpResample->Update();
 
     m_OutputImage = tmpResample->GetOutput();
@@ -312,7 +344,7 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::SetupPyramids()
     tmpResample->SetOutputOrigin(m_ReferenceImage->GetOrigin());
     tmpResample->SetOutputSpacing(m_ReferenceImage->GetSpacing());
     tmpResample->SetOutputDirection(m_ReferenceImage->GetDirection());
-    tmpResample->SetDefaultPixelValue(0);
+    tmpResample->SetDefaultPixelValue(m_ReferenceMinimalValue);
     tmpResample->Update();
 
     initialReferenceImage = tmpResample->GetOutput();
@@ -417,6 +449,10 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::SetupPyramids()
 
     m_ReferencePyramid->SetInput(initialReferenceImage);
     m_ReferencePyramid->SetNumberOfLevels(m_NumberOfPyramidLevels);
+    typename ResampleFilterType::Pointer refResampler = ResampleFilterType::New();
+    refResampler->SetDefaultPixelValue(m_ReferenceMinimalValue);
+    m_ReferencePyramid->SetImageResampler(refResampler);
+    m_ReferencePyramid->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
     m_ReferencePyramid->Update();
     
     tmpResample = ResampleFilterType::New();
@@ -427,7 +463,7 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::SetupPyramids()
     tmpResample->SetOutputOrigin(m_ReferenceImage->GetOrigin());
     tmpResample->SetOutputSpacing(m_ReferenceImage->GetSpacing());
     tmpResample->SetOutputDirection(m_ReferenceImage->GetDirection());
-    tmpResample->SetDefaultPixelValue(0);
+    tmpResample->SetDefaultPixelValue(m_FloatingMinimalValue);
     tmpResample->Update();
     
     initialFloatingImage = tmpResample->GetOutput();
@@ -438,6 +474,11 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::SetupPyramids()
 
     m_FloatingPyramid->SetInput(initialFloatingImage);
     m_FloatingPyramid->SetNumberOfLevels(m_NumberOfPyramidLevels);
+    m_FloatingPyramid->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
+
+    typename ResampleFilterType::Pointer floResampler = ResampleFilterType::New();
+    floResampler->SetDefaultPixelValue(m_FloatingMinimalValue);
+    m_FloatingPyramid->SetImageResampler(floResampler);
     m_FloatingPyramid->Update();
 }
 

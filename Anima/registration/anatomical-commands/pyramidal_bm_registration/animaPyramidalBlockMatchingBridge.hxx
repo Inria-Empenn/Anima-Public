@@ -5,6 +5,7 @@
 #include <itkTransformFileReader.h>
 #include <itkTransformFileWriter.h>
 #include <itkCenteredTransformInitializer.h>
+#include <itkMinimumMaximumImageFilter.h>
 
 #include <animaAsymmetricBMRegistrationMethod.h>
 #include <animaSymmetricBMRegistrationMethod.h>
@@ -22,17 +23,20 @@ namespace anima
 template <unsigned int ImageDimension>
 PyramidalBlockMatchingBridge<ImageDimension>::PyramidalBlockMatchingBridge()
 {
-    m_InitialTransform = NULL;
-    m_DirectionTransform = NULL;
-    m_ReferenceImage = NULL;
-    m_FloatingImage = NULL;
+    m_InitialTransform = nullptr;
+    m_DirectionTransform = nullptr;
+    m_ReferenceImage = nullptr;
+    m_FloatingImage = nullptr;
 
-    m_OutputTransform = NULL;
+    m_OutputTransform = nullptr;
     m_outputTransformFile = "";
     m_outputNearestRigidTransformFile = "";
     m_outputNearestSimilarityTransformFile = "";
 
-    m_OutputImage = NULL;
+    m_OutputImage = nullptr;
+
+    m_ReferenceMinimalValue = 0.0;
+    m_FloatingMinimalValue = 0.0;
 
     m_BlockSize = 5;
     m_BlockSpacing = 5;
@@ -151,6 +155,36 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
 
     this->InvokeEvent(itk::StartEvent());
 
+    // Compute minimal value of reference and floating images
+    using MinMaxFilterType = itk::MinimumMaximumImageFilter <InputImageType>;
+    typename MinMaxFilterType::Pointer minMaxFilter = MinMaxFilterType::New();
+    minMaxFilter->SetInput(m_ReferenceImage);
+    if (this->GetNumberOfWorkUnits() != 0)
+        minMaxFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
+    minMaxFilter->Update();
+
+    m_ReferenceMinimalValue = minMaxFilter->GetMinimum();
+
+    minMaxFilter = MinMaxFilterType::New();
+    minMaxFilter->SetInput(m_FloatingImage);
+    if (this->GetNumberOfWorkUnits() != 0)
+        minMaxFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
+    minMaxFilter->Update();
+
+    m_FloatingMinimalValue = minMaxFilter->GetMinimum();
+
+    // Only CT images are below zero, little hack to set minimal values to either -1024 or 0
+    if (m_ReferenceMinimalValue < 0.0)
+        m_ReferenceMinimalValue = -1024;
+    else
+        m_ReferenceMinimalValue = 0.0;
+
+    if (m_FloatingMinimalValue < 0.0)
+        m_FloatingMinimalValue = -1024;
+    else
+        m_FloatingMinimalValue = 0.0;
+
+    // Set up pyramids of images and masks
     this->SetupPyramids();
 
     typedef anima::AnatomicalBlockMatcher <InputImageType> BlockMatcherType;
@@ -181,6 +215,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
         mainMatcher->SetBlockSpacing(GetBlockSpacing());
         mainMatcher->SetBlockVarianceThreshold(GetStDevThreshold() * GetStDevThreshold());
         mainMatcher->SetBlockGenerationMask(maskGenerationImage);
+        mainMatcher->SetDefaultBackgroundValue(m_FloatingMinimalValue);
 
         if (m_Verbose)
         {
@@ -210,6 +245,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
                 reverseMatcher->SetBlockVarianceThreshold(GetStDevThreshold() * GetStDevThreshold());
                 reverseMatcher->SetVerbose(m_Verbose);
                 reverseMatcher->SetBlockGenerationMask(maskGenerationImage);
+                reverseMatcher->SetDefaultBackgroundValue(m_ReferenceMinimalValue);
 
                 tmpReg->SetReverseBlockMatcher(reverseMatcher);
                 m_bmreg = tmpReg;
@@ -220,7 +256,11 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
             default:
             {
                 typedef typename anima::KissingSymmetricBMRegistrationMethod <InputImageType> BlockMatchRegistrationType;
-                m_bmreg = BlockMatchRegistrationType::New();
+                typename BlockMatchRegistrationType::Pointer tmpReg = BlockMatchRegistrationType::New();
+                tmpReg->SetReferenceBackgroundValue(m_ReferenceMinimalValue);
+                tmpReg->SetFloatingBackgroundValue(m_FloatingMinimalValue);
+
+                m_bmreg = tmpReg;
                 break;
             }
         }
@@ -250,7 +290,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
         refResampler->SetOutputOrigin(floImage->GetOrigin());
         refResampler->SetOutputSpacing(floImage->GetSpacing());
         refResampler->SetOutputDirection(floImage->GetDirection());
-        refResampler->SetDefaultPixelValue(0);
+        refResampler->SetDefaultPixelValue(m_ReferenceMinimalValue);
         refResampler->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
         m_bmreg->SetReferenceImageResampler(refResampler);
 
@@ -259,7 +299,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
         movingResampler->SetOutputOrigin(refImage->GetOrigin());
         movingResampler->SetOutputSpacing(refImage->GetSpacing());
         movingResampler->SetOutputDirection(refImage->GetDirection());
-        movingResampler->SetDefaultPixelValue(0);
+        movingResampler->SetDefaultPixelValue(m_FloatingMinimalValue);
         movingResampler->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
         m_bmreg->SetMovingImageResampler(movingResampler);
 
@@ -488,7 +528,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
     tmpResample->SetOutputOrigin(m_ReferenceImage->GetOrigin());
     tmpResample->SetOutputSpacing(m_ReferenceImage->GetSpacing());
     tmpResample->SetOutputDirection(m_ReferenceImage->GetDirection());
-    tmpResample->SetDefaultPixelValue(0);
+    tmpResample->SetDefaultPixelValue(m_FloatingMinimalValue);
     tmpResample->Update();
 
     m_OutputImage = tmpResample->GetOutput();
@@ -615,6 +655,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
     m_ReferencePyramid->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
 
     typename ResampleFilterType::Pointer refResampler = ResampleFilterType::New();
+    refResampler->SetDefaultPixelValue(m_ReferenceMinimalValue);
     m_ReferencePyramid->SetImageResampler(refResampler);
     m_ReferencePyramid->Update();
 
@@ -631,7 +672,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
         tmpResample->SetOutputOrigin(m_ReferenceImage->GetOrigin());
         tmpResample->SetOutputSpacing(m_ReferenceImage->GetSpacing());
         tmpResample->SetOutputDirection(m_ReferenceImage->GetDirection());
-        tmpResample->SetDefaultPixelValue(0);
+        tmpResample->SetDefaultPixelValue(m_FloatingMinimalValue);
         tmpResample->Update();
 
         initialFloatingImage = tmpResample->GetOutput();
@@ -701,7 +742,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
         tmpResample->SetOutputOrigin(m_ReferenceImage->GetOrigin());
         tmpResample->SetOutputSpacing(m_ReferenceImage->GetSpacing());
         tmpResample->SetOutputDirection(m_ReferenceImage->GetDirection());
-        tmpResample->SetDefaultPixelValue(0);
+        tmpResample->SetDefaultPixelValue(m_FloatingMinimalValue);
         tmpResample->Update();
 
         initialFloatingImage = tmpResample->GetOutput();
@@ -716,6 +757,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
     m_FloatingPyramid->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
 
     typename ResampleFilterType::Pointer floResampler = ResampleFilterType::New();
+    floResampler->SetDefaultPixelValue(m_FloatingMinimalValue);
     m_FloatingPyramid->SetImageResampler(floResampler);
 
     m_FloatingPyramid->Update();

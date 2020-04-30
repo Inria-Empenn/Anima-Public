@@ -16,6 +16,7 @@ AnatomicalBlockMatcher<TInputImageType>
 ::AnatomicalBlockMatcher()
 {
     m_SimilarityType = SquaredCorrelation;
+    m_DefaultBackgroundValue = 0.0;
 }
 
 template <typename TInputImageType>
@@ -45,6 +46,7 @@ AnatomicalBlockMatcher<TInputImageType>
 
             typename LocalMetricType::Pointer tmpMetric = LocalMetricType::New();
             tmpMetric->SetSquaredCorrelation(m_SimilarityType == SquaredCorrelation);
+            tmpMetric->SetDefaultBackgroundValue(m_DefaultBackgroundValue);
 
             metric = tmpMetric;
             break;
@@ -54,8 +56,10 @@ AnatomicalBlockMatcher<TInputImageType>
         default:
         {
             typedef anima::FastMeanSquaresImageToImageMetric <InputImageType,InputImageType> LocalMetricType;
+            typename LocalMetricType::Pointer tmpMetric = LocalMetricType::New();
+            tmpMetric->SetDefaultBackgroundValue(m_DefaultBackgroundValue);
 
-            metric = LocalMetricType::New();
+            metric = tmpMetric;
             break;
         }
     }

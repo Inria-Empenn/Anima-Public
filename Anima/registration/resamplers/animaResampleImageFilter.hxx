@@ -31,7 +31,7 @@ ResampleImageFilter<TInputImage, TOutputImage,TInterpolatorPrecisionType>
     m_OutputStartIndex.Fill( 0 );
 
     m_Transform = itk::IdentityTransform<TInterpolatorPrecisionType, ImageDimension>::New();
-    m_Interpolator = itk::LinearInterpolateImageFunction<InputImageType, TInterpolatorPrecisionType>::New();
+    m_Interpolator = nullptr;
     m_DefaultPixelValue = 0;
 
     m_ScaleIntensitiesWithJacobian = false;
@@ -132,19 +132,16 @@ void
 ResampleImageFilter<TInputImage,TOutputImage,TInterpolatorPrecisionType>
 ::BeforeThreadedGenerateData()
 {
-    if( !m_Transform )
+    if (!m_Transform)
     {
         itkExceptionMacro(<< "Transform not set");
     }
 
-    if( !m_Interpolator )
-    {
-        itkExceptionMacro(<< "Interpolator not set");
-    }
+    if (!m_Interpolator)
+        m_Interpolator = itk::LinearInterpolateImageFunction<InputImageType, TInterpolatorPrecisionType>::New();
 
     // Connect input image to interpolator
-    m_Interpolator->SetInputImage( this->GetInput() );
-
+    m_Interpolator->SetInputImage(this->GetInput());
 }
 
 /**
@@ -156,8 +153,7 @@ ResampleImageFilter<TInputImage,TOutputImage,TInterpolatorPrecisionType>
 ::AfterThreadedGenerateData()
 {
     // Disconnect input image from the interpolator
-    m_Interpolator->SetInputImage( NULL );
-
+    m_Interpolator->SetInputImage(nullptr);
 }
 
 /**
@@ -505,4 +501,4 @@ ResampleImageFilter<TInputImage,TOutputImage,TInterpolatorPrecisionType>
     return jacValue;
 }
 
-} // end namespace itk
+} // end namespace anima

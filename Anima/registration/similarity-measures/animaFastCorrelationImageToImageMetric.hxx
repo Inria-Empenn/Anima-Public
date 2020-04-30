@@ -6,24 +6,19 @@
 namespace anima
 {
 
-/**
- * Constructor
- */
 template <class TFixedImage, class TMovingImage>
 FastCorrelationImageToImageMetric<TFixedImage,TMovingImage>
 ::FastCorrelationImageToImageMetric()
 {
     m_SumFixed = 0;
     m_VarFixed = 0;
+    m_DefaultBackgroundValue = 0.0;
     m_SquaredCorrelation = true;
     m_ScaleIntensities = false;
     m_FixedImagePoints.clear();
     m_FixedImageValues.clear();
 }
 
-/**
- * Get the match Measure
- */
 template <class TFixedImage, class TMovingImage>
 typename FastCorrelationImageToImageMetric<TFixedImage,TMovingImage>::MeasureType
 FastCorrelationImageToImageMetric<TFixedImage,TMovingImage>
@@ -31,10 +26,8 @@ FastCorrelationImageToImageMetric<TFixedImage,TMovingImage>
 {
     FixedImageConstPointer fixedImage = this->m_FixedImage;
 
-    if( !fixedImage )
-    {
+    if (!fixedImage)
         itkExceptionMacro( << "Fixed image has not been assigned" );
-    }
 
     if ( this->m_NumberOfPixelsCounted == 0 )
         return 0;
@@ -54,17 +47,19 @@ FastCorrelationImageToImageMetric<TFixedImage,TMovingImage>
 
     for (unsigned int i = 0;i < this->m_NumberOfPixelsCounted;++i)
     {
-        transformedPoint = this->m_Transform->TransformPoint( m_FixedImagePoints[i] );
+        transformedPoint = this->m_Transform->TransformPoint(m_FixedImagePoints[i]);
         this->m_Interpolator->GetInputImage()->TransformPhysicalPointToContinuousIndex(transformedPoint,transformedIndex);
 
-        if( this->m_Interpolator->IsInsideBuffer( transformedIndex ) )
-        {
-            movingValue  = this->m_Interpolator->EvaluateAtContinuousIndex( transformedIndex );
+        movingValue = m_DefaultBackgroundValue;
+        if (this->m_Interpolator->IsInsideBuffer(transformedIndex))
+            movingValue = this->m_Interpolator->EvaluateAtContinuousIndex(transformedIndex);
 
+        if (movingValue != 0.0)
+        {
             if (m_ScaleIntensities)
             {
                 typedef itk::MatrixOffsetTransformBase <typename TransformType::ScalarType,
-                                                        TFixedImage::ImageDimension, TFixedImage::ImageDimension> BaseTransformType;
+                        TFixedImage::ImageDimension, TFixedImage::ImageDimension> BaseTransformType;
                 BaseTransformType *currentTrsf = dynamic_cast<BaseTransformType *> (this->m_Transform.GetPointer());
 
                 double factor = vnl_determinant(currentTrsf->GetMatrix().GetVnlMatrix());
@@ -148,9 +143,6 @@ FastCorrelationImageToImageMetric<TFixedImage,TMovingImage>
     m_VarFixed = sumSquared - m_SumFixed * m_SumFixed / this->m_NumberOfPixelsCounted;
 }
 
-/**
- * Get the Derivative Measure
- */
 template < class TFixedImage, class TMovingImage>
 void
 FastCorrelationImageToImageMetric<TFixedImage,TMovingImage>
@@ -160,9 +152,6 @@ FastCorrelationImageToImageMetric<TFixedImage,TMovingImage>
     itkExceptionMacro("Derivative not implemented yet...");
 }
 
-/*
- * Get both the match Measure and theDerivative Measure
- */
 template <class TFixedImage, class TMovingImage>
 void
 FastCorrelationImageToImageMetric<TFixedImage,TMovingImage>

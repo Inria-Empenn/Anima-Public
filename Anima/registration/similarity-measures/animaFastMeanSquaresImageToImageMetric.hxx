@@ -6,19 +6,14 @@
 namespace anima
 {
 
-/**
-     * Constructor
-     */
 template <class TFixedImage, class TMovingImage>
 FastMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
 ::FastMeanSquaresImageToImageMetric()
 {
     m_ScaleIntensities = false;
+    m_DefaultBackgroundValue = 0.0;
 }
 
-/**
-     * Get the match Measure
-     */
 template <class TFixedImage, class TMovingImage>
 typename FastMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>::MeasureType
 FastMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
@@ -46,7 +41,7 @@ FastMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
         transformedPoint = this->m_Transform->TransformPoint( m_FixedImagePoints[i] );
         this->m_Interpolator->GetInputImage()->TransformPhysicalPointToContinuousIndex(transformedPoint,transformedIndex);
 
-        movingValue = 0;
+        movingValue = m_DefaultBackgroundValue;
 
         if( this->m_Interpolator->IsInsideBuffer( transformedIndex ) )
         {
@@ -71,9 +66,6 @@ FastMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
     return measure;
 }
 
-/**
-     * Get the Derivative Measure
-     */
 template < class TFixedImage, class TMovingImage>
 void
 FastMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
@@ -83,9 +75,6 @@ FastMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
     itkExceptionMacro("Derivative not implemented yet...");
 }
 
-/*
-     * Get both the match Measure and theDerivative Measure
-     */
 template <class TFixedImage, class TMovingImage>
 void
 FastMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
@@ -138,12 +127,4 @@ FastMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
     }
 }
 
-template < class TFixedImage, class TMovingImage>
-void
-FastMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
-::PrintSelf(std::ostream& os, itk::Indent indent) const
-{
-    Superclass::PrintSelf(os, indent);
-}
-
-} // end namespace itk
+} // end namespace anima
