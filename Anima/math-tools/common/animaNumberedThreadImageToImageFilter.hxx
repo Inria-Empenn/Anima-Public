@@ -30,6 +30,7 @@ NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
     }
 
     m_NumberOfProcessedPoints = 0;
+    this->UpdateProgress(0.0);
 
     // Since image requested region may now be smaller than the image, fill the outputs with zeros
     typedef typename TOutputImage::PixelType OutputPixelType;
