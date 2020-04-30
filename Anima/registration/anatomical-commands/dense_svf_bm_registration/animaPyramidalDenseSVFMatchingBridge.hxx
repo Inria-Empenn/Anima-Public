@@ -495,7 +495,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
     tmpResample->SetOutputOrigin(m_ReferenceImage->GetOrigin());
     tmpResample->SetOutputSpacing(m_ReferenceImage->GetSpacing());
     tmpResample->SetOutputDirection(m_ReferenceImage->GetDirection());
-    tmpResample->SetDefaultPixelValue(m_ReferenceMinimalValue);
+    tmpResample->SetDefaultPixelValue(m_FloatingMinimalValue);
     tmpResample->Update();
 
     m_OutputImage = tmpResample->GetOutput();
