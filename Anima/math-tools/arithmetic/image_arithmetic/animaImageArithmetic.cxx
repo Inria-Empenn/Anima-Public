@@ -13,14 +13,15 @@
 
 template <class ImageType>
 void computeArithmetic (std::string &inStr, std::string &outStr, std::string &multImStr, std::string &divImStr, std::string &addImStr,
-                        std::string &subImStr, double multConstant, double divideConstant, double addConstant, double powConstant,
-                        unsigned int nThreads)
+                        std::string &subImStr, double multConstant, double divideConstant, double addConstant, double subConstant,
+                        double powConstant, unsigned int nThreads)
 {
     typedef itk::Image <double, ImageType::ImageDimension> WorkImageType;
     typedef itk::AddImageFilter <ImageType,ImageType,ImageType> AddFilterType;
     typedef itk::AddImageFilter <ImageType,WorkImageType,ImageType> AddConstantFilterType;
     typedef itk::SubtractImageFilter <ImageType,ImageType,ImageType> SubtractFilterType;
-    
+    typedef itk::SubtractImageFilter <ImageType,WorkImageType,ImageType> SubtractConstantFilterType;
+
     typedef itk::MultiplyImageFilter <ImageType,WorkImageType,ImageType> MultiplyFilterType;
     typedef itk::DivideImageFilter <ImageType,WorkImageType,ImageType> DivideFilterType;
         
@@ -131,7 +132,7 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
         currentImage = subFilter->GetOutput();
         currentImage->DisconnectPipeline();
     }
-    
+
     if (addConstant != 0.0)
     {
         typename AddConstantFilterType::Pointer addFilter = AddConstantFilterType::New();
@@ -139,12 +140,25 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
         addFilter->SetConstant(addConstant);
         addFilter->SetNumberOfWorkUnits(nThreads);
         addFilter->InPlaceOn();
-        
+
         addFilter->Update();
         currentImage = addFilter->GetOutput();
         currentImage->DisconnectPipeline();
     }
-    
+
+    if (subConstant != 0.0)
+    {
+        typename SubtractConstantFilterType::Pointer subFilter = SubtractConstantFilterType::New();
+        subFilter->SetInput1(currentImage);
+        subFilter->SetConstant(subConstant);
+        subFilter->SetNumberOfWorkUnits(nThreads);
+        subFilter->InPlaceOn();
+
+        subFilter->Update();
+        currentImage = subFilter->GetOutput();
+        currentImage->DisconnectPipeline();
+    }
+
     if (powConstant != 1.0)
     {
         typedef itk::Image <typename ImageType::IOPixelType, ImageType::ImageDimension> ScalarImageType;
@@ -172,7 +186,7 @@ void computeArithmetic (std::string &inStr, std::string &outStr, std::string &mu
 
 int main(int argc, char **argv)
 {
-    std::string descriptionMessage = "Performs very basic mathematical operations on images: performs ( (I * m * M) / (D * d) + A + a - s )^P \n";
+    std::string descriptionMessage = "Performs very basic mathematical operations on images: performs ( (I * m * M) / (D * d) + A + a - s - S)^P \n";
     descriptionMessage += "This software has known limitations: you might have to use it several times in a row to perform the operation you want,\n";
     descriptionMessage += "it requires the divide and multiply images to be scalar, and the add and subtract images to be of the same format as the input (although this is not verified).\n";
     descriptionMessage += "INRIA / IRISA - VisAGeS/Empenn Team";
@@ -190,6 +204,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> multiplyConstantArg("M","multiply-constant","multiply constant value",false,1.0,"multiply constant value",cmd);
     TCLAP::ValueArg<double> divideConstantArg("D","divide-constant","divide constant value",false,1.0,"divide constant value",cmd);
     TCLAP::ValueArg<double> addConstantArg("A","add-constant","add constant value",false,0.0,"add constant value",cmd);
+    TCLAP::ValueArg<double> subtractConstantArg("S","sub-constant","Subtract constant value",false,0.0,"subtract constant value",cmd);
     TCLAP::ValueArg<double> powArg("P","pow-constant","power constant value (only for scalar images)",false,1.0,"power constant value",cmd);
 
     TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
@@ -226,15 +241,15 @@ int main(int argc, char **argv)
     if (vectorImage)
         computeArithmetic<VectorImageType>(inArg.getValue(),outArg.getValue(),multImArg.getValue(),divImArg.getValue(),addImArg.getValue(),
                                            subtractImArg.getValue(),multiplyConstantArg.getValue(),divideConstantArg.getValue(),
-                                           addConstantArg.getValue(),powArg.getValue(),nbpArg.getValue());
+                                           addConstantArg.getValue(),subtractConstantArg.getValue(),powArg.getValue(),nbpArg.getValue());
     else if (fourDimensionalImage)
         computeArithmetic<Image4DType>(inArg.getValue(),outArg.getValue(),multImArg.getValue(),divImArg.getValue(),addImArg.getValue(),
                                        subtractImArg.getValue(),multiplyConstantArg.getValue(),divideConstantArg.getValue(),
-                                       addConstantArg.getValue(),powArg.getValue(),nbpArg.getValue());
+                                       addConstantArg.getValue(),subtractConstantArg.getValue(),powArg.getValue(),nbpArg.getValue());
     else
         computeArithmetic<ImageType>(inArg.getValue(),outArg.getValue(),multImArg.getValue(),divImArg.getValue(),addImArg.getValue(),
                                      subtractImArg.getValue(),multiplyConstantArg.getValue(),divideConstantArg.getValue(),
-                                     addConstantArg.getValue(),powArg.getValue(),nbpArg.getValue());
+                                     addConstantArg.getValue(),subtractConstantArg.getValue(),powArg.getValue(),nbpArg.getValue());
     
     return 0;
 }
