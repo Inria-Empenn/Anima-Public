@@ -110,8 +110,6 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
     OutputVectorType zero(3);
     zero.Fill(0.0);
     m_WeightsImage->FillBuffer(zero);
-
-    this->PrepareGaussianValues();
 }
 
 template <class TPixelScalarType>
@@ -198,8 +196,6 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
     epgSimulator.SetNumberOfEchoes(numInputs);
     epgSimulator.SetExcitationFlipAngle(m_T2ExcitationFlipAngle);
 
-    std::vector <anima::EPGSignalSimulator::RealVectorType> epgSignalValues;
-
     NNLSOptimizerPointer nnlsOpt = NNLSOptimizerType::New();
 
     typedef anima::NLOPTOptimizers B1OptimizerType;
@@ -209,11 +205,6 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
     typename B1CostFunctionType::Pointer cost = B1CostFunctionType::New();
     cost->SetEchoSpacing(m_EchoSpacing);
     cost->SetExcitationFlipAngle(m_T2ExcitationFlipAngle);
-    cost->SetT2FlipAngles(m_T2FlipAngles);
-
-    cost->SetLowerT2Bound(m_LowerT2Bound);
-    cost->SetUpperT2Bound(m_UpperT2Bound);
-    cost->SetT2IntegrationStep(m_T2IntegrationStep);
 
     unsigned int dimension = cost->GetNumberOfParameters();
     itk::Array<double> lowerBounds(dimension);
@@ -222,19 +213,15 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
     lowerBounds[0] = 1.0 * m_T2FlipAngles[0];
     upperBounds[0] = 2.0 * m_T2FlipAngles[0];
 
-    cost->SetT2DistributionSamples(m_SampledGaussianValues);
-    cost->SetT2WorkingValues(m_T2WorkingValues);
-    cost->SetDistributionSamplesT2Correspondences(m_SampledGaussT2Correspondences);
-    cost->SetUseDerivative(false);
-
-    unsigned int numSteps = m_T2WorkingValues.size();
-    epgSignalValues.resize(numSteps);
+    cost->SetGaussianMeans(m_GaussianMeans);
+    cost->SetGaussianVariances(m_GaussianVariances);
+    cost->SetGaussianIntegralTolerance(m_GaussianIntegralTolerance);
 
     while (!maskItr.IsAtEnd())
     {
         outputT2Weights.Fill(0);
 
-        if (maskItr.Get() == 0)
+        if ((maskItr.Get() == 0)||(maskItr.GetIndex()[2] != 42))
         {
             outWeightsIterator.Set(outputT2Weights);
             outM0Iterator.Set(0);
@@ -330,74 +317,6 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
 
         if (m_T1Map)
             ++t1MapItr;
-    }
-}
-
-template <class TPixelScalarType>
-void
-GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
-::PrepareGaussianValues()
-{
-    unsigned int numberOfGaussians = m_GaussianMeans.size();
-
-    m_SampledGaussianValues.resize(numberOfGaussians);
-    m_SampledGaussT2Correspondences.resize(numberOfGaussians);
-    m_T2WorkingValues.clear();
-
-    unsigned int maxNumSteps = std::ceil((m_UpperT2Bound - m_LowerT2Bound) / m_T2IntegrationStep) + 1;
-    std::vector <unsigned int> tmpVec;
-    std::vector < std::vector <unsigned int> > usedIndexes(maxNumSteps,tmpVec);
-
-    double widthGaussianApproximation = boost::math::erf_inv(1.0 - m_GaussianIntegralTolerance) * std::sqrt(2.0);
-
-    for (unsigned int j = 0;j < numberOfGaussians;++j)
-    {
-        double minValueGaussian = std::max(m_LowerT2Bound, m_GaussianMeans[j] - widthGaussianApproximation * std::sqrt(m_GaussianVariances[j]));
-        double maxValueGaussian = std::min(m_UpperT2Bound, m_GaussianMeans[j] + widthGaussianApproximation * std::sqrt(m_GaussianVariances[j]));
-
-        unsigned int iMin = std::ceil((minValueGaussian - m_LowerT2Bound) / m_T2IntegrationStep);
-        unsigned int iMax = std::floor((maxValueGaussian - m_LowerT2Bound) / m_T2IntegrationStep);
-
-        unsigned int numSteps = iMax - iMin + 1;
-        std::vector <double> gaussianVector(numSteps,0.0);
-        std::vector <unsigned int> gaussT2Indexes(numSteps,0);
-        double vectorSum = 0;
-
-        for (unsigned int i = iMin;i <= iMax;++i)
-        {
-            usedIndexes[i].push_back(j);
-            double position = i * m_T2IntegrationStep + m_LowerT2Bound;
-            double internalValue = (position - m_GaussianMeans[j]) * (position - m_GaussianMeans[j]) / (2.0 * m_GaussianVariances[j]);
-            gaussianVector[i - iMin] = std::exp(- internalValue);
-            gaussT2Indexes[i - iMin] = i;
-
-            if (i > iMin)
-                vectorSum += (gaussianVector[i - iMin] + gaussianVector[i - iMin - 1]) * m_T2IntegrationStep / 2.0;
-            else
-                vectorSum += gaussianVector[i - iMin] * m_T2IntegrationStep / 2.0;
-        }
-
-        for (unsigned int i = 0;i < numSteps;++i)
-            gaussianVector[i] /= vectorSum;
-
-        m_SampledGaussianValues[j] = gaussianVector;
-        m_SampledGaussT2Correspondences[j] = gaussT2Indexes;
-    }
-
-    for (unsigned int i = 0;i < maxNumSteps;++i)
-    {
-        if (usedIndexes[i].size() != 0)
-        {
-            for (unsigned int j = 0;j < usedIndexes[i].size();++j)
-            {
-                double minValueGaussian = std::max(m_LowerT2Bound, m_GaussianMeans[usedIndexes[i][j]] - widthGaussianApproximation * std::sqrt(m_GaussianVariances[usedIndexes[i][j]]));
-                unsigned int iMin = std::ceil((minValueGaussian - m_LowerT2Bound) / m_T2IntegrationStep);
-
-                m_SampledGaussT2Correspondences[usedIndexes[i][j]][i - iMin] = m_T2WorkingValues.size();
-            }
-
-            m_T2WorkingValues.push_back(m_LowerT2Bound + i * m_T2IntegrationStep);
-        }
     }
 }
 

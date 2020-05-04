@@ -14,7 +14,7 @@ EPGSignalSimulator::EPGSignalSimulator()
 }
 
 EPGSignalSimulator::RealVectorType &EPGSignalSimulator::GetValue(double t1Value, double t2Value,
-                                                                double flipAngle, double m0Value)
+                                                                 double flipAngle, double m0Value)
 {
     m_SimulatedT2Values.set_size(3 * m_NumberOfEchoes + 1,m_NumberOfEchoes + 1);
     m_OutputVector.resize(m_NumberOfEchoes);
