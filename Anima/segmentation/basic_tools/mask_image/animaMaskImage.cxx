@@ -2,12 +2,116 @@
 
 #include <itkMaskImageFilter.h>
 #include <itkVectorImage.h>
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
-#include <itkImageRegionConstIterator.h>
+#include <itkImage.h>
 #include <itkImageRegionIterator.h>
+#include <itkExtractImageFilter.h>
 
-using namespace std;
+#include <animaReadWriteFunctions.h>
+#include <animaRetrieveImageTypeMacros.h>
+
+struct arguments
+{
+    std::string refName, maskName, resName;
+    itk::ImageIOBase::Pointer imageIO;
+};
+
+template <class ImageType>
+void
+maskScalar4DImage(const arguments &args)
+{
+    using MaskImageType = itk::Image <unsigned short, 3>;
+    MaskImageType::Pointer maskData = anima::readImage <MaskImageType> (args.maskName);
+
+    if (args.imageIO->GetNumberOfComponents() > 1)
+        throw itk::ExceptionObject(__FILE__, __LINE__, "4D vector images are not supported yet", ITK_LOCATION);
+
+    using InternalImageType = itk::Image <typename ImageType::PixelType, 3>;
+    using MaskImageFilterType = itk::MaskImageFilter <InternalImageType, MaskImageType, InternalImageType>;
+
+    typename ImageType::Pointer dataImage = anima::readImage <ImageType> (args.refName);
+    unsigned int size4d = dataImage->GetLargestPossibleRegion().GetSize()[3];
+
+    using ExtractFilterType = itk::ExtractImageFilter <ImageType, InternalImageType>;
+    for (unsigned int i = 0;i < size4d;++i)
+    {
+        typename ImageType::RegionType region = dataImage->GetLargestPossibleRegion();
+        region.SetIndex(3,i);
+        region.SetSize(3,0);
+
+        typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
+        extractFilter->SetInput(dataImage);
+        extractFilter->SetExtractionRegion(region);
+        extractFilter->SetDirectionCollapseToGuess();
+
+        extractFilter->Update();
+
+        typename MaskImageFilterType::Pointer maskFilter = MaskImageFilterType::New();
+
+        maskFilter->SetInput(extractFilter->GetOutput());
+        maskFilter->SetMaskImage(maskData);
+        maskFilter->Update();
+
+        using ImageIteratorType = itk::ImageRegionIterator <ImageType>;
+        using InternalIteratorType = itk::ImageRegionIterator <InternalImageType>;
+
+        region.SetSize(3,1);
+        ImageIteratorType dataItr(dataImage, region);
+
+        InternalIteratorType maskedItr(maskFilter->GetOutput(), extractFilter->GetOutput()->GetLargestPossibleRegion());
+        while (!maskedItr.IsAtEnd())
+        {
+            dataItr.Set(maskedItr.Get());
+            ++dataItr;
+            ++maskedItr;
+        }
+    }
+
+    anima::writeImage <ImageType> (args.resName, dataImage);
+}
+
+template <class ImageType>
+void
+mask3DImage(const arguments &args)
+{
+    using MaskImageType = itk::Image <unsigned short, 3>;
+    MaskImageType::Pointer maskData = anima::readImage <MaskImageType> (args.maskName);
+
+    using MaskImageFilterType = itk::MaskImageFilter <ImageType, MaskImageType, ImageType>;
+    typename MaskImageFilterType::Pointer maskFilter = MaskImageFilterType::New();
+
+    maskFilter->SetInput(anima::readImage <ImageType> (args.refName));
+    maskFilter->SetMaskImage(maskData);
+    maskFilter->Update();
+
+    anima::writeImage <ImageType> (args.resName, maskFilter->GetOutput());
+}
+
+template <class ComponentType, int dimension>
+void
+checkIfComponentsAreVectors(itk::ImageIOBase::Pointer imageIO, const arguments &args)
+{
+    if (imageIO->GetNumberOfComponents() > 1)
+    {
+        if (dimension > 3)
+            throw itk::ExceptionObject (__FILE__, __LINE__, "Number of dimensions not supported for vector image masking", ITK_LOCATION);
+
+        mask3DImage < itk::VectorImage<ComponentType, 3> > (args);
+    }
+    else
+    {
+        if (dimension < 4)
+            mask3DImage < itk::Image<ComponentType, 3> > (args);
+        else
+            maskScalar4DImage < itk::Image<ComponentType, 4> > (args);
+    }
+}
+
+template <class ComponentType>
+void
+retrieveNbDimensions(itk::ImageIOBase::Pointer imageIO, const arguments &args)
+{
+    ANIMA_RETRIEVE_NUMBER_OF_DIMENSIONS(imageIO, ComponentType, checkIfComponentsAreVectors, imageIO, args);
+}
 
 int main(int argc, char **argv)
 {
@@ -24,252 +128,38 @@ int main(int argc, char **argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return(1);
+        return EXIT_FAILURE;
     }
     
-    string refName, maskName, resName;
-    refName = inArg.getValue();
-    maskName = maskArg.getValue();
-    resName = outArg.getValue();
-    
-    typedef itk::Image <float,4> FloatImage4DType;
-    typedef itk::ImageFileReader <FloatImage4DType> itkFloat4DReader;
-    typedef itk::ImageFileWriter <FloatImage4DType> itkFloat4DWriter;
-    
-    typedef itk::Image <float,3> FloatImageType;
-    typedef itk::ImageFileReader <FloatImageType> itkFloatReader;
-    typedef itk::ImageFileWriter <FloatImageType> itkFloatWriter;
-    
-    typedef itk::VectorImage <float,3> VectorFloatImageType;
-    typedef itk::ImageFileReader <VectorFloatImageType> itkVectorFloatReader;
-    typedef itk::ImageFileWriter <VectorFloatImageType> itkVectorFloatWriter;
-    
-    typedef itk::Image <unsigned short,3> UShortImageType;
-    typedef itk::ImageFileReader <UShortImageType> itkUShortReader;
-    typedef itk::ImageFileWriter <UShortImageType> itkUShortWriter;
-    
-    typedef itk::MaskImageFilter <FloatImageType,UShortImageType> itkMaskFilterType;
-    typedef itk::MaskImageFilter <UShortImageType,UShortImageType> itkMaskUSFilterType;
-    
-    itkUShortReader::Pointer maskInput = itkUShortReader::New();
-    maskInput->SetFileName(maskName.c_str());
+    // Find out the type of the image in file
+    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(inArg.getValue().c_str(),
+                                                                           itk::ImageIOFactory::ReadMode);
+    if (!imageIO)
+    {
+        std::cerr << "Itk could not find suitable IO factory for the input " << inArg.getValue() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    // Now that we found the appropriate ImageIO class, ask it to read the meta data from the image file.
+    imageIO->SetFileName(inArg.getValue());
+    imageIO->ReadImageInformation();
+
+    arguments args;
+    args.refName = inArg.getValue();
+    args.maskName = maskArg.getValue();
+    args.resName = outArg.getValue();
+    args.imageIO = imageIO;
     
     try
     {
-        maskInput->Update();
+        ANIMA_RETRIEVE_COMPONENT_TYPE(imageIO, retrieveNbDimensions, imageIO, args)
     }
-    catch(itk::ExceptionObject &e)
+    catch (itk::ExceptionObject &err)
     {
-        std::cerr << e << std::endl;
-        return -1;
+        std::cerr << "Cannot perform maskin, be sure to use valid arguments..." << std::endl;
+        std::cerr << err << std::endl;
+        return EXIT_FAILURE;
     }
     
-    itkFloatReader::Pointer preInput = itkFloatReader::New();
-    preInput->SetFileName(refName.c_str());
-
-    try
-    {
-        preInput->Update();
-    }
-    catch(itk::ExceptionObject &e)
-    {
-        std::cerr << e << std::endl;
-        return -1;
-    }
-    
-    preInput->GetImageIO()->ReadImageInformation();
-    
-    bool isImageVector = (preInput->GetImageIO()->GetNumberOfComponents() > 1);
-    bool isImage4D = (preInput->GetImageIO()->GetNumberOfDimensions() == 4);
-    
-    if (isImageVector)
-    {
-		// Mask image filter doesn't work on vector images... Do it yourself
-		
-        itkVectorFloatReader::Pointer vecInput = itkVectorFloatReader::New();
-        vecInput->SetFileName(refName.c_str());
-
-        try
-        {
-            vecInput->Update();
-        }
-        catch(itk::ExceptionObject &e)
-        {
-            std::cerr << e << std::endl;
-            return -1;
-        }
-
-		VectorFloatImageType::Pointer inputPtr = vecInput->GetOutput();
-		unsigned int vecLength = vecInput->GetOutput()->GetNumberOfComponentsPerPixel();
-		itk::VariableLengthVector <float> tmpVal(vecLength);
-		tmpVal.Fill(0);
-		
-		itk::ImageRegionConstIterator <UShortImageType> maskItr(maskInput->GetOutput(),maskInput->GetOutput()->GetLargestPossibleRegion());
-		itk::ImageRegionIterator <VectorFloatImageType> inputItr(inputPtr,inputPtr->GetLargestPossibleRegion());
-		
-		while (!maskItr.IsAtEnd())
-		{
-			if (maskItr.Get() == 0)
-				inputItr.Set(tmpVal);
-			
-			++maskItr;
-			++inputItr;
-		}
-		
-        itkVectorFloatWriter::Pointer vecOutput = itkVectorFloatWriter::New();
-        vecOutput->SetFileName(resName.c_str());
-        vecOutput->SetInput(inputPtr);
-        vecOutput->SetUseCompression(true);
-
-        try
-        {
-            vecOutput->Update();
-        }
-        catch(itk::ExceptionObject &e)
-        {
-            std::cerr << e << std::endl;
-            return -1;
-        }
-
-        return 0;
-    }
-    
-    if (isImage4D)
-    {
-        itkFloat4DReader::Pointer input4d = itkFloat4DReader::New();
-        input4d->SetFileName(refName.c_str());
-        
-        try
-        {
-            input4d->Update();
-        }
-        catch(itk::ExceptionObject &e)
-        {
-            std::cerr << e << std::endl;
-            return -1;
-        }
-
-		FloatImage4DType::Pointer inputPtr = input4d->GetOutput();
-
-		itk::ImageRegionConstIterator <UShortImageType> maskItr(maskInput->GetOutput(),maskInput->GetOutput()->GetLargestPossibleRegion());
-        
-        unsigned int size4d = inputPtr->GetLargestPossibleRegion().GetSize()[3];
-        std::vector < itk::ImageRegionIterator <FloatImage4DType> > inputItrs(size4d);
-
-        for (unsigned int i = 0;i < size4d;i++)
-        {
-            FloatImage4DType::RegionType region = inputPtr->GetLargestPossibleRegion();
-            region.SetIndex(3,i);
-            region.SetSize(3,1);
-            inputItrs[i] = itk::ImageRegionIterator <FloatImage4DType> (inputPtr, region);
-        }
-        
-		while (!maskItr.IsAtEnd())
-		{
-			if (maskItr.Get() == 0)
-            {
-                for (unsigned int i = 0;i < size4d;i++)
-                    inputItrs[i].Set(0);
-			}
-            
-			++maskItr;
-            for (unsigned int i = 0;i < size4d;i++)
-                ++inputItrs[i];
-		}
-		
-        itkFloat4DWriter::Pointer output4d = itkFloat4DWriter::New();
-        output4d->SetFileName(resName.c_str());
-        output4d->SetInput(inputPtr);
-        output4d->SetUseCompression(true);
-        
-        try
-        {
-            output4d->Update();
-        }
-        catch(itk::ExceptionObject &e)
-        {
-            std::cerr << e << std::endl;
-            return -1;
-        }
-
-        return 0;
-    }
-    
-    if (preInput->GetImageIO()->GetImageSizeInBytes()/preInput->GetImageIO()->GetImageSizeInPixels() == 2) // unsigned short
-    {
-        itkMaskUSFilterType::Pointer imageMasker = itkMaskUSFilterType::New();
-        itkUShortReader::Pointer ushortImReader = itkUShortReader::New();
-        ushortImReader->SetFileName(refName.c_str());
-        
-        try
-        {
-            ushortImReader->Update();
-        }
-        catch(itk::ExceptionObject &e)
-        {
-            std::cerr << e << std::endl;
-            return -1;
-        }
-
-        imageMasker->SetInput(ushortImReader->GetOutput());
-        imageMasker->SetInput2(maskInput->GetOutput());
-        
-        try
-        {
-            imageMasker->Update();
-        }
-        catch(itk::ExceptionObject &e)
-        {
-            std::cerr << e << std::endl;
-            return -1;
-        }
-
-        itkUShortWriter::Pointer scalarOutput = itkUShortWriter::New();
-        scalarOutput->SetFileName(resName.c_str());
-        scalarOutput->SetInput(imageMasker->GetOutput());
-        scalarOutput->SetUseCompression(true);
-        
-        try
-        {
-            scalarOutput->Update();
-        }
-        catch(itk::ExceptionObject &e)
-        {
-            std::cerr << e << std::endl;
-            return -1;
-        }
-    }
-    else
-    {
-        itkMaskFilterType::Pointer imageMasker = itkMaskFilterType::New();
-        imageMasker->SetInput(preInput->GetOutput());
-        imageMasker->SetInput2(maskInput->GetOutput());
-        
-        try
-        {
-            imageMasker->Update();
-        }
-        catch(itk::ExceptionObject &e)
-        {
-            std::cerr << e << std::endl;
-            return -1;
-        }
-
-        itkFloatWriter::Pointer scalarOutput = itkFloatWriter::New();
-        scalarOutput->SetFileName(resName.c_str());
-        scalarOutput->SetInput(imageMasker->GetOutput());
-        scalarOutput->SetUseCompression(true);
-        
-        try
-        {
-            scalarOutput->Update();
-        }
-        catch(itk::ExceptionObject &e)
-        {
-            std::cerr << e << std::endl;
-            return -1;
-        }
-    }
-    
-    return 0;
+    return EXIT_SUCCESS;
 }
