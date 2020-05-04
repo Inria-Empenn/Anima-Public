@@ -113,7 +113,7 @@ public:
      * Setter for images
      * */
     void SetReferenceImage(InputImagePointer referenceImage) {m_ReferenceImage = referenceImage;}
-    void SetdoubleingImage(InputImagePointer doubleingImage) {m_doubleingImage = doubleingImage;}
+    void SetFloatingImage(InputImagePointer FloatingImage) {m_FloatingImage = FloatingImage;}
 
     InputImagePointer GetOutputImage() {return m_OutputImage;}
 
@@ -246,8 +246,8 @@ private:
     BaseTransformPointer m_OutputTransform;
     InputImagePointer m_OutputImage;
 
-    InputImagePointer m_ReferenceImage, m_doubleingImage;
-    PyramidPointer m_ReferencePyramid, m_doubleingPyramid;
+    InputImagePointer m_ReferenceImage, m_FloatingImage;
+    PyramidPointer m_ReferencePyramid, m_FloatingPyramid;
 
     std::string m_outputTransformFile;
     std::string m_resultFile;

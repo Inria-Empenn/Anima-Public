@@ -25,7 +25,7 @@ template <typename ScalarType>
 PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::PyramidalSymmetryConstrainedRegistrationBridge()
 {
     m_ReferenceImage = NULL;
-    m_doubleingImage = NULL;
+    m_FloatingImage = NULL;
 
     m_OutputTransform = TransformType::New();
     m_OutputTransform->SetIdentity();
@@ -41,7 +41,7 @@ PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::PyramidalSymmetryCon
     m_OptimizerMaximumIterations = 100;
 
     m_ReferenceMinimalValue = 0.0;
-    m_doubleingMinimalValue = 0.0;
+    m_FloatingMinimalValue = 0.0;
 
     m_UpperBoundAngle = M_PI;
     m_TranslateUpperBound = 10;
@@ -62,7 +62,7 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::Update()
 {
     typedef typename itk::ImageRegistrationMethod<InputImageType, InputImageType> RegistrationType;
 
-    // Compute minimal value of reference and doubleing images
+    // Compute minimal value of reference and Floating images
     using MinMaxFilterType = itk::MinimumMaximumImageFilter <InputImageType>;
     typename MinMaxFilterType::Pointer minMaxFilter = MinMaxFilterType::New();
     minMaxFilter->SetInput(m_ReferenceImage);
@@ -73,12 +73,12 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::Update()
     m_ReferenceMinimalValue = minMaxFilter->GetMinimum();
 
     minMaxFilter = MinMaxFilterType::New();
-    minMaxFilter->SetInput(m_doubleingImage);
+    minMaxFilter->SetInput(m_FloatingImage);
     if (this->GetNumberOfWorkUnits() != 0)
         minMaxFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     minMaxFilter->Update();
 
-    m_doubleingMinimalValue = minMaxFilter->GetMinimum();
+    m_FloatingMinimalValue = minMaxFilter->GetMinimum();
 
     // Only CT images are below zero, little hack to set minimal values to either -1024 or 0
     if (m_ReferenceMinimalValue < 0.0)
@@ -86,10 +86,10 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::Update()
     else
         m_ReferenceMinimalValue = 0.0;
 
-    if (m_doubleingMinimalValue < 0.0)
-        m_doubleingMinimalValue = -1024;
+    if (m_FloatingMinimalValue < 0.0)
+        m_FloatingMinimalValue = -1024;
     else
-        m_doubleingMinimalValue = 0.0;
+        m_FloatingMinimalValue = 0.0;
 
     this->SetupPyramids();
 
@@ -219,7 +219,7 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::Update()
         }
 
         reg->SetFixedImage(m_ReferencePyramid->GetOutput(i));
-        reg->SetMovingImage(m_doubleingPyramid->GetOutput(i));
+        reg->SetMovingImage(m_FloatingPyramid->GetOutput(i));
 
         if (m_FastRegistration)
         {
@@ -296,13 +296,13 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::Update()
     typedef typename anima::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
     typename ResampleFilterType::Pointer tmpResample = ResampleFilterType::New();
     tmpResample->SetTransform(m_OutputRealignTransform);
-    tmpResample->SetInput(m_doubleingImage);
+    tmpResample->SetInput(m_FloatingImage);
 
     tmpResample->SetSize(m_ReferenceImage->GetLargestPossibleRegion().GetSize());
     tmpResample->SetOutputOrigin(m_ReferenceImage->GetOrigin());
     tmpResample->SetOutputSpacing(m_ReferenceImage->GetSpacing());
     tmpResample->SetOutputDirection(m_ReferenceImage->GetDirection());
-    tmpResample->SetDefaultPixelValue(m_doubleingMinimalValue);
+    tmpResample->SetDefaultPixelValue(m_FloatingMinimalValue);
     tmpResample->Update();
 
     m_OutputImage = tmpResample->GetOutput();
@@ -334,7 +334,7 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::SetupPyramids()
     typedef typename anima::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
 
     InputImagePointer initialReferenceImage;
-    InputImagePointer initialdoubleingImage;
+    InputImagePointer initialFloatingImage;
 
     typename ResampleFilterType::Pointer tmpResample = ResampleFilterType::New();
     tmpResample->SetTransform(m_RefSymmetryTransform);
@@ -357,7 +357,7 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::SetupPyramids()
     unsigned int indexAbsRefMax = 0;
     unsigned int indexAbsFloMax = 0;
     typename InputImageType::DirectionType dirRefMatrix = m_ReferenceImage->GetDirection();
-    typename InputImageType::DirectionType dirFloMatrix = m_doubleingImage->GetDirection();
+    typename InputImageType::DirectionType dirFloMatrix = m_FloatingImage->GetDirection();
     double valRefMax = std::abs(dirRefMatrix(0,0));
     double valFloMax = std::abs(dirFloMatrix(0,0));
     for (unsigned int i = 1;i < InputImageType::ImageDimension;++i)
@@ -398,11 +398,11 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::SetupPyramids()
     for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
         refImageCenter[i] = m_ReferenceImage->GetLargestPossibleRegion().GetSize()[i] / 2.0;
     for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
-        floImageCenter[i] = m_doubleingImage->GetLargestPossibleRegion().GetSize()[i] / 2.0;
+        floImageCenter[i] = m_FloatingImage->GetLargestPossibleRegion().GetSize()[i] / 2.0;
 
     typename InputImageType::PointType refCenter, floCenter;
     m_ReferenceImage->TransformContinuousIndexToPhysicalPoint(refImageCenter,refCenter);
-    m_doubleingImage->TransformContinuousIndexToPhysicalPoint(floImageCenter,floCenter);
+    m_FloatingImage->TransformContinuousIndexToPhysicalPoint(floImageCenter,floCenter);
 
     TransformMatrixType refTranslationMatrix, floTranslationMatrix;
     refTranslationMatrix.SetIdentity();
@@ -416,33 +416,33 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::SetupPyramids()
 
     floRefMatrix = floTranslationMatrix * floRefMatrix * refTranslationMatrix;
     
-    TransformMatrixType doubleingSymmetry;
-    doubleingSymmetry.SetIdentity();
+    TransformMatrixType FloatingSymmetry;
+    FloatingSymmetry.SetIdentity();
     
     for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
     {
         for (unsigned int j = 0;j < InputImageType::ImageDimension;++j)
-            doubleingSymmetry(i,j) = m_FloSymmetryTransform->GetMatrix()(i,j);
+            FloatingSymmetry(i,j) = m_FloSymmetryTransform->GetMatrix()(i,j);
 
-        doubleingSymmetry(i,3) = m_FloSymmetryTransform->GetOffset()[i];
+        FloatingSymmetry(i,3) = m_FloSymmetryTransform->GetOffset()[i];
     }
 
-    floRefMatrix = doubleingSymmetry * floRefMatrix;
+    floRefMatrix = FloatingSymmetry * floRefMatrix;
     m_OutputTransform->SetCenter(refCenter);
 
-    MatrixType doubleingMatrix;
-    OffsetType doubleingOffset;
+    MatrixType FloatingMatrix;
+    OffsetType FloatingOffset;
 
     for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
     {
         for (unsigned int j = 0;j < InputImageType::ImageDimension;++j)
-            doubleingMatrix(i,j) = floRefMatrix(i,j);
+            FloatingMatrix(i,j) = floRefMatrix(i,j);
 
-        doubleingOffset[i] = floRefMatrix(i,3);
+        FloatingOffset[i] = floRefMatrix(i,3);
     }
 
-    m_InitialTransform->SetMatrix(doubleingMatrix);
-    m_InitialTransform->SetOffset(doubleingOffset);
+    m_InitialTransform->SetMatrix(FloatingMatrix);
+    m_InitialTransform->SetOffset(FloatingOffset);
 
     // Now, create pyramid
     m_ReferencePyramid = PyramidType::New();
@@ -457,29 +457,29 @@ void PyramidalSymmetryConstrainedRegistrationBridge<ScalarType>::SetupPyramids()
     
     tmpResample = ResampleFilterType::New();
     tmpResample->SetTransform(m_InitialTransform);
-    tmpResample->SetInput(m_doubleingImage);
+    tmpResample->SetInput(m_FloatingImage);
     
     tmpResample->SetSize(m_ReferenceImage->GetLargestPossibleRegion().GetSize());
     tmpResample->SetOutputOrigin(m_ReferenceImage->GetOrigin());
     tmpResample->SetOutputSpacing(m_ReferenceImage->GetSpacing());
     tmpResample->SetOutputDirection(m_ReferenceImage->GetDirection());
-    tmpResample->SetDefaultPixelValue(m_doubleingMinimalValue);
+    tmpResample->SetDefaultPixelValue(m_FloatingMinimalValue);
     tmpResample->Update();
     
-    initialdoubleingImage = tmpResample->GetOutput();
-    initialdoubleingImage->DisconnectPipeline();
+    initialFloatingImage = tmpResample->GetOutput();
+    initialFloatingImage->DisconnectPipeline();
 
-    // Create pyramid for doubleing image
-    m_doubleingPyramid = PyramidType::New();
+    // Create pyramid for Floating image
+    m_FloatingPyramid = PyramidType::New();
 
-    m_doubleingPyramid->SetInput(initialdoubleingImage);
-    m_doubleingPyramid->SetNumberOfLevels(m_NumberOfPyramidLevels);
-    m_doubleingPyramid->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
+    m_FloatingPyramid->SetInput(initialFloatingImage);
+    m_FloatingPyramid->SetNumberOfLevels(m_NumberOfPyramidLevels);
+    m_FloatingPyramid->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
 
     typename ResampleFilterType::Pointer floResampler = ResampleFilterType::New();
-    floResampler->SetDefaultPixelValue(m_doubleingMinimalValue);
-    m_doubleingPyramid->SetImageResampler(floResampler);
-    m_doubleingPyramid->Update();
+    floResampler->SetDefaultPixelValue(m_FloatingMinimalValue);
+    m_FloatingPyramid->SetImageResampler(floResampler);
+    m_FloatingPyramid->Update();
 }
 
 } // end of namespace

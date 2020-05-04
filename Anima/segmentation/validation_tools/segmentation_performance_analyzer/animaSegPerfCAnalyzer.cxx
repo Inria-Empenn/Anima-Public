@@ -999,7 +999,7 @@ bool SegPerfCAnalyzer::falsePositiveRatioTester(int pi_iLesionReference, int pi_
 
     //////////////////////////////////////////////////////////////////////////
     // Lesion is detected if a sufficient percentage (gamma) of the regions overlapping the tested lesion is not too much outside of this lesion
-    bRes = !bExit; //Almost equivalent, except doubleing point imprecision, to bRes=dfSumWeight>=pi_dfGamma;
+    bRes = !bExit; //Almost equivalent, except Floating point imprecision, to bRes=dfSumWeight>=pi_dfGamma;
 
     return bRes;
 }

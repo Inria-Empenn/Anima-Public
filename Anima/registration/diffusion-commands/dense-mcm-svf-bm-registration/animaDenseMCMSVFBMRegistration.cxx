@@ -89,7 +89,7 @@ int main(int ac, const char** av)
     floReader.SetFileName(movingArg.getValue());
     floReader.Update();
 
-    matcher->SetdoubleingImage(floReader.GetModelVectorImage());
+    matcher->SetFloatingImage(floReader.GetModelVectorImage());
 
     if ((bvalArg.getValue() != "")&&(bvecArg.getValue() != ""))
     {

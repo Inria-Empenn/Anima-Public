@@ -22,7 +22,7 @@ template <unsigned int ImageDimension>
 PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::PyramidalDenseTensorSVFMatchingBridge()
 {
     m_ReferenceImage = NULL;
-    m_doubleingImage = NULL;
+    m_FloatingImage = NULL;
 
     m_OutputTransform = BaseTransformType::New();
     m_OutputTransform->SetIdentity();
@@ -87,7 +87,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
         typename InputImageType::Pointer refImage = m_ReferencePyramid->GetOutput(i);
         refImage->DisconnectPipeline();
 
-        typename InputImageType::Pointer floImage = m_doubleingPyramid->GetOutput(i);
+        typename InputImageType::Pointer floImage = m_FloatingPyramid->GetOutput(i);
         floImage->DisconnectPipeline();
 
         typename MaskImageType::Pointer maskGenerationImage = ITK_NULLPTR;
@@ -417,7 +417,7 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
     typename BaseTransformType::Pointer baseTrsf = outputDispTrsf.GetPointer();
     tmpResample->SetTransform(baseTrsf);
     tmpResample->SetFiniteStrainReorientation(this->GetFiniteStrainImageReorientation());
-    tmpResample->SetInput(m_doubleingImage);
+    tmpResample->SetInput(m_FloatingImage);
 
     if (this->GetNumberOfWorkUnits() != 0)
         tmpResample->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
@@ -482,20 +482,20 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::SetupPyramids()
 
     m_ReferencePyramid->Update();
 
-    // Create pyramid for doubleing image
-    m_doubleingPyramid = PyramidType::New();
+    // Create pyramid for Floating image
+    m_FloatingPyramid = PyramidType::New();
 
-    m_doubleingPyramid->SetInput(m_doubleingImage);
-    m_doubleingPyramid->SetNumberOfLevels(m_NumberOfPyramidLevels);
+    m_FloatingPyramid->SetInput(m_FloatingImage);
+    m_FloatingPyramid->SetNumberOfLevels(m_NumberOfPyramidLevels);
 
     if (this->GetNumberOfWorkUnits() != 0)
-        m_doubleingPyramid->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
+        m_FloatingPyramid->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
     typename ResampleFilterType::Pointer floResampler = ResampleFilterType::New();
     floResampler->SetFiniteStrainReorientation(this->GetFiniteStrainImageReorientation());
-    m_doubleingPyramid->SetImageResampler(floResampler);
+    m_FloatingPyramid->SetImageResampler(floResampler);
 
-    m_doubleingPyramid->Update();
+    m_FloatingPyramid->Update();
 
     m_BlockGenerationPyramid = 0;
     if (m_BlockGenerationMask)

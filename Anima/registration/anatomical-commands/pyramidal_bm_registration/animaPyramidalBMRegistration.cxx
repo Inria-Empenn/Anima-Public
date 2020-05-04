@@ -124,7 +124,7 @@ int main(int argc, const char** argv)
     matcher->SetOutputNearestSimilarityTransformFile(outputNSTransformArg.getValue());
 
     matcher->SetReferenceImage(anima::readImage <InputImageType> (fixedArg.getValue()));
-    matcher->SetdoubleingImage(anima::readImage <InputImageType> (movingArg.getValue()));
+    matcher->SetFloatingImage(anima::readImage <InputImageType> (movingArg.getValue()));
 
     if (initialTransformArg.getValue() != "")
         matcher->SetInitialTransform(initialTransformArg.getValue());

@@ -41,7 +41,7 @@ int main(int ac, const char** av)
     PyramidSymType::Pointer matcher = PyramidSymType::New();
 
     matcher->SetReferenceImage(anima::readImage <InputImageType> (inputArg.getValue()));
-    matcher->SetdoubleingImage(anima::readImage <InputImageType> (inputArg.getValue()));
+    matcher->SetFloatingImage(anima::readImage <InputImageType> (inputArg.getValue()));
 
     // set parameters
     matcher->SetMetric((Metric)metricArg.getValue());

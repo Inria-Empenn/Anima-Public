@@ -135,7 +135,7 @@ void PyramidalSymmetryBridge<PixelType,ScalarType>::Update()
         }
 
         reg->SetFixedImage(m_ReferencePyramid->GetOutput(i));
-        reg->SetMovingImage(m_doubleingPyramid->GetOutput(i));
+        reg->SetMovingImage(m_FloatingPyramid->GetOutput(i));
 
         reg->SetFixedImageRegion(m_ReferencePyramid->GetOutput(i)->GetLargestPossibleRegion());
         reg->SetInitialTransformParameters(m_OutputTransform->GetParameters());
@@ -200,7 +200,7 @@ void PyramidalSymmetryBridge<PixelType,ScalarType>::Update()
     typedef typename anima::ResampleImageFilter<InputImageType, OutputImageType> ResampleFilterType;
     typename ResampleFilterType::Pointer tmpResample = ResampleFilterType::New();
     tmpResample->SetTransform(m_OutputRealignTransform);
-    tmpResample->SetInput(m_doubleingImage);
+    tmpResample->SetInput(m_FloatingImage);
 
     tmpResample->SetSize(m_ReferenceImage->GetLargestPossibleRegion().GetSize());
     tmpResample->SetOutputOrigin(m_ReferenceImage->GetOrigin());
@@ -458,12 +458,12 @@ void PyramidalSymmetryBridge<PixelType,ScalarType>::SetupPyramids()
 
     m_ReferencePyramid->Update();
 
-    // Create pyramid for doubleing image
-    m_doubleingPyramid = PyramidType::New();
+    // Create pyramid for Floating image
+    m_FloatingPyramid = PyramidType::New();
 
-    m_doubleingPyramid->SetInput(m_doubleingImage);
-    m_doubleingPyramid->SetNumberOfLevels(GetNumberOfPyramidLevels());
-    m_doubleingPyramid->Update();
+    m_FloatingPyramid->SetInput(m_FloatingImage);
+    m_FloatingPyramid->SetNumberOfLevels(GetNumberOfPyramidLevels());
+    m_FloatingPyramid->Update();
 }
 
 } // end of namespace anima

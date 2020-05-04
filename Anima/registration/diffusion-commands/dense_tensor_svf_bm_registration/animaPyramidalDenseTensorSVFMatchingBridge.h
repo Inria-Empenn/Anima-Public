@@ -107,10 +107,10 @@ public:
      * Setter for images
      * */
     void SetReferenceImage(InputImageConstPointer referenceImage) {m_ReferenceImage = referenceImage;}
-    void SetdoubleingImage(InputImageConstPointer doubleingImage) {m_doubleingImage = doubleingImage;}
+    void SetFloatingImage(InputImageConstPointer FloatingImage) {m_FloatingImage = FloatingImage;}
 
     InputImageType * GetReferenceImage() {return const_cast <InputImageType *> (m_ReferenceImage.GetPointer());}
-    InputImageType * GetdoubleingImage() {return const_cast <InputImageType *> (m_doubleingImage.GetPointer());}
+    InputImageType * GetFloatingImage() {return const_cast <InputImageType *> (m_FloatingImage.GetPointer());}
 
     InputImagePointer GetOutputImage() {return m_OutputImage;}
 
@@ -236,9 +236,9 @@ private:
     BaseTransformPointer m_OutputTransform;
     InputImagePointer m_OutputImage;
 
-    InputImageConstPointer m_ReferenceImage, m_doubleingImage;
+    InputImageConstPointer m_ReferenceImage, m_FloatingImage;
     MaskImagePointer m_BlockGenerationMask;
-    PyramidPointer m_ReferencePyramid, m_doubleingPyramid;
+    PyramidPointer m_ReferencePyramid, m_FloatingPyramid;
     MaskPyramidPointer m_BlockGenerationPyramid;
 
     std::string m_outputTransformFile;

@@ -56,7 +56,7 @@ public:
     * Setter for images
     * */
     void SetReferenceImage(InputImagePointer referenceImage) {m_ReferenceImage = referenceImage;}
-    void SetdoubleingImage(InputImagePointer doubleingImage) {m_doubleingImage = doubleingImage;}
+    void SetFloatingImage(InputImagePointer FloatingImage) {m_FloatingImage = FloatingImage;}
 
     std::string GetResultFile() {return m_resultFile;}
     void SetResultFile(std::string resultFile) {m_resultFile=resultFile;}
@@ -107,7 +107,7 @@ private:
 
     Metric m_Metric;
 
-    double m_ReferenceMinimalValue, m_doubleingMinimalValue;
+    double m_ReferenceMinimalValue, m_FloatingMinimalValue;
     double m_TranslateUpperBound;
     double m_UpperBoundAngle;
     unsigned int m_OptimizerMaximumIterations;
@@ -118,8 +118,8 @@ private:
     std::string m_outputTransformFile;
     std::string m_resultFile;
 
-    InputImagePointer m_ReferenceImage, m_doubleingImage;
-    PyramidPointer m_ReferencePyramid, m_doubleingPyramid;
+    InputImagePointer m_ReferenceImage, m_FloatingImage;
+    PyramidPointer m_ReferencePyramid, m_FloatingPyramid;
 };
 
 } // end of namespace anima

@@ -148,7 +148,7 @@ int main(int argc, const char** argv)
         matcher->SetPercentageKept( percentageKeptArg.getValue() );
         matcher->SetTransformInitializationType(PyramidBMType::GravityCenters);
 
-        matcher->SetdoubleingImage(referenceExtractFilter->GetOutput());
+        matcher->SetFloatingImage(referenceExtractFilter->GetOutput());
         matcher->SetReferenceImage(extractFilter->GetOutput());
 
         AffineTransformPointer rigidTrsf = AffineTransformType::New();
@@ -171,7 +171,7 @@ int main(int argc, const char** argv)
 
         // Then perform directional affine registration
         matcher->SetReferenceImage(rigidReference);
-        matcher->SetdoubleingImage(extractFilter->GetOutput());
+        matcher->SetFloatingImage(extractFilter->GetOutput());
         matcher->SetTransform(PyramidBMType::Directional_Affine);
         matcher->SetOutputTransformType(PyramidBMType::outAffine);
 
@@ -194,7 +194,7 @@ int main(int argc, const char** argv)
         NonLinearPyramidBMType::Pointer nonLinearMatcher = NonLinearPyramidBMType::New();
 
         nonLinearMatcher->SetReferenceImage(rigidReference);
-        nonLinearMatcher->SetdoubleingImage(matcher->GetOutputImage());
+        nonLinearMatcher->SetFloatingImage(matcher->GetOutputImage());
 
         // Setting matcher arguments
         nonLinearMatcher->SetBlockSize(blockSizeArg.getValue());

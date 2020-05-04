@@ -22,7 +22,7 @@ template <unsigned int ImageDimension>
 PyramidalDenseSVFMatchingBridge<ImageDimension>::PyramidalDenseSVFMatchingBridge()
 {
     m_ReferenceImage = nullptr;
-    m_doubleingImage = nullptr;
+    m_FloatingImage = nullptr;
 
     m_OutputTransform = BaseTransformType::New();
     m_OutputTransform->SetIdentity();
@@ -32,7 +32,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::PyramidalDenseSVFMatchingBridge
     m_OutputImage = nullptr;
 
     m_ReferenceMinimalValue = 0.0;
-    m_doubleingMinimalValue = 0.0;
+    m_FloatingMinimalValue = 0.0;
 
     m_BlockSize = 5;
     m_BlockSpacing = 2;
@@ -103,7 +103,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
 
     this->InvokeEvent(itk::StartEvent());
 
-    // Compute minimal value of reference and doubleing images
+    // Compute minimal value of reference and Floating images
     using MinMaxFilterType = itk::MinimumMaximumImageFilter <InputImageType>;
     typename MinMaxFilterType::Pointer minMaxFilter = MinMaxFilterType::New();
     minMaxFilter->SetInput(m_ReferenceImage);
@@ -114,12 +114,12 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
     m_ReferenceMinimalValue = minMaxFilter->GetMinimum();
 
     minMaxFilter = MinMaxFilterType::New();
-    minMaxFilter->SetInput(m_doubleingImage);
+    minMaxFilter->SetInput(m_FloatingImage);
     if (this->GetNumberOfWorkUnits() != 0)
         minMaxFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     minMaxFilter->Update();
 
-    m_doubleingMinimalValue = minMaxFilter->GetMinimum();
+    m_FloatingMinimalValue = minMaxFilter->GetMinimum();
 
     // Only CT images are below zero, little hack to set minimal values to either -1024 or 0
     if (m_ReferenceMinimalValue < 0.0)
@@ -127,10 +127,10 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
     else
         m_ReferenceMinimalValue = 0.0;
 
-    if (m_doubleingMinimalValue < 0.0)
-        m_doubleingMinimalValue = -1024;
+    if (m_FloatingMinimalValue < 0.0)
+        m_FloatingMinimalValue = -1024;
     else
-        m_doubleingMinimalValue = 0.0;
+        m_FloatingMinimalValue = 0.0;
 
     this->SetupPyramids();
 
@@ -143,7 +143,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
         typename InputImageType::Pointer refImage = m_ReferencePyramid->GetOutput(i);
         refImage->DisconnectPipeline();
 
-        typename InputImageType::Pointer floImage = m_doubleingPyramid->GetOutput(i);
+        typename InputImageType::Pointer floImage = m_FloatingPyramid->GetOutput(i);
         floImage->DisconnectPipeline();
 
         typename MaskImageType::Pointer maskGenerationImage = ITK_NULLPTR;
@@ -237,7 +237,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
         mainMatcher->SetBlockSpacing(GetBlockSpacing());
         mainMatcher->SetBlockVarianceThreshold(GetStDevThreshold() * GetStDevThreshold());
         mainMatcher->SetBlockGenerationMask(maskGenerationImage);
-        mainMatcher->SetDefaultBackgroundValue(m_doubleingMinimalValue);
+        mainMatcher->SetDefaultBackgroundValue(m_FloatingMinimalValue);
 
         switch (m_SymmetryType)
         {
@@ -272,7 +272,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
                 typedef typename anima::KissingSymmetricBMRegistrationMethod <InputImageType> BlockMatchRegistrationType;
                 typename BlockMatchRegistrationType::Pointer tmpReg = BlockMatchRegistrationType::New();
                 tmpReg->SetReferenceBackgroundValue(m_ReferenceMinimalValue);
-                tmpReg->SetdoubleingBackgroundValue(m_doubleingMinimalValue);
+                tmpReg->SetFloatingBackgroundValue(m_FloatingMinimalValue);
 
                 m_bmreg = tmpReg;
                 break;
@@ -319,7 +319,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
         movingResampler->SetOutputOrigin(refImage->GetOrigin());
         movingResampler->SetOutputSpacing(refImage->GetSpacing());
         movingResampler->SetOutputDirection(refImage->GetDirection());
-        movingResampler->SetDefaultPixelValue(m_doubleingMinimalValue);
+        movingResampler->SetDefaultPixelValue(m_FloatingMinimalValue);
         movingResampler->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
         m_bmreg->SetMovingImageResampler(movingResampler);
 
@@ -489,13 +489,13 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
                                                 typename BaseAgregatorType::ScalarType> ResampleFilterType;
     typename ResampleFilterType::Pointer tmpResample = ResampleFilterType::New();
     tmpResample->SetTransform(outputDispTrsf);
-    tmpResample->SetInput(m_doubleingImage);
+    tmpResample->SetInput(m_FloatingImage);
 
     tmpResample->SetSize(m_ReferenceImage->GetLargestPossibleRegion().GetSize());
     tmpResample->SetOutputOrigin(m_ReferenceImage->GetOrigin());
     tmpResample->SetOutputSpacing(m_ReferenceImage->GetSpacing());
     tmpResample->SetOutputDirection(m_ReferenceImage->GetDirection());
-    tmpResample->SetDefaultPixelValue(m_doubleingMinimalValue);
+    tmpResample->SetDefaultPixelValue(m_FloatingMinimalValue);
     tmpResample->Update();
 
     m_OutputImage = tmpResample->GetOutput();
@@ -568,20 +568,20 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::SetupPyramids()
 
     m_ReferencePyramid->Update();
 
-    // Create pyramid for doubleing image
-    m_doubleingPyramid = PyramidType::New();
+    // Create pyramid for Floating image
+    m_FloatingPyramid = PyramidType::New();
 
-    m_doubleingPyramid->SetInput(m_doubleingImage);
-    m_doubleingPyramid->SetNumberOfLevels(m_NumberOfPyramidLevels);
+    m_FloatingPyramid->SetInput(m_FloatingImage);
+    m_FloatingPyramid->SetNumberOfLevels(m_NumberOfPyramidLevels);
 
     if (this->GetNumberOfWorkUnits() != 0)
-        m_doubleingPyramid->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
+        m_FloatingPyramid->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
     typename ResampleFilterType::Pointer floResampler = ResampleFilterType::New();
-    floResampler->SetDefaultPixelValue(m_doubleingMinimalValue);
-    m_doubleingPyramid->SetImageResampler(floResampler);
+    floResampler->SetDefaultPixelValue(m_FloatingMinimalValue);
+    m_FloatingPyramid->SetImageResampler(floResampler);
 
-    m_doubleingPyramid->Update();
+    m_FloatingPyramid->Update();
 
     m_BlockGenerationPyramid = 0;
     if (m_BlockGenerationMask)

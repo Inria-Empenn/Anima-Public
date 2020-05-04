@@ -21,7 +21,7 @@ template <unsigned int ImageDimension>
 PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::PyramidalDenseMCMSVFMatchingBridge()
 {
     m_ReferenceImage = NULL;
-    m_doubleingImage = NULL;
+    m_FloatingImage = NULL;
 
     m_OutputTransform = BaseTransformType::New();
     m_OutputTransform->SetIdentity();
@@ -110,7 +110,7 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
         typename InputImageType::Pointer refImage = m_ReferencePyramid->GetOutput(i);
         refImage->DisconnectPipeline();
 
-        typename InputImageType::Pointer floImage = m_doubleingPyramid->GetOutput(i);
+        typename InputImageType::Pointer floImage = m_FloatingPyramid->GetOutput(i);
         floImage->DisconnectPipeline();
 
         // Update field to match the current resolution
@@ -453,7 +453,7 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
     typename BaseTransformType::Pointer baseTrsf = outputDispTrsf.GetPointer();
     tmpResample->SetTransform(baseTrsf);
     tmpResample->SetFiniteStrainReorientation(this->GetFiniteStrainImageReorientation());
-    tmpResample->SetInput(m_doubleingImage);
+    tmpResample->SetInput(m_FloatingImage);
 
     if (this->GetNumberOfWorkUnits() != 0)
         tmpResample->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
@@ -513,24 +513,24 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::SetupPyramids()
 
     m_ReferencePyramid->Update();
 
-    // Create pyramid for doubleing image
-    m_doubleingPyramid = PyramidType::New();
+    // Create pyramid for Floating image
+    m_FloatingPyramid = PyramidType::New();
 
-    m_doubleingPyramid->SetInput(m_doubleingImage);
-    m_doubleingPyramid->SetNumberOfLevels(m_NumberOfPyramidLevels);
+    m_FloatingPyramid->SetInput(m_FloatingImage);
+    m_FloatingPyramid->SetNumberOfLevels(m_NumberOfPyramidLevels);
 
     if (this->GetNumberOfWorkUnits() != 0)
-        m_doubleingPyramid->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
+        m_FloatingPyramid->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
     typename ResampleFilterType::Pointer floResampler = ResampleFilterType::New();
-    interpolator = this->CreateInterpolator(m_doubleingImage);
+    interpolator = this->CreateInterpolator(m_FloatingImage);
 
-    floResampler->SetReferenceOutputModel(m_doubleingImage->GetDescriptionModel());
+    floResampler->SetReferenceOutputModel(m_FloatingImage->GetDescriptionModel());
     floResampler->SetFiniteStrainReorientation(this->GetFiniteStrainImageReorientation());
     floResampler->SetInterpolator(interpolator.GetPointer());
-    m_doubleingPyramid->SetImageResampler(floResampler);
+    m_FloatingPyramid->SetImageResampler(floResampler);
 
-    m_doubleingPyramid->Update();
+    m_FloatingPyramid->Update();
 }
 
 } // end of namespace anima

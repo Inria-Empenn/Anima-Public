@@ -108,7 +108,7 @@ public:
     * Setter for images
     * */
     void SetReferenceImage(InputImagePointer referenceImage) {m_ReferenceImage = referenceImage;}
-    void SetdoubleingImage(InputImagePointer doubleingImage) {m_doubleingImage = doubleingImage;}
+    void SetFloatingImage(InputImagePointer FloatingImage) {m_FloatingImage = FloatingImage;}
 
     InputImagePointer GetOutputImage() {return m_OutputImage;}
 
@@ -246,8 +246,8 @@ private:
 
     MaskImagePointer m_BlockGenerationMask;
 
-    InputImagePointer m_ReferenceImage, m_doubleingImage;
-    PyramidPointer m_ReferencePyramid, m_doubleingPyramid;
+    InputImagePointer m_ReferenceImage, m_FloatingImage;
+    PyramidPointer m_ReferencePyramid, m_FloatingPyramid;
     MaskPyramidPointer m_BlockGenerationPyramid;
 
     std::string m_outputTransformFile;
@@ -268,7 +268,7 @@ private:
     Metric m_Metric;
     Optimizer m_Optimizer;
 
-    double m_ReferenceMinimalValue, m_doubleingMinimalValue;
+    double m_ReferenceMinimalValue, m_FloatingMinimalValue;
     unsigned int m_MaximumIterations;
     double m_MinimalTransformError;
     unsigned int m_OptimizerMaximumIterations;

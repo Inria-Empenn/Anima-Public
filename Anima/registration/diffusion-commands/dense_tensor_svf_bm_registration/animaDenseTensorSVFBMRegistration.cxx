@@ -106,8 +106,8 @@ int main(int ac, const char** av)
 
     tensorFloLogger->Update();
 
-    matcher->SetdoubleingImage(tensorFloLogger->GetOutput());
-    matcher->GetdoubleingImage()->DisconnectPipeline();
+    matcher->SetFloatingImage(tensorFloLogger->GetOutput());
+    matcher->GetFloatingImage()->DisconnectPipeline();
 
     // Setting matcher arguments
     matcher->SetBlockSize( blockSizeArg.getValue() );

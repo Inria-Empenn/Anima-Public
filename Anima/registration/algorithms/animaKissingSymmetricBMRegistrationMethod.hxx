@@ -27,7 +27,7 @@ KissingSymmetricBMRegistrationMethod <TInputImageType>
     {
         using BMType = anima::AnatomicalBlockMatcher <InputImageType>;
         BMType *tmpBM = dynamic_cast <BMType *> (this->GetBlockMatcher());
-        tmpBM->SetDefaultBackgroundValue(m_doubleingBackgroundValue);
+        tmpBM->SetDefaultBackgroundValue(m_FloatingBackgroundValue);
     }
 
     this->GetBlockMatcher()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());

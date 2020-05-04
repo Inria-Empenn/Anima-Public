@@ -82,7 +82,7 @@ int main(int argc, const char** argv)
     tmpRead->SetFileName(movingArg.getValue());
     tmpRead->Update();
 
-    matcher->SetdoubleingImage(tmpRead->GetOutput());
+    matcher->SetFloatingImage(tmpRead->GetOutput());
 
     // Setting matcher arguments
     matcher->SetBlockSize( blockSizeArg.getValue() );

@@ -90,7 +90,7 @@ public:
 
     void SetReferenceImage(InputImagePointer referenceImage) {m_ReferenceImage = referenceImage;}
 
-    void SetdoubleingImage(InputImagePointer doubleingImage) {m_doubleingImage= doubleingImage;}
+    void SetFloatingImage(InputImagePointer FloatingImage) {m_FloatingImage= FloatingImage;}
 
     void SetProgressCallback(itk::CStyleCommand::Pointer callback ) {m_progressCallback = callback;}
 
@@ -112,10 +112,10 @@ protected:
     PyramidalSymmetryBridge()
     {
         m_ReferenceImage = NULL;
-        m_doubleingImage = NULL;
+        m_FloatingImage = NULL;
 
         m_ReferencePyramid = NULL;
-        m_doubleingPyramid = NULL;
+        m_FloatingPyramid = NULL;
 
         m_OutputTransform = TransformType::New();
         m_OutputTransform->SetIdentity();
@@ -143,8 +143,8 @@ protected:
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(PyramidalSymmetryBridge);
 
-    InputImagePointer m_ReferenceImage, m_doubleingImage;
-    PyramidPointer m_ReferencePyramid, m_doubleingPyramid;
+    InputImagePointer m_ReferenceImage, m_FloatingImage;
+    PyramidPointer m_ReferencePyramid, m_FloatingPyramid;
 
     //Symmetry transform
     TransformPointer m_OutputTransform;

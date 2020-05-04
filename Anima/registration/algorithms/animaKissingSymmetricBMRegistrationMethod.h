@@ -27,13 +27,13 @@ public:
     itkNewMacro(Self)
 
     itkSetMacro(ReferenceBackgroundValue, double)
-    itkSetMacro(doubleingBackgroundValue, double)
+    itkSetMacro(FloatingBackgroundValue, double)
 
 protected:
     KissingSymmetricBMRegistrationMethod()
     {
         m_ReferenceBackgroundValue = 0;
-        m_doubleingBackgroundValue = 0;
+        m_FloatingBackgroundValue = 0;
     }
 
     virtual ~KissingSymmetricBMRegistrationMethod() {}
@@ -44,7 +44,7 @@ private:
     ITK_DISALLOW_COPY_AND_ASSIGN(KissingSymmetricBMRegistrationMethod);
 
     double m_ReferenceBackgroundValue;
-    double m_doubleingBackgroundValue;
+    double m_FloatingBackgroundValue;
 };
 
 } // end namespace anima
