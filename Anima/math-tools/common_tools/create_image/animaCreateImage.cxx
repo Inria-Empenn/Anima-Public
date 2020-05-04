@@ -29,8 +29,8 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    typedef itk::Image <float,3> ImageType;
-    typedef itk::VectorImage <float,3> VectorImageType;
+    typedef itk::Image <double,3> ImageType;
+    typedef itk::VectorImage <double,3> VectorImageType;
 
     bool isVect = vecArg.isSet();
     unsigned int fvdim = vdimArg.getValue();
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
         resImage->SetOrigin(geomImage->GetOrigin());
         resImage->SetDirection(geomImage->GetDirection());
 
-        itk::VariableLengthVector <float> tmpData;
+        itk::VariableLengthVector <double> tmpData;
         unsigned int vdim = geomImage->GetNumberOfComponentsPerPixel();
         if (fvdim > 1)
             vdim = fvdim;

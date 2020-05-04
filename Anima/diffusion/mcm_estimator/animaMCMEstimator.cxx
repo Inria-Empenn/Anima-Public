@@ -88,7 +88,7 @@ int main(int argc,  char **argv)
         return EXIT_FAILURE;
     }
 
-    typedef anima::MCMEstimatorImageFilter <float, double> FilterType;
+    typedef anima::MCMEstimatorImageFilter <double, double> FilterType;
     typedef FilterType::InputImageType InputImageType;
     typedef FilterType::MaskImageType MaskImageType;
     typedef FilterType::Pointer FilterPointer;

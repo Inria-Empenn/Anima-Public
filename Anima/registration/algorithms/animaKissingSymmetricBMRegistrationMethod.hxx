@@ -27,7 +27,7 @@ KissingSymmetricBMRegistrationMethod <TInputImageType>
     {
         using BMType = anima::AnatomicalBlockMatcher <InputImageType>;
         BMType *tmpBM = dynamic_cast <BMType *> (this->GetBlockMatcher());
-        tmpBM->SetDefaultBackgroundValue(m_FloatingBackgroundValue);
+        tmpBM->SetDefaultBackgroundValue(m_doubleingBackgroundValue);
     }
 
     this->GetBlockMatcher()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
@@ -79,7 +79,7 @@ KissingSymmetricBMRegistrationMethod <TInputImageType>
         // It's only a quarter since we are computing the half power of the transform between the two images
         typedef typename SVFTransformType::VectorFieldType VelocityFieldType;
 
-        typedef itk::MultiplyImageFilter <VelocityFieldType,itk::Image <float,InputImageType::ImageDimension>,VelocityFieldType> MultiplyFilterType;
+        typedef itk::MultiplyImageFilter <VelocityFieldType,itk::Image <double,InputImageType::ImageDimension>,VelocityFieldType> MultiplyFilterType;
         typedef itk::SubtractImageFilter <VelocityFieldType,VelocityFieldType,VelocityFieldType> SubtractFilterType;
 
         SVFTransformType *usualAddOnCast = dynamic_cast <SVFTransformType *> (usualAddOn.GetPointer());

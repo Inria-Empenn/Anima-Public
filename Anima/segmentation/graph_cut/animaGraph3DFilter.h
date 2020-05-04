@@ -62,12 +62,12 @@ public:
     typedef Graph<double,double,double> GraphType;
 
     typedef double NumericType;
-    typedef itk::VariableSizeMatrix<NumericType> FloatVariableSizeMatrixType;
+    typedef itk::VariableSizeMatrix<NumericType> doubleVariableSizeMatrixType;
 
     typedef itk::IdentityTransform<double, 3> TransformType;
     typedef itk::ResampleImageFilter<TInput, TInput> ResampleImageFilterType;
     typedef itk::ResampleImageFilter<TMask, TMask> ResampleImageFilterMaskType;
-    typedef itk::ResampleImageFilter<TSeedProba, TSeedProba> ResampleImageFilterFloatType;
+    typedef itk::ResampleImageFilter<TSeedProba, TSeedProba> ResampleImageFilterdoubleType;
 
     /** The mri images.*/
     void SetInputImage(unsigned int i, const TInput* image);
@@ -82,7 +82,7 @@ public:
     void SetInputSeedProbaSinks(const TSeedProba* mask);
 
     void SetMatFilename(std::string mat){m_MatFilename=mat;}
-    void SetMatrix(FloatVariableSizeMatrixType mat){m_Matrix=mat;}
+    void SetMatrix(doubleVariableSizeMatrixType mat){m_Matrix=mat;}
 
     OutputImagePointer GetOutput();
     OutputImagePointer GetOutputBackground();
@@ -100,8 +100,8 @@ public:
         m_Tol = tol;
     }
 
-    itkSetMacro(Sigma, float)
-    itkGetMacro(Sigma, float)
+    itkSetMacro(Sigma, double)
+    itkGetMacro(Sigma, double)
 
     itkSetMacro(UseSpectralGradient, bool)
     itkGetMacro(UseSpectralGradient, bool)
@@ -120,8 +120,8 @@ protected:
     typename ResampleImageFilterType::Pointer m_Resample4;
     typename ResampleImageFilterType::Pointer m_Resample5;
     ResampleImageFilterMaskType::Pointer m_ResampleMask;
-    ResampleImageFilterFloatType::Pointer m_ResampleSources;
-    ResampleImageFilterFloatType::Pointer m_ResampleSinks;
+    ResampleImageFilterdoubleType::Pointer m_ResampleSources;
+    ResampleImageFilterdoubleType::Pointer m_ResampleSinks;
 
     Graph3DFilter()
     {
@@ -161,7 +161,7 @@ protected:
     TSeedProba::ConstPointer GetInputSeedProbaSources();
     TSeedProba::ConstPointer GetInputSeedProbaSinks();
 
-    FloatVariableSizeMatrixType GetMatrix(void){return m_Matrix;}
+    doubleVariableSizeMatrixType GetMatrix(void){return m_Matrix;}
     std::string GetMatFilename(void){return m_MatFilename;}
 
     void GenerateData() ITK_OVERRIDE;
@@ -180,7 +180,7 @@ private:
 
     /** width of the Gaussian kernel to compute n-links
      */
-    float m_Sigma;
+    double m_Sigma;
 
     /** the created graph
      */
@@ -189,7 +189,7 @@ private:
     /** transformation matrix (from im1,im2,im3 to e,el,ell)
      */
     std::string m_MatFilename;
-    FloatVariableSizeMatrixType m_Matrix;
+    doubleVariableSizeMatrixType m_Matrix;
 
     bool m_Verbose;
 
@@ -198,7 +198,7 @@ private:
 
     double m_Tol;
 
-    float m_DownsamplingFactor;
+    double m_DownsamplingFactor;
     int m_Count;
 
     TMask::Pointer m_CurrentMask;

@@ -5,7 +5,7 @@
 namespace anima
 {
 
-template <class TScalarType=float, unsigned int NDimensions=3>
+template <class TScalarType=double, unsigned int NDimensions=3>
 class TransformSeriesReader
 {
 public:

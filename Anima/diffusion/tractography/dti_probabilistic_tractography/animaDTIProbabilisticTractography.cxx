@@ -91,7 +91,7 @@ int main(int argc,  char*  argv[])
     MainFilterType::Pointer dtiTracker = MainFilterType::New();
     
     // Load model image
-    typedef anima::LogTensorImageFilter <float, 3> LogFilterType;
+    typedef anima::LogTensorImageFilter <double, 3> LogFilterType;
 
     LogFilterType::Pointer logFilter = LogFilterType::New();
     logFilter->SetInput(anima::readImage <InputModelImageType> (dtiArg.getValue()));

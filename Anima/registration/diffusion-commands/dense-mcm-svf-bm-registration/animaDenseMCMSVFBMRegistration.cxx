@@ -25,7 +25,7 @@ int main(int ac, const char** av)
 
     TCLAP::ValueArg<unsigned int> blockSizeArg("","bs","Block size (default: 5)",false,5,"block size",cmd);
     TCLAP::ValueArg<unsigned int> blockSpacingArg("","sp","Block spacing (default: 2)",false,2,"block spacing",cmd);
-    TCLAP::ValueArg<float> stdevThresholdArg("s","stdev","Threshold block standard deviation (default: 0.1)",false,0.1,"block minimal standard deviation",cmd);
+    TCLAP::ValueArg<double> stdevThresholdArg("s","stdev","Threshold block standard deviation (default: 0.1)",false,0.1,"block minimal standard deviation",cmd);
     TCLAP::ValueArg<double> percentageKeptArg("k","per-kept","Percentage of blocks with the highest variance kept (default: 0.8)",false,0.8,"percentage of blocks kept",cmd);
 
     TCLAP::ValueArg<unsigned int> blockTransfoArg("t","in-transform","Transformation computed between blocks (0: translation, 1: rigid, 2: affine, default: 0)",false,0,"transformation between blocks",cmd);
@@ -39,7 +39,7 @@ int main(int ac, const char** av)
 
     TCLAP::ValueArg<unsigned int> optimizerArg("","opt","Optimizer for optimal block search (0: Exhaustive, 1: Bobyqa, default: 1)",false,1,"optimizer",cmd);
     TCLAP::ValueArg<unsigned int> maxIterationsArg("","mi","Maximum block match iterations (default: 10)",false,10,"maximum iterations",cmd);
-    TCLAP::ValueArg<float> minErrorArg("","me","Minimal distance between consecutive estimated transforms (default: 0.01)",false,0.01,"minimal distance between transforms",cmd);
+    TCLAP::ValueArg<double> minErrorArg("","me","Minimal distance between consecutive estimated transforms (default: 0.01)",false,0.01,"minimal distance between transforms",cmd);
 
     TCLAP::ValueArg<unsigned int> optimizerMaxIterationsArg("","oi","Maximum iterations for local optimizer (default: 100)",false,100,"maximum local optimizer iterations",cmd);
 
@@ -79,17 +79,17 @@ int main(int ac, const char** av)
 
     PyramidBMType::Pointer matcher = PyramidBMType::New();
 
-    anima::MCMFileReader <float,Dimension> refReader;
+    anima::MCMFileReader <double,Dimension> refReader;
     refReader.SetFileName(fixedArg.getValue());
     refReader.Update();
 
     matcher->SetReferenceImage(refReader.GetModelVectorImage());
 
-    anima::MCMFileReader <float,Dimension> floReader;
+    anima::MCMFileReader <double,Dimension> floReader;
     floReader.SetFileName(movingArg.getValue());
     floReader.Update();
 
-    matcher->SetFloatingImage(floReader.GetModelVectorImage());
+    matcher->SetdoubleingImage(floReader.GetModelVectorImage());
 
     if ((bvalArg.getValue() != "")&&(bvecArg.getValue() != ""))
     {

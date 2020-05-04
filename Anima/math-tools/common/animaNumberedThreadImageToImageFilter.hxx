@@ -118,7 +118,7 @@ NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
 
     ++m_NumberOfProcessedPoints;
 
-    float ratio = std::floor(m_NumberOfProcessedPoints * 100.0 / m_NumberOfPointsToProcess) / 100.0;
+    double ratio = std::floor(m_NumberOfProcessedPoints * 100.0 / m_NumberOfPointsToProcess) / 100.0;
     if (ratio != this->GetProgress())
         this->UpdateProgress(ratio);
 

@@ -28,11 +28,11 @@ int main(int argc, char **argv)
     refName = inArg.getValue();
     resName = outArg.getValue();
     
-    typedef itk::Image <float,3> FloatImageType;
-    typedef itk::ScalarImageKmeansImageFilter <FloatImageType> MainFilterType;
+    typedef itk::Image <double,3> doubleImageType;
+    typedef itk::ScalarImageKmeansImageFilter <doubleImageType> MainFilterType;
     
     MainFilterType::Pointer kmeansFilter = MainFilterType::New();
-    kmeansFilter->SetInput(anima::readImage <FloatImageType> (refName));
+    kmeansFilter->SetInput(anima::readImage <doubleImageType> (refName));
     kmeansFilter->SetUseNonContiguousLabels(false);
 
     for (unsigned int i = 0;i < numClassArg.getValue();++i)

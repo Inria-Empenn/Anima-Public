@@ -30,25 +30,25 @@ int main(int argc,  char **argv)
         return EXIT_FAILURE;
     }
     
-    typedef anima::DWISimulatorFromDTIImageFilter<float> FilterType;
+    typedef anima::DWISimulatorFromDTIImageFilter<double> FilterType;
     typedef FilterType::InputImageType InputImageType;
     typedef FilterType::Image4DType Image4DType;
     
     FilterType::Pointer mainFilter = FilterType::New();
     
-    typedef anima::GradientFileReader < std::vector <float>, float > GFReaderType;
+    typedef anima::GradientFileReader < std::vector <double>, double > GFReaderType;
     GFReaderType gfReader;
     gfReader.SetGradientFileName(gradsArg.getValue());
     gfReader.SetBValueBaseString(bvalArg.getValue());
     gfReader.SetGradientIndependentNormalization(false);
     gfReader.Update();
 
-    std::vector< std::vector<float> > directions = gfReader.GetGradients();
+    std::vector< std::vector<double> > directions = gfReader.GetGradients();
     
     for(unsigned int i = 0;i < directions.size();++i)
         mainFilter->AddGradientDirection(i,directions[i]);
     
-    std::vector <float> mb = gfReader.GetBValues();
+    std::vector <double> mb = gfReader.GetBValues();
     mainFilter->SetBValuesList(mb);
 
     typedef itk::ImageFileReader <FilterType::S0ImageType> S0ImageReaderType;

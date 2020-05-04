@@ -6,7 +6,7 @@
 namespace anima
 {
     
-    template < class TScalarType=double >    // Data type for scalars (float or double)
+    template < class TScalarType=double >    // Data type for scalars (double or double)
     class DirectionScaleSkewTransform :
     public itk::MatrixOffsetTransformBase< TScalarType, 3 >
     {
@@ -128,7 +128,7 @@ namespace anima
         vnl_matrix <TScalarType> m_LogTransform;
     }; // class DirectionScaleSkewTransform
     
-    template <class TScalarType=double>    // Data type for scalars (float or double)
+    template <class TScalarType=double>    // Data type for scalars (double or double)
     class DirectionScaleTransform :
             public DirectionScaleSkewTransform <TScalarType>
     {
@@ -159,7 +159,7 @@ namespace anima
     }; // class DirectionScaleTransform
 
 
-    template <class TScalarType=double> // Data type for scalars (float or double)
+    template <class TScalarType=double> // Data type for scalars (double or double)
     class DirectionTransform :
             public DirectionScaleSkewTransform <TScalarType>
     {

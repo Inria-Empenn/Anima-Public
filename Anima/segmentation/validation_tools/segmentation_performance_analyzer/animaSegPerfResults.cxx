@@ -33,7 +33,7 @@ SegPerfResults::SegPerfResults()
 {
     for (int i=0; i<eMesureLast; ++i)
     {
-        m_fResTab[i] = std::numeric_limits<float>::quiet_NaN();
+        m_fResTab[i] = std::numeric_limits<double>::quiet_NaN();
     }
     m_bTxt = true;
     m_bXml = false;

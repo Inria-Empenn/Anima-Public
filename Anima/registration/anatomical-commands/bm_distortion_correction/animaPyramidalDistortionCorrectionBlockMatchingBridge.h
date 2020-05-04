@@ -34,7 +34,7 @@ template <unsigned int ImageDimension = 3>
 class PyramidalDistortionCorrectionBlockMatchingBridge : public itk::ProcessObject
 {
 public:
-    typedef itk::Image <float,ImageDimension> InputImageType;
+    typedef itk::Image <double,ImageDimension> InputImageType;
     typedef typename InputImageType::IOPixelType InputPixelType;
     typedef typename InputImageType::Pointer InputImagePointer;
     typedef typename InputImageType::ConstPointer InputImageConstPointer;
@@ -89,8 +89,8 @@ public:
     unsigned int GetBlockSpacing() {return m_BlockSpacing;}
     void SetBlockSpacing(unsigned int blockSpacing) {m_BlockSpacing=blockSpacing;}
     
-    float GetStDevThreshold() {return m_StDevThreshold;}
-    void SetStDevThreshold(float StDevThreshold) {m_StDevThreshold=StDevThreshold;}
+    double GetStDevThreshold() {return m_StDevThreshold;}
+    void SetStDevThreshold(double StDevThreshold) {m_StDevThreshold=StDevThreshold;}
     
     unsigned int GetTransformDirection() {return m_TransformDirection;}
     void SetTransformDirection(unsigned int TransformDirection) {m_TransformDirection = TransformDirection;}
@@ -181,7 +181,7 @@ private:
     unsigned int m_TransformDirection;
     unsigned int m_BlockSize;
     unsigned int m_BlockSpacing;
-    float m_StDevThreshold;
+    double m_StDevThreshold;
     unsigned int m_MaximumIterations;
     unsigned int m_OptimizerMaximumIterations;
     unsigned int m_HistogramSize;

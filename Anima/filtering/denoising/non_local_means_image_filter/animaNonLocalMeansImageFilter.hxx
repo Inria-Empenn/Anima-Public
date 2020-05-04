@@ -21,7 +21,7 @@ NonLocalMeansImageFilter <TInputImage>
 
     this->computeAverageLocalVariance();
     this->computeMeanAndVarImages();
-    m_maxAbsDisp = floor((float)(m_SearchNeighborhood / m_SearchStepSize)) * m_SearchStepSize;
+    m_maxAbsDisp = std::floor((double)(m_SearchNeighborhood / m_SearchStepSize)) * m_SearchStepSize;
 }
 
 template <class TInputImage>

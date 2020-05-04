@@ -11,7 +11,7 @@ namespace anima
 template <class PixelScalarType>
 void
 DWISimulatorFromDTIImageFilter<PixelScalarType>
-::AddGradientDirection(unsigned int i, std::vector <float> &grad)
+::AddGradientDirection(unsigned int i, std::vector <double> &grad)
 {
     if (i == m_GradientDirections.size())
         m_GradientDirections.push_back(grad);

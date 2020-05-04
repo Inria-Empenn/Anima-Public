@@ -135,11 +135,11 @@ ImageClassifierFilter<TInput, TMask, TOutput>
                 intensities( i,0 ) = inputVectorIt[ i ].Get();
             }
 
-            float maxProbability = -1.0;
+            double maxProbability = -1.0;
             int maxProbaIndex = -1;
             for ( unsigned int i = 0; i < m_GaussianModel.size(); i++ )
             {
-                float proba = m_Alphas[i] * this->probability( intensities, m_GaussianModel[i] );
+                double proba = m_Alphas[i] * this->probability( intensities, m_GaussianModel[i] );
                 if ( maxProbability < proba )
                 {
                     maxProbability = proba;

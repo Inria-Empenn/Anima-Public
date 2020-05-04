@@ -69,7 +69,7 @@ public:
       @brief    Set the result value of Jaccard measure.
       @param    [in] pi_fVal Measure result value.
    */
-    void setJaccard(float pi_fVal)
+    void setJaccard(double pi_fVal)
     {
         m_fResTab[eMesureJaccard] = pi_fVal;
     }
@@ -78,7 +78,7 @@ public:
       @brief    Set the result value of Dice measure.
       @param    [in] pi_fVal Measure result value.
    */
-    void setDice(float pi_fVal)
+    void setDice(double pi_fVal)
     {
         m_fResTab[eMesureDice] = pi_fVal;
     }
@@ -87,7 +87,7 @@ public:
       @brief    Set the result value of Sensibility measure.
       @param    [in] pi_fVal Measure result value.
    */
-    void setSensibility(float pi_fVal)
+    void setSensibility(double pi_fVal)
     {
         m_fResTab[eMesureSensibility] = pi_fVal;
     }
@@ -96,7 +96,7 @@ public:
       @brief    Set the result value of Specificity measure.
       @param    [in] pi_fVal Measure result value.
    */
-    void setSpecificity(float pi_fVal)
+    void setSpecificity(double pi_fVal)
     {
         m_fResTab[eMesureSpecificity] = pi_fVal;
     }
@@ -105,7 +105,7 @@ public:
       @brief    Set the result value of PPV (Positive Predictive Value) measure.
       @param    [in] pi_fVal Measure result value.
    */
-    void setPPV(float pi_fVal)
+    void setPPV(double pi_fVal)
     {
         m_fResTab[eMesurePPV] = pi_fVal;
     }
@@ -114,7 +114,7 @@ public:
       @brief    Set the result value of NPV (Negative Predictive Value) measure.
       @param    [in] pi_fVal Measure result value.
    */
-    void setNPV(float pi_fVal)
+    void setNPV(double pi_fVal)
     {
         m_fResTab[eMesureNPV] = pi_fVal;
     }
@@ -123,7 +123,7 @@ public:
       @brief    Set the result value of Relative volume error.
       @param    [in] pi_fVal Measure result value.
    */
-    void setRVE(float pi_fVal)
+    void setRVE(double pi_fVal)
     {
         m_fResTab[eMesureRelativeVolumeError] = pi_fVal;
     }
@@ -132,7 +132,7 @@ public:
       @brief    Set the result value of DistHausdorff measure.
       @param    [in] pi_fVal Measure result value.
    */
-    void setHausdorffDist(float pi_fVal)
+    void setHausdorffDist(double pi_fVal)
     {
         m_fResTab[eMesureDistHausdorff] = pi_fVal;
     }
@@ -141,7 +141,7 @@ public:
       @brief    Set the result value of contour mean distance measure.
       @param    [in] pi_fVal Measure result value.
    */
-    void setContourMeanDist(float pi_fVal)
+    void setContourMeanDist(double pi_fVal)
     {
         m_fResTab[eMesureDistMean] = pi_fVal;
     }
@@ -150,7 +150,7 @@ public:
       @brief    Set the result value of average surface distance measure.
       @param    [in] pi_fVal Measure result value.
    */
-    void setAverageSurfaceDist(float pi_fVal)
+    void setAverageSurfaceDist(double pi_fVal)
     {
         m_fResTab[eMesureDistAverage] = pi_fVal;
     }
@@ -159,7 +159,7 @@ public:
    @brief    Set the result value of PPVL measure.
    @param    [in] pi_fVal Measure result value.
 */
-    void setPPVL(float pi_fVal)
+    void setPPVL(double pi_fVal)
     {
         m_fResTab[eMesurePPVL] = pi_fVal;
     }
@@ -168,7 +168,7 @@ public:
       @brief    Set the result value of SensL measure.
       @param    [in] pi_fVal Measure result value.
    */
-    void setSensL(float pi_fVal)
+    void setSensL(double pi_fVal)
     {
         m_fResTab[eMesureSensL] = pi_fVal;
     }
@@ -177,7 +177,7 @@ public:
       @brief    Set the result value of F1 score of F-test.
       @param    [in] pi_fVal Measure result value.
    */
-    void setF1test(float pi_fVal)
+    void setF1test(double pi_fVal)
     {
         m_fResTab[eMesureF1Test] = pi_fVal;
     }
@@ -185,7 +185,7 @@ public:
 private:
     SegPerfResults();
 
-    float m_fResTab[eMesureLast];       /*!<Table of measurements results. */
+    double m_fResTab[eMesureLast];       /*!<Table of measurements results. */
     bool m_bResActiveTab[eMesureLast];  /*!<Table of measurements present in outputs*/
     bool m_bTxt;                        /*!<Enable txt output results format. */
     bool m_bXml;                        /*!<Enable Xml output results format. */

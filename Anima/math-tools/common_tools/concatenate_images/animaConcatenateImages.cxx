@@ -221,7 +221,7 @@ retrieveComponentType(arguments &args, itk::ImageIOBase::Pointer imageIO)
         retrieveNbDimensions<int>(args, imageIO);
         break;
     case itk::ImageIOBase::FLOAT:
-        retrieveNbDimensions<float>(args, imageIO);
+        retrieveNbDimensions<double>(args, imageIO);
         break;
     case itk::ImageIOBase::DOUBLE:
         retrieveNbDimensions<double>(args, imageIO);

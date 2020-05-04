@@ -166,10 +166,10 @@ TLinksFilter<TInput, TOutput>
 
     while (!outIterator1.IsAtEnd())
     {
-        float val1 = m_Alpha * outIterator1.Get();
+        double val1 = m_Alpha * outIterator1.Get();
         outIterator1.Set(val1);
 
-        float val2 = m_Alpha * outIterator2.Get();
+        double val2 = m_Alpha * outIterator2.Get();
         outIterator2.Set(val2);
 
         ++outIterator1;
@@ -222,7 +222,7 @@ TLinksFilter<TInput, TOutput>
 template <typename TInput, typename TOutput>
 void
 TLinksFilter<TInput, TOutput>
-::computeSingleGaussianSeeds(TSeedMask::ConstPointer seedMask, OutputImagePointer output, float multiVar, TSeedMask::ConstPointer seedMaskOpp)
+::computeSingleGaussianSeeds(TSeedMask::ConstPointer seedMask, OutputImagePointer output, double multiVar, TSeedMask::ConstPointer seedMaskOpp)
 {
     OutRegionIteratorType outIterator(output, output->GetLargestPossibleRegion());
     SeedMaskRegionConstIteratorType seedIterator(seedMask, seedMask->GetLargestPossibleRegion());

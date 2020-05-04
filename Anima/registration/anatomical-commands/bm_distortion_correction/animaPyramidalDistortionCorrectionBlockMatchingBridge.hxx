@@ -296,7 +296,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
     
     DisplacementFieldTransformPointer oppositeTransform = DisplacementFieldTransformType::New();
     
-    typedef itk::MultiplyImageFilter <VectorFieldType,itk::Image <float, ImageDimension>, VectorFieldType> MultiplyFilterType;
+    typedef itk::MultiplyImageFilter <VectorFieldType,itk::Image <double, ImageDimension>, VectorFieldType> MultiplyFilterType;
     typename MultiplyFilterType::Pointer multiplyFilter = MultiplyFilterType::New();
     multiplyFilter->SetInput(m_OutputTransform->GetParametersAsVectorField());
     multiplyFilter->SetConstant(-1.0);
@@ -310,18 +310,18 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
         anima::composeDistortionCorrections<typename BaseAgregatorType::ScalarType,ImageDimension>
                 (m_InitialTransform,m_OutputTransform,oppositeTransform,this->GetNumberOfWorkUnits());
     
-    typename ResampleFilterType::Pointer tmpResampleFloating = ResampleFilterType::New();
-    tmpResampleFloating->SetTransform(m_OutputTransform);
-    tmpResampleFloating->SetInput(m_ForwardImage);
+    typename ResampleFilterType::Pointer tmpResampledoubleing = ResampleFilterType::New();
+    tmpResampledoubleing->SetTransform(m_OutputTransform);
+    tmpResampledoubleing->SetInput(m_ForwardImage);
     
-    tmpResampleFloating->SetSize(m_BackwardImage->GetLargestPossibleRegion().GetSize());
-    tmpResampleFloating->SetOutputOrigin(m_BackwardImage->GetOrigin());
-    tmpResampleFloating->SetOutputSpacing(m_BackwardImage->GetSpacing());
-    tmpResampleFloating->SetOutputDirection(m_BackwardImage->GetDirection());
-    tmpResampleFloating->SetDefaultPixelValue(0);
-    tmpResampleFloating->SetScaleIntensitiesWithJacobian(true);
-    tmpResampleFloating->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
-    tmpResampleFloating->Update();
+    tmpResampledoubleing->SetSize(m_BackwardImage->GetLargestPossibleRegion().GetSize());
+    tmpResampledoubleing->SetOutputOrigin(m_BackwardImage->GetOrigin());
+    tmpResampledoubleing->SetOutputSpacing(m_BackwardImage->GetSpacing());
+    tmpResampledoubleing->SetOutputDirection(m_BackwardImage->GetDirection());
+    tmpResampledoubleing->SetDefaultPixelValue(0);
+    tmpResampledoubleing->SetScaleIntensitiesWithJacobian(true);
+    tmpResampledoubleing->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
+    tmpResampledoubleing->Update();
     
     typename ResampleFilterType::Pointer tmpResampleReference = ResampleFilterType::New();
     tmpResampleReference->SetTransform(oppositeTransform);
@@ -339,13 +339,13 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
     
     typedef itk::AddImageFilter <InputImageType,InputImageType,InputImageType> AddFilterType;
     typename AddFilterType::Pointer addFilter = AddFilterType::New();
-    addFilter->SetInput1(tmpResampleFloating->GetOutput());
+    addFilter->SetInput1(tmpResampledoubleing->GetOutput());
     addFilter->SetInput2(tmpResampleReference->GetOutput());
     addFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     
     addFilter->Update();
     
-    typedef itk::MultiplyImageFilter <InputImageType,itk::Image <float, ImageDimension>,InputImageType> MultiplyScalarFilterType;
+    typedef itk::MultiplyImageFilter <InputImageType,itk::Image <double, ImageDimension>,InputImageType> MultiplyScalarFilterType;
     typename MultiplyScalarFilterType::Pointer multiplyScalarFilter = MultiplyScalarFilterType::New();
     multiplyScalarFilter->SetInput(addFilter->GetOutput());
     multiplyScalarFilter->SetConstant(0.5);
@@ -391,7 +391,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::SetupPyramids(
 
     m_BackwardPyramid->Update();
 
-    // Create pyramid for floating image
+    // Create pyramid for doubleing image
     m_ForwardPyramid = PyramidType::New();
 
     m_ForwardPyramid->SetInput(m_ForwardImage);

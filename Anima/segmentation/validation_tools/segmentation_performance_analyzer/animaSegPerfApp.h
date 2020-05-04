@@ -45,25 +45,25 @@ private:
 
     //////////////////////////////////////////////////////////////////////////
     // Lesions specific metrics
-    float m_fSensitivity;
-    float m_fSpecificity;
-    float m_fPPV;
-    float m_fNPV;
-    float m_fDice;
-    float m_fJaccard;
-    float m_fRVE;
+    double m_fSensitivity;
+    double m_fSpecificity;
+    double m_fPPV;
+    double m_fNPV;
+    double m_fDice;
+    double m_fJaccard;
+    double m_fRVE;
 
     //////////////////////////////////////////////////////////////////////////
     // Distances metrics
-    float m_fHausdorffDist;
-    float m_fMeanDist;
-    float m_fAverageDist;
+    double m_fHausdorffDist;
+    double m_fMeanDist;
+    double m_fAverageDist;
 
     //////////////////////////////////////////////////////////////////////////
     // Detection scores
-    float m_fPPVL;
-    float m_fSensL;
-    float m_fF1;
+    double m_fPPVL;
+    double m_fSensL;
+    double m_fF1;
 
     //////////////////////////////////////////////////////////////////////////
     // general informations
@@ -72,10 +72,10 @@ private:
 
     //////////////////////////////////////////////////////////////////////////
     // Detection scores parameters
-    float m_fDetectionLesionMinVolume;
-    float m_fTPLMinOverlapRatio;
-    float m_fTPLMaxFalsePositiveRatio;
-    float m_fTPLMaxFalsePositiveRatioModerator;
+    double m_fDetectionLesionMinVolume;
+    double m_fTPLMinOverlapRatio;
+    double m_fTPLMaxFalsePositiveRatio;
+    double m_fTPLMaxFalsePositiveRatioModerator;
 
     std::string m_oStrInImage;   /*<! Path of Image to test. */
     std::string m_oStrRefImage;  /*<! Path of reference Image. */

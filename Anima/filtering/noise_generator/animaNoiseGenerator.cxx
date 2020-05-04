@@ -91,7 +91,7 @@ int main(int argc, char **argv)
     double snr = std::pow(10.0, snrArg.getValue() / 20.0);
     
     // Find average signal value in reference image
-    typedef itk::Image<float,3> Input3DImageType;
+    typedef itk::Image<double,3> Input3DImageType;
     typedef itk::ImageRegionConstIterator<Input3DImageType> Input3DIteratorType;
     
     Input3DImageType::Pointer referenceImage = anima::readImage<Input3DImageType>(refArg.getValue());

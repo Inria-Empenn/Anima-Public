@@ -21,7 +21,7 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    typedef anima::GeneralizedFAImageFilter <float> MainFilterType;
+    typedef anima::GeneralizedFAImageFilter <double> MainFilterType;
 
     MainFilterType::Pointer mainFilter = MainFilterType::New();
     mainFilter->SetInput(anima::readImage <MainFilterType::TInputImage> (inArg.getValue()));

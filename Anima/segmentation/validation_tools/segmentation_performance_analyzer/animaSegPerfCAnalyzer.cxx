@@ -306,81 +306,81 @@ void SegPerfCAnalyzer::computeITKMeasures()
 
 /**
    @brief  Getter of Union overlap
-   @return Union overlap in float
+   @return Union overlap in double
 */
-float SegPerfCAnalyzer::getUnionOverlap()
+double SegPerfCAnalyzer::getUnionOverlap()
 {
     return m_oFilter->getUnionOverlap();
 }
 
 /**
    @brief  Getter of Mean overlap
-   @return Mean overlap in float
+   @return Mean overlap in double
 */
-float SegPerfCAnalyzer::getMeanOverlap()
+double SegPerfCAnalyzer::getMeanOverlap()
 {
     return m_oFilter->getMeanOverlap();
 }
 
 /**
    @brief  Getter of Sensibility
-   @return Sensibility in float
+   @return Sensibility in double
 */
-float SegPerfCAnalyzer::getSensitivity()
+double SegPerfCAnalyzer::getSensitivity()
 {
     return m_oFilter->getSensitivity();
 }
 
 /**
    @brief  Getter of Specificity
-   @return Specificity in float
+   @return Specificity in double
 */
-float SegPerfCAnalyzer::getSpecificity()
+double SegPerfCAnalyzer::getSpecificity()
 {
     return m_oFilter->getSpecificity();
 }
 
 /**
    @brief  Getter of Positive predictive value
-   @return Positive predictive value in float
+   @return Positive predictive value in double
 */
-float SegPerfCAnalyzer::getPPV()
+double SegPerfCAnalyzer::getPPV()
 {
     return m_oFilter->getPPV();
 }
 
 /**
    @brief  Getter of Negative predictive value
-   @return Negative predictive value in float
+   @return Negative predictive value in double
 */
-float SegPerfCAnalyzer::getNPV()
+double SegPerfCAnalyzer::getNPV()
 {
     return m_oFilter->getNPV();
 }
 
 /**
    @brief  Getter of Dice coefficient
-   @return Dice coefficient in float
+   @return Dice coefficient in double
 */
-float SegPerfCAnalyzer::getDiceCoefficient()
+double SegPerfCAnalyzer::getDiceCoefficient()
 {
     return m_oFilter->GetDiceCoefficient();
 }
 
 /**
    @brief  Getter of Jaccard coefficient
-   @return Jaccard coefficient in float
+   @return Jaccard coefficient in double
 */
-float SegPerfCAnalyzer::getJaccardCoefficient()
+double SegPerfCAnalyzer::getJaccardCoefficient()
 {
     return m_oFilter->GetJaccardCoefficient();
 }
 
 /**
    @brief  Getter of Relative volume error
-   @return Relative volume error in float
+   @return Relative volume error in double
 */
-float SegPerfCAnalyzer::getRelativeVolumeError()
+double SegPerfCAnalyzer::getRelativeVolumeError()
 {
     return m_oFilter->getRelativeVolumeError();
 }
@@ -585,11 +585,11 @@ void SegPerfCAnalyzer::formatLabels()
 
 /**
 @brief  Compute Haussdorf distance
-@return hausdorffDistance in float
+@return hausdorffDistance in double
 */
-float SegPerfCAnalyzer::computeHausdorffDist()
+double SegPerfCAnalyzer::computeHausdorffDist()
 {
-    FilterType::RealType hausdorffDistance = std::numeric_limits<float>::quiet_NaN();
+    FilterType::RealType hausdorffDistance = std::numeric_limits<double>::quiet_NaN();
 
     if (m_uiNbLabels>1)
     {
@@ -621,9 +621,9 @@ float SegPerfCAnalyzer::computeHausdorffDist()
 @brief   Compute mean distance
 @return  meanDistance
 */
-float SegPerfCAnalyzer::computeMeanDist()
+double SegPerfCAnalyzer::computeMeanDist()
 {
-    FilterType::RealType meanDistance = std::numeric_limits<float>::quiet_NaN();
+    FilterType::RealType meanDistance = std::numeric_limits<double>::quiet_NaN();
 
     if (m_uiNbLabels > 1)
     {
@@ -659,17 +659,17 @@ float SegPerfCAnalyzer::computeMeanDist()
 @brief   Compute average surface distance
 @return  average surface distance
 */
-float SegPerfCAnalyzer::computeAverageSurfaceDistance()
+double SegPerfCAnalyzer::computeAverageSurfaceDistance()
 {
-    float meanDistance = std::numeric_limits<float>::quiet_NaN();
+    double meanDistance = std::numeric_limits<double>::quiet_NaN();
 
     if (m_uiNbLabels > 1)
     {
         if (!this->m_bContourDetected)
             this->contourDectection();
 
-        float sum_dist = 0;
-        float sum_size = 0;
+        double sum_dist = 0;
+        double sum_size = 0;
 
         for (int i = 1; i < m_uiNbLabels; i++)
         {
@@ -706,14 +706,14 @@ float SegPerfCAnalyzer::computeAverageSurfaceDistance()
                 ++testContourIt;
             }
 
-            std::vector <float> distance1, distance2;
-            float fDistanceTemp1 = 1000000, fDistanceTemp2 = 1000000;
-            float distanceValue = 0;
+            std::vector <double> distance1, distance2;
+            double fDistanceTemp1 = 1000000, fDistanceTemp2 = 1000000;
+            double distanceValue = 0;
             for (int m = 0; m < coordRef.size(); m++)
             {
                 for (int n = 0; n < coordTest.size(); n++)
                 {
-                    distanceValue = sqrt(pow((float)(coordRef[m][0] - coordTest[n][0]), 2) + pow((float)(coordRef[m][1] - coordTest[n][1]), 2) + pow((float)(coordRef[m][2] - coordTest[n][2]), 2));
+                    distanceValue = sqrt(pow((double)(coordRef[m][0] - coordTest[n][0]), 2) + pow((double)(coordRef[m][1] - coordTest[n][1]), 2) + pow((double)(coordRef[m][2] - coordTest[n][2]), 2));
                     if (distanceValue < fDistanceTemp1)
                         fDistanceTemp1 = distanceValue;
                 }
@@ -725,7 +725,7 @@ float SegPerfCAnalyzer::computeAverageSurfaceDistance()
             {
                 for (int n = 0; n < coordRef.size(); n++)
                 {
-                    distanceValue = sqrt(pow((float)(coordTest[m][0] - coordRef[n][0]), 2) + pow((float)(coordTest[m][1] - coordRef[n][1]), 2) + pow((float)(coordTest[m][2] - coordRef[n][2]), 2));
+                    distanceValue = sqrt(pow((double)(coordTest[m][0] - coordRef[n][0]), 2) + pow((double)(coordTest[m][1] - coordRef[n][1]), 2) + pow((double)(coordTest[m][2] - coordRef[n][2]), 2));
 
                     if (distanceValue < fDistanceTemp2)
                         fDistanceTemp2 = distanceValue;
@@ -734,8 +734,8 @@ float SegPerfCAnalyzer::computeAverageSurfaceDistance()
                 distance2.push_back(fDistanceTemp2);
             }
 
-            sum_dist = sum_dist + (float)accumulate(distance1.begin(), distance1.end(), 0.0) + (float)accumulate(distance2.begin(), distance2.end(), 0.0);
-            sum_size = sum_size + (float)distance1.size() + (float)distance2.size();
+            sum_dist = sum_dist + (double)accumulate(distance1.begin(), distance1.end(), 0.0) + (double)accumulate(distance2.begin(), distance2.end(), 0.0);
+            sum_size = sum_size + (double)distance1.size() + (double)distance2.size();
         }
 
         meanDistance = sum_dist / sum_size;
@@ -752,7 +752,7 @@ float SegPerfCAnalyzer::computeAverageSurfaceDistance()
 @param  [out] po_fF1 the output F1_score.
 @return true
 */
-bool SegPerfCAnalyzer::getDetectionMarks(float&po_fPPVL, float&po_fSensL, float&po_fF1)
+bool SegPerfCAnalyzer::getDetectionMarks(double&po_fPPVL, double&po_fSensL, double&po_fF1)
 {
     bool bRes = true;
 
@@ -775,8 +775,8 @@ bool SegPerfCAnalyzer::getDetectionMarks(float&po_fPPVL, float&po_fSensL, float&
         removeOverlapTab(ppiOverlapTabTransposed, iNbLabelsTest);
     }
 
-    po_fPPVL = (float)((double)iTPLd / (double)(iNbLabelsTest-1));     //po_fTPLd  = (float)((double)iTPLd  / (double)(iNbLabelsTest-1));// The "-1" is to reject background label
-    po_fSensL = (float)((double)iTPLgt / (double)(iNbLabelsRef-1));    //po_fTPLgt = (float)((double)iTPLgt / (double)(iNbLabelsRef-1 ));// The "-1" is to reject background label
+    po_fPPVL = (double)((double)iTPLd / (double)(iNbLabelsTest-1));     //po_fTPLd  = (double)((double)iTPLd  / (double)(iNbLabelsTest-1));// The "-1" is to reject background label
+    po_fSensL = (double)((double)iTPLgt / (double)(iNbLabelsRef-1));    //po_fTPLgt = (double)((double)iTPLgt / (double)(iNbLabelsRef-1 ));// The "-1" is to reject background label
 
     po_fF1 = 2 * (po_fPPVL * po_fSensL) / (po_fPPVL + po_fSensL);
 
@@ -999,7 +999,7 @@ bool SegPerfCAnalyzer::falsePositiveRatioTester(int pi_iLesionReference, int pi_
 
     //////////////////////////////////////////////////////////////////////////
     // Lesion is detected if a sufficient percentage (gamma) of the regions overlapping the tested lesion is not too much outside of this lesion
-    bRes = !bExit; //Almost equivalent, except floating point imprecision, to bRes=dfSumWeight>=pi_dfGamma;
+    bRes = !bExit; //Almost equivalent, except doubleing point imprecision, to bRes=dfSumWeight>=pi_dfGamma;
 
     return bRes;
 }

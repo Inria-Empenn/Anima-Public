@@ -225,8 +225,10 @@ ReadGradientsFromTextFile()
         if (strcmp(tmpStr,"") == 0)
             continue;
 
-        float a0, a1, a2;
-        sscanf(tmpStr,"%f %f %f",&a0,&a1,&a2);
+        double a0, a1, a2;
+        std::stringstream tmpStrStream(tmpStr);
+        tmpStrStream >> a0 >> a1 >> a2;
+
         gradTmp[0] = a0;
         gradTmp[1] = a1;
         gradTmp[2] = a2;

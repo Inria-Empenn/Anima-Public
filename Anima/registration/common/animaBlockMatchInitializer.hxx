@@ -286,7 +286,7 @@ BlockMatchingInitializer<PixelType, NDimensions>
 
     for (unsigned int i = 0;i < NDimensions;++i)
     {
-        totalNbBlocks[i] = std::floor((float)(workRegion.GetSize()[i] / this->GetBlockSpacing()) + 0.5);
+        totalNbBlocks[i] = std::floor((double)(workRegion.GetSize()[i] / this->GetBlockSpacing()) + 0.5);
         if (totalNbBlocks[i] < 1)
             totalNbBlocks[i] = 1;
 
@@ -295,7 +295,7 @@ BlockMatchingInitializer<PixelType, NDimensions>
         workStr->blockStartOffsets[i] = workRegion.GetIndex()[i] + std::floor(spaceRequired / 2.0);
     }
 
-    unsigned int nb_blocks_per_thread = (unsigned int) std::floor((float)(totalNbBlocks[NDimensions-1] / this->GetNumberOfThreads()));
+    unsigned int nb_blocks_per_thread = (unsigned int) std::floor((double)(totalNbBlocks[NDimensions-1] / this->GetNumberOfThreads()));
     if (nb_blocks_per_thread < 1)
     {
         nb_blocks_per_thread = 1;

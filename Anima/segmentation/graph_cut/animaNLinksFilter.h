@@ -66,7 +66,7 @@ public:
     typedef Graph<double,double,double> GraphType;
 
     typedef double NumericType;
-    typedef itk::VariableSizeMatrix<NumericType> FloatVariableSizeMatrixType;
+    typedef itk::VariableSizeMatrix<NumericType> doubleVariableSizeMatrixType;
 
     /** The mri images.*/
     void SetInputImage1(const TInput* image);
@@ -85,7 +85,7 @@ public:
     void SetInputSeedProbaSinks(const TSeedProba* mask);
 
     void SetMatFilename(std::string mat){m_MatFilename=mat;}
-    void SetMatrix(FloatVariableSizeMatrixType mat){m_Matrix=mat;}
+    void SetMatrix(doubleVariableSizeMatrixType mat){m_Matrix=mat;}
 
     OutputImagePointer GetOutput();
     OutputImagePointer GetOutputBackground();
@@ -100,8 +100,8 @@ public:
         m_Tol = tol;
     }
 
-    itkSetMacro(Sigma, float)
-    itkGetMacro(Sigma, float)
+    itkSetMacro(Sigma, double)
+    itkGetMacro(Sigma, double)
 
     itkSetMacro(UseSpectralGradient, bool)
     itkGetMacro(UseSpectralGradient, bool)
@@ -151,7 +151,7 @@ protected:
     TSeedProba::ConstPointer GetInputSeedProbaSources();
     TSeedProba::ConstPointer GetInputSeedProbaSinks();
 
-    FloatVariableSizeMatrixType GetMatrix(void){return m_Matrix;}
+    doubleVariableSizeMatrixType GetMatrix(void){return m_Matrix;}
     std::string GetMatFilename(void){return m_MatFilename;}
 
     bool readMatrixFile();
@@ -172,7 +172,7 @@ private:
 
     /** width of the Gaussian kernel to compute n-links
      */
-    float m_Sigma;
+    double m_Sigma;
 
     /** the created graph
      */
@@ -181,7 +181,7 @@ private:
     /** transformation matrix (from im1,im2,im3 to e,el,ell)
      */
     std::string m_MatFilename;
-    FloatVariableSizeMatrixType m_Matrix;
+    doubleVariableSizeMatrixType m_Matrix;
 
     typename TOutput::SizeType m_size;
 

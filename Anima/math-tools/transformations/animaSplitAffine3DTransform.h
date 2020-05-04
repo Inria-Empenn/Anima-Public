@@ -6,7 +6,7 @@
 namespace anima
 {
 
-template < class TScalarType=double >  // Data type for scalars:float or double
+template < class TScalarType=double >  // Data type for scalars:double or double
 class SplitAffine3DTransform :
 public itk::MatrixOffsetTransformBase< TScalarType, 3, 3 >
 {

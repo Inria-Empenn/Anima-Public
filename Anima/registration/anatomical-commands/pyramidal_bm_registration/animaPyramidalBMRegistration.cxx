@@ -10,7 +10,7 @@ int main(int argc, const char** argv)
 {
     const unsigned int Dimension = 3;
 
-    typedef itk::Image <float,Dimension> InputImageType;
+    typedef itk::Image <double,Dimension> InputImageType;
     typedef anima::PyramidalBlockMatchingBridge <Dimension> PyramidBMType;
     typedef anima::BaseTransformAgregator < Dimension > AgregatorType;
     typedef itk::AffineTransform<AgregatorType::ScalarType,Dimension> AffineTransformType;
@@ -37,7 +37,7 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<std::string> blockMaskArg("M","mask-im","Mask image for block generation",false,"","block mask image",cmd);
     TCLAP::ValueArg<unsigned int> blockSizeArg("","bs","Block size (default: 5)",false,5,"block size",cmd);
     TCLAP::ValueArg<unsigned int> blockSpacingArg("","sp","Block spacing (default: 5)",false,5,"block spacing",cmd);
-    TCLAP::ValueArg<float> stdevThresholdArg("s","stdev","Threshold block standard deviation (default: 5)",false,5,"block minimal standard deviation",cmd);
+    TCLAP::ValueArg<double> stdevThresholdArg("s","stdev","Threshold block standard deviation (default: 5)",false,5,"block minimal standard deviation",cmd);
     TCLAP::ValueArg<double> percentageKeptArg("k","per-kept","Percentage of blocks with the highest variance kept (default: 0.8)",false,0.8,"percentage of blocks kept",cmd);
 
     TCLAP::ValueArg<unsigned int> blockTransfoArg("t","in-transform","Transformation computed between blocks (0: translation, 1: rigid, 2: affine, 3: directional affine, default: 0)",false,0,"transformation between blocks",cmd);
@@ -46,7 +46,7 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<unsigned int> optimizerArg("","opt","Optimizer for optimal block search (0: Exhaustive, 1: Bobyqa, default: 1)",false,1,"optimizer",cmd);
 
     TCLAP::ValueArg<unsigned int> maxIterationsArg("","mi","Maximum block match iterations (default: 10)",false,10,"maximum iterations",cmd);
-    TCLAP::ValueArg<float> minErrorArg("","me","Minimal distance between consecutive estimated transforms (default: 0.01)",false,0.01,"minimal distance between transforms",cmd);
+    TCLAP::ValueArg<double> minErrorArg("","me","Minimal distance between consecutive estimated transforms (default: 0.01)",false,0.01,"minimal distance between transforms",cmd);
 
     TCLAP::ValueArg<unsigned int> optimizerMaxIterationsArg("","oi","Maximum iterations for local optimizer (default: 100)",false,100,"maximum local optimizer iterations",cmd);
     TCLAP::ValueArg<unsigned int> initTypeArg("I","init-type", "If no input transformation is given, initialization type (0: identity, 1: align gravity centers, 2: gravity PCA closest transform, default: 1)",false,1,"initialization type",cmd);
@@ -124,7 +124,7 @@ int main(int argc, const char** argv)
     matcher->SetOutputNearestSimilarityTransformFile(outputNSTransformArg.getValue());
 
     matcher->SetReferenceImage(anima::readImage <InputImageType> (fixedArg.getValue()));
-    matcher->SetFloatingImage(anima::readImage <InputImageType> (movingArg.getValue()));
+    matcher->SetdoubleingImage(anima::readImage <InputImageType> (movingArg.getValue()));
 
     if (initialTransformArg.getValue() != "")
         matcher->SetInitialTransform(initialTransformArg.getValue());

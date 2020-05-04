@@ -106,7 +106,7 @@ CheckStructureNeighborFilter< TInput, TMask, TOutput >
     // calculer les ratios
     for(unsigned int i = 1; i < objectCount+1; i++)
     {
-        if(static_cast<float>(nbVoxelIntersec[i])/static_cast<float>(nbVoxelContour[i]) < m_Ratio)
+        if(static_cast<double>(nbVoxelIntersec[i])/static_cast<double>(nbVoxelContour[i]) < m_Ratio)
         {
             enoughContour[i] = false;
         }

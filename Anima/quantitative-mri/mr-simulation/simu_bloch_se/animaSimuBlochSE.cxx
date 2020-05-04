@@ -15,8 +15,8 @@ int main(int argc, char *argv[] )
     TCLAP::ValueArg<std::string> m0ImageArg("","m0","Input M0 image",true,"","M0 image",cmd);
     TCLAP::ValueArg<std::string> resArg("o","output","Output simulated image for Spin Echo",true,"","output simulated image",cmd);
     
-    TCLAP::ValueArg<float> trArg("r","tr","TR value (ms), default: 500ms",false,500,"TR value",cmd);
-    TCLAP::ValueArg<float> teArg("e","te","TE value (ms), default: 8.4ms",false,8.4,"TE value",cmd);
+    TCLAP::ValueArg<double> trArg("r","tr","TR value (ms), default: 500ms",false,500,"TR value",cmd);
+    TCLAP::ValueArg<double> teArg("e","te","TE value (ms), default: 8.4ms",false,8.4,"TE value",cmd);
     
     try
     {
@@ -33,8 +33,8 @@ int main(int argc, char *argv[] )
   std::string input2FileName = t2MapArg.getValue();
   std::string input3FileName = m0ImageArg.getValue();
   std::string outputFileName = resArg.getValue();
-  float TR = trArg.getValue();
-  float TE = teArg.getValue();
+  double TR = trArg.getValue();
+  double TE = teArg.getValue();
   
   // Verify range of TR and TE
   if ((TR < 0) || (TE < 0))
@@ -56,7 +56,7 @@ int main(int argc, char *argv[] )
   }
 
   // Setup types
-  typedef itk::Image<float, 3>   ImageType;
+  typedef itk::Image<double, 3>   ImageType;
   typedef anima::SimuBlochSE<ImageType>  FilterType;
 
   // Read T1 map

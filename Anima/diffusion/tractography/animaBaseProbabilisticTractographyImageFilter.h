@@ -30,15 +30,14 @@ public:
     itkTypeMacro(BaseProbabilisticTractographyImageFilter,itk::ProcessObject)
 
     // Typdefs for scalar types for reading/writing images and for math operations
-    typedef float ImageScalarType;
-    typedef double MathScalarType;
+    typedef double ScalarType;
 
     // Typdef for input model image
     typedef TInputModelImageType InputModelImageType;
     typedef typename InputModelImageType::Pointer InputModelImagePointer;
 
     // Typedefs for B0 and noise images
-    typedef itk::Image <ImageScalarType, 3> ScalarImageType;
+    typedef itk::Image <ScalarType, 3> ScalarImageType;
     typedef typename ScalarImageType::Pointer ScalarImagePointer;
     typedef itk::LinearInterpolateImageFunction <ScalarImageType> ScalarInterpolatorType;
     typedef typename ScalarInterpolatorType::Pointer ScalarInterpolatorPointer;
@@ -50,10 +49,10 @@ public:
     typedef MaskImageType::IndexType IndexType;
 
     // Typedefs for vectors and matrices
-    typedef itk::Matrix <MathScalarType,3,3> Matrix3DType;
-    typedef itk::Vector <MathScalarType,3> Vector3DType;
-    typedef itk::VariableLengthVector <MathScalarType> VectorType;
-    typedef std::vector <MathScalarType> ListType;
+    typedef itk::Matrix <ScalarType,3,3> Matrix3DType;
+    typedef itk::Vector <ScalarType,3> Vector3DType;
+    typedef itk::VariableLengthVector <ScalarType> VectorType;
+    typedef std::vector <ScalarType> ListType;
     typedef std::vector <Vector3DType> DirectionVectorType;
 
     // Typedefs for model images interpolator

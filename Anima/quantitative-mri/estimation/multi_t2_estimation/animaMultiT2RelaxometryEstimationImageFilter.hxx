@@ -387,7 +387,7 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
 {
     unsigned int numThreads = this->GetNumberOfWorkUnits();
     m_NLPatchSearchers.resize(numThreads);
-    unsigned int maxAbsDisp = floor((float)(m_SearchNeighborhood / m_SearchStepSize)) * m_SearchStepSize;
+    unsigned int maxAbsDisp = floor((double)(m_SearchNeighborhood / m_SearchStepSize)) * m_SearchStepSize;
 
     // Prepare mean and variance images
     unsigned int numInputs = this->GetNumberOfIndexedInputs();

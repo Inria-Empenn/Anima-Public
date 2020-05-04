@@ -201,7 +201,9 @@ ODFEstimatorImageFilter<TInputPixelType,TOutputPixelType>
             if (strcmp(tmpStr,"") == 0)
                 continue;
 
-            sscanf(tmpStr,"%lf %lf %lf",&dirTmp[0],&dirTmp[1],&dirTmp[2]);
+            std::stringstream tmpStrStream(tmpStr);
+            tmpStrStream >> dirTmp[0] >> dirTmp[1] >> dirTmp[2];
+
             anima::TransformCartesianToSphericalCoordinates(dirTmp,sphericalCoords);
             shData.clear();
 

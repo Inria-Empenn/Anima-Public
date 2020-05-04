@@ -23,7 +23,7 @@ int main(int argc, const char** argv)
     
     TCLAP::ValueArg<unsigned int> blockSizeArg("","bs","Block size (default: 3)",false,3,"block size",cmd);
     TCLAP::ValueArg<unsigned int> blockSpacingArg("","sp","Block spacing (default: 2)",false,2,"block spacing",cmd);
-    TCLAP::ValueArg<float> stdevThresholdArg("s","stdev","Threshold block standard deviation (default: 15)",false,15,"block minimal standard deviation",cmd);
+    TCLAP::ValueArg<double> stdevThresholdArg("s","stdev","Threshold block standard deviation (default: 15)",false,15,"block minimal standard deviation",cmd);
     TCLAP::ValueArg<double> percentageKeptArg("k","per-kept","Percentage of blocks with the highest variance kept (default: 0.8)",false,0.8,"percentage of blocks kept",cmd);
     
     TCLAP::ValueArg<unsigned int> maxIterationsArg("","mi","Maximum block match iterations (default: 10)",false,10,"maximum iterations",cmd);

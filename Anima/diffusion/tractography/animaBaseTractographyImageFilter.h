@@ -35,7 +35,7 @@ public:
         Both
     } FiberProgressType;
     
-    typedef itk::VectorImage <float, 3> ModelImageType;
+    typedef itk::VectorImage <double, 3> ModelImageType;
     typedef ModelImageType::Pointer ModelImagePointer;
     typedef ModelImageType::PixelType VectorType;
     typedef ModelImageType::RegionType RegionType;

@@ -32,7 +32,7 @@ BeforeThreadedGenerateData ()
         throw itk::ExceptionObject(__FILE__, __LINE__,"There should be one input... Exiting...",ITK_LOCATION);
 
     m_VectorSize = this->GetInput(0)->GetNumberOfComponentsPerPixel();
-    m_TensorDimension = floor( ( sqrt((float)(8 * m_VectorSize + 1)) - 1) / 2.0);
+    m_TensorDimension = floor( ( std::sqrt((double)(8 * m_VectorSize + 1)) - 1) / 2.0);
 
     this->GetOutput()->SetNumberOfComponentsPerPixel(m_VectorSize);
     this->AllocateOutputs();

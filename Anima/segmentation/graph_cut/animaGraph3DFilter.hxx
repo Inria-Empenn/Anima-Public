@@ -412,7 +412,7 @@ Graph3DFilter<TInput, TOutput>
     m_ResampleMask->SetCoordinateTolerance(m_Tol);
     m_ResampleMask->SetDirectionTolerance(m_Tol);
 
-    m_ResampleSources = ResampleImageFilterFloatType::New();
+    m_ResampleSources = ResampleImageFilterdoubleType::New();
     m_ResampleSources->SetOutputDirection(m_OutputDirection);
     m_ResampleSources->SetOutputOrigin(m_OutputOrigin);
     m_ResampleSources->SetInput(this->GetInputSeedProbaSources());
@@ -421,7 +421,7 @@ Graph3DFilter<TInput, TOutput>
     m_ResampleSources->SetCoordinateTolerance(m_Tol);
     m_ResampleSources->SetDirectionTolerance(m_Tol);
 
-    m_ResampleSinks = ResampleImageFilterFloatType::New();
+    m_ResampleSinks = ResampleImageFilterdoubleType::New();
     m_ResampleSinks->SetOutputDirection(m_OutputDirection);
     m_ResampleSinks->SetOutputOrigin(m_OutputOrigin);
     m_ResampleSinks->SetInput(this->GetInputSeedProbaSinks());

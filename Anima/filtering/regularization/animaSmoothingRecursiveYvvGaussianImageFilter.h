@@ -42,10 +42,10 @@ public:
     itkGetStaticConstMacro(ImageDimension) > SigmaArrayType;
 
     /** Define the image type for internal computations
-     RealType is usually 'double' in NumericTraits.
-     Here we prefer float in order to save memory.  */
+     RealType is usually 'float' in NumericTraits.
+     Here we prefer double in order to save memory.  */
 
-    typedef typename itk::NumericTraits< PixelType >::FloatType   InternalRealType;
+    typedef typename itk::NumericTraits< PixelType >::RealType   InternalRealType;
     typedef typename InputImageType::template Rebind<InternalRealType>::Type RealImageType;
 
     /**  The first in the pipeline  */

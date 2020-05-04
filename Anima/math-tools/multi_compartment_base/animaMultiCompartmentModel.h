@@ -57,8 +57,6 @@ public:
 
     ModelOutputVectorType &GetModelVector();
 
-    // Defined twice to handle both float and double types, templates would be better but how to instanciate explicitly ?
-    void SetModelVector(const itk::VariableLengthVector <float> &mcmVec);
     void SetModelVector(const ModelOutputVectorType &mcmVec);
 
     double GetPredictedSignal(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient);

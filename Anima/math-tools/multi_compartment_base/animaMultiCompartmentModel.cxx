@@ -187,27 +187,6 @@ MultiCompartmentModel::ModelOutputVectorType &MultiCompartmentModel::GetModelVec
     return m_ModelVector;
 }
 
-void MultiCompartmentModel::SetModelVector(const itk::VariableLengthVector <float> &mcmVec)
-{
-    unsigned int numCompartments = this->GetNumberOfCompartments();
-
-    for (unsigned int i = 0;i < numCompartments;++i)
-        m_CompartmentWeights[i] = mcmVec[i];
-
-    unsigned int pos = numCompartments;
-
-    for (unsigned int i = 0;i < numCompartments;++i)
-    {
-        unsigned int compartmentSize = m_Compartments[i]->GetCompartmentSize();
-        ModelOutputVectorType inputVector(compartmentSize);
-        for (unsigned int j = 0;j < compartmentSize;++j)
-            inputVector[j] = mcmVec[pos + j];
-
-        m_Compartments[i]->SetCompartmentVector(inputVector);
-        pos += compartmentSize;
-    }
-}
-
 void MultiCompartmentModel::SetModelVector(const ModelOutputVectorType &mcmVec)
 {
     unsigned int numCompartments = this->GetNumberOfCompartments();

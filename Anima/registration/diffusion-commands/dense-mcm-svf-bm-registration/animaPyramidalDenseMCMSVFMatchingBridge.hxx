@@ -21,7 +21,7 @@ template <unsigned int ImageDimension>
 PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::PyramidalDenseMCMSVFMatchingBridge()
 {
     m_ReferenceImage = NULL;
-    m_FloatingImage = NULL;
+    m_doubleingImage = NULL;
 
     m_OutputTransform = BaseTransformType::New();
     m_OutputTransform->SetIdentity();
@@ -110,7 +110,7 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
         typename InputImageType::Pointer refImage = m_ReferencePyramid->GetOutput(i);
         refImage->DisconnectPipeline();
 
-        typename InputImageType::Pointer floImage = m_FloatingPyramid->GetOutput(i);
+        typename InputImageType::Pointer floImage = m_doubleingPyramid->GetOutput(i);
         floImage->DisconnectPipeline();
 
         // Update field to match the current resolution
@@ -426,7 +426,7 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
     if (m_SymmetryType == Kissing)
     {
         VelocityFieldType *finalTrsfField = const_cast <VelocityFieldType *> (m_OutputTransform->GetParametersAsVectorField());
-        typedef itk::MultiplyImageFilter <VelocityFieldType,itk::Image <float,ImageDimension>, VelocityFieldType> MultiplyFilterType;
+        typedef itk::MultiplyImageFilter <VelocityFieldType,itk::Image <double,ImageDimension>, VelocityFieldType> MultiplyFilterType;
 
         typename MultiplyFilterType::Pointer fieldMultiplier = MultiplyFilterType::New();
         fieldMultiplier->SetInput(finalTrsfField);
@@ -453,7 +453,7 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
     typename BaseTransformType::Pointer baseTrsf = outputDispTrsf.GetPointer();
     tmpResample->SetTransform(baseTrsf);
     tmpResample->SetFiniteStrainReorientation(this->GetFiniteStrainImageReorientation());
-    tmpResample->SetInput(m_FloatingImage);
+    tmpResample->SetInput(m_doubleingImage);
 
     if (this->GetNumberOfWorkUnits() != 0)
         tmpResample->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
@@ -475,7 +475,7 @@ void
 PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::WriteOutputs()
 {
     std::cout << "Writing output image to: " << m_resultFile << std::endl;
-    anima::MCMFileWriter <float,ImageDimension> mcmWriter;
+    anima::MCMFileWriter <double,ImageDimension> mcmWriter;
     mcmWriter.SetInputImage(m_OutputImage);
     mcmWriter.SetFileName(m_resultFile);
 
@@ -513,24 +513,24 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::SetupPyramids()
 
     m_ReferencePyramid->Update();
 
-    // Create pyramid for floating image
-    m_FloatingPyramid = PyramidType::New();
+    // Create pyramid for doubleing image
+    m_doubleingPyramid = PyramidType::New();
 
-    m_FloatingPyramid->SetInput(m_FloatingImage);
-    m_FloatingPyramid->SetNumberOfLevels(m_NumberOfPyramidLevels);
+    m_doubleingPyramid->SetInput(m_doubleingImage);
+    m_doubleingPyramid->SetNumberOfLevels(m_NumberOfPyramidLevels);
 
     if (this->GetNumberOfWorkUnits() != 0)
-        m_FloatingPyramid->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
+        m_doubleingPyramid->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
     typename ResampleFilterType::Pointer floResampler = ResampleFilterType::New();
-    interpolator = this->CreateInterpolator(m_FloatingImage);
+    interpolator = this->CreateInterpolator(m_doubleingImage);
 
-    floResampler->SetReferenceOutputModel(m_FloatingImage->GetDescriptionModel());
+    floResampler->SetReferenceOutputModel(m_doubleingImage->GetDescriptionModel());
     floResampler->SetFiniteStrainReorientation(this->GetFiniteStrainImageReorientation());
     floResampler->SetInterpolator(interpolator.GetPointer());
-    m_FloatingPyramid->SetImageResampler(floResampler);
+    m_doubleingPyramid->SetImageResampler(floResampler);
 
-    m_FloatingPyramid->Update();
+    m_doubleingPyramid->Update();
 }
 
 } // end of namespace anima

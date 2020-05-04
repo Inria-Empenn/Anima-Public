@@ -221,7 +221,7 @@ void GetSVFExponential(itk::StationaryVelocityFieldTransform <ScalarType,NDimens
     FieldPointer tmpPtr = const_cast <FieldType *> (baseTrsf->GetParametersAsVectorField());
     if (invert)
     {
-        typedef itk::MultiplyImageFilter <FieldType,itk::Image <float, NDimensions>, FieldType> MultiplyFilterType;
+        typedef itk::MultiplyImageFilter <FieldType,itk::Image <double, NDimensions>, FieldType> MultiplyFilterType;
         typename MultiplyFilterType::Pointer multiplier = MultiplyFilterType::New();
         multiplier->SetInput(tmpPtr);
         multiplier->SetConstant(-1.0);
@@ -256,7 +256,7 @@ void composeDistortionCorrections(typename rpi::DisplacementFieldTransform <Scal
     typedef rpi::DisplacementFieldTransform <ScalarType,NDimensions> DisplacementFieldTransformType;
     typedef typename DisplacementFieldTransformType::VectorFieldType VectorFieldType;
     typedef itk::ComposeDisplacementFieldsImageFilter <VectorFieldType,VectorFieldType> ComposeFilterType;
-    typedef itk::MultiplyImageFilter <VectorFieldType,itk::Image <float, NDimensions>, VectorFieldType> MultiplyFilterType;
+    typedef itk::MultiplyImageFilter <VectorFieldType,itk::Image <double, NDimensions>, VectorFieldType> MultiplyFilterType;
     typedef typename itk::ImageRegionIterator <VectorFieldType> VectorFieldIterator;
     typedef typename VectorFieldType::PixelType VectorType;
 

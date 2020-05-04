@@ -165,7 +165,7 @@ int main(int ac, const char** av)
 
             std::cout<<"preparing filter..." << std::endl;
 
-            typedef itk::Image<float, 3> ImageType;
+            typedef itk::Image<double, 3> ImageType;
             typedef anima::NonLocalMeansTemporalImageFilter<ImageType> FilterType;
 
             FilterType::Pointer filter = FilterType::New();
@@ -202,7 +202,7 @@ int main(int ac, const char** av)
         {
             std::cout<<"preparing filter..." << std::endl;
 
-            typedef itk::Image<float, 4> ImageType;
+            typedef itk::Image<double, 4> ImageType;
             typedef anima::NonLocalMeansTemporalImageFilter<ImageType> FilterType;
 
             FilterType::Pointer filter = FilterType::New();

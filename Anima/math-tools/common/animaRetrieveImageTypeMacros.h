@@ -29,12 +29,12 @@ switch (imageIO->GetComponentType())\
         function<short>(__VA_ARGS__);\
         break;\
     case itk::ImageIOBase::UINT:\
-        std::cerr << "Component type detected is 'unsigned int', anima will use 'float' instead." << std::endl;\
-        function<float>(__VA_ARGS__);\
+        std::cerr << "Component type detected is 'unsigned int', anima will use 'double' instead." << std::endl;\
+        function<double>(__VA_ARGS__);\
         break;\
     case itk::ImageIOBase::INT:\
-        std::cerr << "Component type detected is 'int', anima will use 'float' instead." << std::endl;\
-        function<float>(__VA_ARGS__);\
+        std::cerr << "Component type detected is 'int', anima will use 'double' instead." << std::endl;\
+        function<double>(__VA_ARGS__);\
         break;\
     case itk::ImageIOBase::FLOAT:\
         function<float>(__VA_ARGS__);\

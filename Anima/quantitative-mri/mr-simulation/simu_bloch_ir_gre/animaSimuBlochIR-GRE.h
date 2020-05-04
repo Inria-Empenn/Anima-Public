@@ -22,14 +22,14 @@ public:
     /** Run-time type information (and related methods). */
     itkTypeMacro(SimuBlochIRGRE, ImageToImageFilter)
 
-    itkSetMacro(TR, float)
-    itkGetMacro(TR, float)
+    itkSetMacro(TR, double)
+    itkGetMacro(TR, double)
 
-    itkSetMacro(TE, float)
-    itkGetMacro(TE, float)
+    itkSetMacro(TE, double)
+    itkGetMacro(TE, double)
 
-    itkSetMacro(TI, float)
-    itkGetMacro(TI, float)
+    itkSetMacro(TI, double)
+    itkGetMacro(TI, double)
 
     /** T1 map */
     void SetInputT1(const TImage* T1);
@@ -50,9 +50,9 @@ protected:
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(SimuBlochIRGRE);
 
-    float m_TR;
-    float m_TE;
-    float m_TI;
+    double m_TR;
+    double m_TE;
+    double m_TI;
 };
 
 } // end of namespace anima

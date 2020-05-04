@@ -85,11 +85,11 @@ int main(int argc, char *argv[])
     TCLAP::ValueArg<std::string> oArgOutputName("o", "output", "Name for output file", true, "", "output Name", cmd);
     TCLAP::ValueArg<std::string> oArgIterationsString("I", "iterations", "Table of number of iterations, default=50x40x30", false, "50x40x30", "iterations table", cmd);
     TCLAP::ValueArg<int> oArgShrinkFactors("S", "shrinkFactor", "Shrink factor, default=4", false, 4, "shrink Factor", cmd);
-    TCLAP::ValueArg<float> oArgWienerFilterNoise("W", "wiener", "Wiener Filter Noise, default=0.01", false, 0.01, "wiener noise", cmd);
-    TCLAP::ValueArg<float> oArgbfFWHM("B", "bfFWHM", "Bias field Full Width at Half Maximum, default=0.15", false, 0.15, "Bias field Full Width at Half Maximum", cmd);
-    TCLAP::ValueArg<float> oArgConvergenceThreshold("T", "threshold", "Convergence Threshold, default=0.0001", false, 0.0001, "threshold", cmd);
+    TCLAP::ValueArg<double> oArgWienerFilterNoise("W", "wiener", "Wiener Filter Noise, default=0.01", false, 0.01, "wiener noise", cmd);
+    TCLAP::ValueArg<double> oArgbfFWHM("B", "bfFWHM", "Bias field Full Width at Half Maximum, default=0.15", false, 0.15, "Bias field Full Width at Half Maximum", cmd);
+    TCLAP::ValueArg<double> oArgConvergenceThreshold("T", "threshold", "Convergence Threshold, default=0.0001", false, 0.0001, "threshold", cmd);
     TCLAP::ValueArg<int> oArgSplineOrder("O", "splineOrder", "BSpline Order, default=3", false, 3, "spline Order", cmd);
-    TCLAP::ValueArg<float> oArgSplineDistance("D", "splineDistance", "B-Spline distance, default=0.0", false, 0.0, "spline Distance", cmd);
+    TCLAP::ValueArg<double> oArgSplineDistance("D", "splineDistance", "B-Spline distance, default=0.0", false, 0.0, "spline Distance", cmd);
     TCLAP::ValueArg<std::string> oArgInitialMeshResolutionString("G", "splineGrid", "B-Spline grid resolution. It is ignored if splineDistance>0 or if dimention of it <>3, default=1x1x1", false, "1x1x1", "spline Grid", cmd);
     TCLAP::ValueArg<unsigned int> oArgNbP("p", "numberofthreads", "Number of threads to run on (default: all cores)", false, itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(), "number of threads", cmd);
 
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    typedef itk::Image<float, 3 > ImageType;
+    typedef itk::Image<double, 3 > ImageType;
     typedef itk::Image<unsigned char, 3> MaskImageType;
     typedef itk::N4BiasFieldCorrectionImageFilter<ImageType, MaskImageType, ImageType> BiasFilter;
     typedef itk::ConstantPadImageFilter<ImageType, ImageType> PadderType;
@@ -116,8 +116,8 @@ int main(int argc, char *argv[])
     typedef itk::ExtractImageFilter<ImageType, ImageType> CropperType;
 
     std::vector<unsigned int> oMaxNumbersIterationsVector = extractMaxNumberOfIterationsVector(oArgIterationsString.getValue());
-    std::vector<float> oInitialMeshResolutionVect = ConvertVector<float>(oArgInitialMeshResolutionString.getValue());
-    float fSplineDistance = oArgSplineDistance.getValue();
+    std::vector<double> oInitialMeshResolutionVect = ConvertVector<double>(oArgInitialMeshResolutionString.getValue());
+    double fSplineDistance = oArgSplineDistance.getValue();
 
 
     /********************************************************************************/
@@ -174,12 +174,12 @@ int main(int argc, char *argv[])
 
         for (unsigned int i = 0; i < 3; i++)
         {
-            float domain = static_cast<float>(image->GetLargestPossibleRegion().GetSize()[i] - 1) * image->GetSpacing()[i];
+            double domain = static_cast<double>(image->GetLargestPossibleRegion().GetSize()[i] - 1) * image->GetSpacing()[i];
             unsigned int numberOfSpans = static_cast<unsigned int>(std::ceil(domain / fSplineDistance));
             unsigned long extraPadding = static_cast<unsigned long>((numberOfSpans * fSplineDistance - domain) / image->GetSpacing()[i] + 0.5);
             lowerBound[i] = static_cast<unsigned long>(0.5 * extraPadding);
             upperBound[i] = extraPadding - lowerBound[i];
-            newOrigin[i] -= (static_cast<float>(lowerBound[i]) * image->GetSpacing()[i]);
+            newOrigin[i] -= (static_cast<double>(lowerBound[i]) * image->GetSpacing()[i]);
             oNumberOfControlPointsArray[i] = numberOfSpans + filter->GetSplineOrder();
         }
 

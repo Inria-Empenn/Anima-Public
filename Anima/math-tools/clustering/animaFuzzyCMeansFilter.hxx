@@ -2,8 +2,7 @@
 #include "animaFuzzyCMeansFilter.h"
 
 #include <iostream>
-#include <math.h>
-#include <float.h>
+#include <cmath>
 
 #include <animaLogExpMapsUnitSphere.h>
 

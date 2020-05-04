@@ -7,7 +7,7 @@
 
 namespace anima
 {
-template <typename TImageType, typename TInterpolatorPrecisionType=float>
+template <typename TImageType, typename TInterpolatorPrecisionType=double>
 class ODFResampleImageFilter :
         public OrientedModelBaseResampleImageFilter <TImageType,TInterpolatorPrecisionType>
 {

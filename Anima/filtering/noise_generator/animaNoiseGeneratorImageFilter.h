@@ -12,13 +12,13 @@ namespace anima
 
 template <class ImageType>
 class NoiseGeneratorImageFilter :
-public anima::NumberedThreadImageToImageFilter <ImageType,itk::Image<float,ImageType::ImageDimension> >
+public anima::NumberedThreadImageToImageFilter <ImageType,itk::Image<double,ImageType::ImageDimension> >
 {
 public:
     /** Standard class typedefs. */
     typedef NoiseGeneratorImageFilter Self;
     typedef ImageType TInputImage;
-    typedef itk::Image<float,ImageType::ImageDimension> TOutputImage;
+    typedef itk::Image<double,ImageType::ImageDimension> TOutputImage;
     typedef anima::NumberedThreadImageToImageFilter <TInputImage, TOutputImage> Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self>  ConstPointer;

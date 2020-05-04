@@ -16,9 +16,9 @@ int main(int argc, char *argv[] )
     TCLAP::ValueArg<std::string> m0ImageArg("","m0","Input M0 image",true,"","M0 image",cmd);
     TCLAP::ValueArg<std::string> resArg("o","output","Output simulated image for Coherent Gradient Echo",true,"","output simulated image",cmd);
     
-    TCLAP::ValueArg<float> trArg("r","tr","TR value (ms), default: 40ms",false, 40,"TR value",cmd);//changed for CoherentGRE
-    TCLAP::ValueArg<float> teArg("e","te","TE value (ms), default: 15ms",false, 15,"TE value",cmd);//changed for CoherentGRE
-    TCLAP::ValueArg<float> faArg("f","fa","Flip Angle (degree), default: 25degree", false, 25,"FA value",cmd);//changed for CoherentGRE
+    TCLAP::ValueArg<double> trArg("r","tr","TR value (ms), default: 40ms",false, 40,"TR value",cmd);//changed for CoherentGRE
+    TCLAP::ValueArg<double> teArg("e","te","TE value (ms), default: 15ms",false, 15,"TE value",cmd);//changed for CoherentGRE
+    TCLAP::ValueArg<double> faArg("f","fa","Flip Angle (degree), default: 25degree", false, 25,"FA value",cmd);//changed for CoherentGRE
     
     try
     {
@@ -36,9 +36,9 @@ int main(int argc, char *argv[] )
   std::string input3FileName = m0ImageArg.getValue();
   std::string input4FileName = t2MapArg.getValue();//changed for CoherentGRE
   std::string outputFileName = resArg.getValue();
-  float TR = trArg.getValue();
-  float TE = teArg.getValue();
-  float FA = faArg.getValue();//changed for CoherentGRE
+  double TR = trArg.getValue();
+  double TE = teArg.getValue();
+  double FA = faArg.getValue();//changed for CoherentGRE
   
   // Verify range of TR, TE
   if ((TR < 0) || (TE < 0))
@@ -69,7 +69,7 @@ int main(int argc, char *argv[] )
     }
 
   // Setup types
-  typedef itk::Image<float, 3>   ImageType;
+  typedef itk::Image<double, 3>   ImageType;
   typedef anima::SimuBlochCoherentGRE<ImageType>  FilterType;
 
   // Read T1 map

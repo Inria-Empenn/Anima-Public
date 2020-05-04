@@ -58,7 +58,9 @@ std::vector <std::vector <double> > InitializeSampleDirections(unsigned int nbTh
             if (strcmp(tmpStr,"") == 0)
                 continue;
 
-            sscanf(tmpStr,"%lf %lf %lf",&gradTmp[0],&gradTmp[1],&gradTmp[2]);
+            std::stringstream tmpStrStream(tmpStr);
+            tmpStrStream >> gradTmp[0] >> gradTmp[1] >> gradTmp[2];
+
             anima::TransformCartesianToSphericalCoordinates(gradTmp,sphericalGrad);
             resVal.push_back(sphericalGrad);
         }

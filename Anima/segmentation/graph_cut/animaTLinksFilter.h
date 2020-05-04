@@ -86,14 +86,14 @@ public:
     /** Superclass typedefs. */
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
-    itkSetMacro(Alpha, float)
-    itkGetMacro(Alpha, float)
+    itkSetMacro(Alpha, double)
+    itkGetMacro(Alpha, double)
 
-    itkSetMacro(MultiVarSources, float)
-    itkGetMacro(MultiVarSources, float)
+    itkSetMacro(MultiVarSources, double)
+    itkGetMacro(MultiVarSources, double)
 
-    itkSetMacro(MultiVarSinks, float)
-    itkGetMacro(MultiVarSinks, float)
+    itkSetMacro(MultiVarSinks, double)
+    itkGetMacro(MultiVarSinks, double)
 
     itkSetMacro(NbModalities, unsigned int)
     itkGetMacro(NbModalities, unsigned int)
@@ -134,7 +134,7 @@ protected:
 
     void GenerateData() ITK_OVERRIDE;
     void computeSingleGaussian();
-    void computeSingleGaussianSeeds(TSeedMask::ConstPointer seedMask, OutputImagePointer output, float multiVar, TSeedMask::ConstPointer seedMaskOpp = ITK_NULLPTR);
+    void computeSingleGaussianSeeds(TSeedMask::ConstPointer seedMask, OutputImagePointer output, double multiVar, TSeedMask::ConstPointer seedMaskOpp = ITK_NULLPTR);
     void computeStrem();
 
     /**  Create the Output */
@@ -145,9 +145,9 @@ private:
 
     /** mixing energies parameters: E_region = m_Alpha * E_intensity
      */
-    float m_Alpha;
-    float m_MultiVarSources;
-    float m_MultiVarSinks;
+    double m_Alpha;
+    double m_MultiVarSources;
+    double m_MultiVarSinks;
     TLinkMode m_TLinkMode;
     bool m_Verbose;
     unsigned int m_NbModalities;

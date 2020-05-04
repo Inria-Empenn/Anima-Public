@@ -48,7 +48,7 @@ int main(int ac, const char** av)
     }
 
     const    unsigned int    Dimension = 3;
-    typedef  float           PixelType;
+    typedef  double           PixelType;
     
     typedef itk::VectorImage< PixelType, Dimension >  ImageType;
     typedef anima::TransformSeriesReader <double, Dimension> TransformSeriesReaderType;

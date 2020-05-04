@@ -21,13 +21,13 @@ namespace anima
  */
 template <unsigned int ImageDimension = 3>
 class DTIScalarMapsImageFilter :
-    public anima::NumberedThreadImageToImageFilter < itk::VectorImage <float, ImageDimension>, itk::Image <float, ImageDimension> >
+    public anima::NumberedThreadImageToImageFilter < itk::VectorImage <double, ImageDimension>, itk::Image <double, ImageDimension> >
 {
 public:
 
     /** Convenient typedefs for simplifying declarations. */
-    typedef itk::VectorImage <float, ImageDimension> InputImageType;
-    typedef itk::Image< float, ImageDimension> OutputImageType;
+    typedef itk::VectorImage <double, ImageDimension> InputImageType;
+    typedef itk::Image <double, ImageDimension> OutputImageType;
     typedef InputImageType TensorImageType;
     typedef OutputImageType FAImageType;
     typedef OutputImageType ADCImageType;

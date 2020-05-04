@@ -9,12 +9,12 @@
 namespace anima
 {
 
-class ANIMATRACTOGRAPHY_EXPORT ODFProbabilisticTractographyImageFilter : public anima::BaseProbabilisticTractographyImageFilter < itk::VectorImage <float, 3> >
+class ANIMATRACTOGRAPHY_EXPORT ODFProbabilisticTractographyImageFilter : public anima::BaseProbabilisticTractographyImageFilter < itk::VectorImage <double, 3> >
 {
 public:
     /** SmartPointer typedef support  */
     typedef ODFProbabilisticTractographyImageFilter Self;
-    typedef BaseProbabilisticTractographyImageFilter < itk::VectorImage <float, 3> > Superclass;
+    typedef BaseProbabilisticTractographyImageFilter < itk::VectorImage <double, 3> > Superclass;
 
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self> ConstPointer;

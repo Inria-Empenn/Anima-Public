@@ -23,9 +23,9 @@ int main(int argc, char **argv)
     }
 
     typedef itk::Image <unsigned short,3> ImageType;
-    typedef itk::Image <float,3> FloatImageType;
+    typedef itk::Image <double,3> doubleImageType;
 
-    typedef itk::SignedMaurerDistanceMapImageFilter <ImageType,FloatImageType> MainFilterType;
+    typedef itk::SignedMaurerDistanceMapImageFilter <ImageType,doubleImageType> MainFilterType;
 
     MainFilterType::Pointer mainFilter = MainFilterType::New();
     mainFilter->SetInput(anima::readImage <ImageType> (inArg.getValue()));
@@ -40,6 +40,6 @@ int main(int argc, char **argv)
     mainFilter->UseImageSpacingOn();
     mainFilter->Update();
     
-    anima::writeImage <FloatImageType> (outArg.getValue(),mainFilter->GetOutput());
+    anima::writeImage <doubleImageType> (outArg.getValue(),mainFilter->GetOutput());
     return EXIT_SUCCESS;
 }

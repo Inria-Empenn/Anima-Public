@@ -55,8 +55,8 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    typedef itk::Image <float,3> ImageType;
-    typedef itk::VectorImage <float,3> VectorImageType;
+    typedef itk::Image <double,3> ImageType;
+    typedef itk::VectorImage <double,3> VectorImageType;
 
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(inArg.getValue().c_str(),
                                                                            itk::ImageIOFactory::ReadMode);

@@ -39,7 +39,7 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    typedef itk::Image <float,3> ImageType;
+    typedef itk::Image <double,3> ImageType;
     typedef itk::ResampleImageFilter <ImageType,ImageType> ResampleFilterType;
 
     ImageType::Pointer inputImage = anima::readImage <ImageType> (inArg.getValue());

@@ -25,25 +25,25 @@ SegPerfApp::SegPerfApp(void)
 
     //////////////////////////////////////////////////////////////////////////
     // Lesions specific metrics
-    m_fSensitivity = std::numeric_limits<float>::quiet_NaN();
-    m_fSpecificity = std::numeric_limits<float>::quiet_NaN();
-    m_fPPV = std::numeric_limits<float>::quiet_NaN();
-    m_fNPV = std::numeric_limits<float>::quiet_NaN();
-    m_fDice = std::numeric_limits<float>::quiet_NaN();
-    m_fJaccard = std::numeric_limits<float>::quiet_NaN();
-    m_fRVE = std::numeric_limits<float>::quiet_NaN();
+    m_fSensitivity = std::numeric_limits<double>::quiet_NaN();
+    m_fSpecificity = std::numeric_limits<double>::quiet_NaN();
+    m_fPPV = std::numeric_limits<double>::quiet_NaN();
+    m_fNPV = std::numeric_limits<double>::quiet_NaN();
+    m_fDice = std::numeric_limits<double>::quiet_NaN();
+    m_fJaccard = std::numeric_limits<double>::quiet_NaN();
+    m_fRVE = std::numeric_limits<double>::quiet_NaN();
 
     //////////////////////////////////////////////////////////////////////////
     // Distances metrics
-    m_fHausdorffDist = std::numeric_limits<float>::quiet_NaN();
-    m_fMeanDist = std::numeric_limits<float>::quiet_NaN();
-    m_fAverageDist = std::numeric_limits<float>::quiet_NaN();
+    m_fHausdorffDist = std::numeric_limits<double>::quiet_NaN();
+    m_fMeanDist = std::numeric_limits<double>::quiet_NaN();
+    m_fAverageDist = std::numeric_limits<double>::quiet_NaN();
 
     //////////////////////////////////////////////////////////////////////////
     // Detection scores
-    m_fPPVL = std::numeric_limits<float>::quiet_NaN();
-    m_fSensL = std::numeric_limits<float>::quiet_NaN();
-    m_fF1 = std::numeric_limits<float>::quiet_NaN();
+    m_fPPVL = std::numeric_limits<double>::quiet_NaN();
+    m_fSensL = std::numeric_limits<double>::quiet_NaN();
+    m_fF1 = std::numeric_limits<double>::quiet_NaN();
 
     //////////////////////////////////////////////////////////////////////////
     // general informations
@@ -110,16 +110,16 @@ bool SegPerfApp::init(int argc, char *argv[])
     TCLAP::SwitchArg oArgSwitchSurfaceDist("d", "SurfaceEvaluation", "Surface distances evaluation.", cmd, false);
 
     // Define a switch and add it to the command line.
-    TCLAP::ValueArg<float> oArgSwitchDetectionLesionMinVolume("v", "MinLesionVolume", "Min volume of lesion for \"Lesions detection metrics\" in mm^3 (default 3mm^3).", false, 3.00, "float", cmd);
+    TCLAP::ValueArg<double> oArgSwitchDetectionLesionMinVolume("v", "MinLesionVolume", "Min volume of lesion for \"Lesions detection metrics\" in mm^3 (default 3mm^3).", false, 3.00, "double", cmd);
 
     // Define a switch and add it to the command line.
-    TCLAP::ValueArg<float> oArgSwitchTPLMinOverlapRatio("x", "MinOverlapRatio", "Minimum overlap ratio to say if a lesion of the GT is detected. (default 0.10)", false, 0.10, "float", cmd);
+    TCLAP::ValueArg<double> oArgSwitchTPLMinOverlapRatio("x", "MinOverlapRatio", "Minimum overlap ratio to say if a lesion of the GT is detected. (default 0.10)", false, 0.10, "double", cmd);
 
     // Define a switch and add it to the command line.
-    TCLAP::ValueArg<float> oArgSwitchTPLMaxFalsePositiveRatio("y", "MaxFalsePositiveRatio", "Maximum of false positive ratio to limit the detection of a lesion in GT if a lesion in the image is too big. (default 0.7)", false, 0.70, "float", cmd);
+    TCLAP::ValueArg<double> oArgSwitchTPLMaxFalsePositiveRatio("y", "MaxFalsePositiveRatio", "Maximum of false positive ratio to limit the detection of a lesion in GT if a lesion in the image is too big. (default 0.7)", false, 0.70, "double", cmd);
 
     // Define a switch and add it to the command line.
-    TCLAP::ValueArg<float> oArgSwitchTPLMaxFalsePositiveRatioModerator("z", "MaxFalsePositiveRatioModerator", "Percentage of the regions overlapping the tested lesion is not too much outside of this lesion. (default 0.65)", false, 0.65, "float", cmd);
+    TCLAP::ValueArg<double> oArgSwitchTPLMaxFalsePositiveRatioModerator("z", "MaxFalsePositiveRatioModerator", "Percentage of the regions overlapping the tested lesion is not too much outside of this lesion. (default 0.65)", false, 0.65, "double", cmd);
 
     // Parse the args.
     cmd.parse( argc, argv );

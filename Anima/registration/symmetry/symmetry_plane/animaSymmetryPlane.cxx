@@ -35,13 +35,13 @@ int main(int ac, const char** av)
         return EXIT_FAILURE;
     }
 
-    typedef anima::PyramidalSymmetryBridge <float, double> PyramidSymType;
-    typedef itk::Image <float,3> InputImageType;
+    typedef anima::PyramidalSymmetryBridge <double, double> PyramidSymType;
+    typedef itk::Image <double,3> InputImageType;
 
     PyramidSymType::Pointer matcher = PyramidSymType::New();
 
     matcher->SetReferenceImage(anima::readImage <InputImageType> (inputArg.getValue()));
-    matcher->SetFloatingImage(anima::readImage <InputImageType> (inputArg.getValue()));
+    matcher->SetdoubleingImage(anima::readImage <InputImageType> (inputArg.getValue()));
 
     // set parameters
     matcher->SetMetric((Metric)metricArg.getValue());

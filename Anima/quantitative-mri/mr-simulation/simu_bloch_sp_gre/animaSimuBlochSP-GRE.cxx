@@ -16,9 +16,9 @@ int main(int argc, char *argv[] )
     TCLAP::ValueArg<std::string> b1ImageArg("","b1","Input B1 image",false,"","B1 image",cmd);
     TCLAP::ValueArg<std::string> resArg("o","output","Output simulated image for Spoiled Gradient Echo",true,"","output simulated image",cmd);
     
-    TCLAP::ValueArg<float> trArg("r","tr","TR value (ms), default: 35ms",false, 35,"TR value",cmd);//changed for SP-GRE
-    TCLAP::ValueArg<float> teArg("e","te","TE value (ms), default: 6ms",false, 6,"TE value",cmd);//changed for SP-GRE
-    TCLAP::ValueArg<float> faArg("f","fa","Flip Angle (degree), default: 40degree", false, 40,"FA value",cmd);//changed for SP-GRE
+    TCLAP::ValueArg<double> trArg("r","tr","TR value (ms), default: 35ms",false, 35,"TR value",cmd);//changed for SP-GRE
+    TCLAP::ValueArg<double> teArg("e","te","TE value (ms), default: 6ms",false, 6,"TE value",cmd);//changed for SP-GRE
+    TCLAP::ValueArg<double> faArg("f","fa","Flip Angle (degree), default: 40degree", false, 40,"FA value",cmd);//changed for SP-GRE
     
     try
     {
@@ -35,9 +35,9 @@ int main(int argc, char *argv[] )
     std::string input2FileName = t2sMapArg.getValue();//changed for SP-GRE
     std::string input3FileName = m0ImageArg.getValue();
     std::string outputFileName = resArg.getValue();
-    float TR = trArg.getValue();
-    float TE = teArg.getValue();
-    float FA = faArg.getValue();//changed for SP-GRE
+    double TR = trArg.getValue();
+    double TE = teArg.getValue();
+    double FA = faArg.getValue();//changed for SP-GRE
     
     // Verify range of TR, TE
     if ((TR < 0) || (TE < 0))
@@ -68,7 +68,7 @@ int main(int argc, char *argv[] )
     }
     
     // Setup types
-    typedef itk::Image<float, 3>   ImageType;
+    typedef itk::Image<double, 3>   ImageType;
     typedef anima::SimuBlochSPGRE<ImageType>  FilterType;
     
     // Read T1 map

@@ -44,7 +44,7 @@ void BaseTractographyImageFilter::Update()
     if (stepData == 0)
         stepData = 1;
 
-    unsigned int numSteps = std::floor(m_PointsToProcess.size() / (float)stepData);
+    unsigned int numSteps = std::floor(m_PointsToProcess.size() / (double)stepData);
     if (m_PointsToProcess.size() % stepData != 0)
         numSteps++;
 

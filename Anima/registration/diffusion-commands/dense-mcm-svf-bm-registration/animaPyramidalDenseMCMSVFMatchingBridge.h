@@ -61,7 +61,7 @@ template <unsigned int ImageDimension = 3>
 class PyramidalDenseMCMSVFMatchingBridge : public itk::ProcessObject
 {
 public:
-    typedef anima::MCMImage <float,ImageDimension> InputImageType;
+    typedef anima::MCMImage <double,ImageDimension> InputImageType;
     typedef typename InputImageType::IOPixelType InputPixelType;
     typedef typename InputImageType::Pointer InputImagePointer;
     typedef typename InputImageType::ConstPointer InputImageConstPointer;
@@ -113,7 +113,7 @@ public:
      * Setter for images
      * */
     void SetReferenceImage(InputImagePointer referenceImage) {m_ReferenceImage = referenceImage;}
-    void SetFloatingImage(InputImagePointer floatingImage) {m_FloatingImage = floatingImage;}
+    void SetdoubleingImage(InputImagePointer doubleingImage) {m_doubleingImage = doubleingImage;}
 
     InputImagePointer GetOutputImage() {return m_OutputImage;}
 
@@ -138,8 +138,8 @@ public:
     unsigned int GetBlockSpacing() {return m_BlockSpacing;}
     void SetBlockSpacing(unsigned int blockSpacing) {m_BlockSpacing=blockSpacing;}
 
-    float GetStDevThreshold() {return m_StDevThreshold;}
-    void SetStDevThreshold(float StDevThreshold) {m_StDevThreshold = StDevThreshold;}
+    double GetStDevThreshold() {return m_StDevThreshold;}
+    void SetStDevThreshold(double StDevThreshold) {m_StDevThreshold = StDevThreshold;}
 
     SymmetryType GetSymmetryType() {return m_SymmetryType;}
     void SetSymmetryType(SymmetryType sym) {m_SymmetryType=sym;}
@@ -162,8 +162,8 @@ public:
     unsigned int GetMaximumIterations() {return m_MaximumIterations;}
     void SetMaximumIterations(unsigned int MaximumIterations) {m_MaximumIterations=MaximumIterations;}
 
-    float GetMinimalTransformError() {return m_MinimalTransformError;}
-    void SetMinimalTransformError(float MinimalTransformError) {m_MinimalTransformError=MinimalTransformError;}
+    double GetMinimalTransformError() {return m_MinimalTransformError;}
+    void SetMinimalTransformError(double MinimalTransformError) {m_MinimalTransformError=MinimalTransformError;}
 
     unsigned int GetOptimizerMaximumIterations() {return m_OptimizerMaximumIterations;}
     void SetOptimizerMaximumIterations(unsigned int OptimizerMaximumIterations) {m_OptimizerMaximumIterations=OptimizerMaximumIterations;}
@@ -246,15 +246,15 @@ private:
     BaseTransformPointer m_OutputTransform;
     InputImagePointer m_OutputImage;
 
-    InputImagePointer m_ReferenceImage, m_FloatingImage;
-    PyramidPointer m_ReferencePyramid, m_FloatingPyramid;
+    InputImagePointer m_ReferenceImage, m_doubleingImage;
+    PyramidPointer m_ReferencePyramid, m_doubleingPyramid;
 
     std::string m_outputTransformFile;
     std::string m_resultFile;
 
     unsigned int m_BlockSize;
     unsigned int m_BlockSpacing;
-    float m_StDevThreshold;
+    double m_StDevThreshold;
 
     SymmetryType m_SymmetryType;
     Transform m_Transform;
@@ -264,7 +264,7 @@ private:
     Optimizer m_Optimizer;
 
     unsigned int m_MaximumIterations;
-    float m_MinimalTransformError;
+    double m_MinimalTransformError;
     unsigned int m_OptimizerMaximumIterations;
     double m_SearchRadius;
     double m_SearchAngleRadius;

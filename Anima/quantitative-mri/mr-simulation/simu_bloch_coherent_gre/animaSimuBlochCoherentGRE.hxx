@@ -54,8 +54,8 @@ void SimuBlochCoherentGRE< TImage>
     itk::ImageRegionConstIterator<TImage> inputIteratorM0(M0, outputRegionForThread);
     itk::ImageRegionConstIterator<TImage> inputIteratorT2(T2, outputRegionForThread);//changed for CoherentGRE
 
-    float sinFA= sin(M_PI * m_FA / 180);
-    float cosFA = cos(M_PI * m_FA / 180);
+    double sinFA= sin(M_PI * m_FA / 180);
+    double cosFA = cos(M_PI * m_FA / 180);
 
     // For each voxel, calculate the signal of CoherentGRE
     while(!outputIterator.IsAtEnd())

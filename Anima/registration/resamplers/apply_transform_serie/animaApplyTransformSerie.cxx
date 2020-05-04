@@ -99,7 +99,7 @@ template <class ImageType>
 void
 applyVectorTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &args)
 {
-    typedef itk::VectorImage<float, ImageType::ImageDimension> OutputType;
+    typedef itk::VectorImage<double, ImageType::ImageDimension> OutputType;
 
     typedef anima::TransformSeriesReader <double, ImageType::ImageDimension> TransformSeriesReaderType;
     typedef typename TransformSeriesReaderType::OutputTransformType TransformType;
@@ -173,9 +173,9 @@ template <class ImageType>
 void
 applyScalarTransfo4D(itk::ImageIOBase::Pointer geometryImageIO, const arguments &args)
 {
-    typedef itk::Image <float, ImageType::ImageDimension> OutputType;
+    typedef itk::Image <double, ImageType::ImageDimension> OutputType;
     const unsigned int InternalImageDimension = 3;
-    typedef itk::Image <float, InternalImageDimension> InternalImageType;
+    typedef itk::Image <double, InternalImageDimension> InternalImageType;
 
     typedef anima::TransformSeriesReader <double, InternalImageDimension> TransformSeriesReaderType;
     typedef typename TransformSeriesReaderType::OutputTransformType TransformType;
@@ -329,7 +329,7 @@ template <class ImageType>
 void
 applyScalarTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &args)
 {
-    typedef itk::Image <float, ImageType::ImageDimension> OutputType;
+    typedef itk::Image <double, ImageType::ImageDimension> OutputType;
 
     typedef anima::TransformSeriesReader <double, ImageType::ImageDimension> TransformSeriesReaderType;
     typedef typename TransformSeriesReaderType::OutputTransformType TransformType;

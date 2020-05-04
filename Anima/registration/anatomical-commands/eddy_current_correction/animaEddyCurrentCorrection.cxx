@@ -17,8 +17,8 @@ int main(int argc, const char** argv)
 {
     const unsigned int Dimension = 3;
 
-    typedef itk::Image <float,Dimension+1> InputImageType;
-    typedef itk::Image <float,Dimension> InputSubImageType;
+    typedef itk::Image <double,Dimension+1> InputImageType;
+    typedef itk::Image <double,Dimension> InputSubImageType;
     typedef itk::ImageRegionIterator <InputImageType> InputImageIteratorType;
     typedef itk::ImageRegionIterator <InputSubImageType> InputSubImageIteratorType;
 
@@ -42,14 +42,14 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<unsigned int> blockSizeArg("","bs","Block size (default: 5)",false,5,"block size",cmd);
     TCLAP::ValueArg<unsigned int> blockSpacingArg("","sp","Block spacing (default: 5)",false,5,"block spacing",cmd);
     TCLAP::ValueArg<unsigned int> nlBlockSpacingArg("","nsp","Block spacing (default: 3)",false,3,"non linear matching block spacing",cmd);
-    TCLAP::ValueArg<float> stdevThresholdArg("s","stdev","Threshold block standard deviation (default: 5)",false,5,"block minimal standard deviation",cmd);
+    TCLAP::ValueArg<double> stdevThresholdArg("s","stdev","Threshold block standard deviation (default: 5)",false,5,"block minimal standard deviation",cmd);
     TCLAP::ValueArg<double> percentageKeptArg("k","per-kept","Percentage of blocks with the highest variance kept (default: 0.8)",false,0.8,"percentage of blocks kept",cmd);
 
     TCLAP::ValueArg<unsigned int> blockMetricArg("","metric","Similarity metric between blocks (0: squared correlation coefficient, 1: correlation coefficient, 2: mean squares, default: 0)",false,0,"similarity metric",cmd);
     TCLAP::ValueArg<unsigned int> optimizerArg("","opt","Optimizer for optimal block search (0: Exhaustive, 1: Bobyqa, default: 1)",false,1,"optimizer",cmd);
 
     TCLAP::ValueArg<unsigned int> maxIterationsArg("","mi","Maximum block match iterations (default: 10)",false,10,"maximum iterations",cmd);
-    TCLAP::ValueArg<float> minErrorArg("","me","Minimal distance between consecutive estimated transforms (default: 0.01)",false,0.01,"minimal distance between transforms",cmd);
+    TCLAP::ValueArg<double> minErrorArg("","me","Minimal distance between consecutive estimated transforms (default: 0.01)",false,0.01,"minimal distance between transforms",cmd);
 
     TCLAP::ValueArg<unsigned int> optimizerMaxIterationsArg("","oi","Maximum iterations for local optimizer (default: 100)",false,100,"maximum local optimizer iterations",cmd);
 
@@ -148,7 +148,7 @@ int main(int argc, const char** argv)
         matcher->SetPercentageKept( percentageKeptArg.getValue() );
         matcher->SetTransformInitializationType(PyramidBMType::GravityCenters);
 
-        matcher->SetFloatingImage(referenceExtractFilter->GetOutput());
+        matcher->SetdoubleingImage(referenceExtractFilter->GetOutput());
         matcher->SetReferenceImage(extractFilter->GetOutput());
 
         AffineTransformPointer rigidTrsf = AffineTransformType::New();
@@ -171,7 +171,7 @@ int main(int argc, const char** argv)
 
         // Then perform directional affine registration
         matcher->SetReferenceImage(rigidReference);
-        matcher->SetFloatingImage(extractFilter->GetOutput());
+        matcher->SetdoubleingImage(extractFilter->GetOutput());
         matcher->SetTransform(PyramidBMType::Directional_Affine);
         matcher->SetOutputTransformType(PyramidBMType::outAffine);
 
@@ -194,7 +194,7 @@ int main(int argc, const char** argv)
         NonLinearPyramidBMType::Pointer nonLinearMatcher = NonLinearPyramidBMType::New();
 
         nonLinearMatcher->SetReferenceImage(rigidReference);
-        nonLinearMatcher->SetFloatingImage(matcher->GetOutputImage());
+        nonLinearMatcher->SetdoubleingImage(matcher->GetOutputImage());
 
         // Setting matcher arguments
         nonLinearMatcher->SetBlockSize(blockSizeArg.getValue());

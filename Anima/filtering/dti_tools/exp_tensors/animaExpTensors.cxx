@@ -23,7 +23,7 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    typedef anima::ExpTensorImageFilter <float> MainFilterType;
+    typedef anima::ExpTensorImageFilter <double> MainFilterType;
 
     MainFilterType::Pointer mainFilter = MainFilterType::New();
 

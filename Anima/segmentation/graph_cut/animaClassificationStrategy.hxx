@@ -179,8 +179,8 @@ bool ClassificationStrategy<TInputImage,TMaskImage>::sameModel( std::vector<Gaus
     std::vector<int> comparisonVector(NbClasses,-1);
     unsigned int params = NbDimension + NbDimension*NbDimension;
 
-    float *p1 = new float[params];
-    float *p2 = new float[params];
+    double *p1 = new double[params];
+    double *p2 = new double[params];
 
     for(unsigned int i = 0; i < NbClasses; i++)
     {
@@ -195,8 +195,8 @@ bool ClassificationStrategy<TInputImage,TMaskImage>::sameModel( std::vector<Gaus
             unsigned int t = 0;
             for(unsigned int l = 0; l < NbDimension; l++)
             {
-                p1[t] = static_cast<float>((mod1[i])->GetMean()[l]);
-                p2[t] = static_cast<float>((mod2[j])->GetMean()[l]);
+                p1[t] = static_cast<double>((mod1[i])->GetMean()[l]);
+                p2[t] = static_cast<double>((mod2[j])->GetMean()[l]);
                 t++;
             }
 
@@ -204,8 +204,8 @@ bool ClassificationStrategy<TInputImage,TMaskImage>::sameModel( std::vector<Gaus
             {
                 for(unsigned int k = l; k < NbDimension; k++)
                 {
-                    p1[t] = static_cast<float>((mod1[i])->GetCovariance()[l][k]);
-                    p2[t] = static_cast<float>((mod2[j])->GetCovariance()[l][k]);
+                    p1[t] = static_cast<double>((mod1[i])->GetCovariance()[l][k]);
+                    p2[t] = static_cast<double>((mod2[j])->GetCovariance()[l][k]);
                     t++;
                 }
             }

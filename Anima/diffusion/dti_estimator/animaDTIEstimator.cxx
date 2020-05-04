@@ -44,7 +44,7 @@ int main(int argc,  char **argv)
         return EXIT_FAILURE;
     }
 
-    typedef anima::DTIEstimationImageFilter <float, float> FilterType;
+    typedef anima::DTIEstimationImageFilter <double, double> FilterType;
     typedef FilterType::MaskImageType MaskImageType;
     typedef FilterType::InputImageType InputImageType;
     typedef FilterType::Image4DType Image4DType;

@@ -53,22 +53,22 @@ public:
         m_dfMinLesionVolumeDetection = pi_fVal;
     }
 
-    float computeHausdorffDist();
-    float computeMeanDist();
-    float computeAverageSurfaceDistance();
+    double computeHausdorffDist();
+    double computeMeanDist();
+    double computeAverageSurfaceDistance();
     void  computeITKMeasures();
 
     //getters
-    float getUnionOverlap();
-    float getMeanOverlap();
-    float getSensitivity();
-    float getSpecificity();
-    float getPPV();
-    float getNPV();
-    float getDiceCoefficient();
-    float getJaccardCoefficient();
-    float getRelativeVolumeError();
-    bool getDetectionMarks(float&po_fPPVL, float&po_fSensL, float&po_fF1);
+    double getUnionOverlap();
+    double getMeanOverlap();
+    double getSensitivity();
+    double getSpecificity();
+    double getPPV();
+    double getNPV();
+    double getDiceCoefficient();
+    double getJaccardCoefficient();
+    double getRelativeVolumeError();
+    bool getDetectionMarks(double&po_fPPVL, double&po_fSensL, double&po_fF1);
 
     int getNumberOfClusters();
 

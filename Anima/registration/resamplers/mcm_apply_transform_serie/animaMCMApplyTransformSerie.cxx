@@ -54,15 +54,15 @@ int main(int ac, const char** av)
     }
 
     const unsigned int Dimension = 3;
-    typedef float PixelType;
+    typedef double PixelType;
     
     typedef anima::MCMImage< PixelType, Dimension > ImageType;
     typedef anima::TransformSeriesReader <double, Dimension> TransformSeriesReaderType;
     typedef TransformSeriesReaderType::OutputTransformType TransformType;
     
     typedef itk::ImageFileReader <ImageType> ReaderType;
-    typedef anima::MCMFileReader <float,3> MCMReaderType;
-    typedef anima::MCMFileWriter <float, 3> MCMWriterType;
+    typedef anima::MCMFileReader <double,3> MCMReaderType;
+    typedef anima::MCMFileWriter <double, 3> MCMWriterType;
 
     MCMReaderType reader;
     reader.SetFileName(inArg.getValue());

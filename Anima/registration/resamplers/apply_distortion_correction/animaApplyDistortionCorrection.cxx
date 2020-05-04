@@ -10,9 +10,9 @@
 #include <animaReadWriteFunctions.h>
 
 void ApplyGeometryToVectorField(itk::Image <itk::Vector <double,3>, 3> *vectorField,
-                                itk::Image <float, 4> *geometryImage)
+                                itk::Image <double, 4> *geometryImage)
 {
-    typedef itk::Image <float, 4>::DirectionType MatrixType;
+    typedef itk::Image <double, 4>::DirectionType MatrixType;
     MatrixType geometry = geometryImage->GetDirection();
     geometry(3,3) = 1;
     
@@ -71,7 +71,7 @@ int main(int ac, const char** av)
     }
 
     const unsigned int Dimension = 3;
-    typedef float PixelType;
+    typedef double PixelType;
     typedef double TransformPixelType;
     
     typedef itk::Image <PixelType, Dimension>  ImageType;

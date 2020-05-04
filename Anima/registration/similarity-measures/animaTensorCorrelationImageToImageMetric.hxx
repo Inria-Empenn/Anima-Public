@@ -50,7 +50,7 @@ TensorCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,I
     OutputPointType transformedPoint;
     ContinuousIndexType transformedIndex;
 
-    unsigned int tensorDimension = floor((std::sqrt((float)(8 * vectorSize + 1)) - 1) / 2.0);
+    unsigned int tensorDimension = floor((std::sqrt((double)(8 * vectorSize + 1)) - 1) / 2.0);
 
     vnl_matrix <double> tmpMat(tensorDimension, tensorDimension);
     vnl_matrix <double> ppdOrientationMatrix(tensorDimension, tensorDimension);
@@ -143,7 +143,7 @@ TensorCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelType,I
     }
 
     unsigned int vectorSize = fixedImage->GetNumberOfComponentsPerPixel();
-    unsigned int tensorDimension = floor((sqrt((float)(8 * vectorSize + 1)) - 1) / 2.0);
+    unsigned int tensorDimension = floor((sqrt((double)(8 * vectorSize + 1)) - 1) / 2.0);
 
     this->m_NumberOfPixelsCounted = this->GetFixedImageRegion().GetNumberOfPixels();
 

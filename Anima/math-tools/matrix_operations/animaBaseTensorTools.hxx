@@ -107,7 +107,7 @@ GetTensorFromVectorRepresentation(const itk::VariableLengthVector <T1> &vector,
     unsigned int vecDim = vector.GetSize();
 
     if (tensDim == 0)
-        tensDim = std::floor((std::sqrt((float)(8 * vecDim + 1)) - 1) / 2.0);
+        tensDim = std::floor((std::sqrt((double)(8 * vecDim + 1)) - 1) / 2.0);
 
     double sqrt2 = std::sqrt(2.0);
     tensor.set_size(tensDim,tensDim);

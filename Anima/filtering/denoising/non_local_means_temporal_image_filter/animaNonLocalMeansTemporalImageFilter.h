@@ -19,7 +19,7 @@ public:
 
     /** Define pixel types  */
     typedef typename TInputImage::PixelType InputPixelType;
-    typedef float OutputPixelType;
+    typedef double OutputPixelType;
 
     /** Convenient typedefs for simplifying declarations. */
     typedef TInputImage InputImageType;

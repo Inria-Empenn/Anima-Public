@@ -18,7 +18,7 @@ int main(int argc, char **argv)
     TCLAP::SwitchArg bvalueScaleArg("B","b-no-scale","Do not scale b-values according to gradient norm",cmd);
     TCLAP::ValueArg <int> selectedBvalArg("v","select-bval","B-value shell used to estimate ODFs (default: first one in data volume above 10)",false,-1,"b-value shell selection",cmd);
 
-    TCLAP::ValueArg<float> lambdaArg("l","lambda","Lambda regularization parameter (see Descoteaux MRM 2007)",false,0.006,"lambda for regularization",cmd);
+    TCLAP::ValueArg<double> lambdaArg("l","lambda","Lambda regularization parameter (see Descoteaux MRM 2007)",false,0.006,"lambda for regularization",cmd);
     TCLAP::ValueArg<unsigned int> orderArg("k","order","Order of spherical harmonics basis",false,4,"Order of SH basis",cmd);
     
 	TCLAP::ValueArg<double> sharpFactorArg("s","sharpenratio","Ratio for sharpening ODFs (see Descoteaux TMI 2009, default : 0.255)",false,0.255,"sharpening ratio",cmd);
@@ -42,7 +42,7 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
     
-    typedef anima::ODFEstimatorImageFilter <float,float> MainFilterType;
+    typedef anima::ODFEstimatorImageFilter <double, double> MainFilterType;
     typedef MainFilterType::TInputImage InputImageType;
 	
 	MainFilterType::Pointer mainFilter = MainFilterType::New();

@@ -156,8 +156,8 @@ public:
     itkSetMacro(ThirdIsFLAIR, bool)
     itkGetMacro(ThirdIsFLAIR, bool)
 
-    itkSetMacro(Robust, float)
-    itkGetMacro(Robust, float)
+    itkSetMacro(Robust, double)
+    itkGetMacro(Robust, double)
 
 protected:
     HierarchicalInitializer()

@@ -28,7 +28,7 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    typedef itk::Image <float,3> ImageType;
+    typedef itk::Image <double,3> ImageType;
 
     typedef itk::BinaryBallStructuringElement <unsigned short, 3> BallElementType;
     typedef itk::GrayscaleErodeImageFilter <ImageType,ImageType,BallElementType> ErodeFilterType;

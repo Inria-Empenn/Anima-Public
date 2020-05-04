@@ -84,8 +84,8 @@ int main(int ac, const char** av)
 
     std::cout<<"preparing filter...\n";
 
-    typedef itk::VectorImage<float, 3> TensorImageType;
-    typedef itk::Image<float, 3> OutputsImageType;
+    typedef itk::VectorImage<double, 3> TensorImageType;
+    typedef itk::Image<double, 3> OutputsImageType;
 
     typedef anima::DTIScalarMapsImageFilter<3> FilterType;
 

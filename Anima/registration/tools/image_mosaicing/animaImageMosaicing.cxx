@@ -35,7 +35,7 @@ int main(int ac, const char** av)
     }
 
     // Find out the type of the image in file
-    typedef itk::Image <float, 3> ImageType;
+    typedef itk::Image <double, 3> ImageType;
     ImageType::Pointer geometryImage = anima::readImage <ImageType> (geomArg.getValue());
 
     typedef itk::MatrixOffsetTransformBase <double,3> MatrixTransformType;

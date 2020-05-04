@@ -40,7 +40,7 @@ DistortionCorrectionBMRegistrationMethod <TInputImageType>
 
     typedef typename DisplacementFieldTransformType::VectorFieldType VectorFieldType;
     typedef itk::ComposeDisplacementFieldsImageFilter <VectorFieldType,VectorFieldType> ComposeFilterType;
-    typedef itk::MultiplyImageFilter <VectorFieldType,itk::Image <float, InputImageType::ImageDimension>, VectorFieldType> MultiplyFilterType;
+    typedef itk::MultiplyImageFilter <VectorFieldType,itk::Image <double, InputImageType::ImageDimension>, VectorFieldType> MultiplyFilterType;
     typedef typename itk::ImageRegionIterator <VectorFieldType> VectorFieldIterator;
     typedef typename VectorFieldType::PixelType VectorType;
 
@@ -247,7 +247,7 @@ DistortionCorrectionBMRegistrationMethod <TInputImageType>
     typename VectorFieldType::Pointer negativeSVF = const_cast <VectorFieldType *> (tmpTrsf->GetParametersAsVectorField());
     negativeSVF->DisconnectPipeline();
 
-    typedef itk::MultiplyImageFilter <VectorFieldType,itk::Image <float,InputImageType::ImageDimension>,VectorFieldType> MultiplyFilterType;
+    typedef itk::MultiplyImageFilter <VectorFieldType,itk::Image <double,InputImageType::ImageDimension>,VectorFieldType> MultiplyFilterType;
     typedef itk::SubtractImageFilter <VectorFieldType,VectorFieldType,VectorFieldType> SubtractFilterType;
 
     typename SubtractFilterType::Pointer subFilter = SubtractFilterType::New();

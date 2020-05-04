@@ -42,9 +42,9 @@ public:
     typedef typename Superclass::InputImageRegionType InputImageRegionType;
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
-    void SetBValuesList (std::vector <float> bValuesList) {m_BValuesList = bValuesList;}
+    void SetBValuesList (std::vector <double> bValuesList) {m_BValuesList = bValuesList;}
 
-    void AddGradientDirection(unsigned int i, std::vector <float> &grad);
+    void AddGradientDirection(unsigned int i, std::vector <double> &grad);
 
     itkGetMacro(S0Value, double)
     itkSetMacro(S0Value, double)
@@ -75,8 +75,8 @@ protected:
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(DWISimulatorFromDTIImageFilter);
 
-    std::vector <float> m_BValuesList;
-    std::vector< std::vector <float> > m_GradientDirections;
+    std::vector <double> m_BValuesList;
+    std::vector < std::vector <double> > m_GradientDirections;
 
     double m_S0Value;
     S0ImagePointer m_S0Image;

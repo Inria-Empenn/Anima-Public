@@ -41,7 +41,7 @@ public:
     typedef itk::Image <PixelTypeD,3> TSeedProba;
 
     typedef double NumericType;
-    typedef itk::VariableSizeMatrix<NumericType> FloatVariableSizeMatrixType;
+    typedef itk::VariableSizeMatrix<NumericType> doubleVariableSizeMatrixType;
 
     /** The MRI images.*/
     void SetInputImage(unsigned int i, const TInput* image);
@@ -58,7 +58,7 @@ public:
     void SetInputSeedSourcesProba(const TSeedProba* mask);
     void SetInputSeedSinksProba(const TSeedProba* mask);
 
-    void SetMatrix(FloatVariableSizeMatrixType mat){m_Matrix=mat;}
+    void SetMatrix(doubleVariableSizeMatrixType mat){m_Matrix=mat;}
     void SetMatrixGradFilename(std::string mat){m_MatrixGradFilename=mat;}
 
     std::string GetOutputFilename() {return m_OutputFilename;}
@@ -82,17 +82,17 @@ public:
         m_Tol = tol;
     }
 
-    itkSetMacro(Alpha, float)
-    itkGetMacro(Alpha, float)
+    itkSetMacro(Alpha, double)
+    itkGetMacro(Alpha, double)
 
-    itkSetMacro(MultiVarSources, float)
-    itkGetMacro(MultiVarSources, float)
+    itkSetMacro(MultiVarSources, double)
+    itkGetMacro(MultiVarSources, double)
 
-    itkSetMacro(MultiVarSinks, float)
-    itkGetMacro(MultiVarSinks, float)
+    itkSetMacro(MultiVarSinks, double)
+    itkGetMacro(MultiVarSinks, double)
 
-    itkSetMacro(Sigma, float)
-    itkGetMacro(Sigma, float)
+    itkSetMacro(Sigma, double)
+    itkGetMacro(Sigma, double)
 
     itkSetMacro(UseSpectralGradient, bool)
     itkGetMacro(UseSpectralGradient, bool)
@@ -151,7 +151,7 @@ protected:
     TSeedProba::ConstPointer GetInputSeedSourcesProba();
     TSeedProba::ConstPointer GetInputSeedSinksProba();
 
-    FloatVariableSizeMatrixType GetMatrix(void){return m_Matrix;}
+    doubleVariableSizeMatrixType GetMatrix(void){return m_Matrix;}
     std::string GetMatrixGradFilename(void){return m_MatrixGradFilename;}
 
     void GenerateData() ITK_OVERRIDE;
@@ -165,14 +165,14 @@ private:
 
     /** width of the Gaussian kernel to compute n-links
      */
-    float m_Sigma;
+    double m_Sigma;
 
     /** mixing energies parameter
      */
-    float m_Alpha;
+    double m_Alpha;
 
-    float m_MultiVarSources;
-    float m_MultiVarSinks;
+    double m_MultiVarSources;
+    double m_MultiVarSinks;
 
     TLinkMode m_TLinkMode;
 
@@ -180,7 +180,7 @@ private:
     std::string m_OutputBackgroundFilename;
 
     std::string m_MatrixGradFilename;
-    FloatVariableSizeMatrixType m_Matrix;
+    doubleVariableSizeMatrixType m_Matrix;
 
     bool m_Verbose;
 

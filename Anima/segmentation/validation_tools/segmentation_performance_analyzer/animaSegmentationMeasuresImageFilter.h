@@ -174,7 +174,7 @@ protected:
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(SegmentationMeasuresImageFilter);
 
-    float m_fNbOfPixels;
+    double m_fNbOfPixels;
 
     std::vector<MapType> m_LabelSetMeasuresPerThread;
     MapType m_LabelSetMeasures;

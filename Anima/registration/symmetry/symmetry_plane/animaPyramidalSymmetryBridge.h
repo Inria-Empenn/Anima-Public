@@ -17,12 +17,12 @@ enum Metric
 namespace anima
 {
 
-template <class PixelType = float, typename ScalarType = double>
+template <class PixelType = double, typename ScalarType = double>
 class PyramidalSymmetryBridge : public itk::ProcessObject
 {
 public:
     typedef typename itk::Image <PixelType,3> InputImageType;
-    typedef typename itk::Image <float,3> OutputImageType;
+    typedef typename itk::Image <double,3> OutputImageType;
     typedef typename InputImageType::Pointer InputImagePointer;
     typedef typename OutputImageType::Pointer OutputImagePointer;
 
@@ -90,7 +90,7 @@ public:
 
     void SetReferenceImage(InputImagePointer referenceImage) {m_ReferenceImage = referenceImage;}
 
-    void SetFloatingImage(InputImagePointer floatingImage) {m_FloatingImage= floatingImage;}
+    void SetdoubleingImage(InputImagePointer doubleingImage) {m_doubleingImage= doubleingImage;}
 
     void SetProgressCallback(itk::CStyleCommand::Pointer callback ) {m_progressCallback = callback;}
 
@@ -112,10 +112,10 @@ protected:
     PyramidalSymmetryBridge()
     {
         m_ReferenceImage = NULL;
-        m_FloatingImage = NULL;
+        m_doubleingImage = NULL;
 
         m_ReferencePyramid = NULL;
-        m_FloatingPyramid = NULL;
+        m_doubleingPyramid = NULL;
 
         m_OutputTransform = TransformType::New();
         m_OutputTransform->SetIdentity();
@@ -143,8 +143,8 @@ protected:
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(PyramidalSymmetryBridge);
 
-    InputImagePointer m_ReferenceImage, m_FloatingImage;
-    PyramidPointer m_ReferencePyramid, m_FloatingPyramid;
+    InputImagePointer m_ReferenceImage, m_doubleingImage;
+    PyramidPointer m_ReferencePyramid, m_doubleingPyramid;
 
     //Symmetry transform
     TransformPointer m_OutputTransform;

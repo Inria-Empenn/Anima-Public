@@ -33,7 +33,7 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    typedef itk::Image <float,3> ImageType;
+    typedef itk::Image <double,3> ImageType;
     ImageType::Pointer inputImage = anima::readImage <ImageType> (inArg.getValue());
 
     typedef itk::ImageToVTKImageFilter <ImageType> GlueFilterType;

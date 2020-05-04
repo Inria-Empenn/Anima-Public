@@ -89,8 +89,8 @@ public:
     itkSetMacro(Verbose, bool)
     itkGetMacro(Verbose, bool)
 
-    itkSetMacro(Ratio, float)
-    itkGetMacro(Ratio, float)
+    itkSetMacro(Ratio, double)
+    itkGetMacro(Ratio, double)
 
     std::string GetOutputFilename() {return m_OutputFilename;}
     void SetOutputFilename(std::string filename) {m_OutputFilename=filename;}
@@ -124,7 +124,7 @@ private:
     int m_LabelToCheck;
     bool m_Verbose;
     double m_Tol;
-    float m_Ratio;
+    double m_Ratio;
 
 };
 

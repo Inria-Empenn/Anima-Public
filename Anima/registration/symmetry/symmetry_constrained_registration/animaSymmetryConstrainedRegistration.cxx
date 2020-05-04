@@ -44,12 +44,12 @@ int main(int ac, const char** av)
     }
 
     typedef anima::PyramidalSymmetryConstrainedRegistrationBridge <double> BridgeType;
-    typedef itk::Image <float, 3> InputImageType;
+    typedef itk::Image <double, 3> InputImageType;
 
     BridgeType::Pointer matcher = BridgeType::New();
 
     matcher->SetReferenceImage(anima::readImage <InputImageType> (fixedArg.getValue()));
-    matcher->SetFloatingImage(anima::readImage <InputImageType> (movingArg.getValue()));
+    matcher->SetdoubleingImage(anima::readImage <InputImageType> (movingArg.getValue()));
 
     matcher->SetResultFile( outArg.getValue() );
     matcher->SetOutputTransformFile( outputTransformArg.getValue() );
@@ -98,7 +98,7 @@ int main(int ac, const char** av)
     }
     catch (itk::ExceptionObject &e)
     {
-        std::cerr << "Unable to read floating symmetry transform... " << e << std::endl;
+        std::cerr << "Unable to read doubleing symmetry transform... " << e << std::endl;
         return EXIT_FAILURE;
     }
 
