@@ -49,12 +49,12 @@ int main(int argc, char **argv)
 
     bool vectorImage = (imageIO->GetNumberOfComponents() > 1);
 
-    typedef itk::Image <float,3> floatImageType;
-	typedef itk::VectorImage <float,3> VectorImageType;
-    typedef itk::MultiplyImageFilter <floatImageType, floatImageType, floatImageType> MultiplyFilterType;
-    typedef itk::DivideImageFilter <floatImageType, floatImageType, floatImageType> DivideFilterType;
-    typedef itk::MultiplyImageFilter <VectorImageType, floatImageType, VectorImageType> MultiplyVectorFilterType;
-    typedef itk::DivideImageFilter <VectorImageType, floatImageType, VectorImageType> DivideVectorFilterType;
+    typedef itk::Image <double,3> ImageType;
+    typedef itk::VectorImage <double,3> VectorImageType;
+    typedef itk::MultiplyImageFilter <ImageType, ImageType, ImageType> MultiplyFilterType;
+    typedef itk::DivideImageFilter <ImageType, ImageType, ImageType> DivideFilterType;
+    typedef itk::MultiplyImageFilter <VectorImageType, ImageType, VectorImageType> MultiplyVectorFilterType;
+    typedef itk::DivideImageFilter <VectorImageType, ImageType, VectorImageType> DivideVectorFilterType;
 
 	std::ifstream masksIn;
 	if (maskArg.getValue() != "")
@@ -69,8 +69,8 @@ int main(int argc, char **argv)
 	
     if (!vectorImage)
 	{
-		floatImageType::Pointer tmpOutput;
-        floatImageType::Pointer tmpSumMasks;
+        ImageType::Pointer tmpOutput;
+        ImageType::Pointer tmpSumMasks;
 		
 		while (tmpOutput.IsNull())
 		{
@@ -81,7 +81,7 @@ int main(int argc, char **argv)
             if (strcmp(refN,"") == 0)
                 continue;
 			            
-            tmpOutput = anima::readImage <floatImageType> (refN);
+            tmpOutput = anima::readImage <ImageType> (refN);
             double imageWeight = 1.0;
             if (weightsIn.is_open())
                 weightsIn >> imageWeight;
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 
 			if (masksIn.is_open())
             {
-                tmpSumMasks = anima::readImage <floatImageType> (maskN);
+                tmpSumMasks = anima::readImage <ImageType> (maskN);
 
                 MultiplyFilterType::Pointer maskFilter = MultiplyFilterType::New();
                 maskFilter->SetInput1(tmpOutput);
@@ -143,16 +143,16 @@ int main(int argc, char **argv)
 
             std::cout << "Adding image " << refN << " with weight " << imageWeight << "..." << std::endl;
 			
-            floatImageType::Pointer tmpImage = anima::readImage <floatImageType> (refN);
-			itk::ImageRegionIterator <floatImageType> tmpIt(tmpImage,tmpImage->GetLargestPossibleRegion());
-			itk::ImageRegionIterator <floatImageType> resIt(tmpOutput,tmpImage->GetLargestPossibleRegion());
+            ImageType::Pointer tmpImage = anima::readImage <ImageType> (refN);
+            itk::ImageRegionIterator <ImageType> tmpIt(tmpImage,tmpImage->GetLargestPossibleRegion());
+            itk::ImageRegionIterator <ImageType> resIt(tmpOutput,tmpImage->GetLargestPossibleRegion());
 			
 			if (masksIn.is_open())
             {
-                floatImageType::Pointer tmpMask = anima::readImage <floatImageType> (maskN);
+                ImageType::Pointer tmpMask = anima::readImage <ImageType> (maskN);
                 
-                itk::ImageRegionIterator <floatImageType> tmpMaskIt(tmpMask,tmpImage->GetLargestPossibleRegion());
-                itk::ImageRegionIterator <floatImageType> sumMasksIt(tmpSumMasks,tmpImage->GetLargestPossibleRegion());
+                itk::ImageRegionIterator <ImageType> tmpMaskIt(tmpMask,tmpImage->GetLargestPossibleRegion());
+                itk::ImageRegionIterator <ImageType> sumMasksIt(tmpSumMasks,tmpImage->GetLargestPossibleRegion());
 				
 				while (!sumMasksIt.IsAtEnd())
 				{
@@ -198,7 +198,7 @@ int main(int argc, char **argv)
             divideFilter->SetInput2(tmpSumMasks);
             divideFilter->Update();
 
-            typedef itk::MaskImageFilter <floatImageType, floatImageType, floatImageType> MaskFilterType;
+            typedef itk::MaskImageFilter <ImageType, ImageType, ImageType> MaskFilterType;
             MaskFilterType::Pointer maskFilter = MaskFilterType::New();
             maskFilter->SetInput(divideFilter->GetOutput());
             maskFilter->SetMaskImage(tmpSumMasks);
@@ -218,12 +218,12 @@ int main(int argc, char **argv)
             tmpOutput->DisconnectPipeline();
 		}
         
-        anima::writeImage <floatImageType> (outArg.getValue(),tmpOutput);
+        anima::writeImage <ImageType> (outArg.getValue(),tmpOutput);
 	}
 	else // vecArg is activated
 	{		
         VectorImageType::Pointer outputData;
-        floatImageType::Pointer tmpSumMasks;
+        ImageType::Pointer tmpSumMasks;
 		
 		while (outputData.IsNull())
 		{
@@ -256,7 +256,7 @@ int main(int argc, char **argv)
 
             if (masksIn.is_open())
             {
-                tmpSumMasks = anima::readImage <floatImageType> (maskN);
+                tmpSumMasks = anima::readImage <ImageType> (maskN);
 
                 MultiplyVectorFilterType::Pointer maskFilter = MultiplyVectorFilterType::New();
                 maskFilter->SetInput1(outputData);
@@ -303,10 +303,10 @@ int main(int argc, char **argv)
             
 			if (masksIn.is_open())
             {
-                floatImageType::Pointer tmpMask = anima::readImage <floatImageType> (maskN);
+                ImageType::Pointer tmpMask = anima::readImage <ImageType> (maskN);
                 
-                itk::ImageRegionIterator <floatImageType> tmpMaskIt(tmpMask,tmpImage->GetLargestPossibleRegion());
-                itk::ImageRegionIterator <floatImageType> sumMasksIt(tmpSumMasks,tmpImage->GetLargestPossibleRegion());
+                itk::ImageRegionIterator <ImageType> tmpMaskIt(tmpMask,tmpImage->GetLargestPossibleRegion());
+                itk::ImageRegionIterator <ImageType> sumMasksIt(tmpSumMasks,tmpImage->GetLargestPossibleRegion());
 				
 				while (!sumMasksIt.IsAtEnd())
 				{
@@ -352,7 +352,7 @@ int main(int argc, char **argv)
             divideFilter->SetInput2(tmpSumMasks);
             divideFilter->Update();
 
-            typedef itk::MaskImageFilter <VectorImageType, floatImageType, VectorImageType> MaskFilterType;
+            typedef itk::MaskImageFilter <VectorImageType, ImageType, VectorImageType> MaskFilterType;
             MaskFilterType::Pointer maskFilter = MaskFilterType::New();
             maskFilter->SetInput(divideFilter->GetOutput());
             maskFilter->SetMaskImage(tmpSumMasks);
