@@ -57,6 +57,7 @@ public:
 
     ModelOutputVectorType &GetModelVector();
 
+    void SetModelVector(const itk::VariableLengthVector <float> &mcmVec);
     void SetModelVector(const ModelOutputVectorType &mcmVec);
 
     double GetPredictedSignal(double smallDelta, double bigDelta, double gradientStrength, const Vector3DType &gradient);
