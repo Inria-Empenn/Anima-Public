@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <limits>
 
 #include <animaLogExpMapsUnitSphere.h>
 
@@ -283,7 +284,7 @@ FuzzyCMeansFilter <ScalarType>
 
         for (unsigned int i = 1;i < m_NbClass;++i)
         {
-            double minCrossProd = DBL_MAX;
+            double minCrossProd = std::numeric_limits <double>::max();
             unsigned int minIndex = 0;
             for (unsigned int j = 0;j < m_NbInputs;++j)
             {
