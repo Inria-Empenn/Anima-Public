@@ -4,8 +4,6 @@
 #include <itkVectorImage.h>
 #include <itkImage.h>
 
-#include <animaNNLSOptimizer.h>
-
 namespace anima
 {
 
@@ -43,11 +41,6 @@ public:
     typedef typename Superclass::InputImageRegionType InputImageRegionType;
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
-    typedef anima::NNLSOptimizer NNLSOptimizerType;
-    typedef NNLSOptimizerType::Pointer NNLSOptimizerPointer;
-    typedef NNLSOptimizerType::MatrixType DataMatrixType;
-    typedef NNLSOptimizerType::ParametersType T2VectorType;
-
     itkSetMacro(EchoSpacing, double)
 
     void SetT1Map(InputImageType *map) {m_T1Map = map;}
@@ -74,7 +67,7 @@ protected:
     GMMT2RelaxometryEstimationImageFilter()
     : Superclass()
     {
-        // There are 3 outputs: M0, MWF, B1, sigma square
+        // There are 4 outputs: M0, MWF, B1, sigma square
         this->SetNumberOfRequiredOutputs(4);
 
         for (unsigned int i = 0;i < 4;++i)
@@ -106,8 +99,7 @@ protected:
     void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
 
 private:
-    GMMT2RelaxometryEstimationImageFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(GMMT2RelaxometryEstimationImageFilter);
 
     double m_AverageSignalThreshold;
 

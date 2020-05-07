@@ -103,14 +103,11 @@ protected:
         m_T1Value = 1;
         m_EchoSpacing = 1;
         m_GaussianIntegralTolerance = 1.0e-8;
-
-        m_T2IntegrationStep = 1;
     }
 
     virtual ~B1GMMRelaxometryCostFunction() {}
 
     void PrepareDataForLLS() const;
-    void PrepareDataForDerivative() const;
 
     //! Computes maximum likelihood estimates of weights
     void SolveLinearLeastSquares() const;
@@ -125,8 +122,6 @@ private:
 
     double m_ExcitationFlipAngle;
 
-    double m_T2IntegrationStep;
-
     mutable ParametersType m_OptimalT2Weights;
     double m_T1Value;
     std::vector <double> m_GaussianMeans, m_GaussianVariances;
@@ -134,7 +129,6 @@ private:
 
     // Internal working variables, not thread safe but so much faster !
     mutable anima::EPGSignalSimulator m_T2SignalSimulator;
-    mutable anima::EPGSignalSimulator::RealVectorType m_SimulatedSignalValues;
 
     mutable ParametersType m_FSignals;
     mutable ParametersType m_Residuals;

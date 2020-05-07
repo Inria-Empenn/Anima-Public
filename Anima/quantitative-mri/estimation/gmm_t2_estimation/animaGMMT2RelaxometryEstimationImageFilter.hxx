@@ -4,14 +4,12 @@
 #include <itkImageRegionIterator.h>
 #include <itkImageRegionConstIterator.h>
 
-#include <animaEPGSignalSimulator.h>
 #include <animaNLOPTOptimizers.h>
 #include <animaB1GMMRelaxometryCostFunction.h>
 
 #include <fstream>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/math/special_functions/erf.hpp>
 
 namespace anima
 {
@@ -187,19 +185,12 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
     if (m_T1Map)
         t1MapItr = ImageIteratorType(m_T1Map,outputRegionForThread);
 
-    T2VectorType signalValues(numInputs);
-    unsigned int numberOfGaussians = m_GaussianMeans.size();
-    OutputVectorType outputT2Weights(numberOfGaussians);
-
-    anima::EPGSignalSimulator epgSimulator;
-    epgSimulator.SetEchoSpacing(m_EchoSpacing);
-    epgSimulator.SetNumberOfEchoes(numInputs);
-    epgSimulator.SetExcitationFlipAngle(m_T2ExcitationFlipAngle);
-
-    NNLSOptimizerPointer nnlsOpt = NNLSOptimizerType::New();
-
     typedef anima::NLOPTOptimizers B1OptimizerType;
     typedef anima::B1GMMRelaxometryCostFunction B1CostFunctionType;
+
+    B1OptimizerType::ParametersType signalValues(numInputs);
+    unsigned int numberOfGaussians = m_GaussianMeans.size();
+    OutputVectorType outputT2Weights(numberOfGaussians);
     B1OptimizerType::ParametersType t2OptimizedWeights(numberOfGaussians);
 
     typename B1CostFunctionType::Pointer cost = B1CostFunctionType::New();

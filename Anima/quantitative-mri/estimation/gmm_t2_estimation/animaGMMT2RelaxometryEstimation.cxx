@@ -36,7 +36,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> t2FlipAngleArg("","t2-flip","All flip angles for T2 (in degrees, default: 180)",false,180,"T2 flip angle",cmd);
     TCLAP::ValueArg<double> backgroundSignalThresholdArg("t","signal-thr","Background signal threshold (default: 10)",false,10,"Background signal threshold",cmd);
 
-    TCLAP::ValueArg<double> gaussianToleranceApproxArg("","g-tol","Gaussian approximation tolerance (default: 1.0e-6)",false,1.0e-6,"Gaussian approximation tolerance",cmd);
+    TCLAP::ValueArg<double> gaussianToleranceApproxArg("","g-tol","Gaussian approximation tolerance (default: 1.0e-8)",false,1.0e-8,"Gaussian approximation tolerance",cmd);
 
     TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 	
