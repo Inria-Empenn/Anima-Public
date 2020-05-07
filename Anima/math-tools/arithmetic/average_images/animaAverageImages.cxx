@@ -3,6 +3,7 @@
 #include <itkMultiplyImageFilter.h>
 #include <itkDivideImageFilter.h>
 #include <itkMaskImageFilter.h>
+#include <itkCastImageFilter.h>
 
 #include <tclap/CmdLine.h>
 
@@ -49,12 +50,17 @@ int main(int argc, char **argv)
 
     bool vectorImage = (imageIO->GetNumberOfComponents() > 1);
 
-    typedef itk::Image <double,3> ImageType;
-    typedef itk::VectorImage <double,3> VectorImageType;
+    using ImageType = itk::Image <long double, 3>;
+    using SaveImageType = itk::Image <double, 3>;
+    using VectorImageType = itk::VectorImage <long double, 3>;
+    using SaveVectorImageType = itk::VectorImage <double, 3>;
     typedef itk::MultiplyImageFilter <ImageType, ImageType, ImageType> MultiplyFilterType;
     typedef itk::DivideImageFilter <ImageType, ImageType, ImageType> DivideFilterType;
     typedef itk::MultiplyImageFilter <VectorImageType, ImageType, VectorImageType> MultiplyVectorFilterType;
     typedef itk::DivideImageFilter <VectorImageType, ImageType, VectorImageType> DivideVectorFilterType;
+
+    using CastFilterType = itk::CastImageFilter <ImageType, SaveImageType>;
+    using CastVectorFilterType = itk::CastImageFilter <VectorImageType, SaveVectorImageType>;
 
 	std::ifstream masksIn;
 	if (maskArg.getValue() != "")
@@ -217,8 +223,12 @@ int main(int argc, char **argv)
             tmpOutput = divideFilter->GetOutput();
             tmpOutput->DisconnectPipeline();
 		}
+
+        CastFilterType::Pointer castFilter = CastFilterType::New();
+        castFilter->SetInput(tmpOutput);
+        castFilter->Update();
         
-        anima::writeImage <ImageType> (outArg.getValue(),tmpOutput);
+        anima::writeImage <SaveImageType> (outArg.getValue(),castFilter->GetOutput());
 	}
 	else // vecArg is activated
 	{		
@@ -372,7 +382,11 @@ int main(int argc, char **argv)
             outputData->DisconnectPipeline();
         }
         
-        anima::writeImage <VectorImageType> (outArg.getValue(),outputData);
+        CastVectorFilterType::Pointer castFilter = CastVectorFilterType::New();
+        castFilter->SetInput(outputData);
+        castFilter->Update();
+
+        anima::writeImage <SaveVectorImageType> (outArg.getValue(),castFilter->GetOutput());
 	}
 
     imageIn.close();
