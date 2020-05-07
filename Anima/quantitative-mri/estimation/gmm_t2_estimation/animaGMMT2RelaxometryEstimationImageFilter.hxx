@@ -212,7 +212,7 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
     {
         outputT2Weights.Fill(0);
 
-        if ((maskItr.Get() == 0)||(maskItr.GetIndex()[2] != 42))
+        if (maskItr.Get() == 0)
         {
             outWeightsIterator.Set(outputT2Weights);
             outM0Iterator.Set(0);
