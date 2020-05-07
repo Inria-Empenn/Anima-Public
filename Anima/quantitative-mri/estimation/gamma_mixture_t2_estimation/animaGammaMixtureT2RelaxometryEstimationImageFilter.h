@@ -3,10 +3,6 @@
 #include <animaMaskedImageToImageFilter.h>
 #include <itkVectorImage.h>
 #include <itkImage.h>
-#include <vnl/vnl_matrix.h>
-
-#include <animaNNLSOptimizer.h>
-#include <animaNLOPTParametersConstraintFunction.h>
 
 namespace anima
 {
@@ -45,13 +41,6 @@ public:
     typedef typename Superclass::InputImageRegionType InputImageRegionType;
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
-    typedef anima::NNLSOptimizer NNLSOptimizerType;
-    typedef NNLSOptimizerType::Pointer NNLSOptimizerPointer;
-    typedef NNLSOptimizerType::MatrixType DataMatrixType;
-    typedef NNLSOptimizerType::ParametersType T2VectorType;
-
-    itkSetMacro(LowerT2Bound, double)
-    itkSetMacro(UpperT2Bound, double)
     itkSetMacro(EchoSpacing, double)
 
     void SetT1Map(InputImageType *map) {m_T1Map = map;}
@@ -62,14 +51,12 @@ public:
     InputImageType *GetM0OutputImage() {return this->GetOutput(0);}
     InputImageType *GetMWFOutputImage() {return this->GetOutput(1);}
     InputImageType *GetB1OutputImage() {return this->GetOutput(2);}
+    InputImageType *GetSigmaSquareOutputImage() {return this->GetOutput(3);}
     VectorOutputImageType *GetWeightsImage() {return m_WeightsImage;}
     VectorOutputImageType *GetMeanParamImage() {return m_MeanParamImage;}
 
     itkSetMacro(T2ExcitationFlipAngle, double)
-    itkSetMacro(T2IntegrationStep, double)
-
-    itkSetMacro(B1Tolerance, double)
-    itkSetMacro(CostTolerance, double)
+    itkSetMacro(GammaIntegralTolerance, double)
     itkSetMacro(ConstrainedParameters, bool)
 
     void SetT2FlipAngles(std::vector <double> & flipAngles) {m_T2FlipAngles = flipAngles;}
@@ -79,18 +66,15 @@ protected:
     GammaMixtureT2RelaxometryEstimationImageFilter()
         : Superclass()
     {
-        // There are 3 outputs: M0, MWF, B1
-        this->SetNumberOfRequiredOutputs(3);
+        // There are 4 outputs: M0, MWF, B1, sigma square
+        this->SetNumberOfRequiredOutputs(4);
 
-        for (unsigned int i = 0;i < 3;++i)
+        for (unsigned int i = 0;i < 4;++i)
             this->SetNthOutput(i, this->MakeOutput(i));
 
         m_AverageSignalThreshold = 0;
         m_EchoSpacing = 1;
 
-        m_LowerT2Bound = 0;
-        m_UpperT2Bound = 2500;
-        m_T2IntegrationStep = 1.0 / 3;
         m_ConstrainedParameters = false;
 
         m_ShortT2Mean = 30.0;
@@ -106,9 +90,9 @@ protected:
         m_UpperMediumT2 = 125.0;
         m_UpperHighT2 = 2100.0;
 
+        m_GammaIntegralTolerance = 1.0e-8;
+
         m_T2ExcitationFlipAngle = M_PI / 6;
-        m_B1Tolerance = 1.0e-4;
-        m_CostTolerance = 1.0e-4;
     }
 
     virtual ~GammaMixtureT2RelaxometryEstimationImageFilter() {}
@@ -118,17 +102,9 @@ protected:
     void BeforeThreadedGenerateData() ITK_OVERRIDE;
     void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
 
-    void PrepareGammaValues(std::vector < std::vector <double> > &sampledGammaValues, std::vector < std::vector <unsigned int> > &sampledGammaT2Correspondences,
-                            std::vector <double> &t2WorkingValues, std::vector <double> &optimizedGamParams, std::vector <double> &gammaVariance);
-
-    bool endConditionReached(double b1Value, double previousB1Value, double costValue, double previousCostValue);
-
 private:
-    GammaMixtureT2RelaxometryEstimationImageFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(GammaMixtureT2RelaxometryEstimationImageFilter);
 
-    double m_LowerT2Bound;
-    double m_UpperT2Bound;
     double m_AverageSignalThreshold;
 
     // Gamma PDF params for short and high T2
@@ -144,10 +120,8 @@ private:
 
     // T1 relaxometry specific values
     InputImagePointer m_T1Map;
-    InputImagePointer m_InitialT2Map;
-    InputImagePointer m_InitialM0Map;
 
-    double m_T2IntegrationStep;
+    double m_GammaIntegralTolerance;
     bool m_ConstrainedParameters;
 
     // Additional result images
@@ -158,9 +132,6 @@ private:
     double m_EchoSpacing;
     std::vector <double> m_T2FlipAngles;
     double m_T2ExcitationFlipAngle;
-
-    double m_B1Tolerance;
-    double m_CostTolerance;
 };
 
 } // end namespace anima

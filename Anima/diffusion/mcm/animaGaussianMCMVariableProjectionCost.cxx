@@ -245,7 +245,8 @@ GaussianMCMVariableProjectionCost::PrepareDataForDerivative()
                 ++posK;
             }
 
-            m_FMatrixInverseG.put(i,j,fInvGValue);        }
+            m_FMatrixInverseG.put(i,j,fInvGValue);
+        }
     }
 
     for (unsigned int i = 0;i < nbValues;++i)
@@ -341,7 +342,7 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
     bool problem = false;
     for (unsigned int i = 0;i < nbParams;++i)
     {
-        if (!boost::math::isfinite(derivative.get(0,i)))
+        if (!std::isfinite(derivative.get(0,i)))
         {
             problem = true;
             break;

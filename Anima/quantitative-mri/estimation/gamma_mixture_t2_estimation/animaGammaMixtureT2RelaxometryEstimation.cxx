@@ -33,6 +33,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> resM0Arg("","out-m0","Result M0 image",false,"","result M0 image",cmd);
     TCLAP::ValueArg<std::string> resMWFArg("o","out-mwf","Result MWF image",true,"","result MWF image",cmd);
     TCLAP::ValueArg<std::string> resB1Arg("","out-b1","Result B1 image",false,"","result B1 image",cmd);
+    TCLAP::ValueArg<std::string> resSigmaSqArg("","out-sig","Result sigma square image",false,"","result sigma square image",cmd);
     TCLAP::ValueArg<std::string> resMeanParamArg("","mean-param","Result mean parameter image",false,"","result mean parameter image",cmd);
 
     TCLAP::ValueArg<double> echoSpacingArg("e","echo-spacing","Spacing between two successive echoes (default: 10)",false,10,"Spacing between echoes",cmd);
@@ -40,12 +41,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> t2FlipAngleArg("","t2-flip","All flip angles for T2 (in degrees, default: 180)",false,180,"T2 flip angle",cmd);
     TCLAP::ValueArg<double> backgroundSignalThresholdArg("t","signal-thr","Background signal threshold (default: 10)",false,10,"Background signal threshold",cmd);
 
-    TCLAP::ValueArg<double> t2IntegrationStepArg("","t2-int","T2 distribution integration step (default: 1)",false,1.0,"T2 integration step",cmd);
-    TCLAP::ValueArg<double> t2LowerBoundArg("","low-t2","Lower T2 value (default: 0)",false,0,"T2 lower value",cmd);
-    TCLAP::ValueArg<double> t2UpperBoundArg("","up-t2","Upper T2 value (default: 3000)",false,3000,"T2 upper value",cmd);
-
-    TCLAP::ValueArg<double> b1ToleranceArg("","b1-tol","B1 tolerance threshold of convergence (default: 1.0e-4)",false,1.0e-4,"B1 tolerance for optimization convergence",cmd);
-    TCLAP::ValueArg<double> costToleranceArg("c","cost-tol","Cost tolerance threshold of convergence (default: 1.0e-4)",false,1.0e-4,"Cost tolerance for optimization convergence",cmd);
+    TCLAP::ValueArg<double> gammaToleranceApproxArg("","g-tol","Gamma approximation tolerance (default: 1.0e-8)",false,1.0e-8,"Gamma approximation tolerance",cmd);
 
     TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 	
@@ -73,13 +69,9 @@ int main(int argc, char **argv)
     mainFilter->SetEchoSpacing(echoSpacingArg.getValue());
     mainFilter->SetT2FlipAngles(t2FlipAngleArg.getValue() * M_PI / 180.0,numInputs);
     mainFilter->SetT2ExcitationFlipAngle(excitationT2FlipAngleArg.getValue() * M_PI / 180.0);
-    mainFilter->SetB1Tolerance(b1ToleranceArg.getValue());
-    mainFilter->SetCostTolerance(costToleranceArg.getValue());
-    mainFilter->SetConstrainedParameters(constrainArg.isSet());
 
-    mainFilter->SetLowerT2Bound(t2LowerBoundArg.getValue());
-    mainFilter->SetUpperT2Bound(t2UpperBoundArg.getValue());
-    mainFilter->SetT2IntegrationStep(t2IntegrationStepArg.getValue());
+    mainFilter->SetGammaIntegralTolerance(gammaToleranceApproxArg.getValue());
+    mainFilter->SetConstrainedParameters(constrainArg.isSet());
 
     if (t1MapArg.getValue() != "")
     {
@@ -136,6 +128,9 @@ int main(int argc, char **argv)
 
     if (resB1Arg.getValue() != "")
         anima::writeImage<OutputImageType> (resB1Arg.getValue(),mainFilter->GetB1OutputImage());
+
+    if (resSigmaSqArg.getValue() != "")
+        anima::writeImage<OutputImageType> (resSigmaSqArg.getValue(),mainFilter->GetSigmaSquareOutputImage());
 
     return EXIT_SUCCESS;
 }

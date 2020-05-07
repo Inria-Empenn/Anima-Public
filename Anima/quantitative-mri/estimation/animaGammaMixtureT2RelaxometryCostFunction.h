@@ -1,17 +1,84 @@
+#pragma once
+
+#include "AnimaRelaxometryExport.h"
+
 #include <vector>
 #include <itkSingleValuedCostFunction.h>
 #include <vnl/vnl_matrix.h>
 
-#include "AnimaRelaxometryExport.h"
+#include <animaEPGSignalSimulator.h>
+#include <animaCholeskyDecomposition.h>
+#include <animaNNLSOptimizer.h>
 
 namespace anima
 {
-class ANIMARELAXOMETRY_EXPORT GammaMixtureT2RelaxometryCostFunction :
+
+/**
+ * \class B1GammaDistributionIntegrand
+ * @brief Integrand to compute the internal integral per distribution in B1GammaMixtureT2RelaxometryCostFunction
+ */
+class B1GammaDistributionIntegrand
+{
+public:
+    using EPGVectorsMapType = std::map <double, anima::EPGSignalSimulator::RealVectorType>;
+    B1GammaDistributionIntegrand(anima::EPGSignalSimulator &sigSim, EPGVectorsMapType &val)
+        : m_EPGSimulator(sigSim), m_EPGVectors (val) {}
+
+    void SetT1Value(double val) {m_T1Value = val;}
+    void SetFlipAngle(double val) {m_FlipAngle = val;}
+    void SetEchoNumber(unsigned int val) {m_EchoNumber = val;}
+
+    void SetGammaMean(double val) {m_GammaMean = val;}
+    void SetGammaVariance(double val) {m_GammaVariance = val;}
+
+    virtual double operator() (const double t);
+
+protected:
+    //! EPG signal simulator reference: instantiated outside
+    anima::EPGSignalSimulator &m_EPGSimulator;
+
+    double m_T1Value;
+    double m_FlipAngle;
+    unsigned int m_EchoNumber;
+
+    //! Since boost Gauss Legendre integration works on object copies, we need to keep a reference to EPG vectors, held externally
+    EPGVectorsMapType &m_EPGVectors;
+
+    double m_GammaMean, m_GammaVariance;
+};
+
+/**
+ * \class B1GammaDistributionIntegrand
+ * @brief Integrand to compute the internal derivative integral per distribution in B1GammaMixtureT2RelaxometryCostFunction
+ */
+
+class B1GammaDerivativeDistributionIntegrand : public B1GammaDistributionIntegrand
+{
+public:
+    using Superclass = B1GammaDistributionIntegrand;
+    B1GammaDerivativeDistributionIntegrand(anima::EPGSignalSimulator &sigSim, EPGVectorsMapType &val, EPGVectorsMapType &derVal)
+        : B1GammaDistributionIntegrand(sigSim,val), m_DerivativeEPGVectors(derVal)
+    {
+        m_B1DerivativeFlag = true;
+    }
+
+    void SetB1DerivativeFlag(bool val) {m_B1DerivativeFlag = val;}
+
+    virtual double operator() (const double t) ITK_OVERRIDE;
+
+private:
+    //! Since boost Gauss Legendre integration works on object copies, we need to keep a reference to EPG derivative vectors, held externally
+    EPGVectorsMapType &m_DerivativeEPGVectors;
+
+    bool m_B1DerivativeFlag;
+};
+
+class ANIMARELAXOMETRY_EXPORT B1GammaMixtureT2RelaxometryCostFunction :
         public itk::SingleValuedCostFunction
 {
 public:
     /** Standard class typedefs. */
-    typedef GammaMixtureT2RelaxometryCostFunction Self;
+    typedef B1GammaMixtureT2RelaxometryCostFunction Self;
     typedef SingleValuedCostFunction Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self> ConstPointer;
@@ -19,66 +86,92 @@ public:
     itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(GammaMixtureT2RelaxometryCostFunction, SingleValuedCostFunction)
+    itkTypeMacro(B1GammaMixtureT2RelaxometryCostFunction, SingleValuedCostFunction)
 
     typedef Superclass::MeasureType    MeasureType;
     typedef Superclass::DerivativeType DerivativeType;
+    typedef vnl_matrix <double> MatrixType;
     typedef Superclass::ParametersType ParametersType;
 
     /**
      * The measure type shall be used for computing the cost function value to observe convergence
-     * Parameters are set as {theta_1,theta_2,theta_3} for unconstrained estimation
-     * Or {theta_2} for constrained
+     * Parameters are set as {flip_angle,theta_1,theta_2,theta_3} for unconstrained estimation
+     * Or {flip_angle,theta_2} for constrained
      */
     virtual MeasureType GetValue(const ParametersType & parameters) const ITK_OVERRIDE;
     virtual void GetDerivative(const ParametersType & parameters, DerivativeType & derivative) const ITK_OVERRIDE;
 
-    itkSetMacro(NEchoes,int)
-    itkSetMacro(NumSteps, unsigned int)
+    itkSetMacro(EchoSpacing, double)
+    itkSetMacro(ExcitationFlipAngle, double)
 
-    void SetMeanParam(std::vector <double> &input) {m_MeanParam = input;}
-    void SetVarParam(std::vector <double> &input) {m_VarParam = input;}
+    void SetT2RelaxometrySignals(ParametersType &relaxoSignals) {m_T2RelaxometrySignals = relaxoSignals;}
 
-    void SetT2WorkingValues(std::vector <double> &input) {m_T2WorkingValues = input;}
-    void SetEPGSignalValues(std::vector < std::vector <double> > &input) {m_EPGSignalValues = input;}
-    void SetSignalValues(std::vector <double> &input) {m_SignalValues = input;}
+    itkSetMacro(T1Value, double)
+    void SetGammaMeans(std::vector <double> &val) {m_GammaMeans = val;}
+    void SetGammaVariances(std::vector <double> &val) {m_GammaVariances = val;}
+
+    itkSetMacro(GammaIntegralTolerance, double)
+    itkSetMacro(ConstrainedParameters, bool)
 
     unsigned int GetNumberOfParameters() const ITK_OVERRIDE
     {
         if (m_ConstrainedParameters)
-            return 1;
+            return 2;
         else
-            return 3;
+            return 4;
     }
 
-    itkSetMacro(ConstrainedParameters, bool)
-
-    vnl_matrix <double> &GetLambda_pinv() {return m_Lambda_pinv;}
+    itkGetMacro(SigmaSquare, double)
+    ParametersType &GetOptimalT2Weights() {return m_OptimalT2Weights;}
 
 protected:
-    GammaMixtureT2RelaxometryCostFunction();
-    virtual ~GammaMixtureT2RelaxometryCostFunction() {}
+    B1GammaMixtureT2RelaxometryCostFunction()
+    {
+            m_NNLSBordersOptimizer = anima::NNLSOptimizer::New();
+
+            m_T1Value = 1;
+            m_EchoSpacing = 1;
+    }
+
+    virtual ~B1GammaMixtureT2RelaxometryCostFunction() {}
+
+    void PrepareDataForLLS() const;
+    void PrepareDataForDerivative() const;
+
+    //! Computes maximum likelihood estimates of weights
+    void SolveLinearLeastSquares() const;
 
 private:
-    unsigned int m_NEchoes;
+    ITK_DISALLOW_COPY_AND_ASSIGN(B1GammaMixtureT2RelaxometryCostFunction);
 
+    double m_EchoSpacing;
+
+    ParametersType m_T2RelaxometrySignals;
+    mutable ParametersType m_TestedParameters;
     bool m_ConstrainedParameters;
 
-    std::vector < std::vector <double> > m_EPGSignalValues;
-    std::vector<double> m_T2WorkingValues;
-    unsigned int m_NumSteps;
-    std::vector<double> m_SignalValues;
-    std::vector<double> m_VarParam;
+    double m_ExcitationFlipAngle;
 
-    mutable std::vector <double> m_MeanParam;
-    mutable vnl_matrix <double> m_OrthoProjLambda; // --> (I - L * pinv(L)) {where I-->Identity Matrix}, i.e. Orthogonal Projection of Lambda
-    mutable vnl_matrix <double> m_Lambda;
-    mutable vnl_matrix <double> m_Lambda_pinv;
-    mutable vnl_vector <double> m_CostFunctionVec;
+    mutable ParametersType m_OptimalT2Weights;
+    double m_T1Value;
 
-    // Internal work variables for derivative
-    mutable vnl_matrix <double> m_Partial_Derivative, m_Jacobian_Update;
-    mutable vnl_matrix <double> m_DerivativeProduct;
+    mutable std::vector <double> m_GammaMeans, m_GammaVariances;
+    double m_GammaIntegralTolerance;
+
+    // Internal working variables, not thread safe but so much faster !
+    mutable anima::EPGSignalSimulator m_T2SignalSimulator;
+
+    mutable ParametersType m_FSignals;
+    mutable ParametersType m_Residuals;
+    mutable vnl_matrix <double> m_PredictedSignalAttenuations, m_CholeskyMatrix;
+    mutable double m_SigmaSquare;
+
+    mutable std::vector <MatrixType> m_SignalAttenuationsJacobian;
+    mutable MatrixType m_GramMatrix, m_InverseGramMatrix, m_FMatrixInverseG;
+    mutable std::vector <bool> m_CompartmentSwitches;
+
+    mutable anima::NNLSOptimizer::Pointer m_NNLSBordersOptimizer;
+    mutable anima::CholeskyDecomposition m_CholeskySolver;
 };
 
-}
+} // end namespace anima
