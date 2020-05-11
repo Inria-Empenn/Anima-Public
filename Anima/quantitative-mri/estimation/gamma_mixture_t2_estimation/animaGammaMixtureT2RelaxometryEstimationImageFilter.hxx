@@ -183,7 +183,7 @@ GammaMixtureT2RelaxometryEstimationImageFilter <TPixelScalarType>
             outMeanParamsIterator.Set(outputMeanParams);
             outM0Iterator.Set(0);
             outMWFIterator.Set(0.0);
-            outB1Iterator.Set(0.0);
+            outB1Iterator.Set(1.0);
             outSigmaSqIterator.Set(0.0);
 
             ++maskItr;

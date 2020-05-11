@@ -17,7 +17,7 @@ namespace anima
  * \class B1GammaDistributionIntegrand
  * @brief Integrand to compute the internal integral per distribution in B1GammaMixtureT2RelaxometryCostFunction
  */
-class B1GammaDistributionIntegrand
+class ANIMARELAXOMETRY_EXPORT B1GammaDistributionIntegrand
 {
 public:
     using EPGVectorsMapType = std::map <double, anima::EPGSignalSimulator::RealVectorType>;
@@ -52,7 +52,7 @@ protected:
  * @brief Integrand to compute the internal derivative integral per distribution in B1GammaMixtureT2RelaxometryCostFunction
  */
 
-class B1GammaDerivativeDistributionIntegrand : public B1GammaDistributionIntegrand
+class ANIMARELAXOMETRY_EXPORT B1GammaDerivativeDistributionIntegrand : public B1GammaDistributionIntegrand
 {
 public:
     using Superclass = B1GammaDistributionIntegrand;

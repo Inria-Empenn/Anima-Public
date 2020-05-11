@@ -217,7 +217,7 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
             outWeightsIterator.Set(outputT2Weights);
             outM0Iterator.Set(0);
             outMWFIterator.Set(0.0);
-            outB1Iterator.Set(0.0);
+            outB1Iterator.Set(1.0);
             outSigmaSqIterator.Set(0.0);
 
             ++maskItr;

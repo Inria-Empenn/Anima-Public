@@ -17,7 +17,7 @@ namespace anima
  * \class B1GMMDistributionIntegrand
  * @brief Integrand to compute the internal integral per distribution in B1GMMRelaxometryCostFunction
  */
-class B1GMMDistributionIntegrand
+class ANIMARELAXOMETRY_EXPORT B1GMMDistributionIntegrand
 {
 public:
     using EPGVectorsMapType = std::map <double, anima::EPGSignalSimulator::RealVectorType>;

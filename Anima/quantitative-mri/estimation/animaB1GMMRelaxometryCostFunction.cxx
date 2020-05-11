@@ -1,8 +1,8 @@
 #include <animaB1GMMRelaxometryCostFunction.h>
 #include <animaBaseTensorTools.h>
+#include <animaGaussLaguerreQuadrature.h>
 
 #include <boost/math/special_functions/erf.hpp>
-#include <boost/math/quadrature/gauss.hpp>
 
 namespace anima
 {
@@ -57,21 +57,29 @@ B1GMMRelaxometryCostFunction::PrepareDataForLLS() const
     t2Integrand.SetT1Value(m_T1Value);
     t2Integrand.SetFlipAngle(m_TestedParameters[0]);
 
+    anima::GaussLaguerreQuadrature glQuad;
+
     for (unsigned int i = 0;i < numDistributions;++i)
     {
         t2Integrand.SetGaussianMean(m_GaussianMeans[i]);
         t2Integrand.SetGaussianVariance(m_GaussianVariances[i]);
         epgVectors.clear();
 
-        double widthGaussianApproximation = boost::math::erf_inv(1.0 - m_GaussianIntegralTolerance) * std::sqrt(2.0);
+        double minInterestZoneValue = std::max(0.0, m_GaussianMeans[i] - 5.0 * std::sqrt(m_GaussianVariances[i]));
+        double theoreticalMinValue = m_GaussianMeans[i] - i * std::sqrt(m_GaussianVariances[i]);
+        double maxInterestZoneValue = m_GaussianMeans[i] + 5.0 * std::sqrt(m_GaussianVariances[i]);
+        if (theoreticalMinValue < 0.0)
+            maxInterestZoneValue -= theoreticalMinValue;
 
-        double minValue = std::max(1.0e-8, m_GaussianMeans[i] - widthGaussianApproximation * std::sqrt(m_GaussianVariances[i]));
-        double maxValue = m_GaussianMeans[i] + widthGaussianApproximation * std::sqrt(m_GaussianVariances[i]);
+        glQuad.SetInterestZone(minInterestZoneValue, maxInterestZoneValue);
+
+        double truncationAbscissa = 2.0 * m_GaussianMeans[i];
+        double truncatedGaussianIntegral = 0.5 * (1.0 + boost::math::erf((truncationAbscissa - m_GaussianMeans[i]) / (std::sqrt(2.0 * m_GaussianVariances[i]))));
 
         for (unsigned int j = 0;j < numT2Signals;++j)
         {
             t2Integrand.SetEchoNumber(j);
-            m_PredictedSignalAttenuations(j,i) = boost::math::quadrature::gauss<double, 15>::integrate(t2Integrand,minValue,maxValue);
+            m_PredictedSignalAttenuations(j,i) = glQuad.GetIntegralValue(t2Integrand) / truncatedGaussianIntegral;
         }
     }
 

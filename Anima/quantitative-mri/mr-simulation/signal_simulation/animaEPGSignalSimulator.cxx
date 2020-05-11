@@ -91,8 +91,13 @@ EPGSignalSimulator::RealVectorType &EPGSignalSimulator::GetValue(double t1Value,
 void EPGSignalSimulator::ComputeT2SignalMatrixElements(double t1Value, double t2Value,
                                                        double flipAngle)
 {
-    double espT2Value = std::exp(- m_EchoSpacing / (2 * t2Value));
-    double espT1Value = std::exp(- m_EchoSpacing / (2 * t1Value));
+    double espT2Value = 0.0;
+    if (t2Value != 0.0)
+        espT2Value = std::exp(- m_EchoSpacing / (2 * t2Value));
+
+    double espT1Value = 0.0;
+    if (t1Value != 0.0)
+        espT1Value = std::exp(- m_EchoSpacing / (2 * t1Value));
 
     double cosB1alpha = std::cos(flipAngle);
     double cosB1alpha2 = std::cos(flipAngle / 2.0);
