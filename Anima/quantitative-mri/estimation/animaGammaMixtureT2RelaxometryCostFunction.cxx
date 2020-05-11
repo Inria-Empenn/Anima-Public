@@ -9,7 +9,7 @@
 namespace anima
 {
 
-double B1GammaDistributionIntegrand::operator() (const double t)
+double B1GammaDistributionIntegrand::operator() (double const t)
 {
     if (m_EPGVectors.find(t) == m_EPGVectors.end())
         m_EPGVectors.insert(std::make_pair(t,m_EPGSimulator.GetValue(m_T1Value, t, m_FlipAngle, 1.0)));
@@ -22,7 +22,7 @@ double B1GammaDistributionIntegrand::operator() (const double t)
     return m_EPGVectors[t][m_EchoNumber] * gammaValue;
 }
 
-double B1GammaDerivativeDistributionIntegrand::operator() (const double t)
+double B1GammaDerivativeDistributionIntegrand::operator() (double const t)
 {
     if ((m_EPGVectors.find(t) == m_EPGVectors.end())||(m_B1DerivativeFlag && (m_EPGVectors.find(t) == m_EPGVectors.end())))
     {
