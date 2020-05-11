@@ -7,7 +7,7 @@
 namespace anima
 {
 
-double B1GMMDistributionIntegrand::operator() (const double t)
+double B1GMMDistributionIntegrand::operator() (double const t)
 {
     if (m_EPGVectors.find(t) == m_EPGVectors.end())
         m_EPGVectors.insert(std::make_pair(t,m_EPGSimulator.GetValue(m_T1Value, t, m_FlipAngle, 1.0)));

@@ -31,7 +31,7 @@ public:
     void SetGammaMean(double val) {m_GammaMean = val;}
     void SetGammaVariance(double val) {m_GammaVariance = val;}
 
-    virtual double operator() (const double t);
+    virtual double operator() (double const t);
 
 protected:
     //! EPG signal simulator reference: instantiated outside
@@ -64,7 +64,7 @@ public:
 
     void SetB1DerivativeFlag(bool val) {m_B1DerivativeFlag = val;}
 
-    virtual double operator() (const double t) ITK_OVERRIDE;
+    virtual double operator() (double const t) ITK_OVERRIDE;
 
 private:
     //! Since boost Gauss Legendre integration works on object copies, we need to keep a reference to EPG derivative vectors, held externally

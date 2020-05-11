@@ -31,7 +31,7 @@ public:
     void SetGaussianMean(double val) {m_GaussianMean = val;}
     void SetGaussianVariance(double val) {m_GaussianVariance = val;}
 
-    double operator() (const double t);
+    double operator() (double const t);
 
 private:
     //! EPG signal simulator reference: instantiated outside
