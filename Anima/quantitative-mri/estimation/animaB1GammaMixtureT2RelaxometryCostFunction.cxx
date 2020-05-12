@@ -1,58 +1,13 @@
-#include "animaGammaMixtureT2RelaxometryCostFunction.h"
+#include "animaB1GammaMixtureT2RelaxometryCostFunction.h"
 
 #include <animaBaseTensorTools.h>
-
-#include <boost/math/distributions/gamma.hpp>
-#include <boost/math/special_functions/polygamma.hpp>
 #include <animaGaussLaguerreQuadrature.h>
+
+#include <animaB1GammaDistributionIntegrand.h>
+#include <animaB1GammaDerivativeDistributionIntegrand.h>
 
 namespace anima
 {
-
-double B1GammaDistributionIntegrand::operator() (double const t)
-{
-    if (m_EPGVectors.find(t) == m_EPGVectors.end())
-        m_EPGVectors.insert(std::make_pair(t,m_EPGSimulator.GetValue(m_T1Value, t, m_FlipAngle, 1.0)));
-
-    double shape = m_GammaMean * m_GammaMean / m_GammaVariance;
-    double scale = m_GammaVariance / m_GammaMean;
-
-    double gammaValue = boost::math::gamma_p_derivative(shape, t / scale) / scale;
-
-    return m_EPGVectors[t][m_EchoNumber] * gammaValue;
-}
-
-double B1GammaDerivativeDistributionIntegrand::operator() (double const t)
-{
-    if ((m_EPGVectors.find(t) == m_EPGVectors.end())||(m_B1DerivativeFlag && (m_EPGVectors.find(t) == m_EPGVectors.end())))
-    {
-        m_EPGVectors.insert(std::make_pair(t,m_EPGSimulator.GetValue(m_T1Value, t, m_FlipAngle, 1.0)));
-        if (m_B1DerivativeFlag)
-            m_DerivativeEPGVectors.insert(std::make_pair(t,m_EPGSimulator.GetFADerivative()));
-    }
-
-    if (m_B1DerivativeFlag)
-    {
-        // Derivative against flip angle parameter
-        double shape = m_GammaMean * m_GammaMean / m_GammaVariance;
-        double scale = m_GammaVariance / m_GammaMean;
-
-        double gammaValue = boost::math::gamma_p_derivative(shape, t / scale) / scale;
-
-        return m_DerivativeEPGVectors[t][m_EchoNumber] * gammaValue;
-    }
-    else
-    {
-        // Derivative against mean parameter of gamma distribution
-        double shape = m_GammaMean * m_GammaMean / m_GammaVariance;
-        double scale = m_GammaVariance / m_GammaMean;
-
-        double internalTerm = (2.0 * std::log(t / scale) - 2.0 * boost::math::digamma(shape) + 1.0) / scale - t / m_GammaVariance;
-        double derivativeGammaValue = internalTerm * boost::math::gamma_p_derivative(shape, t / scale) / scale;
-
-        return m_EPGVectors[t][m_EchoNumber] * derivativeGammaValue;
-    }
-}
 
 B1GammaMixtureT2RelaxometryCostFunction::MeasureType
 B1GammaMixtureT2RelaxometryCostFunction::GetValue(const ParametersType & parameters) const

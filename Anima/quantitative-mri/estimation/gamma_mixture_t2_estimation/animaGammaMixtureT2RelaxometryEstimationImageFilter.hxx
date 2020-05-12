@@ -5,7 +5,7 @@
 #include <itkImageRegionConstIterator.h>
 
 #include <animaNLOPTOptimizers.h>
-#include <animaGammaMixtureT2RelaxometryCostFunction.h>
+#include <animaB1GammaMixtureT2RelaxometryCostFunction.h>
 
 namespace anima
 {
