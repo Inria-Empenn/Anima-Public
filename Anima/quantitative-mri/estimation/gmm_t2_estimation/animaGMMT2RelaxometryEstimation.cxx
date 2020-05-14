@@ -36,10 +36,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> t2FlipAngleArg("","t2-flip","All flip angles for T2 (in degrees, default: 180)",false,180,"T2 flip angle",cmd);
     TCLAP::ValueArg<double> backgroundSignalThresholdArg("t","signal-thr","Background signal threshold (default: 10)",false,10,"Background signal threshold",cmd);
 
-    TCLAP::ValueArg<double> t2IntegrationStepArg("","t2-int","T2 distribution integration step (default: 1)",false,1.0,"T2 integration step",cmd);
-    TCLAP::ValueArg<double> t2LowerBoundArg("","low-t2","Lower T2 value (default: 1.0e-4)",false,1.0e-4,"T2 lower value",cmd);
-    TCLAP::ValueArg<double> t2UpperBoundArg("","up-t2","Upper T2 value (default: 4000)",false,4000,"T2 upper value",cmd);
-    TCLAP::ValueArg<double> gaussianToleranceApproxArg("","g-tol","Gaussian approximation tolerance (default: 1.0e-6)",false,1.0e-6,"Gaussian approximation tolerance",cmd);
+    TCLAP::ValueArg<double> gaussianToleranceApproxArg("","g-tol","Gaussian approximation tolerance (default: 1.0e-8)",false,1.0e-8,"Gaussian approximation tolerance",cmd);
 
     TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 	
@@ -68,9 +65,6 @@ int main(int argc, char **argv)
     mainFilter->SetT2FlipAngles(t2FlipAngleArg.getValue() * M_PI / 180.0,numInputs);
     mainFilter->SetT2ExcitationFlipAngle(excitationT2FlipAngleArg.getValue() * M_PI / 180.0);
 
-    mainFilter->SetLowerT2Bound(t2LowerBoundArg.getValue());
-    mainFilter->SetUpperT2Bound(t2UpperBoundArg.getValue());
-    mainFilter->SetT2IntegrationStep(t2IntegrationStepArg.getValue());
     mainFilter->SetGaussianIntegralTolerance(gaussianToleranceApproxArg.getValue());
 
     if (gaussMeansArg.getValue() != "")

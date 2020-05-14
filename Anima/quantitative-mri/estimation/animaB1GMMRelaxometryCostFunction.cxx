@@ -1,9 +1,13 @@
 #include <animaB1GMMRelaxometryCostFunction.h>
+#include <animaB1GMMDistributionIntegrand.h>
 #include <animaBaseTensorTools.h>
+#include <animaGaussLaguerreQuadrature.h>
+
+#include <boost/math/special_functions/erf.hpp>
 
 namespace anima
 {
-    
+
 B1GMMRelaxometryCostFunction::MeasureType
 B1GMMRelaxometryCostFunction::GetValue(const ParametersType & parameters) const
 {
@@ -23,116 +27,50 @@ void
 B1GMMRelaxometryCostFunction::GetDerivative(const ParametersType &parameters,
                                             DerivativeType &derivative) const
 {
-    unsigned int nbValues = m_T2RelaxometrySignals.size();
-    unsigned int numDistributions = m_T2DistributionSamples.size();
-
-    this->PrepareDataForDerivative();
-    unsigned int numOnDistributions = m_GramMatrix.rows();
-
-    // Assume get derivative is called with the same parameters as GetValue just before
-    if (m_TestedParameters[0] != parameters[0])
-    {
-        std::cerr << parameters << std::endl;
-        itkExceptionMacro("Get derivative not called with the same parameters as GetValue, suggestive of NaN...");
-    }
-
-    derivative.SetSize(nbValues);
-    derivative.Fill(0.0);
-
-    std::vector <double> DFw(nbValues,0.0);
-    std::vector <double> tmpVec(numOnDistributions,0.0);
-
-    // First, compute DFw = DF w
-    std::fill(DFw.begin(),DFw.end(),0.0);
-    for (unsigned int i = 0;i < nbValues;++i)
-    {
-        DFw[i] = 0.0;
-        for (unsigned int j = 0;j < numDistributions;++j)
-            DFw[i] += m_SignalAttenuationsJacobian(i,j) * m_OptimalT2Weights[j];
-    }
-
-    // Then, compute tmpVec = F^T DF w - (DF)^T Residuals
-    unsigned int pos = 0;
-    for (unsigned int j = 0;j < numDistributions;++j)
-    {
-        if (!m_CompartmentSwitches[j])
-            continue;
-
-        tmpVec[pos] = 0.0;
-
-        for (unsigned int i = 0;i < nbValues;++i)
-            tmpVec[pos] += m_PredictedSignalAttenuations(i,j) * DFw[i] - m_SignalAttenuationsJacobian(i,j) * m_Residuals[i];
-
-        ++pos;
-    }
-
-    // Finally, get derivative = FMatrixInverseG tmpVec - DFw
-    for (unsigned int i = 0;i < nbValues;++i)
-    {
-        derivative[i] = - DFw[i];
-
-        for (unsigned int j = 0;j < numOnDistributions;++j)
-            derivative[i] += m_FMatrixInverseG(i,j) * tmpVec[j];
-    }
-
-    for (unsigned int i = 0;i < nbValues;++i)
-    {
-        if (!std::isfinite(derivative[i]))
-        {
-            std::cerr << "Derivative: " << derivative << std::endl;
-            std::cerr << "Optimal weights: " << m_OptimalT2Weights << std::endl;
-            std::cerr << "Gram matrix: " << m_GramMatrix << std::endl;
-            std::cerr << "Residuals: " << m_Residuals << std::endl;
-
-            std::cerr << "Params: " << parameters << std::endl;
-            itkExceptionMacro("Non finite derivative");
-        }
-    }
-
-    double outputDerivative = 0.0;
-    for (unsigned int i = 0;i < nbValues;++i)
-        outputDerivative += m_Residuals[i] * derivative[i];
-
-    outputDerivative *= 2.0 / nbValues;
-
-    derivative.set_size(1);
-    derivative[0] = outputDerivative;
+    itkExceptionMacro("Derivative not handled here. Too much work worth nothing.")
 }
 
 void
 B1GMMRelaxometryCostFunction::PrepareDataForLLS() const
 {
     unsigned int numT2Signals = m_T2RelaxometrySignals.size();
-    unsigned int numValues = m_T2WorkingValues.size();
-    unsigned int numDistributions = m_T2DistributionSamples.size();
+    unsigned int numDistributions = m_GaussianMeans.size();
 
     m_T2SignalSimulator.SetNumberOfEchoes(numT2Signals);
     m_T2SignalSimulator.SetEchoSpacing(m_EchoSpacing);
     m_T2SignalSimulator.SetExcitationFlipAngle(m_ExcitationFlipAngle);
 
-    m_SimulatedEPGValues.resize(numValues);
-    m_SimulatedEPGDerivatives.resize(numValues);
-    m_SimulatedSignalValues.resize(numT2Signals);
-    std::fill(m_SimulatedSignalValues.begin(),m_SimulatedSignalValues.end(),0.0);
-
-    for (unsigned int i = 0;i < numValues;++i)
-    {
-        m_SimulatedEPGValues[i] = m_T2SignalSimulator.GetValue(m_T1Value,m_T2WorkingValues[i],m_TestedParameters[0],1.0);
-        if (m_UseDerivative)
-            m_SimulatedEPGDerivatives[i] = m_T2SignalSimulator.GetFADerivative();
-    }
-
+    // Contains int_{space of ith distribution} EPG(t2, b1, jth echo) G(t2, mu_i, sigma_i) d t2
     m_PredictedSignalAttenuations.set_size(numT2Signals,numDistributions);
+
+    B1GMMDistributionIntegrand::EPGVectorsMapType epgVectors;
+    B1GMMDistributionIntegrand t2Integrand(m_T2SignalSimulator,epgVectors);
+    t2Integrand.SetT1Value(m_T1Value);
+    t2Integrand.SetFlipAngle(m_TestedParameters[0]);
+
+    anima::GaussLaguerreQuadrature glQuad;
+
     for (unsigned int i = 0;i < numDistributions;++i)
     {
-        unsigned int numSamples = m_T2DistributionSamples[i].size();
+        t2Integrand.SetGaussianMean(m_GaussianMeans[i]);
+        t2Integrand.SetGaussianVariance(m_GaussianVariances[i]);
+        epgVectors.clear();
+
+        double minInterestZoneValue = std::max(0.0, m_GaussianMeans[i] - 5.0 * std::sqrt(m_GaussianVariances[i]));
+        double theoreticalMinValue = m_GaussianMeans[i] - i * std::sqrt(m_GaussianVariances[i]);
+        double maxInterestZoneValue = m_GaussianMeans[i] + 5.0 * std::sqrt(m_GaussianVariances[i]);
+        if (theoreticalMinValue < 0.0)
+            maxInterestZoneValue -= theoreticalMinValue;
+
+        glQuad.SetInterestZone(minInterestZoneValue, maxInterestZoneValue);
+
+        double truncationAbscissa = 2.0 * m_GaussianMeans[i];
+        double truncatedGaussianIntegral = 0.5 * (1.0 + boost::math::erf((truncationAbscissa - m_GaussianMeans[i]) / (std::sqrt(2.0 * m_GaussianVariances[i]))));
+
         for (unsigned int j = 0;j < numT2Signals;++j)
         {
-            double integralValue = m_T2DistributionSamples[i][0] * m_SimulatedEPGValues[m_DistributionSamplesT2Correspondences[i][0]][j] * m_T2IntegrationStep / 2.0;
-            for (unsigned int k = 1;k < numSamples;++k)
-                integralValue += m_T2DistributionSamples[i][k] * m_SimulatedEPGValues[m_DistributionSamplesT2Correspondences[i][k]][j] * m_T2IntegrationStep;
-
-            m_PredictedSignalAttenuations(j,i) = integralValue;
+            t2Integrand.SetEchoNumber(j);
+            m_PredictedSignalAttenuations(j,i) = glQuad.GetIntegralValue(t2Integrand) / truncatedGaussianIntegral;
         }
     }
 
@@ -181,108 +119,14 @@ B1GMMRelaxometryCostFunction::PrepareDataForLLS() const
         m_OptimalT2Weights = m_NNLSBordersOptimizer->GetCurrentPosition();
     }
 
-    m_CompartmentSwitches.resize(numDistributions);
-    for (unsigned int i = 0;i < numDistributions;++i)
-    {
-        if (m_OptimalT2Weights[i] > 0.0)
-            m_CompartmentSwitches[i] = true;
-        else
-        {
-            m_CompartmentSwitches[i] = false;
-            m_OptimalT2Weights[i] = 0.0;
-        }
-    }
-
     m_Residuals.set_size(numT2Signals);
-}
-
-void
-B1GMMRelaxometryCostFunction::PrepareDataForDerivative() const
-{
-    unsigned int numT2Signals = m_T2RelaxometrySignals.size();
-    unsigned int numDistributions = m_T2DistributionSamples.size();
-
-    unsigned int numOnDistributions = 0;
-    for (unsigned int i = 0;i < numDistributions;++i)
-        numOnDistributions += m_CompartmentSwitches[i];
-
-    // Compute jacobian parts
-    m_SignalAttenuationsJacobian.set_size(numT2Signals,numDistributions);
-    m_SignalAttenuationsJacobian.fill(0.0);
-
-    m_GramMatrix.set_size(numOnDistributions,numOnDistributions);
-    m_InverseGramMatrix.set_size(numOnDistributions,numOnDistributions);
-
-    unsigned int posX = 0;
-    unsigned int posY = 0;
-    for (unsigned int i = 0;i < numDistributions;++i)
-    {
-        if (!m_CompartmentSwitches[i])
-            continue;
-
-        m_GramMatrix(posX,posX) = m_CholeskyMatrix(i,i);
-        posY = posX + 1;
-        for (unsigned int j = i + 1;j < numDistributions;++j)
-        {
-            if (!m_CompartmentSwitches[j])
-                continue;
-
-            m_GramMatrix(posX,posY) = m_CholeskyMatrix(i,j);
-            m_GramMatrix(posY,posX) = m_GramMatrix(posX,posY);
-            ++posY;
-        }
-
-        ++posX;
-    }
-
-    if (numOnDistributions > 0)
-        anima::GetTensorPower(m_GramMatrix,m_InverseGramMatrix,-1.0);
-
-    // Here gets F G^-1
-    m_FMatrixInverseG.set_size(numT2Signals,numOnDistributions);
-    for (unsigned int i = 0;i < numT2Signals;++i)
-    {
-        unsigned int pos = 0;
-
-        for (unsigned int j = 0;j < numDistributions;++j)
-        {
-            if (!m_CompartmentSwitches[j])
-                continue;
-
-            m_FMatrixInverseG(i,pos) = 0.0;
-            unsigned int posK = 0;
-            for (unsigned int k = 0;k < numDistributions;++k)
-            {
-                if (!m_CompartmentSwitches[k])
-                    continue;
-
-                m_FMatrixInverseG(i,pos) += m_PredictedSignalAttenuations(i,k) * m_InverseGramMatrix(posK,pos);
-                ++posK;
-            }
-
-            ++pos;
-        }
-    }
-
-    for (unsigned int i = 0;i < numDistributions;++i)
-    {
-        unsigned int numSamples = m_T2DistributionSamples[i].size();
-        for (unsigned int j = 0;j < numT2Signals;++j)
-        {
-            double integralValue = m_T2DistributionSamples[i][0] * m_SimulatedEPGDerivatives[m_DistributionSamplesT2Correspondences[i][0]][j] * m_T2IntegrationStep / 2.0;
-            for (unsigned int k = 1;k < numSamples;++k)
-                integralValue += m_T2DistributionSamples[i][k] * m_SimulatedEPGDerivatives[m_DistributionSamplesT2Correspondences[i][k]][j] * m_T2IntegrationStep;
-
-            m_SignalAttenuationsJacobian(j,i) = integralValue;
-        }
-    }
 }
 
 void
 B1GMMRelaxometryCostFunction::SolveLinearLeastSquares() const
 {
     unsigned int numT2Signals = m_T2RelaxometrySignals.size();
-    unsigned int numDistributions = m_T2DistributionSamples.size();
+    unsigned int numDistributions = m_GaussianMeans.size();
 
     m_SigmaSquare = 0.0;
 

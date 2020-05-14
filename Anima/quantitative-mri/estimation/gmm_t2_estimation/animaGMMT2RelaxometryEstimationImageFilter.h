@@ -4,8 +4,6 @@
 #include <itkVectorImage.h>
 #include <itkImage.h>
 
-#include <animaNNLSOptimizer.h>
-
 namespace anima
 {
 
@@ -43,13 +41,6 @@ public:
     typedef typename Superclass::InputImageRegionType InputImageRegionType;
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
-    typedef anima::NNLSOptimizer NNLSOptimizerType;
-    typedef NNLSOptimizerType::Pointer NNLSOptimizerPointer;
-    typedef NNLSOptimizerType::MatrixType DataMatrixType;
-    typedef NNLSOptimizerType::ParametersType T2VectorType;
-
-    itkSetMacro(LowerT2Bound, double)
-    itkSetMacro(UpperT2Bound, double)
     itkSetMacro(EchoSpacing, double)
 
     void SetT1Map(InputImageType *map) {m_T1Map = map;}
@@ -64,11 +55,10 @@ public:
     VectorOutputImageType *GetWeightsImage() {return m_WeightsImage;}
 
     itkSetMacro(T2ExcitationFlipAngle, double)
-    itkSetMacro(T2IntegrationStep, double)
+    itkSetMacro(GaussianIntegralTolerance, double)
 
     void SetGaussianMeans(std::string fileName);
     void SetGaussianVariances(std::string fileName);
-    itkSetMacro(GaussianIntegralTolerance, double)
 
     void SetT2FlipAngles(std::vector <double> & flipAngles) {m_T2FlipAngles = flipAngles;}
     void SetT2FlipAngles(double singleAngle, unsigned int numAngles) {m_T2FlipAngles = std::vector <double> (numAngles,singleAngle);}
@@ -77,7 +67,7 @@ protected:
     GMMT2RelaxometryEstimationImageFilter()
     : Superclass()
     {
-        // There are 3 outputs: M0, MWF, B1, sigma square
+        // There are 4 outputs: M0, MWF, B1, sigma square
         this->SetNumberOfRequiredOutputs(4);
 
         for (unsigned int i = 0;i < 4;++i)
@@ -85,10 +75,6 @@ protected:
 
         m_AverageSignalThreshold = 0;
         m_EchoSpacing = 1;
-
-        m_LowerT2Bound = 1.0e-4;
-        m_UpperT2Bound = 3000;
-        m_T2IntegrationStep = 1;
 
         m_GaussianMeans.resize(3);
         m_GaussianMeans[0] = 20;
@@ -100,10 +86,9 @@ protected:
         m_GaussianVariances[1] = 100;
         m_GaussianVariances[2] = 6400;
 
-        m_GaussianIntegralTolerance = 1.0e-6;
+        m_GaussianIntegralTolerance = 1.0e-8;
 
         m_T2ExcitationFlipAngle = M_PI / 6;
-        m_GaussianMeansTolerance = 0.1;
     }
 
     virtual ~GMMT2RelaxometryEstimationImageFilter() {}
@@ -113,14 +98,9 @@ protected:
     void BeforeThreadedGenerateData() ITK_OVERRIDE;
     void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
 
-    void PrepareGaussianValues();
-
 private:
-    GMMT2RelaxometryEstimationImageFilter(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+    ITK_DISALLOW_COPY_AND_ASSIGN(GMMT2RelaxometryEstimationImageFilter);
 
-    double m_LowerT2Bound;
-    double m_UpperT2Bound;
     double m_AverageSignalThreshold;
 
     // T1 relaxometry specific values
@@ -129,13 +109,7 @@ private:
     // GMM values for integral
     std::vector <double> m_GaussianMeans;
     std::vector <double> m_GaussianVariances;
-    double m_T2IntegrationStep;
     double m_GaussianIntegralTolerance;
-
-    // Internal Gaussian optimization values
-    std::vector < std::vector <unsigned int> > m_SampledGaussT2Correspondences;
-    std::vector < std::vector <double> > m_SampledGaussianValues;
-    std::vector <double> m_T2WorkingValues;
 
     // Additional result images
     VectorOutputImagePointer m_WeightsImage;
@@ -144,8 +118,6 @@ private:
     double m_EchoSpacing;
     std::vector <double> m_T2FlipAngles;
     double m_T2ExcitationFlipAngle;
-
-    double m_GaussianMeansTolerance;
 };
     
 } // end namespace anima
