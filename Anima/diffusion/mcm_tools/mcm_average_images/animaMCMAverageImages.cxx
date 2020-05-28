@@ -69,6 +69,7 @@ int main(int argc, char **argv)
 
     anima::MultiCompartmentModelCreator mcmCreator;
     mcmCreator.SetModelWithFreeWaterComponent(false);
+    mcmCreator.SetModelWithStaniszComponent(false);
     mcmCreator.SetModelWithRestrictedWaterComponent(false);
     mcmCreator.SetModelWithStationaryWaterComponent(false);
 
@@ -84,6 +85,10 @@ int main(int argc, char **argv)
                 mcmCreator.SetModelWithRestrictedWaterComponent(true);
                 break;
 
+            case anima::Stanisz:
+                mcmCreator.SetModelWithStaniszComponent(true);
+                break;
+
             case anima::StationaryWater:
                 mcmCreator.SetModelWithStationaryWaterComponent(true);
                 break;
@@ -94,7 +99,11 @@ int main(int argc, char **argv)
         }
     }
 
-    mcmCreator.SetCompartmentType(firstInputModel->GetCompartment(firstInputModel->GetNumberOfIsotropicCompartments())->GetCompartmentType());
+    if (firstInputModel->GetCompartment(firstInputModel->GetNumberOfIsotropicCompartments())->GetTensorCompatible())
+        mcmCreator.SetCompartmentType(anima::Tensor);
+    else
+        mcmCreator.SetCompartmentType(firstInputModel->GetCompartment(firstInputModel->GetNumberOfIsotropicCompartments())->GetCompartmentType());
+
     mcmCreator.SetNumberOfCompartments(outputFascicleArg.getValue());
 
     anima::MultiCompartmentModel::Pointer outputReferenceModel = mcmCreator.GetNewMultiCompartmentModel();
