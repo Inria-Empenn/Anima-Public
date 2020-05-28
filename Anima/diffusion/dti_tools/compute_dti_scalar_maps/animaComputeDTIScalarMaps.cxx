@@ -81,9 +81,6 @@ int main(int ac, const char** av)
     itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
     callback->SetCallback(eventCallback);
 
-
-    std::cout<<"preparing filter...\n";
-
     typedef itk::VectorImage<double, 3> TensorImageType;
     typedef itk::Image<double, 3> OutputsImageType;
 
