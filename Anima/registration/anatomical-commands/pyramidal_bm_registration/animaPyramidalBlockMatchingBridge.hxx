@@ -685,10 +685,10 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
         m_InitialTransform = AffineTransformType::New();
         m_InitialTransform->SetIdentity();
 
+        typedef itk::ImageMomentsCalculator <InputImageType> ImageCalculatorType;
+
         if (m_TransformInitializationType != Identity)
         {
-            typedef itk::ImageMomentsCalculator <InputImageType> ImageCalculatorType;
-
             typename ImageCalculatorType::Pointer fixedCalculator = ImageCalculatorType::New();
             fixedCalculator->SetImage(m_ReferenceImage);
             fixedCalculator->Compute();
@@ -747,6 +747,44 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
 
         initialFloatingImage = tmpResample->GetOutput();
         initialFloatingImage->DisconnectPipeline();
+
+        using MinMaxImageFilterType = itk::MinimumMaximumImageFilter <InputImageType>;
+        typename MinMaxImageFilterType::Pointer minMaxFilter = MinMaxImageFilterType::New();
+        minMaxFilter->SetInput(initialFloatingImage);
+        minMaxFilter->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
+        minMaxFilter->Update();
+
+        if ((minMaxFilter->GetMinimum() == minMaxFilter->GetMaximum())&&(m_TransformInitializationType == Identity))
+        {
+            std::cout << "Identity initialization outputs an empty image, initializing with centers of mass" << std::endl;
+            m_TransformInitializationType = GravityCenters;
+
+            typename ImageCalculatorType::Pointer fixedCalculator = ImageCalculatorType::New();
+            fixedCalculator->SetImage(m_ReferenceImage);
+            fixedCalculator->Compute();
+            typename ImageCalculatorType::VectorType fixedBar = fixedCalculator->GetCenterOfGravity();
+
+            typename ImageCalculatorType::Pointer movingCalculator = ImageCalculatorType::New();
+            movingCalculator->SetImage(m_FloatingImage);
+            movingCalculator->Compute();
+            typename ImageCalculatorType::VectorType movingBar = movingCalculator->GetCenterOfGravity();
+
+            m_InitialTransform->SetOffset(movingBar - fixedBar);
+
+            typename ResampleFilterType::Pointer tmpResample = ResampleFilterType::New();
+            tmpResample->SetTransform(m_InitialTransform);
+            tmpResample->SetInput(m_FloatingImage);
+
+            tmpResample->SetSize(m_ReferenceImage->GetLargestPossibleRegion().GetSize());
+            tmpResample->SetOutputOrigin(m_ReferenceImage->GetOrigin());
+            tmpResample->SetOutputSpacing(m_ReferenceImage->GetSpacing());
+            tmpResample->SetOutputDirection(m_ReferenceImage->GetDirection());
+            tmpResample->SetDefaultPixelValue(m_FloatingMinimalValue);
+            tmpResample->Update();
+
+            initialFloatingImage = tmpResample->GetOutput();
+            initialFloatingImage->DisconnectPipeline();
+        }
     }
 
     // Create pyramid for Floating image
