@@ -101,8 +101,7 @@ MCMFileWriter <PixelType, ImageDimension>
     weightsName += "_weights.nrrd";
 
     anima::writeImage <BaseOutputImageType> (weightsName,weightsImage);
-    std::string xmlFileNameWeights = noPathName + "/";
-    xmlFileNameWeights += noPathName + "_weights.nrrd";
+    std::string xmlFileNameWeights = noPathName + "_weights.nrrd";
 
     outputHeaderFile << "<Weights>" << xmlFileNameWeights << "</Weights>" << std::endl;
 
@@ -193,8 +192,7 @@ MCMFileWriter <PixelType, ImageDimension>
 
         fullPathCompartmentName += compartmentName;
 
-        std::string xmlFileNameCompartment = noPathName + "/";
-        xmlFileNameCompartment += compartmentName;
+        std::string xmlFileNameCompartment = compartmentName;
 
         anima::writeImage <BaseOutputImageType> (fullPathCompartmentName,compartmentImage);
         outputHeaderFile << "<FileName>" << xmlFileNameCompartment << "</FileName>" << std::endl;
