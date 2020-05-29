@@ -56,8 +56,6 @@ MCMFileReader <PixelType, ImageDimension>
 
     std::size_t lastDotPos = m_FileName.find_last_of(".");
     baseName.append(m_FileName.begin() + lastSlashPos, m_FileName.begin() + lastDotPos);
-    std::cout << "Base path " << basePath << std::endl;
-    std::cout << "Base name " << baseName << std::endl;
 
     if (loadOk != tinyxml2::XML_SUCCESS)
     {
