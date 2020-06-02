@@ -86,7 +86,7 @@ NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
 {
     OutputImageRegionType processedRegion = m_ComputationRegion;
     processedRegion.SetSize(m_ProcessedDimension,1);
-    unsigned int highestToleratedSliceValue = m_ComputationRegion.GetSize()[m_ProcessedDimension] - 1;
+    int highestToleratedSliceValue = m_ComputationRegion.GetSize()[m_ProcessedDimension] - 1;
 
     bool continueLoop = true;
     while (continueLoop)
