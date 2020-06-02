@@ -104,14 +104,19 @@ MCMLinearInterpolateImageFunction< TInputImage, TCoordRep >
     for (unsigned int i = 0;i < numIsoCompartmentsInput;++i)
     {
         if (outputModel->GetCompartment(i)->GetCompartmentType() != inputModel->GetCompartment(i)->GetCompartmentType())
-            itkExceptionMacro("Interpolation only of models with the same compartment types.");
+            itkExceptionMacro("Interpolation only of models with the same isotropic compartment types.");
     }
 
     if (outputModel->GetNumberOfCompartments() - numIsoCompartmentsOutput > 0)
     {
-        if (outputModel->GetCompartment(numIsoCompartmentsOutput)->GetCompartmentType()
+        if (inputModel->GetCompartment(numIsoCompartmentsInput)->GetTensorCompatible())
+        {
+            if (outputModel->GetCompartment(numIsoCompartmentsOutput)->GetCompartmentType() != anima::Tensor)
+                itkExceptionMacro("Interpolation of tensor compatible anisotropic models can only output tensor models for now.");
+        }
+        else if (outputModel->GetCompartment(numIsoCompartmentsOutput)->GetCompartmentType()
                 != inputModel->GetCompartment(numIsoCompartmentsOutput)->GetCompartmentType())
-            itkExceptionMacro("Interpolation only of models with the same compartment types.");
+            itkExceptionMacro("Interpolation of non tensor compatible models only to the same compartment type.");
 
         if (!this->CheckModelCompatibility(outputModel))
             itkExceptionMacro("Model not yet supported by MCM linear interpolation");

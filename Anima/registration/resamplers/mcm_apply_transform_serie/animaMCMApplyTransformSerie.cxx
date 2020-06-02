@@ -111,6 +111,7 @@ int main(int ac, const char** av)
 
     mcmCreator.SetModelWithFreeWaterComponent(false);
     mcmCreator.SetModelWithRestrictedWaterComponent(false);
+    mcmCreator.SetModelWithStaniszComponent(false);
     mcmCreator.SetModelWithStationaryWaterComponent(false);
 
     for (unsigned int i = 0;i < numIsotropicCompartments;++i)
@@ -123,6 +124,10 @@ int main(int ac, const char** av)
 
             case anima::IsotropicRestrictedWater:
                 mcmCreator.SetModelWithRestrictedWaterComponent(true);
+                break;
+
+            case anima::Stanisz:
+                mcmCreator.SetModelWithStaniszComponent(true);
                 break;
 
             case anima::StationaryWater:
