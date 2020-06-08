@@ -16,9 +16,11 @@
 
 void FilterTracks(vtkPolyData *tracks, unsigned int startIndex, unsigned int endIndex,
                   itk::NearestNeighborInterpolateImageFunction < itk::Image <unsigned short, 3> > * interpolator,
-                  const std::vector <unsigned int> &touchLabels, const std::vector <unsigned int> &forbiddenLabels)
+                  const std::vector <unsigned int> &touchLabels, const std::vector <unsigned int> &endingsLabels,
+                  const std::vector <unsigned int> &forbiddenLabels)
 {
     std::vector <unsigned int> seenLabels;
+    std::vector <unsigned int> seenEndingsLabels;
     double pointPositionVTK[3];
     itk::ContinuousIndex<double, 3> currentIndex;
     typedef itk::Image <unsigned short, 3>::PointType PointType;
@@ -34,49 +36,90 @@ void FilterTracks(vtkPolyData *tracks, unsigned int startIndex, unsigned int end
         seenLabels.clear();
         bool lineOk = true;
 
-        for (unsigned int j = 0;j < numCellPts;++j)
+        // First test endings, if not right, useless to continue
+        seenEndingsLabels.clear();
+        for (unsigned int j = 0;j < numCellPts;j += numCellPts - 1)
         {
             cellPts->GetPoint(j, pointPositionVTK);
             for (unsigned int k = 0; k < 3; ++k)
                 pointPosition[k] = pointPositionVTK[k];
-
             interpolator->GetInputImage()->TransformPhysicalPointToContinuousIndex(pointPosition,currentIndex);
-
-            if (!interpolator->IsInsideBuffer(currentIndex))
-                continue;
-
-            unsigned int value = static_cast <unsigned int> (std::round(interpolator->EvaluateAtContinuousIndex(currentIndex)));
-
-            for (unsigned int k = 0;k < forbiddenLabels.size();++k)
+            if (interpolator->IsInsideBuffer(currentIndex))
             {
-                if (value == forbiddenLabels[k])
+                unsigned int value = static_cast <unsigned int> (std::round(interpolator->EvaluateAtContinuousIndex(currentIndex)));
+                for (unsigned int k = 0;k < endingsLabels.size();++k)
                 {
-                    lineOk = false;
-                    break;
+                    if (value == endingsLabels[k])
+                    {
+                        bool alreadyIn = false;
+                        for (unsigned int l = 0;l < seenEndingsLabels.size();++l)
+                        {
+                            if (seenEndingsLabels[l] == value)
+                            {
+                                alreadyIn = true;
+                                break;
+                            }
+                        }
+
+                        if (!alreadyIn)
+                            seenEndingsLabels.push_back(value);
+
+                        break;
+                    }
                 }
             }
+        }
 
-            if (!lineOk)
-                break;
+        if (seenEndingsLabels.size() != endingsLabels.size())
+            lineOk = false;
 
-            for (unsigned int k = 0;k < touchLabels.size();++k)
+        // Then test forbidden and touched labels
+        if (lineOk)
+        {
+            for (unsigned int j = 0;j < numCellPts;++j)
             {
-                if (value == touchLabels[k])
+                cellPts->GetPoint(j, pointPositionVTK);
+                for (unsigned int k = 0; k < 3; ++k)
+                    pointPosition[k] = pointPositionVTK[k];
+
+                interpolator->GetInputImage()->TransformPhysicalPointToContinuousIndex(pointPosition,currentIndex);
+
+                if (!interpolator->IsInsideBuffer(currentIndex))
+                    continue;
+
+                unsigned int value = static_cast <unsigned int> (std::round(interpolator->EvaluateAtContinuousIndex(currentIndex)));
+
+                for (unsigned int k = 0;k < forbiddenLabels.size();++k)
                 {
-                    bool alreadyIn = false;
-                    for (unsigned int l = 0;l < seenLabels.size();++l)
+                    if (value == forbiddenLabels[k])
                     {
-                        if (seenLabels[l] == value)
-                        {
-                            alreadyIn = true;
-                            break;
-                        }
+                        lineOk = false;
+                        break;
                     }
+                }
 
-                    if (!alreadyIn)
-                        seenLabels.push_back(value);
-
+                if (!lineOk)
                     break;
+
+                for (unsigned int k = 0;k < touchLabels.size();++k)
+                {
+                    if (value == touchLabels[k])
+                    {
+                        bool alreadyIn = false;
+                        for (unsigned int l = 0;l < seenLabels.size();++l)
+                        {
+                            if (seenLabels[l] == value)
+                            {
+                                alreadyIn = true;
+                                break;
+                            }
+                        }
+
+                        if (!alreadyIn)
+                            seenLabels.push_back(value);
+
+                        break;
+                    }
                 }
             }
         }
@@ -91,6 +134,7 @@ typedef struct
     vtkPolyData *tracks;
     itk::NearestNeighborInterpolateImageFunction < itk::Image <unsigned short, 3> > *interpolator;
     std::vector <unsigned int> touchLabels;
+    std::vector <unsigned int> endingsLabels;
     std::vector <unsigned int> forbiddenLabels;
 } ThreaderArguments;
 
@@ -110,7 +154,7 @@ ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION ThreadFilterer(void *arg)
     if (nbThread == numTotalThread - 1)
         endIndex = nbTotalCells;
 
-    FilterTracks(tmpArg->tracks, startIndex, endIndex, tmpArg->interpolator, tmpArg->touchLabels, tmpArg->forbiddenLabels);
+    FilterTracks(tmpArg->tracks, startIndex, endIndex, tmpArg->interpolator, tmpArg->touchLabels, tmpArg->endingsLabels, tmpArg->forbiddenLabels);
 
     return ITK_THREAD_RETURN_DEFAULT_VALUE;
 }
@@ -124,6 +168,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> outArg("o","output","output tracks name",true,"","output tracks",cmd);
 
     TCLAP::MultiArg<unsigned int> touchArg("t", "touch", "Labels that have to be touched",false,"touched labels",cmd);
+    TCLAP::MultiArg<unsigned int> endingsArg("e", "endings", "Labels that have to be touched by the endings of the fibers",false,"endings labels",cmd);
     TCLAP::MultiArg<unsigned int> forbiddenArg("f", "forbid", "Labels that must not to be touched",false,"forbidden labels",cmd);
 
     TCLAP::ValueArg<unsigned int> nbThreadsArg("T","nb-threads","Number of threads to run on (default: all available)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
@@ -155,12 +200,17 @@ int main(int argc, char **argv)
     tracks->GetCell(0,dummyCell);
 
     std::vector <unsigned int> touchLabels = touchArg.getValue();
+    std::vector <unsigned int> endingsLabels = endingsArg.getValue();
     std::vector <unsigned int> forbiddenLabels = forbiddenArg.getValue();
+
+    if (endingsLabels.size() > 2)
+        std::cerr << "Endings consider only the two ending points of each fiber. Having more than two labels will lead to empty bundles" << std::endl;
 
     ThreaderArguments tmpStr;
     tmpStr.interpolator = interpolator;
     tmpStr.tracks = tracks;
     tmpStr.touchLabels = touchLabels;
+    tmpStr.endingsLabels = endingsLabels;
     tmpStr.forbiddenLabels = forbiddenLabels;
 
     itk::PoolMultiThreader::Pointer mThreader = itk::PoolMultiThreader::New();
