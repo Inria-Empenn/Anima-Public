@@ -258,7 +258,7 @@ applyScalarTransfo4D(itk::ImageIOBase::Pointer geometryImageIO, const arguments 
         if (i == 0)
             std::cout << "Resampling sub-image " << i+1 << "/" << numImages << std::flush;
         else
-            std::cout<<"\033[K\rResampling sub-image " << i+1 <<"%" << std::flush;
+            std::cout<<"\033[K\rResampling sub-image " << i+1 << "/" << numImages << std::flush;
 
         typedef anima::ResampleImageFilter<InternalImageType, InternalImageType> ResampleFilterType;
         typename ResampleFilterType::Pointer scalarResampler = ResampleFilterType::New();
