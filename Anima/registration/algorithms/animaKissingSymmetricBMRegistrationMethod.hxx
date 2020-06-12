@@ -3,7 +3,6 @@
 
 #include <animaBalooSVFTransformAgregator.h>
 #include <animaDenseSVFTransformAgregator.h>
-#include <animaAnatomicalBlockMatcher.h>
 
 #include <itkMultiplyImageFilter.h>
 #include <itkSubtractImageFilter.h>
@@ -23,13 +22,7 @@ KissingSymmetricBMRegistrationMethod <TInputImageType>
     this->GetBlockMatcher()->SetReferenceImage(refImage);
     this->GetBlockMatcher()->SetMovingImage(movingImage);
 
-    if (refImage->GetNumberOfComponentsPerPixel() == 1)
-    {
-        using BMType = anima::AnatomicalBlockMatcher <InputImageType>;
-        BMType *tmpBM = dynamic_cast <BMType *> (this->GetBlockMatcher());
-        tmpBM->SetDefaultBackgroundValue(m_FloatingBackgroundValue);
-    }
-
+    this->ChangeDefaultBackgroundValue(refImage, m_FloatingBackgroundValue);
     this->GetBlockMatcher()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     this->GetBlockMatcher()->Update();
 
@@ -51,13 +44,7 @@ KissingSymmetricBMRegistrationMethod <TInputImageType>
     this->GetBlockMatcher()->SetReferenceImage(movingImage);
     this->GetBlockMatcher()->SetMovingImage(refImage);
 
-    if (refImage->GetNumberOfComponentsPerPixel() == 1)
-    {
-        using BMType = anima::AnatomicalBlockMatcher <InputImageType>;
-        BMType *tmpBM = dynamic_cast <BMType *> (this->GetBlockMatcher());
-        tmpBM->SetDefaultBackgroundValue(m_ReferenceBackgroundValue);
-    }
-
+    this->ChangeDefaultBackgroundValue(refImage, m_ReferenceBackgroundValue);
     this->GetBlockMatcher()->Update();
 
     tmpTimeReverse.Stop();

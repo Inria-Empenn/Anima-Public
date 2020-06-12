@@ -1,5 +1,7 @@
 #pragma once
+
 #include <animaBaseBMRegistrationMethod.h>
+#include <animaAnatomicalBlockMatcher.h>
 
 namespace anima
 {
@@ -39,6 +41,18 @@ protected:
     virtual ~KissingSymmetricBMRegistrationMethod() {}
 
     virtual void PerformOneIteration(InputImageType *refImage, InputImageType *movingImage, TransformPointer &addOn) ITK_OVERRIDE;
+
+    template <class ScalarPixelType> void ChangeDefaultBackgroundValue(itk::Image <ScalarPixelType, InputImageType::ImageDimension> *itkNotUsed(image), double backgroundValue)
+    {
+        using BMType = anima::AnatomicalBlockMatcher <InputImageType>;
+        BMType *tmpBM = dynamic_cast <BMType *> (this->GetBlockMatcher());
+        tmpBM->SetDefaultBackgroundValue(backgroundValue);
+    }
+
+    template <class ScalarPixelType> void ChangeDefaultBackgroundValue(itk::VectorImage <ScalarPixelType, InputImageType::ImageDimension> *itkNotUsed(image), double itkNotUsed(backgroundValue))
+    {
+        // Vector image : do nothing
+    }
 
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(KissingSymmetricBMRegistrationMethod);
