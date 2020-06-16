@@ -232,48 +232,51 @@ void MCMWeightedAverager::ComputeOutputTensorCompatibleModel()
             if (weight == 0)
                 continue;
 
-            totalWeights += weight;
-            outputVector += m_InternalLogTensors[j] * weight;
-
             if ((anisoCompartmentType == anima::Stick) && (totalWeights == 0.0))
             {
                 anima::GetTensorFromVectorRepresentation(m_InternalLogTensors[j],workInputStick,3,true);
                 EigenAnalysisType eigen(3);
                 eigen.ComputeEigenValues(workInputStick, workEigenValuesInputSticks);
             }
+
+            totalWeights += weight;
+            outputVector += m_InternalLogTensors[j] * weight;
         }
 
-        outputVector /= totalWeights;
-
-        m_InternalOutputWeights[i+numIsoCompartments] = totalWeights;
-        anima::GetTensorFromVectorRepresentation(outputVector,workMatrixLog,3,true);
-
-        if (anisoCompartmentType != anima::Tensor)
+        if (totalWeights > 0.0)
         {
-            EigenAnalysisType eigen(3);
-            eigen.ComputeEigenValuesAndVectors(workMatrixLog, workEigenValues, workEigenVectors);
+            outputVector /= totalWeights;
+
+            m_InternalOutputWeights[i+numIsoCompartments] = totalWeights;
+            anima::GetTensorFromVectorRepresentation(outputVector,workMatrixLog,3,true);
+
+            if (anisoCompartmentType != anima::Tensor)
+            {
+                EigenAnalysisType eigen(3);
+                eigen.ComputeEigenValuesAndVectors(workMatrixLog, workEigenValues, workEigenVectors);
+            }
+
+            if (anisoCompartmentType == anima::Stick)
+            {
+                // Replace smaller eigen values by stick default value
+                workEigenValues[0] = workEigenValuesInputSticks[0];
+                workEigenValues[1] = workEigenValuesInputSticks[0];
+
+                anima::RecomposeTensor(workEigenValues, workEigenVectors, workMatrixLog);
+            }
+            else if (anisoCompartmentType == anima::Zeppelin)
+            {
+                // Force radial diffusivity as the sum of the two smallest ones
+                double logEigenValue = (workEigenValues[0] + workEigenValues[1]) / 2.0;
+                workEigenValues[0] = logEigenValue;
+                workEigenValues[1] = logEigenValue;
+
+                anima::RecomposeTensor(workEigenValues, workEigenVectors, workMatrixLog);
+            }
+
+            anima::GetTensorExponential(workMatrixLog,workMatrix);
+            anima::GetVectorRepresentation(workMatrix,outputVector);
         }
-
-        if (anisoCompartmentType == anima::Stick)
-        {
-            // Replace smaller eigen values by stick default value
-            workEigenValues[0] = workEigenValuesInputSticks[0];
-            workEigenValues[1] = workEigenValuesInputSticks[0];
-
-            anima::RecomposeTensor(workEigenValues, workEigenVectors, workMatrixLog);
-        }
-        else if (anisoCompartmentType == anima::Zeppelin)
-        {
-            // Force radial diffusivity as the sum of the two smallest ones
-            double logEigenValue = (workEigenValuesInputSticks[0] + workEigenValuesInputSticks[1]) / 2.0;
-            workEigenValues[0] = logEigenValue;
-            workEigenValues[1] = logEigenValue;
-
-            anima::RecomposeTensor(workEigenValues, workEigenVectors, workMatrixLog);
-        }
-
-        anima::GetTensorExponential(workMatrixLog,workMatrix);
-        anima::GetVectorRepresentation(workMatrix,outputVector);
 
         anima::BaseCompartment *workCompartment = m_OutputModel->GetCompartment(i+numIsoCompartments);
         workCompartment->SetCompartmentVector(outputVector);

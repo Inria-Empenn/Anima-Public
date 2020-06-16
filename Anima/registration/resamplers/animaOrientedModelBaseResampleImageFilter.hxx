@@ -274,39 +274,24 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
             continue;
         }
 
+        double normDelta = 0.0;
         for (unsigned int j = 0;j < ImageDimension;++j)
-            deltaMatrix(i,j) = tmpPosAfter[j] - tmpPosBef[j];
+        {
+            deltaMatrix(j,i) = tmpPosAfter[j] - tmpPosBef[j];
+            normDelta += deltaMatrix(j,i) * deltaMatrix(j,i);
+        }
+
+        normDelta = std::sqrt(normDelta);
+        for (unsigned int j = 0;j < ImageDimension;++j)
+            deltaMatrix(j,i) /= normDelta;
 
         tmpPos = m_Transform->TransformPoint(tmpPosAfter);
         for (unsigned int j = 0;j < ImageDimension;++j)
-            resDiff(i,j) = tmpPos[j];
+            resDiff(j,i) = tmpPos[j];
 
         tmpPos = m_Transform->TransformPoint(tmpPosBef);
         for (unsigned int j = 0;j < ImageDimension;++j)
-            resDiff(i,j) -= tmpPos[j];
-    }
-
-    bool identicalMatrices = true;
-    for (unsigned int i = 0;i < ImageDimension;++i)
-    {
-        for (unsigned int j = 0;j < ImageDimension;++j)
-        {
-            if (deltaMatrix(i,j) != resDiff(i,j))
-            {
-                identicalMatrices = false;
-                break;
-            }
-        }
-
-        if (!identicalMatrices)
-            break;
-    }
-
-    if (identicalMatrices)
-    {
-        jacMatrix.set_identity();
-        reorientationMatrix = jacMatrix;
-        return;
+            resDiff(j,i) -= tmpPos[j];
     }
 
     vnl_matrix_inverse <double> invDelta(deltaMatrix);
@@ -318,7 +303,7 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
         {
             jacMatrix(j,i) = 0;
             for (unsigned int k = 0;k < ImageDimension;++k)
-                jacMatrix(j,i) += deltaMatrix(i,k)*resDiff(k,j);
+                jacMatrix(j,i) += resDiff(i,k) * deltaMatrix(k,j);
         }
     }
 
