@@ -11,7 +11,7 @@ itk::ImageIOBase::IOComponentType ANIMAMCM_EXPORT GetMCMComponentType(std::strin
     tinyxml2::XMLError loadOk = doc.LoadFile(fileName.c_str());
 
     std::replace(fileName.begin(),fileName.end(),'\\','/');
-    std::string basePath;
+    std::string basePath, baseName;
     std::size_t lastSlashPos = fileName.find_last_of("/");
 
     if (lastSlashPos != std::string::npos)
@@ -19,6 +19,9 @@ itk::ImageIOBase::IOComponentType ANIMAMCM_EXPORT GetMCMComponentType(std::strin
 
     if (basePath.length() != 0)
         basePath = basePath + "/";
+
+    std::size_t lastDotPos = fileName.find_last_of(".");
+    baseName.append(fileName.begin() + lastSlashPos, fileName.begin() + lastDotPos);
 
     if (loadOk != tinyxml2::XML_SUCCESS)
         return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
@@ -33,7 +36,9 @@ itk::ImageIOBase::IOComponentType ANIMAMCM_EXPORT GetMCMComponentType(std::strin
     if (!weightsNode)
         return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
 
-    std::string weightsFileName = basePath + weightsNode->GetText();
+    std::string weightsFileName = basePath + baseName + "/";
+    weightsFileName += weightsNode->GetText();
+
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(weightsFileName.c_str(),
                                                                            itk::ImageIOFactory::ReadMode);
 
