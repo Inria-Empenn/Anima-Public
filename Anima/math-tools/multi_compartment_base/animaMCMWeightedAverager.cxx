@@ -259,14 +259,8 @@ void MCMWeightedAverager::ComputeOutputTensorCompatibleModel()
             if (anisoCompartmentType == anima::Stick)
             {
                 // Replace smaller eigen values by stick default value
-
-
-                double logEigenValue = (workEigenValues[0] + workEigenValues[1]) / 2.0;
-                workEigenValues[0] = logEigenValue;
-                workEigenValues[1] = logEigenValue;
-
-//                workEigenValues[0] = workEigenValuesInputSticks[0];
-//                workEigenValues[1] = workEigenValuesInputSticks[0];
+                workEigenValues[0] = workEigenValuesInputSticks[0];
+                workEigenValues[1] = workEigenValuesInputSticks[0];
 
                 anima::RecomposeTensor(workEigenValues, workEigenVectors, workMatrixLog);
             }
