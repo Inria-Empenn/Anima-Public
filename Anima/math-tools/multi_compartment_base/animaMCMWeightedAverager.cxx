@@ -2,6 +2,9 @@
 #include <animaSpectralClusteringFilter.h>
 #include <animaBaseTensorTools.h>
 
+#include <vnl/vnl_diag_matrix.h>
+#include <itkSymmetricEigenAnalysis.h>
+
 namespace anima
 {
 
@@ -162,7 +165,7 @@ void MCMWeightedAverager::Update()
         m_InternalSpectralMemberships[i] = spectralCluster.GetClassesMembership(i);
 
     if (tensorCompatibility)
-        this->ComputeOutputTensorModel();
+        this->ComputeOutputTensorCompatibleModel();
     else
         this->ComputeOutputNonTensorModel();
 
@@ -204,14 +207,20 @@ void MCMWeightedAverager::ComputeNonTensorDistanceMatrix()
     itkExceptionMacro("No non-tensor distance matrix implemented in public version")
 }
 
-void MCMWeightedAverager::ComputeOutputTensorModel()
+void MCMWeightedAverager::ComputeOutputTensorCompatibleModel()
 {
     unsigned int numCompartments = m_WorkCompartmentsVector.size();
     unsigned int numIsoCompartments = m_OutputModel->GetNumberOfIsotropicCompartments();
     unsigned int numberOfOutputCompartments = m_InternalSpectralMemberships[0].size();
 
     itk::VariableLengthVector <double> outputVector(6);
-    vnl_matrix <double> workMatrix(3,3), workMatrixLog(3,3);
+    vnl_matrix <double> workMatrix(3,3), workMatrixLog(3,3), workEigenVectors(3,3);
+    vnl_diag_matrix <double> workEigenValues(3);
+    vnl_matrix <double> workInputStick(3,3);
+    vnl_diag_matrix <double> workEigenValuesInputSticks(3);
+
+    using EigenAnalysisType = itk::SymmetricEigenAnalysis < vnl_matrix <double>, vnl_diag_matrix<double>, vnl_matrix <double> >;
+    anima::DiffusionModelCompartmentType anisoCompartmentType = m_OutputModel->GetCompartment(numIsoCompartments)->GetCompartmentType();
 
     for (unsigned int i = 0;i < numberOfOutputCompartments;++i)
     {
@@ -225,12 +234,44 @@ void MCMWeightedAverager::ComputeOutputTensorModel()
 
             totalWeights += weight;
             outputVector += m_InternalLogTensors[j] * weight;
+
+            if ((anisoCompartmentType == anima::Stick) && (totalWeights == 0.0))
+            {
+                anima::GetTensorFromVectorRepresentation(m_InternalLogTensors[j],workInputStick,3,true);
+                EigenAnalysisType eigen(3);
+                eigen.ComputeEigenValues(workInputStick, workEigenValuesInputSticks);
+            }
         }
 
         outputVector /= totalWeights;
 
         m_InternalOutputWeights[i+numIsoCompartments] = totalWeights;
         anima::GetTensorFromVectorRepresentation(outputVector,workMatrixLog,3,true);
+
+        if (anisoCompartmentType != anima::Tensor)
+        {
+            EigenAnalysisType eigen(3);
+            eigen.ComputeEigenValuesAndVectors(workMatrixLog, workEigenValues, workEigenVectors);
+        }
+
+        if (anisoCompartmentType == anima::Stick)
+        {
+            // Replace smaller eigen values by stick default value
+            workEigenValues[0] = workEigenValuesInputSticks[0];
+            workEigenValues[1] = workEigenValuesInputSticks[0];
+
+            anima::RecomposeTensor(workEigenValues, workEigenVectors, workMatrixLog);
+        }
+        else if (anisoCompartmentType == anima::Zeppelin)
+        {
+            // Force radial diffusivity as the sum of the two smallest ones
+            double logEigenValue = (workEigenValuesInputSticks[0] + workEigenValuesInputSticks[1]) / 2.0;
+            workEigenValues[0] = logEigenValue;
+            workEigenValues[1] = logEigenValue;
+
+            anima::RecomposeTensor(workEigenValues, workEigenVectors, workMatrixLog);
+        }
+
         anima::GetTensorExponential(workMatrixLog,workMatrix);
         anima::GetVectorRepresentation(workMatrix,outputVector);
 

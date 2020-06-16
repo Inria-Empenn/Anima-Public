@@ -99,11 +99,7 @@ int main(int argc, char **argv)
         }
     }
 
-    if (firstInputModel->GetCompartment(firstInputModel->GetNumberOfIsotropicCompartments())->GetTensorCompatible())
-        mcmCreator.SetCompartmentType(anima::Tensor);
-    else
-        mcmCreator.SetCompartmentType(firstInputModel->GetCompartment(firstInputModel->GetNumberOfIsotropicCompartments())->GetCompartmentType());
-
+    mcmCreator.SetCompartmentType(firstInputModel->GetCompartment(firstInputModel->GetNumberOfIsotropicCompartments())->GetCompartmentType());
     mcmCreator.SetNumberOfCompartments(outputFascicleArg.getValue());
 
     anima::MultiCompartmentModel::Pointer outputReferenceModel = mcmCreator.GetNewMultiCompartmentModel();

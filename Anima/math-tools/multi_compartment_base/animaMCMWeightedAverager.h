@@ -55,7 +55,7 @@ protected:
     void ComputeTensorDistanceMatrix();
     virtual void ComputeNonTensorDistanceMatrix();
 
-    void ComputeOutputTensorModel();
+    void ComputeOutputTensorCompatibleModel();
     virtual void ComputeOutputNonTensorModel();
 
 private:

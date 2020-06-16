@@ -137,7 +137,8 @@ int main(int ac, const char** av)
         }
     }
 
-    mcmCreator.SetCompartmentType(anima::Tensor);
+    if (numFasciclesInput > 0)
+        mcmCreator.SetCompartmentType(reader.GetModelVectorImage()->GetDescriptionModel()->GetCompartment(numIsotropicCompartments)->GetCompartmentType());
     mcmCreator.SetNumberOfCompartments(numFasciclesOutput);
 
     anima::MultiCompartmentModel::Pointer outputReferenceModel = mcmCreator.GetNewMultiCompartmentModel();

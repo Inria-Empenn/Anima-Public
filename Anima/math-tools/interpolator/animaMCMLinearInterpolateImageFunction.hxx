@@ -84,7 +84,7 @@ MCMLinearInterpolateImageFunction< TInputImage, TCoordRep >
 ::CheckModelCompatibility(MCModelPointer &model)
 {
     unsigned int numIsoCompartments = model->GetNumberOfIsotropicCompartments();
-    if (model->GetCompartment(numIsoCompartments)->GetCompartmentType() != anima::Tensor)
+    if (!model->GetCompartment(numIsoCompartments)->GetTensorCompatible())
         return false;
 
     return true;
@@ -109,12 +109,7 @@ MCMLinearInterpolateImageFunction< TInputImage, TCoordRep >
 
     if (outputModel->GetNumberOfCompartments() - numIsoCompartmentsOutput > 0)
     {
-        if (inputModel->GetCompartment(numIsoCompartmentsInput)->GetTensorCompatible())
-        {
-            if (outputModel->GetCompartment(numIsoCompartmentsOutput)->GetCompartmentType() != anima::Tensor)
-                itkExceptionMacro("Interpolation of tensor compatible anisotropic models can only output tensor models for now.");
-        }
-        else if (outputModel->GetCompartment(numIsoCompartmentsOutput)->GetCompartmentType()
+        if (outputModel->GetCompartment(numIsoCompartmentsOutput)->GetCompartmentType()
                 != inputModel->GetCompartment(numIsoCompartmentsOutput)->GetCompartmentType())
             itkExceptionMacro("Interpolation of non tensor compatible models only to the same compartment type.");
 
