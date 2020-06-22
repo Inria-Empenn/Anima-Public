@@ -35,6 +35,7 @@ void ExtractPPDRotationFromJacobianMatrix(vnl_matrix <RealType> &jacobianMatrix,
 template <class T1, class T2>
 void RecomposeTensor(vnl_diag_matrix <T1> &eigs, vnl_matrix <T1> &eigVecs, vnl_matrix <T2> &resMatrix);
 
+//! Rotates a symmetric matrix by performing R^T D R where R is a rotation matrix and D the symmetric matrix
 template <class T1, class T2, class T3>
 void RotateSymmetricMatrix(T1 &tensor, T2 &rotationMatrix, T3 &rotated_tensor, unsigned int tensorDim);
 

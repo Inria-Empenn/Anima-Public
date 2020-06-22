@@ -291,7 +291,7 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
 
         tmpPos = m_Transform->TransformPoint(tmpPosBef);
         for (unsigned int j = 0;j < ImageDimension;++j)
-            resDiff(j,i) -= tmpPos[j];
+            resDiff(j,i) = (resDiff(j,i) - tmpPos[j]) / normDelta;
     }
 
     vnl_matrix_inverse <double> invDelta(deltaMatrix);
@@ -301,9 +301,9 @@ OrientedModelBaseResampleImageFilter<TImageType, TInterpolatorPrecisionType>
     {
         for (unsigned int j = 0;j < ImageDimension;++j)
         {
-            jacMatrix(j,i) = 0;
+            jacMatrix(i,j) = 0;
             for (unsigned int k = 0;k < ImageDimension;++k)
-                jacMatrix(j,i) += resDiff(i,k) * deltaMatrix(k,j);
+                jacMatrix(i,j) += resDiff(i,k) * deltaMatrix(k,j);
         }
     }
 
