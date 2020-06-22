@@ -61,7 +61,6 @@ public:
 protected:
     VectorModelLinearInterpolateImageFunction();
     virtual ~VectorModelLinearInterpolateImageFunction() {}
-    void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
 
     template <class T> inline bool isZero(itk::VariableLengthVector <T> &value) const
     {
