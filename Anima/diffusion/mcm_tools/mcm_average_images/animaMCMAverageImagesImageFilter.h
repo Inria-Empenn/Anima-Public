@@ -36,6 +36,9 @@ public:
     typedef typename InputImageType::IndexType InputIndexType;
     typedef typename InputImageType::PixelType PixelType;
 
+    using MaskImageType = itk::Image <unsigned char, 3>;
+    using MaskImagePointer = typename MaskImageType::Pointer;
+
     // Multi-compartment models typedefs
     typedef anima::MultiCompartmentModel MCModelType;
     typedef MCModelType::Pointer MCModelPointer;
@@ -46,12 +49,11 @@ public:
     void SetReferenceOutputModel(MCModelPointer &model);
     MCModelType *GetReferenceOutputModel() {return m_ReferenceOutputModel;}
 
-protected:
-    MCMAverageImagesImageFilter ()
-    {
-    }
+    void AddMaskImage(MaskImageType *maskImage) {m_MaskImages.push_back(maskImage);}
 
-    virtual ~MCMAverageImagesImageFilter () {}
+protected:
+    MCMAverageImagesImageFilter() {}
+    virtual ~MCMAverageImagesImageFilter() {}
 
     bool isZero(const itk::VariableLengthVector <double> &value) const
     {
@@ -72,6 +74,7 @@ private:
     ITK_DISALLOW_COPY_AND_ASSIGN(MCMAverageImagesImageFilter);
 
     std::vector <MCModelPointer> m_ReferenceInputModels;
+    std::vector <MaskImagePointer> m_MaskImages;
     MCModelPointer m_ReferenceOutputModel;
 };
 
