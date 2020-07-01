@@ -12,6 +12,7 @@ int main(int argc, char **argv)
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inFileArg("i","input","list of MCM images (one per line)",true,"","MCM images",cmd);
+    TCLAP::ValueArg<std::string> maskArg("m","maskfiles","Input masks list in text file (mask images should contain only zeros or ones)",false,"","input masks list",cmd);
     TCLAP::ValueArg<std::string> resArg("o","output", "Average MCM volume",true,"","result MCM volume",cmd);
     TCLAP::ValueArg<int> outputFascicleArg("n", "nb-of-output-fascicle", "number of output fascicles", true, 0, "number of output fascicles",cmd);
     TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
@@ -31,6 +32,7 @@ int main(int argc, char **argv)
     typedef anima::MCMFileReader <double,3> MCMReaderType;
     typedef anima::MCMFileWriter <double, 3> MCMWriterType;
     typedef itk::VectorImage<double, 3> ImageType;
+    using MaskImageType = anima::MCMAverageImagesImageFilter <double>::MaskImageType;
 
     // Load MCM images
     std::ifstream inputFile(inFileArg.getValue().c_str());
@@ -65,6 +67,25 @@ int main(int argc, char **argv)
             firstInputModel = mcmReader.GetModelVectorImage()->GetDescriptionModel();
 
         nbOfImages++;
+    }
+
+    std::ifstream masksIn;
+    if (maskArg.getValue() != "")
+        masksIn.open(maskArg.getValue());
+
+
+    if (masksIn.is_open())
+    {
+        char tmpStr[2048];
+        while (!masksIn.eof())
+        {
+            masksIn.getline(tmpStr,2048);
+
+            if (strcmp(tmpStr,"") == 0)
+                continue;
+
+            mainFilter->AddMaskImage(anima::readImage <MaskImageType> (tmpStr));
+        }
     }
 
     anima::MultiCompartmentModelCreator mcmCreator;

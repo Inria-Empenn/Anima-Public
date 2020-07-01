@@ -89,6 +89,15 @@ MCMAverageImagesImageFilter <TPixelType>
     std::vector <double> workInputWeights(numInputs,0.0);
     PixelType voxelOutputValue(m_ReferenceOutputModel->GetSize());
 
+    using MaskIteratorType = itk::ImageRegionConstIterator <MaskImageType>;
+    std::vector <MaskIteratorType> maskIterators;
+    if (m_MaskImages.size() == numInputs)
+    {
+        for (unsigned int i = 0; i < numInputs; ++i)
+            maskIterators.push_back(MaskIteratorType (m_MaskImages[i], region));
+    }
+
+    unsigned int numMasks = maskIterators.size();
     while (!inputIterators[0].IsAtEnd())
     {
         voxelOutputValue.Fill(0.0);
@@ -99,6 +108,12 @@ MCMAverageImagesImageFilter <TPixelType>
         {
             if (isZero(inputIterators[i].Get()))
                 continue;
+
+            if (numMasks == numInputs)
+            {
+                if (maskIterators[i].Get() == 0)
+                    continue;
+            }
 
             workInputModels[i]->SetModelVector(inputIterators[i].Get());
             workInputWeights[i] = 1.0;
@@ -112,6 +127,10 @@ MCMAverageImagesImageFilter <TPixelType>
             for (unsigned int i = 0;i < numInputs;++i)
                 ++inputIterators[i];
             ++outputIterator;
+
+            for (unsigned int i = 0;i < numMasks;++i)
+                ++maskIterators[i];
+
             continue;
         }
 

@@ -179,26 +179,14 @@ typename MCMLinearInterpolateImageFunction< TInputImage, TCoordRep >
 MCMLinearInterpolateImageFunction< TInputImage, TCoordRep >
 ::EvaluateAtContinuousIndex(const ContinuousIndexType& index) const
 {
-    IndexType baseIndex, closestIndex;
+    IndexType baseIndex;
     double distance[ImageDimension], oppDistance[ImageDimension];
 
-    bool useClosest = true;    
     for (unsigned int dim = 0; dim < ImageDimension; ++dim)
     {
         baseIndex[dim] = itk::Math::Floor< IndexValueType >( index[dim] );
         distance[dim] = index[dim] - static_cast< double >( baseIndex[dim] );
         oppDistance[dim] = 1.0 - distance[dim];
-
-        if (useClosest)
-        {
-            if (distance[dim] < 0.5)
-                closestIndex[dim] = baseIndex[dim];
-            else
-                closestIndex[dim] = baseIndex[dim] + 1;
-
-            if ((distance[dim] > 1.0e-8)&&(oppDistance[dim] > 1.0e-8))
-                useClosest = false;
-        }
     }
 
     unsigned int threadIndex = this->GetFreeWorkIndex();
@@ -209,25 +197,6 @@ MCMLinearInterpolateImageFunction< TInputImage, TCoordRep >
 
     this->SetSpecificAveragerParameters(threadIndex);
     m_MCMAveragers[threadIndex]->ResetNumberOfOutputDirectionalCompartments();
-
-    useClosest = (useClosest && this->IsInsideBuffer(closestIndex));
-
-    if (useClosest)
-    {
-        m_ReferenceInputModels[threadIndex][0]->SetModelVector(static_cast<OutputType> (this->GetInputImage()->GetPixel(closestIndex)));
-        m_ReferenceInputWeights[threadIndex][0] = 1;
-
-        m_MCMAveragers[threadIndex]->SetInputModels(m_ReferenceInputModels[threadIndex]);
-        m_MCMAveragers[threadIndex]->SetInputWeights(m_ReferenceInputWeights[threadIndex]);
-
-        m_MCMAveragers[threadIndex]->Update();
-
-        voxelOutputValue = m_MCMAveragers[threadIndex]->GetOutputModel()->GetModelVector();
-
-        this->UnlockWorkIndex(threadIndex);
-
-        return voxelOutputValue;
-    }
 
     double totalOverlap = 0;
 

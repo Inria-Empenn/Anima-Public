@@ -26,17 +26,6 @@ VectorModelLinearInterpolateImageFunction< TInputImage, TCoordRep >
 }
 
 /**
-     * PrintSelf
-     */
-template<class TInputImage, class TCoordRep>
-void
-VectorModelLinearInterpolateImageFunction< TInputImage, TCoordRep >
-::PrintSelf(std::ostream& os, itk::Indent indent) const
-{
-    this->Superclass::PrintSelf(os,indent);
-}
-
-/**
      * Evaluate at image index position
      */
 template<class TInputImage, class TCoordRep>
@@ -45,31 +34,15 @@ typename VectorModelLinearInterpolateImageFunction< TInputImage, TCoordRep >
 VectorModelLinearInterpolateImageFunction< TInputImage, TCoordRep >
 ::EvaluateAtContinuousIndex(const ContinuousIndexType& index) const
 {
-    IndexType baseIndex, closestIndex;
+    IndexType baseIndex;
     double distance[ImageDimension], oppDistance[ImageDimension];
-
-    bool useClosest = true;
 
     for (unsigned int dim = 0; dim < ImageDimension; ++dim)
     {
         baseIndex[dim] = itk::Math::Floor< IndexValueType >( index[dim] );
         distance[dim] = index[dim] - static_cast< double >( baseIndex[dim] );
         oppDistance[dim] = 1.0 - distance[dim];
-
-        if (useClosest)
-        {
-            if (distance[dim] < 0.5)
-                closestIndex[dim] = baseIndex[dim];
-            else
-                closestIndex[dim] = baseIndex[dim] + 1;
-
-            if ((distance[dim] > 1.0e-8)&&(oppDistance[dim] > 1.0e-8))
-                useClosest = false;
-        }
     }
-
-    if (useClosest)
-        return static_cast<OutputType>( this->GetInputImage()->GetPixel( closestIndex ) );
 
     unsigned int vectorDim = this->GetInputImage()->GetNumberOfComponentsPerPixel();
     OutputType output(vectorDim);
