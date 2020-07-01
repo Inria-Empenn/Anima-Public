@@ -393,14 +393,14 @@ void SegPerfCAnalyzer::checkNumberOfLabels(int iNbLabelsImageTest, int iNbLabels
     if(iNbLabelsImageTest<=1)
     {
         m_uiNbLabels = 1;
-        std::cerr << "ERROR : Number of labels for ground truth is 0 !" << std::endl;
+        std::cerr << "ERROR : Number of labels in input image is 0 !" << std::endl;
         return;
     }
 
     if(iNbLabelsImageRef<=1)
     {
         m_uiNbLabels = 1;
-        std::cerr << "ERROR : Number of labels for reference image is 0 !"<< std::endl;
+        std::cerr << "ERROR : Number of labels in ground truth is 0 !"<< std::endl;
         return;
     }
 
