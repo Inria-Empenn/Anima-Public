@@ -250,7 +250,12 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
         }
 
         if (m_T1Map)
+        {
             t1Value = t1MapItr.Get();
+            if (t1Value <= 0.0)
+                t1Value = 1000;
+        }
+
         cost->SetT1Value(t1Value);
         cost->SetT2Values(m_T2CompartmentValues);
         cost->SetT2RelaxometrySignals(signalValues);

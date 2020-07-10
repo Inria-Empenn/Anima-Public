@@ -133,12 +133,16 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
         double t1Value = m_T2UpperBound;
 
         if (m_T1Map)
+        {
             t1Value = t1MapItr.Get();
+            if (t1Value <= 0.0)
+                t1Value = 1000;
+        }
 
         double b1Value = 1.0;
         double t2Value = initT2Iterator.Get();
 
-        if ((maskItr.Get() == 0)||(t1Value == 0))
+        if (maskItr.Get() == 0)
         {
             outT2Iterator.Set(0);
             outM0Iterator.Set(0);
@@ -174,7 +178,7 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
         optimizer->SetMaxEval(m_MaximumOptimizerIterations);
         optimizer->SetVectorStorageSize(2000);
 
-        lowerBounds[0] = 1.0e-4;
+        lowerBounds[0] = 1.0;
         upperBounds[0] = m_T2UpperBound;
         if (m_T1Map && (m_T2UpperBound > t1Value))
             upperBounds[0] = t1Value;

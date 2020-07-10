@@ -118,7 +118,11 @@ T2RelaxometryEstimationImageFilter <TInputImage,TOutputImage>
         double t1Value = 1000.0;
 
         if (m_T1Map)
+        {
             t1Value = t1MapItr.Get();
+            if (t1Value <= 0.0)
+                t1Value = 1000;
+        }
 
         for (unsigned int i = 0;i < numInputs;++i)
             relaxoT2Data[i] = inIterators[i].Get();
@@ -132,7 +136,7 @@ T2RelaxometryEstimationImageFilter <TInputImage,TOutputImage>
         optimizer->SetMaxEval(5000);
         optimizer->SetVectorStorageSize(2000);
 
-        lowerBounds[0] = 1.0e-4;
+        lowerBounds[0] = 1.0;
         upperBounds[0] = m_T2UpperBoundValue;
         if (m_T1Map && (m_T2UpperBoundValue > t1Value))
             upperBounds[0] = t1Value;
