@@ -147,6 +147,9 @@ MCMAverageImagesImageFilter <TPixelType>
         for (unsigned int i = 0;i < numInputs;++i)
             ++inputIterators[i];
         ++outputIterator;
+
+        for (unsigned int i = 0;i < numMasks;++i)
+            ++maskIterators[i];
     }
 }
 
