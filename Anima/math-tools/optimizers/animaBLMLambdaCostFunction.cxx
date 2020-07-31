@@ -63,7 +63,11 @@ BLMLambdaCostFunction::GetValue(const ParametersType &parameters) const
     if (!m_SolutionInBounds)
     {
         for (unsigned int i = 0;i < nbParams;++i)
-            m_PPermutted[i] = std::min(m_UpperBoundsPermutted[i],std::max(m_LowerBoundsPermutted[i],m_PPermutted[i]));
+        {
+            double value = m_PPermutted[i] + m_PreviousParametersPermutted[i];
+            value = std::min(m_UpperBoundsPermutted[i],std::max(m_LowerBoundsPermutted[i],value));
+            m_PPermutted[i] = value - m_PreviousParametersPermutted[i];
+        }
     }
 
     m_SolutionVector.set_size(nbParams);
@@ -86,10 +90,11 @@ bool BLMLambdaCostFunction::CheckSolutionIsInBounds(ParametersType &solutionVect
     unsigned int rank = solutionVector.size();
     for (unsigned int i = 0;i < rank;++i)
     {
-        if (solutionVector[i] < m_LowerBoundsPermutted[i])
+        double value = m_PreviousParametersPermutted[i] + solutionVector[i];
+        if (value < m_LowerBoundsPermutted[i])
             return false;
 
-        if (solutionVector[i] > m_UpperBoundsPermutted[i])
+        if (value > m_UpperBoundsPermutted[i])
             return false;
     }
 

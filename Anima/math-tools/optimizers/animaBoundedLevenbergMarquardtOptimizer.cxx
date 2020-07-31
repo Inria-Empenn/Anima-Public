@@ -94,6 +94,7 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
     std::vector <double> qrBetaValues(nbParams);
     ParametersType qtResiduals = m_ResidualValues;
     ParametersType lowerBoundsPermutted(nbParams);
+    ParametersType oldParametersPermutted(nbParams);
     ParametersType upperBoundsPermutted(nbParams);
     anima::QRPivotDecomposition(derivativeMatrix,pivotVector,qrBetaValues,rank);
     anima::GetQtBFromQRPivotDecomposition(derivativeMatrix,qtResiduals,qrBetaValues,rank);
@@ -112,12 +113,14 @@ void BoundedLevenbergMarquardtOptimizer::StartOptimization()
 
         for (unsigned int i = 0;i < nbParams;++i)
         {
-            lowerBoundsPermutted[i] = m_LowerBounds[pivotVector[i]] - oldParameters[pivotVector[i]];
-            upperBoundsPermutted[i] = m_UpperBounds[pivotVector[i]] - oldParameters[pivotVector[i]];
+            lowerBoundsPermutted[i] = m_LowerBounds[pivotVector[i]];
+            upperBoundsPermutted[i] = m_UpperBounds[pivotVector[i]];
+            oldParametersPermutted[i] = oldParameters[pivotVector[i]];
         }
 
         m_LambdaCostFunction->SetLowerBoundsPermutted(lowerBoundsPermutted);
         m_LambdaCostFunction->SetUpperBoundsPermutted(upperBoundsPermutted);
+        m_LambdaCostFunction->SetPreviousParametersPermutted(oldParametersPermutted);
 
         // Updates lambda and get new addon vector at the same time
         this->UpdateLambdaParameter(derivativeMatrix,dValues,pivotVector,qtResiduals,rank);

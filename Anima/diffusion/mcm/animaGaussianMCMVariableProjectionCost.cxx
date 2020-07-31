@@ -73,12 +73,13 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
     m_IndexesUsefulCompartments.resize(numCompartments);
     unsigned int pos = 0;
 
-    // Trick to keep the compartments with the lowest number of compartments by default
-    // This is a trick because it assumes the first compartments (i.e. the iso ones are the ones with the lowest number of compartments)
+    // Trick to keep the compartments with the lowest number of parameters by default
+    // This is a trick because it assumes the first compartments (i.e. the iso ones are the ones with the lowest number of parameters)
     for (int i = numCompartments - 1;i >= 0;--i)
     {
         bool duplicated = false;
-        for (unsigned int j = 0;j < i;++j)
+
+        for (int j = 0;j < i;++j)
         {
             if (m_MCMStructure->GetCompartment(i)->IsEqual(m_MCMStructure->GetCompartment(j)))
             {
@@ -100,6 +101,7 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
 
     // Compute predicted signals and jacobian
     m_PredictedSignalAttenuations.set_size(nbValues,numCompartments);
+
     for (unsigned int i = 0;i < nbValues;++i)
     {
         for (unsigned int j = 0;j < numCompartments;++j)
@@ -152,11 +154,60 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
 
     if (nnlsNeeded)
     {
-        m_NNLSBordersOptimizer->SetDataMatrix(m_CholeskyMatrix);
-        m_NNLSBordersOptimizer->SetPoints(m_FSignals);
-        m_NNLSBordersOptimizer->SetSquaredProblem(true);
-        m_NNLSBordersOptimizer->StartOptimization();
+        // Check usability of cholesky matrix for NNLS
+        bool useCholeskyMatrix = true;
+        for (int i = numCompartments - 1;i >= 0;--i)
+        {
+            double normRef = 0;
+            for (unsigned int k = 0;k < numCompartments;++k)
+                normRef += m_CholeskyMatrix.get(k,i) * m_CholeskyMatrix.get(k,i);
+            normRef = std::sqrt(normRef);
 
+            for (int j = 0;j < i;++j)
+            {
+                double normTest = 0;
+                for (unsigned int k = 0;k < numCompartments;++k)
+                    normTest += m_CholeskyMatrix.get(k,j) * m_CholeskyMatrix.get(k,j);
+                normTest = std::sqrt(normTest);
+
+                double normsProduct = normRef * normTest;
+                double dotProduct = 0.0;
+                for (unsigned int k = 0;k < numCompartments;++k)
+                    dotProduct += m_CholeskyMatrix.get(k,i) * m_CholeskyMatrix.get(k,j) / normsProduct;
+
+                if (std::abs(dotProduct - 1.0) < 1.0e-6)
+                {
+                    useCholeskyMatrix = false;
+                    break;
+                }
+            }
+
+            if (!useCholeskyMatrix)
+                break;
+        }
+
+        if (useCholeskyMatrix)
+        {
+            m_NNLSBordersOptimizer->SetDataMatrix(m_CholeskyMatrix);
+            m_NNLSBordersOptimizer->SetPoints(m_FSignals);
+            m_NNLSBordersOptimizer->SetSquaredProblem(true);
+        }
+        else
+        {
+            ParametersType observedSignals(nbValues);
+            for (unsigned int i = 0;i < nbValues;++i)
+            {
+                observedSignals[i] = m_ObservedSignals[i];
+                if (negativeWeights)
+                    observedSignals[i] *= -1;
+            }
+
+            m_NNLSBordersOptimizer->SetDataMatrix(m_PredictedSignalAttenuations);
+            m_NNLSBordersOptimizer->SetPoints(observedSignals);
+            m_NNLSBordersOptimizer->SetSquaredProblem(false);
+        }
+
+        m_NNLSBordersOptimizer->StartOptimization();
         m_OptimalUsefulWeights = m_NNLSBordersOptimizer->GetCurrentPosition();
     }
 
@@ -353,7 +404,7 @@ GaussianMCMVariableProjectionCost::GetDerivativeMatrix(const ParametersType &par
     {
         std::cerr << "Derivative: " << derivative << std::endl;
         std::cerr << "Optimal weights: " << m_OptimalUsefulWeights << std::endl;
-        std::cerr << "Gram matrix: " << m_GramMatrix << std::endl;
+        std::cerr << "Gram matrix inverse: " << m_InverseGramMatrix << std::endl;
         std::cerr << "Residuals: " << m_Residuals << std::endl;
 
         std::cerr << "Params: " << parameters << std::endl;

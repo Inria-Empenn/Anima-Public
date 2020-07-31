@@ -47,6 +47,7 @@ public:
     void SetPivotVector(std::vector <unsigned int> &piv) {m_PivotVector = piv;}
     void SetLowerBoundsPermutted(ParametersType &lb) {m_LowerBoundsPermutted = lb;}
     void SetUpperBoundsPermutted(ParametersType &ub) {m_UpperBoundsPermutted = ub;}
+    void SetPreviousParametersPermutted(ParametersType &val) {m_PreviousParametersPermutted = val;}
 
     void SetInputWorkMatricesAndVectorsFromQRDerivative(vnl_matrix <double> &qrDerivative,
                                                         ParametersType &qtResiduals, unsigned int rank);
@@ -70,6 +71,7 @@ private:
     mutable ParametersType m_WResiduals;
     std::vector <unsigned int> m_InversePivotVector, m_PivotVector;
     ParametersType m_LowerBoundsPermutted, m_UpperBoundsPermutted;
+    ParametersType m_PreviousParametersPermutted;
     vnl_matrix <double> m_InputWorkMatrix;
     mutable vnl_matrix <double> m_RAlphaTranspose;
     mutable vnl_matrix <double> m_WorkMatrix;

@@ -459,7 +459,6 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     {
         resVec.Fill(0.0);
 
-        //if ((maskItr.Get() == 0)||(maskItr.GetIndex()[0] != 3)||(maskItr.GetIndex()[1] != 7)||(maskItr.GetIndex()[2] != 84))
         if (maskItr.Get() == 0)
         {
             outIterator.Set(resVec);
