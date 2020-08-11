@@ -26,9 +26,10 @@ Compilation Instructions
 
 Anima is available as a superproject, including all its modules and links and instructions for its dependencies. Building ANIMA is simple:
 * clone the repository from github (use the first line by default, the second if you have set up your SSH keys): 
+
 ::
-    git clone https://github.com/Inria-Visages/Anima-Public.git src
-    git clone git@github.com:Inria-Visages/Anima-Public.git src
+	git clone https://github.com/Inria-Visages/Anima-Public.git src
+	git clone git@github.com:Inria-Visages/Anima-Public.git src
 
 * then, run CMake in a new build folder, change any options if you wish to change the default compilation (which downloads and compiles all dependencies and tools): `mkdir build ; cd build ; ccmake ../src` (use the CMake graphical interface on Windows)
 * build using your environment (a `make` or `ninja` will be enough on Linux and OSX, open Visual Studio on Windows)
