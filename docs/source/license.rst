@@ -1,3 +1,6 @@
+License
+=======
+
 Anima public library for medical image processing
 Copyright (C) 2015 - 2020, Inria
 
@@ -14,7 +17,8 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 
---------
+Contact
+^^^^^^^
 
 This software is distributed under the AGPL v3 or later license. If you wish
 to use the code under another license, contact us at anima-licensing@inria.fr
