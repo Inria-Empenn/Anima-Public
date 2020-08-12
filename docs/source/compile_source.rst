@@ -27,7 +27,8 @@ Compilation Instructions
 Anima is available as a superproject, including all its modules and links and instructions for its dependencies. Building ANIMA is simple:
 * clone the repository from github (use the first line by default, the second if you have set up your SSH keys): 
 
-::
+.. prompt:: bash $
+
 	git clone https://github.com/Inria-Visages/Anima-Public.git src
 	git clone git@github.com:Inria-Visages/Anima-Public.git src
 

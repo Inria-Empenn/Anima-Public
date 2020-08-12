@@ -14,6 +14,32 @@ If this is your first time here, you may be very well interested in installing A
    compile_source
    install_binaries
 
+Tools documentation
+^^^^^^^^^^^^^^^^^^^
+
+More detailed documentation on the different tools available in Anima current release is provided here. It includes documentation on the following tool categories:
+
+* :doc:`Diffusion imaging <diffusion>`
+* :doc:`Registration <registration>`
+* :doc:`Segmentation <segmentation>`
+* :doc:`Patient to group comparison <group_comparison>`
+* :doc:`MR relaxometry <relaxometry>`
+* :doc:`MR denoising <denoising>`
+* :doc:`Basic image processing tools <basic_processing>`
+
+
+.. toctree::
+   :hidden:
+   :caption: Tools documentation
+   
+   diffusion
+   registration
+   segmentation
+   group_comparison
+   relaxometry
+   denoising
+   basic_processing
+
 Licensing
 ^^^^^^^^^
 
