@@ -20,7 +20,7 @@ Image thresholding
 
 *Example:* this thresholds the input Image.nii.gz to keep only voxels whose values are between 0.5 and 1.5.
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaThrImage -i Image.nii.gz -t 0.5 -u 1.5 -o BinaryImage.nii.gz
 
@@ -53,7 +53,7 @@ We provide an implementation of one of the multiple sclerosis (MS) segmentation 
 
 *Example:* this command line uses T1, T2 and FLAIR images as an input, as well as brain_mask.nii.gz as a skull-stripping mask and compute their GCEM segmentation.
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaGcStremMsLesionsSegmentation -m brain_mask.nii.gz -a 1 --rej 0.2 --min-fuzzy 1 --max-fuzzy 2 --intT2 3 --intFLAIR 2 --rb --ml 3 -i T1.nii.gz -j T2.nii.gz -l FLAIR.nii.gz --ini 2 -o lesion_seg.nii.gz --out-csf csf_seg.nii.gz --out-gm gm_seg.nii.gz --out-wm wm_seg.nii.gz --out-gc gc_seg.nii.gz 
 

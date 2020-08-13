@@ -8,7 +8,7 @@ Image arithmetic
 
 *Example:* this computes Image1 - Image2 into the result image Diff.nii.gz
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaImageArithmetic -i Image1.nii.gz -s Image2.nii.gz -o Diff.nii.gz
 
@@ -19,7 +19,7 @@ Image averaging
 
 *Example:* this computes the average from all images listed in listFiles.txt. listMasks.txt specifies a list of masks of interest applicable for each image.
 
-.. prompt:: bash $
+.. code-block:: sh
  
 	animaAverageImages -i listFiles.txt -m listMasks.txt -o outputImage.nrrd 
 
@@ -35,7 +35,7 @@ Images concatenation
 
 *Example:* this will concatenate Base, Addon1 and Addon2 into a single (N+1)D image on the last dimension.
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaConcatenateImages -i Addon1.nii.gz -i Addon2.nii.gz -b Base.nii.gz -o Data.nii.gz 
 
@@ -46,7 +46,7 @@ Image resolution changer
 
 *Example:* this resamples the input image so that its voxel resolution is 2x2x2 mm.
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaImageResolutionChanger -i Image.nrrd -o Image_Result.nrrd -x 2 -y 2 -z 2
 
@@ -57,7 +57,7 @@ Image vectorization
 
 *Example:* this will create a vector image with vector dimension 2, where the first dimension will contain Image1 and the second Image2.
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaVectorizeImages -i Image1.nii.gz -i Image2.nii.gz -o VectImage.nii.gz
 
@@ -73,7 +73,7 @@ Image conversion
 
 *Example:* this reorients the image in the coronal plane, displays its information (-I) and saves the result in a NRRD file.
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaConvertImage -i Image.nii.gz -I -R CORONAL -o Image_Coronal.nrrd
 

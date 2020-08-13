@@ -10,7 +10,7 @@ Anima provides linear registration (**animaPyramidalBMRegistration**) using a bl
 
 *Example:* this registers Floating.nii.gz on Reference.nii.gz using a global affine transform (--ot parameter), on a multi-resolution pyramid of 4 levels (-p parameter), but stopping at the one before last level (-l parameter). For matching, it uses only those blocks where the standard deviation is above 10.
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaPyramidalBMRegistration -r Reference.nii.gz -m Floating.nii.gz -o Floating_On_Ref.nii.gz -O transform_aff.txt -s 10 -p 4 -l 1 --ot 2
 
@@ -24,7 +24,7 @@ Non linear registration of anatomical images (**animaDenseSVFBMRegistration**) s
 
 *Example:* this registers Floating_aff.nii.gz on Reference.nii.gz on a multi-resolution pyramid of 3 levels (-p parameter), stopping at full resolution (-l parameter). 
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaDenseSVFBMRegistration -r Reference.nii.gz -m Floating_aff.nii.gz -o Floating_On_Ref.nii.gz -O transform_nl.nii.gz -p 3 -l 0 
 
@@ -48,7 +48,7 @@ Anima includes a simple, yet experimental, tool for Eddy current distortion corr
 
 *Example:* this will perform Eddy current distortion correction on DiffVolume4D.nrrd in the direction specified by -d (-d 1 denotes the Y direction in voxel coordinates).
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaEddyCurrentCorrection -i DiffVolume4D.nrrd -o DiffVolume_Corrected.nrrd -d 1 
 
@@ -64,7 +64,7 @@ From our experience, we found out it is best to use both for correcting for dist
 
 *Example:* this first computes an initial correction field using Voss et al. method, with a smoothing sigma of 2 voxels (-s parameter). Then it starts from the initial transformation Init_Correction.nii.gz and computes a more precise BM_Correction.nii.gz dense transformation (note that contrary to previous algorithms, these transformations are not SVFs but dense displacement fields). It also outputs the average of AP and PA images after correction into BM_Correction.nii.gz.
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaDistortionCorrection -f AP_Image.nii.gz -b PA_Image.nii.gz -o Init_Correction.nii.gz -s 2
 	animaBMDistortionCorrection -f AP_Image.nii.gz -b PA_Image.nii.gz -i Init_Correction.nii.gz -o BM_Corrected_Image.nii.gz -O BM_Correction.nii.gz
@@ -79,7 +79,7 @@ In addition to traditional registration, we provide tools to compute and use the
 
 *Example:* If one wants to register two images A.nii.gz and B.nii.gz, three steps will be necessary: realign A on its symmetry plane, realign B on its symmetry plane, and use both transformations as inputs to make a constrained registration of A and B. The output transformation brings the original B on the original A with a rigid transformation. The -F option activates a faster constrained registration but which may lose a little accuracy (see [8]).
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaSymmetryPlane -i A.nii.gz -o A_realign.nii.gz --out-realign-trsf A_sym.txt
 	animaSymmetryPlane -i B.nii.gz -o B_realign.nii.gz --out-realign-trsf B_sym.txt
@@ -95,7 +95,7 @@ EPI distortion correction works in a slightly different way as other resampling 
 
 *Example:* this applies the previously obtained transormation to the whole DWI volume to correct its distortion.
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaApplyDistortionCorrection -f DWI_AP.nii.gz -t BM_Correction.nii.gz -o DWI_Corrected.nii.gz
 
@@ -104,7 +104,7 @@ Constructing series of transformations descriptions
 
 All other transform application tools require the input transformations to be given as an XML file which describes a series of transformations. It can take several option but the simple example is the following:
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaTransformSerieXmlGenerator -i transform_aff.txt -i transform_nl.nii.gz -o transforms.xml
 
@@ -117,7 +117,7 @@ Applying a transformation requires the previous XML description file. Three tool
 
 *Example:* this applies the transforms in transforms.xml to resample Floating on Reference.
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaApplyTransformSerie -i Floating.nii.gz -g Reference.nii.gz -t transforms.xml -o F_resampled.nii.gz
 
@@ -128,7 +128,7 @@ A tool to compute the Jacobian or its determinant of a displacement field transf
 
 *Example:* this computes the Jacobian matrix of the input SVF after its exponentiation. The Jacobian matrix is stored as a 9 component vector image stored in row first. 
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaDisplacementFieldJacobian -i inputField.nrrd -S -o dispFieldJacDeterminant.nrrd
 
@@ -139,7 +139,7 @@ We provide a tool named **animaLinearTransformArithmetic** to compose and perfor
 
 *Example:* this performs the log-Euclidean addition of the two linear input transformations (in the ITK format) in the log-Euclidean framework.
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaLinearTransformArithmetic -i transform.txt -a addedTransform.txt -o outputTransform.txt
 

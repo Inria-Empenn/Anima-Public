@@ -29,7 +29,7 @@ Anima is available as a superproject, including all its modules and links and in
 
 * clone the repository from github (use the first line by default, the second if you have set up your SSH keys): 
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	git clone https://github.com/Inria-Visages/Anima-Public.git src
 	git clone git@github.com:Inria-Visages/Anima-Public.git src

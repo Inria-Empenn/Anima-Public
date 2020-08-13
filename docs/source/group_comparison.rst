@@ -11,7 +11,7 @@ Patient to group comparison tools provides ways to compare a single patient imag
 
 *Example:* this tests at each voxel testedImage against the list of controls (specified in listControls.txt: one line = one image to load). For speed reasons, it is highly desirable to use computationMask.nii.gz, which can be the intersection of brain masks of the controls and the tested image. It outputs p-values and z-scores of the test.
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaPatientToGroupComparison -i testedImage.nii.gz -I listControls.txt -o zScore.nii.gz -O pValues.nii.gz -m computationMask.nii.gz
 
@@ -35,7 +35,7 @@ We provide an implementation of a population comparison tool proposed by Whitche
 
 *Example:* this computes the voxelwise Cramers tests p-values given its inputs. dataList.txt lists on each line the input files of all groups, firstGroup.txt and secondGroup.txt lists the indexes of patients in each group, starting with index 0.
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaCramersTest -l dataList.txt -m computationMask.nrrd -o outputPValues.nrrd -f firstGroup.txt -s secondGroup.txt
 

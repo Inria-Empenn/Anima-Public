@@ -12,6 +12,6 @@ The script simply takes as an input the image or images to be brain-extracted an
 
 *Example:*
 
-.. prompt:: bash $
+.. code-block:: sh
 	
 	~/Anima-Scripts-Public/brain_extraction/animaAtlasBasedBrainExtraction.py T1Image.nrrd

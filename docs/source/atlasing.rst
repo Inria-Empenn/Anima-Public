@@ -46,7 +46,7 @@ With this folder structure, two scripts are available that follow the same idea:
 
 To run them, use one of the commands that follow after going to the main folder in the terminal (depending if you are making a DTI atlas or anatomical one):
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	~/Anima-Scripts-Public/atlasing/anatomical/animaBuildAnatomicalAtlas.py -p Images/Prefix -n <N> -i <M> -c <nCores>
 	~/Anima-Scripts-Public/atlasing/dti/animaBuildDTIAtlas.py -p Images/Prefix -n <N> -i <M> -c <nCores>
@@ -64,7 +64,7 @@ Online atlasing (iterative centroid)
 
 Online atlasing as explained in [6] works in a different way as the previous scripts. Assuming you hav an atlas output products from the previous scripts, the iterative centroid algorithm adds additional images to form an atlas without having to create it from the ground up. Its call works in the same way as the previous ones:
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	~/Anima-Scripts-Public/atlasing/anatomical_iterative_centroid/animaBuildAnatomicalICAtlas.py -p Images/Prefix -s <startPoint> -n <N> -c <nCores>
 
@@ -86,7 +86,7 @@ This script takes as an input all of the following:
 * List of associated ages in an other txt file (i.e. age.txt)
 * List of desired atlas ages in an other txt file (i.e. atlasAge.txt)
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	~/Anima-Scripts-Public/atlasing/longitudinal_preparation/animaComputeLongitudinalAtlasWeights.py -a age.txt -i image.txt -o outputFolder -n n -A atlasAge.txt -p Images/Prefix
 
@@ -115,7 +115,7 @@ Atlasing scripts with longitudinal parameters
 
 After the preparation step, to compute each sub-atlas i, simply run one of the atlasing scripts with the appropriate options:
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	cd outputFolder/atlas_i
 	~/Anima-Scripts-Public/atlasing/anatomical/animaBuildAnatomicalAtlas.py -p Images/Prefix -n <N> -i <M> -c <nCores> --rigid -w weights.txt -b 2

@@ -22,7 +22,7 @@ Warning: gradients reworking is known to work only with Siemens acquisitions, no
 
 *Example:*
 
-.. prompt:: bash $
+.. code-block:: sh
 	
 	~/Anima-Scripts-Public/diffusion/animaDiffusionImagePreprocessing.py -b Diff.bval -D Dicom/* -r B0_PA.nii.gz -d 1 -t T1.nii.gz -i Diff.nii.gz
 
@@ -49,7 +49,7 @@ It mainly has two modes: one for HCP-like datasets that have high quality acquis
 
 *Example:*
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	~/Anima-Scripts-Public/diffusion/animaMultiCompartmentModelEstimation.py -t tensor -n 3 -i Diff_preprocessed.nrrd -g Diff_preprocessed.bvec -b Diff.bval -m Diff_brainMask.nrrd
 

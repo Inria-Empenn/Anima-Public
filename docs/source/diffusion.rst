@@ -18,7 +18,7 @@ The **animaMCMEstimator** tool provides an implementation of MCM estimation from
 
 *Example:* this estimates a multi-compartment model with two components (-n 2), each anisotropic component being a tensor (-c 3), a free water compartment (-F) and an isotropic restricted water compartment (-R), using the variable projection method (--ml-mode 2) and the Levenberg Marquardt algorithm. 
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaMCMEstimator -i DWI.nii.gz -o MCM_n2.mcm -O MCM_n2_b0.nrrd -g DWI.bvec -b DWI.bval -n 2 -c 3 -F -R --optimizer levenberg --ml-mode 2
 
@@ -63,13 +63,13 @@ In addition to estimation, we provide two ways of performing model selection and
 
 * this computes a multi-tensor model at each voxel, with at most 3 anisotropic compartments per voxel (this number being decided based on the AICc criterion).
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaMCMEstimator -i DWI.nii.gz -o MCM_n3_MS.mcm -O MCM_n3_MS_b0.nrrd -g DWI.bvec -b DWI.bval -n 3 -c 3 -FR --optimizer levenberg --ml-mode 2 -M
 
 * this performs model averaging as proposed in [10], with model simplification. It uses as an input two text files, each having on each line an image file name. *listMCM.txt* contains the list of MCM files to be averaged (from 0 to N anisotropic compartments) and *listAIC.txt* contains the corresponding AICc files (all these images may be written from **animaMCMEstimator**).
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaMCMModelAveraging -i listMCM.txt -o MCM_avg.mcm -a listAIC.txt -m MCM_avg_mose.nrrd -C
 
@@ -116,7 +116,7 @@ ODF estimation
 
 *Example:* this estimates ODFs of order 6 from DWI.nii.gz using Aganj et al. method.
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaODFEstimator -i DWI.nii.gz -o ODF.nii.gz -g grads.bvec -k 6 -R
 
@@ -156,7 +156,7 @@ Tractography tools
 
 *Example:* this filters the input fibers telling each fiber can be kept if it touches labels 1 and 2, but not 3.
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaFibersFilterer -i fibers.fds -o filtered_fibers.fds -r roi_image.nrrd -t 1 -t 2 -f 3 
 

@@ -8,7 +8,7 @@ Noise generation
 
 *Example:* this adds Gaussian noise (relative to the average signal computed from refSignalImage.nii.gz) to Image.nii.gz. It will provide as outputs 10 images named OutputImage\_??.nii.gz
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaNoiseGenerator -i Image.nii.gz -o OutImage.nii.gz -G -n 10 -r refSignalImage.nii.gz
 
@@ -24,7 +24,7 @@ NL-Means for scalar images
 
 *Example:* this performs denoising of Image.nii.gz with the default parameters, a beta parameter of 0.5 and assuming Rician noise.
 
-.. prompt:: bash $
+.. code-block:: sh
 
 	animaNLMeans -i Image.nii.gz -o OutImage.nii.gz -W 1 -b 0.5
 
