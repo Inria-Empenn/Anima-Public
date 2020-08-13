@@ -146,7 +146,8 @@ PatientToGroupComparisonImageFilter<PixelScalarType>
                     tmpCovMatrix(k,j) = tmpCovMatrix(j,k);
             }
 
-        tmpCovMatrixInv = vnl_matrix_inverse <double> (tmpCovMatrix);
+        vnl_matrix_inverse <double> matrixInverter(tmpCovMatrix);
+        tmpCovMatrixInv = matrixInverter.inverse();
 
         double resValue = 0;
 
