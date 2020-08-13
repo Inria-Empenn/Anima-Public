@@ -4,6 +4,7 @@ Compiling Anima from source
 Requirements
 ^^^^^^^^^^^^
 Anima is multi-platform and will compile and run on the major platforms: Windows, OSX and Linux. It requires two major things: 
+
 * `CMake <http://www.cmake.org>`_ (>= 3.1.0) as a cross-platform Makefile generation software (we use its super-project ability to also download and compile its dependencies)
 * A compilation environment: Visual studio 2015 on Windows, Xcode and developer tools on OSX, gcc/g++ or any other C++ compiler on Linux
 
@@ -25,6 +26,7 @@ Compilation Instructions
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 Anima is available as a superproject, including all its modules and links and instructions for its dependencies. Building ANIMA is simple:
+
 * clone the repository from github (use the first line by default, the second if you have set up your SSH keys): 
 
 .. prompt:: bash $
