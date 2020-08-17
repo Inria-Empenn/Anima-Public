@@ -125,8 +125,8 @@ In the previous line, **animaBuildAnatomicalAtlas** may be replaced by **animaBu
 References
 ----------
 
-1. A. Guimond, J. Meunier, J.P. Thirion. *Average brain models: A convergence study*, Computer Vision and Image Understanding, 77(2):192-210, 2000.
-2. V. Arsigny, O. Commowick, X. Pennec, N. Ayache. *A Log-Euclidean Framework for Statistics on Diffeomorphisms*, 9th International Conference on Medical Image Computing and Computer Assisted Intervention (MICCAI), 924-931, 2006.
+1. A\. Guimond, J\. Meunier, J\.P\. Thirion. *Average brain models: A convergence study*, Computer Vision and Image Understanding, 77(2):192-210, 2000.
+2. V\. Arsigny, O\. Commowick, X\. Pennec, N\. Ayache. *A Log-Euclidean Framework for Statistics on Diffeomorphisms*, 9th International Conference on Medical Image Computing and Computer Assisted Intervention (MICCAI), 924-931, 2006.
 3. Olivier Commowick, Nicolas Wiest-Daesslé, Sylvain Prima. *Automated diffeomorphic registration of anatomical structures with rigid parts: application to dynamic cervical MRI*. 15th International Conference on Medical Image Computing and Computer Assisted Intervention, pp.163-70, 2012.
 4. Ralph Suarez, Olivier Commowick, Sanjay Prabhu, Simon K. Warfield. *Automated delineation of white matter fiber tracts with a multiple region-of-interest approach*. NeuroImage, 59 (4), pp.3690-3700, 2012.
 5. Antoine Legouhy, Olivier Commowick, François Rousseau, Christian Barillot. *Unbiased Longitudinal Brain Atlas Creation Using Robust Linear Registration and Log-Euclidean Framework for Diffeomorphisms*, International Symposium on Biomedical Imaging, 2019.

@@ -11,7 +11,7 @@ We provide a set of basic tools related to segmentation that can be used easily.
 Dice score computation
 ^^^^^^^^^^^^^^^^^^^^^^
 
-**animaDiceMeasure** computes the Dice score between two labeled segmentations. For binary images, it computes the Dice or Jaccard scores. For multi-labeled images, it either outputs the individual label scores or the total overlap score as in Klein et al. [1] (-T option).
+**animaDiceMeasure** computes the Dice score between two labeled segmentations. For binary images, it computes the Dice or Jaccard scores. For multi-labeled images, it either outputs the individual label scores or the total overlap score as in Klein et al. [1] (``-T`` option).
 
 Image thresholding
 ^^^^^^^^^^^^^^^^^^
@@ -39,7 +39,7 @@ Image masking
 Isosurface extraction
 ^^^^^^^^^^^^^^^^^^^^^
 
-**animaIsosurface** takes as an input image and extracts its isosurface at the level given by the -t option. Decimation and smoothing of the resulting surface can also be controlled.
+**animaIsosurface** takes as an input image and extracts its isosurface at the level given by the ``-t`` option. Decimation and smoothing of the resulting surface can also be controlled.
 
 Graph cut segmentation
 ----------------------
@@ -59,16 +59,16 @@ We provide an implementation of one of the multiple sclerosis (MS) segmentation 
 
 The parameters are as follows: 
 
-* -a option specifies the type of algorithm (0 is STREM [2], 1 is GCEM [3]). 
-* --rej : percentage of outliers rejection
-* --min-fuzzy : minimal value for fuzzy rules
-* --max fuzzy : maximal value for fuzzy rules
-* --ml : minimal lesion size (mm3)
-* --ini : initialization method (0: atlas, 1: based on DP, 2: based on FLAIR)
-* -o : output lesion segmentation
-* --out-csf : output CSF map
-* --out-gm : output GM map
-* --out-wm : output WM map
+* ``-a`` option specifies the type of algorithm (0 is STREM [2], 1 is GCEM [3]). 
+* ``--rej`` : percentage of outliers rejection
+* ``--min-fuzzy`` : minimal value for fuzzy rules
+* ``--max-fuzzy`` : maximal value for fuzzy rules
+* ``--ml`` : minimal lesion size (mm3)
+* ``--ini`` : initialization method (0: atlas, 1: based on DP, 2: based on FLAIR)
+* ``-o`` : output lesion segmentation
+* ``--out-csf`` : output CSF map
+* ``--out-gm`` : output GM map
+* ``--out-wm`` : output WM map
 
 Segmentation validation tools
 -----------------------------
@@ -91,4 +91,4 @@ References
 1. Jérémy Lecoeur, Sean Patrick Morrissey, Jean-Christophe Ferré, Douglas Arnold, D. Louis Collins, Christian Barillot. *Multiple Sclerosis Lesions Segmentation using Spectral Gradient and Graph Cuts*. Medical Image Analysis on Multiple Sclerosis (validation and methodological issues), MICCAI workshop, 2008.
 2. Daniel García-Lorenzo, Sylvain Prima, Douglas Arnold, Louis Collins, Christian Barillot. *Trimmed-likelihood estimation for focal lesions and tissue segmentation in multisequence MRI for multiple sclerosis*. IEEE Transactions on Medical Imaging, 30 (8), pp.1455-67, 2011.
 3. Daniel García-Lorenzo, Jérémy Lecoeur, Douglas Arnold, D. Louis Collins, Christian Barillot. *Multiple Sclerosis lesion segmentation using an automatic multimodal Graph Cuts*. 12th International Conference on Medical Image Computing and Computer Assisted Intervention, LNCS 5762, pp.584-591, 2009.
-4. O. Commowick et al. *Objective Evaluation of Multiple Sclerosis Lesion Segmentation using a Data Management and Processing Infrastructure*. Scientific Reports, 8(1), 2018
+4. O\. Commowick et al\. *Objective Evaluation of Multiple Sclerosis Lesion Segmentation using a Data Management and Processing Infrastructure*. Scientific Reports, 8(1), 2018

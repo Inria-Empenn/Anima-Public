@@ -71,7 +71,7 @@ Image conversion
 
 **animaConvertImage** serves several roles: it can display information on an image, reorient it and write it to another file format.
 
-*Example:* this reorients the image in the coronal plane, displays its information (-I) and saves the result in a NRRD file.
+*Example:* this reorients the image in the coronal plane, displays its information (``-I``) and saves the result in a NRRD file.
 
 .. code-block:: sh
 
@@ -84,7 +84,7 @@ Image cropping
 
 If you give arguments size of zero the corresponding dimension will be collapsed.
 
-*Example:* for a 4D image 4x4x4x4, the arguments **--xindex 1 --zindex 1 --zsize 2 --tindex 3 --tsize 0** will result in an image 3x4x2 where the x dim corresponds to [1,2,3] of the input, y[0,3], zindex[1,2] and tindex is collapsed, only the last sequence has been kept.
+*Example:* for a 4D image 4x4x4x4, the arguments ``--xindex 1 --zindex 1 --zsize 2 --tindex 3 --tsize 0`` will result in an image 3x4x2 where the x dim corresponds to [1,2,3] of the input, y[0,3], zindex[1,2] and tindex is collapsed, only the last sequence has been kept.
 
 Image smoothing
 ---------------

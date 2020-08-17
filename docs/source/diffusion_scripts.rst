@@ -16,7 +16,7 @@ This script combines several preprocessing steps to prepare data with the follow
 * Brain masking using the :doc:`brain extraction script <brain_extraction>`
 * DTI estimation using the **animaDTIEstimator** tool
 
-Some of these steps may be discarded using the --no-\* options available in the script help. The brain masking step is performed either on a provided T1 image or on the DWI first sub-volume. For distortion correction, the reversed PED image has to be provided with the -r option and the direction of the PED with the -d option. If no reversed PED image, and the T1 is, distortion will be corrected by a simple B0 to T1 non linear registration.
+Some of these steps may be discarded using the ``--no-\*`` options available in the script help. The brain masking step is performed either on a provided T1 image or on the DWI first sub-volume. For distortion correction, the reversed PED image has to be provided with the ``-r`` option and the direction of the PED with the ``-d`` option. If no reversed PED image, and the T1 is, distortion will be corrected by a simple B0 to T1 non linear registration.
 
 Warning: gradients reworking is known to work only with Siemens acquisitions, not tested on other scanners.
 

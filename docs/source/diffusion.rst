@@ -9,14 +9,14 @@ Diffusion imaging
 Multiple compartment models
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-From version 2.0, Anima provides tools for the estimation and processing of multi-compartment models. So far, we have implemented results of our research from papers on estimation and model averaging of MCM. More works on tractography are to come in future releases.
+Anima provides tools for the estimation and processing of multi-compartment models. So far, we have implemented results of our research from papers on estimation and model averaging of MCM. More works on tractography are to come in future releases.
 
 MCM estimation
 """"""""""""""
 
 The **animaMCMEstimator** tool provides an implementation of MCM estimation from DWI data, following the maximum likelihood method described in [8]. It provides in its public version tools to estimate models including isotropic compartments (free water, isotropic restricted water, dot compartment, and directional compartments (stick, zeppelin, tensor, NODDI [12]). The binary release also allows for the estimation of the DDI compartment model [9]. 
 
-*Example:* this estimates a multi-compartment model with two components (-n 2), each anisotropic component being a tensor (-c 3), a free water compartment (-F) and an isotropic restricted water compartment (-R), using the variable projection method (--ml-mode 2) and the Levenberg Marquardt algorithm. 
+*Example:* this estimates a multi-compartment model with two components (``-n 2``), each anisotropic component being a tensor (``-c 3``), a free water compartment (``-F``) and an isotropic restricted water compartment (``-R``), using the variable projection method (``--ml-mode 2``) and the Levenberg Marquardt algorithm. 
 
 .. code-block:: sh
 
@@ -56,7 +56,7 @@ MCM model averaging
 
 In addition to estimation, we provide two ways of performing model selection and averaging:
 
-* **animaMCMEstimator** proposes model selection based on AICc criterion (option -M): in that case, all models from 0 to N will be estimated and the one with the optimal AICc will be kept
+* **animaMCMEstimator** proposes model selection based on AICc criterion (option ``-M``): in that case, all models from 0 to N will be estimated and the one with the optimal AICc will be kept
 * The binary Anima tools include one called **animaMCMModelAveraging** that implements the method proposed in [10]. This method uses outputs from model estimations from 0 to N fiber compartments and their AICc scores (produced by **animaMCMEstimator**) to compute an average MCM volume with simplification to the optimal number of fibres in each voxel. This tool is not yet open source and as such will be distributed only as binary versions in the Anima releases.
 
 *Examples:*
@@ -86,7 +86,7 @@ DTI estimation
 
 DTI estimation is performed using two tools in ANIMA, implementing basic matrix-based DTI estimation and extrapolation.
 
-**animaDTIEstimator** takes as inputs a 4D DWI image, a set of gradient directions and b-values and estimates tensors at each voxel. Gradient directions may be in the medInria format (one line per gradient) or the bvec format. B-values may be specified using a single number or a text file (either one line for each volume b-value or a bval file). Estimated tensors may be degenerated in some places. In that case, the tool outputs either zero values or the degenerated tensors depending on the -K option.
+**animaDTIEstimator** takes as inputs a 4D DWI image, a set of gradient directions and b-values and estimates tensors at each voxel. Gradient directions may be in the medInria format (one line per gradient) or the bvec format. B-values may be specified using a single number or a text file (either one line for each volume b-value or a bval file). Estimated tensors may be degenerated in some places. In that case, the tool outputs either zero values or the degenerated tensors depending on the ``-K`` option.
 
 *Note:* In all Anima tools, the tensors are stored using a 6-component vector image representing the upper diagonal part of the tensors. These values are stored in column-first order.
 
@@ -100,9 +100,9 @@ Log-Euclidean tools
 
 These tools implement Arsigny et al. log and exponential maps on tensors:
 
-* **animaLogTensors** computes the log map of tensors. The -S option switches between the vector representation and matrix representation of the log (sqrt(2) scaling factor on non diagonal terms).
+* **animaLogTensors** computes the log map of tensors. The ``-S`` option switches between the vector representation and matrix representation of the log (sqrt(2) scaling factor on non diagonal terms).
 
-* **animaExpTensors** computes the exponential map of log-vectors. The -S option is the equivalent of the one in **animaLogTensors**: it divides non diagonal values by sqrt(2).
+* **animaExpTensors** computes the exponential map of log-vectors. The ``-S`` option is the equivalent of the one in **animaLogTensors**: it divides non diagonal values by sqrt(2).
 
 ODF estimation and processing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -112,7 +112,7 @@ In all Anima tools, the ODFs are represented in the real spherical harmonics bas
 ODF estimation
 """"""""""""""
 
-**animaODFEstimator** estimates ODFs at each voxel using one of two estimation methods: (1) Descoteaux et al. [2] with or without regularization, with or without ODF spherical deconvolution [3], and (2) Aganj et al. [4] providing naturally normalized ODFs at each voxel. The amount of ODF spherical deconvolution may be specified with the -s parameter, the estimation method with -R. 
+**animaODFEstimator** estimates ODFs at each voxel using one of two estimation methods: (1) Descoteaux et al. [2] with or without regularization, with or without ODF spherical deconvolution [3], and (2) Aganj et al. [4] providing naturally normalized ODFs at each voxel. The amount of ODF spherical deconvolution may be specified with the -s parameter, the estimation method with ``-R``. 
 
 *Example:* this estimates ODFs of order 6 from DWI.nii.gz using Aganj et al. method.
 
@@ -152,7 +152,7 @@ Tractography tools
 
 **animaFibersApplyTransformSerie** works in the same way as resampler tools provided on the :doc:`registration page <registration>` except that it applies a series of transformations to a set of fibers. Please refer to that section for more details.
 
-**animaFibersFilterer** uses a regions of interest (labeled) image to filter a set of fibers. The ROI image is a label image provided with the option -r. The -t and -f options can be given multiple times and are used to tell which labels a single fiber should go through (-t) and which labels should not be touched (-f).
+**animaFibersFilterer** uses a regions of interest (labeled) image to filter a set of fibers. The ROI image is a label image provided with the option ``-r``. The ``-t`` and ``-f`` options can be given multiple times and are used to tell which labels a single fiber should go through (``-t``) and which labels should not be touched (``-f``).
 
 *Example:* this filters the input fibers telling each fiber can be kept if it touches labels 1 and 2, but not 3.
 
@@ -166,7 +166,7 @@ References
 1. Vincent Arsigny, Pierre Fillard, Xavier Pennec, and Nicholas Ayache. *Log-Euclidean Metrics for Fast and Simple Calculus on Diffusion Tensors*. Magnetic Resonance in Medicine, 56(2):411-421, August 2006.
 2. Descoteaux, M., Angelino, E., Fitzgibbons, S., Deriche, R. *Regularized, Fast, and Robust Analytical Q-Ball Imaging*. Magnetic Resonance in Medicine 58, 497–510, 2007.
 3. Descoteaux M, Deriche R, Knösche TR, Anwander A. *Deterministic and probabilistic tractography based on complex fibre orientation distributions*. IEEE Transactions on Medical Imaging, 28(2):269-86, 2009.
-4. Iman Aganj, Christophe Lenglet, Guillermo Sapiro, Essa Yacoub, Kamil Ugurbil, Noam Harel. *Reconstruction of the orientation distribution function in single‐and multiple‐shell q‐ball imaging within constant solid angle*. Magnetic Resonance in Medicine, 64(2):554-566, 2010.
+4. Iman Aganj, Christophe Lenglet, Guillermo Sapiro, Essa Yacoub, Kamil Ugurbil, Noam Harel. *Reconstruction of the orientation distribution function in single-and multiple-shell q-ball imaging within constant solid angle*. Magnetic Resonance in Medicine, 64(2):554-566, 2010.
 5. Nicolas Wiest-Daesslé, Olivier Commowick, Aymeric Stamm, Patrick Perez, Christian Barillot, Romuald Seizeur, Sylvain Prima. *Comparison of 3 Diffusion Models to Track the Hand Motor Fibers within the Corticospinal Tract Using Functional, Anatomical and Diffusion MRI*. MICCAI 2011 Workshop on Computational Diffusion MRI (CDMRI'11), pp 150-157, Sep 2011.
 6. Susumu Mori, Barbara J. Crain, V. P. Chacko, Peter C. M. Van Zijl. *Three-dimensional tracking of axonal projections in the brain by magnetic resonance imaging*. Annals of Neurology, 45(2):265–269, 1999.
 7. Aymeric Stamm, Olivier Commowick, Christian Barillot, Patrick Perez. *Adaptive Multi-modal Particle Filtering for Probabilistic White Matter Tractography*. Information Processing in Medical Imaging, pp 594-606, 2013.
