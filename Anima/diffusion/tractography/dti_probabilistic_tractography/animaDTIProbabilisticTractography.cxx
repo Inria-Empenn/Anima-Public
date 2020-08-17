@@ -70,7 +70,8 @@ int main(int argc,  char*  argv[])
     TCLAP::ValueArg<unsigned int> clusterDistArg("","cluster-dist","Distance between clusters: choices are 0 (AHD), 1 (HD, default) or 2 (MHD)",false,1,"cluster distance",cmd);
     
     TCLAP::SwitchArg averageClustersArg("M","average-clusters","Output only cluster mean",cmd,false);
-    
+    TCLAP::SwitchArg addLocalDataArg("L","local-data","Add local data information to output tracks",cmd);
+
     TCLAP::ValueArg<unsigned int> nbThreadsArg("T","nb-threads","Number of threads to run on (default: all available)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
     
     try
@@ -145,7 +146,8 @@ int main(int argc,  char*  argv[])
     
     dtiTracker->SetClusterDistance(clusterDistArg.getValue());
     
-    dtiTracker->SetComputeLocalColors(fibersArg.getValue().find(".fds") != std::string::npos);
+    bool computeLocalColors = (fibersArg.getValue().find(".fds") != std::string::npos) && (addLocalDataArg.isSet());
+    dtiTracker->SetComputeLocalColors(computeLocalColors);
     dtiTracker->SetMAPMergeFibers(averageClustersArg.isSet());
     dtiTracker->SetNumberOfWorkUnits(nbThreadsArg.getValue());
 

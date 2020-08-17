@@ -39,6 +39,8 @@ int main(int argc,  char*  argv[])
     TCLAP::ValueArg<double> minLengthArg("","min-length","Minimum length for a fiber to be considered for computation (default: 10mm)",false,10.0,"minimum length",cmd);
     TCLAP::ValueArg<double> maxLengthArg("","max-length","Maximum length of a tract (default: 150mm)",false,150.0,"maximum length",cmd);
 
+    TCLAP::SwitchArg addLocalDataArg("L","local-data","Add local data information to output tracks",cmd);
+
     TCLAP::ValueArg<unsigned int> nbThreadsArg("T","nb-threads","Number of threads to run on (default: all available)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 
     try
@@ -89,7 +91,7 @@ int main(int argc,  char*  argv[])
     dtiTracker->SetMinLengthFiber(minLengthArg.getValue());
     dtiTracker->SetMaxLengthFiber(maxLengthArg.getValue());
 
-    bool computeColors = (fibersArg.getValue().find(".fds") != std::string::npos);
+    bool computeColors = (fibersArg.getValue().find(".fds") != std::string::npos) && (addLocalDataArg.isSet());
     dtiTracker->SetComputeLocalColors(computeColors);
 
     itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
