@@ -110,7 +110,7 @@ BaseAffineBlockMatcher<TInputImageType>
                 geometry(j,TInputImageType::ImageDimension) = blockCenter[j];
 
             tr->SetUniqueDirection(m_AffineDirection);
-            tr->SetGeometry(geometry);
+            tr->SetGeometry(geometry, false);
 
             outputValue = tr;
             break;

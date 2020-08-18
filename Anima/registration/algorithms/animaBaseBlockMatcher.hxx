@@ -174,35 +174,22 @@ void
 BaseBlockMatcher <TInputImageType>
 ::ProcessBlockMatch()
 {
-    bool continueLoop = true;
     unsigned int highestToleratedBlockIndex = m_BlockRegions.size();
 
-    unsigned int stepData = std::min((int)m_BlockRegions.size(),100);
-    if (stepData == 0)
-        stepData = 1;
+    unsigned int numBlocks = std::ceil(m_BlockRegions.size() / this->GetNumberOfWorkUnits());
+    if (numBlocks == 0)
+        numBlocks = 1;
 
-    while (continueLoop)
-    {
-        m_LockHighestProcessedBlock.lock();
+    m_LockHighestProcessedBlock.lock();
+    unsigned int startPoint = m_HighestProcessedBlock;
+    unsigned int endPoint = m_HighestProcessedBlock + numBlocks;
+    if (endPoint > highestToleratedBlockIndex)
+        endPoint = highestToleratedBlockIndex;
 
-        if (m_HighestProcessedBlock >= highestToleratedBlockIndex)
-        {
-            m_LockHighestProcessedBlock.unlock();
-            continueLoop = false;
-            continue;
-        }
+    m_HighestProcessedBlock = endPoint;
+    m_LockHighestProcessedBlock.unlock();
 
-        unsigned int startPoint = m_HighestProcessedBlock;
-        unsigned int endPoint = m_HighestProcessedBlock + stepData;
-        if (endPoint > highestToleratedBlockIndex)
-            endPoint = highestToleratedBlockIndex;
-
-        m_HighestProcessedBlock = endPoint;
-
-        m_LockHighestProcessedBlock.unlock();
-
-        this->BlockMatch(startPoint,endPoint);
-    }
+    this->BlockMatch(startPoint,endPoint);
 }
 
 template <typename TInputImageType>

@@ -146,7 +146,7 @@ DistortionCorrectionBlockMatcher<TInputImageType>
         geometry(j,InputImageType::ImageDimension) = blockCenter[j];
 
     tmpTr->SetUniqueDirection(m_TransformDirection);
-    tmpTr->SetGeometry(geometry);
+    tmpTr->SetGeometry(geometry, false);
 
     outputValue = tmpTr;
 
