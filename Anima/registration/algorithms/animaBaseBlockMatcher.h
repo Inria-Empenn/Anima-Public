@@ -101,7 +101,7 @@ protected:
         Self *BlockMatch;
     };
 
-    /** Do the matching for a batch of regions (splited according to the thread id + nb threads) */
+    /** Do the matching for a batch of regions (split according to the thread id + nb threads) */
     static ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION ThreadedMatching(void *arg);
 
     void ProcessBlockMatch();
