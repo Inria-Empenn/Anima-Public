@@ -50,12 +50,12 @@ namespace anima
         typedef typename Superclass::OffsetType             OffsetType;
         typedef typename Superclass::TranslationType        TranslationType;
         
-        virtual void SetParameters(const ParametersType & parameters) ITK_OVERRIDE;
-        virtual const ParametersType& GetParameters() const ITK_OVERRIDE;
+        virtual void SetParameters(const ParametersType & parameters) override;
+        virtual const ParametersType& GetParameters() const override;
         
-        virtual void SetIdentity() ITK_OVERRIDE;
+        virtual void SetIdentity() override;
         
-        virtual void SetGeometry(HomogeneousMatrixType &matrix);
+        virtual void SetGeometry(HomogeneousMatrixType &matrix, bool update = true);
         
         void SetLogScale(ScalarType scale, bool update = true);
         itkGetConstReferenceMacro(LogScale, ScalarType);
@@ -90,11 +90,16 @@ namespace anima
         
         ~DirectionScaleSkewTransform() {}
         
-        void PrintSelf(std::ostream &os, itk::Indent indent) const ITK_OVERRIDE;
+        void PrintSelf(std::ostream &os, itk::Indent indent) const override;
         
-        virtual void ComputeMatrix() ITK_OVERRIDE;
-        virtual void ComputeLogRepresentations();
-        
+        virtual void ComputeMatrix() override;
+        virtual void GetInternalLogarithm();
+        virtual void GetInternalExponential();
+        virtual void InternalApplyGeometry(MatrixType &linearMatrix, OffsetType &offset);
+
+        vnl_matrix <TScalarType> m_LogTransform, m_ExpTransform;
+        HomogeneousMatrixType m_Geometry, m_GeometryInv;
+
     private:
         DirectionScaleSkewTransform(const Self&); //purposely not implemented
         void operator=(const Self&); //purposely not implemented
@@ -103,6 +108,7 @@ namespace anima
         {
             m_LogVector.Fill(itk::NumericTraits<TScalarType>::Zero);
             m_LogTransform.set_size(4,4);
+            m_ExpTransform.set_size(4,4);
 
             m_LogScale = 0;
             m_LogFirstSkew = 0;
@@ -121,11 +127,8 @@ namespace anima
         ScalarType  m_UniqueTranslation;
         
         unsigned int m_UniqueDirection;
-        
-        HomogeneousMatrixType m_Geometry, m_GeometryInv;
-        
+                
         itk::Vector <TScalarType,12> m_LogVector;
-        vnl_matrix <TScalarType> m_LogTransform;
     }; // class DirectionScaleSkewTransform
     
     template <class TScalarType=double>    // Data type for scalars (double or double)
@@ -140,6 +143,8 @@ namespace anima
         typedef itk::SmartPointer<const Self> ConstPointer;
 
         typedef typename Superclass::ParametersType ParametersType;
+        typedef typename Superclass::MatrixType MatrixType;
+        typedef typename Superclass::OffsetType OffsetType;
 
         /** New macro for creation of through a Smart Pointer. */
         itkNewMacro(Self);
@@ -150,12 +155,17 @@ namespace anima
         /** Dimension of the space. */
         itkStaticConstMacro(ParametersDimension, unsigned int, 2);
 
-        virtual void SetParameters(const ParametersType & parameters) ITK_OVERRIDE;
-        virtual const ParametersType& GetParameters() const ITK_OVERRIDE;
+        virtual void SetParameters(const ParametersType & parameters) override;
+        virtual const ParametersType& GetParameters() const override;
 
     protected:
         DirectionScaleTransform()
         : Superclass(ParametersDimension) {}
+
+        virtual void GetInternalLogarithm() override;
+        virtual void GetInternalExponential() override;
+        virtual void InternalApplyGeometry(MatrixType &linearMatrix, OffsetType &offset) override;
+
     }; // class DirectionScaleTransform
 
 
@@ -171,6 +181,8 @@ namespace anima
         typedef itk::SmartPointer<const Self> ConstPointer;
 
         typedef typename Superclass::ParametersType ParametersType;
+        typedef typename Superclass::MatrixType MatrixType;
+        typedef typename Superclass::OffsetType OffsetType;
 
         /** New macro for creation of through a Smart Pointer. */
         itkNewMacro(Self)
@@ -181,12 +193,17 @@ namespace anima
         /** Dimension of the space. */
         itkStaticConstMacro(ParametersDimension, unsigned int, 1);
 
-        virtual void SetParameters(const ParametersType & parameters) ITK_OVERRIDE;
-        virtual const ParametersType& GetParameters() const ITK_OVERRIDE;
+        virtual void SetParameters(const ParametersType & parameters) override;
+        virtual const ParametersType& GetParameters() const override;
 
     protected:
         DirectionTransform()
         : Superclass(ParametersDimension) {}
+
+        virtual void GetInternalLogarithm() override;
+        virtual void GetInternalExponential() override;
+        virtual void InternalApplyGeometry(MatrixType &linearMatrix, OffsetType &offset) override;
+
     }; // class DirectionTransform
 
 }  // namespace anima
