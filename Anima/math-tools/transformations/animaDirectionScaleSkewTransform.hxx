@@ -46,6 +46,7 @@ DirectionScaleSkewTransform<TScalarType>
     m_LogSecondSkew = 0;
 
     m_LogTransform.fill(itk::NumericTraits<TScalarType>::Zero);
+    m_ExpTransform.set_identity();
     m_LogVector.Fill(itk::NumericTraits<TScalarType>::Zero);
 }
 
