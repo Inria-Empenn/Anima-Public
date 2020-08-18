@@ -110,16 +110,30 @@ All other transform application tools require the input transformations to be gi
 
 It creates the description of the two transformations (the specified order is the order in which they will be applied).
 
-Applying a transformation
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Applying a transformation to images
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Applying a transformation requires the previous XML description file. Three tools are available (one for scalar images - **animaApplyTransformSerie**, one for tensor images - **animaTensorApplyTransformSerie**, one for multi-compartment model images [10] **animaMCMApplyTransformSerie**). Both require a geometry image to tell in which space the resampling will take place (``-g`` parameter). If the transformation series is globally linear, it may be applied to a gradient file of diffusion images. **animaApplyTransformSerie** now supports 3D and 4D images (in the latter case, the transformation is applied independently to each of the 3D sub-volumes).
+Applying a transformation requires the previous XML description file. Three tools are available:
+
+* one for scalar images - **animaApplyTransformSerie**
+* one for tensor images - **animaTensorApplyTransformSerie**
+* one for multi-compartment model images [10] **animaMCMApplyTransformSerie**
+
+All tools require a geometry image to tell in which space the resampling will take place (``-g`` parameter). If the transformation series is globally linear, it may be applied to a gradient file of diffusion images. **animaApplyTransformSerie** now supports 3D and 4D images (in the latter case, the transformation is applied independently to each of the 3D sub-volumes). Diffusion model resamplers have an option to either apply finite strain re-orientation of the models or preservation of principal direction (PPD) re-orientation: ``-P`` activates PPD re-orientation, the default is finite strain.
 
 *Example:* this applies the transforms in transforms.xml to resample Floating on Reference.
 
 .. code-block:: sh
 
 	animaApplyTransformSerie -i Floating.nii.gz -g Reference.nii.gz -t transforms.xml -o F_resampled.nii.gz
+
+Applying a transformation to fibers or meshes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Anima also comes with a tool to apply transformations obtained from image registration to meshes or fibers. It accepts vtk, vtp and fds (our fiber format for `medInria <https://med.inria.fr>`_) files. This tool, named **animaFibersApplyTransformSerie**, works in the same way as animaApplyTransformSerie. The two main differences are the following:
+
+* the input transformation is inverted by default as image transformations are encoded in Anima as the inverse of the underlying space transformation. This way, animaApplyTransformSerie and animaFibersApplyTransformSerie are similar in their uses. Use the ``-I`` option to invert the transformation series if necessary.
+* There is no need for a geometry as this is specific to images
 
 Computing the Jacobian of a transformation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
