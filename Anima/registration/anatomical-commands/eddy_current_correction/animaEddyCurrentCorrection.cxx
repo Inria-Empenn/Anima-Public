@@ -106,7 +106,7 @@ int main(int argc, const char** argv)
         if (i == b0Arg.getValue())
             continue;
 
-        std::cout << "Processing image " << i+1 << " out of " << numberOfImages << std::endl;
+        std::cout << "\033[K\rProcessing image " << i+1 << " out of " << numberOfImages << std::flush;
 
         ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
         extractFilter->SetInput(inputImage);
@@ -305,6 +305,8 @@ int main(int argc, const char** argv)
             ++outIterator;
         }
     }
+
+    std::cout << std::endl;
 
     anima::writeImage <InputImageType> (outArg.getValue(),inputImage);
 
