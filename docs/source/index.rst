@@ -68,7 +68,7 @@ Citing Anima or Anima scripts
 So far, there is no white paper on Anima or Anima scripts. If you are using Anima for your research, please take the time to:
 
 * cite the relevant papers referenced in the different pages of this documentation
-* add a sentence in your acknowledgments section or footnote in the methods part of your paper referencing the `RRID <https://rrid.org>`_ of Anima\: RRID\:SCR_017017 or Anima scripts\: RRID\:SCR_017072 (should be written like this to ensure it is recognized by search bots), as well as the main website address: https://inria-visages.github.io/Anima-Public
+* add a sentence in your acknowledgments section or footnote in the methods part of your paper referencing the `RRID <https://www.rrids.org>`_ of Anima\: RRID\:SCR_017017 or Anima scripts\: RRID\:SCR_017072 (should be written like this to ensure it is recognized by search bots), as well as the main website address: https://inria-visages.github.io/Anima-Public
 
 Do not hesitate to contact us if you have any doubts anima-users@inria.fr. Thanks !
 
