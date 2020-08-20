@@ -40,13 +40,19 @@ if (BUILD_MODULE_REGISTRATION OR BUILD_MODULE_DIFFUSION OR BUILD_MODULE_MATHS)
   option(USE_VTK "Use VTK libraries (necessary for some registration tools and tractography)" OFF)
 
   if(USE_VTK)
-    find_package(VTK REQUIRED COMPONENTS vtkCommonCore vtkFiltersCore vtkIOXML vtkIOLegacy vtksys)
+    find_package(VTK REQUIRED COMPONENTS vtkCommonCore vtkFiltersCore vtkIOXML vtkIOLegacy vtksys QUIET)
 
     if (VTK_VERSION_MAJOR LESS 7)
       message(SEND_ERROR "VTK has to be version 7 or higher.")
     endif()
 
-    include(${VTK_USE_FILE})
+    set(VTK_PREFIX "VTK::")
+    set(VTKSYS_LIBRARY VTK::vtksys)
+    if (VTK_VERSION VERSION_LESS "8.90.0")
+        include(${VTK_USE_FILE})
+        set(VTK_PREFIX "vtk")
+        set(VTKSYS_LIBRARY vtksys)
+    endif()
   endif()
 endif()
 

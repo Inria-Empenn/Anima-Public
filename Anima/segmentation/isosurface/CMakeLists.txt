@@ -26,8 +26,8 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   ${ITKIO_LIBRARIES}
   ITKVtkGlue
-  vtkIOXML
-  vtkIOLegacy
+  ${VTK_PREFIX}IOXML
+  ${VTK_PREFIX}IOLegacy
   )
 
 ## #############################################################################

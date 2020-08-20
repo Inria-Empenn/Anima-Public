@@ -23,9 +23,9 @@ add_library(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   ${TinyXML2_LIBRARY}
   ITKCommon
-  vtkIOXML
-  vtkIOLegacy
-  vtksys
+  ${VTK_PREFIX}IOXML
+  ${VTK_PREFIX}IOLegacy
+  ${VTKSYS_LIBRARY}
   )
 
 

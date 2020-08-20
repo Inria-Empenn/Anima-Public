@@ -23,13 +23,9 @@ add_executable(${PROJECT_NAME}
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME}
-  AnimaTractography
+  AnimaDataIO
   ${ITKIO_LIBRARIES}
-  vtkCommonCore
-  vtkFiltersCore
-  vtkIOXML
-  vtkIOLegacy
-  vtksys
+  ${VTK_PREFIX}FiltersCore
   )
 
 ## #############################################################################
