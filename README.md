@@ -1,11 +1,11 @@
 # Anima-Public
 Open source software for medical image processing from the Empenn team
 
-Information on compilation, tools documentation and licensing available in the [wiki](https://github.com/Inria-Visages/Anima-Public/wiki)
+Information on compilation, tools documentation and licensing available [here](https://anima.rtfd.io)
 
 Binary releases for major OSes are available from [that page](https://github.com/Inria-Visages/Anima-Public/releases)
 
-## Reference Anima 
+## Citing Anima 
 
 If you are using Anima for your research, please take the time to:
 
