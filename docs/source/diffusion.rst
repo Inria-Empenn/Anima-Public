@@ -150,7 +150,18 @@ Probabilistic tractography tools implement for MCM, ODF and DTI our multi-modal 
 Tractography tools
 ^^^^^^^^^^^^^^^^^^
 
+Application of transformations
+""""""""""""""""""""""""""""""
+
 **animaFibersApplyTransformSerie** works in the same way as resampler tools provided on the :doc:`registration page <registration>` except that it applies a series of transformations to a set of fibers. Please refer to that section for more details.
+
+Counting fibers in image voxels
+"""""""""""""""""""""""""""""""
+
+**animaFibersCounter** takes as an input a geometry image ``-g``, and uses the input ``-i`` to know how many fibers go through each pixel of that image. The output may be either a fiber count or a fiber proportion (``-P`` flag) i.e. the previous result divided by the number of fibers.
+
+Filtering fibers
+""""""""""""""""
 
 **animaFibersFilterer** uses a regions of interest (labeled) image to filter a set of fibers. The ROI image is a label image provided with the option ``-r``. The ``-t`` and ``-f`` options can be given multiple times and are used to tell which labels a single fiber should go through (``-t``) and which labels should not be touched (``-f``).
 
