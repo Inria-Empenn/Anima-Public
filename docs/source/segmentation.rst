@@ -75,6 +75,16 @@ Segmentation validation tools
 
 We now provide tools that were used for the validation of the `MS segmentation challenge <http://go.nature.com/2SW1DhA>`_ held in 2016 and that can be used for other tasks as well.
 
+Dice measure
+^^^^^^^^^^^^
+
+Anima comes with two tools for computing the Dice measure:
+
+* **animaDiceMeasure** computes Dice scores between two label images (i.e. with each pixel having an integer label). It can either output the Dice scores for each label individually or compute the total overlap score as proposed by Klein et al. [5] (``-T`` option)
+* **animaFuzzyDiceMeasure** computes the generalized Dice score between fuzzy segmentations of a structure as proposed by Crum et al. [6]
+
+Both tools have an option to output the Jaccard score instead of the Dice score (``-J`` option), both scores being related by a monotonic function.
+
 Detected components
 ^^^^^^^^^^^^^^^^^^^
 
@@ -92,3 +102,6 @@ References
 2. Daniel García-Lorenzo, Sylvain Prima, Douglas Arnold, Louis Collins, Christian Barillot. *Trimmed-likelihood estimation for focal lesions and tissue segmentation in multisequence MRI for multiple sclerosis*. IEEE Transactions on Medical Imaging, 30 (8), pp.1455-67, 2011.
 3. Daniel García-Lorenzo, Jérémy Lecoeur, Douglas Arnold, D. Louis Collins, Christian Barillot. *Multiple Sclerosis lesion segmentation using an automatic multimodal Graph Cuts*. 12th International Conference on Medical Image Computing and Computer Assisted Intervention, LNCS 5762, pp.584-591, 2009.
 4. O\. Commowick et al\. *Objective Evaluation of Multiple Sclerosis Lesion Segmentation using a Data Management and Processing Infrastructure*. Scientific Reports, 8(1), 2018
+5. Klein, A, Andersson, J, Ardekani, BA, Ashburner, J, Avants, B, Chiang, M-C, Christensen, GE, Collins, DL, Gee, J, Hellier, P, Song, JH, Jenkinson, M, Lepage, C, Rueckert, D, Thompson, P, Vercauteren, T, Woods, RP, Mann, JJ, Parsey, RV. *Evaluation of 14 nonlinear deformation algorithms applied to human brain MRI registration*. NeuroImage. 46(3): 786-802. 2009.
+6.  W.R. Crum, O. Camara and D.L.G. Hill. *Generalized Overlap Measures for Evaluation and Validation in Medical Image Analysis*. IEEE Transactions on Medical Imaging. 25(11):1451-1461. 2006.
+

@@ -1,4 +1,5 @@
 add_subdirectory(detected_components)
 add_subdirectory(dice_measure)
+add_subdirectory(fuzzy_dice_measure)
 add_subdirectory(lesion_evolution_detection)
 add_subdirectory(segmentation_performance_analyzer)

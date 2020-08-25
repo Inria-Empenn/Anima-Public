@@ -89,7 +89,7 @@ If you give arguments size of zero the corresponding dimension will be collapsed
 Image smoothing
 ---------------
 
-**animaImageSmoother** simply applies Gaussian smoothing with a specific sigma value to an image using Young - Van Vliet's recursive smoothing filter implemented in ITK [2].
+**animaImageSmoother** simply applies Gaussian smoothing with a specific sigma value to an image using Young - Van Vliet's recursive smoothing filter implemented in ITK [1].
 
 Morphological operations
 ------------------------
@@ -99,5 +99,4 @@ Morphological operations
 References
 ----------
 
-1. Klein, A, Andersson, J, Ardekani, BA, Ashburner, J, Avants, B, Chiang, M-C, Christensen, GE, Collins, DL, Gee, J, Hellier, P, Song, JH, Jenkinson, M, Lepage, C, Rueckert, D, Thompson, P, Vercauteren, T, Woods, RP, Mann, JJ, Parsey, RV. *Evaluation of 14 nonlinear deformation algorithms applied to human brain MRI registration*. NeuroImage. 46(3): 786-802. 2009.
-2. Irina Vidal-Migallón, Olivier Commowick, Xavier Pennec, Julien Dauguet, Tom Vercauteren. *GPU & CPU implementation of Young - Van Vliet's Recursive Gaussian Smoothing Filter*. Insight Journal (ITK), 2013, pp.16
+1. Irina Vidal-Migallón, Olivier Commowick, Xavier Pennec, Julien Dauguet, Tom Vercauteren. *GPU & CPU implementation of Young - Van Vliet's Recursive Gaussian Smoothing Filter*. Insight Journal (ITK), 2013, pp.16

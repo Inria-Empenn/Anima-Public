@@ -1,4 +1,4 @@
-#include <itkImageFileReader.h>
+#include <animaReadWriteFunctions.h>
 #include <itkImageRegionConstIterator.h>
 #include <tclap/CmdLine.h>
 #include <fstream>
@@ -8,7 +8,6 @@ int main(int argc, char * *argv)
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ', ANIMA_VERSION);
 
     TCLAP::ValueArg <std::string> refArg("r", "reffile", "Reference segmentations", true, "", "reference image", cmd);
-
     TCLAP::ValueArg <std::string> testArg("t", "testfile", "Test segmentations", true, "", "test image", cmd);
 
     TCLAP::ValueArg <unsigned int> minNumPixelsRefArg("m", "min-card", "Minimal number of pixels in each reference label area", false, 0, "minimal label size", cmd);
@@ -25,18 +24,16 @@ int main(int argc, char * *argv)
     catch (TCLAP::ArgException& e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
     typedef itk::Image <unsigned short, 3> ImageType;
     typedef itk::ImageFileReader <ImageType> ImageReaderType;
     typedef itk::ImageRegionConstIterator <ImageType> ImageIteratorType;
 
-    ImageReaderType::Pointer refRead = ImageReaderType::New();
-    refRead->SetFileName(refArg.getValue());
-    refRead->Update();
+    ImageType::Pointer refImage = anima::readImage <ImageType> (refArg.getValue());
 
-    ImageIteratorType refIt (refRead->GetOutput(), refRead->GetOutput()->GetLargestPossibleRegion());
+    ImageIteratorType refIt (refImage, refImage->GetLargestPossibleRegion());
 
     std::vector <unsigned int> usefulLabels;
 
@@ -73,11 +70,8 @@ int main(int argc, char * *argv)
 
     refIt.GoToBegin();
 
-    ImageReaderType::Pointer testRead = ImageReaderType::New();
-    testRead->SetFileName(testArg.getValue());
-    testRead->Update();
-
-    ImageIteratorType testIt (testRead->GetOutput(), testRead->GetOutput()->GetLargestPossibleRegion());
+    ImageType::Pointer testImage = anima::readImage <ImageType> (testArg.getValue());
+    ImageIteratorType testIt (testImage, testImage->GetLargestPossibleRegion());
 
     unsigned int numLabels = usefulLabels.size();
     std::vector <double> cardRef(numLabels+1, 0), cardTest(numLabels+1, 0), cardInter(numLabels+1, 0);
@@ -167,15 +161,11 @@ int main(int argc, char * *argv)
     //////////////////////////////////////////////////////////////////////////
     // Close output
     if (oStremFileOut.is_open())
-    {
         oStremFileOut.close();
-    }
 
     if (bFileResFailed)
-    {
-        exit(EXIT_FAILURE);
-    }
+        return EXIT_FAILURE;
 
-    return 0;
+    return EXIT_SUCCESS;
 }
 
