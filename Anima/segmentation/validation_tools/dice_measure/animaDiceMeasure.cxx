@@ -134,7 +134,7 @@ int main(int argc, char * *argv)
 
 
         if (xlsArg.isSet())
-            roOutStreamForResults << score << " " << std::flush;
+            roOutStreamForResults << score << std::endl;
         else
             roOutStreamForResults << "Total overlap score: " << score << std::endl;
     }
@@ -151,7 +151,13 @@ int main(int argc, char * *argv)
                 score = score/(2.0 - score);
 
             if (xlsArg.isSet())
-                roOutStreamForResults << score << " " << std::flush;
+            {
+                roOutStreamForResults << score;
+                if (i < numLabels)
+                    roOutStreamForResults << ", " << std::flush;
+                else
+                    roOutStreamForResults << std::endl;
+            }
             else
                 roOutStreamForResults << "Label " << usefulLabels[i-1] << ": " << score << std::endl;
         }
