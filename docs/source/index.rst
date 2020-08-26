@@ -49,18 +49,18 @@ Scripts documentation
 And finally we provide a documentation of the main scripts available in Anima scripts that basically use Anima to make fancy things like:
 
 * :doc:`Atlasing <atlasing>`
-* :doc:`Brain extraction <brain_extraction>`
 * :doc:`Diffusion imaging <diffusion_scripts>`
 * :doc:`Relaxometry <relaxometry_scripts>`
+* :doc:`Segmentation <segmentation_scripts>` (brain extraction and multi-atlas segmentation)
 
 .. toctree::
    :hidden:
    :caption: Scripts documentation
    
    atlasing
-   brain_extraction
    diffusion_scripts
    relaxometry_scripts
+   segmentation_scripts
 
 Citing Anima or Anima scripts
 -----------------------------

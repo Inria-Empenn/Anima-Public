@@ -4,7 +4,7 @@ Relaxometry scripts
 This section describes Anima scripts for relaxometry processing. 
 
 T2 relaxometry script
-----------------------------------
+---------------------
 
 This script combines several processing steps to compute from a 4D T2 relaxomaetry sequence (plus possible additional images) T2 maps or multi-T2 maps following [1]. This script performs the following preprocessing:
 

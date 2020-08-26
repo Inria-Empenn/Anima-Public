@@ -26,6 +26,11 @@ Image thresholding
 
 **animaOtsuThrImage** computes the Otsu automatic thresholding in several classes of an input image.
 
+Majority voting label fusion
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**animaMajorityLabelVoting** provides an implementation of majority voting: i.e. a fusion where each voxel is affected the most probable occurence of a set of labels. It takes as an input a list of segmentation images (``-i``: either as a 4D image or a text file with each line indicating the filename of a segmentation) and outputs the majority vote in an image given with ``-o``.
+
 Image holes filler
 ^^^^^^^^^^^^^^^^^^
 
