@@ -73,10 +73,12 @@ In addition to estimation, we provide two ways of performing model selection and
 
 	animaMCMModelAveraging -i listMCM.txt -o MCM_avg.mcm -a listAIC.txt -m MCM_avg_mose.nrrd -C
 
-MCM processing
-""""""""""""""
+MCM processing tools
+""""""""""""""""""""
 
 **animaMCMAverageImages** provides a way to average several volumes of MCM into just one (e.g. an atlas of those images), using the averaging and interpolation framework proposed in [11]. It works in a similar manner to the `animaAverageImages` described in the basic tools page.
+
+**animaMCMScalarMaps** provides voxel-wise measures extracted from an MCM image. The currently supported parameters include: isotropic water proportions (free water and isotropic restricted), anisotropic water proportion, apparent diffusivities (mean, axial, radial), fractional anisotropy. These last parameters can be extracted either only from anisotropic compartments (weighted average over them) or the whole model.
 
 DTI estimation and processing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
