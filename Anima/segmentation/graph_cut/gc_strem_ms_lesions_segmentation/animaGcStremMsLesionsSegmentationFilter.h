@@ -31,7 +31,11 @@ enum InitializationType
     HierarchicalFLAIR
 };
 
-/** @brief Class performing lesion segmentation.
+namespace anima
+{
+
+/**
+ * @brief Class performing lesion segmentation.
  *
  * The segmentation method has three steps:
  *
@@ -63,9 +67,6 @@ enum InitializationType
  * Additionally to the lesions segmentation, the filter provides a segmentation of the healthy tissues based on the NABT estimation.
  *
  */
-namespace anima
-{
-
 template <typename TInputImage>
 class GcStremMsLesionsSegmentationFilter :
         public itk::ImageToImageFilter< TInputImage, itk::Image <unsigned char, 3> >
