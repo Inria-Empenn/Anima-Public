@@ -1,9 +1,5 @@
 #include <animaMCMWeightedAverager.h>
-#include <animaSpectralClusteringFilter.h>
 #include <animaBaseTensorTools.h>
-
-#include <vnl/vnl_diag_matrix.h>
-#include <itkSymmetricEigenAnalysis.h>
 
 namespace anima
 {
@@ -12,6 +8,12 @@ MCMWeightedAverager::MCMWeightedAverager()
 {
     m_UpToDate = false;
     m_NumberOfOutputDirectionalCompartments = 3;
+    m_InternalEigenAnalyzer.SetDimension(3);
+    m_InternalEigenAnalyzer.SetOrder(3);
+
+    m_InternalSpectralCluster.SetMaxIterations(200);
+    m_InternalSpectralCluster.SetCMeansAverageType(SpectralClusterType::CMeansFilterType::Euclidean);
+    m_InternalSpectralCluster.SetVerbose(false);
 }
 
 void MCMWeightedAverager::SetOutputModel(MCMType *model)
@@ -148,21 +150,16 @@ void MCMWeightedAverager::Update()
     else
         this->ComputeNonTensorDistanceMatrix();
 
-    typedef anima::SpectralClusteringFilter<double> SpectralClusterType;
-    SpectralClusterType spectralCluster;
-    spectralCluster.SetNbClass(numOutputCompartments);
-    spectralCluster.SetMaxIterations(200);
-    spectralCluster.SetInputData(m_InternalDistanceMatrix);
-    spectralCluster.SetDataWeights(m_WorkCompartmentWeights);
-    spectralCluster.SetVerbose(false);
-    spectralCluster.InitializeSigmaFromDistances();
-    spectralCluster.SetCMeansAverageType(SpectralClusterType::CMeansFilterType::Euclidean);
+    m_InternalSpectralCluster.SetNbClass(numOutputCompartments);
+    m_InternalSpectralCluster.SetInputData(m_InternalDistanceMatrix);
+    m_InternalSpectralCluster.SetDataWeights(m_WorkCompartmentWeights);
+    m_InternalSpectralCluster.InitializeSigmaFromDistances();
 
-    spectralCluster.Update();
+    m_InternalSpectralCluster.Update();
 
     m_InternalSpectralMemberships.resize(numInputCompartments);
     for (unsigned int i = 0;i < numInputCompartments;++i)
-        m_InternalSpectralMemberships[i] = spectralCluster.GetClassesMembership(i);
+        m_InternalSpectralMemberships[i] = m_InternalSpectralCluster.GetClassesMembership(i);
 
     if (tensorCompatibility)
         this->ComputeOutputTensorCompatibleModel();
@@ -179,12 +176,12 @@ void MCMWeightedAverager::ComputeTensorDistanceMatrix()
     unsigned int numCompartments = m_WorkCompartmentsVector.size();
     m_InternalLogTensors.resize(numCompartments);
 
-    vnl_matrix <double> workMatrix(3,3), workMatrixLog(3,3);
+    m_InternalWorkMatrix.set_size(3,3);
     for (unsigned int i = 0;i < numCompartments;++i)
     {
-        workMatrix = m_WorkCompartmentsVector[i]->GetDiffusionTensor().GetVnlMatrix().as_matrix();
-        anima::GetTensorLogarithm(workMatrix,workMatrixLog);
-        anima::GetVectorRepresentation(workMatrixLog,m_InternalLogTensors[i],6,true);
+        m_InternalWorkMatrix = m_WorkCompartmentsVector[i]->GetDiffusionTensor().GetVnlMatrix().as_matrix();
+        anima::GetTensorLogarithm(m_InternalWorkMatrix,m_InternalWorkMatrix);
+        anima::GetVectorRepresentation(m_InternalWorkMatrix,m_InternalLogTensors[i],6,true);
     }
 
     m_InternalDistanceMatrix.set_size(numCompartments,numCompartments);
@@ -213,18 +210,18 @@ void MCMWeightedAverager::ComputeOutputTensorCompatibleModel()
     unsigned int numIsoCompartments = m_OutputModel->GetNumberOfIsotropicCompartments();
     unsigned int numberOfOutputCompartments = m_InternalSpectralMemberships[0].size();
 
-    itk::VariableLengthVector <double> outputVector(6);
-    vnl_matrix <double> workMatrix(3,3), workMatrixLog(3,3), workEigenVectors(3,3);
-    vnl_diag_matrix <double> workEigenValues(3);
-    vnl_matrix <double> workInputStick(3,3);
-    vnl_diag_matrix <double> workEigenValuesInputSticks(3);
+    m_InternalWorkMatrix.set_size(3,3);
+    m_InternalWorkEigenVectors.set_size(3,3);
+    m_InternalWorkEigenValues.set_size(3);
 
-    using EigenAnalysisType = itk::SymmetricEigenAnalysis < vnl_matrix <double>, vnl_diag_matrix<double>, vnl_matrix <double> >;
+    m_InternalOutputVector.SetSize(6);
+    m_InternalWorkEigenValuesInputSticks.set_size(3);
+
     anima::DiffusionModelCompartmentType anisoCompartmentType = m_OutputModel->GetCompartment(numIsoCompartments)->GetCompartmentType();
 
     for (unsigned int i = 0;i < numberOfOutputCompartments;++i)
     {
-        outputVector.Fill(0);
+        m_InternalOutputVector.Fill(0);
         double totalWeights = 0;
         for (unsigned int j = 0;j < numCompartments;++j)
         {
@@ -232,54 +229,51 @@ void MCMWeightedAverager::ComputeOutputTensorCompatibleModel()
             if (weight == 0)
                 continue;
 
+            // Stick is with a fixed radial diffusivity, get it for later setting it back
             if ((anisoCompartmentType == anima::Stick) && (totalWeights == 0.0))
             {
-                anima::GetTensorFromVectorRepresentation(m_InternalLogTensors[j],workInputStick,3,true);
-                EigenAnalysisType eigen(3);
-                eigen.ComputeEigenValues(workInputStick, workEigenValuesInputSticks);
+                anima::GetTensorFromVectorRepresentation(m_InternalLogTensors[j],m_InternalWorkMatrix,3,true);
+                m_InternalEigenAnalyzer.ComputeEigenValues(m_InternalWorkMatrix, m_InternalWorkEigenValuesInputSticks);
             }
 
             totalWeights += weight;
-            outputVector += m_InternalLogTensors[j] * weight;
+            m_InternalOutputVector += m_InternalLogTensors[j] * weight;
         }
 
         if (totalWeights > 0.0)
         {
-            outputVector /= totalWeights;
+            m_InternalOutputVector /= totalWeights;
 
             m_InternalOutputWeights[i+numIsoCompartments] = totalWeights;
-            anima::GetTensorFromVectorRepresentation(outputVector,workMatrixLog,3,true);
+            anima::GetTensorFromVectorRepresentation(m_InternalOutputVector,m_InternalWorkMatrix,3,true);
 
             if (anisoCompartmentType != anima::Tensor)
-            {
-                EigenAnalysisType eigen(3);
-                eigen.ComputeEigenValuesAndVectors(workMatrixLog, workEigenValues, workEigenVectors);
-            }
+                m_InternalEigenAnalyzer.ComputeEigenValuesAndVectors(m_InternalWorkMatrix, m_InternalWorkEigenValues, m_InternalWorkEigenVectors);
 
             if (anisoCompartmentType == anima::Stick)
             {
                 // Replace smaller eigen values by stick default value
-                workEigenValues[0] = workEigenValuesInputSticks[0];
-                workEigenValues[1] = workEigenValuesInputSticks[0];
+                m_InternalWorkEigenValues[0] = m_InternalWorkEigenValuesInputSticks[0];
+                m_InternalWorkEigenValues[1] = m_InternalWorkEigenValuesInputSticks[0];
 
-                anima::RecomposeTensor(workEigenValues, workEigenVectors, workMatrixLog);
+                anima::RecomposeTensor(m_InternalWorkEigenValues, m_InternalWorkEigenVectors, m_InternalWorkMatrix);
             }
             else if (anisoCompartmentType == anima::Zeppelin)
             {
                 // Force radial diffusivity as the sum of the two smallest ones
-                double logEigenValue = (workEigenValues[0] + workEigenValues[1]) / 2.0;
-                workEigenValues[0] = logEigenValue;
-                workEigenValues[1] = logEigenValue;
+                double logEigenValue = (m_InternalWorkEigenValues[0] + m_InternalWorkEigenValues[1]) / 2.0;
+                m_InternalWorkEigenValues[0] = logEigenValue;
+                m_InternalWorkEigenValues[1] = logEigenValue;
 
-                anima::RecomposeTensor(workEigenValues, workEigenVectors, workMatrixLog);
+                anima::RecomposeTensor(m_InternalWorkEigenValues, m_InternalWorkEigenVectors, m_InternalWorkMatrix);
             }
 
-            anima::GetTensorExponential(workMatrixLog,workMatrix);
-            anima::GetVectorRepresentation(workMatrix,outputVector);
+            anima::GetTensorExponential(m_InternalWorkMatrix,m_InternalWorkMatrix);
+            anima::GetVectorRepresentation(m_InternalWorkMatrix,m_InternalOutputVector);
         }
 
         anima::BaseCompartment *workCompartment = m_OutputModel->GetCompartment(i+numIsoCompartments);
-        workCompartment->SetCompartmentVector(outputVector);
+        workCompartment->SetCompartmentVector(m_InternalOutputVector);
     }
 }
 

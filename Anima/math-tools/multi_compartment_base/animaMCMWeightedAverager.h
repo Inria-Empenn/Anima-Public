@@ -1,9 +1,14 @@
 #pragma once
 #include <animaMultiCompartmentModel.h>
+#include <animaSpectralClusteringFilter.h>
+
 #include <itkLightObject.h>
 #include <itkVariableLengthVector.h>
+#include <itkSymmetricEigenAnalysis.h>
 
 #include <vnl/vnl_math.h>
+#include <vnl/vnl_diag_matrix.h>
+#include <vnl/vnl_matrix.h>
 
 #include <AnimaMCMBaseExport.h>
 
@@ -28,9 +33,11 @@ public:
 
     itkNewMacro(Self)
 
-    typedef anima::MultiCompartmentModel MCMType;
-    typedef MCMType::BaseCompartmentPointer MCMCompartmentPointer;
-    typedef MCMType::Pointer MCMPointer;
+    using MCMType = anima::MultiCompartmentModel;
+    using MCMCompartmentPointer = MCMType::BaseCompartmentPointer;
+    using MCMPointer = MCMType::Pointer;
+    using EigenAnalysisType = itk::SymmetricEigenAnalysis < vnl_matrix <double>, vnl_diag_matrix<double>, vnl_matrix <double> >;
+    using SpectralClusterType = anima::SpectralClusteringFilter<double>;
 
     void SetInputModels(std::vector <MCMPointer> &models) {m_InputModels = models; m_UpToDate = false;}
     void SetInputWeights(std::vector <double> &weights) {m_InputWeights = weights; m_UpToDate = false;}
@@ -76,6 +83,14 @@ protected:
     std::vector <double> m_WorkCompartmentWeights;
     vnl_matrix <double> m_InternalDistanceMatrix;
     std::vector < std::vector <double> > m_InternalSpectralMemberships;
+
+    vnl_matrix <double> m_InternalWorkMatrix, m_InternalWorkEigenVectors;
+    vnl_diag_matrix <double> m_InternalWorkEigenValues, m_InternalWorkEigenValuesInputSticks;
+    itk::VariableLengthVector <double> m_InternalOutputVector;
+
+    EigenAnalysisType m_InternalEigenAnalyzer;
+
+    SpectralClusterType m_InternalSpectralCluster;
 };
 
 } // end namespace anima

@@ -1,9 +1,6 @@
 #pragma once
 #include "animaSpectralClusteringFilter.h"
 
-#include <itkSymmetricEigenAnalysis.h>
-#include <vnl/vnl_diag_matrix.h>
-
 namespace anima
 {
 
@@ -72,29 +69,28 @@ SpectralClusteringFilter <ScalarType>
 
     this->ComputeSpectralVectors();
 
-    CMeansFilterType mainFilter;
-    mainFilter.SetNbClass(m_NbClass);
-    mainFilter.SetMaxIterations(m_MaxIterations);
-    mainFilter.SetRelStopCriterion(m_RelStopCriterion);
-    mainFilter.SetMValue(m_MValue);
+    m_MainFilter.SetNbClass(m_NbClass);
+    m_MainFilter.SetMaxIterations(m_MaxIterations);
+    m_MainFilter.SetRelStopCriterion(m_RelStopCriterion);
+    m_MainFilter.SetMValue(m_MValue);
 
-    mainFilter.SetInputData(m_SpectralVectors);
-    mainFilter.SetDataWeights(m_DataWeights);
-    mainFilter.SetVerbose(m_Verbose);
-    mainFilter.SetFlagSpectralClustering(true);
-    mainFilter.SetSphericalAverageType(m_CMeansAverageType);
+    m_MainFilter.SetInputData(m_SpectralVectors);
+    m_MainFilter.SetDataWeights(m_DataWeights);
+    m_MainFilter.SetVerbose(m_Verbose);
+    m_MainFilter.SetFlagSpectralClustering(true);
+    m_MainFilter.SetSphericalAverageType(m_CMeansAverageType);
 
-    mainFilter.Update();
+    m_MainFilter.Update();
 
     unsigned int inputSize = m_InputData.rows();
-    m_ClassesMembership.clear();
+    m_ClassesMembership.resize(inputSize);
 
     for (unsigned int i = 0;i < inputSize;++i)
-        m_ClassesMembership.push_back(mainFilter.GetClassesMembership(i));
+        m_ClassesMembership[i] = m_MainFilter.GetClassesMembership(i);
 
-    m_Centroids.clear();
+    m_Centroids.resize(m_NbClass);
     for (unsigned int i = 0;i < m_NbClass;++i)
-        m_Centroids.push_back(mainFilter.GetCentroid(i));
+        m_Centroids[i] = m_MainFilter.GetCentroid(i);
 }
 
 template <class ScalarType>
@@ -122,60 +118,59 @@ SpectralClusteringFilter <ScalarType>
 ::ComputeSpectralVectors()
 {
     unsigned int inputSize = m_InputData.rows();
-    MatrixType W(inputSize,inputSize,0);
-    std::vector <double> dValues(inputSize,0);
+    m_WMatrix.set_size(inputSize,inputSize);
+    m_DValues.resize(inputSize);
 
     for (unsigned int i = 0;i < inputSize;++i)
     {
         for (unsigned int j = i+1;j < inputSize;++j)
         {
-            W(i,j) = std::exp(- m_InputData(i,j) / (2.0 * m_SigmaWeighting * m_SigmaWeighting));
-            W(j,i) = W(i,j);
+            m_WMatrix(i,j) = std::exp(- m_InputData(i,j) / (2.0 * m_SigmaWeighting * m_SigmaWeighting));
+            m_WMatrix(j,i) = m_WMatrix(i,j);
         }
     }
 
     for (unsigned int i = 0;i < inputSize;++i)
     {
-        dValues[i] = 0;
+        m_DValues[i] = 0;
         for (unsigned int j = 0;j < inputSize;++j)
-            dValues[i] += W(i,j);
+            m_DValues[i] += m_WMatrix(i,j);
 
-        dValues[i] = 1.0/std::sqrt(dValues[i]);
+        m_DValues[i] = 1.0/std::sqrt(m_DValues[i]);
     }
 
     for (unsigned int i = 0;i < inputSize;++i)
+    {
         for (unsigned int j = i+1;j < inputSize;++j)
         {
-            W(i,j) *= dValues[i]*dValues[j];
-            W(j,i) = W(i,j);
+            m_WMatrix(i,j) *= m_DValues[i] * m_DValues[j];
+            m_WMatrix(j,i) = m_WMatrix(i,j);
         }
+    }
 
     // Compute eigenvalues and vectors, keep only m_NbClasses largest values and corresponding truncated vectors
-    vnl_diag_matrix<ScalarType> eigVals(inputSize);
-    eigVals.fill(0.0);
-    MatrixType eigVecs(inputSize,inputSize);
-    eigVecs.fill(0.0);
-
-    typedef itk::SymmetricEigenAnalysis <MatrixType, vnl_diag_matrix<ScalarType>, MatrixType> EigenAnalysisType;
-    EigenAnalysisType eigen(inputSize);
-    eigen.ComputeEigenValuesAndVectors(W,eigVals,eigVecs);
+    m_EigenAnalyzer.SetDimension(inputSize);
+    m_EigenAnalyzer.SetOrder(inputSize);
+    m_EigVals.set_size(inputSize);
+    m_EigVecs.set_size(inputSize,inputSize);
+    m_EigenAnalyzer.ComputeEigenValuesAndVectors(m_WMatrix,m_EigVals,m_EigVecs);
 
     m_SpectralVectors.resize(inputSize);
-    VectorType tmpVec(m_NbClass);
+    m_WorkVec.resize(m_NbClass);
     for (unsigned int i = 0;i < inputSize;++i)
     {
         for (unsigned int j = 0;j < m_NbClass;++j)
-            tmpVec[j] = eigVecs(inputSize - j - 1,i);
+            m_WorkVec[j] = m_EigVecs.get(inputSize - j - 1,i);
 
         double tmpSum = 0;
         for (unsigned int j = 0;j < m_NbClass;++j)
-            tmpSum += tmpVec[j]*tmpVec[j];
+            tmpSum += m_WorkVec[j]*m_WorkVec[j];
 
         tmpSum = std::sqrt(tmpSum);
         for (unsigned int j = 0;j < m_NbClass;++j)
-            tmpVec[j] /= tmpSum;
+            m_WorkVec[j] /= tmpSum;
 
-        m_SpectralVectors[i] = tmpVec;
+        m_SpectralVectors[i] = m_WorkVec;
     }
 }
 

@@ -32,15 +32,6 @@ FuzzyCMeansFilter <ScalarType>
 }
 
 template <class ScalarType>
-FuzzyCMeansFilter <ScalarType>
-::~FuzzyCMeansFilter()
-{
-    m_ClassesMembership.clear();
-    m_Centroids.clear();
-    m_InputData.clear();
-}
-
-template <class ScalarType>
 void
 FuzzyCMeansFilter <ScalarType>
 ::SetInputData(DataHolderType &data)
@@ -252,28 +243,24 @@ FuzzyCMeansFilter <ScalarType>
 ::InitializeCMeansFromData()
 {
     m_Centroids.resize(m_NbClass);
+    m_ClassesMembership.resize(m_NbInputs);
+    VectorType tmpVec(m_NbClass,0);
 
     if (!m_SpectralClusterInit)
     {
         for (unsigned int i = 0;i < m_NbClass;++i)
             m_Centroids[i] = m_InputData[i];
 
-        if (m_ClassesMembership.size() != m_NbInputs)
+        double fixVal = 0.95;
+        for (unsigned int i = 0;i < m_NbInputs;++i)
         {
-            m_ClassesMembership.resize(m_NbInputs);
-
-            double fixVal = 0.95;
-            VectorType tmpVec(m_NbClass,0);
-            for (unsigned int i = 0;i < m_NbInputs;++i)
+            unsigned int tmp = i % m_NbClass;
+            m_ClassesMembership[i] = tmpVec;
+            m_ClassesMembership[i][tmp] = fixVal;
+            for (unsigned j = 0;j < m_NbClass;++j)
             {
-                unsigned int tmp = i % m_NbClass;
-                m_ClassesMembership[i] = tmpVec;
-                m_ClassesMembership[i][tmp] = fixVal;
-                for (unsigned j = 0;j < m_NbClass;++j)
-                {
-                    if (j != tmp)
-                        m_ClassesMembership[i][j] = (1.0 - fixVal)/(m_NbClass - 1.0);
-                }
+                if (j != tmp)
+                    m_ClassesMembership[i][j] = (1.0 - fixVal)/(m_NbClass - 1.0);
             }
         }
     }
@@ -324,13 +311,9 @@ FuzzyCMeansFilter <ScalarType>
         }
 
         //Centroids initialized, now compute memberships
-        if (m_ClassesMembership.size() != m_NbInputs)
-        {
-            m_ClassesMembership.resize(m_NbInputs);
-            VectorType tmpVec(m_NbClass,0);
-            for (unsigned int i = 0;i < m_NbInputs;++i)
-                m_ClassesMembership[i] = tmpVec;
-        }
+        for (unsigned int i = 0;i < m_NbInputs;++i)
+            m_ClassesMembership[i] = tmpVec;
+
         this->UpdateMemberships();
     }
 }

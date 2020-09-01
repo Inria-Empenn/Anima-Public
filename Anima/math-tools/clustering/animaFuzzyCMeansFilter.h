@@ -26,7 +26,7 @@ public:
     };
 
     FuzzyCMeansFilter();
-    virtual ~FuzzyCMeansFilter();
+    virtual ~FuzzyCMeansFilter() {}
 
     void SetInputData(DataHolderType &data);
     void SetDataWeights(VectorType &val) {m_DataWeights = val;}

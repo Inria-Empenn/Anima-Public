@@ -2,6 +2,9 @@
 
 #include <vector>
 #include <vnl/vnl_matrix.h>
+#include <vnl/vnl_diag_matrix.h>
+
+#include <itkSymmetricEigenAnalysis.h>
 
 #include <animaFuzzyCMeansFilter.h>
 
@@ -22,6 +25,7 @@ public:
 
     typedef anima::FuzzyCMeansFilter <ScalarType> CMeansFilterType;
     typedef typename CMeansFilterType::CentroidAverageType CMeansAverageType;
+    typedef itk::SymmetricEigenAnalysis <MatrixType, vnl_diag_matrix<ScalarType>, MatrixType> EigenAnalysisType;
 
     SpectralClusteringFilter();
     virtual ~SpectralClusteringFilter();
@@ -64,6 +68,7 @@ private:
     unsigned int m_NbClass;
 
     CMeansAverageType m_CMeansAverageType;
+    CMeansFilterType m_MainFilter;
 
     bool m_Verbose;
 
@@ -72,6 +77,15 @@ private:
     double m_MValue;
 
     double m_SigmaWeighting;
+
+    // Internal data
+    MatrixType m_WMatrix;
+    std::vector <double> m_DValues;
+
+    EigenAnalysisType m_EigenAnalyzer;
+    vnl_diag_matrix<ScalarType> m_EigVals;
+    MatrixType m_EigVecs;
+    VectorType m_WorkVec;
 };
 
 } // end namespace anima
