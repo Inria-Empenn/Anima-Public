@@ -177,7 +177,7 @@ BaseBlockMatcher <TInputImageType>
     bool continueLoop = true;
     unsigned int highestToleratedBlockIndex = m_BlockRegions.size();
 
-    unsigned int stepData = std::ceil(m_BlockRegions.size() / (8 * this->GetNumberOfWorkUnits()));
+    unsigned int stepData = std::ceil(m_BlockRegions.size() / (10 * this->GetNumberOfWorkUnits()));
     unsigned int minNumBlocks = std::min(highestToleratedBlockIndex,static_cast <unsigned int> (10));
     stepData = std::max(minNumBlocks,stepData);
 
