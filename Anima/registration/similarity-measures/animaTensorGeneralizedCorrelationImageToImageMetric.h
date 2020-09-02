@@ -1,6 +1,8 @@
 #pragma once
 
 #include <animaBaseOrientedModelImageToImageMetric.h>
+#include <animaBaseTensorTools.h>
+
 #include <itkVectorImage.h>
 #include <itkCovariantVector.h>
 #include <itkPoint.h>
@@ -47,6 +49,9 @@ public:
     typedef typename Superclass::FixedImageConstPointer   FixedImageConstPointer;
     typedef typename Superclass::MovingImageConstPointer  MovingImageConstPointer;
 
+    using LECalculatorType = anima::LogEuclideanTensorCalculator <double>;
+    using LECalculatorPointer = LECalculatorType::Pointer;
+
     /**  Get the value for single valued optimizers. */
     MeasureType GetValue(const TransformParametersType & parameters) const ITK_OVERRIDE;
 
@@ -73,6 +78,8 @@ private:
 
     std::vector <InputPointType> m_FixedImagePoints;
     std::vector <PixelType> m_FixedImageValues;
+
+    LECalculatorPointer m_leCalculator;
 };
 
 } // end namespace anima

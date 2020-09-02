@@ -3,6 +3,7 @@
 #include <animaBaseOrientedModelImageToImageMetric.h>
 #include <animaMultiCompartmentModel.h>
 #include <animaMCMImage.h>
+#include <animaBaseTensorTools.h>
 
 namespace anima
 {
@@ -56,6 +57,9 @@ public:
     typedef typename Superclass::FixedImageConstPointer   FixedImageConstPointer;
     typedef typename Superclass::MovingImageConstPointer  MovingImageConstPointer;
 
+    using LECalculatorType = anima::LogEuclideanTensorCalculator <double>;
+    using LECalculatorPointer = typename LECalculatorType::Pointer;
+
     /**  Get the value for single valued optimizers. */
     MeasureType GetValue(const TransformParametersType &parameters) const ITK_OVERRIDE;
 
@@ -81,6 +85,8 @@ private:
     std::vector < std::vector <double> > m_FixedImageCompartmentWeights;
     std::vector < std::vector <PixelType> > m_FixedImageLogTensors;
     unsigned int m_NumberOfFixedCompartments;
+
+    LECalculatorPointer m_leCalculator;
 };
 
 } // end namespace anima

@@ -1,78 +1,81 @@
 #pragma once
 
 #include "animaBaseTensorTools.h"
-#include <itkSymmetricEigenAnalysis.h>
 
 #include <animaVectorOperations.h>
 #include <animaMatrixOperations.h>
 
 namespace anima
 {
-template <class T>
+
+template <class TScalarType>
 void
-GetTensorLogarithm(const vnl_matrix <T> &tensor, vnl_matrix <T> &log_tensor)
+LogEuclideanTensorCalculator <TScalarType>
+::GetTensorLogarithm(const vnl_matrix <TScalarType> &tensor, vnl_matrix <TScalarType> &log_tensor)
 {
-    typedef itk::SymmetricEigenAnalysis < vnl_matrix <T>, vnl_diag_matrix<T>, vnl_matrix <T> > EigenAnalysisType;
     unsigned int tensDim = tensor.rows();
 
-    EigenAnalysisType eigen(tensDim);
-    vnl_matrix <T> eigVecs(tensDim,tensDim);
-    vnl_diag_matrix <T> eigVals(tensDim);
+    m_EigenAnalyzer.SetDimension(tensDim);
+    m_EigenAnalyzer.SetOrder(tensDim);
+    m_EigVals.set_size(tensDim);
+    m_EigVecs.set_size(tensDim,tensDim);
 
-    eigen.ComputeEigenValuesAndVectors(tensor,eigVals,eigVecs);
+    m_EigenAnalyzer.ComputeEigenValuesAndVectors(tensor,m_EigVals,m_EigVecs);
 
     for (unsigned int i = 0;i < tensDim;++i)
     {
-        if (eigVals[i] <= 1.0e-16)
-            eigVals[i] = 1.0e-16;
+        if (m_EigVals[i] <= 1.0e-16)
+            m_EigVals[i] = 1.0e-16;
 
-        eigVals[i] = std::log(eigVals[i]);
+        m_EigVals[i] = std::log(m_EigVals[i]);
     }
 
-    RecomposeTensor(eigVals,eigVecs,log_tensor);
+    anima::RecomposeTensor(m_EigVals,m_EigVecs,log_tensor);
 }
 
-template <class T>
+template <class TScalarType>
 void
-GetTensorPower(const vnl_matrix <T> &tensor, vnl_matrix <T> &outputTensor, double powerValue)
+LogEuclideanTensorCalculator <TScalarType>
+::GetTensorPower(const vnl_matrix <TScalarType> &tensor, vnl_matrix <TScalarType> &outputTensor, double powerValue)
 {
-    typedef itk::SymmetricEigenAnalysis < vnl_matrix <T>, vnl_diag_matrix<T>, vnl_matrix <T> > EigenAnalysisType;
     unsigned int tensDim = tensor.rows();
 
-    EigenAnalysisType eigen(tensDim);
-    vnl_matrix <T> eigVecs(tensDim,tensDim);
-    vnl_diag_matrix <T> eigVals(tensDim);
+    m_EigenAnalyzer.SetDimension(tensDim);
+    m_EigenAnalyzer.SetOrder(tensDim);
+    m_EigVals.set_size(tensDim);
+    m_EigVecs.set_size(tensDim,tensDim);
 
-    eigen.ComputeEigenValuesAndVectors(tensor,eigVals,eigVecs);
+    m_EigenAnalyzer.ComputeEigenValuesAndVectors(tensor,m_EigVals,m_EigVecs);
 
     for (unsigned int i = 0;i < tensDim;++i)
     {
-        if (eigVals[i] <= 1.0e-16)
-            eigVals[i] = 1.0e-16;
+        if (m_EigVals[i] <= 1.0e-16)
+            m_EigVals[i] = 1.0e-16;
 
-        eigVals[i] = std::pow(eigVals[i],powerValue);
+        m_EigVals[i] = std::pow(m_EigVals[i],powerValue);
     }
 
-    RecomposeTensor(eigVals,eigVecs,outputTensor);
+    anima::RecomposeTensor(m_EigVals,m_EigVecs,outputTensor);
 }
 
-template <class T>
+template <class TScalarType>
 void
-GetTensorExponential(const vnl_matrix <T> &log_tensor, vnl_matrix <T> &tensor)
+LogEuclideanTensorCalculator <TScalarType>
+::GetTensorExponential(const vnl_matrix <TScalarType> &log_tensor, vnl_matrix <TScalarType> &tensor)
 {
-    typedef itk::SymmetricEigenAnalysis < vnl_matrix <T>, vnl_diag_matrix<T>, vnl_matrix <T> > EigenAnalysisType;
     unsigned int tensDim = log_tensor.rows();
 
-    EigenAnalysisType eigen(tensDim);
-    vnl_matrix <T> eigVecs(tensDim,tensDim);
-    vnl_diag_matrix <T> eigVals(tensDim);
+    m_EigenAnalyzer.SetDimension(tensDim);
+    m_EigenAnalyzer.SetOrder(tensDim);
+    m_EigVals.set_size(tensDim);
+    m_EigVecs.set_size(tensDim,tensDim);
 
-    eigen.ComputeEigenValuesAndVectors(log_tensor,eigVals,eigVecs);
+    m_EigenAnalyzer.ComputeEigenValuesAndVectors(tensor,m_EigVals,m_EigVecs);
 
     for (unsigned int i = 0;i < tensDim;++i)
-        eigVals[i] = std::exp(eigVals[i]);
+        m_EigVals[i] = std::exp(m_EigVals[i]);
 
-    RecomposeTensor(eigVals,eigVecs,tensor);
+    anima::RecomposeTensor(m_EigVals,m_EigVecs,tensor);
 }
 
 template <class T1, class T2>

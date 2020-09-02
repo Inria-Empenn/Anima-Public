@@ -1,6 +1,7 @@
 #pragma once
 #include <animaMultiCompartmentModel.h>
 #include <animaSpectralClusteringFilter.h>
+#include <animaBaseTensorTools.h>
 
 #include <itkLightObject.h>
 #include <itkVariableLengthVector.h>
@@ -38,6 +39,8 @@ public:
     using MCMPointer = MCMType::Pointer;
     using EigenAnalysisType = itk::SymmetricEigenAnalysis < vnl_matrix <double>, vnl_diag_matrix<double>, vnl_matrix <double> >;
     using SpectralClusterType = anima::SpectralClusteringFilter<double>;
+    using LECalculatorType = anima::LogEuclideanTensorCalculator <double>;
+    using LECalculatorPointer = typename LECalculatorType::Pointer;
 
     void SetInputModels(std::vector <MCMPointer> &models) {m_InputModels = models; m_UpToDate = false;}
     void SetInputWeights(std::vector <double> &weights) {m_InputWeights = weights; m_UpToDate = false;}
@@ -89,7 +92,7 @@ protected:
     itk::VariableLengthVector <double> m_InternalOutputVector;
 
     EigenAnalysisType m_InternalEigenAnalyzer;
-
+    LECalculatorPointer m_leCalculator;
     SpectralClusterType m_InternalSpectralCluster;
 };
 

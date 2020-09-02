@@ -2,6 +2,7 @@
 
 #include <animaBaseCompartment.h>
 #include <animaMatrixOperations.h>
+#include <animaBaseTensorTools.h>
 #include <AnimaMCMExport.h>
 
 namespace anima
@@ -19,6 +20,8 @@ public:
     typedef Superclass::ModelOutputVectorType ModelOutputVectorType;
     typedef Superclass::Vector3DType Vector3DType;
     typedef Superclass::Matrix3DType Matrix3DType;
+    using LEcalculatorType = anima::LogEuclideanTensorCalculator <double>;
+    using LEcalculatorPointer = LEcalculatorType::Pointer;
 
     // New macro
     itkNewMacro(Self)
@@ -81,6 +84,8 @@ protected:
         m_ModifiedAngles = true;
         m_UpdatedCompartment = false;
         m_TensorDeterminant = 0;
+
+        m_leCalculator = LEcalculatorType::New();
     }
 
     virtual ~TensorCompartment() {}
@@ -119,6 +124,8 @@ private:
     Vector3DType m_EigenVector1, m_EigenVector2;
     double m_SinTheta, m_CosTheta, m_SinPhi, m_CosPhi, m_SinAlpha, m_CosAlpha;
     double m_TensorDeterminant;
+
+    LEcalculatorPointer m_leCalculator;
 };
 
 } //end namespace anima

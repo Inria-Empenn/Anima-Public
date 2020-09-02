@@ -1,6 +1,5 @@
 #include "animaB1GammaMixtureT2RelaxometryCostFunction.h"
 
-#include <animaBaseTensorTools.h>
 #include <animaGaussLaguerreQuadrature.h>
 
 #include <animaB1GammaDistributionIntegrand.h>
@@ -300,7 +299,7 @@ B1GammaMixtureT2RelaxometryCostFunction::PrepareDataForDerivative() const
     }
 
     if (numOnDistributions > 0)
-        anima::GetTensorPower(m_GramMatrix,m_InverseGramMatrix,-1.0);
+        m_leCalculator->GetTensorPower(m_GramMatrix,m_InverseGramMatrix,-1.0);
 
     // Here gets F G^-1
     m_FMatrixInverseG.set_size(numT2Signals,numOnDistributions);

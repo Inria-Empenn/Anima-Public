@@ -297,9 +297,14 @@ void DTIProbabilisticTractographyImageFilter::ComputeModelValue(InterpolatorPoin
     if (modelInterpolator->IsInsideBuffer(index))
         modelValue = modelInterpolator->EvaluateAtContinuousIndex(index);
 
+    using LECalculatorType = anima::LogEuclideanTensorCalculator <double>;
+    using LECalculatorPointer = LECalculatorType::Pointer;
+
+    LECalculatorPointer leCalculator = LECalculatorType::New();
+
     vnl_matrix <double> tmpTensor(3,3);
     anima::GetTensorFromVectorRepresentation(modelValue,tmpTensor);
-    anima::GetTensorExponential(tmpTensor,tmpTensor);
+    leCalculator->GetTensorExponential(tmpTensor,tmpTensor);
     anima::GetVectorRepresentation(tmpTensor,modelValue);
 }
 

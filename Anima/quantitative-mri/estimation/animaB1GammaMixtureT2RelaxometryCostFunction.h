@@ -9,6 +9,7 @@
 #include <animaEPGSignalSimulator.h>
 #include <animaCholeskyDecomposition.h>
 #include <animaNNLSOptimizer.h>
+#include <animaBaseTensorTools.h>
 
 namespace anima
 {
@@ -32,6 +33,9 @@ public:
     typedef Superclass::DerivativeType DerivativeType;
     typedef vnl_matrix <double> MatrixType;
     typedef Superclass::ParametersType ParametersType;
+
+    using LECalculatorType = anima::LogEuclideanTensorCalculator <double>;
+    using LECalculatorPointer = LECalculatorType::Pointer;
 
     /**
      * The measure type shall be used for computing the cost function value to observe convergence
@@ -68,6 +72,7 @@ protected:
     B1GammaMixtureT2RelaxometryCostFunction()
     {
             m_NNLSBordersOptimizer = anima::NNLSOptimizer::New();
+            m_leCalculator = LECalculatorType::New();
 
             m_T1Value = 1;
             m_EchoSpacing = 1;
@@ -112,6 +117,8 @@ private:
 
     mutable anima::NNLSOptimizer::Pointer m_NNLSBordersOptimizer;
     mutable anima::CholeskyDecomposition m_CholeskySolver;
+
+    LECalculatorPointer m_leCalculator;
 };
 
 } // end namespace anima

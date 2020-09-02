@@ -1,9 +1,8 @@
 #pragma once
+#include "animaLogTensorImageFilter.h"
 
 #include <itkImageRegionIterator.h>
 #include <itkImageRegionConstIterator.h>
-
-#include <animaBaseTensorTools.h>
 
 namespace anima
 {
@@ -53,6 +52,8 @@ DynamicThreadedGenerateData (const OutputImageRegionType &outputRegionForThread)
     vnl_matrix <double> tmpTensor(m_TensorDimension, m_TensorDimension);
     vnl_matrix <double> tmpLogTensor(m_TensorDimension, m_TensorDimension);
 
+    LECalculatorPointer leCalculator = LECalculatorType::New();
+
     while (!outIterator.IsAtEnd())
     {
         outValue = inIterator.Get();
@@ -61,7 +62,7 @@ DynamicThreadedGenerateData (const OutputImageRegionType &outputRegionForThread)
         {
             anima::GetTensorFromVectorRepresentation(outValue,tmpTensor,m_TensorDimension);
 
-            anima::GetTensorLogarithm(tmpTensor,tmpLogTensor);
+            leCalculator->GetTensorLogarithm(tmpTensor,tmpLogTensor);
 
             anima::GetVectorRepresentation(tmpLogTensor,outValue,m_VectorSize,m_ScaleNonDiagonal);
         }

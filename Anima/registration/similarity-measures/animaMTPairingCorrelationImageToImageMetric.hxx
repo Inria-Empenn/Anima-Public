@@ -2,7 +2,6 @@
 #include "animaMTPairingCorrelationImageToImageMetric.h"
 
 #include <vnl/vnl_matrix_fixed.h>
-#include <animaBaseTensorTools.h>
 #include <animaMultiCompartmentModelCreator.h>
 #include <itkImageRegionConstIteratorWithIndex.h>
 
@@ -26,6 +25,8 @@ MTPairingCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTyp
     mcmCreator.SetModelWithFreeWaterComponent(false);
 
     m_ZeroDiffusionModel = mcmCreator.GetNewMultiCompartmentModel();
+
+    m_leCalculator = LECalculatorType::New();
 }
 
 template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >
@@ -109,7 +110,7 @@ MTPairingCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTyp
                     else
                     {
                         ++internalCounter;
-                        anima::GetTensorLogarithm(currentMovingValue->GetCompartment(j)->GetDiffusionTensor().GetVnlMatrix().as_matrix(),workLogMatrix);
+                        m_leCalculator->GetTensorLogarithm(currentMovingValue->GetCompartment(j)->GetDiffusionTensor().GetVnlMatrix().as_matrix(),workLogMatrix);
                         anima::GetVectorRepresentation(workLogMatrix,workValue,6,true);
                         movingImageLogTensors[i].push_back(workValue);
                     }
@@ -320,7 +321,7 @@ MTPairingCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTyp
                 else
                 {
                     ++internalCounter;
-                    anima::GetTensorLogarithm(fixedMCM->GetCompartment(i)->GetDiffusionTensor().GetVnlMatrix().as_matrix(),workLogMatrix);
+                    m_leCalculator->GetTensorLogarithm(fixedMCM->GetCompartment(i)->GetDiffusionTensor().GetVnlMatrix().as_matrix(),workLogMatrix);
                     anima::GetVectorRepresentation(workLogMatrix,workValue,6,true);
                     m_FixedImageLogTensors[pos].push_back(workValue);
                 }

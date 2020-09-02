@@ -5,6 +5,7 @@
 
 #include <animaBaseMCMCost.h>
 #include <animaNNLSOptimizer.h>
+#include <animaBaseTensorTools.h>
 #include <AnimaMCMExport.h>
 
 #include <animaCholeskyDecomposition.h>
@@ -30,6 +31,9 @@ public:
     /** Run-time type information (and related methods). */
     itkTypeMacro(GaussianMCMVariableProjectionCost, anima::BaseMCMCost)
 
+    using LECalculatorType = anima::LogEuclideanTensorCalculator <double>;
+    using LECalculatorPointer = LECalculatorType::Pointer;
+
     //! Get residual values for a given set of parameters, returns a vector of residuals
     MeasureType GetValues(const ParametersType &parameters) ITK_OVERRIDE;
 
@@ -48,6 +52,7 @@ protected:
     GaussianMCMVariableProjectionCost()
     {
         m_NNLSBordersOptimizer = anima::NNLSOptimizer::New();
+        m_leCalculator = LECalculatorType::New();
     }
 
     virtual ~GaussianMCMVariableProjectionCost() ITK_OVERRIDE {}
@@ -77,6 +82,7 @@ private:
     std::vector< vnl_matrix<double> > m_SignalAttenuationsJacobian;
 
     CholeskyDecomposition m_CholeskySolver;
+    LECalculatorPointer m_leCalculator;
 };
 
 } // end namespace anima

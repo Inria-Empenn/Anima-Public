@@ -6,13 +6,40 @@
 
 #include <itkVariableLengthVector.h>
 #include <itkMatrixOffsetTransformBase.h>
+#include <itkSymmetricEigenAnalysis.h>
+
+#include <vnl/vnl_diag_matrix.h>
+#include <vnl/vnl_matrix.h>
 
 namespace anima
 {
 
-template <class T> void GetTensorLogarithm(const vnl_matrix <T> &tensor, vnl_matrix <T> &log_tensor);
-template <class T> void GetTensorExponential(const vnl_matrix <T> &log_tensor, vnl_matrix <T> &tensor);
-template <class T> void GetTensorPower(const vnl_matrix <T> &tensor, vnl_matrix <T> &outputTensor, double powerValue);
+template <class TScalarType>
+class LogEuclideanTensorCalculator : public itk::LightObject
+{
+public:
+    using Self = LogEuclideanTensorCalculator <TScalarType>;
+    using Superclass = itk::LightObject;
+    using Pointer = itk::SmartPointer<Self>;
+    using ConstPointer = itk::SmartPointer<const Self>;
+
+    /** Run-time type information (and related methods) */
+    itkTypeMacro(LogEuclideanTensorCalculator, itk::LightObject)
+
+    itkNewMacro(Self)
+
+    using EigenAnalysisType = itk::SymmetricEigenAnalysis < vnl_matrix <double>, vnl_diag_matrix<double>, vnl_matrix <double> >;
+
+    void GetTensorLogarithm(const vnl_matrix <TScalarType> &tensor, vnl_matrix <TScalarType> &log_tensor);
+    void GetTensorExponential(const vnl_matrix <TScalarType> &tensor, vnl_matrix <TScalarType> &log_tensor);
+    void GetTensorPower(const vnl_matrix <TScalarType> &tensor, vnl_matrix <TScalarType> &outputTensor, double powerValue);
+
+private:
+    EigenAnalysisType m_EigenAnalyzer;
+    vnl_matrix <TScalarType> m_EigVecs;
+    vnl_diag_matrix <TScalarType> m_EigVals;
+
+};
 
 template <class T1, class T2> void GetVectorRepresentation(const vnl_matrix <T1> &tensor, itk::VariableLengthVector <T2> &vector,
                                                            unsigned int vecDim = 0, bool scale = false);
@@ -20,6 +47,10 @@ template <class T1, class T2> void GetVectorRepresentation(const vnl_matrix <T1>
 template <class T1, class T2> void GetTensorFromVectorRepresentation(const itk::VariableLengthVector <T1> &vector,
                                                                      vnl_matrix <T2> &tensor, unsigned int tensDim = 0,
                                                                      bool scale = false);
+
+//! Recompose tensor from values extracted using SymmetricEigenAnalysis (vnl_symmetric_eigensystem transposes all this)
+template <class T1, class T2>
+void RecomposeTensor(vnl_diag_matrix <T1> &eigs, vnl_matrix <T1> &eigVecs, vnl_matrix <T2> &resMatrix);
 
 template <class T> void ProjectOnTensorSpace(const vnl_matrix <T> &matrix, vnl_matrix <T> &tensor);
 
@@ -30,10 +61,6 @@ void ExtractRotationFromJacobianMatrix(vnl_matrix <RealType> &jacobianMatrix, vn
 template <typename RealType, typename MatrixType>
 void ExtractPPDRotationFromJacobianMatrix(vnl_matrix <RealType> &jacobianMatrix, vnl_matrix <RealType> &rotationMatrix,
                                           MatrixType &eigenVectors);
-
-//! Recompose tensor from values extracted using SymmetricEigenAnalysis (vnl_symmetric_eigensystem transposes all this)
-template <class T1, class T2>
-void RecomposeTensor(vnl_diag_matrix <T1> &eigs, vnl_matrix <T1> &eigVecs, vnl_matrix <T2> &resMatrix);
 
 //! Rotates a symmetric matrix by performing R^T D R where R is a rotation matrix and D the symmetric matrix
 template <class T1, class T2, class T3>

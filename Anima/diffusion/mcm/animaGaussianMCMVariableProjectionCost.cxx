@@ -2,7 +2,6 @@
 #include <cmath>
 #include <algorithm>
 
-#include <animaBaseTensorTools.h>
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -277,7 +276,7 @@ GaussianMCMVariableProjectionCost::PrepareDataForDerivative()
     }
 
     if (numOnCompartments > 0)
-        anima::GetTensorPower(m_GramMatrix,m_InverseGramMatrix,-1.0);
+        m_leCalculator->GetTensorPower(m_GramMatrix,m_InverseGramMatrix,-1.0);
 
     // Here gets F G^-1
     m_FMatrixInverseG.set_size(nbValues,numOnCompartments);

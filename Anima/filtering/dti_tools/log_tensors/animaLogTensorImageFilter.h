@@ -4,6 +4,8 @@
 #include <itkImageToImageFilter.h>
 #include <itkVectorImage.h>
 
+#include <animaBaseTensorTools.h>
+
 namespace anima
 {
 
@@ -38,6 +40,9 @@ public:
 
     /** Superclass typedefs. */
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
+
+    using LECalculatorType = anima::LogEuclideanTensorCalculator <double>;
+    using LECalculatorPointer = typename LECalculatorType::Pointer;
 
     itkSetMacro(ScaleNonDiagonal, bool)
 
@@ -79,6 +84,7 @@ private:
     unsigned int m_TensorDimension;
     unsigned int m_VectorSize;
 };
+
 } // end of namespace anima
 
 #include "animaLogTensorImageFilter.hxx"

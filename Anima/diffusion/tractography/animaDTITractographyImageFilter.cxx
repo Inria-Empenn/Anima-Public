@@ -191,6 +191,8 @@ void dtiTractographyImageFilter::ComputeAdditionalScalarMaps()
     itk::SymmetricEigenAnalysis <MatrixType,vnl_diag_matrix <double>,MatrixType> EigenAnalysis(3);
     VectorType tensorValue(6);
 
+    anima::LogEuclideanTensorCalculator <double>::Pointer leCalculator = anima::LogEuclideanTensorCalculator <double>::New();
+
     for (unsigned int i = 0;i < numPoints;++i)
     {
         for (unsigned int j = 0;j < 3;++j)
@@ -202,7 +204,7 @@ void dtiTractographyImageFilter::ComputeAdditionalScalarMaps()
             this->GetModelValue(tmpIndex,tensorValue);
 
         anima::GetTensorFromVectorRepresentation(tensorValue,tmpMat,3,false);
-        anima::GetTensorExponential(tmpMat,tmpMat);
+        leCalculator->GetTensorExponential(tmpMat,tmpMat);
 
         double adcValue = 0;
         for (unsigned int j = 0;j < 3;++j)

@@ -1,7 +1,6 @@
 #include <animaTensorCompartment.h>
 
 #include <itkSymmetricEigenAnalysis.h>
-#include <animaBaseTensorTools.h>
 #include <animaMCMConstants.h>
 
 namespace anima
@@ -444,7 +443,7 @@ void TensorCompartment::UpdateInverseDiffusionTensor()
 
     m_WorkVnlMatrix1.set_size(m_SpaceDimension,m_SpaceDimension);
     m_WorkVnlMatrix1 = m_DiffusionTensor.GetVnlMatrix().as_matrix();
-    anima::GetTensorPower(m_WorkVnlMatrix1, m_WorkVnlMatrix2, -1.0);
+    m_leCalculator->GetTensorPower(m_WorkVnlMatrix1, m_WorkVnlMatrix2, -1.0);
     m_InverseDiffusionTensor = m_WorkVnlMatrix2;
 
     m_UpdateInverseTensor = false;

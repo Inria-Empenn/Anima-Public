@@ -1,5 +1,4 @@
 #include <animaMCMWeightedAverager.h>
-#include <animaBaseTensorTools.h>
 
 namespace anima
 {
@@ -14,6 +13,8 @@ MCMWeightedAverager::MCMWeightedAverager()
     m_InternalSpectralCluster.SetMaxIterations(200);
     m_InternalSpectralCluster.SetCMeansAverageType(SpectralClusterType::CMeansFilterType::Euclidean);
     m_InternalSpectralCluster.SetVerbose(false);
+
+    m_leCalculator = LECalculatorType::New();
 }
 
 void MCMWeightedAverager::SetOutputModel(MCMType *model)
@@ -176,11 +177,10 @@ void MCMWeightedAverager::ComputeTensorDistanceMatrix()
     unsigned int numCompartments = m_WorkCompartmentsVector.size();
     m_InternalLogTensors.resize(numCompartments);
 
-    m_InternalWorkMatrix.set_size(3,3);
     for (unsigned int i = 0;i < numCompartments;++i)
     {
         m_InternalWorkMatrix = m_WorkCompartmentsVector[i]->GetDiffusionTensor().GetVnlMatrix().as_matrix();
-        anima::GetTensorLogarithm(m_InternalWorkMatrix,m_InternalWorkMatrix);
+        m_leCalculator->GetTensorLogarithm(m_InternalWorkMatrix,m_InternalWorkMatrix);
         anima::GetVectorRepresentation(m_InternalWorkMatrix,m_InternalLogTensors[i],6,true);
     }
 
@@ -268,7 +268,7 @@ void MCMWeightedAverager::ComputeOutputTensorCompatibleModel()
                 anima::RecomposeTensor(m_InternalWorkEigenValues, m_InternalWorkEigenVectors, m_InternalWorkMatrix);
             }
 
-            anima::GetTensorExponential(m_InternalWorkMatrix,m_InternalWorkMatrix);
+            m_leCalculator->GetTensorExponential(m_InternalWorkMatrix,m_InternalWorkMatrix);
             anima::GetVectorRepresentation(m_InternalWorkMatrix,m_InternalOutputVector);
         }
 

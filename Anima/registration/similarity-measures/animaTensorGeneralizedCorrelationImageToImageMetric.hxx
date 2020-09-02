@@ -4,8 +4,6 @@
 #include <itkImageRegionConstIteratorWithIndex.h>
 #include <itkSymmetricEigenAnalysis.h>
 
-#include <animaBaseTensorTools.h>
-
 namespace anima
 {
 
@@ -21,6 +19,8 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
 
     m_FixedImagePoints.clear();
     m_FixedImageValues.clear();
+
+    m_leCalculator = LECalculatorType::New();
 }
 
 /**
@@ -191,7 +191,7 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
         ovlWeight = anima::ovlScore(tmpEigX,tmpXEVecs,tmpEigY,tmpYEVecs);
     }
 
-    anima::GetTensorPower(Sigma_YY,Sigma_YY,-0.5);
+    m_leCalculator->GetTensorPower(Sigma_YY,Sigma_YY,-0.5);
 
     tmpMat = m_FixedHalfInvCovarianceMatrix * Sigma_XY * Sigma_YY;
 
@@ -268,7 +268,7 @@ TensorGeneralizedCorrelationImageToImageMetric<TFixedImagePixelType,TMovingImage
             covarianceMatrix(j,i) = covarianceMatrix(i,j);
     }
 
-    anima::GetTensorPower(covarianceMatrix,m_FixedHalfInvCovarianceMatrix,-0.5);
+    m_leCalculator->GetTensorPower(covarianceMatrix,m_FixedHalfInvCovarianceMatrix,-0.5);
 }
 
 template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >

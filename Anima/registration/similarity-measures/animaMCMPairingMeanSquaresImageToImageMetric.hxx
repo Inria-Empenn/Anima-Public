@@ -2,7 +2,6 @@
 #include "animaMCMPairingMeanSquaresImageToImageMetric.h"
 
 #include <vnl/vnl_matrix_fixed.h>
-#include <animaBaseTensorTools.h>
 #include <animaMultiCompartmentModelCreator.h>
 #include <itkImageRegionConstIteratorWithIndex.h>
 
@@ -27,6 +26,8 @@ MCMPairingMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTy
     m_ZeroDiffusionVector = m_ZeroDiffusionModel->GetModelVector();
 
     m_OneToOneMapping = false;
+
+    m_leCalculator = LECalculatorType::New();
 }
 
 template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >
@@ -147,8 +148,8 @@ MCMPairingMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTy
         if (m_FixedImageValues[index]->GetCompartmentWeight(i) == 0)
             continue;
 
-        anima::GetTensorLogarithm(m_FixedImageValues[index]->GetCompartment(i)->GetDiffusionTensor().GetVnlMatrix().as_matrix(),
-                                  workLogMatrix);
+        m_leCalculator->GetTensorLogarithm(m_FixedImageValues[index]->GetCompartment(i)->GetDiffusionTensor().GetVnlMatrix().as_matrix(),
+                                           workLogMatrix);
         anima::GetVectorRepresentation(workLogMatrix,fixedLogVectors[pos],6,true);
 
         fixedWeights[pos] = m_FixedImageValues[index]->GetCompartmentWeight(i);
@@ -168,8 +169,8 @@ MCMPairingMeanSquaresImageToImageMetric<TFixedImagePixelType,TMovingImagePixelTy
         if (movingValue->GetCompartmentWeight(i) == 0)
             continue;
 
-        anima::GetTensorLogarithm(movingValue->GetCompartment(i)->GetDiffusionTensor().GetVnlMatrix().as_matrix(),
-                                  workLogMatrix);
+        m_leCalculator->GetTensorLogarithm(movingValue->GetCompartment(i)->GetDiffusionTensor().GetVnlMatrix().as_matrix(),
+                                           workLogMatrix);
         anima::GetVectorRepresentation(workLogMatrix,movingLogVectors[pos],6,true);
 
         movingWeights[pos] = movingValue->GetCompartmentWeight(i);
