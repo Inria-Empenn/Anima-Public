@@ -140,12 +140,12 @@ SpectralClusteringFilter <ScalarType>
     m_WorkVec.resize(m_NbClass);
     for (unsigned int i = 0;i < inputSize;++i)
     {
-        for (unsigned int j = 0;j < m_NbClass;++j)
-            m_WorkVec[j] = m_EigVecs.get(inputSize - j - 1,i);
-
         double tmpSum = 0;
         for (unsigned int j = 0;j < m_NbClass;++j)
+        {
+            m_WorkVec[j] = m_EigVecs.get(inputSize - j - 1,i);
             tmpSum += m_WorkVec[j]*m_WorkVec[j];
+        }
 
         tmpSum = std::sqrt(tmpSum);
         for (unsigned int j = 0;j < m_NbClass;++j)

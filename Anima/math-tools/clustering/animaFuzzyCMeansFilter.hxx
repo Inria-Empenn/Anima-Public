@@ -162,9 +162,7 @@ FuzzyCMeansFilter <ScalarType>
 ::UpdateMemberships()
 {
     long double powFactor = 1.0/(m_MValue - 1.0);
-
-    if (m_DistancesPointsCentroids.size() != m_NbClass)
-        m_DistancesPointsCentroids.resize(m_NbClass);
+    m_DistancesPointsCentroids.resize(m_NbClass);
 
     for (unsigned int i = 0;i < m_NbInputs;++i)
     {
