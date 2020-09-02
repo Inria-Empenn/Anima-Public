@@ -28,23 +28,6 @@ SpectralClusteringFilter <ScalarType>
 template <class ScalarType>
 void
 SpectralClusteringFilter <ScalarType>
-::ResetOutputs()
-{
-    m_ClassesMembership.clear();
-    m_Centroids.clear();
-    m_SpectralVectors.clear();
-}
-
-template <class ScalarType>
-SpectralClusteringFilter <ScalarType>
-::~SpectralClusteringFilter()
-{
-    this->ResetOutputs();
-}
-
-template <class ScalarType>
-void
-SpectralClusteringFilter <ScalarType>
 ::SetInputData(MatrixType &data)
 {
     if (data.rows() == 0)
@@ -61,11 +44,8 @@ SpectralClusteringFilter <ScalarType>
     if (m_NbClass > m_InputData.rows())
         throw itk::ExceptionObject(__FILE__,__LINE__,"More classes than inputs...",ITK_LOCATION);
 
-    if (m_DataWeights.size() != m_InputData.rows())
-    {
-        m_DataWeights.resize(m_InputData.rows());
-        std::fill(m_DataWeights.begin(),m_DataWeights.end(),1.0 / m_InputData.rows());
-    }
+    m_DataWeights.resize(m_InputData.rows());
+    std::fill(m_DataWeights.begin(),m_DataWeights.end(),1.0 / m_InputData.rows());
 
     this->ComputeSpectralVectors();
 
@@ -119,6 +99,7 @@ SpectralClusteringFilter <ScalarType>
 {
     unsigned int inputSize = m_InputData.rows();
     m_WMatrix.set_size(inputSize,inputSize);
+    m_WMatrix.fill(0.0);
     m_DValues.resize(inputSize);
 
     for (unsigned int i = 0;i < inputSize;++i)

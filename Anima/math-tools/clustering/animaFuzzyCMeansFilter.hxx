@@ -52,11 +52,8 @@ FuzzyCMeansFilter <ScalarType>
     if (m_NbClass > m_NbInputs)
         throw itk::ExceptionObject(__FILE__,__LINE__,"More classes than inputs...",ITK_LOCATION);
 
-    if (m_DataWeights.size() != m_NbInputs)
-    {
-        m_DataWeights.resize(m_NbInputs);
-        std::fill(m_DataWeights.begin(),m_DataWeights.end(),1.0 / m_NbInputs);
-    }
+    m_DataWeights.resize(m_NbInputs);
+    std::fill(m_DataWeights.begin(),m_DataWeights.end(),1.0 / m_NbInputs);
 
     InitializeCMeansFromData();
     DataHolderType oldMemberships = m_ClassesMembership;

@@ -28,7 +28,7 @@ public:
     typedef itk::SymmetricEigenAnalysis <MatrixType, vnl_diag_matrix<ScalarType>, MatrixType> EigenAnalysisType;
 
     SpectralClusteringFilter();
-    virtual ~SpectralClusteringFilter();
+    virtual ~SpectralClusteringFilter() {}
 
     //! Input data: matrix of squared distances
     void SetInputData(MatrixType &data);
@@ -45,8 +45,6 @@ public:
 
     void ComputeSpectralVectors();
     void Update();
-
-    void ResetOutputs();
 
     double ComputeClustersSpreading();
     void InitializeSigmaFromDistances();
