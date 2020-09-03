@@ -70,7 +70,7 @@ LogEuclideanTensorCalculator <TScalarType>
     m_EigVals.set_size(tensDim);
     m_EigVecs.set_size(tensDim,tensDim);
 
-    m_EigenAnalyzer.ComputeEigenValuesAndVectors(tensor,m_EigVals,m_EigVecs);
+    m_EigenAnalyzer.ComputeEigenValuesAndVectors(log_tensor,m_EigVals,m_EigVecs);
 
     for (unsigned int i = 0;i < tensDim;++i)
         m_EigVals[i] = std::exp(m_EigVals[i]);
