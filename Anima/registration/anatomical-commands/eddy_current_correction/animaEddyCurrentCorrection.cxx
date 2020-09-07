@@ -135,7 +135,6 @@ int main(int argc, const char** argv)
         matcher->SetSymmetryType((PyramidBMType::SymmetryType) symmetryArg.getValue());
         matcher->SetAgregator((PyramidBMType::Agregator) agregatorArg.getValue());
         matcher->SetOutputTransformType(PyramidBMType::outRigid);
-        matcher->SetAffineDirection(directionArg.getValue());
         matcher->SetAgregThreshold(agregThresholdArg.getValue());
         matcher->SetSeStoppingThreshold(seStoppingThresholdArg.getValue());
         matcher->SetNumberOfPyramidLevels(numPyramidLevelsArg.getValue());
@@ -174,6 +173,12 @@ int main(int argc, const char** argv)
         matcher->SetFloatingImage(extractFilter->GetOutput());
         matcher->SetTransform(PyramidBMType::Directional_Affine);
         matcher->SetOutputTransformType(PyramidBMType::outAffine);
+        matcher->SetAffineDirection(directionArg.getValue());
+        matcher->SetTransformInitializationType(PyramidBMType::Identity);
+
+        AffineTransformPointer initTrsf = AffineTransformType::New();
+        initTrsf->SetIdentity();
+        matcher->SetInitialTransform(initTrsf);
 
         AffineTransformPointer tmpTrsfDirectional = AffineTransformType::New();
         tmpTrsfDirectional->SetIdentity();
