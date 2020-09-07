@@ -161,8 +161,8 @@ int main(int ac, const char** av)
 
     for (unsigned int i = 0;i < numForwardImages;++i)
     {
-        std::cout << "Applying correction to " << i << "-th image..." << std::flush;
-        
+        std::cout << "\033[K\rApplying correction to " << i+1 << "-th image..." << std::flush;
+
         // Extract 3D images from forward (and backward if possible)
         typedef itk::ExtractImageFilter <Image4DType, ImageType> ExtractFilterType;
         ExtractFilterType::Pointer forwardExtractor = ExtractFilterType::New();
@@ -243,9 +243,9 @@ int main(int ac, const char** av)
             ++singleOutputIterator;
             ++globalOutputIterator;
         }
-        
-        std::cout << " Done" << std::endl;
     }
+
+    std::cout << std::endl;
     
     anima::writeImage<Image4DType> (outArg.getValue(),outputImage);
     
