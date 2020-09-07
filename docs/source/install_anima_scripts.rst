@@ -26,7 +26,7 @@ Anima scripts installation instructions
 
 	git clone https://github.com/Inria-Visages/Anima-Scripts-Data-Public.git
 
-* Get the release of Anima scripts from our `website <https://inria-visages.github.io/Anima-Public/downloads>`_ or clone the repository using 
+* Get the release of Anima scripts from our `website <https://anima.irisa.fr/downloads>`_ or clone the repository using 
 
 .. code-block:: sh
 

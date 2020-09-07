@@ -5,6 +5,6 @@ You can download and install Anima as pre-compiled binary packages. We provide r
 
 To install these builds, simply follow these steps:
 
-* Download the latest binary release from our `website <https://inria-visages.github.io/Anima-Public/downloads>`_
+* Download the latest binary release from our `website <https://anima.irisa.fr/downloads>`_
 * Unzip the downloaded file to your prefered folder
 * Add this folder to your path and the tools will be available from the command line
