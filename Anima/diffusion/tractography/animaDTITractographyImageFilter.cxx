@@ -155,7 +155,7 @@ dtiTractographyImageFilter::GetNextDirection(PointType &previousDirection, Vecto
     if (anima::ComputeScalarProduct(previousDirection, advectedDirection) < 0)
         anima::Revert(advectedDirection,advectedDirection);
 
-    double linearCoefficient = (eVals[2] - eVals[0]) / sumEigs;
+    double linearCoefficient = (eVals[2] - eVals[1]) / sumEigs;
 
     for (unsigned int i = 0;i < 3;++i)
         newDirection[i] = newDirection[i] * linearCoefficient + (1.0 - linearCoefficient) * ((1.0 - this->GetPunctureWeight()) * previousDirection[i] + this->GetPunctureWeight() * advectedDirection[i]);
