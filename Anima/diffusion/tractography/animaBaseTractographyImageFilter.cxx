@@ -23,22 +23,15 @@ BaseTractographyImageFilter::BaseTractographyImageFilter()
 
     m_ComputeLocalColors = true;
     m_HighestProcessedSeed = 0;
-    m_ProgressReport = ITK_NULLPTR;
-}
-
-BaseTractographyImageFilter::~BaseTractographyImageFilter()
-{
-    if (m_ProgressReport)
-        delete m_ProgressReport;
+    m_NumberOfProcessedPoints = 0;
 }
 
 void BaseTractographyImageFilter::Update()
 {
     this->PrepareTractography();
     m_Output = vtkPolyData::New();
-    
-    if (m_ProgressReport)
-        delete m_ProgressReport;
+    m_NumberOfProcessedPoints = 0;
+    this->UpdateProgress(0.0);
 
     unsigned int stepData = std::min((int)m_PointsToProcess.size(),100);
     if (stepData == 0)
@@ -48,9 +41,7 @@ void BaseTractographyImageFilter::Update()
     if (m_PointsToProcess.size() % stepData != 0)
         numSteps++;
 
-    m_ProgressReport = new itk::ProgressReporter(this,0,numSteps);
-
-    std::vector < FiberType > resultFibers;
+    std::vector <FiberType> resultFibers;
     
     trackerArguments tmpStr;
     tmpStr.trackerPtr = this;
@@ -212,9 +203,15 @@ void BaseTractographyImageFilter::ThreadTrack(unsigned int numThread, std::vecto
 
         this->ThreadedTrackComputer(numThread,resultFibers,startPoint,endPoint);
 
-        m_LockHighestProcessedSeed.lock();
-        m_ProgressReport->CompletedPixel();
-        m_LockHighestProcessedSeed.unlock();
+        m_LockProcessedPoints.lock();
+        ++m_NumberOfProcessedPoints;
+
+        double ratio = std::floor(m_NumberOfProcessedPoints * 100.0 / highestToleratedSeedIndex) / 100.0;
+        ratio = this->progressFixedToFloat(this->progressFloatToFixed(ratio));
+
+        if (ratio != this->GetProgress())
+            this->UpdateProgress(ratio);
+        m_LockProcessedPoints.unlock();
     }
 }
 

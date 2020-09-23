@@ -8,7 +8,6 @@
 #include <itkLinearInterpolateImageFunction.h>
 #include <itkProcessObject.h>
 #include <mutex>
-#include <itkProgressReporter.h>
 
 #include "AnimaTractographyExport.h"
 
@@ -72,7 +71,7 @@ public:
     
 protected:
     BaseTractographyImageFilter();
-    virtual ~BaseTractographyImageFilter();
+    virtual ~BaseTractographyImageFilter() {}
 
     static ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION ThreadTracker(void *arg);
     void ThreadTrack(unsigned int numThread, std::vector <FiberType> &resultFibers);
@@ -122,9 +121,9 @@ private:
     bool m_ComputeLocalColors;
     vtkSmartPointer<vtkPolyData> m_Output;
 
-    std::mutex m_LockHighestProcessedSeed;
+    std::mutex m_LockHighestProcessedSeed, m_LockProcessedPoints;
+    unsigned int m_NumberOfProcessedPoints;
     int m_HighestProcessedSeed;
-    itk::ProgressReporter *m_ProgressReport;
 };
 
 } // end of namespace anima
