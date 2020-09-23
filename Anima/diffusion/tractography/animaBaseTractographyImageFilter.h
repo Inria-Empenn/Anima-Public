@@ -28,12 +28,6 @@ public:
     typedef itk::SmartPointer<const Self> ConstPointer;
 
     itkTypeMacro(BaseTractographyImageFilter,itk::ProcessObject)
-
-    typedef enum {
-        Forward,
-        Backward,
-        Both
-    } FiberProgressType;
     
     typedef itk::VectorImage <double, 3> ModelImageType;
     typedef ModelImageType::Pointer ModelImagePointer;
@@ -47,11 +41,11 @@ public:
     typedef MaskImageType::IndexType IndexType;
     
     typedef std::vector <PointType> FiberType;
-    typedef std::vector <std::pair < FiberProgressType, FiberType > > FiberProcessVectorType;
+    typedef std::vector <FiberType> FiberVectorType;
     
     typedef struct {
         BaseTractographyImageFilter *trackerPtr;
-        std::vector < std::vector <FiberType> > resultFibersFromThreads;
+        std::vector <FiberVectorType> resultFibersFromThreads;
     } trackerArguments;
     
     virtual void SetInputImage(ModelImageType *input) {m_InputImage = input;}
@@ -85,7 +79,7 @@ protected:
     void ThreadedTrackComputer(unsigned int numThread, std::vector <FiberType> &resultFibers,
                                unsigned int startSeedIndex, unsigned int endSeedIndex);
     
-    FiberProcessVectorType ComputeFiber(FiberType &fiber, FiberProgressType ways, itk::ThreadIdType threadId);
+    FiberVectorType ComputeFiber(FiberType &fiber, PointType &initialDirection, itk::ThreadIdType threadId);
     
     virtual void PrepareTractography();
     std::vector < FiberType > FilterOutputFibers(std::vector < FiberType > &fibers);
@@ -99,7 +93,7 @@ protected:
     //! Computes value of model from data. May use SNR and previous model value to perform smart interpolation. Replaces SNR and modelValue by the outputs
     virtual void GetModelValue(ContinuousIndexType &index, VectorType &modelValue) = 0;
 
-    virtual PointType GetModelPrincipalDirection(VectorType &modelValue, bool is2d, itk::ThreadIdType threadId) = 0;
+    virtual std::vector <PointType> &GetModelPrincipalDirections(VectorType &modelValue, bool is2d, itk::ThreadIdType threadId) = 0;
     virtual PointType GetNextDirection(PointType &previousDirection, VectorType &modelValue, bool is2d, itk::ThreadIdType threadId) = 0;
 
     //! Computes new fiber point using Runge Kutta integration (better spread of fibers than Euler integration)
@@ -122,7 +116,7 @@ private:
     ModelImagePointer m_InputImage;
     MaskImagePointer m_SeedingImage, m_FilteringImage, m_ForbiddenMaskImage, m_CutMaskImage;
     
-    FiberProcessVectorType m_PointsToProcess;
+    FiberVectorType m_PointsToProcess;
     std::vector <unsigned int> m_FilteringValues;
     
     bool m_ComputeLocalColors;
