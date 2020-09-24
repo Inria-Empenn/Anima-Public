@@ -78,7 +78,7 @@ protected:
     void ThreadedTrackComputer(unsigned int numThread, std::vector <FiberType> &resultFibers,
                                unsigned int startSeedIndex, unsigned int endSeedIndex);
     
-    FiberVectorType ComputeFiber(FiberType &fiber, PointType &initialDirection, itk::ThreadIdType threadId);
+    void ComputeFiber(FiberType &fiber, PointType &initialDirection, itk::ThreadIdType threadId);
     
     virtual void PrepareTractography();
     std::vector < FiberType > FilterOutputFibers(std::vector < FiberType > &fibers);
@@ -115,7 +115,7 @@ private:
     ModelImagePointer m_InputImage;
     MaskImagePointer m_SeedingImage, m_FilteringImage, m_ForbiddenMaskImage, m_CutMaskImage;
     
-    FiberVectorType m_PointsToProcess;
+    std::vector <ContinuousIndexType> m_PointsToProcess;
     std::vector <unsigned int> m_FilteringValues;
     
     bool m_ComputeLocalColors;

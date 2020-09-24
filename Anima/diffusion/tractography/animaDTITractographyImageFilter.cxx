@@ -93,7 +93,6 @@ dtiTractographyImageFilter::GetModelPrincipalDirections(VectorType &modelValue, 
 
     EigenAnalysis.ComputeEigenValuesAndVectors(tmpMat,eVals,eVec);
     std::vector <PointType> resDir(1);
-    resDir[0].Fill(0);
 
     for (unsigned int i = 0;i < 3;++i)
         resDir[0][i] = eVec(2,i);
@@ -101,14 +100,7 @@ dtiTractographyImageFilter::GetModelPrincipalDirections(VectorType &modelValue, 
     if (is2d)
     {
         resDir[0][2] = 0;
-
-        double norm = 0;
-        for (unsigned int i = 0;i < 2;++i)
-            norm += resDir[0][i] * resDir[0][i];
-        norm = std::sqrt(norm);
-
-        for (unsigned int i = 0;i < 2;++i)
-            resDir[0][i] /= norm;
+        anima::Normalize(resDir[0],resDir[0]);
     }
 
     return resDir;
