@@ -177,9 +177,7 @@ void BaseTractographyImageFilter::ThreadTrack(unsigned int numThread, std::vecto
     bool continueLoop = true;
     unsigned int highestToleratedSeedIndex = m_PointsToProcess.size();
 
-    unsigned int stepData = std::min((int)m_PointsToProcess.size(),100);
-    if (stepData == 0)
-        stepData = 1;
+    unsigned int stepData = std::min(10, (int)highestToleratedSeedIndex);
 
     while (continueLoop)
     {
@@ -204,7 +202,7 @@ void BaseTractographyImageFilter::ThreadTrack(unsigned int numThread, std::vecto
         this->ThreadedTrackComputer(numThread,resultFibers,startPoint,endPoint);
 
         m_LockProcessedPoints.lock();
-        ++m_NumberOfProcessedPoints;
+        m_NumberOfProcessedPoints += stepData;
 
         double ratio = std::floor(m_NumberOfProcessedPoints * 100.0 / highestToleratedSeedIndex) / 100.0;
         ratio = this->progressFixedToFloat(this->progressFloatToFixed(ratio));
