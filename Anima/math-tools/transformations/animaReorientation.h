@@ -16,14 +16,35 @@ reorient3DImage(typename itk::SmartPointer<ImageType> input,
     typedef itk::Image<typename ImageType::PixelType, 3> CheckedImageType;
     typename CheckedImageType::Pointer checkedInput;
     checkedInput = dynamic_cast<CheckedImageType *>(input.GetPointer());
+    if (checkedInput.IsNotNull())
+    {
+        typedef itk::OrientImageFilter<CheckedImageType, CheckedImageType> OrientImageFilter;
+        typename OrientImageFilter::Pointer orienter = OrientImageFilter::New();
+        orienter->UseImageDirectionOn();
+        orienter->SetDesiredCoordinateOrientation(orientation);
+        orienter->SetInput(checkedInput);
+        orienter->Update();
 
-    typedef itk::OrientImageFilter<CheckedImageType, CheckedImageType> OrientImageFilter;
-    typename OrientImageFilter::Pointer orienter = OrientImageFilter::New();
-    orienter->UseImageDirectionOn();
-    orienter->SetDesiredCoordinateOrientation(orientation);
-    orienter->SetInput(checkedInput);
-    orienter->Update();
-    return dynamic_cast<ImageType *>(orienter->GetOutput());
+        return dynamic_cast<ImageType *>(orienter->GetOutput());
+    }
+    else
+    {
+        typedef itk::VectorImage<typename ImageType::IOPixelType, 3> CheckedVectorImageType;
+        typename CheckedVectorImageType::Pointer checkedInputVector;
+        checkedInputVector = dynamic_cast<CheckedVectorImageType *>(input.GetPointer());
+
+        if (checkedInputVector.IsNull())
+            throw itk::ExceptionObject(__FILE__, __LINE__,"Unsupported image type for reorientation", ITK_LOCATION);
+
+        typedef itk::OrientImageFilter<CheckedVectorImageType, CheckedVectorImageType> OrientImageFilterVectorType;
+        typename OrientImageFilterVectorType::Pointer orienter = OrientImageFilterVectorType::New();
+        orienter->UseImageDirectionOn();
+        orienter->SetDesiredCoordinateOrientation(orientation);
+        orienter->SetInput(checkedInputVector);
+        orienter->Update();
+
+        return dynamic_cast<ImageType *>(orienter->GetOutput());
+    }
 }
 
 template <class ImageType>
