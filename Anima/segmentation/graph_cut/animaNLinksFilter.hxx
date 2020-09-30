@@ -304,7 +304,7 @@ NLinksFilter<TInput, TOutput>
         if (maskIt.Get() != 0)
         {
             int v = m_graph->what_segment(cpt);
-            unsigned char buff = 0 | (v == GraphType::SOURCE) ? 1 : 0;
+            unsigned char buff = (v == GraphType::SOURCE) ? 1 : 0;
             outIt.Set(static_cast<OutputPixelType>(buff));
             outBackgroundIt.Set(1-buff);
             cpt++;
