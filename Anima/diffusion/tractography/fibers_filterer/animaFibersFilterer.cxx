@@ -38,7 +38,44 @@ void FilterTracks(vtkPolyData *tracks, unsigned int startIndex, unsigned int end
 
         // First test endings, if not right, useless to continue
         seenEndingsLabels.clear();
-        for (unsigned int j = 0;j < numCellPts;j += numCellPts - 1)
+        unsigned int upIndexStart = std::max(5, static_cast <int> (std::floor(numCellPts / 20.0)));
+        unsigned int lowIndexEnd = numCellPts - upIndexStart;
+
+        // Test fiber start
+        for (unsigned int j = 0;j < upIndexStart;++j)
+        {
+            cellPts->GetPoint(j, pointPositionVTK);
+            for (unsigned int k = 0; k < 3; ++k)
+                pointPosition[k] = pointPositionVTK[k];
+            interpolator->GetInputImage()->TransformPhysicalPointToContinuousIndex(pointPosition,currentIndex);
+            if (interpolator->IsInsideBuffer(currentIndex))
+            {
+                unsigned int value = static_cast <unsigned int> (std::round(interpolator->EvaluateAtContinuousIndex(currentIndex)));
+                for (unsigned int k = 0;k < endingsLabels.size();++k)
+                {
+                    if (value == endingsLabels[k])
+                    {
+                        bool alreadyIn = false;
+                        for (unsigned int l = 0;l < seenEndingsLabels.size();++l)
+                        {
+                            if (seenEndingsLabels[l] == value)
+                            {
+                                alreadyIn = true;
+                                break;
+                            }
+                        }
+
+                        if (!alreadyIn)
+                            seenEndingsLabels.push_back(value);
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Test fiber end
+        for (unsigned int j = lowIndexEnd;j < numCellPts;++j)
         {
             cellPts->GetPoint(j, pointPositionVTK);
             for (unsigned int k = 0; k < 3; ++k)

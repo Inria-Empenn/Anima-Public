@@ -8,7 +8,6 @@
 #include <itkLinearInterpolateImageFunction.h>
 #include <itkProcessObject.h>
 #include <mutex>
-#include <itkProgressReporter.h>
 
 #include "AnimaTractographyExport.h"
 
@@ -28,12 +27,6 @@ public:
     typedef itk::SmartPointer<const Self> ConstPointer;
 
     itkTypeMacro(BaseTractographyImageFilter,itk::ProcessObject)
-
-    typedef enum {
-        Forward,
-        Backward,
-        Both
-    } FiberProgressType;
     
     typedef itk::VectorImage <double, 3> ModelImageType;
     typedef ModelImageType::Pointer ModelImagePointer;
@@ -47,11 +40,11 @@ public:
     typedef MaskImageType::IndexType IndexType;
     
     typedef std::vector <PointType> FiberType;
-    typedef std::vector <std::pair < FiberProgressType, FiberType > > FiberProcessVectorType;
+    typedef std::vector <FiberType> FiberVectorType;
     
     typedef struct {
         BaseTractographyImageFilter *trackerPtr;
-        std::vector < std::vector <FiberType> > resultFibersFromThreads;
+        std::vector <FiberVectorType> resultFibersFromThreads;
     } trackerArguments;
     
     virtual void SetInputImage(ModelImageType *input) {m_InputImage = input;}
@@ -78,14 +71,14 @@ public:
     
 protected:
     BaseTractographyImageFilter();
-    virtual ~BaseTractographyImageFilter();
+    virtual ~BaseTractographyImageFilter() {}
 
     static ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION ThreadTracker(void *arg);
     void ThreadTrack(unsigned int numThread, std::vector <FiberType> &resultFibers);
     void ThreadedTrackComputer(unsigned int numThread, std::vector <FiberType> &resultFibers,
                                unsigned int startSeedIndex, unsigned int endSeedIndex);
     
-    FiberProcessVectorType ComputeFiber(FiberType &fiber, FiberProgressType ways, itk::ThreadIdType threadId);
+    void ComputeFiber(FiberType &fiber, PointType &initialDirection, itk::ThreadIdType threadId);
     
     virtual void PrepareTractography();
     std::vector < FiberType > FilterOutputFibers(std::vector < FiberType > &fibers);
@@ -99,8 +92,11 @@ protected:
     //! Computes value of model from data. May use SNR and previous model value to perform smart interpolation. Replaces SNR and modelValue by the outputs
     virtual void GetModelValue(ContinuousIndexType &index, VectorType &modelValue) = 0;
 
-    virtual PointType GetModelPrincipalDirection(VectorType &modelValue, bool is2d, itk::ThreadIdType threadId) = 0;
+    virtual std::vector <PointType> GetModelPrincipalDirections(VectorType &modelValue, bool is2d, itk::ThreadIdType threadId) = 0;
     virtual PointType GetNextDirection(PointType &previousDirection, VectorType &modelValue, bool is2d, itk::ThreadIdType threadId) = 0;
+
+    //! Computes new fiber point using Runge Kutta integration (better spread of fibers than Euler integration)
+    virtual void ComputeNewFiberPoint(PointType &oldPoint, PointType &newDirection, PointType &newPoint, itk::ThreadIdType threadId);
 
     virtual void ComputeAdditionalScalarMaps() {}
     bool isZero(VectorType &value);
@@ -119,15 +115,15 @@ private:
     ModelImagePointer m_InputImage;
     MaskImagePointer m_SeedingImage, m_FilteringImage, m_ForbiddenMaskImage, m_CutMaskImage;
     
-    FiberProcessVectorType m_PointsToProcess;
+    std::vector <ContinuousIndexType> m_PointsToProcess;
     std::vector <unsigned int> m_FilteringValues;
     
     bool m_ComputeLocalColors;
     vtkSmartPointer<vtkPolyData> m_Output;
 
-    std::mutex m_LockHighestProcessedSeed;
+    std::mutex m_LockHighestProcessedSeed, m_LockProcessedPoints;
+    unsigned int m_NumberOfProcessedPoints;
     int m_HighestProcessedSeed;
-    itk::ProgressReporter *m_ProgressReport;
 };
 
 } // end of namespace anima

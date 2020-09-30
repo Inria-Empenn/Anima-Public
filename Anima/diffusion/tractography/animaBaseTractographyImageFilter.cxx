@@ -23,34 +23,17 @@ BaseTractographyImageFilter::BaseTractographyImageFilter()
 
     m_ComputeLocalColors = true;
     m_HighestProcessedSeed = 0;
-    m_ProgressReport = ITK_NULLPTR;
-}
-
-BaseTractographyImageFilter::~BaseTractographyImageFilter()
-{
-    if (m_ProgressReport)
-        delete m_ProgressReport;
+    m_NumberOfProcessedPoints = 0;
 }
 
 void BaseTractographyImageFilter::Update()
 {
     this->PrepareTractography();
     m_Output = vtkPolyData::New();
-    
-    if (m_ProgressReport)
-        delete m_ProgressReport;
+    m_NumberOfProcessedPoints = 0;
+    this->UpdateProgress(0.0);
 
-    unsigned int stepData = std::min((int)m_PointsToProcess.size(),100);
-    if (stepData == 0)
-        stepData = 1;
-
-    unsigned int numSteps = std::floor(m_PointsToProcess.size() / (double)stepData);
-    if (m_PointsToProcess.size() % stepData != 0)
-        numSteps++;
-
-    m_ProgressReport = new itk::ProgressReporter(this,0,numSteps);
-
-    std::vector < FiberType > resultFibers;
+    std::vector <FiberType> resultFibers;
     
     trackerArguments tmpStr;
     tmpStr.trackerPtr = this;
@@ -89,8 +72,6 @@ void BaseTractographyImageFilter::PrepareTractography()
     double stepN = 1.0 / m_NumberOfFibersPerPixel;
     
     bool is2d = (m_InputImage->GetLargestPossibleRegion().GetSize()[2] <= 1);
-    FiberType tmpFiber(1);
-    
     while (!seedItr.IsAtEnd())
     {
         if (seedItr.Get() == 0)
@@ -110,9 +91,7 @@ void BaseTractographyImageFilter::PrepareTractography()
                 for (unsigned int i = 0;i < m_NumberOfFibersPerPixel;++i)
                 {
                     realIndex[0] = tmpIndex[0] + startN + i * stepN;
-                    m_SeedingImage->TransformContinuousIndexToPhysicalPoint(realIndex,tmpPoint);
-                    tmpFiber[0] = tmpPoint;
-                    m_PointsToProcess.push_back(std::pair<FiberProgressType,FiberType>(Both,tmpFiber));
+                    m_PointsToProcess.push_back(realIndex);
                 }
             }
         }
@@ -127,9 +106,7 @@ void BaseTractographyImageFilter::PrepareTractography()
                     for (unsigned int i = 0;i < m_NumberOfFibersPerPixel;++i)
                     {
                         realIndex[0] = tmpIndex[0] + startN + i * stepN;
-                        m_SeedingImage->TransformContinuousIndexToPhysicalPoint(realIndex,tmpPoint);
-                        tmpFiber[0] = tmpPoint;
-                        m_PointsToProcess.push_back(std::pair<FiberProgressType,FiberType>(Both,tmpFiber));
+                        m_PointsToProcess.push_back(realIndex);
                     }
                 }
             }
@@ -186,15 +163,13 @@ void BaseTractographyImageFilter::ThreadTrack(unsigned int numThread, std::vecto
     bool continueLoop = true;
     unsigned int highestToleratedSeedIndex = m_PointsToProcess.size();
 
-    unsigned int stepData = std::min((int)m_PointsToProcess.size(),100);
-    if (stepData == 0)
-        stepData = 1;
+    unsigned int stepData = std::min(10, (int)highestToleratedSeedIndex);
 
     while (continueLoop)
     {
         m_LockHighestProcessedSeed.lock();
 
-        if (m_HighestProcessedSeed >= highestToleratedSeedIndex)
+        if (m_HighestProcessedSeed >= (int)highestToleratedSeedIndex)
         {
             m_LockHighestProcessedSeed.unlock();
             continueLoop = false;
@@ -212,23 +187,76 @@ void BaseTractographyImageFilter::ThreadTrack(unsigned int numThread, std::vecto
 
         this->ThreadedTrackComputer(numThread,resultFibers,startPoint,endPoint);
 
-        m_LockHighestProcessedSeed.lock();
-        m_ProgressReport->CompletedPixel();
-        m_LockHighestProcessedSeed.unlock();
+        m_LockProcessedPoints.lock();
+        m_NumberOfProcessedPoints += stepData;
+
+        double ratio = std::floor(m_NumberOfProcessedPoints * 100.0 / highestToleratedSeedIndex) / 100.0;
+        ratio = this->progressFixedToFloat(this->progressFloatToFixed(ratio));
+
+        if (ratio != this->GetProgress())
+            this->UpdateProgress(ratio);
+        m_LockProcessedPoints.unlock();
     }
 }
 
 void BaseTractographyImageFilter::ThreadedTrackComputer(unsigned int numThread, std::vector <FiberType> &resultFibers,
                                                         unsigned int startSeedIndex, unsigned int endSeedIndex)
 {    
+    std::vector <PointType> initialDirections;
+    VectorType modelValue;
+    bool is2d = (m_SeedingImage->GetLargestPossibleRegion().GetSize()[2] <= 1);
     FiberType tmpFiber;
+    ContinuousIndexType curIndex;
+    IndexType curNearestIndex;
+    PointType initialPoint;
+
     for (unsigned int i = startSeedIndex;i < endSeedIndex;++i)
     {
-        tmpFiber = m_PointsToProcess[i].second;
-        this->ComputeFiber(tmpFiber,m_PointsToProcess[i].first,numThread);
+        bool treatPoint = true;
+
+        curIndex = m_PointsToProcess[i];
+        m_SeedingImage->TransformContinuousIndexToPhysicalPoint(m_PointsToProcess[i],initialPoint);
+        m_SeedingImage->TransformPhysicalPointToIndex(initialPoint,curNearestIndex);
+        modelValue.SetSize(1);
+
+        if (!m_CutMaskImage.IsNull())
+        {
+            if (!this->CheckIndexInImageBounds(curNearestIndex,m_CutMaskImage))
+                treatPoint = false;
+            else if (m_CutMaskImage->GetPixel(curNearestIndex) != 0)
+                treatPoint = false;
+        }
+
+        if (!m_ForbiddenMaskImage.IsNull())
+        {
+            if (!this->CheckIndexInImageBounds(curNearestIndex,m_ForbiddenMaskImage))
+                treatPoint = false;
+            else if (m_ForbiddenMaskImage->GetPixel(curNearestIndex) != 0)
+                treatPoint = false;
+        }
+
+        if (!treatPoint)
+            continue;
+
+        this->GetModelValue(curIndex,modelValue);
+        if (isZero(modelValue))
+            treatPoint = false;
+
+        if (!this->CheckModelCompatibility(modelValue,numThread))
+            treatPoint = false;
+
+        initialDirections = this->GetModelPrincipalDirections(modelValue, is2d, numThread);
+
+        unsigned int numDirections = initialDirections.size();
+        for (unsigned int j = 0;j < numDirections;++j)
+        {
+            tmpFiber.clear();
+            tmpFiber.push_back(initialPoint);
+            this->ComputeFiber(tmpFiber,initialDirections[j],numThread);
         
-        if (tmpFiber.size() > m_MinLengthFiber / m_StepProgression)
-            resultFibers.push_back(tmpFiber);
+            if (tmpFiber.size() > m_MinLengthFiber / m_StepProgression)
+                resultFibers.push_back(tmpFiber);
+        }
     }
 }
 
@@ -311,27 +339,40 @@ void BaseTractographyImageFilter::createVTKOutput(std::vector < FiberType > &fil
     }
 }
 
-BaseTractographyImageFilter::FiberProcessVectorType
-BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType &fiber,
-                                          BaseTractographyImageFilter::FiberProgressType ways,
+void
+BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType &fiber, PointType &initialDirection,
                                           itk::ThreadIdType threadId)
 {
-    FiberProcessVectorType resVal;
     bool is2d = m_InputImage->GetLargestPossibleRegion().GetSize()[2] == 1;
     
-    if ((ways == Forward)||(ways == Both))
+    PointType curPoint = fiber[0];
+    PointType oldDir, newDir;
+    oldDir = initialDirection;
+    newDir = initialDirection;
+
+    ContinuousIndexType curIndex;
+    IndexType curNearestIndex;
+    bool continueLoop = true;
+    VectorType modelValue;
+    modelValue.SetSize(1);
+
+    this->GetModelValue(curIndex,modelValue);
+    // Go the forward way starting along initial direction provided
+    while (continueLoop)
     {
-        PointType curPoint = fiber[fiber.size() - 1];
-        PointType oldDir, newDir;
-        
-        ContinuousIndexType curIndex;
-        IndexType curNearestIndex;
-        bool continueLoop = true;
+        oldDir = newDir;
+        newDir = this->GetNextDirection(oldDir,modelValue,is2d,threadId);
+
+        if (anima::ComputeOrientationAngle(oldDir, newDir) > m_MaxFiberAngle)
+        {
+            continueLoop = false;
+            break;
+        }
+
+        this->ComputeNewFiberPoint(fiber[fiber.size() - 1],newDir,curPoint,threadId);
+
         m_SeedingImage->TransformPhysicalPointToContinuousIndex(curPoint,curIndex);
         m_SeedingImage->TransformPhysicalPointToIndex(curPoint,curNearestIndex);
-
-        VectorType modelValue;
-        modelValue.SetSize(1);
 
         if (!m_CutMaskImage.IsNull())
         {
@@ -346,110 +387,68 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
             if (!this->CheckIndexInImageBounds(curNearestIndex,m_ForbiddenMaskImage))
             {
                 fiber.clear();
-                return resVal;
+                return;
             }
             if (m_ForbiddenMaskImage->GetPixel(curNearestIndex) != 0)
             {
                 fiber.clear();
-                return resVal;
+                return;
             }
         }
 
-        this->GetModelValue(curIndex,modelValue);
-        if (isZero(modelValue))
+        if (!this->CheckIndexInImageBounds(curIndex))
             continueLoop = false;
+        else
+        {
+            this->GetModelValue(curIndex,modelValue);
+
+            if (isZero(modelValue))
+                continueLoop = false;
+        }
 
         if (!this->CheckModelCompatibility(modelValue,threadId))
             continueLoop = false;
 
-        while (continueLoop)
-        {            
-            if (fiber.size() <= 1)
-                oldDir = this->GetModelPrincipalDirection(modelValue,is2d,threadId);
-            else
-            {
-                for (unsigned int i = 0;i < 3;++i)
-                    oldDir[i] = fiber[fiber.size() - 1][i] - fiber[fiber.size() - 2][i];
-            }
+        // Add new point to fiber
+        if (continueLoop)
+            fiber.push_back(curPoint);
 
-            // Do some stuff to progress one step
-            newDir = this->GetNextDirection(oldDir,modelValue,is2d,threadId);
-            
-            if (anima::ComputeOrientationAngle(oldDir, newDir) > m_MaxFiberAngle)
-            {
-                continueLoop = false;
-                break;
-            }
-            
-            if (anima::ComputeScalarProduct(oldDir, newDir) < 0)
-                anima::Revert(newDir,newDir);
-            
-            for (unsigned int i = 0;i < 3;++i)
-                curPoint[i] = fiber[fiber.size() - 1][i] + m_StepProgression * newDir[i];
-            
-            m_SeedingImage->TransformPhysicalPointToContinuousIndex(curPoint,curIndex);
-            m_SeedingImage->TransformPhysicalPointToIndex(curPoint,curNearestIndex);
-
-            if (!m_CutMaskImage.IsNull())
-            {
-                if (!this->CheckIndexInImageBounds(curNearestIndex,m_CutMaskImage))
-                    continueLoop = false;
-                else if (m_CutMaskImage->GetPixel(curNearestIndex) != 0)
-                    continueLoop = false;
-            }
-
-            if (!m_ForbiddenMaskImage.IsNull())
-            {
-                if (!this->CheckIndexInImageBounds(curNearestIndex,m_ForbiddenMaskImage))
-                {
-                    fiber.clear();
-                    return resVal;
-                }
-                if (m_ForbiddenMaskImage->GetPixel(curNearestIndex) != 0)
-                {
-                    fiber.clear();
-                    return resVal;
-                }
-            }
-
-            if (!this->CheckIndexInImageBounds(curIndex))
-                continueLoop = false;
-            else
-            {
-                this->GetModelValue(curIndex,modelValue);
-
-                if (isZero(modelValue))
-                    continueLoop = false;
-            }
-
-            if (!this->CheckModelCompatibility(modelValue,threadId))
-                continueLoop = false;
-
-            // Add new point to fiber
-            if (continueLoop)
-                fiber.push_back(curPoint);
-
-            if (fiber.size() > m_MaxLengthFiber / m_StepProgression)
-            {
-                fiber.clear();
-                return resVal;
-            }
+        if (fiber.size() > m_MaxLengthFiber / m_StepProgression)
+        {
+            fiber.clear();
+            return;
         }
     }
 
-    if ((ways == Backward)||(ways == Both))
+    curPoint = fiber[0];
+    oldDir = initialDirection;
+    for (unsigned int i = 0;i < 3;++i)
+        oldDir[i] *= -1.0;
+
+    newDir = oldDir;
+    continueLoop = true;
+    m_SeedingImage->TransformPhysicalPointToContinuousIndex(curPoint,curIndex);
+    m_SeedingImage->TransformPhysicalPointToIndex(curPoint,curNearestIndex);
+
+    modelValue.SetSize(1);
+    this->GetModelValue(curIndex,modelValue);
+
+    // Now go the backwards way to complete the fiber
+    while (continueLoop)
     {
-        PointType curPoint = fiber[0];
-        PointType oldDir, newDir;
-        
-        ContinuousIndexType curIndex;
-        IndexType curNearestIndex;
-        bool continueLoop = true;
+        oldDir = newDir;
+        newDir = this->GetNextDirection(oldDir,modelValue,is2d,threadId);
+
+        if (anima::ComputeOrientationAngle(oldDir, newDir) > m_MaxFiberAngle)
+        {
+            continueLoop = false;
+            break;
+        }
+
+        this->ComputeNewFiberPoint(fiber[0],newDir,curPoint,threadId);
+
         m_SeedingImage->TransformPhysicalPointToContinuousIndex(curPoint,curIndex);
         m_SeedingImage->TransformPhysicalPointToIndex(curPoint,curNearestIndex);
-        
-        VectorType modelValue;
-        modelValue.SetSize(1);
 
         if (!m_CutMaskImage.IsNull())
         {
@@ -464,102 +463,121 @@ BaseTractographyImageFilter::ComputeFiber(BaseTractographyImageFilter::FiberType
             if (!this->CheckIndexInImageBounds(curNearestIndex,m_ForbiddenMaskImage))
             {
                 fiber.clear();
-                return resVal;
+                return;
             }
             if (m_ForbiddenMaskImage->GetPixel(curNearestIndex) != 0)
             {
                 fiber.clear();
-                return resVal;
+                return;
             }
         }
 
-        this->GetModelValue(curIndex,modelValue);
-        if (isZero(modelValue))
+        if (!this->CheckIndexInImageBounds(curIndex))
             continueLoop = false;
+        else
+        {
+            this->GetModelValue(curIndex,modelValue);
+
+            if (isZero(modelValue))
+                continueLoop = false;
+        }
 
         if (!this->CheckModelCompatibility(modelValue,threadId))
             continueLoop = false;
 
-        while (continueLoop)
+        // Now add point to fiber
+        if (continueLoop)
+            fiber.insert(fiber.begin(),1,curPoint);
+
+        if (fiber.size() > m_MaxLengthFiber / m_StepProgression)
         {
-            if (fiber.size() <= 1)
-            {
-                oldDir = this->GetModelPrincipalDirection(modelValue,is2d,threadId);
-                for (unsigned int i = 0;i < 3;++i)
-                    oldDir[i] *= -1.0;
-            }
-            else
-            {
-                for (unsigned int i = 0;i < 3;++i)
-                    oldDir[i] = fiber[0][i] - fiber[1][i];
-            }
-            
-            // Do some stuff to progress one step
-            newDir = this->GetNextDirection(oldDir,modelValue,is2d,threadId);
-            
-            if (anima::ComputeOrientationAngle(oldDir, newDir) > m_MaxFiberAngle)
-            {
-                continueLoop = false;
-                break;
-            }
-            
-            if (anima::ComputeScalarProduct(oldDir, newDir) < 0)
-                anima::Revert(newDir,newDir);
-            
-            for (unsigned int i = 0;i < 3;++i)
-                curPoint[i] = fiber[0][i] + m_StepProgression * newDir[i];
-            
-            m_SeedingImage->TransformPhysicalPointToContinuousIndex(curPoint,curIndex);
-            m_SeedingImage->TransformPhysicalPointToIndex(curPoint,curNearestIndex);
-
-            if (!m_CutMaskImage.IsNull())
-            {
-                if (!this->CheckIndexInImageBounds(curNearestIndex,m_CutMaskImage))
-                    continueLoop = false;
-                else if (m_CutMaskImage->GetPixel(curNearestIndex) != 0)
-                    continueLoop = false;
-            }
-
-            if (!m_ForbiddenMaskImage.IsNull())
-            {
-                if (!this->CheckIndexInImageBounds(curNearestIndex,m_ForbiddenMaskImage))
-                {
-                    fiber.clear();
-                    return resVal;
-                }
-                if (m_ForbiddenMaskImage->GetPixel(curNearestIndex) != 0)
-                {
-                    fiber.clear();
-                    return resVal;
-                }
-            }
-
-            if (!this->CheckIndexInImageBounds(curIndex))
-                continueLoop = false;
-            else
-            {
-                this->GetModelValue(curIndex,modelValue);
-
-                if (isZero(modelValue))
-                    continueLoop = false;
-            }
-
-            if (!this->CheckModelCompatibility(modelValue,threadId))
-                continueLoop = false;
-
-            // Now add point to fiber
-            if (continueLoop)
-                fiber.insert(fiber.begin(),1,curPoint);
-
-            if (fiber.size() > m_MaxLengthFiber / m_StepProgression)
-            {
-                fiber.clear();
-                return resVal;
-            }
+            fiber.clear();
+            return;
         }
     }
-    
-    return resVal;
+}
+
+void BaseTractographyImageFilter::ComputeNewFiberPoint(PointType &oldPoint, PointType &newDirection, PointType &newPoint,
+                                                       itk::ThreadIdType threadId)
+{
+    PointType k1, k2, k3, k4;
+    PointType kPosition;
+    ContinuousIndexType curIndex;
+    VectorType modelValue;
+
+    bool is2d = (m_InputImage->GetLargestPossibleRegion().GetSize()[2] <= 1);
+
+    for (unsigned int i = 0;i < 3;++i)
+    {
+        k1[i] = newDirection[i];
+        kPosition[i] = oldPoint[i] + m_StepProgression * k1[i] / 2.0;
+    }
+
+    m_SeedingImage->TransformPhysicalPointToContinuousIndex(kPosition,curIndex);
+    if (!this->CheckIndexInImageBounds(curIndex))
+    {
+        for (unsigned int i = 0;i < 3;++i)
+            newPoint[i] = kPosition[i];
+
+        return;
+    }
+
+    this->GetModelValue(curIndex,modelValue);
+    if (isZero(modelValue))
+    {
+        for (unsigned int i = 0;i < 3;++i)
+            newPoint[i] = kPosition[i];
+
+        return;
+    }
+
+    k2 = this->GetNextDirection(k1,modelValue,is2d,threadId);
+    for (unsigned int i = 0;i < 3;++i)
+        kPosition[i] = oldPoint[i] + m_StepProgression * k2[i] / 2.0;
+
+    m_SeedingImage->TransformPhysicalPointToContinuousIndex(kPosition,curIndex);
+    if (!this->CheckIndexInImageBounds(curIndex))
+    {
+        for (unsigned int i = 0;i < 3;++i)
+            newPoint[i] = oldPoint[i] + m_StepProgression * (k1[i] + 2.0 * k2[i]) / 3.0;
+
+        return;
+    }
+
+    this->GetModelValue(curIndex,modelValue);
+    if (isZero(modelValue))
+    {
+        for (unsigned int i = 0;i < 3;++i)
+            newPoint[i] = oldPoint[i] + m_StepProgression * (k1[i] + 2.0 * k2[i]) / 3.0;
+
+        return;
+    }
+
+    k3 = this->GetNextDirection(k2,modelValue,is2d,threadId);
+    for (unsigned int i = 0;i < 3;++i)
+        kPosition[i] = oldPoint[i] + m_StepProgression * k3[i];
+
+    m_SeedingImage->TransformPhysicalPointToContinuousIndex(kPosition,curIndex);
+    if (!this->CheckIndexInImageBounds(curIndex))
+    {
+        for (unsigned int i = 0;i < 3;++i)
+            newPoint[i] = oldPoint[i] + m_StepProgression * (k1[i] + 2.0 * k2[i] + 2.0 * k3[i]) / 5.0;
+
+        return;
+    }
+
+    this->GetModelValue(curIndex,modelValue);
+    if (isZero(modelValue))
+    {
+        for (unsigned int i = 0;i < 3;++i)
+            newPoint[i] = oldPoint[i] + m_StepProgression * (k1[i] + 2.0 * k2[i] + 2.0 * k3[i]) / 5.0;
+
+        return;
+    }
+
+    k4 = this->GetNextDirection(k3,modelValue,is2d,threadId);
+    for (unsigned int i = 0;i < 3;++i)
+        newPoint[i] = oldPoint[i] + (k1[i] + 2.0 * k2[i] + 2.0 * k3[i] + k4[i]) * m_StepProgression / 6.0;
 }
 
 bool BaseTractographyImageFilter::CheckIndexInImageBounds(IndexType &index, ImageBaseType *testImage)

@@ -33,11 +33,11 @@ int main(int argc,  char*  argv[])
     TCLAP::ValueArg<double> punctureWeightArg("p","punc-weight","Puncture weight to go through planar tensors (default: 0.2)",false,0.2,"puncture weight",cmd);
 
     TCLAP::ValueArg<double> stopAngleArg("a","angle-max","Maximum angle for tracking (default: 60)",false,60.0,"maximum track angle",cmd);
-    TCLAP::ValueArg<double> stepLengthArg("","step-length","Length of each step (default: 1)",false,1.0,"step length",cmd);
+    TCLAP::ValueArg<double> stepLengthArg("","step-length","Length of each step (in mm, default: 0.5)",false,0.5,"step length",cmd);
     TCLAP::ValueArg<int> nbFibersArg("","nb-fibers","Number of starting filters (n*n*n) per voxel (default: 1)",false,1,"number of seeds per voxel",cmd);
 
     TCLAP::ValueArg<double> minLengthArg("","min-length","Minimum length for a fiber to be considered for computation (default: 10mm)",false,10.0,"minimum length",cmd);
-    TCLAP::ValueArg<double> maxLengthArg("","max-length","Maximum length of a tract (default: 150mm)",false,150.0,"maximum length",cmd);
+    TCLAP::ValueArg<double> maxLengthArg("","max-length","Maximum length of a tract (default: 200mm)",false,200.0,"maximum length",cmd);
 
     TCLAP::SwitchArg addLocalDataArg("L","local-data","Add local data information to output tracks",cmd);
 

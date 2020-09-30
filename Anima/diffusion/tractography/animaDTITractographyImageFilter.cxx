@@ -78,8 +78,8 @@ dtiTractographyImageFilter::GetModelValue(ContinuousIndexType &index, VectorType
     modelValue = m_DTIInterpolator->EvaluateAtContinuousIndex(index);
 }
 
-dtiTractographyImageFilter::PointType
-dtiTractographyImageFilter::GetModelPrincipalDirection(VectorType &modelValue, bool is2d, itk::ThreadIdType threadId)
+std::vector <dtiTractographyImageFilter::PointType>
+dtiTractographyImageFilter::GetModelPrincipalDirections(VectorType &modelValue, bool is2d, itk::ThreadIdType threadId)
 {
     typedef vnl_matrix <double> MatrixType;
 
@@ -92,23 +92,15 @@ dtiTractographyImageFilter::GetModelPrincipalDirection(VectorType &modelValue, b
     anima::GetTensorFromVectorRepresentation(modelValue,tmpMat);
 
     EigenAnalysis.ComputeEigenValuesAndVectors(tmpMat,eVals,eVec);
-    PointType resDir;
-    resDir.Fill(0);
+    std::vector <PointType> resDir(1);
 
     for (unsigned int i = 0;i < 3;++i)
-        resDir[i] = eVec(2,i);
+        resDir[0][i] = eVec(2,i);
 
     if (is2d)
     {
-        resDir[2] = 0;
-
-        double norm = 0;
-        for (unsigned int i = 0;i < 2;++i)
-            norm += resDir[i] * resDir[i];
-        norm = std::sqrt(norm);
-
-        for (unsigned int i = 0;i < 2;++i)
-            resDir[i] /= norm;
+        resDir[0][2] = 0;
+        anima::Normalize(resDir[0],resDir[0]);
     }
 
     return resDir;
@@ -118,7 +110,7 @@ dtiTractographyImageFilter::PointType
 dtiTractographyImageFilter::GetNextDirection(PointType &previousDirection, VectorType &modelValue, bool is2d,
                                              itk::ThreadIdType threadId)
 {
-    PointType newDirection = this->GetModelPrincipalDirection(modelValue,is2d,threadId);
+    PointType newDirection = this->GetModelPrincipalDirections(modelValue,is2d,threadId)[0];
     if (anima::ComputeScalarProduct(previousDirection, newDirection) < 0)
         anima::Revert(newDirection,newDirection);
 
@@ -155,7 +147,7 @@ dtiTractographyImageFilter::GetNextDirection(PointType &previousDirection, Vecto
     if (anima::ComputeScalarProduct(previousDirection, advectedDirection) < 0)
         anima::Revert(advectedDirection,advectedDirection);
 
-    double linearCoefficient = (eVals[2] - eVals[0]) / sumEigs;
+    double linearCoefficient = (eVals[2] - eVals[1]) / sumEigs;
 
     for (unsigned int i = 0;i < 3;++i)
         newDirection[i] = newDirection[i] * linearCoefficient + (1.0 - linearCoefficient) * ((1.0 - this->GetPunctureWeight()) * previousDirection[i] + this->GetPunctureWeight() * advectedDirection[i]);
