@@ -12,6 +12,12 @@ if (WIN32)
   # GitBash
   find_program(BASH_BIN NAMES bash)
   if (NOT BASH_BIN)
+    if(EXISTS $ENV{ProgramFiles}/Git/git-bash.exe)
+      set(BASH_BIN "$ENV{ProgramFiles}/Git/git-bash.exe" CACHE FILEPATH "Path to git bash program" FORCE)
+    endif()
+  endif()
+
+  if (NOT BASH_BIN)
     message( SEND_ERROR 
       "You need to install GitBash and add it to the PATH environment variable." 
       )
