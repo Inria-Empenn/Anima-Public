@@ -102,6 +102,8 @@ public:
     void SetT2FlipAngles(std::vector <double> & flipAngles) {m_T2FlipAngles = flipAngles;}
     void SetT2FlipAngles(double singleAngle, unsigned int numAngles) {m_T2FlipAngles = std::vector <double> (numAngles,singleAngle);}
 
+    std::vector <double> &GetT2CompartmentValues() {return m_T2CompartmentValues;}
+
 protected:
     MultiT2RelaxometryEstimationImageFilter()
     : Superclass()

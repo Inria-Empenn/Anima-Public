@@ -33,6 +33,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> resMWFArg("o","out-mwf","Result MWF image",true,"","result MWF image",cmd);
     TCLAP::ValueArg<std::string> resB1Arg("","out-b1","Result B1 image",false,"","result B1 image",cmd);
     TCLAP::ValueArg<std::string> resCostArg("c","out-cost","Result cost image",false,"","result cost image",cmd);
+    TCLAP::ValueArg<std::string> resPeaksArg("p","out-peaks","output T2 peaks positions used in estimation as a CSV file",false,"","output T2 peaks",cmd);
 
     TCLAP::ValueArg<double> echoSpacingArg("e","echo-spacing","Spacing between two successive echoes (default: 10)",false,10,"Spacing between echoes",cmd);
     TCLAP::ValueArg<double> excitationT2FlipAngleArg("","t2-ex-flip","Excitation flip angle for T2 (in degrees, default: 90)",false,90,"T2 excitation flip angle",cmd);
@@ -235,6 +236,16 @@ int main(int argc, char **argv)
 
     if (resCostArg.getValue() != "")
         anima::writeImage<OutputImageType> (resCostArg.getValue(),outCostImage);
+
+    if (resPeaksArg.getValue() != "")
+    {
+        std::vector <double> optimizationPeaks = mainFilter->GetT2CompartmentValues();
+        std::ofstream outPeaksFile(resPeaksArg.getValue());
+        for (unsigned int i = 0;i < optimizationPeaks.size();++i)
+            outPeaksFile << optimizationPeaks[i] << std::endl;
+
+        outPeaksFile.close();
+    }
 
     return EXIT_SUCCESS;
 }
