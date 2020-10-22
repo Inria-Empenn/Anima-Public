@@ -38,8 +38,6 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> excitationT2FlipAngleArg("","t2-ex-flip","Excitation flip angle for T2 (in degrees, default: 90)",false,90,"T2 excitation flip angle",cmd);
     TCLAP::ValueArg<double> t2FlipAngleArg("","t2-flip","All flip angles for T2 (in degrees, default: 180)",false,180,"T2 flip angle",cmd);
     TCLAP::ValueArg<double> backgroundSignalThresholdArg("t","signal-thr","Background signal threshold (default: 10)",false,10,"Background signal threshold",cmd);
-    TCLAP::ValueArg<double> regulIntensityArg("r","reg-int","Tikhonov regularization intensity (default: 1.08)",false,1.08,"regularization intensity",cmd);
-    TCLAP::ValueArg<double> nlRegulIntensityArg("","nl-reg-int","Tikhonov regularization intensity in NL mode (default: 1.5)",false,1.5,"regularization intensity",cmd);
 
     TCLAP::ValueArg<double> myelinThrArg("","mye-thr","T2 myelin threshold for MWF computation (default: 50)",false,50,"T2 myelin threshold",cmd);
     TCLAP::ValueArg<unsigned int> numT2CompartmentsArg("n","num-t2","Number of T2 compartments (default: 40)",false,40,"Number of T2 compartments",cmd);
@@ -52,7 +50,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> b1ToleranceArg("","b1-tol","B1 tolerance threshold of convergence (default: 1.0e-4)",false,1.0e-4,"B1 tolerance for optimization convergence",cmd);
 
     //NL params
-    TCLAP::SwitchArg nlEstimationArg("N","nl-est","NL estimation of MWF",cmd, false);
+    TCLAP::ValueArg<unsigned int> regulEstimationArg("r","regul","Regularization type (0: none, 1: Tikhonov, 2: NL regularization, default: 1)",false,1,"regularization type",cmd);
     TCLAP::ValueArg<double> weightThrArg("w","weightThr","Weight threshold: patches around have to be similar enough -> default: 0.0",false,0.0,"Weight threshold",cmd);
     TCLAP::ValueArg<double> betaArg("b","beta","Beta parameter for local noise estimation -> default: 1",false,1,"Beta for local noise estimation",cmd);
     TCLAP::ValueArg<double> meanMinArg("","meanMin","Minimun mean threshold (default: 0.95)",false,0.95,"Minimun mean threshold",cmd);
@@ -96,8 +94,10 @@ int main(int argc, char **argv)
     mainFilter->SetUpperT2Bound(t2UpperBoundArg.getValue());
     mainFilter->SetMyelinThreshold(myelinThrArg.getValue());
     mainFilter->SetNumberOfT2Compartments(numT2CompartmentsArg.getValue());
-    mainFilter->SetRegularizationIntensity(regulIntensityArg.getValue());
-    mainFilter->SetNLEstimation(false);
+    if (regulEstimationArg.getValue() == 1)
+        mainFilter->SetRegularizationType(FilterType::Tikhonov);
+    else
+        mainFilter->SetRegularizationType(FilterType::None);
 
     if (t1MapArg.getValue() != "")
     {
@@ -152,7 +152,7 @@ int main(int argc, char **argv)
     FilterType::VectorOutputImagePointer outT2Image = mainFilter->GetT2OutputImage();
     outT2Image->DisconnectPipeline();
 
-    if (nlEstimationArg.isSet())
+    if (regulEstimationArg.getValue() == 2)
     {
         FilterType::Pointer secondaryFilter = FilterType::New();
         for (unsigned int i = 0;i < mainFilter->GetNumberOfIndexedInputs();++i)
@@ -170,7 +170,6 @@ int main(int argc, char **argv)
         secondaryFilter->SetUpperT2Bound(t2UpperBoundArg.getValue());
         secondaryFilter->SetMyelinThreshold(myelinThrArg.getValue());
         secondaryFilter->SetNumberOfT2Compartments(numT2CompartmentsArg.getValue());
-        secondaryFilter->SetRegularizationIntensity(nlRegulIntensityArg.getValue());
 
         secondaryFilter->SetT1Map(mainFilter->GetT1Map());
         secondaryFilter->SetComputationMask(mainFilter->GetComputationMask());
@@ -182,7 +181,7 @@ int main(int argc, char **argv)
         secondaryCallback->SetCallback(eventCallback);
         secondaryFilter->AddObserver(itk::ProgressEvent(), secondaryCallback);
 
-        secondaryFilter->SetNLEstimation(true);
+        secondaryFilter->SetRegularizationType(FilterType::NLTikhonov);
         secondaryFilter->SetWeightThreshold(weightThrArg.getValue());
         secondaryFilter->SetBetaParameter(betaArg.getValue());
         secondaryFilter->SetMeanMinThreshold(meanMinArg.getValue());

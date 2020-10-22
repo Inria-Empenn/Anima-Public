@@ -4,10 +4,10 @@
 #include <itkImageRegionIterator.h>
 #include <itkImageRegionConstIterator.h>
 
-#include <animaEPGSignalSimulator.h>
 #include <animaNLOPTOptimizers.h>
 #include <animaMultiT2EPGRelaxometryCostFunction.h>
 #include <animaMeanAndVarianceImagesFilter.h>
+#include <animaDekkerRootFindingAlgorithm.h>
 
 namespace anima
 {
@@ -17,7 +17,7 @@ void
 MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
 ::BeforeThreadedGenerateData()
 {
-    if (m_NLEstimation && (!m_InitialT2Map || !m_InitialM0Map))
+    if ((m_RegularizationType == NLTikhonov) && (!m_InitialT2Map || !m_InitialM0Map))
         itkExceptionMacro("Missing inputs for non-local estimation");
 
     Superclass::BeforeThreadedGenerateData();
@@ -50,7 +50,7 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
     zero.Fill(0.0);
     m_T2OutputImage->FillBuffer(zero);
 
-    if (m_NLEstimation)
+    if (m_RegularizationType == NLTikhonov)
     {
         this->PrepareNLPatchSearchers();
 
@@ -143,7 +143,7 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
     ImageIteratorType initM0Iterator;
     ImageIteratorType initB1Iterator;
 
-    if (m_NLEstimation)
+    if (m_RegularizationType == NLTikhonov)
     {
         initT2Iterator = VectorImageIteratorType(m_InitialT2Map, outputRegionForThread);
         initM0Iterator = ImageIteratorType(m_InitialM0Map, outputRegionForThread);
@@ -162,25 +162,16 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
     if (m_T1Map)
         t1MapItr = ImageIteratorType(m_T1Map,outputRegionForThread);
 
-    T2VectorType signalValues(numInputs);
-    T2VectorType signalValuesExtended(numInputs + m_NumberOfT2Compartments);
-    T2VectorType t2OptimizedWeights(m_NumberOfT2Compartments);
-    T2VectorType priorDistribution(m_NumberOfT2Compartments);
+    itk::OptimizerParameters <double> signalValues(numInputs);
+    itk::OptimizerParameters <double> signalValuesExtended(numInputs + m_NumberOfT2Compartments);
+    itk::OptimizerParameters <double> t2OptimizedWeights(m_NumberOfT2Compartments);
+    itk::OptimizerParameters <double> priorDistribution(m_NumberOfT2Compartments);
     priorDistribution.fill(0);
 
     OutputVectorType outputT2Weights(m_NumberOfT2Compartments);
 
-    DataMatrixType AMatrix(numInputs,m_NumberOfT2Compartments,0);
-    DataMatrixType AMatrixExtended(numInputs + m_NumberOfT2Compartments,m_NumberOfT2Compartments,0);
-
-    anima::EPGSignalSimulator epgSimulator;
-    epgSimulator.SetEchoSpacing(m_EchoSpacing);
-    epgSimulator.SetNumberOfEchoes(numInputs);
-    epgSimulator.SetExcitationFlipAngle(m_T2ExcitationFlipAngle);
-
-    anima::EPGSignalSimulator::RealVectorType epgSignalValues(numInputs);
-
-    NNLSOptimizerPointer nnlsOpt = NNLSOptimizerType::New();
+    vnl_matrix <double> AMatrix(numInputs,m_NumberOfT2Compartments,0);
+    vnl_matrix <double> AMatrixExtended(numInputs + m_NumberOfT2Compartments,m_NumberOfT2Compartments,0);
 
     typedef anima::NLOPTOptimizers B1OptimizerType;
     typedef anima::MultiT2EPGRelaxometryCostFunction B1CostFunctionType;
@@ -188,15 +179,13 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
     typename B1CostFunctionType::Pointer cost = B1CostFunctionType::New();
     cost->SetEchoSpacing(m_EchoSpacing);
     cost->SetExcitationFlipAngle(m_T2ExcitationFlipAngle);
-    cost->SetT2FlipAngles(m_T2FlipAngles);
-    cost->SetM0Value(1.0);
 
     unsigned int dimension = cost->GetNumberOfParameters();
     itk::Array<double> lowerBounds(dimension);
     itk::Array<double> upperBounds(dimension);
     B1OptimizerType::ParametersType p(dimension);
-    lowerBounds[0] = 0;
-    upperBounds[0] = 1;
+    lowerBounds[0] = 1.0 * m_T2FlipAngles[0];
+    upperBounds[0] = 2.0 * m_T2FlipAngles[0];
 
     // NL specific variables
     std::vector <double> workDataWeights;
@@ -229,7 +218,7 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
             if (m_T1Map)
                 ++t1MapItr;
 
-            if (m_NLEstimation)
+            if (m_RegularizationType == NLTikhonov)
             {
                 ++initB1Iterator;
                 ++initT2Iterator;
@@ -239,10 +228,10 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
             continue;
         }
 
-        double previousB1Value = -1.0;
         double t1Value = 1000;
         double m0Value = 0.0;
 
+        signalValuesExtended.fill(0.0);
         for (unsigned int i = 0;i < numInputs;++i)
         {
             signalValues[i] = inIterators[i].Get();
@@ -263,87 +252,71 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
         double b1Value;
 
         if (m_InitialB1Map)
-            b1Value = initB1Iterator.Get();
+            b1Value = initB1Iterator.Get() * m_T2FlipAngles[0];
         else
-            b1Value = outB1Iterator.Get();
+            b1Value = 1.1 * m_T2FlipAngles[0];
 
-        if (m_NLEstimation)
+        if (m_RegularizationType == NLTikhonov)
         {
             outputT2Weights = initT2Iterator.Get();
             this->ComputeTikhonovPrior(maskItr.GetIndex(),outputT2Weights,m_NLPatchSearchers[threadId],priorDistribution,
                                        workDataWeights, workDataSamples);
         }
 
-        unsigned int numGlobalIterations = 0;
-        double residual = 0;
+        B1OptimizerType::Pointer b1Optimizer = B1OptimizerType::New();
+        b1Optimizer->SetAlgorithm(NLOPT_LN_BOBYQA);
+        b1Optimizer->SetXTolRel(1.0e-4);
+        b1Optimizer->SetFTolRel(1.0e-6);
+        b1Optimizer->SetMaxEval(500);
+        b1Optimizer->SetVectorStorageSize(2000);
 
-        while ((std::abs(b1Value - previousB1Value) > m_B1Tolerance)&&(numGlobalIterations < 100))
+        b1Optimizer->SetLowerBoundParameters(lowerBounds);
+        b1Optimizer->SetUpperBoundParameters(upperBounds);
+        p[0] = b1Value;
+        b1Optimizer->SetInitialPosition(p);
+        b1Optimizer->SetMaximize(false);
+        b1Optimizer->SetCostFunction(cost);
+
+        b1Optimizer->StartOptimization();
+        p = b1Optimizer->GetCurrentPosition();
+
+        b1Value = p[0] / m_T2FlipAngles[0];
+
+        double residual = cost->GetValue(p);
+
+        // Get data matrix back for regularization if needed
+        AMatrix = cost->GetAMatrix();
+        t2OptimizedWeights = cost->GetOptimizedT2Weights();
+        m0Value = cost->GetOptimizedM0Value();
+
+        AMatrixExtended.fill(0);
+        for (unsigned int i = 0;i < m_NumberOfT2Compartments;++i)
         {
-            ++numGlobalIterations;
-            previousB1Value = b1Value;
-            // T2 weights estimation
-            AMatrix.fill(0);
-            AMatrixExtended.fill(0);
-            for (unsigned int i = 0;i < m_NumberOfT2Compartments;++i)
-            {
-                epgSignalValues = epgSimulator.GetValue(t1Value,m_T2CompartmentValues[i],b1Value,1.0);
-                for (unsigned int j = 0;j < numInputs;++j)
-                {
-                    AMatrix(j,i) = epgSignalValues[j];
-                    AMatrixExtended(j,i) = epgSignalValues[j];
-                }
-            }
-
-            // Regular NNLS optimization
-            nnlsOpt->SetDataMatrix(AMatrix);
-            nnlsOpt->SetPoints(signalValues);
-
-            nnlsOpt->StartOptimization();
-            t2OptimizedWeights = nnlsOpt->GetCurrentPosition();
-            residual = nnlsOpt->GetCurrentResidual();
-
-            // Regularized NNLS with or without prior
-            double normT2Weights = 0;
-            for (unsigned int i = 0;i < m_NumberOfT2Compartments;++i)
-                normT2Weights += (t2OptimizedWeights[i] - priorDistribution[i]) * (t2OptimizedWeights[i] - priorDistribution[i]);
-
-            if (m_RegularizationIntensity > 1.0)
-            {
-                double lambdaSq = (m_RegularizationIntensity - 1.0) * residual / normT2Weights;
-                residual = this->ComputeTikhonovRegularizedSolution(nnlsOpt,AMatrixExtended,signalValuesExtended,
-                                                                    lambdaSq,priorDistribution,t2OptimizedWeights);
-            }
-
-            outCostIterator.Set(residual);
-
-            m0Value = 0.0;
-            for (unsigned int i = 0;i < m_NumberOfT2Compartments;++i)
-                m0Value += t2OptimizedWeights[i];
-
-            for (unsigned int i = 0;i < m_NumberOfT2Compartments;++i)
-                outputT2Weights[i] = t2OptimizedWeights[i] / m0Value;
-
-            // B1 value estimation
-            cost->SetT2Weights(t2OptimizedWeights);
-
-            B1OptimizerType::Pointer b1Optimizer = B1OptimizerType::New();
-            b1Optimizer->SetAlgorithm(NLOPT_LN_BOBYQA);
-            b1Optimizer->SetXTolRel(1.0e-4);
-            b1Optimizer->SetFTolRel(1.0e-6);
-            b1Optimizer->SetMaxEval(500);
-            b1Optimizer->SetVectorStorageSize(2000);
-
-            b1Optimizer->SetLowerBoundParameters(lowerBounds);
-            b1Optimizer->SetUpperBoundParameters(upperBounds);
-            p[0] = b1Value;
-            b1Optimizer->SetInitialPosition(p);
-            b1Optimizer->SetMaximize(false);
-            b1Optimizer->SetCostFunction(cost);
-
-            b1Optimizer->StartOptimization();
-            p = b1Optimizer->GetCurrentPosition();
-            b1Value = p[0];
+            for (unsigned int j = 0;j < numInputs;++j)
+                AMatrixExtended(j,i) = AMatrix(j,i);
         }
+
+        // Regularized NNLS with or without prior
+        double normT2Weights = 0;
+        for (unsigned int i = 0;i < m_NumberOfT2Compartments;++i)
+            normT2Weights += (m0Value * t2OptimizedWeights[i] - priorDistribution[i]) * (m0Value * t2OptimizedWeights[i] - priorDistribution[i]);
+
+        if (m_RegularizationType != None)
+        {
+            TikhonovCostFunctionPointer tikhonovCost = TikhonovCostFunctionType::New();
+            tikhonovCost->SetT2RelaxometrySignals(signalValuesExtended);
+            tikhonovCost->SetPriorDistribution(priorDistribution);
+            tikhonovCost->SetAMatrix(AMatrixExtended);
+            tikhonovCost->SetReferenceResidual(residual);
+
+            double lambdaSq = 0.05 * residual / normT2Weights;
+            residual = this->ComputeTikhonovRegularizedSolution(tikhonovCost,lambdaSq,t2OptimizedWeights,m0Value);
+        }
+
+        outCostIterator.Set(residual);
+
+        for (unsigned int i = 0;i < m_NumberOfT2Compartments;++i)
+            outputT2Weights[i] = t2OptimizedWeights[i];
 
         outM0Iterator.Set(m0Value);
         outT2Iterator.Set(outputT2Weights);
@@ -374,7 +347,7 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
         if (m_T1Map)
             ++t1MapItr;
 
-        if (m_NLEstimation)
+        if (m_RegularizationType == NLTikhonov)
         {
             ++initB1Iterator;
             ++initT2Iterator;
@@ -494,7 +467,7 @@ template <class TPixelScalarType>
 void
 MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
 ::ComputeTikhonovPrior(const IndexType &refIndex, OutputVectorType &refDistribution,
-                       PatchSearcherType &nlPatchSearcher, T2VectorType &priorDistribution,
+                       PatchSearcherType &nlPatchSearcher, itk::OptimizerParameters <double> &priorDistribution,
                        std::vector <double> &workDataWeights, std::vector <OutputVectorType> &workDataSamples)
 {
     nlPatchSearcher.UpdateAtPosition(refIndex);
@@ -543,35 +516,48 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
 template <class TPixelScalarType>
 double
 MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
-::ComputeTikhonovRegularizedSolution(anima::NNLSOptimizer *nnlsOpt, DataMatrixType &AMatrix,
-                                     T2VectorType &signalValues, double lambdaSq,
-                                     T2VectorType &priorDistribution, T2VectorType &t2OptimizedWeights)
+::ComputeTikhonovRegularizedSolution(TikhonovCostFunctionType *tikhonovCost, double &lambdaSq,
+                                     itk::OptimizerParameters <double> &t2OptimizedWeights, double &m0Value)
 {
-    unsigned int rowSize = AMatrix.rows() - AMatrix.cols();
-    unsigned int colSize = AMatrix.cols();
+    double lowerBound = 0.0;
+    double zeroCost = -0.02;
+    double upperBound = 0.0;
+    itk::OptimizerParameters <double> p(1);
 
-    double lambda = std::sqrt(lambdaSq);
-
-    for (unsigned int i = 0;i < colSize;++i)
+    // Find upper bound for lambda (and possibly lower bound)
+    double ratio = -1.0;
+    while (ratio < 0.0)
     {
-        signalValues[rowSize + i] = lambda * priorDistribution[i];
-        for (unsigned int j = 0;j < colSize;++j)
+        p[0] = lambdaSq;
+        ratio = tikhonovCost->GetValue(p);
+
+        if (ratio < 0.0)
         {
-            if (i != j)
-                AMatrix(rowSize + i,j) = 0;
-            else
-                AMatrix(rowSize + i,j) = lambda;
+            lowerBound = lambdaSq;
+            lambdaSq *= 2.0;
         }
     }
 
-    nnlsOpt->SetDataMatrix(AMatrix);
-    nnlsOpt->SetPoints(signalValues);
+    upperBound = lambdaSq;
 
-    nnlsOpt->StartOptimization();
+    DekkerRootFindingAlgorithm algorithm;
 
-    t2OptimizedWeights = nnlsOpt->GetCurrentPosition();
+    algorithm.SetRootRelativeTolerance(1.0e-4);
+    algorithm.SetCostFunctionTolerance(1.e-8);
+    algorithm.SetRootFindingFunction(tikhonovCost);
+    algorithm.SetMaximumNumberOfIterations(100);
+    algorithm.SetLowerBound(lowerBound);
+    algorithm.SetUpperBound(upperBound);
+    algorithm.SetFunctionValueAtInitialLowerBound(zeroCost);
 
-    return nnlsOpt->GetCurrentResidual();
+    lambdaSq = algorithm.Optimize();
+    p[0] = lambdaSq;
+    tikhonovCost->GetValue(p);
+
+    t2OptimizedWeights = tikhonovCost->GetOptimizedT2Weights();
+    m0Value = tikhonovCost->GetOptimizedM0Value();
+
+    return tikhonovCost->GetCurrentResidual();
 }
 
 } // end namespace anima

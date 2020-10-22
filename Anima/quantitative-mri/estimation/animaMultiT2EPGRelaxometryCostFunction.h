@@ -1,6 +1,8 @@
 #pragma once
 
+#include <vnl/vnl_matrix.h>
 #include <itkSingleValuedCostFunction.h>
+#include <animaNNLSOptimizer.h>
 #include "AnimaRelaxometryExport.h"
 
 namespace anima
@@ -31,6 +33,9 @@ public:
     typedef std::vector < std::complex <double> > ComplexVectorType;
     typedef std::vector <ComplexVectorType> MatrixType;
 
+    typedef anima::NNLSOptimizer NNLSOptimizerType;
+    typedef NNLSOptimizerType::Pointer NNLSOptimizerPointer;
+
     virtual MeasureType GetValue(const ParametersType & parameters) const ITK_OVERRIDE;
     virtual void GetDerivative(const ParametersType & parameters, DerivativeType & derivative) const ITK_OVERRIDE {} // No derivative
 
@@ -38,13 +43,13 @@ public:
     itkSetMacro(ExcitationFlipAngle, double)
 
     void SetT2RelaxometrySignals(ParametersType &relaxoSignals) {m_T2RelaxometrySignals = relaxoSignals;}
-    void SetT2FlipAngles(std::vector <double> & flipAngles) {m_T2FlipAngles = flipAngles;}
 
     itkSetMacro(T1Value, double)
-    itkSetMacro(M0Value, double)
+    itkGetMacro(OptimizedM0Value, double)
 
     void SetT2Values(std::vector <double> &values) {m_T2Values = values;}
-    void SetT2Weights(ParametersType &weights) {m_T2Weights = weights;}
+    ParametersType &GetOptimizedT2Weights() {return m_OptimizedT2Weights;}
+    vnl_matrix <double> &GetAMatrix() {return m_AMatrix;}
 
     unsigned int GetNumberOfParameters() const ITK_OVERRIDE
     {
@@ -55,9 +60,10 @@ protected:
     MultiT2EPGRelaxometryCostFunction()
     {
         m_T1Value = 1;
-        m_M0Value = 1;
-
+        m_OptimizedM0Value = 1;
         m_EchoSpacing = 1;
+
+        m_NNLSOptimizer = NNLSOptimizerType::New();
     }
 
     virtual ~MultiT2EPGRelaxometryCostFunction() {}
@@ -70,12 +76,14 @@ private:
     ParametersType m_T2RelaxometrySignals;
 
     double m_ExcitationFlipAngle;
-    std::vector <double> m_T2FlipAngles;
-
     std::vector <double> m_T2Values;
-    ParametersType m_T2Weights;
 
-    double m_T1Value, m_M0Value;
+    double m_T1Value;
+
+    mutable NNLSOptimizerPointer m_NNLSOptimizer;
+    mutable vnl_matrix <double> m_AMatrix;
+    mutable ParametersType m_OptimizedT2Weights;
+    mutable double m_OptimizedM0Value;
 };
     
 } // end namespace anima

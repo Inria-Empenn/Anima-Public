@@ -7,30 +7,46 @@ namespace anima
 MultiT2EPGRelaxometryCostFunction::MeasureType
 MultiT2EPGRelaxometryCostFunction::GetValue(const ParametersType & parameters) const
 {
-    double residualValue = 0;
     unsigned int numT2Signals = m_T2RelaxometrySignals.size();
+    unsigned int numT2Peaks = m_T2Values.size();
+
+    m_AMatrix.set_size(numT2Signals, numT2Peaks);
 
     anima::EPGSignalSimulator t2SignalSimulator;
-    t2SignalSimulator.SetNumberOfEchoes(m_T2RelaxometrySignals.size());
+    t2SignalSimulator.SetNumberOfEchoes(numT2Signals);
     t2SignalSimulator.SetEchoSpacing(m_EchoSpacing);
     t2SignalSimulator.SetExcitationFlipAngle(m_ExcitationFlipAngle);
 
     anima::EPGSignalSimulator::RealVectorType simulatedT2Values(numT2Signals,0);
     anima::EPGSignalSimulator::RealVectorType subSignalData(numT2Signals,0);
 
-    for (unsigned int i = 0;i < m_T2Weights.size();++i)
+    for (unsigned int i = 0;i < numT2Peaks;++i)
     {
-        if (m_T2Weights[i] == 0)
-            continue;
-
-        subSignalData = t2SignalSimulator.GetValue(m_T1Value,m_T2Values[i],parameters[0] * m_T2FlipAngles[0],m_M0Value);
+        subSignalData = t2SignalSimulator.GetValue(m_T1Value,m_T2Values[i],parameters[0],1.0);
         for (unsigned int j = 0;j < numT2Signals;++j)
-            simulatedT2Values[j] += m_T2Weights[i] * subSignalData[j];
+            m_AMatrix(j,i) = subSignalData[j];
     }
 
-    for (unsigned int i = 0;i < numT2Signals;++i)
-        residualValue += (simulatedT2Values[i] - m_T2RelaxometrySignals[i]) * (simulatedT2Values[i] - m_T2RelaxometrySignals[i]);
+    m_NNLSOptimizer->SetDataMatrix(m_AMatrix);
+    m_NNLSOptimizer->SetPoints(m_T2RelaxometrySignals);
 
+    m_NNLSOptimizer->StartOptimization();
+
+    NNLSOptimizerType::VectorType t2Weights = m_NNLSOptimizer->GetCurrentPosition();
+
+    m_OptimizedM0Value = 0.0;
+    for (unsigned int i = 0;i < numT2Peaks;++i)
+        m_OptimizedM0Value += t2Weights[i];
+
+    m_OptimizedT2Weights.set_size(numT2Peaks);
+    m_OptimizedT2Weights.fill(0.0);
+    if (m_OptimizedM0Value > 0.0)
+    {
+        for (unsigned int i = 0;i < numT2Peaks;++i)
+            m_OptimizedT2Weights[i] = t2Weights[i] / m_OptimizedM0Value;
+    }
+
+    double residualValue = m_NNLSOptimizer->GetCurrentResidual();
     return residualValue;
 }
     

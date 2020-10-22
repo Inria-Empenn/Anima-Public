@@ -4,8 +4,8 @@
 #include <itkVectorImage.h>
 #include <itkImage.h>
 
-#include <animaNNLSOptimizer.h>
 #include <animaNonLocalT2DistributionPatchSearcher.h>
+#include <animaMultiT2TikhonovCostFunction.h>
 
 namespace anima
 {
@@ -53,24 +53,27 @@ public:
     typedef typename Superclass::InputImageRegionType InputImageRegionType;
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
-    typedef anima::NNLSOptimizer NNLSOptimizerType;
-    typedef NNLSOptimizerType::Pointer NNLSOptimizerPointer;
-    typedef NNLSOptimizerType::MatrixType DataMatrixType;
-    typedef NNLSOptimizerType::ParametersType T2VectorType;
-
     typedef anima::NonLocalT2DistributionPatchSearcher <VectorOutputImageType,InputImageType> PatchSearcherType;
+    typedef anima::MultiT2TikhonovCostFunction TikhonovCostFunctionType;
+    typedef TikhonovCostFunctionType::Pointer TikhonovCostFunctionPointer;
+
+    enum RegularizationType
+    {
+        None = 0,
+        Tikhonov,
+        NLTikhonov
+    };
 
     itkSetMacro(NumberOfT2Compartments, unsigned int)
     itkSetMacro(MyelinThreshold, double)
     itkSetMacro(LowerT2Bound, double)
     itkSetMacro(UpperT2Bound, double)
     itkSetMacro(EchoSpacing, double)
-    itkSetMacro(RegularizationIntensity, double)
 
     void SetT1Map(InputImageType *map) {m_T1Map = map;}
     InputImageType *GetT1Map() {return m_T1Map;}
 
-    itkSetMacro(NLEstimation, bool)
+    itkSetMacro(RegularizationType, RegularizationType)
     itkSetObjectMacro(InitialB1Map, InputImageType)
     itkSetObjectMacro(InitialM0Map, InputImageType)
     itkSetObjectMacro(InitialT2Map, VectorOutputImageType)
@@ -111,14 +114,13 @@ protected:
 
         m_AverageSignalThreshold = 0;
         m_EchoSpacing = 1;
-        m_RegularizationIntensity = 1.08;
 
         m_NumberOfT2Compartments = 40;
         m_MyelinThreshold = 50;
         m_LowerT2Bound = 15;
         m_UpperT2Bound = 2000;
 
-        m_NLEstimation = false;
+        m_RegularizationType = Tikhonov;
 
         m_T2ExcitationFlipAngle = M_PI / 6;
         m_B1Tolerance = 1.0e-4;
@@ -145,12 +147,11 @@ protected:
 
     void PrepareNLPatchSearchers();
     void ComputeTikhonovPrior(const IndexType &refIndex, OutputVectorType &refDistribution,
-                              PatchSearcherType &nlPatchSearcher, T2VectorType &priorDistribution,
+                              PatchSearcherType &nlPatchSearcher, itk::OptimizerParameters <double> &priorDistribution,
                               std::vector <double> &workDataWeights, std::vector <OutputVectorType> &workDataSamples);
 
-    double ComputeTikhonovRegularizedSolution(anima::NNLSOptimizer *nnlsOpt, DataMatrixType &AMatrix,
-                                              T2VectorType &signalValues, double lambdaSq,
-                                              T2VectorType &priorDistribution, T2VectorType &t2OptimizedWeights);
+    double ComputeTikhonovRegularizedSolution(TikhonovCostFunctionType *tikhonovCost, double &lambdaSq,
+                                              itk::OptimizerParameters <double> &t2OptimizedWeights, double &m0Value);
 
 private:
     MultiT2RelaxometryEstimationImageFilter(const Self&); //purposely not implemented
@@ -170,7 +171,7 @@ private:
     InputImagePointer m_InitialM0Map;
     VectorOutputImagePointer m_InitialT2Map;
 
-    bool m_NLEstimation;
+    RegularizationType m_RegularizationType;
     std::vector <PatchSearcherType> m_NLPatchSearchers;
     double m_MeanMinThreshold;
     double m_VarMinThreshold;
@@ -188,7 +189,6 @@ private:
     // T2 relaxometry specific values
     std::vector <double> m_T2CompartmentValues;
     double m_EchoSpacing;
-    double m_RegularizationIntensity;
     std::vector <double> m_T2FlipAngles;
     double m_T2ExcitationFlipAngle;
 
