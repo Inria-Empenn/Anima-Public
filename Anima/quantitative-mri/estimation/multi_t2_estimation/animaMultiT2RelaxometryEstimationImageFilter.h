@@ -94,10 +94,6 @@ public:
     VectorOutputImageType *GetT2OutputImage() {return m_T2OutputImage;}
 
     itkSetMacro(T2ExcitationFlipAngle, double)
-    itkSetMacro(B1MaximumOptimizerIterations, unsigned int)
-    itkSetMacro(B1OptimizerStopCondition, double)
-    itkSetMacro(B1OptimizerInitialStep, double)
-    itkSetMacro(B1Tolerance, double)
 
     void SetT2FlipAngles(std::vector <double> & flipAngles) {m_T2FlipAngles = flipAngles;}
     void SetT2FlipAngles(double singleAngle, unsigned int numAngles) {m_T2FlipAngles = std::vector <double> (numAngles,singleAngle);}
@@ -125,10 +121,6 @@ protected:
         m_RegularizationType = Tikhonov;
 
         m_T2ExcitationFlipAngle = M_PI / 6;
-        m_B1Tolerance = 1.0e-4;
-        m_B1MaximumOptimizerIterations = 200;
-        m_B1OptimizerStopCondition = 1.0e-4;
-        m_B1OptimizerInitialStep = 10;
 
         m_MeanMinThreshold = 0.95;
         m_VarMinThreshold = 0.5;
@@ -193,11 +185,6 @@ private:
     double m_EchoSpacing;
     std::vector <double> m_T2FlipAngles;
     double m_T2ExcitationFlipAngle;
-
-    double m_B1Tolerance;
-    double m_B1OptimizerInitialStep;
-    double m_B1OptimizerStopCondition;
-    unsigned int m_B1MaximumOptimizerIterations;
 };
     
 } // end namespace anima

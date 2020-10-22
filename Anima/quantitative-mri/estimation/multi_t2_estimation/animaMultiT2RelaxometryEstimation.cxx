@@ -45,11 +45,6 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> t2LowerBoundArg("","low-t2","Lower T2 value (default: 15)",false,15,"T2 lower value",cmd);
     TCLAP::ValueArg<double> t2UpperBoundArg("","up-t2","Upper T2 value (default: 2000)",false,2000,"T2 upper value",cmd);
 
-    TCLAP::ValueArg<unsigned int> b1NumOptimizerIterArg("","b1-opt-iter","Maximal number of optimizer iterations (default: 200)",false,200,"Maximal number of optimizer iterations",cmd);
-    TCLAP::ValueArg<double> b1OptimizerStopConditionArg("","b1-opt-stop","Optimizer stopping threshold (default: 1.0e-4)",false,1.0e-4,"B1 Optimizer stopping threshold",cmd);
-    TCLAP::ValueArg<double> b1OptimizerInitialStepArg("i","b1-opt-init","Optimizer initial step (default: 0.1)",false,0.1,"B1 Optimizer initial step",cmd);
-    TCLAP::ValueArg<double> b1ToleranceArg("","b1-tol","B1 tolerance threshold of convergence (default: 1.0e-4)",false,1.0e-4,"B1 tolerance for optimization convergence",cmd);
-
     //NL params
     TCLAP::ValueArg<unsigned int> regulEstimationArg("r","regul","Regularization type (0: none, 1: Tikhonov, 2: NL regularization, default: 1)",false,1,"regularization type",cmd);
     TCLAP::ValueArg<double> weightThrArg("w","weightThr","Weight threshold: patches around have to be similar enough -> default: 0.0",false,0.0,"Weight threshold",cmd);
@@ -86,10 +81,6 @@ int main(int argc, char **argv)
     mainFilter->SetEchoSpacing(echoSpacingArg.getValue());
     mainFilter->SetT2FlipAngles(t2FlipAngleArg.getValue() * M_PI / 180.0,numInputs);
     mainFilter->SetT2ExcitationFlipAngle(excitationT2FlipAngleArg.getValue() * M_PI / 180.0);
-    mainFilter->SetB1MaximumOptimizerIterations(b1NumOptimizerIterArg.getValue());
-    mainFilter->SetB1OptimizerStopCondition(b1OptimizerStopConditionArg.getValue());
-    mainFilter->SetB1OptimizerInitialStep(b1OptimizerInitialStepArg.getValue());
-    mainFilter->SetB1Tolerance(b1ToleranceArg.getValue());
 
     mainFilter->SetLowerT2Bound(t2LowerBoundArg.getValue());
     mainFilter->SetUpperT2Bound(t2UpperBoundArg.getValue());
@@ -162,10 +153,6 @@ int main(int argc, char **argv)
         secondaryFilter->SetEchoSpacing(echoSpacingArg.getValue());
         secondaryFilter->SetT2FlipAngles(t2FlipAngleArg.getValue() * M_PI / 180.0,numInputs);
         secondaryFilter->SetT2ExcitationFlipAngle(excitationT2FlipAngleArg.getValue() * M_PI / 180.0);
-        secondaryFilter->SetB1MaximumOptimizerIterations(b1NumOptimizerIterArg.getValue());
-        secondaryFilter->SetB1OptimizerStopCondition(b1OptimizerStopConditionArg.getValue());
-        secondaryFilter->SetB1OptimizerInitialStep(b1OptimizerInitialStepArg.getValue());
-        secondaryFilter->SetB1Tolerance(b1ToleranceArg.getValue());
 
         secondaryFilter->SetLowerT2Bound(t2LowerBoundArg.getValue());
         secondaryFilter->SetUpperT2Bound(t2UpperBoundArg.getValue());
