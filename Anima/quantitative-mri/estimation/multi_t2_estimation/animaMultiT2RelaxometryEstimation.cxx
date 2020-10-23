@@ -228,6 +228,7 @@ int main(int argc, char **argv)
     {
         std::vector <double> optimizationPeaks = mainFilter->GetT2CompartmentValues();
         std::ofstream outPeaksFile(resPeaksArg.getValue());
+        outPeaksFile.precision(12);
         for (unsigned int i = 0;i < optimizationPeaks.size();++i)
             outPeaksFile << optimizationPeaks[i] << std::endl;
 
