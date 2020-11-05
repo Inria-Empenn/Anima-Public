@@ -17,7 +17,7 @@ void
 MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
 ::BeforeThreadedGenerateData()
 {
-    if ((m_RegularizationType == NLTikhonov) && (!m_InitialT2Map || !m_InitialM0Map))
+    if ((m_RegularizationType == RegularizationType::NLTikhonov) && (!m_InitialT2Map || !m_InitialM0Map))
         itkExceptionMacro("Missing inputs for non-local estimation");
 
     Superclass::BeforeThreadedGenerateData();
@@ -50,7 +50,7 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
     zero.Fill(0.0);
     m_T2OutputImage->FillBuffer(zero);
 
-    if (m_RegularizationType == NLTikhonov)
+    if (m_RegularizationType == RegularizationType::NLTikhonov)
     {
         this->PrepareNLPatchSearchers();
 
@@ -143,7 +143,7 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
     ImageIteratorType initM0Iterator;
     ImageIteratorType initB1Iterator;
 
-    if (m_RegularizationType == NLTikhonov)
+    if (m_RegularizationType == RegularizationType::NLTikhonov)
     {
         initT2Iterator = VectorImageIteratorType(m_InitialT2Map, outputRegionForThread);
         initM0Iterator = ImageIteratorType(m_InitialM0Map, outputRegionForThread);
@@ -218,7 +218,7 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
             if (m_T1Map)
                 ++t1MapItr;
 
-            if (m_RegularizationType == NLTikhonov)
+            if (m_RegularizationType == RegularizationType::NLTikhonov)
             {
                 ++initB1Iterator;
                 ++initT2Iterator;
@@ -256,7 +256,7 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
         else
             b1Value = 1.1 * m_T2FlipAngles[0];
 
-        if (m_RegularizationType == NLTikhonov)
+        if (m_RegularizationType == RegularizationType::NLTikhonov)
         {
             outputT2Weights = initT2Iterator.Get();
             this->ComputeTikhonovPrior(maskItr.GetIndex(),outputT2Weights,m_NLPatchSearchers[threadId],priorDistribution,
@@ -301,16 +301,17 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
         for (unsigned int i = 0;i < m_NumberOfT2Compartments;++i)
             normT2Weights += (m0Value * t2OptimizedWeights[i] - priorDistribution[i]) * (m0Value * t2OptimizedWeights[i] - priorDistribution[i]);
 
-        if (m_RegularizationType != None)
+        if (m_RegularizationType != RegularizationType::None)
         {
-            TikhonovCostFunctionPointer tikhonovCost = TikhonovCostFunctionType::New();
-            tikhonovCost->SetT2RelaxometrySignals(signalValuesExtended);
-            tikhonovCost->SetPriorDistribution(priorDistribution);
-            tikhonovCost->SetAMatrix(AMatrixExtended);
-            tikhonovCost->SetReferenceResidual(residual);
+            RegularizationCostFunctionPointer regularizationCost = RegularizationCostFunctionType::New();
+            regularizationCost->SetT2RelaxometrySignals(signalValuesExtended);
+            regularizationCost->SetPriorDistribution(priorDistribution);
+            regularizationCost->SetAMatrix(AMatrixExtended);
+            regularizationCost->SetReferenceResidual(residual);
+            regularizationCost->SetRegularizationType(m_RegularizationType);
 
-            double lambdaSq = 0.05 * residual / normT2Weights;
-            residual = this->ComputeTikhonovRegularizedSolution(tikhonovCost,lambdaSq,t2OptimizedWeights,m0Value);
+            double lambda = std::sqrt(0.05 * residual / normT2Weights);
+            residual = this->ComputeRegularizedSolution(regularizationCost,lambda,t2OptimizedWeights,m0Value);
         }
 
         outCostIterator.Set(residual);
@@ -347,7 +348,7 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
         if (m_T1Map)
             ++t1MapItr;
 
-        if (m_RegularizationType == NLTikhonov)
+        if (m_RegularizationType == RegularizationType::NLTikhonov)
         {
             ++initB1Iterator;
             ++initT2Iterator;
@@ -516,48 +517,49 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
 template <class TPixelScalarType>
 double
 MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
-::ComputeTikhonovRegularizedSolution(TikhonovCostFunctionType *tikhonovCost, double &lambdaSq,
-                                     itk::OptimizerParameters <double> &t2OptimizedWeights, double &m0Value)
+::ComputeRegularizedSolution(RegularizationCostFunctionType *regularizationCost, double &lambda,
+                             itk::OptimizerParameters <double> &t2OptimizedWeights, double &m0Value)
 {
     double lowerBound = 0.0;
-    double zeroCost = -0.02;
-    double upperBound = 0.0;
     itk::OptimizerParameters <double> p(1);
+    p[0] = 0.0;
+    double zeroCost = regularizationCost->GetValue(p);
+    double upperBound = 0.0;
 
     // Find upper bound for lambda (and possibly lower bound)
     double ratio = -1.0;
     while (ratio < 0.0)
     {
-        p[0] = lambdaSq;
-        ratio = tikhonovCost->GetValue(p);
+        p[0] = lambda;
+        ratio = regularizationCost->GetValue(p);
 
         if (ratio < 0.0)
         {
-            lowerBound = lambdaSq;
-            lambdaSq *= 2.0;
+            lowerBound = lambda;
+            lambda *= 2.0;
         }
     }
 
-    upperBound = lambdaSq;
+    upperBound = lambda;
 
     DekkerRootFindingAlgorithm algorithm;
 
     algorithm.SetRootRelativeTolerance(1.0e-4);
     algorithm.SetCostFunctionTolerance(1.e-8);
-    algorithm.SetRootFindingFunction(tikhonovCost);
+    algorithm.SetRootFindingFunction(regularizationCost);
     algorithm.SetMaximumNumberOfIterations(100);
     algorithm.SetLowerBound(lowerBound);
     algorithm.SetUpperBound(upperBound);
     algorithm.SetFunctionValueAtInitialLowerBound(zeroCost);
 
-    lambdaSq = algorithm.Optimize();
-    p[0] = lambdaSq;
-    tikhonovCost->GetValue(p);
+    lambda = algorithm.Optimize();
+    p[0] = lambda;
+    regularizationCost->GetValue(p);
 
-    t2OptimizedWeights = tikhonovCost->GetOptimizedT2Weights();
-    m0Value = tikhonovCost->GetOptimizedM0Value();
+    t2OptimizedWeights = regularizationCost->GetOptimizedT2Weights();
+    m0Value = regularizationCost->GetOptimizedM0Value();
 
-    return tikhonovCost->GetCurrentResidual();
+    return regularizationCost->GetCurrentResidual();
 }
 
 } // end namespace anima

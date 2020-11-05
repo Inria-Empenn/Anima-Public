@@ -5,7 +5,7 @@
 #include <itkImage.h>
 
 #include <animaNonLocalT2DistributionPatchSearcher.h>
-#include <animaMultiT2TikhonovCostFunction.h>
+#include <animaMultiT2RegularizationCostFunction.h>
 
 namespace anima
 {
@@ -54,15 +54,10 @@ public:
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
     typedef anima::NonLocalT2DistributionPatchSearcher <VectorOutputImageType,InputImageType> PatchSearcherType;
-    typedef anima::MultiT2TikhonovCostFunction TikhonovCostFunctionType;
-    typedef TikhonovCostFunctionType::Pointer TikhonovCostFunctionPointer;
+    typedef anima::MultiT2RegularizationCostFunction RegularizationCostFunctionType;
+    typedef RegularizationCostFunctionType::Pointer RegularizationCostFunctionPointer;
 
-    enum RegularizationType
-    {
-        None = 0,
-        Tikhonov,
-        NLTikhonov
-    };
+    using RegularizationType = RegularizationCostFunctionType::RegularizationType;
 
     itkSetMacro(NumberOfT2Compartments, unsigned int)
     itkSetMacro(MyelinThreshold, double)
@@ -118,7 +113,7 @@ protected:
         m_LowerT2Bound = 15;
         m_UpperT2Bound = 2000;
 
-        m_RegularizationType = Tikhonov;
+        m_RegularizationType = RegularizationType::Tikhonov;
 
         m_T2ExcitationFlipAngle = M_PI / 6;
 
@@ -144,8 +139,8 @@ protected:
                               PatchSearcherType &nlPatchSearcher, itk::OptimizerParameters <double> &priorDistribution,
                               std::vector <double> &workDataWeights, std::vector <OutputVectorType> &workDataSamples);
 
-    double ComputeTikhonovRegularizedSolution(TikhonovCostFunctionType *tikhonovCost, double &lambdaSq,
-                                              itk::OptimizerParameters <double> &t2OptimizedWeights, double &m0Value);
+    double ComputeRegularizedSolution(RegularizationCostFunctionType *regularizationCost, double &lambdaSq,
+                                      itk::OptimizerParameters <double> &t2OptimizedWeights, double &m0Value);
 
 private:
     MultiT2RelaxometryEstimationImageFilter(const Self&); //purposely not implemented

@@ -1,25 +1,28 @@
-#include <animaMultiT2TikhonovCostFunction.h>
+#include <animaMultiT2RegularizationCostFunction.h>
 
 namespace anima
 {
 
-MultiT2TikhonovCostFunction::MeasureType
-MultiT2TikhonovCostFunction::GetValue(const ParametersType & parameters) const
+MultiT2RegularizationCostFunction::MeasureType
+MultiT2RegularizationCostFunction::GetValue(const ParametersType & parameters) const
 {
     unsigned int rowSize = m_AMatrix.rows() - m_AMatrix.cols();
     unsigned int colSize = m_AMatrix.cols();
-    double lambda = std::sqrt(parameters[0]);
+    double lambda = parameters[0];
 
     for (unsigned int i = 0;i < colSize;++i)
     {
-        m_T2RelaxometrySignals[rowSize + i] = lambda * m_PriorDistribution[i];
+        if (m_RegularizationType == NLTikhonov)
+            m_T2RelaxometrySignals[rowSize + i] = lambda * m_PriorDistribution[i];
+
         for (unsigned int j = 0;j < colSize;++j)
-        {
-            if (i != j)
-                m_AMatrix(rowSize + i,j) = 0;
-            else
-                m_AMatrix(rowSize + i,j) = lambda;
-        }
+            m_AMatrix(rowSize + i,j) = 0;
+
+        if (m_RegularizationType != None)
+            m_AMatrix(rowSize + i,i) = lambda;
+
+        if ((m_RegularizationType == Laplacian)&&(i != 0))
+            m_AMatrix(rowSize + i,i-1) = - lambda;
     }
 
     m_NNLSOptimizer->SetDataMatrix(m_AMatrix);

@@ -46,7 +46,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> t2UpperBoundArg("","up-t2","Upper T2 value (default: 2000)",false,2000,"T2 upper value",cmd);
 
     //NL params
-    TCLAP::ValueArg<unsigned int> regulEstimationArg("r","regul","Regularization type (0: none, 1: Tikhonov, 2: NL regularization, default: 1)",false,1,"regularization type",cmd);
+    TCLAP::ValueArg<unsigned int> regulEstimationArg("r","regul","Regularization type (0: none, 1: Tikhonov, 2: Laplacian, 3: NL Tikhonov regularization, default: 2)",false,2,"regularization type",cmd);
     TCLAP::ValueArg<double> weightThrArg("w","weightThr","Weight threshold: patches around have to be similar enough -> default: 0.0",false,0.0,"Weight threshold",cmd);
     TCLAP::ValueArg<double> betaArg("b","beta","Beta parameter for local noise estimation -> default: 1",false,1,"Beta for local noise estimation",cmd);
     TCLAP::ValueArg<double> meanMinArg("","meanMin","Minimun mean threshold (default: 0.95)",false,0.95,"Minimun mean threshold",cmd);
@@ -87,9 +87,11 @@ int main(int argc, char **argv)
     mainFilter->SetMyelinThreshold(myelinThrArg.getValue());
     mainFilter->SetNumberOfT2Compartments(numT2CompartmentsArg.getValue());
     if (regulEstimationArg.getValue() == 1)
-        mainFilter->SetRegularizationType(FilterType::Tikhonov);
+        mainFilter->SetRegularizationType(FilterType::RegularizationType::Tikhonov);
+    else if (regulEstimationArg.getValue() == 2)
+        mainFilter->SetRegularizationType(FilterType::RegularizationType::Laplacian);
     else
-        mainFilter->SetRegularizationType(FilterType::None);
+        mainFilter->SetRegularizationType(FilterType::RegularizationType::None);
 
     if (t1MapArg.getValue() != "")
     {
@@ -144,7 +146,7 @@ int main(int argc, char **argv)
     FilterType::VectorOutputImagePointer outT2Image = mainFilter->GetT2OutputImage();
     outT2Image->DisconnectPipeline();
 
-    if (regulEstimationArg.getValue() == 2)
+    if (regulEstimationArg.getValue() == 3)
     {
         FilterType::Pointer secondaryFilter = FilterType::New();
         for (unsigned int i = 0;i < mainFilter->GetNumberOfIndexedInputs();++i)
@@ -169,7 +171,7 @@ int main(int argc, char **argv)
         secondaryCallback->SetCallback(eventCallback);
         secondaryFilter->AddObserver(itk::ProgressEvent(), secondaryCallback);
 
-        secondaryFilter->SetRegularizationType(FilterType::NLTikhonov);
+        secondaryFilter->SetRegularizationType(FilterType::RegularizationType::NLTikhonov);
         secondaryFilter->SetWeightThreshold(weightThrArg.getValue());
         secondaryFilter->SetBetaParameter(betaArg.getValue());
         secondaryFilter->SetMeanMinThreshold(meanMinArg.getValue());

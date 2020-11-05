@@ -9,15 +9,15 @@ namespace anima
 {
 
 /**
- * \class MultiT2TikhonovCostFunction
- * \brief Cost function for estimating final solution of multi T2 estimation with Tikhonov regularization
+ * \class MultiT2RegularizationCostFunction
+ * \brief Cost function for estimating final solution of multi T2 estimation with Regularization regularization
  */
-class ANIMARELAXOMETRY_EXPORT MultiT2TikhonovCostFunction :
+class ANIMARELAXOMETRY_EXPORT MultiT2RegularizationCostFunction :
         public itk::SingleValuedCostFunction
 {
 public:
     /** Standard class typedefs. */
-    typedef MultiT2TikhonovCostFunction Self;
+    typedef MultiT2RegularizationCostFunction Self;
     typedef itk::SingleValuedCostFunction Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     typedef itk::SmartPointer<const Self> ConstPointer;
@@ -25,7 +25,7 @@ public:
     itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(MultiT2TikhonovCostFunction, Superclass)
+    itkTypeMacro(MultiT2RegularizationCostFunction, Superclass)
 
     typedef Superclass::MeasureType MeasureType;
     typedef Superclass::DerivativeType DerivativeType;
@@ -33,12 +33,21 @@ public:
     typedef std::vector < std::complex <double> > ComplexVectorType;
     typedef std::vector <ComplexVectorType> MatrixType;
 
+    enum RegularizationType
+    {
+        None = 0,
+        Tikhonov,
+        Laplacian,
+        NLTikhonov
+    };
+
     virtual MeasureType GetValue(const ParametersType &parameters) const ITK_OVERRIDE;
     virtual void GetDerivative(const ParametersType &parameters, DerivativeType &derivative) const ITK_OVERRIDE {}
 
     void SetAMatrix(vnl_matrix <double> &mat) {m_AMatrix = mat;}
     void SetT2RelaxometrySignals(ParametersType &relaxoSignals) {m_T2RelaxometrySignals = relaxoSignals;}
     void SetPriorDistribution(ParametersType &prior) {m_PriorDistribution = prior;}
+    itkSetMacro(RegularizationType,RegularizationType)
     itkSetMacro(ReferenceResidual, double)
     itkGetMacro(CurrentResidual, double)
 
@@ -51,15 +60,16 @@ public:
     }
 
 protected:
-    MultiT2TikhonovCostFunction()
+    MultiT2RegularizationCostFunction()
     {
         m_NNLSOptimizer = anima::NNLSOptimizer::New();
+        m_RegularizationType = Tikhonov;
     }
 
-    virtual ~MultiT2TikhonovCostFunction() {}
+    virtual ~MultiT2RegularizationCostFunction() {}
 
 private:
-    MultiT2TikhonovCostFunction(const Self&); //purposely not implemented
+    MultiT2RegularizationCostFunction(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
 
     mutable anima::NNLSOptimizer::Pointer m_NNLSOptimizer;
@@ -71,6 +81,8 @@ private:
     mutable ParametersType m_OptimizedT2Weights;
     mutable double m_OptimizedM0Value;
     mutable double m_CurrentResidual;
+
+    RegularizationType m_RegularizationType;
 };
 
 } // end namespace anima
