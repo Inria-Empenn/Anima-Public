@@ -48,7 +48,7 @@ MultiT2RegularizationCostFunction::GetValue(const ParametersType & parameters) c
 
     double ratio = m_CurrentResidual / m_ReferenceResidual;
 
-    return ratio - 1.02;
+    return ratio - m_ReferenceRatio;
 }
 
 } // end namespace anima

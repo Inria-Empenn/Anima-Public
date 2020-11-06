@@ -47,6 +47,7 @@ int main(int argc, char **argv)
 
     //NL params
     TCLAP::ValueArg<unsigned int> regulEstimationArg("r","regul","Regularization type (0: none, 1: Tikhonov, 2: Laplacian, 3: NL Tikhonov regularization, default: 2)",false,2,"regularization type",cmd);
+    TCLAP::ValueArg<double> regulRatioArg("R","ratio-regul","Regularization ratio between none regularized and regularized residuals type (default: 1.02)",false,1.02,"regularization ratio",cmd);
     TCLAP::ValueArg<double> weightThrArg("w","weightThr","Weight threshold: patches around have to be similar enough -> default: 0.0",false,0.0,"Weight threshold",cmd);
     TCLAP::ValueArg<double> betaArg("b","beta","Beta parameter for local noise estimation -> default: 1",false,1,"Beta for local noise estimation",cmd);
     TCLAP::ValueArg<double> meanMinArg("","meanMin","Minimun mean threshold (default: 0.95)",false,0.95,"Minimun mean threshold",cmd);
@@ -92,6 +93,8 @@ int main(int argc, char **argv)
         mainFilter->SetRegularizationType(FilterType::RegularizationType::Laplacian);
     else
         mainFilter->SetRegularizationType(FilterType::RegularizationType::None);
+
+    mainFilter->SetRegularizationRatio(regulRatioArg.getValue());
 
     if (t1MapArg.getValue() != "")
     {

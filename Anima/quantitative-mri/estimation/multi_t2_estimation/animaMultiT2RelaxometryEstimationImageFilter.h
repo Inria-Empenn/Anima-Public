@@ -69,6 +69,7 @@ public:
     InputImageType *GetT1Map() {return m_T1Map;}
 
     itkSetMacro(RegularizationType, RegularizationType)
+    itkSetMacro(RegularizationRatio, double)
     itkSetObjectMacro(InitialB1Map, InputImageType)
     itkSetObjectMacro(InitialM0Map, InputImageType)
     itkSetObjectMacro(InitialT2Map, VectorOutputImageType)
@@ -114,6 +115,7 @@ protected:
         m_UpperT2Bound = 2000;
 
         m_RegularizationType = RegularizationType::Tikhonov;
+        m_RegularizationRatio = 1.02;
 
         m_T2ExcitationFlipAngle = M_PI / 6;
 
@@ -161,6 +163,7 @@ private:
     VectorOutputImagePointer m_InitialT2Map;
 
     RegularizationType m_RegularizationType;
+    double m_RegularizationRatio;
     std::vector <PatchSearcherType> m_NLPatchSearchers;
     double m_MeanMinThreshold;
     double m_VarMinThreshold;

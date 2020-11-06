@@ -49,6 +49,7 @@ public:
     void SetPriorDistribution(ParametersType &prior) {m_PriorDistribution = prior;}
     itkSetMacro(RegularizationType,RegularizationType)
     itkSetMacro(ReferenceResidual, double)
+    itkSetMacro(ReferenceRatio, double)
     itkGetMacro(CurrentResidual, double)
 
     ParametersType &GetOptimizedT2Weights() {return m_OptimizedT2Weights;}
@@ -64,6 +65,9 @@ protected:
     {
         m_NNLSOptimizer = anima::NNLSOptimizer::New();
         m_RegularizationType = Tikhonov;
+
+        m_ReferenceRatio = 1.02;
+        m_ReferenceResidual = 0.0;
     }
 
     virtual ~MultiT2RegularizationCostFunction() {}
@@ -75,6 +79,7 @@ private:
     mutable anima::NNLSOptimizer::Pointer m_NNLSOptimizer;
 
     double m_ReferenceResidual;
+    double m_ReferenceRatio;
     mutable ParametersType m_T2RelaxometrySignals;
     ParametersType m_PriorDistribution;
     mutable vnl_matrix <double> m_AMatrix;

@@ -308,6 +308,7 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
             regularizationCost->SetPriorDistribution(priorDistribution);
             regularizationCost->SetAMatrix(AMatrixExtended);
             regularizationCost->SetReferenceResidual(residual);
+            regularizationCost->SetReferenceRatio(m_RegularizationRatio);
             regularizationCost->SetRegularizationType(m_RegularizationType);
 
             double lambda = std::sqrt(0.05 * residual / normT2Weights);
@@ -522,8 +523,7 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
 {
     double lowerBound = 0.0;
     itk::OptimizerParameters <double> p(1);
-    p[0] = 0.0;
-    double zeroCost = regularizationCost->GetValue(p);
+    double zeroCost = 1.0 - m_RegularizationRatio;
     double upperBound = 0.0;
 
     // Find upper bound for lambda (and possibly lower bound)
