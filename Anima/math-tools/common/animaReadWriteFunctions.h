@@ -85,7 +85,7 @@ setMultipleImageFilterInputsFromFileName(std::string &fileName,
 
     unsigned int nbPats = 0;
 
-    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(fileName.c_str(), itk::ImageIOFactory::ReadMode);
+    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(fileName.c_str(), itk::IOFileModeEnum::ReadMode);
 
     if( !imageIO ) // file list
     {

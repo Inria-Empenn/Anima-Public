@@ -5,7 +5,7 @@
 namespace anima
 {
 
-itk::ImageIOBase::IOComponentType ANIMAMCM_EXPORT GetMCMComponentType(std::string fileName)
+itk::IOComponentEnum GetMCMComponentType(std::string fileName)
 {
     tinyxml2::XMLDocument doc;
     tinyxml2::XMLError loadOk = doc.LoadFile(fileName.c_str());
@@ -24,26 +24,26 @@ itk::ImageIOBase::IOComponentType ANIMAMCM_EXPORT GetMCMComponentType(std::strin
     baseName.append(fileName.begin() + lastSlashPos, fileName.begin() + lastDotPos);
 
     if (loadOk != tinyxml2::XML_SUCCESS)
-        return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+        return itk::IOComponentEnum::UNKNOWNCOMPONENTTYPE;
 
     // Read XML file into transform information vector
     tinyxml2::XMLElement *modelNode = doc.FirstChildElement( "Model" );
     if (!modelNode)
-        return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+        return itk::IOComponentEnum::UNKNOWNCOMPONENTTYPE;
 
     tinyxml2::XMLElement *weightsNode = modelNode->FirstChildElement( "Weights" );
 
     if (!weightsNode)
-        return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+        return itk::IOComponentEnum::UNKNOWNCOMPONENTTYPE;
 
     std::string weightsFileName = basePath + baseName + "/";
     weightsFileName += weightsNode->GetText();
 
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(weightsFileName.c_str(),
-                                                                           itk::ImageIOFactory::ReadMode);
+                                                                           itk::IOFileModeEnum::ReadMode);
 
     if (!imageIO)
-        return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+        return itk::IOComponentEnum::UNKNOWNCOMPONENTTYPE;
 
     imageIO->SetFileName(weightsFileName.c_str());
 
@@ -53,7 +53,7 @@ itk::ImageIOBase::IOComponentType ANIMAMCM_EXPORT GetMCMComponentType(std::strin
     }
     catch(itk::ExceptionObject &e)
     {
-        return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+        return itk::IOComponentEnum::UNKNOWNCOMPONENTTYPE;
     }
 
     return imageIO->GetComponentType();

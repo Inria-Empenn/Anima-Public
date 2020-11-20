@@ -322,7 +322,7 @@ int main(int ac, const char** av)
 
     // Find out the type of the image in file
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(inputArg.getValue().c_str(),
-                                                                           itk::ImageIOFactory::ReadMode);
+                                                                           itk::IOFileModeEnum::ReadMode);
 
     if( !imageIO )
     {

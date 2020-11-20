@@ -509,9 +509,9 @@ int main(int ac, const char** av)
 
     // Find out the type of the image in file
     itk::ImageIOBase::Pointer inputImageIO = itk::ImageIOFactory::CreateImageIO(inArg.getValue().c_str(),
-                                                                                itk::ImageIOFactory::ReadMode);
+                                                                                itk::IOFileModeEnum::ReadMode);
     itk::ImageIOBase::Pointer geometryImageIO = itk::ImageIOFactory::CreateImageIO(geomArg.getValue().c_str(),
-                                                                                   itk::ImageIOFactory::ReadMode);
+                                                                                   itk::IOFileModeEnum::ReadMode);
     if(!inputImageIO)
     {
         std::cerr << "Itk could not find suitable IO factory for the input." << std::endl;

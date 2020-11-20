@@ -41,7 +41,7 @@ int main(int ac, const char** av)
     typedef itk::ImageFileWriter<ImageType> WriterType;
 
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(inArg.getValue().c_str(),
-                                                                           itk::ImageIOFactory::ReadMode);
+                                                                           itk::IOFileModeEnum::ReadMode);
 
     if (!imageIO)
     {

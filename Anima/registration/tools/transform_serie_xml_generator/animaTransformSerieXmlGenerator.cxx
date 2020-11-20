@@ -70,7 +70,7 @@ int main(int ac, const char **av)
         
         // Then try non linear transform
         bool nonLinearSuccess = true;
-        itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(inputNames[i].c_str(), itk::ImageIOFactory::ReadMode);
+        itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(inputNames[i].c_str(), itk::IOFileModeEnum::ReadMode);
 
         if (!imageIO)
             nonLinearSuccess = false;

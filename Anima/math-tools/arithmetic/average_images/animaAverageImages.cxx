@@ -33,7 +33,7 @@ int main(int argc, char **argv)
     while ((strcmp(refN,"") == 0)&&(!imageIn.eof()))
         imageIn.getline(refN,2048);
 
-    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(refN, itk::ImageIOFactory::ReadMode);
+    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(refN, itk::IOFileModeEnum::ReadMode);
 
     if (!imageIO)
     {

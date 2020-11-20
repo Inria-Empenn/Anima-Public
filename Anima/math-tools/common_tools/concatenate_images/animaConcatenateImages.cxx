@@ -208,22 +208,22 @@ retrieveComponentType(arguments &args, itk::ImageIOBase::Pointer imageIO)
 {
     switch (imageIO->GetComponentType())
     {
-    case itk::ImageIOBase::UCHAR:
-    case itk::ImageIOBase::USHORT:
-    case itk::ImageIOBase::UINT:
-    case itk::ImageIOBase::ULONG:
+    case itk::IOComponentEnum::UCHAR:
+    case itk::IOComponentEnum::USHORT:
+    case itk::IOComponentEnum::UINT:
+    case itk::IOComponentEnum::ULONG:
         retrieveNbDimensions<unsigned int>(args, imageIO);
         break;
-    case itk::ImageIOBase::CHAR:
-    case itk::ImageIOBase::SHORT:
-    case itk::ImageIOBase::INT:
-    case itk::ImageIOBase::LONG:
+    case itk::IOComponentEnum::CHAR:
+    case itk::IOComponentEnum::SHORT:
+    case itk::IOComponentEnum::INT:
+    case itk::IOComponentEnum::LONG:
         retrieveNbDimensions<int>(args, imageIO);
         break;
-    case itk::ImageIOBase::FLOAT:
+    case itk::IOComponentEnum::FLOAT:
         retrieveNbDimensions<double>(args, imageIO);
         break;
-    case itk::ImageIOBase::DOUBLE:
+    case itk::IOComponentEnum::DOUBLE:
         retrieveNbDimensions<double>(args, imageIO);
         break;
     default:
@@ -297,7 +297,7 @@ INRIA / IRISA - VisAGeS/Empenn Team",
 
     // Find out the type of the image in file
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(args.inputs[0].c_str(),
-                                                                           itk::ImageIOFactory::ReadMode);
+                                                                           itk::IOFileModeEnum::ReadMode);
 
     if( !imageIO )
     {
@@ -324,7 +324,7 @@ INRIA / IRISA - VisAGeS/Empenn Team",
         fileIn.close();
 
         if (listInputNames.size() > 0)
-            imageIO = itk::ImageIOFactory::CreateImageIO(listInputNames[0].c_str(),itk::ImageIOFactory::ReadMode);
+            imageIO = itk::ImageIOFactory::CreateImageIO(listInputNames[0].c_str(),itk::IOFileModeEnum::ReadMode);
 
         if( !imageIO )
         {

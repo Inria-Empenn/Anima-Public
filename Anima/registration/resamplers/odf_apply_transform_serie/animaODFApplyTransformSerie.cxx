@@ -62,7 +62,7 @@ int main(int ac, const char** av)
     reader->Update();
     
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(geomArg.getValue().c_str(),
-                                                                           itk::ImageIOFactory::ReadMode);
+                                                                           itk::IOFileModeEnum::ReadMode);
 
     if (!imageIO)
     {

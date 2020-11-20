@@ -93,7 +93,7 @@ int main(int ac, const char** av)
         return EXIT_FAILURE;
     }
 
-    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(inputArg.getValue()[0].c_str(),itk::ImageIOFactory::ReadMode);
+    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(inputArg.getValue()[0].c_str(),itk::IOFileModeEnum::ReadMode);
 
     arguments args;
     args.fileList = false;
@@ -108,7 +108,7 @@ int main(int ac, const char** av)
             fileIn.getline(tmpStr,2048);
 
         if (!fileIn.eof())
-            imageIO = itk::ImageIOFactory::CreateImageIO(tmpStr,itk::ImageIOFactory::ReadMode);
+            imageIO = itk::ImageIOFactory::CreateImageIO(tmpStr,itk::IOFileModeEnum::ReadMode);
 
         fileIn.close();
 

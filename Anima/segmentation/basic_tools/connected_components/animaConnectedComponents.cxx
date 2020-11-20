@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 
     // Find out the type of the image in file
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(inArg.getValue().c_str(),
-                                                                           itk::ImageIOFactory::ReadMode);
+                                                                           itk::IOFileModeEnum::ReadMode);
     if( !imageIO )
     {
         std::cerr << "Itk could not find suitable IO factory for the input" << std::endl;

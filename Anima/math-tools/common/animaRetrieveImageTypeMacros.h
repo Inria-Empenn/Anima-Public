@@ -16,30 +16,30 @@
 #define ANIMA_RETRIEVE_COMPONENT_TYPE(imageIO, function, ...) \
 switch (imageIO->GetComponentType())\
 {\
-    case itk::ImageIOBase::UCHAR:\
+    case itk::IOComponentEnum::UCHAR:\
         function<unsigned char>(__VA_ARGS__);\
         break;\
-    case itk::ImageIOBase::CHAR:\
+    case itk::IOComponentEnum::CHAR:\
         function<char>(__VA_ARGS__);\
         break;\
-    case itk::ImageIOBase::USHORT:\
+    case itk::IOComponentEnum::USHORT:\
         function<unsigned short>(__VA_ARGS__);\
         break;\
-    case itk::ImageIOBase::SHORT:\
+    case itk::IOComponentEnum::SHORT:\
         function<short>(__VA_ARGS__);\
         break;\
-    case itk::ImageIOBase::UINT:\
+    case itk::IOComponentEnum::UINT:\
         std::cerr << "Component type detected is 'unsigned int', anima will use 'double' instead." << std::endl;\
         function<double>(__VA_ARGS__);\
         break;\
-    case itk::ImageIOBase::INT:\
+    case itk::IOComponentEnum::INT:\
         std::cerr << "Component type detected is 'int', anima will use 'double' instead." << std::endl;\
         function<double>(__VA_ARGS__);\
         break;\
-    case itk::ImageIOBase::FLOAT:\
+    case itk::IOComponentEnum::FLOAT:\
         function<float>(__VA_ARGS__);\
         break;\
-    case itk::ImageIOBase::DOUBLE:\
+    case itk::IOComponentEnum::DOUBLE:\
         function<double>(__VA_ARGS__);\
         break;\
     default:\

@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 
     // load filenames file    
     std::vector <std::string> dataFileNames;
-    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(dataListArg.getValue().c_str(), itk::ImageIOFactory::ReadMode);
+    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(dataListArg.getValue().c_str(), itk::IOFileModeEnum::ReadMode);
 
     if (imageIO)
         dataFileNames.push_back(dataListArg.getValue());
