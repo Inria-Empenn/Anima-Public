@@ -4,6 +4,7 @@
 
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
+#include <vnl/algo/vnl_qr.h>
 
 namespace anima
 {
@@ -136,9 +137,57 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
         }
     }
 
-    m_CholeskySolver.SetInputMatrix(m_CholeskyMatrix);
-    m_CholeskySolver.PerformDecomposition();
-    m_OptimalUsefulWeights = m_CholeskySolver.SolveLinearSystem(m_FSignals);
+    // Check usability of cholesky matrix
+    bool useCholeskyMatrix = true;
+    ParametersType observedSignals(nbValues);
+
+    for (int i = numCompartments - 1;i >= 0;--i)
+    {
+        double normRef = 0;
+        for (unsigned int k = 0;k < numCompartments;++k)
+            normRef += m_CholeskyMatrix.get(k,i) * m_CholeskyMatrix.get(k,i);
+        normRef = std::sqrt(normRef);
+
+        for (int j = 0;j < i;++j)
+        {
+            double normTest = 0;
+            for (unsigned int k = 0;k < numCompartments;++k)
+                normTest += m_CholeskyMatrix.get(k,j) * m_CholeskyMatrix.get(k,j);
+            normTest = std::sqrt(normTest);
+
+            double normsProduct = normRef * normTest;
+            double dotProduct = 0.0;
+            for (unsigned int k = 0;k < numCompartments;++k)
+                dotProduct += m_CholeskyMatrix.get(k,i) * m_CholeskyMatrix.get(k,j) / normsProduct;
+
+            if (std::abs(dotProduct - 1.0) < 1.0e-6)
+            {
+                useCholeskyMatrix = false;
+                break;
+            }
+        }
+
+        if (!useCholeskyMatrix)
+            break;
+    }
+
+    if (useCholeskyMatrix)
+    {
+        m_CholeskySolver.SetInputMatrix(m_CholeskyMatrix);
+        m_CholeskySolver.PerformDecomposition();
+        m_OptimalUsefulWeights = m_CholeskySolver.SolveLinearSystem(m_FSignals);
+    }
+    else
+    {
+        for (unsigned int i = 0;i < nbValues;++i)
+        {
+            observedSignals[i] = m_ObservedSignals[i];
+            if (negativeWeights)
+                observedSignals[i] *= -1;
+
+            m_OptimalUsefulWeights = vnl_qr <double> (m_PredictedSignalAttenuations).solve(observedSignals);
+        }
+    }
 
     bool nnlsNeeded = false;
 
@@ -153,38 +202,6 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
 
     if (nnlsNeeded)
     {
-        // Check usability of cholesky matrix for NNLS
-        bool useCholeskyMatrix = true;
-        for (int i = numCompartments - 1;i >= 0;--i)
-        {
-            double normRef = 0;
-            for (unsigned int k = 0;k < numCompartments;++k)
-                normRef += m_CholeskyMatrix.get(k,i) * m_CholeskyMatrix.get(k,i);
-            normRef = std::sqrt(normRef);
-
-            for (int j = 0;j < i;++j)
-            {
-                double normTest = 0;
-                for (unsigned int k = 0;k < numCompartments;++k)
-                    normTest += m_CholeskyMatrix.get(k,j) * m_CholeskyMatrix.get(k,j);
-                normTest = std::sqrt(normTest);
-
-                double normsProduct = normRef * normTest;
-                double dotProduct = 0.0;
-                for (unsigned int k = 0;k < numCompartments;++k)
-                    dotProduct += m_CholeskyMatrix.get(k,i) * m_CholeskyMatrix.get(k,j) / normsProduct;
-
-                if (std::abs(dotProduct - 1.0) < 1.0e-6)
-                {
-                    useCholeskyMatrix = false;
-                    break;
-                }
-            }
-
-            if (!useCholeskyMatrix)
-                break;
-        }
-
         if (useCholeskyMatrix)
         {
             m_NNLSBordersOptimizer->SetDataMatrix(m_CholeskyMatrix);
@@ -193,14 +210,6 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
         }
         else
         {
-            ParametersType observedSignals(nbValues);
-            for (unsigned int i = 0;i < nbValues;++i)
-            {
-                observedSignals[i] = m_ObservedSignals[i];
-                if (negativeWeights)
-                    observedSignals[i] *= -1;
-            }
-
             m_NNLSBordersOptimizer->SetDataMatrix(m_PredictedSignalAttenuations);
             m_NNLSBordersOptimizer->SetPoints(observedSignals);
             m_NNLSBordersOptimizer->SetSquaredProblem(false);
