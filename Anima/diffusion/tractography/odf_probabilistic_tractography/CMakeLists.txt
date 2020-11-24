@@ -24,6 +24,7 @@ add_executable(${PROJECT_NAME}
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME}
+  ${ITKIO_LIBRARIES}
   AnimaTractography
   ${TinyXML2_LIBRARY}
   ${VTK_PREFIX}IOLegacy

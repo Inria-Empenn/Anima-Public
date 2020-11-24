@@ -27,7 +27,6 @@ target_link_libraries(${PROJECT_NAME}
   AnimaOptimizers
   ITKCommon
   ${TinyXML2_LIBRARY}
-  ${ITKIO_LIBRARIES}
   )
 
 

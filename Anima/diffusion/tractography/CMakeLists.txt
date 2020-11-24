@@ -25,7 +25,6 @@ add_library(${PROJECT_NAME}
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME}
-  ${ITKIO_LIBRARIES}
   ${TinyXML2_LIBRARY}
   AnimaDataIO
   AnimaOptimizers
