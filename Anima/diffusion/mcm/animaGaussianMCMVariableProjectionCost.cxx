@@ -160,7 +160,7 @@ GaussianMCMVariableProjectionCost::PrepareDataForLLS()
             for (unsigned int k = 0;k < numCompartments;++k)
                 dotProduct += m_CholeskyMatrix.get(k,i) * m_CholeskyMatrix.get(k,j) / normsProduct;
 
-            if (std::abs(dotProduct - 1.0) < 1.0e-6)
+            if (std::abs(dotProduct - 1.0) < 1.0e-4)
             {
                 useCholeskyMatrix = false;
                 break;
