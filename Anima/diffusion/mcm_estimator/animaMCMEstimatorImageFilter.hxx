@@ -459,7 +459,17 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
     {
         resVec.Fill(0.0);
 
-        if (maskItr.Get() == 0)
+        bool emptyVoxel = true;
+        for (unsigned int i = 0;i < m_NumberOfImages;++i)
+        {
+            if (inIterators[i].Get() != 0)
+            {
+                emptyVoxel = false;
+                break;
+            }
+        }
+
+        if ((maskItr.Get() == 0)||(emptyVoxel))
         {
             outIterator.Set(resVec);
 
