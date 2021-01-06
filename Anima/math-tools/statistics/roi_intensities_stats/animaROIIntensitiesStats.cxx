@@ -12,7 +12,7 @@ int main(int argc, char **argv)
                        " INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
     TCLAP::ValueArg <std::string> dataListArg("i","input","image or image list",true,"","images",cmd);
     TCLAP::ValueArg <std::string> roiArg("r","roi","ROI image",true,"","ROI image",cmd);
-    TCLAP::ValueArg <std::string> statArg("s","stat","Type of statistic computed (choose from median, [average], variance)",false,"average","statistic type",cmd);
+    TCLAP::ValueArg <std::string> statArg("s","stat","Type of statistic computed (choose from median, [average], variance, max)",false,"average","statistic type",cmd);
     TCLAP::ValueArg <std::string> resNameArg("o","output","CSV file name",true,"","file name for the output csv file",cmd);
     TCLAP::ValueArg <unsigned int> precisionArg("p","precision","Precision of values output (integer, default: 12)",false,12,"precision",cmd);
 
@@ -126,6 +126,16 @@ int main(int argc, char **argv)
                 unsigned int indexTaken = std::floor(numValues / 2.0);
                 std::partial_sort(roiLabelValues[j].begin(),roiLabelValues[j].begin() + indexTaken + 1,roiLabelValues[j].end());
                 statsValues(j,i) = roiLabelValues[j][indexTaken];
+            }
+            else if (statArg.getValue() == "max")
+            {
+                unsigned int numValues = roiLabelValues[j].size();
+                double maxValue = roiLabelValues[j][0];
+                for (unsigned int k = 1;k < numValues;++k)
+                {
+                    if (maxValue < roiLabelValues[j][k])
+                        maxValue = roiLabelValues[j][k];
+                }
             }
             else
             {
