@@ -136,6 +136,8 @@ int main(int argc, char **argv)
                     if (maxValue < roiLabelValues[j][k])
                         maxValue = roiLabelValues[j][k];
                 }
+
+                statsValues(j,i) = maxValue;
             }
             else
             {
