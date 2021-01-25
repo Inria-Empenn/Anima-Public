@@ -34,7 +34,14 @@ Anima is available as a superproject, including all its modules and links and in
 	git clone https://github.com/Inria-Visages/Anima-Public.git src
 	git clone git@github.com:Inria-Visages/Anima-Public.git src
 
-* then, run CMake in a new build folder, change any options if you wish to change the default compilation (which downloads and compiles all dependencies and tools): `mkdir build ; cd build ; ccmake ../src` (use the CMake graphical interface on Windows)
+* then, run CMake in a new build folder, change any options if you wish to change the default compilation (which downloads and compiles all dependencies and tools): 
+
+.. code-block:: sh
+
+	mkdir build
+	cd build
+	ccmake ../src
+
 * build using your environment (a `make` or `ninja` will be enough on Linux and OSX, open Visual Studio on Windows)
 
 And there you go, the `bin` folder in the build directory will contain all tools described in this documentation.
