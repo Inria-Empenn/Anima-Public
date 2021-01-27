@@ -33,7 +33,7 @@ Anima scripts installation instructions
 
 	git clone https://github.com/Inria-Visages/Anima-Scripts-Public.git
 
-* Run the configure.py file inside Anima scripts public folder with your configuration. For example:
+* Run the configure.py file inside Anima scripts public folder with your configuration. The default values assume you have followed this guide. An example of use:
 
 .. code-block:: sh
 

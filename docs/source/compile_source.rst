@@ -27,7 +27,8 @@ Compilation Instructions
 
 Anima is available as a superproject, including all its modules and links and instructions for its dependencies. Building ANIMA is simple:
 
-* clone the repository from github (use the first line by default, the second if you have set up your SSH keys): 
+* Create an Anima-Public folder
+* Inside it, clone the repository from github (use the first line by default, the second if you have set up your SSH keys): 
 
 .. code-block:: sh
 
