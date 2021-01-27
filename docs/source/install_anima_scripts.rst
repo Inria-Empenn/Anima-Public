@@ -39,6 +39,7 @@ Anima scripts installation instructions
 
 	python3 configure.py -a ~/Anima-Public/build/bin -s ~/Anima-Scripts-Public -d ~/Anima-Scripts-Data-Public
 
+* The options are as follows:
   * **-s** should link to where you cloned the Anima scripts repository
   * **-a** should point to where you have the Anima executables
   * **-d** should point to where you have cloned the additional data repository
