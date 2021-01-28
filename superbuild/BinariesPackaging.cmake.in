@@ -39,6 +39,7 @@ set(BINARY_TOOLS_LIST
   animaGMMT2RelaxometryEstimation
   animaGraphCut
   animaImageArithmetic
+  animaImageMosaicing
   animaImageResolutionChanger
   animaImageSmoother
   animaInfluenceZones
