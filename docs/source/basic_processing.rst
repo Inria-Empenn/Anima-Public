@@ -12,6 +12,17 @@ Image arithmetic
 
 	animaImageArithmetic -i Image1.nii.gz -s Image2.nii.gz -o Diff.nii.gz
 
+ROI intensities statistics
+--------------------------
+
+**animaROIIntensitiesStats** provides statistics (mean, max, median, variance) in regions of interests on an image or a list of images in a text file.
+
+*Example:* this computes the median in each label of roi_image.nii.gz of the input image image.nii.gz. The output is given in a csv file data.csv
+
+.. code-block:: sh
+
+	animaROIIntensitiesStats -i image.nii.gz -r roi_image.nii.gz -o data.csv -s median
+
 Image averaging
 ---------------
 
