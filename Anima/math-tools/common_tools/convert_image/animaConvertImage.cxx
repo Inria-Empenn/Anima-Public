@@ -22,9 +22,32 @@ convert(const arguments &args)
 
     if(args.space != "")
     {
-        typename ImageType::Pointer spaceImage = anima::readImage<ImageType>(args.space);
+        itk::ImageIOBase::Pointer spaceImageIO = itk::ImageIOFactory::CreateImageIO(args.space.c_str(),
+                                                                                    itk::IOFileModeEnum::ReadMode);
+        spaceImageIO->SetFileName(args.space.c_str());
+        spaceImageIO->ReadImageInformation();
 
-        input->CopyInformation(spaceImage);
+        unsigned int numDimensions = std::min(input->GetImageDimension(),spaceImageIO->GetNumberOfDimensions());
+
+        typename ImageType::PointType origin;
+        origin.Fill(0.0);
+        typename ImageType::SpacingType spacing;
+        spacing.Fill(1.0);
+        typename ImageType::DirectionType direction;
+        direction.SetIdentity();
+
+        for(unsigned int i = 0; i < numDimensions; ++i)
+        {
+            origin[i] = spaceImageIO->GetOrigin(i);
+            spacing[i] = spaceImageIO->GetSpacing(i);
+
+            for (unsigned int j = 0; j < numDimensions; ++j)
+                direction(i,j) = spaceImageIO->GetDirection(j)[i];
+        }
+
+        input->SetOrigin(origin);
+        input->SetDirection(direction);
+        input->SetSpacing(spacing);
     }
 
     std::vector < vnl_vector_fixed <double,3> > gradients;
@@ -183,8 +206,11 @@ int main(int ac, const char** av)
     imageIO->ReadImageInformation();
 
     arguments args;
-    args.input = inputArg.getValue(); args.output = outputArg.getValue(); args.displayInfo = infoArg.getValue();
-    args.reorient = reorientArg.getValue(); args.space = spaceArg.getValue();
+    args.input = inputArg.getValue();
+    args.output = outputArg.getValue();
+    args.displayInfo = infoArg.getValue();
+    args.reorient = reorientArg.getValue();
+    args.space = spaceArg.getValue();
     args.gradientFileName = gradsArg.getValue();
 
     int numDimensions = imageIO->GetNumberOfDimensions() - 1;
