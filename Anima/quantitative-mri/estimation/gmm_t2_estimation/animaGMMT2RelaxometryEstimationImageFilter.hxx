@@ -206,7 +206,6 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
 
     cost->SetGaussianMeans(m_GaussianMeans);
     cost->SetGaussianVariances(m_GaussianVariances);
-    cost->SetGaussianIntegralTolerance(m_GaussianIntegralTolerance);
 
     while (!maskItr.IsAtEnd())
     {
