@@ -43,34 +43,35 @@ B1GMMRelaxometryCostFunction::PrepareDataForLLS() const
     // Contains int_{space of ith distribution} EPG(t2, b1, jth echo) G(t2, mu_i, sigma_i) d t2
     m_PredictedSignalAttenuations.set_size(numT2Signals,numDistributions);
 
-    B1GMMDistributionIntegrand::EPGVectorsMapType epgVectors;
-    B1GMMDistributionIntegrand t2Integrand(m_T2SignalSimulator,epgVectors);
+    B1GMMDistributionIntegrand t2Integrand(m_T2SignalSimulator);
     t2Integrand.SetT1Value(m_T1Value);
     t2Integrand.SetFlipAngle(m_TestedParameters[0]);
 
     anima::GaussLaguerreQuadrature glQuad;
+    if (m_TruncatedGaussianIntegrals.size() != numDistributions)
+    {
+        m_TruncatedGaussianIntegrals.resize(numDistributions);
+        for (unsigned int i = 0;i < numDistributions;++i)
+            m_TruncatedGaussianIntegrals[i] = 0.5 * (1.0 + boost::math::erf(m_GaussianMeans[i] / std::sqrt(2.0 * m_GaussianVariances[i])));
+    }
 
     for (unsigned int i = 0;i < numDistributions;++i)
     {
         t2Integrand.SetGaussianMean(m_GaussianMeans[i]);
         t2Integrand.SetGaussianVariance(m_GaussianVariances[i]);
-        epgVectors.clear();
+        t2Integrand.ClearInternalEPGVectors();
 
-        double minInterestZoneValue = std::max(0.0, m_GaussianMeans[i] - 5.0 * std::sqrt(m_GaussianVariances[i]));
-        double theoreticalMinValue = m_GaussianMeans[i] - i * std::sqrt(m_GaussianVariances[i]);
+        double minInterestZoneValue = m_GaussianMeans[i] - 5.0 * std::sqrt(m_GaussianVariances[i]);
         double maxInterestZoneValue = m_GaussianMeans[i] + 5.0 * std::sqrt(m_GaussianVariances[i]);
-        if (theoreticalMinValue < 0.0)
-            maxInterestZoneValue -= theoreticalMinValue;
 
         glQuad.SetInterestZone(minInterestZoneValue, maxInterestZoneValue);
-
-        double truncationAbscissa = 2.0 * m_GaussianMeans[i];
-        double truncatedGaussianIntegral = 0.5 * (1.0 + boost::math::erf((truncationAbscissa - m_GaussianMeans[i]) / (std::sqrt(2.0 * m_GaussianVariances[i]))));
 
         for (unsigned int j = 0;j < numT2Signals;++j)
         {
             t2Integrand.SetEchoNumber(j);
-            m_PredictedSignalAttenuations(j,i) = glQuad.GetIntegralValue(t2Integrand) / truncatedGaussianIntegral;
+            m_PredictedSignalAttenuations(j,i) = glQuad.GetIntegralValue(t2Integrand) / m_TruncatedGaussianIntegrals[i];
+            if (m_PredictedSignalAttenuations(j,i) > 1.0)
+                m_PredictedSignalAttenuations(j,i) = 1.0;
         }
     }
 
