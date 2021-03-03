@@ -56,3 +56,7 @@ add_subdirectory(t1_relaxometry_estimation)
 add_subdirectory(t1_se_relaxometry_estimation)
 add_subdirectory(t2_epg_relaxometry_estimation)
 add_subdirectory(t2_relaxometry_estimation)
+
+if (BUILD_TESTING AND BUILD_TOOLS)
+  add_subdirectory(gmm_t2_test)
+endif()
