@@ -15,6 +15,8 @@ int main(int argc, char **argv)
     for (unsigned int i = 0;i < numSignals;++i)
         dataFile >> signals[i];
 
+    dataFile.close();
+
     std::vector <double> means, variances;
     means.resize(3);
     means[0] = 20;
