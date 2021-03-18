@@ -68,9 +68,10 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> outArg("o","outputfile","Output image. If number of replicates is 1, it is used as provided for saving the noisy dataset with the corresponding file name. If number of replicates > 1, the extension is extracted as desired output file format and the file name without extension is used as base file name for all replicates.",true,"","output file prefix",cmd);
     TCLAP::ValueArg<std::string> refArg("r","reference","Masked reference image over which the average SNR is defined.",true,"","reference image",cmd);
     
-    TCLAP::ValueArg<double> snrArg("s","snr","Average SNR in dB over the reference image (default: 25dB).",false,25.0,"mean snr",cmd);
+    TCLAP::ValueArg<double> snrArg("s","snr","Average SNR over the reference image (default: 25dB). See also -L option for the unit",false,25.0,"mean snr",cmd);
     TCLAP::ValueArg<unsigned int> repArg("n","num-replicates","Number of independent noisy datasets to generate (default: 1).",false,1,"number of replicates",cmd);
     
+    TCLAP::SwitchArg linearSNRArg("L","linear-snr","SNR is given  directly in linear form and not in dB (default).",cmd,false);
     TCLAP::SwitchArg gaussArg("G","gauss-noise","Adds Gaussian noise instead of Rician noise.",cmd,false);
     TCLAP::SwitchArg matchArg("M","match-snr","Make Gaussian noise comparable to Rician noise in terms of SNR.",cmd,false);
     TCLAP::SwitchArg verboseArg("V","verbose","Outputs noise calculations to the console.",cmd,false);
@@ -87,8 +88,10 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    // Put SNR back in linear scale
-    double snr = std::pow(10.0, snrArg.getValue() / 20.0);
+    // Put SNR back in linear scale if needed
+    double snr = snrArg.getValue();
+    if (!linearSNRArg.isSet())
+        snr = std::pow(10.0, snr / 20.0);
     
     // Find average signal value in reference image
     typedef itk::Image<double,3> Input3DImageType;
