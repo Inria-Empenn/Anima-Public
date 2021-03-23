@@ -16,15 +16,14 @@ EPGSignalSimulator::EPGSignalSimulator()
 EPGSignalSimulator::RealVectorType &EPGSignalSimulator::GetValue(double t1Value, double t2Value,
                                                                  double flipAngle, double m0Value)
 {
-    m_SimulatedT2Values.set_size(3 * m_NumberOfEchoes + 1,m_NumberOfEchoes + 1);
+    m_SimulatedT2Values.set_size(m_NumberOfEchoes + 1,3 * m_NumberOfEchoes + 1);
+    m_SimulatedT2Values.fill(0.0);
     m_OutputVector.resize(m_NumberOfEchoes);
 
     this->ComputeT2SignalMatrixElements(t1Value,t2Value,flipAngle);
 
     double baseValue = m0Value * std::sin(m_ExcitationFlipAngle);
     m_SimulatedT2Values(0,0) = baseValue;
-    for (unsigned int i = 1;i <= m_NumberOfEchoes;++i)
-        m_SimulatedT2Values(0,i) = 0.0;
 
     // Loop on all signals to be generated
     for (unsigned int i = 0;i < m_NumberOfEchoes;++i)
@@ -48,7 +47,7 @@ EPGSignalSimulator::RealVectorType &EPGSignalSimulator::GetValue(double t1Value,
                 m_SimulatedT2Values(i+1,2) += m_ThirdEPGProduct * m_SimulatedT2Values(i,8);
         }
 
-        //center blocks
+        //other blocks
         unsigned int j;
         for (j = 1;j < m_NumberOfEchoes - 1;++j)
         {
@@ -58,7 +57,10 @@ EPGSignalSimulator::RealVectorType &EPGSignalSimulator::GetValue(double t1Value,
             else
                 m_SimulatedT2Values(i+1,1 + j * 3) += m_ThirdEPGProduct * m_SimulatedT2Values(i,0);
 
-            m_SimulatedT2Values(i+1,2 + j * 3) = m_FirstEPGProduct * m_SimulatedT2Values(i,1 + j * 3);
+            m_SimulatedT2Values(i+1,2 + j * 3) = 0.0;
+            if (j < m_NumberOfEchoes)
+                m_SimulatedT2Values(i+1,2 + j * 3) = m_FirstEPGProduct * m_SimulatedT2Values(i,1 + j * 3);
+
             m_SimulatedT2Values(i+1,3 + j * 3) = m_FifthEPGProduct * m_SimulatedT2Values(i,3 + j * 3) - m_SecondEPGProduct * m_SimulatedT2Values(i,1 + (j - 1) * 3) / 2.0;
 
             if ((j + 1) < m_NumberOfEchoes)
@@ -70,17 +72,6 @@ EPGSignalSimulator::RealVectorType &EPGSignalSimulator::GetValue(double t1Value,
                     m_SimulatedT2Values(i+1,2 + j * 3) += m_ThirdEPGProduct * m_SimulatedT2Values(i,2 + (j + 2) * 3);
             }
         }
-
-        // end block line
-        j = m_NumberOfEchoes - 1;
-        m_SimulatedT2Values(i+1,1 + j * 3) = m_SecondEPGProduct * m_SimulatedT2Values(i,3 + (j - 1) * 3) + m_FirstEPGProduct * m_SimulatedT2Values(i,2 + j * 3);
-        m_SimulatedT2Values(i+1,2 + j * 3) = 0.0;
-        m_SimulatedT2Values(i+1,3 + j * 3) = m_FifthEPGProduct * m_SimulatedT2Values(i,3 + j * 3) - m_SecondEPGProduct * m_SimulatedT2Values(i,1 + (j - 1) * 3) / 2.0;
-
-        if (j > 1)
-            m_SimulatedT2Values(i+1,1 + j * 3) += m_ThirdEPGProduct * m_SimulatedT2Values(i,1 + (j - 2) * 3);
-        else
-            m_SimulatedT2Values(i+1,1 + j * 3) += m_ThirdEPGProduct * m_SimulatedT2Values(i,0);
 
         m_OutputVector[i] = m_SimulatedT2Values(i+1,0);
     }
@@ -119,7 +110,7 @@ EPGSignalSimulator::RealVectorType &EPGSignalSimulator::GetFADerivative()
 {
     m_OutputB1Derivative.resize(m_NumberOfEchoes);
 
-    m_SimulatedDerivativeT2Values.set_size(3 * m_NumberOfEchoes + 1,m_NumberOfEchoes + 1);
+    m_SimulatedDerivativeT2Values.set_size(m_NumberOfEchoes + 1,3 * m_NumberOfEchoes + 1);
     for (unsigned int i = 0;i <= m_NumberOfEchoes;++i)
         m_SimulatedDerivativeT2Values(0,i) = 0.0;
 
