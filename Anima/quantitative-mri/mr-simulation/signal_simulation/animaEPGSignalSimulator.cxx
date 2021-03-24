@@ -49,7 +49,7 @@ EPGSignalSimulator::RealVectorType &EPGSignalSimulator::GetValue(double t1Value,
 
         //other blocks
         unsigned int j;
-        for (j = 1;j < m_NumberOfEchoes - 1;++j)
+        for (j = 1;j < m_NumberOfEchoes;++j)
         {
             m_SimulatedT2Values(i+1,1 + j * 3) = m_SecondEPGProduct * m_SimulatedT2Values(i,3 + (j - 1) * 3) + m_FirstEPGProduct * m_SimulatedT2Values(i,2 + j * 3);
             if (j > 1)
