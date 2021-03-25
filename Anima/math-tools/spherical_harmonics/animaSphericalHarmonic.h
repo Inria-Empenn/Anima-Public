@@ -12,8 +12,8 @@ public:
     SphericalHarmonic();
     SphericalHarmonic(int &l, int &m);
 
-    void SetL(int &l) {m_L = l;}
-    void SetM(int &m) {m_M = m;}
+    void SetL(int &l) { if (m_L != l) {m_L = l; m_NeedUpdate = true;} }
+    void SetM(int &m) { if (m_M != m) {m_M = m; m_NeedUpdate = true;} }
 
     std::complex <double> Value(const double &theta, const double &phi);
 
@@ -26,8 +26,12 @@ public:
     std::complex <double> getThetaPhiDerivative(const double& theta, const double& phi);
 
 private:
+    void UpdateSQRTFactor();
     int m_L;
     int m_M;
+
+    double m_SQRTFactor;
+    bool m_NeedUpdate;
 };
 
 } // end of namespace anima

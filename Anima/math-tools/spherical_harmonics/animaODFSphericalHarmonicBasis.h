@@ -10,8 +10,10 @@ namespace anima
 class ANIMASHTOOLS_EXPORT ODFSphericalHarmonicBasis
 {
 public:
-    ODFSphericalHarmonicBasis(unsigned int L);
+    ODFSphericalHarmonicBasis(unsigned int L = 4);
     virtual ~ODFSphericalHarmonicBasis() {m_SphericalHarmonics.clear();}
+
+    void SetOrder(unsigned int L);
 
     // T has to be a vector type with the [] operator
     template <class T> double getValueAtPosition(const T &coefficients, double theta, double phi);

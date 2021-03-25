@@ -5,6 +5,15 @@ namespace anima
 
 ODFSphericalHarmonicBasis::ODFSphericalHarmonicBasis(unsigned int L)
 {
+    m_LOrder = 0;
+    this->SetOrder(L);
+}
+
+void ODFSphericalHarmonicBasis::SetOrder(unsigned int L)
+{
+    if (m_LOrder == L)
+        return;
+
     m_LOrder = L;
     m_SphericalHarmonics.clear();
 

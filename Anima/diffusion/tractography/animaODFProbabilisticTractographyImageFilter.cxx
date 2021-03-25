@@ -285,8 +285,8 @@ unsigned int ODFProbabilisticTractographyImageFilter::FindODFMaxima(const Vector
 
     OptimizerType::Pointer opt = OptimizerType::New();
     opt->SetAlgorithm(NLOPT_LN_BOBYQA);
-    opt->SetXTolRel(1.0e-4);
-    opt->SetFTolRel(1.0e-6);
+    opt->SetXTolRel(1.0e-3);
+    opt->SetFTolRel(1.0e-4);
     opt->SetMaxEval(200);
     opt->SetVectorStorageSize(2000);
 
@@ -308,18 +308,18 @@ unsigned int ODFProbabilisticTractographyImageFilter::FindODFMaxima(const Vector
     opt->SetLowerBoundParameters(lowerBounds);
     opt->SetUpperBoundParameters(upperBounds);
 
+    CostFunctionType::Pointer cost = CostFunctionType::New();
+    cost->SetODFSHOrder(m_ODFSHOrder);
+    cost->SetBasisParameters(modelValueList);
+
+    opt->SetCostFunction(cost);
+    opt->SetMaximize(true);
+
     for (unsigned int i = 0; i < initDirs.size();++i)
     {
         anima::TransformCartesianToSphericalCoordinates(initDirs[i],angle);
         tmpValue[0] = angle[0];
         tmpValue[1] = angle[1];
-
-        CostFunctionType::Pointer cost = CostFunctionType::New();
-        cost->SetODFSHOrder(m_ODFSHOrder);
-        cost->SetBasisParameters(modelValueList);
-
-        opt->SetCostFunction(cost);
-        opt->SetMaximize(true);
 
         opt->SetInitialPosition(tmpValue);
         opt->StartOptimization();

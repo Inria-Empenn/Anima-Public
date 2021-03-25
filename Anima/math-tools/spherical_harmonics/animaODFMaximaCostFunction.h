@@ -3,6 +3,7 @@
 #include <vector>
 #include <itkSingleValuedCostFunction.h>
 #include "AnimaSHToolsExport.h"
+#include <animaODFSphericalHarmonicBasis.h>
 
 namespace anima
 {
@@ -51,6 +52,8 @@ private:
 
     std::vector <double> m_BasisParameters;
     unsigned int m_ODFSHOrder;
+
+    mutable anima::ODFSphericalHarmonicBasis m_SHBasis;
 };
 
 } // end of namespace anima
