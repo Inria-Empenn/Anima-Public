@@ -81,8 +81,8 @@ protected:
         m_GaussianMeans[2] = 2000;
 
         m_GaussianVariances.resize(3);
-        m_GaussianVariances[0] = 49;
-        m_GaussianVariances[1] = 144;
+        m_GaussianVariances[0] = 25;
+        m_GaussianVariances[1] = 100;
         m_GaussianVariances[2] = 6400;
 
         m_T2ExcitationFlipAngle = M_PI / 6;
