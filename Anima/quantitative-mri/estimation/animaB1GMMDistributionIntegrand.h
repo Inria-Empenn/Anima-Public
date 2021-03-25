@@ -15,8 +15,8 @@ class ANIMARELAXOMETRY_EXPORT B1GMMDistributionIntegrand
 {
 public:
     using EPGVectorsMapType = std::map <double, anima::EPGSignalSimulator::RealVectorType>;
-    B1GMMDistributionIntegrand(anima::EPGSignalSimulator &sigSim, EPGVectorsMapType &val)
-        : m_EPGSimulator(sigSim), m_EPGVectors (val) {}
+    B1GMMDistributionIntegrand(anima::EPGSignalSimulator &sigSim)
+        : m_EPGSimulator(sigSim) {}
 
     void SetT1Value(double val) {m_T1Value = val;}
     void SetFlipAngle(double val) {m_FlipAngle = val;}
@@ -24,6 +24,8 @@ public:
 
     void SetGaussianMean(double val) {m_GaussianMean = val;}
     void SetGaussianVariance(double val) {m_GaussianVariance = val;}
+
+    void ClearInternalEPGVectors() {m_EPGVectors.clear();}
 
     virtual double operator() (double const t);
 
@@ -36,7 +38,7 @@ private:
     unsigned int m_EchoNumber;
 
     //! Since boost Gauss Legendre integration works on object copies, we need to keep a reference to EPG vectors, held externally
-    EPGVectorsMapType &m_EPGVectors;
+    EPGVectorsMapType m_EPGVectors;
 
     double m_GaussianMean, m_GaussianVariance;
 };

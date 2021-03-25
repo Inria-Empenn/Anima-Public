@@ -55,7 +55,6 @@ public:
     VectorOutputImageType *GetWeightsImage() {return m_WeightsImage;}
 
     itkSetMacro(T2ExcitationFlipAngle, double)
-    itkSetMacro(GaussianIntegralTolerance, double)
 
     void SetGaussianMeans(std::string fileName);
     void SetGaussianVariances(std::string fileName);
@@ -86,8 +85,6 @@ protected:
         m_GaussianVariances[1] = 100;
         m_GaussianVariances[2] = 6400;
 
-        m_GaussianIntegralTolerance = 1.0e-8;
-
         m_T2ExcitationFlipAngle = M_PI / 6;
     }
 
@@ -109,7 +106,6 @@ private:
     // GMM values for integral
     std::vector <double> m_GaussianMeans;
     std::vector <double> m_GaussianVariances;
-    double m_GaussianIntegralTolerance;
 
     // Additional result images
     VectorOutputImagePointer m_WeightsImage;

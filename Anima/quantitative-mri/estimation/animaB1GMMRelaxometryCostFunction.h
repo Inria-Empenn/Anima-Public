@@ -47,9 +47,8 @@ public:
     void SetT2RelaxometrySignals(ParametersType &relaxoSignals) {m_T2RelaxometrySignals = relaxoSignals;}
 
     itkSetMacro(T1Value, double)
-    void SetGaussianMeans(std::vector <double> &val) {m_GaussianMeans = val;}
-    void SetGaussianVariances(std::vector <double> &val) {m_GaussianVariances = val;}
-    itkSetMacro(GaussianIntegralTolerance, double)
+    void SetGaussianMeans(std::vector <double> &val) {m_GaussianMeans = val;m_TruncatedGaussianIntegrals.clear();}
+    void SetGaussianVariances(std::vector <double> &val) {m_GaussianVariances = val;m_TruncatedGaussianIntegrals.clear();}
 
     unsigned int GetNumberOfParameters() const ITK_OVERRIDE
     {
@@ -66,7 +65,6 @@ protected:
 
         m_T1Value = 1;
         m_EchoSpacing = 1;
-        m_GaussianIntegralTolerance = 1.0e-8;
     }
 
     virtual ~B1GMMRelaxometryCostFunction() {}
@@ -89,7 +87,7 @@ private:
     mutable ParametersType m_OptimalT2Weights;
     double m_T1Value;
     std::vector <double> m_GaussianMeans, m_GaussianVariances;
-    double m_GaussianIntegralTolerance;
+    mutable std::vector <double> m_TruncatedGaussianIntegrals;
 
     // Internal working variables, not thread safe but so much faster !
     mutable anima::EPGSignalSimulator m_T2SignalSimulator;
