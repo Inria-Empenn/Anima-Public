@@ -23,7 +23,7 @@ int main(int argc,  char*  argv[])
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 
     // Mandatory arguments
-    TCLAP::ValueArg<std::string> odfArg("i","odf","Input diffusion tensor image",true,"","dti image",cmd);
+    TCLAP::ValueArg<std::string> odfArg("i","odf","Input ODF image",true,"","dti image",cmd);
     TCLAP::ValueArg<std::string> seedMaskArg("s","seed-mask","Seed mask",true,"","seed",cmd);
     TCLAP::ValueArg<std::string> fibersArg("o","fibers","Output fibers",true,"","fibers",cmd);
     TCLAP::ValueArg<std::string> b0Arg("b","b0","B0 image",true,"","b0 image",cmd);
