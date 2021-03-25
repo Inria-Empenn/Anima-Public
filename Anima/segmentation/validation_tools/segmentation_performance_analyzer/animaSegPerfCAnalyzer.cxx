@@ -70,7 +70,7 @@ SegPerfCAnalyzer::SegPerfCAnalyzer(std::string &pi_pchImageTestName, std::string
 
     this->formatLabels();
 
-    if(bAdvancedEvaluation && m_uiNbLabels > 2)
+    if(bAdvancedEvaluation && m_uiNbLabels > 1)
     {
         //TO DO : attention si pas meme nombre de labels
         typedef itk::ImageDuplicator< ImageType > DuplicatorType;
@@ -807,8 +807,8 @@ void SegPerfCAnalyzer::getOverlapTab(int&po_iNbLabelsRef, int&po_iNbLabelsTest, 
 
     //Variable declaration
     connectedComponentImageFilterType::Pointer poLesionSeparatorFilter = connectedComponentImageFilterType::New();
-    ImageType::Pointer poImageRefLesionsByLabels = ITK_NULLPTR;
-    ImageType::Pointer poImageTestLesionsByLabels = ITK_NULLPTR;
+    ImageType::Pointer poImageRefLesionsByLabels = nullptr;
+    ImageType::Pointer poImageTestLesionsByLabels = nullptr;
     relabelComponentImageFilterType::Pointer poRelabelFilter = relabelComponentImageFilterType::New();
     int&iNbLabelsRef = po_iNbLabelsRef;
     int&iNbLabelsTest = po_iNbLabelsTest;
