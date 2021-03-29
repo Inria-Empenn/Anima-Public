@@ -85,10 +85,29 @@ ODFEstimatorImageFilter<TInputPixelType,TOutputPixelType>
 
     std::cout << "Running ODF estimation using " << m_B0Indexes.size() << " B0 images and " << numGrads << " gradient images with b-value at " << m_BValueShellSelected << "s.mm^-2" << std::endl;
 
-    // Compute TMatrix as expressed in Descoteaux MRM 2007
+    m_EstimatedVarianceImage = OutputScalarImageType::New();
+    m_EstimatedVarianceImage->Initialize();
+    m_EstimatedVarianceImage->SetOrigin(this->GetOutput()->GetOrigin());
+    m_EstimatedVarianceImage->SetSpacing(this->GetOutput()->GetSpacing());
+    m_EstimatedVarianceImage->SetDirection(this->GetOutput()->GetDirection());
+    m_EstimatedVarianceImage->SetRegions(this->GetOutput()->GetLargestPossibleRegion());
 
+    m_EstimatedVarianceImage->Allocate();
+    m_EstimatedVarianceImage->FillBuffer(0.0);
+
+    m_EstimatedB0Image = OutputScalarImageType::New();
+    m_EstimatedB0Image->Initialize();
+    m_EstimatedB0Image->SetOrigin(this->GetOutput()->GetOrigin());
+    m_EstimatedB0Image->SetSpacing(this->GetOutput()->GetSpacing());
+    m_EstimatedB0Image->SetDirection(this->GetOutput()->GetDirection());
+    m_EstimatedB0Image->SetRegions(this->GetOutput()->GetLargestPossibleRegion());
+
+    m_EstimatedB0Image->Allocate();
+    m_EstimatedB0Image->FillBuffer(0.0);
+
+    // Compute TMatrix as expressed in Descoteaux MRM 2007
     unsigned int posValue = 0;
-    vnl_matrix <double> BMatrix(numGrads,vectorLength);
+    m_BMatrix.set_size(numGrads,vectorLength);
 
     anima::ODFSphericalHarmonicBasis tmpBasis(m_LOrder);
 
@@ -98,7 +117,7 @@ ODFEstimatorImageFilter<TInputPixelType,TOutputPixelType>
         for (int k = 0;k <= (int)m_LOrder;k += 2)
             for (int m = -k;m <= k;++m)
             {
-                BMatrix(i,posValue) = tmpBasis.getNthSHValueAtPosition(k,m,m_GradientDirections[i][0],m_GradientDirections[i][1]);
+                m_BMatrix(i,posValue) = tmpBasis.getNthSHValueAtPosition(k,m,m_GradientDirections[i][0],m_GradientDirections[i][1]);
                 ++posValue;
             }
     }
@@ -135,13 +154,13 @@ ODFEstimatorImageFilter<TInputPixelType,TOutputPixelType>
         }
     }
 
-    vnl_matrix <double> tmpMat = BMatrix.transpose() * BMatrix;
+    vnl_matrix <double> tmpMat = m_BMatrix.transpose() * m_BMatrix;
     for (unsigned int i = 0;i < vectorLength;++i)
         tmpMat(i,i) += m_Lambda*LVector[i];
 
     vnl_matrix_inverse <double> tmpInv(tmpMat);
 
-    m_TMatrix = tmpInv.inverse() * BMatrix.transpose();
+    m_TMatrix = tmpInv.inverse() * m_BMatrix.transpose();
 
     if (m_Sharpen)
     {
@@ -172,13 +191,21 @@ ODFEstimatorImageFilter<TInputPixelType,TOutputPixelType>
                 m_DeconvolutionVector.push_back(lambdaL*2*M_PI/Zfactor);
         }
 
-        for (unsigned int i = 0;i < vectorLength;++i)
+        unsigned int startI = 0;
+        if (m_UseAganjEstimation)
+            startI = 1;
+
+        for (unsigned int i = startI;i < vectorLength;++i)
             for (unsigned int j = 0;j < numGrads;++j)
                 m_TMatrix(i,j) *= m_PVector[i]/m_DeconvolutionVector[i];
     }
     else
     {
-        for (unsigned int i = 0;i < vectorLength;++i)
+        unsigned int startI = 0;
+        if (m_UseAganjEstimation)
+            startI = 1;
+
+        for (unsigned int i = startI;i < vectorLength;++i)
             for (unsigned int j = 0;j < numGrads;++j)
                 m_TMatrix(i,j) *= m_PVector[i];
     }
@@ -226,6 +253,7 @@ ODFEstimatorImageFilter<TInputPixelType,TOutputPixelType>
 {
     typedef itk::ImageRegionConstIterator <TInputImage> InputIteratorType;
     typedef itk::ImageRegionIterator <TOutputImage> OutputIteratorType;
+    typedef itk::ImageRegionIterator <OutputScalarImageType> OutputScalarIteratorType;
 
     unsigned int vectorLength = (m_LOrder + 1)*(m_LOrder + 2)/2;
     unsigned int numGrads = m_GradientIndexes.size();
@@ -244,32 +272,26 @@ ODFEstimatorImageFilter<TInputPixelType,TOutputPixelType>
     if (m_ReferenceB0Image.IsNotNull())
         refB0Itr = InputIteratorType(m_ReferenceB0Image, outputRegionForThread);
 
+    OutputScalarIteratorType varItr(m_EstimatedVarianceImage, outputRegionForThread);
+    OutputScalarIteratorType outB0Itr(m_EstimatedB0Image, outputRegionForThread);
+
     itk::VariableLengthVector <TOutputPixelType> outputData(vectorLength);
     std::vector <double> tmpData(numGrads,0);
     while (!diffusionIts[0].IsAtEnd())
     {
         double b0Value = 0;
         if (m_ReferenceB0Image.IsNotNull())
-        {
             b0Value = refB0Itr.Get();
-            ++refB0Itr;
-        }
         else
         {
             for (unsigned int i = 0;i < numB0;++i)
-            {
                 b0Value += b0Its[i].Get();
-                ++b0Its[i];
-            }
 
             b0Value /= numB0;
         }
 
         for (unsigned int i = 0;i < numGrads;++i)
-        {
             tmpData[i] = diffusionIts[i].Get();
-            ++diffusionIts[i];
-        }
 
         for (unsigned int i = 0;i < vectorLength;++i)
             outputData[i] = 0;
@@ -277,7 +299,18 @@ ODFEstimatorImageFilter<TInputPixelType,TOutputPixelType>
         if ((isZero(tmpData))||(b0Value <= 0))
         {
             resIt.Set(outputData);
+            outB0Itr.Set(0.0);
+            varItr.Set(0.0);
             ++resIt;
+            ++outB0Itr;
+            ++varItr;
+
+            for (unsigned int i = 0;i < numGrads;++i)
+                ++diffusionIts[i];
+
+            for (unsigned int i = 0;i < numB0;++i)
+                ++b0Its[i];
+
             continue;
         }
 
@@ -302,6 +335,7 @@ ODFEstimatorImageFilter<TInputPixelType,TOutputPixelType>
             }
         }
 
+        double zeroValue = 1.0;
         if (b0Value > 0)
         {
             for (unsigned int i = 0;i < vectorLength;++i)
@@ -314,8 +348,43 @@ ODFEstimatorImageFilter<TInputPixelType,TOutputPixelType>
                     outputData[i] /= b0Value;
             }
             else
+            {
+                zeroValue = outputData[0];
                 outputData[0] = 1/(2*sqrt(M_PI));
+            }
         }
+
+        double noiseVariance = 0.0;
+        for (unsigned int i = 0;i < numGrads;++i)
+        {
+            double signalSim = 0.0;
+            for (unsigned int j = 0;j < vectorLength;++j)
+            {
+                if ((j == 0) && (m_UseAganjEstimation))
+                    signalSim += m_BMatrix(i,j) * zeroValue;
+                else
+                    signalSim += m_BMatrix(i,j) * outputData[j] / m_PVector[j];
+            }
+
+            if (!m_UseAganjEstimation)
+                signalSim *= b0Value;
+            else
+                signalSim = b0Value * std::exp(- std::exp(signalSim));
+
+            double signalValue = diffusionIts[i].Get();
+            noiseVariance += (signalSim - signalValue) * (signalSim - signalValue);
+        }
+
+        for (unsigned int i = 0;i < numB0;++i)
+        {
+            double b0Signal = b0Its[i].Get();
+            noiseVariance += (b0Value - b0Signal) * (b0Value - b0Signal);
+        }
+
+        noiseVariance /= (numGrads + numB0);
+        varItr.Set(noiseVariance);
+
+        outB0Itr.Set(b0Value);
 
         if (m_Normalize)
         {
@@ -330,6 +399,14 @@ ODFEstimatorImageFilter<TInputPixelType,TOutputPixelType>
 
         resIt.Set(outputData);
         ++resIt;
+        ++outB0Itr;
+        ++varItr;
+
+        for (unsigned int i = 0;i < numGrads;++i)
+            ++diffusionIts[i];
+
+        for (unsigned int i = 0;i < numB0;++i)
+            ++b0Its[i];
     }
 }
     

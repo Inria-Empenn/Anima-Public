@@ -18,6 +18,7 @@ public:
     typedef ODFEstimatorImageFilter Self;
     typedef itk::Image <TInputPixelType, 3> TInputImage;
     typedef itk::Image<TInputPixelType,4> Image4DType;
+    typedef itk::Image <TOutputPixelType, 3> OutputScalarImageType;
     typedef itk::VectorImage <TOutputPixelType, 3> TOutputImage;
     typedef itk::ImageToImageFilter< TInputImage, TOutputImage > Superclass;
     typedef itk::SmartPointer<Self> Pointer;
@@ -31,6 +32,7 @@ public:
 
     typedef typename TInputImage::Pointer InputImagePointer;
     typedef typename TOutputImage::Pointer OutputImagePointer;
+    typedef typename OutputScalarImageType::Pointer OutputScalarImagePointer;
 
     /** Superclass typedefs. */
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
@@ -50,6 +52,9 @@ public:
 
     itkSetMacro(UseAganjEstimation,bool);
     itkSetMacro(DeltaAganjRegularization, double);
+
+    itkGetMacro(EstimatedB0Image, OutputScalarImageType *)
+    itkGetMacro(EstimatedVarianceImage, OutputScalarImageType *)
 
     void SetReferenceB0Image(TInputImage *refB0) {m_ReferenceB0Image = refB0;}
 
@@ -105,11 +110,15 @@ private:
     std::vector <double> m_BValuesList;
     InputImagePointer m_ReferenceB0Image;
 
+    OutputScalarImagePointer m_EstimatedVarianceImage;
+    OutputScalarImagePointer m_EstimatedB0Image;
+
     int m_BValueShellSelected;
     double m_BValueShellTolerance;
     std::vector <unsigned int> m_SelectedDWIIndexes;
 
     vnl_matrix <double> m_TMatrix; // evaluation matrix computed once and for all before threaded generate data
+    vnl_matrix <double> m_BMatrix;
     std::vector <double> m_DeconvolutionVector;
     std::vector <double> m_PVector;
 

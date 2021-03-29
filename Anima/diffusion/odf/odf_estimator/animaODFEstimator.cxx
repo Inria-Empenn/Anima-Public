@@ -11,6 +11,8 @@ int main(int argc, char **argv)
 	
     TCLAP::ValueArg<std::string> inArg("i","input","List of diffusion weighted images or 4D volume",true,"","input diffusion images",cmd);
     TCLAP::ValueArg<std::string> resArg("o","outputfile","Result ODF image",true,"","result ODF image",cmd);
+    TCLAP::ValueArg<std::string> b0OutArg("O","output-b0","output_b0",false,"","result B0 image",cmd);
+    TCLAP::ValueArg<std::string> varOutArg("V","output-variance","output_variance",false,"","result noise variance image",cmd);
 
     TCLAP::ValueArg<std::string> gradArg("g","gradientlist","List of gradients (text file)",true,"","list of gradients",cmd);
     TCLAP::ValueArg<std::string> bvalArg("b","bval","input b-values (for checking single shell)",true,"","Input b-values",cmd);
@@ -25,7 +27,7 @@ int main(int argc, char **argv)
 	TCLAP::SwitchArg sharpenArg("S","sharpenodf","Sharpen ODF ? (default: no)",cmd,false);
 	
 	TCLAP::ValueArg<std::string> normSphereArg("n","normalizefile","Sphere tesselation for normalization",false,"","Normalization sphere file",cmd);
-	TCLAP::SwitchArg normalizeArg("N","normalize","Normalize ODF ? (default: no)",cmd,false);
+    TCLAP::SwitchArg normalizeArg("N","normalize","Normalize ODF ? (default: no)",cmd,false);
     
 	TCLAP::SwitchArg radialArg("R","radialestimation","Use radial estimation (see Aganj et al) ? (default: no)",cmd,false);
 	TCLAP::ValueArg<double> aganjRegFactorArg("d","adr","Delta threshold for signal regularization, only use if R option activated (see Aganj et al, default : 0.001)",false,0.001,"delta signal regularization",cmd);
@@ -97,6 +99,12 @@ int main(int argc, char **argv)
 	std::cout << "Execution Time: " << tmpTime.GetTotal() << std::endl;
 	
     anima::writeImage <MainFilterType::TOutputImage> (resArg.getValue(),mainFilter->GetOutput());
-	
+
+    if (b0OutArg.getValue() != "")
+        anima::writeImage <InputImageType> (b0OutArg.getValue(),mainFilter->GetEstimatedB0Image());
+
+    if (varOutArg.getValue() != "")
+        anima::writeImage <InputImageType> (varOutArg.getValue(),mainFilter->GetEstimatedVarianceImage());
+
 	return EXIT_SUCCESS;
 }
