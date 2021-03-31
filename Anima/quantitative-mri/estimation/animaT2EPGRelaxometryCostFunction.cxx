@@ -22,7 +22,7 @@ T2EPGRelaxometryCostFunction::GetValue(const ParametersType & parameters) const
 
     anima::EPGSignalSimulator::RealVectorType simulatedT2Values;
 
-    if (!m_UniformPulse)
+    if (m_UniformPulse)
         simulatedT2Values = t2SignalSimulator.GetValue(m_T1Value,m_T2Value,m_B1Value * m_T2FlipAngles[0],1.0);
     else
     {
