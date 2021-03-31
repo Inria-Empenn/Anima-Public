@@ -11,6 +11,7 @@ if (USE_VTK AND VTK_FOUND)
   add_subdirectory(data_io)
 endif()
 
+add_subdirectory(integration)
 add_subdirectory(multi_compartment_base)
 add_subdirectory(optimizers)
 add_subdirectory(special_functions)
