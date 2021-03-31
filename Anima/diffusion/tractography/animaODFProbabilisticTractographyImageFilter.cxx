@@ -146,6 +146,7 @@ ODFProbabilisticTractographyImageFilter::Vector3DType ODFProbabilisticTractograp
 
     DirectionVectorType maximaODF;
     unsigned int numDirs = this->FindODFMaxima(modelValue,maximaODF,m_MinimalDiffusionProbability,is2d);
+
     if (numDirs == 0)
         return colinearDir;
 
@@ -255,22 +256,22 @@ unsigned int ODFProbabilisticTractographyImageFilter::FindODFMaxima(const Vector
 
     // Find the max of the ODF v, set max to the value...
     struct XYZ array[] = {
-    {-1,0,0},
-    {0,-1,0},
-    {0,0,-1},
-    {0.1789,0.1113,-0.9776},
-    {0.0635,-0.3767,-0.9242},
-    {-0.7108,-0.0516,-0.7015},
-    {-0.6191,0.4385,-0.6515},
-    {-0.2424,-0.7843,-0.571},
-    {0.2589,0.618,-0.7423},
-    {0.8169,-0.1697,-0.5513},
-    {0.8438,-0.5261,-0.106},
-    {0.2626,-0.9548,-0.1389},
-    {-1e-04,-0.9689,0.2476},
-    {-0.7453,-0.6663,0.0242},
-    {-0.9726,-0.2317,0.0209}
-};
+    {-0.049,0.919,0.391},
+    {-0.726,-0.301,0.618},
+    {0.683,-0.255,0.684},
+    {-0.845,0.502,0.186},
+    {0.730,0.619,0.288},
+    {-0.051,0.039,0.998},
+    {0.018,-0.871,0.491},
+    {-0.444,0.494,0.747},
+    {0.989,0.086,0.116},
+    {-0.470,-0.855,0.221},
+    {0.412,0.400,0.819},
+    {0.552,-0.790,0.267},
+    {-0.123,-0.477,0.871},
+    {-0.848,0.141,0.510},
+    {0.341,0.788,0.512}
+    };
 
     for (unsigned int i = 0;i < initDirs.size();++i)
     {
@@ -302,7 +303,7 @@ unsigned int ODFProbabilisticTractographyImageFilter::FindODFMaxima(const Vector
     itk::Array<double> upperBounds(2);
 
     lowerBounds.fill(0.0);
-    upperBounds[0] = M_PI;
+    upperBounds[0] = M_PI / 2.0;
     upperBounds[1] = 2.0 * M_PI;
 
     opt->SetLowerBoundParameters(lowerBounds);

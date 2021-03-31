@@ -12,18 +12,30 @@ getValueAtPosition(const T &coefficients, double theta, double phi)
     double resVal = 0;
     std::complex <double> tmpVal;
 
-    for (int k = 0;k <= (int)m_LOrder;k += 2)
-        for (int m = -k;m <= k;++m)
-        {
-            tmpVal = m_SphericalHarmonics[k*(k+1)/2 + m].Value(theta,phi);
+    for (unsigned int k = 0;k <= m_LOrder;k += 2)
+    {
+        unsigned int kIndexCoef = k * (k + 1) / 2;
+        unsigned int kIndexSH = k * k / 4;
 
-            if (m > 0)
-                resVal += coefficients[k*(k+1)/2 + m]*sqrt(2.0)*imag(tmpVal);
-            else if (m < 0)
-                resVal += coefficients[k*(k+1)/2 + m]*sqrt(2.0)*real(tmpVal);
+        for (unsigned int m = 0;m <= k;++m)
+        {
+            tmpVal = m_SphericalHarmonics[kIndexSH + m].Value(theta,phi);
+
+            if (m != 0)
+            {
+                // Part for m > 0
+                resVal += sqrt(2.0) * coefficients[kIndexCoef + m] * imag(tmpVal);
+
+                // Part for m < 0
+                if (m % 2 == 0)
+                    resVal += sqrt(2.0) * coefficients[kIndexCoef - m] * real(tmpVal);
+                else
+                    resVal -= sqrt(2.0) * coefficients[kIndexCoef - m] * real(tmpVal);
+            }
             else
-                resVal += coefficients[k*(k+1)/2 + m]*real(tmpVal);
+                resVal += coefficients[kIndexCoef]*real(tmpVal);
         }
+    }
 
     return resVal;
 }
@@ -50,18 +62,30 @@ getThetaFirstDerivativeValueAtPosition(const T &coefficients, double theta, doub
     double resVal = 0;
     std::complex <double> tmpVal;
 
-    for (int k = 0;k <= (int)m_LOrder;k += 2)
-        for (int m = -k;m <= k;++m)
-        {
-            tmpVal = m_SphericalHarmonics[k*(k+1)/2 + m].getThetaFirstDerivative(theta,phi);
+    for (unsigned int k = 0;k <= m_LOrder;k += 2)
+    {
+        unsigned int kIndexCoef = k * (k + 1) / 2;
+        unsigned int kIndexSH = k * k / 4;
 
-            if (m > 0)
-                resVal += coefficients[k*(k+1)/2 + m]*sqrt(2.0)*imag(tmpVal);
-            else if (m < 0)
-                resVal += coefficients[k*(k+1)/2 + m]*sqrt(2.0)*real(tmpVal);
+        for (unsigned int m = 0;m <= k;++m)
+        {
+            tmpVal = m_SphericalHarmonics[kIndexSH + m].getThetaFirstDerivative(theta,phi);
+
+            if (m != 0)
+            {
+                // Part for m > 0
+                resVal += sqrt(2.0) * coefficients[kIndexCoef + m] * imag(tmpVal);
+
+                // Part for m < 0
+                if (m % 2 == 0)
+                    resVal += sqrt(2.0) * coefficients[kIndexCoef - m] * real(tmpVal);
+                else
+                    resVal -= sqrt(2.0) * coefficients[kIndexCoef - m] * real(tmpVal);
+            }
             else
-                resVal += coefficients[k*(k+1)/2 + m]*real(tmpVal);
+                resVal += coefficients[kIndexCoef]*real(tmpVal);
         }
+    }
 
     return resVal;
 }
@@ -74,18 +98,30 @@ getPhiFirstDerivativeValueAtPosition(const T &coefficients, double theta, double
     double resVal = 0;
     std::complex <double> tmpVal;
 
-    for (int k = 0;k <= (int)m_LOrder;k += 2)
-        for (int m = -k;m <= k;++m)
-        {
-            tmpVal = m_SphericalHarmonics[k*(k+1)/2 + m].getPhiFirstDerivative(theta,phi);
+    for (unsigned int k = 0;k <= m_LOrder;k += 2)
+    {
+        unsigned int kIndexCoef = k * (k + 1) / 2;
+        unsigned int kIndexSH = k * k / 4;
 
-            if (m > 0)
-                resVal += coefficients[k*(k+1)/2 + m]*sqrt(2.0)*imag(tmpVal);
-            else if (m < 0)
-                resVal += coefficients[k*(k+1)/2 + m]*sqrt(2.0)*real(tmpVal);
+        for (unsigned int m = 0;m <= k;++m)
+        {
+            tmpVal = m_SphericalHarmonics[kIndexSH + m].getPhiFirstDerivative(theta,phi);
+
+            if (m != 0)
+            {
+                // Part for m > 0
+                resVal += sqrt(2.0) * coefficients[kIndexCoef + m] * imag(tmpVal);
+
+                // Part for m < 0
+                if (m % 2 == 0)
+                    resVal += sqrt(2.0) * coefficients[kIndexCoef - m] * real(tmpVal);
+                else
+                    resVal -= sqrt(2.0) * coefficients[kIndexCoef - m] * real(tmpVal);
+            }
             else
-                resVal += coefficients[k*(k+1)/2 + m]*real(tmpVal);
+                resVal += coefficients[kIndexCoef]*real(tmpVal);
         }
+    }
 
     return resVal;
 }
@@ -98,18 +134,30 @@ getThetaSecondDerivativeValueAtPosition(const T &coefficients, double theta, dou
     double resVal = 0;
     std::complex <double> tmpVal;
 
-    for (int k = 0;k <= (int)m_LOrder;k += 2)
-        for (int m = -k;m <= k;++m)
-        {
-            tmpVal = m_SphericalHarmonics[k*(k+1)/2 + m].getThetaSecondDerivative(theta,phi);
+    for (unsigned int k = 0;k <= m_LOrder;k += 2)
+    {
+        unsigned int kIndexCoef = k * (k + 1) / 2;
+        unsigned int kIndexSH = k * k / 4;
 
-            if (m > 0)
-                resVal += coefficients[k*(k+1)/2 + m]*sqrt(2.0)*imag(tmpVal);
-            else if (m < 0)
-                resVal += coefficients[k*(k+1)/2 + m]*sqrt(2.0)*real(tmpVal);
+        for (unsigned int m = 0;m <= k;++m)
+        {
+            tmpVal = m_SphericalHarmonics[kIndexSH + m].getThetaSecondDerivative(theta,phi);
+
+            if (m != 0)
+            {
+                // Part for m > 0
+                resVal += sqrt(2.0) * coefficients[kIndexCoef + m] * imag(tmpVal);
+
+                // Part for m < 0
+                if (m % 2 == 0)
+                    resVal += sqrt(2.0) * coefficients[kIndexCoef - m] * real(tmpVal);
+                else
+                    resVal -= sqrt(2.0) * coefficients[kIndexCoef - m] * real(tmpVal);
+            }
             else
-                resVal += coefficients[k*(k+1)/2 + m]*real(tmpVal);
+                resVal += coefficients[kIndexCoef]*real(tmpVal);
         }
+    }
 
     return resVal;
 }
@@ -122,18 +170,30 @@ getThetaPhiDerivativeValueAtPosition(const T &coefficients, double theta, double
     double resVal = 0;
     std::complex <double> tmpVal;
 
-    for (int k = 0;k <= (int)m_LOrder;k += 2)
-        for (int m = -k;m <= k;++m)
-        {
-            tmpVal = m_SphericalHarmonics[k*(k+1)/2 + m].getThetaPhiDerivative(theta,phi);
+    for (unsigned int k = 0;k <= m_LOrder;k += 2)
+    {
+        unsigned int kIndexCoef = k * (k + 1) / 2;
+        unsigned int kIndexSH = k * k / 4;
 
-            if (m > 0)
-                resVal += coefficients[k*(k+1)/2 + m]*sqrt(2.0)*imag(tmpVal);
-            else if (m < 0)
-                resVal += coefficients[k*(k+1)/2 + m]*sqrt(2.0)*real(tmpVal);
+        for (unsigned int m = 0;m <= k;++m)
+        {
+            tmpVal = m_SphericalHarmonics[kIndexSH + m].getThetaPhiDerivative(theta,phi);
+
+            if (m != 0)
+            {
+                // Part for m > 0
+                resVal += sqrt(2.0) * coefficients[kIndexCoef + m] * imag(tmpVal);
+
+                // Part for m < 0
+                if (m % 2 == 0)
+                    resVal += sqrt(2.0) * coefficients[kIndexCoef - m] * real(tmpVal);
+                else
+                    resVal -= sqrt(2.0) * coefficients[kIndexCoef - m] * real(tmpVal);
+            }
             else
-                resVal += coefficients[k*(k+1)/2 + m]*real(tmpVal);
+                resVal += coefficients[kIndexCoef]*real(tmpVal);
         }
+    }
 
     return resVal;
 }
@@ -146,18 +206,30 @@ getPhiSecondDerivativeValueAtPosition(const T &coefficients, double theta, doubl
     double resVal = 0;
     std::complex <double> tmpVal;
 
-    for (int k = 0;k <= (int)m_LOrder;k += 2)
-        for (int m = -k;m <= k;++m)
-        {
-            tmpVal = m_SphericalHarmonics[k*(k+1)/2 + m].getPhiSecondDerivative(theta,phi);
+    for (unsigned int k = 0;k <= (int)m_LOrder;k += 2)
+    {
+        unsigned int kIndexCoef = k * (k + 1) / 2;
+        unsigned int kIndexSH = k * k / 4;
 
-            if (m > 0)
-                resVal += coefficients[k*(k+1)/2 + m]*sqrt(2.0)*imag(tmpVal);
-            else if (m < 0)
-                resVal += coefficients[k*(k+1)/2 + m]*sqrt(2.0)*real(tmpVal);
+        for (unsigned int m = 0;m <= k;++m)
+        {
+            tmpVal = m_SphericalHarmonics[kIndexSH + m].getPhiSecondDerivative(theta,phi);
+
+            if (m != 0)
+            {
+                // Part for m > 0
+                resVal += sqrt(2.0) * coefficients[kIndexCoef + m] * imag(tmpVal);
+
+                // Part for m < 0
+                if (m % 2 == 0)
+                    resVal += sqrt(2.0) * coefficients[kIndexCoef - m] * real(tmpVal);
+                else
+                    resVal -= sqrt(2.0) * coefficients[kIndexCoef - m] * real(tmpVal);
+            }
             else
-                resVal += coefficients[k*(k+1)/2 + m]*real(tmpVal);
+                resVal += coefficients[kIndexCoef]*real(tmpVal);
         }
+    }
 
     return resVal;
 }

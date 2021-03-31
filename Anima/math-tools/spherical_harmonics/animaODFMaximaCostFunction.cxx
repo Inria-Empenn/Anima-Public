@@ -13,7 +13,10 @@ ODFMaximaCostFunction::MeasureType ODFMaximaCostFunction::GetValue(const Paramet
 
 void ODFMaximaCostFunction::GetDerivative( const ParametersType & parameters, DerivativeType & derivative ) const
 {
-    // Purposedly not implemented
+    derivative.set_size(this->GetNumberOfParameters());
+
+    derivative[0] = m_SHBasis.getThetaFirstDerivativeValueAtPosition(m_BasisParameters, parameters[0], parameters[1]);
+    derivative[1] = m_SHBasis.getPhiFirstDerivativeValueAtPosition(m_BasisParameters, parameters[0], parameters[1]);
 }
 
 } // end of namespace anima

@@ -10,10 +10,10 @@ class ANIMASHTOOLS_EXPORT SphericalHarmonic
 {
 public:
     SphericalHarmonic();
-    SphericalHarmonic(int &l, int &m);
+    SphericalHarmonic(int l, int m);
 
-    void SetL(int &l) { if (m_L != l) {m_L = l; m_NeedUpdate = true;} }
-    void SetM(int &m) { if (m_M != m) {m_M = m; m_NeedUpdate = true;} }
+    void SetL(int l) { if (m_L != l) {m_L = l; m_NeedUpdate = true;} }
+    void SetM(int m) { if (m_M != m) {m_M = m; m_NeedUpdate = true;} }
 
     std::complex <double> Value(const double &theta, const double &phi);
 

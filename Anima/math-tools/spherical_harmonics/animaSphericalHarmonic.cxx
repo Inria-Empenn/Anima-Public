@@ -16,7 +16,7 @@ SphericalHarmonic::SphericalHarmonic()
     m_NeedUpdate = true;
 }
 
-SphericalHarmonic::SphericalHarmonic(int &l, int &m)
+SphericalHarmonic::SphericalHarmonic(int l, int m)
 {
     m_L = l;
     m_M = m;
@@ -47,6 +47,7 @@ std::complex <double> SphericalHarmonic::Value(const double &theta, const double
     this->UpdateSQRTFactor();
 
     resVal *= m_SQRTFactor * boost::math::legendre_p(m_L,absm,std::cos(theta));
+
     if (m_M < 0)
     {
         resVal = std::conj(resVal);
