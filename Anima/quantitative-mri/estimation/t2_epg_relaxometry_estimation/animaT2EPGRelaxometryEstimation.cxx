@@ -27,6 +27,10 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> resM0Arg("O","out-m0","Result M0 image",false,"","result M0 image",cmd);
     TCLAP::ValueArg<std::string> resB1Arg("","out-b1","B1 map",false,"","B1 map",cmd);
 
+    TCLAP::SwitchArg nonUniformPulseArg("N","non-uniform","Use a non uniform pulse profile (default: no)",cmd);
+    TCLAP::ValueArg<std::string> pulseProfileArg("p","pulse-profile","Pulse profile text file",false,"","pulse profile file",cmd);
+    TCLAP::ValueArg<double> pixelWidthArg("w","pixel-width","Pixel width in mm (default: 3)",false,10,"pixel width",cmd);
+
     TCLAP::ValueArg<double> trArg("","tr","Repetition time for T2 relaxometry (default: 5000)",false,5000,"repetition time",cmd);
     TCLAP::ValueArg<double> upperBoundT2Arg("u","upper-bound-t2","T2 value upper bound (default: 5000)",false,5000,"T2 value upper bound",cmd);
 
@@ -71,6 +75,39 @@ int main(int argc, char **argv)
     
     mainFilter->SetMaximumOptimizerIterations(numOptimizerIterArg.getValue());
     mainFilter->SetOptimizerStopCondition(optimizerStopConditionArg.getValue());
+
+    mainFilter->SetUniformPulse(!nonUniformPulseArg.isSet());
+    if (nonUniformPulseArg.isSet())
+    {
+        mainFilter->SetPixelWidth(pixelWidthArg.getValue());
+        if (pulseProfileArg.getValue() == "")
+        {
+            std::cerr << "Error: pulse profile needed when using non uniform pulse profile" << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        std::vector < std::pair <double, double> > pulseProfile;
+        std::ifstream inputPulse(pulseProfileArg.getValue());
+        while (!inputPulse.eof())
+        {
+            char tmpStr[2048];
+            inputPulse.getline(tmpStr,2048);
+
+            if (strcmp(tmpStr,"") == 0)
+                continue;
+
+            std::stringstream tmpInput;
+            tmpInput << tmpStr;
+
+            double xVal, yVal;
+            tmpInput >> xVal >> yVal;
+
+            pulseProfile.push_back(std::make_pair(xVal, yVal));
+        }
+
+        inputPulse.close();
+        mainFilter->SetPulseProfile(pulseProfile);
+    }
 
     if (t1MapArg.getValue() != "")
         mainFilter->SetT1Map(anima::readImage <InputImageType> (t1MapArg.getValue()));

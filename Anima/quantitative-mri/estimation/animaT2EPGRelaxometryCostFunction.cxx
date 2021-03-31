@@ -1,5 +1,7 @@
 #include "animaT2EPGRelaxometryCostFunction.h"
 #include <animaEPGSignalSimulator.h>
+#include <animaEPGProfileIntegrands.h>
+#include <animaVectorGaussLegendreQuadrature.h>
 
 namespace anima
 {
@@ -14,11 +16,30 @@ T2EPGRelaxometryCostFunction::GetValue(const ParametersType & parameters) const
     unsigned int numT2Signals = m_T2RelaxometrySignals.size();
 
     anima::EPGSignalSimulator t2SignalSimulator;
-    t2SignalSimulator.SetNumberOfEchoes(m_T2RelaxometrySignals.size());
+    t2SignalSimulator.SetNumberOfEchoes(numT2Signals);
     t2SignalSimulator.SetEchoSpacing(m_T2EchoSpacing);
     t2SignalSimulator.SetExcitationFlipAngle(m_T2ExcitationFlipAngle);
 
-    anima::EPGSignalSimulator::RealVectorType simulatedT2Values = t2SignalSimulator.GetValue(m_T1Value,m_T2Value,m_B1Value * m_T2FlipAngles[0],1.0);
+    anima::EPGSignalSimulator::RealVectorType simulatedT2Values;
+
+    if (!m_UniformPulse)
+        simulatedT2Values = t2SignalSimulator.GetValue(m_T1Value,m_T2Value,m_B1Value * m_T2FlipAngles[0],1.0);
+    else
+    {
+        anima::VectorGaussLegendreQuadrature integral;
+        double halfPixelWidth = m_PixelWidth / 2.0;
+        integral.SetInterestZone(- halfPixelWidth, halfPixelWidth);
+        integral.SetNumberOfComponents(numT2Signals);
+
+        anima::EPGMonoT2Integrand integrand;
+        integrand.SetFlipAngle(m_B1Value * m_T2FlipAngles[0]);
+        integrand.SetSignalSimulator(t2SignalSimulator);
+        integrand.SetT1Value(m_T1Value);
+        integrand.SetT2Value(m_T2Value);
+        integrand.SetSlicePulseProfile(m_PulseProfile);
+
+        simulatedT2Values = integral.GetIntegralValue(integrand);
+    }
 
     double sumSignals = 0;
     double sumSimulatedSignals = 0;
