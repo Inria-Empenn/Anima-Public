@@ -21,6 +21,7 @@ public:
 
     void SetSignalSimulator(anima::EPGSignalSimulator &simulator) {m_SignalSimulator = simulator;}
     void SetSlicePulseProfile(const std::vector < std::pair <double, double> > &profile) {m_SlicePulseProfile = profile;}
+    void SetSliceExcitationProfile(const std::vector < std::pair <double, double> > &profile) {m_SliceExcitationProfile = profile;}
 
     std::vector <double> operator() (double const t);
 
@@ -31,24 +32,7 @@ private:
 
     anima::EPGSignalSimulator m_SignalSimulator;
     std::vector < std::pair <double, double> > m_SlicePulseProfile;
+    std::vector < std::pair <double, double> > m_SliceExcitationProfile;
 };
-
-/**
- * \class SliceProfileIntegrand
- * @brief Integrand to compute the slice profile integral in EPG related estimation
- */
-class ANIMARELAXOMETRY_EXPORT SliceProfileIntegrand
-{
-public:
-    SliceProfileIntegrand() {}
-
-    void SetSlicePulseProfile(const std::vector < std::pair <double, double> > &profile) {m_SlicePulseProfile = profile;}
-
-    double operator() (double const t);
-
-private:
-    std::vector < std::pair <double, double> > m_SlicePulseProfile;
-};
-
 
 } // end namespace anima

@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 {
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 	
-    TCLAP::ValueArg<std::string> t2Arg("l","t2","List of T2 relaxometry images",true,"","T2 relaxometry images",cmd);
+    TCLAP::ValueArg<std::string> t2Arg("i","t2","List of T2 relaxometry images",true,"","T2 relaxometry images",cmd);
     TCLAP::ValueArg<std::string> maskArg("m","maskname","Computation mask",false,"","computation mask",cmd);
 
     TCLAP::ValueArg<std::string> t1MapArg("","t1","T1 map",false,"","T1 map",cmd);
@@ -27,7 +27,8 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> resM0Arg("O","out-m0","Result M0 image",false,"","result M0 image",cmd);
     TCLAP::ValueArg<std::string> resB1Arg("","out-b1","B1 map",false,"","B1 map",cmd);
 
-    TCLAP::SwitchArg nonUniformPulseArg("N","non-uniform","Use a non uniform pulse profile (default: no)",cmd);
+    TCLAP::SwitchArg nonUniformPulsesArg("N","non-uniform","Use a non uniform pulse profile (default: no)",cmd);
+    TCLAP::ValueArg<std::string> excitationProfileArg("E","excitation-profile","Excitation profile text file",false,"","excitation profile file",cmd);
     TCLAP::ValueArg<std::string> pulseProfileArg("p","pulse-profile","Pulse profile text file",false,"","pulse profile file",cmd);
     TCLAP::ValueArg<double> pixelWidthArg("w","pixel-width","Pixel width in mm (default: 3)",false,10,"pixel width",cmd);
 
@@ -76,13 +77,13 @@ int main(int argc, char **argv)
     mainFilter->SetMaximumOptimizerIterations(numOptimizerIterArg.getValue());
     mainFilter->SetOptimizerStopCondition(optimizerStopConditionArg.getValue());
 
-    mainFilter->SetUniformPulse(!nonUniformPulseArg.isSet());
-    if (nonUniformPulseArg.isSet())
+    mainFilter->SetUniformPulses(!nonUniformPulsesArg.isSet());
+    if (nonUniformPulsesArg.isSet())
     {
         mainFilter->SetPixelWidth(pixelWidthArg.getValue());
         if (pulseProfileArg.getValue() == "")
         {
-            std::cerr << "Error: pulse profile needed when using non uniform pulse profile" << std::endl;
+            std::cerr << "Error: pulse profile needed when using non uniform pulse profiles" << std::endl;
             return EXIT_FAILURE;
         }
 
@@ -105,8 +106,35 @@ int main(int argc, char **argv)
             pulseProfile.push_back(std::make_pair(xVal, yVal));
         }
 
-        inputPulse.close();
         mainFilter->SetPulseProfile(pulseProfile);
+
+        if (excitationProfileArg.getValue() == "")
+        {
+            std::cerr << "Error: excitation profile needed when using non uniform pulse profiles" << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        std::vector < std::pair <double, double> > excitationProfile;
+        std::ifstream inputExcitation(excitationProfileArg.getValue());
+        while (!inputExcitation.eof())
+        {
+            char tmpStr[2048];
+            inputExcitation.getline(tmpStr,2048);
+
+            if (strcmp(tmpStr,"") == 0)
+                continue;
+
+            std::stringstream tmpInput;
+            tmpInput << tmpStr;
+
+            double xVal, yVal;
+            tmpInput >> xVal >> yVal;
+
+            excitationProfile.push_back(std::make_pair(xVal, yVal));
+        }
+
+        inputExcitation.close();
+        mainFilter->SetExcitationProfile(excitationProfile);
     }
 
     if (t1MapArg.getValue() != "")

@@ -8,6 +8,9 @@
 #include <animaT2EPGRelaxometryCostFunction.h>
 #include <animaNLOPTOptimizers.h>
 
+#include <animaGaussLegendreQuadrature.h>
+#include <animaEPGProfileIntegrands.h>
+
 namespace anima
 {
 
@@ -123,10 +126,11 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
     cost->SetT2ExcitationFlipAngle(m_T2ExcitationFlipAngle);
     cost->SetT2FlipAngles(m_T2FlipAngles);
 
-    cost->SetUniformPulse(m_UniformPulse);
-    if (!m_UniformPulse)
+    cost->SetUniformPulses(m_UniformPulses);
+    if (!m_UniformPulses)
     {
         cost->SetPulseProfile(m_PulseProfile);
+        cost->SetExcitationProfile(m_ExcitationProfile);
         cost->SetPixelWidth(m_PixelWidth);
     }
 

@@ -7,55 +7,54 @@ std::vector <double> EPGMonoT2Integrand::operator() (double const t)
 {
     // Find value in slice profile
     using PulseIteratorType = std::vector < std::pair <double, double> >::iterator;
-    double profileValue = 1.0;
+    double pulseProfileValue = 1.0;
 
     if (t <= m_SlicePulseProfile[0].first)
-        profileValue = m_SlicePulseProfile[0].second;
+        pulseProfileValue = m_SlicePulseProfile[0].second;
     else if (t >= m_SlicePulseProfile.back().first)
-        profileValue = m_SlicePulseProfile.back().second;
+        pulseProfileValue = m_SlicePulseProfile.back().second;
     else
     {
         PulseIteratorType it = std::lower_bound(m_SlicePulseProfile.begin(), m_SlicePulseProfile.end(), std::make_pair(t, 0.0));
         PulseIteratorType itUp = it;
         ++itUp;
         if (itUp == m_SlicePulseProfile.end())
-            profileValue = it->second;
+            pulseProfileValue = it->second;
         else
         {
             double weight = (t - it->first) / (itUp->first - it->first);
-            profileValue = weight * itUp->second + (1.0 - weight) * it->second;
+            pulseProfileValue = weight * itUp->second + (1.0 - weight) * it->second;
         }
     }
 
-    std::vector <double> epgValue = m_SignalSimulator.GetValue(m_T1Value, m_T2Value, profileValue * m_FlipAngle, 1.0);
+    double excitationProfileValue = 1.0;
+
+    if (t <= m_SliceExcitationProfile[0].first)
+        excitationProfileValue = m_SliceExcitationProfile[0].second;
+    else if (t >= m_SliceExcitationProfile.back().first)
+        excitationProfileValue = m_SliceExcitationProfile.back().second;
+    else
+    {
+        PulseIteratorType it = std::lower_bound(m_SliceExcitationProfile.begin(), m_SliceExcitationProfile.end(), std::make_pair(t, 0.0));
+        PulseIteratorType itUp = it;
+        ++itUp;
+        if (itUp == m_SliceExcitationProfile.end())
+            excitationProfileValue = it->second;
+        else
+        {
+            double weight = (t - it->first) / (itUp->first - it->first);
+            excitationProfileValue = weight * itUp->second + (1.0 - weight) * it->second;
+        }
+    }
+
+    double refExcitationValue = m_SignalSimulator.GetExcitationFlipAngle();
+    m_SignalSimulator.SetExcitationFlipAngle(excitationProfileValue * refExcitationValue);
+
+    std::vector <double> epgValue = m_SignalSimulator.GetValue(m_T1Value, m_T2Value, pulseProfileValue * m_FlipAngle, 1.0);
+
+    m_SignalSimulator.SetExcitationFlipAngle(refExcitationValue);
+
     return epgValue;
-}
-
-double SliceProfileIntegrand::operator() (double const t)
-{
-    // Find value in slice profile
-    using PulseIteratorType = std::vector < std::pair <double, double> >::iterator;
-    double profileValue = 1.0;
-
-    if (t <= m_SlicePulseProfile[0].first)
-        profileValue = m_SlicePulseProfile[0].second;
-    else if (t >= m_SlicePulseProfile.back().first)
-        profileValue = m_SlicePulseProfile.back().second;
-    else
-    {
-        PulseIteratorType it = std::lower_bound(m_SlicePulseProfile.begin(), m_SlicePulseProfile.end(), std::make_pair(t, 0.0));
-        PulseIteratorType itUp = it;
-        ++itUp;
-        if (itUp == m_SlicePulseProfile.end())
-            profileValue = it->second;
-        else
-        {
-            double weight = (t - it->first) / (itUp->first - it->first);
-            profileValue = weight * itUp->second + (1.0 - weight) * it->second;
-        }
-    }
-
-    return profileValue;
 }
 
 } // end namespace anima

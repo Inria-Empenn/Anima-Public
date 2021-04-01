@@ -25,6 +25,7 @@ public:
 
     void SetEchoSpacing(double val) {m_EchoSpacing = val;}
     void SetExcitationFlipAngle(double val) {m_ExcitationFlipAngle = val;}
+    double GetExcitationFlipAngle() {return m_ExcitationFlipAngle;}
 
     void SetNumberOfEchoes(unsigned int val) {m_NumberOfEchoes = val;}
 

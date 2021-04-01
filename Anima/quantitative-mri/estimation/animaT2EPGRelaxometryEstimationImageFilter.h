@@ -50,9 +50,10 @@ public:
     void SetT2FlipAngles(std::vector <double> & flipAngles) {m_T2FlipAngles = flipAngles;}
     void SetT2FlipAngles(double singleAngle, unsigned int numAngles) {m_T2FlipAngles = std::vector <double> (numAngles,singleAngle);}
 
-    itkSetMacro(UniformPulse, bool)
+    itkSetMacro(UniformPulses, bool)
     itkSetMacro(PixelWidth, double)
     void SetPulseProfile(std::vector < std::pair <double, double> > &profile) {m_PulseProfile = profile;}
+    void SetExcitationProfile(std::vector < std::pair <double, double> > &profile) {m_ExcitationProfile = profile;}
 
 protected:
     T2EPGRelaxometryEstimationImageFilter()
@@ -74,7 +75,7 @@ protected:
         m_MaximumOptimizerIterations = 5000;
         m_OptimizerStopCondition = 1.0e-4;
 
-        m_UniformPulse = true;
+        m_UniformPulses = true;
         m_PixelWidth = 3.0;
     }
 
@@ -108,8 +109,9 @@ private:
 
     double m_T2UpperBound;
 
-    bool m_UniformPulse;
+    bool m_UniformPulses;
     std::vector < std::pair <double, double> > m_PulseProfile;
+    std::vector < std::pair <double, double> > m_ExcitationProfile;
     double m_PixelWidth;
 };
     

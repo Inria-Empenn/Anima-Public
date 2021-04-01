@@ -22,19 +22,11 @@ T2EPGRelaxometryCostFunction::GetValue(const ParametersType & parameters) const
 
     anima::EPGSignalSimulator::RealVectorType simulatedT2Values;
 
-    if (m_UniformPulse)
+    if (m_UniformPulses)
         simulatedT2Values = t2SignalSimulator.GetValue(m_T1Value,m_T2Value,m_B1Value * m_T2FlipAngles[0],1.0);
     else
     {
-        anima::GaussLegendreQuadrature sliceProfileIntegrator;
         double halfPixelWidth = m_PixelWidth / 2.0;
-        sliceProfileIntegrator.SetInterestZone(- halfPixelWidth, halfPixelWidth);
-
-        anima::SliceProfileIntegrand spIntegrand;
-        spIntegrand.SetSlicePulseProfile(m_PulseProfile);
-
-        double sliceProfileIntegral = sliceProfileIntegrator.GetIntegralValue(spIntegrand);
-
         anima::GaussLegendreQuadrature integral;
         integral.SetInterestZone(- halfPixelWidth, halfPixelWidth);
         integral.SetNumberOfComponents(numT2Signals);
@@ -45,10 +37,11 @@ T2EPGRelaxometryCostFunction::GetValue(const ParametersType & parameters) const
         integrand.SetT1Value(m_T1Value);
         integrand.SetT2Value(m_T2Value);
         integrand.SetSlicePulseProfile(m_PulseProfile);
+        integrand.SetSliceExcitationProfile(m_ExcitationProfile);
 
         simulatedT2Values = integral.GetVectorIntegralValue(integrand);
         for (unsigned int i = 0;i < numT2Signals;++i)
-            simulatedT2Values[i] /= sliceProfileIntegral;
+            simulatedT2Values[i] /= m_PixelWidth;
     }
 
     double sumSignals = 0;
