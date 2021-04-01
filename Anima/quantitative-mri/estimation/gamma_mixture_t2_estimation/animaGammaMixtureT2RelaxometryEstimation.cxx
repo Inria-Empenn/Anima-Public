@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> maskArg("m","maskname","Computation mask",false,"","computation mask",cmd);
 
     TCLAP::ValueArg<std::string> t1MapArg("","t1","T1 map",false,"","T1 map",cmd);
-    TCLAP::SwitchArg constrainArg("C","constrain","Constrain estimation of means to just the central one",cmd);
+    TCLAP::SwitchArg unconstrainArg("U","unconstrain","Unonstrain estimation of means (default: only central one estimated)",cmd);
 
     TCLAP::ValueArg<std::string> resWeightsArg("O","out-weights","Result weights image",false,"","result weights image",cmd);
     TCLAP::ValueArg<std::string> resM0Arg("","out-m0","Result M0 image",false,"","result M0 image",cmd);
@@ -45,8 +45,6 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> excitationT2FlipAngleArg("","t2-ex-flip","Excitation flip angle for T2 (in degrees, default: 90)",false,90,"T2 excitation flip angle",cmd);
     TCLAP::ValueArg<double> t2FlipAngleArg("","t2-flip","All flip angles for T2 (in degrees, default: 180)",false,180,"T2 flip angle",cmd);
     TCLAP::ValueArg<double> backgroundSignalThresholdArg("t","signal-thr","Background signal threshold (default: 10)",false,10,"Background signal threshold",cmd);
-
-    TCLAP::ValueArg<double> gammaToleranceApproxArg("","g-tol","Gamma approximation tolerance (default: 1.0e-8)",false,1.0e-8,"Gamma approximation tolerance",cmd);
 
     TCLAP::ValueArg<unsigned int> nbpArg("T","numberofthreads","Number of threads to run on (default : all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
 	
@@ -75,8 +73,7 @@ int main(int argc, char **argv)
     mainFilter->SetT2FlipAngles(t2FlipAngleArg.getValue() * M_PI / 180.0,numInputs);
     mainFilter->SetT2ExcitationFlipAngle(excitationT2FlipAngleArg.getValue() * M_PI / 180.0);
 
-    mainFilter->SetGammaIntegralTolerance(gammaToleranceApproxArg.getValue());
-    mainFilter->SetConstrainedParameters(constrainArg.isSet());
+    mainFilter->SetConstrainedParameters(!unconstrainArg.isSet());
 
 
     mainFilter->SetUniformPulses(!nonUniformPulsesArg.isSet());
