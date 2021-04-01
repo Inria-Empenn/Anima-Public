@@ -10,11 +10,11 @@ namespace anima
  * Recenters the function on the interest zone with an affine relation, then uses Gauss Legendre on the left out part of the
  * function and computes the main part with Gauss Laguerre.
  */
-class ANIMAINTEGRATION_EXPORT VectorGaussLegendreQuadrature
+class ANIMAINTEGRATION_EXPORT GaussLegendreQuadrature
 {
 public:
-    VectorGaussLegendreQuadrature();
-    virtual ~VectorGaussLegendreQuadrature() {}
+    GaussLegendreQuadrature();
+    virtual ~GaussLegendreQuadrature() {}
 
     //! Specifies region on which the main part of the function is to be seen. If not specified, [-1,1] is the region
     void SetInterestZone(double minVal, double maxVal);
@@ -22,7 +22,7 @@ public:
     void SetNumberOfComponents(unsigned int num) {m_NumberOfComponents = num;}
 
     template <class FunctionType>
-    std::vector <double> GetIntegralValue(FunctionType integrand)
+    std::vector <double> GetVectorIntegralValue(FunctionType integrand)
     {
         std::vector <double> resVal(m_NumberOfComponents, 0.0);
         std::vector <double> tmpVal;
@@ -33,6 +33,17 @@ public:
             for (unsigned int j = 0;j < m_NumberOfComponents;++j)
                 resVal[j] += m_Slope * m_ValueWeights[i] * tmpVal[j];
         }
+
+        return resVal;
+    }
+
+    template <class FunctionType>
+    double GetIntegralValue(FunctionType integrand)
+    {
+        double resVal = 0.0;
+
+        for (unsigned int i = 0;i < m_Abcissas.size();++i)
+            resVal += m_Slope * m_ValueWeights[i] * integrand(m_Abcissas[i] * m_Slope + m_Intercept);
 
         return resVal;
     }

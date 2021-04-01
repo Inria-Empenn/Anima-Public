@@ -1,7 +1,7 @@
 #include "animaT2EPGRelaxometryCostFunction.h"
 #include <animaEPGSignalSimulator.h>
 #include <animaEPGProfileIntegrands.h>
-#include <animaVectorGaussLegendreQuadrature.h>
+#include <animaGaussLegendreQuadrature.h>
 
 namespace anima
 {
@@ -26,8 +26,16 @@ T2EPGRelaxometryCostFunction::GetValue(const ParametersType & parameters) const
         simulatedT2Values = t2SignalSimulator.GetValue(m_T1Value,m_T2Value,m_B1Value * m_T2FlipAngles[0],1.0);
     else
     {
-        anima::VectorGaussLegendreQuadrature integral;
+        anima::GaussLegendreQuadrature sliceProfileIntegrator;
         double halfPixelWidth = m_PixelWidth / 2.0;
+        sliceProfileIntegrator.SetInterestZone(- halfPixelWidth, halfPixelWidth);
+
+        anima::SliceProfileIntegrand spIntegrand;
+        spIntegrand.SetSlicePulseProfile(m_PulseProfile);
+
+        double sliceProfileIntegral = sliceProfileIntegrator.GetIntegralValue(spIntegrand);
+
+        anima::GaussLegendreQuadrature integral;
         integral.SetInterestZone(- halfPixelWidth, halfPixelWidth);
         integral.SetNumberOfComponents(numT2Signals);
 
@@ -38,7 +46,9 @@ T2EPGRelaxometryCostFunction::GetValue(const ParametersType & parameters) const
         integrand.SetT2Value(m_T2Value);
         integrand.SetSlicePulseProfile(m_PulseProfile);
 
-        simulatedT2Values = integral.GetIntegralValue(integrand);
+        simulatedT2Values = integral.GetVectorIntegralValue(integrand);
+        for (unsigned int i = 0;i < numT2Signals;++i)
+            simulatedT2Values[i] /= sliceProfileIntegral;
     }
 
     double sumSignals = 0;

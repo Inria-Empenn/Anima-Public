@@ -33,4 +33,22 @@ private:
     std::vector < std::pair <double, double> > m_SlicePulseProfile;
 };
 
+/**
+ * \class SliceProfileIntegrand
+ * @brief Integrand to compute the slice profile integral in EPG related estimation
+ */
+class ANIMARELAXOMETRY_EXPORT SliceProfileIntegrand
+{
+public:
+    SliceProfileIntegrand() {}
+
+    void SetSlicePulseProfile(const std::vector < std::pair <double, double> > &profile) {m_SlicePulseProfile = profile;}
+
+    double operator() (double const t);
+
+private:
+    std::vector < std::pair <double, double> > m_SlicePulseProfile;
+};
+
+
 } // end namespace anima

@@ -146,7 +146,7 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
                 t1Value = 1000;
         }
 
-        double b1Value = 1.0;
+        double b1Value = 0.9;
         double t2Value = initT2Iterator.Get();
 
         if (maskItr.Get() == 0)
@@ -190,8 +190,8 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
         if (m_T1Map && (m_T2UpperBound > t1Value))
             upperBounds[0] = t1Value;
 
-        lowerBounds[1] = 1.0;
-        upperBounds[1] = 2.0;
+        lowerBounds[1] = 0.5;
+        upperBounds[1] = 1.0;
 
         p[0] = t2Value;
         p[1] = b1Value;
