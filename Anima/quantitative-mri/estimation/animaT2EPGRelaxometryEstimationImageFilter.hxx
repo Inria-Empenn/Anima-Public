@@ -8,9 +8,6 @@
 #include <animaT2EPGRelaxometryCostFunction.h>
 #include <animaNLOPTOptimizers.h>
 
-#include <animaGaussLegendreQuadrature.h>
-#include <animaEPGProfileIntegrands.h>
-
 namespace anima
 {
 

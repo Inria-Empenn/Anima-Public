@@ -201,11 +201,19 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
     itk::Array<double> lowerBounds(dimension);
     itk::Array<double> upperBounds(dimension);
     B1OptimizerType::ParametersType p(dimension);
-    lowerBounds[0] = 1.0 * m_T2FlipAngles[0];
-    upperBounds[0] = 2.0 * m_T2FlipAngles[0];
+    lowerBounds[0] = 0.5 * m_T2FlipAngles[0];
+    upperBounds[0] = 1.0 * m_T2FlipAngles[0];
 
     cost->SetGaussianMeans(m_GaussianMeans);
     cost->SetGaussianVariances(m_GaussianVariances);
+
+    cost->SetUniformPulses(m_UniformPulses);
+    if (!m_UniformPulses)
+    {
+        cost->SetPulseProfile(m_PulseProfile);
+        cost->SetExcitationProfile(m_ExcitationProfile);
+        cost->SetPixelWidth(m_PixelWidth);
+    }
 
     while (!maskItr.IsAtEnd())
     {
@@ -261,7 +269,7 @@ GMMT2RelaxometryEstimationImageFilter <TPixelScalarType>
         b1Optimizer->SetLowerBoundParameters(lowerBounds);
         b1Optimizer->SetUpperBoundParameters(upperBounds);
 
-        p[0] = 1.1 * m_T2FlipAngles[0];
+        p[0] = 0.9 * m_T2FlipAngles[0];
 
         b1Optimizer->SetInitialPosition(p);
         b1Optimizer->SetCostFunction(cost);

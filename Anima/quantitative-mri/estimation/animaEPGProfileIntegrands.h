@@ -1,7 +1,9 @@
 #pragma once
 #include "AnimaRelaxometryExport.h"
 #include <animaEPGSignalSimulator.h>
+#include <animaB1GMMDistributionIntegrand.h>
 #include <vector>
+#include <cmath>
 
 namespace anima
 {
@@ -31,6 +33,40 @@ private:
     double m_FlipAngle;
 
     anima::EPGSignalSimulator m_SignalSimulator;
+    std::vector < std::pair <double, double> > m_SlicePulseProfile;
+    std::vector < std::pair <double, double> > m_SliceExcitationProfile;
+};
+
+/**
+ * \class EPGGMMT2Integrand
+ * @brief Integrand to compute the internal integral of EPG along slice profile in B1GMMRelaxometryCostFunction
+ */
+class ANIMARELAXOMETRY_EXPORT EPGGMMT2Integrand
+{
+public:
+    EPGGMMT2Integrand()
+    {
+        m_ReferenceFlipAngle = M_PI;
+        m_NumberOfComponents = 1;
+    }
+
+    void SetReferenceFlipAngle(double val) {m_ReferenceFlipAngle = val;}
+
+    void SetSlicePulseProfile(const std::vector < std::pair <double, double> > &profile) {m_SlicePulseProfile = profile;}
+    void SetSliceExcitationProfile(const std::vector < std::pair <double, double> > &profile) {m_SliceExcitationProfile = profile;}
+
+    void SetDistributionIntegrand(anima::B1GMMDistributionIntegrand &integrand) {m_DistributionIntegrand = integrand;}
+
+    void SetNumberOfComponents(unsigned int num) {m_NumberOfComponents = num;}
+
+    std::vector <double> operator() (double const t);
+
+private:
+    double m_ReferenceFlipAngle;
+
+    unsigned int m_NumberOfComponents;
+
+    anima::B1GMMDistributionIntegrand m_DistributionIntegrand;
     std::vector < std::pair <double, double> > m_SlicePulseProfile;
     std::vector < std::pair <double, double> > m_SliceExcitationProfile;
 };

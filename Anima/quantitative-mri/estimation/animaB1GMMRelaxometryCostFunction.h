@@ -50,6 +50,11 @@ public:
     void SetGaussianMeans(std::vector <double> &val) {m_GaussianMeans = val;m_TruncatedGaussianIntegrals.clear();}
     void SetGaussianVariances(std::vector <double> &val) {m_GaussianVariances = val;m_TruncatedGaussianIntegrals.clear();}
 
+    itkSetMacro(UniformPulses, bool)
+    itkSetMacro(PixelWidth, double)
+    void SetPulseProfile(std::vector < std::pair <double, double> > &profile) {m_PulseProfile = profile;}
+    void SetExcitationProfile(std::vector < std::pair <double, double> > &profile) {m_ExcitationProfile = profile;}
+
     unsigned int GetNumberOfParameters() const ITK_OVERRIDE
     {
         return 1;
@@ -65,6 +70,9 @@ protected:
 
         m_T1Value = 1;
         m_EchoSpacing = 1;
+
+        m_UniformPulses = true;
+        m_PixelWidth = 3.0;
     }
 
     virtual ~B1GMMRelaxometryCostFunction() {}
@@ -91,6 +99,11 @@ private:
 
     // Internal working variables, not thread safe but so much faster !
     mutable anima::EPGSignalSimulator m_T2SignalSimulator;
+
+    bool m_UniformPulses;
+    std::vector < std::pair <double, double> > m_PulseProfile;
+    std::vector < std::pair <double, double> > m_ExcitationProfile;
+    double m_PixelWidth;
 
     mutable ParametersType m_FSignals;
     mutable ParametersType m_Residuals;
