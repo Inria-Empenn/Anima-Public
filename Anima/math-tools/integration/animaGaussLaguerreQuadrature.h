@@ -2,7 +2,7 @@
 #include "AnimaIntegrationExport.h"
 #include <vector>
 
-#include <boost/math/quadrature/gauss.hpp>
+#include <animaGaussLegendreQuadrature.h>
 
 namespace anima
 {
@@ -21,12 +21,18 @@ public:
     //! Specifies region on which the main part of the function is to be seen. If not specified, R^+ is the region
     void SetInterestZone(double minVal, double maxVal);
 
+    void SetNumberOfComponents(unsigned int num) {m_NumberOfComponents = num;}
+
     template <class FunctionType>
     double GetIntegralValue(FunctionType integrand)
     {
         double deltaPart = 0.0;
         if (m_DeltaValue > 0.0)
-            deltaPart = boost::math::quadrature::gauss <double, 15>::integrate(integrand, 0.0, m_DeltaValue);
+        {
+            anima::GaussLegendreQuadrature glQuad;
+            glQuad.SetInterestZone(0.0, m_DeltaValue);
+            deltaPart = glQuad.GetIntegralValue(integrand);
+        }
 
         double laguerrePart = 0.0;
         for (unsigned int i = 0;i < m_Abcissas.size();++i)
@@ -36,11 +42,35 @@ public:
 
     }
 
+    template <class FunctionType>
+    std::vector <double> GetVectorIntegralValue(FunctionType integrand)
+    {
+        std::vector <double> integrandPart;
+        std::vector <double> resVal(m_NumberOfComponents, 0.0);
+
+        if (m_DeltaValue > 0.0)
+        {
+            anima::GaussLegendreQuadrature glQuad;
+            glQuad.SetInterestZone(0.0, m_DeltaValue);
+            resVal = glQuad.GetIntegralValue(integrand);
+        }
+
+        for (unsigned int i = 0;i < m_Abcissas.size();++i)
+        {
+            integrandPart = integrand(m_ScaleValue * m_Abcissas[i] + m_DeltaValue);
+            for (unsigned int j = 0;j < m_NumberOfComponents;++j)
+                resVal[j] += m_ValueWeights[i] * integrandPart[j] * m_ScaleValue;
+        }
+
+        return resVal;
+    }
+
 private:
     //! Delta for computing the integral. Since the Laguerre zeroes are up to about 50, this is to ensure the function values are meaningful
     double m_DeltaValue;
-
     double m_ScaleValue;
+
+    unsigned int m_NumberOfComponents;
 
     //! Function value weights as computed in Rabinowitz, P.; Weiss, G. (1959). doi:10.1090/S0025-5718-1959-0107992-3
     const std::vector <double> m_ValueWeights =

@@ -1,4 +1,5 @@
 #include <animaGaussLaguerreQuadrature.h>
+#include <animaGaussLegendreQuadrature.h>
 #include <cmath>
 #include <iostream>
 
@@ -24,6 +25,7 @@ int main(int argc, char **argv)
     double gaussianVariance = 25.0;
 
     anima::GaussLaguerreQuadrature glQuad;
+    anima::GaussLegendreQuadrature legendreQuad;
 
     IntegrandType integrand;
     integrand.m_GaussianMean = gaussianMean;
@@ -43,6 +45,9 @@ int main(int argc, char **argv)
 
         integralValue = boost::math::quadrature::gauss <double, 15>::integrate(integrand, std::max(0.0,minValue), maxValue);
         std::cout << "Gauss Legendre value: " << integralValue << std::endl;
+
+        legendreQuad.SetInterestZone(std::max(0.0,minValue), maxValue);
+        std::cout << "Anima Gauss Legendre value: " << legendreQuad.GetIntegralValue(integrand) << std::endl;
     }
 
     return EXIT_SUCCESS;

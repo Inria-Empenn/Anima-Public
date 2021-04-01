@@ -8,6 +8,7 @@ GaussLaguerreQuadrature::GaussLaguerreQuadrature()
 {
     m_DeltaValue = 0.0;
     m_ScaleValue = 1.0;
+    m_NumberOfComponents = 1;
 }
 
 void GaussLaguerreQuadrature::SetInterestZone(double minVal, double maxVal)
