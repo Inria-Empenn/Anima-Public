@@ -184,8 +184,8 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
     itk::Array<double> lowerBounds(dimension);
     itk::Array<double> upperBounds(dimension);
     B1OptimizerType::ParametersType p(dimension);
-    lowerBounds[0] = 1.0 * m_T2FlipAngles[0];
-    upperBounds[0] = 2.0 * m_T2FlipAngles[0];
+    lowerBounds[0] = 0.5 * m_T2FlipAngles[0];
+    upperBounds[0] = 1.0 * m_T2FlipAngles[0];
 
     // NL specific variables
     std::vector <double> workDataWeights;
@@ -248,13 +248,20 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
         cost->SetT1Value(t1Value);
         cost->SetT2Values(m_T2CompartmentValues);
         cost->SetT2RelaxometrySignals(signalValues);
+        cost->SetUniformPulses(m_UniformPulses);
+        if (!m_UniformPulses)
+        {
+            cost->SetPulseProfile(m_PulseProfile);
+            cost->SetExcitationProfile(m_ExcitationProfile);
+            cost->SetPixelWidth(m_PixelWidth);
+        }
 
         double b1Value;
 
         if (m_InitialB1Map)
             b1Value = initB1Iterator.Get() * m_T2FlipAngles[0];
         else
-            b1Value = 1.1 * m_T2FlipAngles[0];
+            b1Value = 0.9 * m_T2FlipAngles[0];
 
         if (m_RegularizationType == RegularizationType::NLTikhonov)
         {

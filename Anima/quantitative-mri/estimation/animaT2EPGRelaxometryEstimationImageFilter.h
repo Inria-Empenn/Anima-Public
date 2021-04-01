@@ -6,6 +6,7 @@
 
 namespace anima
 {
+
 template <typename TInputImage, typename TOutputImage>
 class T2EPGRelaxometryEstimationImageFilter :
 public anima::MaskedImageToImageFilter<TInputImage,TOutputImage>
