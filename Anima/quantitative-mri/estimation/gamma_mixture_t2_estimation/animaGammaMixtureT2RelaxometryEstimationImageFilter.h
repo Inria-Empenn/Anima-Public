@@ -62,6 +62,11 @@ public:
     void SetT2FlipAngles(std::vector <double> & flipAngles) {m_T2FlipAngles = flipAngles;}
     void SetT2FlipAngles(double singleAngle, unsigned int numAngles) {m_T2FlipAngles = std::vector <double> (numAngles,singleAngle);}
 
+    itkSetMacro(UniformPulses, bool)
+    itkSetMacro(PixelWidth, double)
+    void SetPulseProfile(std::vector < std::pair <double, double> > &profile) {m_PulseProfile = profile;}
+    void SetExcitationProfile(std::vector < std::pair <double, double> > &profile) {m_ExcitationProfile = profile;}
+
 protected:
     GammaMixtureT2RelaxometryEstimationImageFilter()
         : Superclass()
@@ -92,7 +97,10 @@ protected:
 
         m_GammaIntegralTolerance = 1.0e-8;
 
-        m_T2ExcitationFlipAngle = M_PI / 6;
+        m_T2ExcitationFlipAngle = M_PI / 2.0;
+
+        m_UniformPulses = true;
+        m_PixelWidth = 3.0;
     }
 
     virtual ~GammaMixtureT2RelaxometryEstimationImageFilter() {}
@@ -132,6 +140,11 @@ private:
     double m_EchoSpacing;
     std::vector <double> m_T2FlipAngles;
     double m_T2ExcitationFlipAngle;
+
+    bool m_UniformPulses;
+    std::vector < std::pair <double, double> > m_PulseProfile;
+    std::vector < std::pair <double, double> > m_ExcitationProfile;
+    double m_PixelWidth;
 };
 
 } // end namespace anima

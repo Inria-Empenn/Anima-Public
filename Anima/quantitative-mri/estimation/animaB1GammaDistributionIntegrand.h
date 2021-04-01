@@ -1,9 +1,6 @@
 #pragma once
-
 #include "AnimaRelaxometryExport.h"
 
-#include <vector>
-#include <map>
 #include <animaEPGSignalSimulator.h>
 
 namespace anima
@@ -16,29 +13,26 @@ namespace anima
 class ANIMARELAXOMETRY_EXPORT B1GammaDistributionIntegrand
 {
 public:
-    using EPGVectorsMapType = std::map <double, anima::EPGSignalSimulator::RealVectorType>;
-    B1GammaDistributionIntegrand(anima::EPGSignalSimulator &sigSim, EPGVectorsMapType &val)
-        : m_EPGSimulator(sigSim), m_EPGVectors (val) {}
+    B1GammaDistributionIntegrand() {}
+
+    void SetEPGSimulator(anima::EPGSignalSimulator &sim) {m_EPGSimulator = sim;}
+    anima::EPGSignalSimulator &GetEPGSimulator() {return m_EPGSimulator;}
 
     void SetT1Value(double val) {m_T1Value = val;}
     void SetFlipAngle(double val) {m_FlipAngle = val;}
-    void SetEchoNumber(unsigned int val) {m_EchoNumber = val;}
 
     void SetGammaMean(double val) {m_GammaMean = val;}
     void SetGammaVariance(double val) {m_GammaVariance = val;}
+    double GetGammaMean() {return m_GammaMean;}
+    double GetGammaVariance() {return m_GammaVariance;}
 
-    virtual double operator() (double const t);
+    virtual std::vector <double> operator() (double const t);
 
 protected:
-    //! EPG signal simulator reference: instantiated outside
-    anima::EPGSignalSimulator &m_EPGSimulator;
+    anima::EPGSignalSimulator m_EPGSimulator;
 
     double m_T1Value;
     double m_FlipAngle;
-    unsigned int m_EchoNumber;
-
-    //! Since boost Gauss Legendre integration works on object copies, we need to keep a reference to EPG vectors, held externally
-    EPGVectorsMapType &m_EPGVectors;
 
     double m_GammaMean, m_GammaVariance;
 };
