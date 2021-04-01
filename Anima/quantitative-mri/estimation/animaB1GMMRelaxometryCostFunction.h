@@ -13,7 +13,7 @@ namespace anima
 
 /**
  * \class B1GMMRelaxometryCostFunction
- * \brief Cost function for estimating B1 from T2 relaxometry acquisition, following a multi-T2 EPG decay model.
+ * \brief Cost function for estimating B1 from T2 relaxometry acquisition, following a gaussian mixture EPG decay model.
  * The cost function includes (via variable projection) estimation of compartment weights
  *
  */

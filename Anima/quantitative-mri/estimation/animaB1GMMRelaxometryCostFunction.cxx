@@ -48,6 +48,8 @@ B1GMMRelaxometryCostFunction::PrepareDataForLLS() const
     t2Integrand.SetFlipAngle(m_TestedParameters[0]);
 
     anima::GaussLaguerreQuadrature glQuad;
+    glQuad.SetNumberOfComponents(numT2Signals);
+
     if (m_TruncatedGaussianIntegrals.size() != numDistributions)
     {
         m_TruncatedGaussianIntegrals.resize(numDistributions);
@@ -55,21 +57,21 @@ B1GMMRelaxometryCostFunction::PrepareDataForLLS() const
             m_TruncatedGaussianIntegrals[i] = 0.5 * (1.0 + boost::math::erf(m_GaussianMeans[i] / std::sqrt(2.0 * m_GaussianVariances[i])));
     }
 
+    std::vector <double> predictedSignals(numT2Signals, 0.0);
     for (unsigned int i = 0;i < numDistributions;++i)
     {
         t2Integrand.SetGaussianMean(m_GaussianMeans[i]);
         t2Integrand.SetGaussianVariance(m_GaussianVariances[i]);
-        t2Integrand.ClearInternalEPGVectors();
 
         double minInterestZoneValue = m_GaussianMeans[i] - 5.0 * std::sqrt(m_GaussianVariances[i]);
         double maxInterestZoneValue = m_GaussianMeans[i] + 5.0 * std::sqrt(m_GaussianVariances[i]);
 
         glQuad.SetInterestZone(minInterestZoneValue, maxInterestZoneValue);
+        predictedSignals = glQuad.GetVectorIntegralValue(t2Integrand);
 
         for (unsigned int j = 0;j < numT2Signals;++j)
         {
-            t2Integrand.SetEchoNumber(j);
-            m_PredictedSignalAttenuations(j,i) = glQuad.GetIntegralValue(t2Integrand) / m_TruncatedGaussianIntegrals[i];
+            m_PredictedSignalAttenuations(j,i) = predictedSignals[j] / m_TruncatedGaussianIntegrals[i];
             if (m_PredictedSignalAttenuations(j,i) > 1.0)
                 m_PredictedSignalAttenuations(j,i) = 1.0;
         }

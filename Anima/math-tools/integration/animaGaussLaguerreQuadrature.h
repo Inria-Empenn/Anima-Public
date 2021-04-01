@@ -52,7 +52,8 @@ public:
         {
             anima::GaussLegendreQuadrature glQuad;
             glQuad.SetInterestZone(0.0, m_DeltaValue);
-            resVal = glQuad.GetIntegralValue(integrand);
+            glQuad.SetNumberOfComponents(m_NumberOfComponents);
+            resVal = glQuad.GetVectorIntegralValue(integrand);
         }
 
         for (unsigned int i = 0;i < m_Abcissas.size();++i)
