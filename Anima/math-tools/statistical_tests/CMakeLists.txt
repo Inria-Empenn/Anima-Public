@@ -47,6 +47,7 @@ set_lib_install_rules(${PROJECT_NAME})
 ## #############################################################################
 
 add_subdirectory(fdr_correct_pvalues)
+add_subdirectory(fibers_fdr_correct_pvalues)
 add_subdirectory(low_memory_tools)
 add_subdirectory(nlmeans_patient_to_group_comparison)
 add_subdirectory(patient_to_group_odf_comparison)
