@@ -20,6 +20,11 @@ ODF patient to group comparison
 
 **animaPatientToGroupODFComparison** implements the same test as in [1] but for ODF data. In addition to parameters of **animaPatientToGroupComparison**, the user has to specify a set of gradient directions (bvec or text file) on which the ODF will be sampled.
 
+Along fibers patient to group comparison
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**animaPatientToGroupComparisonOnTracks** implements the same test as in [1] but is doing so for properties along fiber tracts. It takes as an inputs fiber compatible formats (vtk, vtp, fds), a single one for the patient and a text file list of reference fibers. For each point of the patient fiber tract and each attribute in the fibers, it will compute the associated p-value. As for its voxelwise counterparts, it is advised to use FDR correction to correct for multiple comparisons afterwards.
+
 Non local patient to group comparison
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -42,7 +47,12 @@ We provide an implementation of a population comparison tool proposed by Whitche
 Multiple comparisons correction
 -------------------------------
 
-When doing the above mentioned tests, multiple comparisons are being made that need to be corrected for. **animaFDRCorrectPValues** implements FDR correction as presented by Benjamini and Hochberg [5]. It provides as an output thresholded p-values at q-value specified by the ``-q`` option.
+When doing the above mentioned tests, multiple comparisons are being made that need to be corrected for. **animaFDRCorrectPValues** implements FDR correction as presented by Benjamini and Hochberg [5]. It provides as an output thresholded p-values at q-value specified by the ``-q`` option. Similarly, **animaFibersFDRCorrectPValues** implements FDR correction on fibers, treating each point of the fibers as a single test.
+
+Disease burden scores
+---------------------
+
+Linked to a work presented at ISMRM 2021 [6], we have introduced a disease burden score tool, set to compute on a n input fiber bundle the percentage of fibers being impacted by abnormalities along their trajectories as detected by the patient to group comparison along fibers. This tool is called **animaFibersDiseaseScores**.
 
 Low memory tools
 ----------------
@@ -61,3 +71,4 @@ References
 3. B\. Whitcher, J\.J\. Wisco, N\. Hadjikhani and D\.S\. Tuch\. *Statistical group comparison of diffusion tensors via multivariate hypothesis testing*. Magnetic Resonance in Medicine, 57(6):1065-1074, June 2007.
 4. O\. Commowick, N\. I\. Weisenfeld, H\. Als, G\. B\. McAnulty, S\. Butler, L\. Lightbody, R\. M\. Robertson and S\. K\. Warfield. *Evaluation of White Matter in Preterm Infants With Fetal Growth Restriction*, In Proceedings of the Workshop on Image Analysis for the Developing Brain, held in conjunction with MICCAI'09, September 2009.
 5. Y\. Benjamini and Y\. Hochberg. *Controlling the False Discovery Rate: A Practical and Powerful Approach to Multiple Testing*. Journal of the Royal Statistical Society. Series B (Methodological), Vol. 57, No. 1 (1995), pp. 289-300.
+6. O\. Commowick, R\. Hédouin, C\. Laurent, J\.-C\. Ferré. *Patient specific tracts-based analysis of diffusion compartment models: application to multiple sclerosis patients with acute optic neuritis*. ISMRM 2021.

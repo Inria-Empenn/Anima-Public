@@ -173,6 +173,11 @@ Filtering fibers
 
 	animaFibersFilterer -i fibers.fds -o filtered_fibers.fds -r roi_image.nrrd -t 1 -t 2 -f 3 
 
+Extracting MCM properties along tracts
+""""""""""""""""""""""""""""""""""""""
+
+**animaTracksMCMPropertiesExtraction** is a tool to extract MCM compartment properties along tracts. It benefits from the multi-compartment nature of MCMs to extract the compartment closest to the fiber pathway and attaches the main diffusivity and anisotrpy of that compartment to the corresponding fiber point. It takes as an input a fiber bundle (fiber compatible format) and an MCM image. this work results from published work in [13].
+
 References
 ----------
 
@@ -188,3 +193,4 @@ References
 10. Aymeric Stamm, Olivier Commowick, Patrick Pérez, Christian Barillot. *Fast Identification of Optimal Fascicle Configurations from Standard Clinical Diffusion MRI Using Akaike Information Criterion*. IEEE International Symposium on Biomedical Imaging, 2014.
 11. Renaud Hédouin, Olivier Commowick, Aymeric Stamm, Christian Barillot. *Interpolation and Averaging of Multi-Compartment Model Images*, 18th International Conference on Medical Image Computing and Computer Assisted Intervention (MICCAI), 354-362, 2015.
 12. Hui Zhang, Torben Schneider, Claudia A. Wheeler-Kingshott, Daniel C. Alexander. *NODDI: Practical in vivo neurite orientation dispersion and density imaging of the human brain*, NeuroImage, 61:4, 1000-1016, 2012.
+13. O\. Commowick, R\. Hédouin, C\. Laurent, J\.-C\. Ferré. *Patient specific tracts-based analysis of diffusion compartment models: application to multiple sclerosis patients with acute optic neuritis*. ISMRM 2021.
