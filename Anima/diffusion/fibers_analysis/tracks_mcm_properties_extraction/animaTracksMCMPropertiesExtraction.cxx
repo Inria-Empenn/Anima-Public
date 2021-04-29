@@ -1,7 +1,7 @@
 #include <cmath>
 #include <sstream>
 
-#include <animaMCMPrivateFileReader.h>
+#include <animaMCMFileReader.h>
 #include <animaShapesWriter.h>
 #include <animaShapesReader.h>
 
@@ -15,11 +15,11 @@
 #include <vtkDoubleArray.h>
 #include <vtkGenericCell.h>
 
-#include <animaMCMPrivateLinearInterpolateImageFunction.h>
+#include <animaMCMLinearInterpolateImageFunction.h>
 #include <animaHyperbolicFunctions.h>
 #include <itkPoolMultiThreader.h>
 
-void ComputePropertiesOnOneCell(vtkCell *cell, anima::MCMPrivateLinearInterpolateImageFunction <anima::MCMImage <double, 3> > *mcmInterpolator,
+void ComputePropertiesOnOneCell(vtkCell *cell, anima::MCMLinearInterpolateImageFunction <anima::MCMImage <double, 3> > *mcmInterpolator,
                                 std::vector < vtkSmartPointer <vtkDoubleArray> > &myParameters, anima::MultiCompartmentModel *mcm)
 {   
     typedef itk::VariableLengthVector <double> VectorType;
@@ -177,7 +177,7 @@ void ComputePropertiesOnOneCell(vtkCell *cell, anima::MCMPrivateLinearInterpolat
 typedef struct
 {
     vtkPolyData *tracks;
-    anima::MCMPrivateLinearInterpolateImageFunction <anima::MCMImage <double, 3> > *mcmInterpolator;
+    anima::MCMLinearInterpolateImageFunction <anima::MCMImage <double, 3> > *mcmInterpolator;
     std::vector < vtkSmartPointer <vtkDoubleArray> > myParameters;
     anima::MultiCompartmentModel *mcm;
 } ThreaderArguments;
@@ -233,13 +233,13 @@ int main(int argc,  char **argv)
     typedef anima::MCMImage <double, 3> ModelImageType;
     typedef ModelImageType::Pointer ModelImagePointer;
 
-    typedef anima::MCMPrivateLinearInterpolateImageFunction <ModelImageType> mcmInterpolatorType;
+    typedef anima::MCMLinearInterpolateImageFunction <ModelImageType> mcmInterpolatorType;
     typedef mcmInterpolatorType::Pointer mcmInterpolatorPointer;
 
     typedef anima::MultiCompartmentModel MCMType;
     typedef MCMType::Pointer MCMPointer;
 
-    anima::MCMPrivateFileReader <double,3> mcmReader;
+    anima::MCMFileReader <double,3> mcmReader;
     mcmReader.SetFileName(mcmArg.getValue());
     mcmReader.Update();
 
@@ -270,7 +270,6 @@ int main(int argc,  char **argv)
 
     mcmInterpolatorPointer mcmInterpolator = mcmInterpolatorType::New();
     mcmInterpolator->SetInputImage(inputImage);
-    mcmInterpolator->SetDDIInterpolationMethod(3);
     mcmInterpolator->SetReferenceOutputModel(mcm);
 
     int nbOfComponents = 4;
