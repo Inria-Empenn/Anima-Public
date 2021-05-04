@@ -9,5 +9,10 @@ add_subdirectory(dti_tools)
 add_subdirectory(mcm)
 add_subdirectory(mcm_estimator)
 add_subdirectory(mcm_tools)
-add_subdirectory(tractography)
+
+if(USE_VTK AND VTK_FOUND)
+  add_subdirectory(fibers_analysis)
+  add_subdirectory(tractography)
+endif()
+
 add_subdirectory(odf)

@@ -32,6 +32,8 @@ set(BINARY_TOOLS_LIST
   animaFDRCorrectPValues
   animaFibersApplyTransformSerie
   animaFibersCounter
+  animaFibersDiseaseScores
+  animaFibersFDRCorrectPValues
   animaFibersFilterer
   animaFillHoleImage
   animaGammaMixtureT2RelaxometryEstimation
@@ -81,6 +83,7 @@ set(BINARY_TOOLS_LIST
   animaODFProbabilisticTractography
   animaOtsuThrImage
   animaPatientToGroupComparison
+  animaPatientToGroupComparisonOnTracks
   animaPatientToGroupODFComparison
   animaPyramidalBMRegistration
   animaRemoveTouchingBorder
@@ -102,6 +105,7 @@ set(BINARY_TOOLS_LIST
   animaTensorApplyTransformSerie
   animaThrImage
   animaTotalLesionLoad
+  animaTracksMCMPropertiesExtraction
   animaTransformSerieXmlGenerator
   animaVectorizeImages
   )
