@@ -88,6 +88,17 @@ Image conversion
 
 	animaConvertImage -i Image.nii.gz -I -R CORONAL -o Image_Coronal.nrrd
 
+Shapes format conversion
+------------------------
+
+**animaConvertShapes** allows you to convert shapes (fibers, surfaces, etc.) between file formats supported by Anima (vtk, vtp, fds, csv).
+
+*Example:* this converts a VTK ascii file to a VTP file.
+
+.. code-block:: sh
+
+	animaConvertShapes -i Shape.vtk -o Shape.vtp
+
 Image cropping
 --------------
 
