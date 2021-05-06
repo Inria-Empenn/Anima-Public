@@ -1,5 +1,6 @@
 #include "animaEPGProfileIntegrands.h"
 
+#include <algorithm>
 #include <animaGaussLaguerreQuadrature.h>
 
 namespace anima
