@@ -1,4 +1,4 @@
-project(AnimaRelaxometry)
+project(AnimaIntegration)
 
 ## #############################################################################
 ## List Sources
@@ -22,9 +22,6 @@ add_library(${PROJECT_NAME}
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME}
-  AnimaSignalSimulation
-  AnimaIntegration
-  AnimaOptimizers
   ITKCommon
   )
 
@@ -45,18 +42,6 @@ generate_export_header(${PROJECT_NAME}
 
 set_lib_install_rules(${PROJECT_NAME})
 
-## #############################################################################
-## Subdirs executables
-## #############################################################################
-
-add_subdirectory(gamma_mixture_t2_estimation)
-add_subdirectory(gmm_t2_estimation)
-add_subdirectory(multi_t2_estimation)
-add_subdirectory(t1_relaxometry_estimation)
-add_subdirectory(t1_se_relaxometry_estimation)
-add_subdirectory(t2_epg_relaxometry_estimation)
-add_subdirectory(t2_relaxometry_estimation)
-
-if (BUILD_TESTING AND BUILD_TOOLS)
-  add_subdirectory(gmm_t2_test)
+if (BUILD_TESTING)
+  add_subdirectory(gauss_laguerre_test)
 endif()

@@ -18,20 +18,16 @@ class ANIMARELAXOMETRY_EXPORT B1GammaDerivativeDistributionIntegrand : public B1
 {
 public:
     using Superclass = B1GammaDistributionIntegrand;
-    B1GammaDerivativeDistributionIntegrand(anima::EPGSignalSimulator &sigSim, EPGVectorsMapType &val, EPGVectorsMapType &derVal)
-        : B1GammaDistributionIntegrand(sigSim,val), m_DerivativeEPGVectors(derVal)
+    B1GammaDerivativeDistributionIntegrand()
     {
         m_B1DerivativeFlag = true;
     }
 
     void SetB1DerivativeFlag(bool val) {m_B1DerivativeFlag = val;}
 
-    virtual double operator() (double const t) override;
+    virtual std::vector <double> operator() (double const t) override;
 
 private:
-    //! Since boost Gauss Legendre integration works on object copies, we need to keep a reference to EPG derivative vectors, held externally
-    EPGVectorsMapType &m_DerivativeEPGVectors;
-
     bool m_B1DerivativeFlag;
 };
 

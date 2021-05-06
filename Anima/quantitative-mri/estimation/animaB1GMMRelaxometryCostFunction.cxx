@@ -1,7 +1,10 @@
 #include <animaB1GMMRelaxometryCostFunction.h>
 #include <animaB1GMMDistributionIntegrand.h>
 #include <animaBaseTensorTools.h>
+
 #include <animaGaussLaguerreQuadrature.h>
+#include <animaGaussLegendreQuadrature.h>
+#include <animaEPGProfileIntegrands.h>
 
 #include <boost/math/special_functions/erf.hpp>
 
@@ -43,11 +46,11 @@ B1GMMRelaxometryCostFunction::PrepareDataForLLS() const
     // Contains int_{space of ith distribution} EPG(t2, b1, jth echo) G(t2, mu_i, sigma_i) d t2
     m_PredictedSignalAttenuations.set_size(numT2Signals,numDistributions);
 
-    B1GMMDistributionIntegrand t2Integrand(m_T2SignalSimulator);
+    B1GMMDistributionIntegrand t2Integrand;
+    t2Integrand.SetEPGSimulator(m_T2SignalSimulator);
     t2Integrand.SetT1Value(m_T1Value);
     t2Integrand.SetFlipAngle(m_TestedParameters[0]);
 
-    anima::GaussLaguerreQuadrature glQuad;
     if (m_TruncatedGaussianIntegrals.size() != numDistributions)
     {
         m_TruncatedGaussianIntegrals.resize(numDistributions);
@@ -55,21 +58,46 @@ B1GMMRelaxometryCostFunction::PrepareDataForLLS() const
             m_TruncatedGaussianIntegrals[i] = 0.5 * (1.0 + boost::math::erf(m_GaussianMeans[i] / std::sqrt(2.0 * m_GaussianVariances[i])));
     }
 
+    std::vector <double> predictedSignals(numT2Signals, 0.0);
     for (unsigned int i = 0;i < numDistributions;++i)
     {
         t2Integrand.SetGaussianMean(m_GaussianMeans[i]);
         t2Integrand.SetGaussianVariance(m_GaussianVariances[i]);
-        t2Integrand.ClearInternalEPGVectors();
 
-        double minInterestZoneValue = m_GaussianMeans[i] - 5.0 * std::sqrt(m_GaussianVariances[i]);
-        double maxInterestZoneValue = m_GaussianMeans[i] + 5.0 * std::sqrt(m_GaussianVariances[i]);
+        if (m_UniformPulses)
+        {
+            anima::GaussLaguerreQuadrature glQuad;
+            glQuad.SetNumberOfComponents(numT2Signals);
 
-        glQuad.SetInterestZone(minInterestZoneValue, maxInterestZoneValue);
+            double minInterestZoneValue = m_GaussianMeans[i] - 5.0 * std::sqrt(m_GaussianVariances[i]);
+            double maxInterestZoneValue = m_GaussianMeans[i] + 5.0 * std::sqrt(m_GaussianVariances[i]);
+
+            glQuad.SetInterestZone(minInterestZoneValue, maxInterestZoneValue);
+
+            predictedSignals = glQuad.GetVectorIntegralValue(t2Integrand);
+        }
+        else
+        {
+            double halfPixelWidth = m_PixelWidth / 2.0;
+            anima::GaussLegendreQuadrature spIntegral;
+            spIntegral.SetInterestZone(- halfPixelWidth, halfPixelWidth);
+            spIntegral.SetNumberOfComponents(numT2Signals);
+
+            anima::EPGGMMT2Integrand spIntegrand;
+            spIntegrand.SetReferenceFlipAngle(m_TestedParameters[0]);
+            spIntegrand.SetDistributionIntegrand(t2Integrand);
+            spIntegrand.SetNumberOfComponents(numT2Signals);
+            spIntegrand.SetSlicePulseProfile(m_PulseProfile);
+            spIntegrand.SetSliceExcitationProfile(m_ExcitationProfile);
+
+            predictedSignals = spIntegral.GetVectorIntegralValue(spIntegrand);
+            for (unsigned int i = 0;i < numT2Signals;++i)
+                predictedSignals[i] /= m_PixelWidth;
+        }
 
         for (unsigned int j = 0;j < numT2Signals;++j)
         {
-            t2Integrand.SetEchoNumber(j);
-            m_PredictedSignalAttenuations(j,i) = glQuad.GetIntegralValue(t2Integrand) / m_TruncatedGaussianIntegrals[i];
+            m_PredictedSignalAttenuations(j,i) = predictedSignals[j] / m_TruncatedGaussianIntegrals[i];
             if (m_PredictedSignalAttenuations(j,i) > 1.0)
                 m_PredictedSignalAttenuations(j,i) = 1.0;
         }

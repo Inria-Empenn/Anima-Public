@@ -145,15 +145,22 @@ GammaMixtureT2RelaxometryEstimationImageFilter <TPixelScalarType>
     cost->SetGammaMeans(MeanParamsInit);
     cost->SetGammaVariances(VarParamsFixed);
     cost->SetConstrainedParameters(m_ConstrainedParameters);
-    cost->SetGammaIntegralTolerance(m_GammaIntegralTolerance);
+
+    cost->SetUniformPulses(m_UniformPulses);
+    if (!m_UniformPulses)
+    {
+        cost->SetPulseProfile(m_PulseProfile);
+        cost->SetExcitationProfile(m_ExcitationProfile);
+        cost->SetPixelWidth(m_PixelWidth);
+    }
 
     unsigned int dimension = cost->GetNumberOfParameters();
 
     itk::Array<double> lowerBounds(dimension);
     itk::Array<double> upperBounds(dimension);
     OptimizerType::ParametersType p(dimension);
-    lowerBounds[0] = 1.0 * m_T2FlipAngles[0];
-    upperBounds[0] = 2.0 * m_T2FlipAngles[0];
+    lowerBounds[0] = 0.5 * m_T2FlipAngles[0];
+    upperBounds[0] = 1.0 * m_T2FlipAngles[0];
 
     // Initializations for L & U bounds and initial guesses.
     if (!m_ConstrainedParameters)
@@ -229,7 +236,7 @@ GammaMixtureT2RelaxometryEstimationImageFilter <TPixelScalarType>
         opt->SetLowerBoundParameters(lowerBounds);
         opt->SetUpperBoundParameters(upperBounds);
 
-        p[0] = 1.2 * m_T2FlipAngles[0];
+        p[0] = 0.9 * m_T2FlipAngles[0];
         if (!m_ConstrainedParameters)
         {
             // Set Initial guesses

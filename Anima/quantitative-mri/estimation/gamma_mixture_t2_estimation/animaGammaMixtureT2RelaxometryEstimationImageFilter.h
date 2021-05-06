@@ -56,11 +56,15 @@ public:
     VectorOutputImageType *GetMeanParamImage() {return m_MeanParamImage;}
 
     itkSetMacro(T2ExcitationFlipAngle, double)
-    itkSetMacro(GammaIntegralTolerance, double)
     itkSetMacro(ConstrainedParameters, bool)
 
     void SetT2FlipAngles(std::vector <double> & flipAngles) {m_T2FlipAngles = flipAngles;}
     void SetT2FlipAngles(double singleAngle, unsigned int numAngles) {m_T2FlipAngles = std::vector <double> (numAngles,singleAngle);}
+
+    itkSetMacro(UniformPulses, bool)
+    itkSetMacro(PixelWidth, double)
+    void SetPulseProfile(std::vector < std::pair <double, double> > &profile) {m_PulseProfile = profile;}
+    void SetExcitationProfile(std::vector < std::pair <double, double> > &profile) {m_ExcitationProfile = profile;}
 
 protected:
     GammaMixtureT2RelaxometryEstimationImageFilter()
@@ -77,22 +81,23 @@ protected:
 
         m_ConstrainedParameters = false;
 
-        m_ShortT2Mean = 30.0;
-        m_ShortT2Var = 50.0;
+        m_ShortT2Mean = 20.0;
+        m_ShortT2Var = 25.0;
         m_MediumT2Var = 100.0;
         m_HighT2Mean = 2000.0;
         m_HighT2Var = 6400.0;
 
         m_LowerShortT2 = 15.0;
-        m_LowerMediumT2 = 100.0;
+        m_LowerMediumT2 = 80.0;
         m_LowerHighT2 = 1900.0;
-        m_UpperShortT2 = 50.0;
+        m_UpperShortT2 = 40.0;
         m_UpperMediumT2 = 125.0;
         m_UpperHighT2 = 2100.0;
 
-        m_GammaIntegralTolerance = 1.0e-8;
+        m_T2ExcitationFlipAngle = M_PI / 2.0;
 
-        m_T2ExcitationFlipAngle = M_PI / 6;
+        m_UniformPulses = true;
+        m_PixelWidth = 3.0;
     }
 
     virtual ~GammaMixtureT2RelaxometryEstimationImageFilter() {}
@@ -121,7 +126,6 @@ private:
     // T1 relaxometry specific values
     InputImagePointer m_T1Map;
 
-    double m_GammaIntegralTolerance;
     bool m_ConstrainedParameters;
 
     // Additional result images
@@ -132,6 +136,11 @@ private:
     double m_EchoSpacing;
     std::vector <double> m_T2FlipAngles;
     double m_T2ExcitationFlipAngle;
+
+    bool m_UniformPulses;
+    std::vector < std::pair <double, double> > m_PulseProfile;
+    std::vector < std::pair <double, double> > m_ExcitationProfile;
+    double m_PixelWidth;
 };
 
 } // end namespace anima

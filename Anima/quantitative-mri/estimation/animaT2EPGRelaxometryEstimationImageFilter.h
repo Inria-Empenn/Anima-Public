@@ -6,6 +6,7 @@
 
 namespace anima
 {
+
 template <typename TInputImage, typename TOutputImage>
 class T2EPGRelaxometryEstimationImageFilter :
 public anima::MaskedImageToImageFilter<TInputImage,TOutputImage>
@@ -50,6 +51,11 @@ public:
     void SetT2FlipAngles(std::vector <double> & flipAngles) {m_T2FlipAngles = flipAngles;}
     void SetT2FlipAngles(double singleAngle, unsigned int numAngles) {m_T2FlipAngles = std::vector <double> (numAngles,singleAngle);}
 
+    itkSetMacro(UniformPulses, bool)
+    itkSetMacro(PixelWidth, double)
+    void SetPulseProfile(std::vector < std::pair <double, double> > &profile) {m_PulseProfile = profile;}
+    void SetExcitationProfile(std::vector < std::pair <double, double> > &profile) {m_ExcitationProfile = profile;}
+
 protected:
     T2EPGRelaxometryEstimationImageFilter()
     : Superclass()
@@ -69,6 +75,9 @@ protected:
 
         m_MaximumOptimizerIterations = 5000;
         m_OptimizerStopCondition = 1.0e-4;
+
+        m_UniformPulses = true;
+        m_PixelWidth = 3.0;
     }
 
     virtual ~T2EPGRelaxometryEstimationImageFilter() {}
@@ -100,6 +109,11 @@ private:
     double m_TRValue;
 
     double m_T2UpperBound;
+
+    bool m_UniformPulses;
+    std::vector < std::pair <double, double> > m_PulseProfile;
+    std::vector < std::pair <double, double> > m_ExcitationProfile;
+    double m_PixelWidth;
 };
     
 } // end namespace anima

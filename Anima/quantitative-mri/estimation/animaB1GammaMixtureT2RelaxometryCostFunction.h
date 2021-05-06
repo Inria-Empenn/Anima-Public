@@ -54,7 +54,11 @@ public:
     void SetGammaMeans(std::vector <double> &val) {m_GammaMeans = val;}
     void SetGammaVariances(std::vector <double> &val) {m_GammaVariances = val;}
 
-    itkSetMacro(GammaIntegralTolerance, double)
+    itkSetMacro(UniformPulses, bool)
+    itkSetMacro(PixelWidth, double)
+    void SetPulseProfile(std::vector < std::pair <double, double> > &profile) {m_PulseProfile = profile;}
+    void SetExcitationProfile(std::vector < std::pair <double, double> > &profile) {m_ExcitationProfile = profile;}
+
     itkSetMacro(ConstrainedParameters, bool)
 
     unsigned int GetNumberOfParameters() const ITK_OVERRIDE
@@ -76,6 +80,9 @@ protected:
 
             m_T1Value = 1;
             m_EchoSpacing = 1;
+
+            m_UniformPulses = true;
+            m_PixelWidth = 3.0;
     }
 
     virtual ~B1GammaMixtureT2RelaxometryCostFunction() {}
@@ -101,10 +108,14 @@ private:
     double m_T1Value;
 
     mutable std::vector <double> m_GammaMeans, m_GammaVariances;
-    double m_GammaIntegralTolerance;
 
     // Internal working variables, not thread safe but so much faster !
     mutable anima::EPGSignalSimulator m_T2SignalSimulator;
+
+    bool m_UniformPulses;
+    std::vector < std::pair <double, double> > m_PulseProfile;
+    std::vector < std::pair <double, double> > m_ExcitationProfile;
+    double m_PixelWidth;
 
     mutable ParametersType m_FSignals;
     mutable ParametersType m_Residuals;

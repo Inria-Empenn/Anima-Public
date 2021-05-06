@@ -51,6 +51,11 @@ public:
     ParametersType &GetOptimizedT2Weights() {return m_OptimizedT2Weights;}
     vnl_matrix <double> &GetAMatrix() {return m_AMatrix;}
 
+    itkSetMacro(UniformPulses, bool)
+    itkSetMacro(PixelWidth, double)
+    void SetPulseProfile(std::vector < std::pair <double, double> > &profile) {m_PulseProfile = profile;}
+    void SetExcitationProfile(std::vector < std::pair <double, double> > &profile) {m_ExcitationProfile = profile;}
+
     unsigned int GetNumberOfParameters() const ITK_OVERRIDE
     {
         return 1;
@@ -64,6 +69,9 @@ protected:
         m_EchoSpacing = 1;
 
         m_NNLSOptimizer = NNLSOptimizerType::New();
+
+        m_UniformPulses = true;
+        m_PixelWidth = 3.0;
     }
 
     virtual ~MultiT2EPGRelaxometryCostFunction() {}
@@ -77,6 +85,11 @@ private:
 
     double m_ExcitationFlipAngle;
     std::vector <double> m_T2Values;
+
+    bool m_UniformPulses;
+    std::vector < std::pair <double, double> > m_PulseProfile;
+    std::vector < std::pair <double, double> > m_ExcitationProfile;
+    double m_PixelWidth;
 
     double m_T1Value;
 

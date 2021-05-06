@@ -1,6 +1,8 @@
 #include "animaB1GammaMixtureT2RelaxometryCostFunction.h"
 
 #include <animaGaussLaguerreQuadrature.h>
+#include <animaGaussLegendreQuadrature.h>
+#include <animaEPGProfileIntegrands.h>
 
 #include <animaB1GammaDistributionIntegrand.h>
 #include <animaB1GammaDerivativeDistributionIntegrand.h>
@@ -48,32 +50,50 @@ B1GammaMixtureT2RelaxometryCostFunction::PrepareDataForLLS() const
     // Contains int_{space of ith distribution} EPG(t2, b1, jth echo) Gamma(t2, mu_i, sigma_i) d t2
     m_PredictedSignalAttenuations.set_size(numT2Signals,numDistributions);
 
-    B1GammaDistributionIntegrand::EPGVectorsMapType epgVectors;
-    B1GammaDistributionIntegrand t2Integrand(m_T2SignalSimulator,epgVectors);
+    B1GammaDistributionIntegrand t2Integrand;
+    t2Integrand.SetEPGSimulator(m_T2SignalSimulator);
     t2Integrand.SetT1Value(m_T1Value);
     t2Integrand.SetFlipAngle(b1Value);
 
-    anima::GaussLaguerreQuadrature glQuad;
-
+    std::vector <double> predictedSignals(numT2Signals, 0.0);
     for (unsigned int i = 0;i < numDistributions;++i)
     {
         t2Integrand.SetGammaMean(m_GammaMeans[i]);
         t2Integrand.SetGammaVariance(m_GammaVariances[i]);
-        epgVectors.clear();
 
-        double minInterestZoneValue = std::max(0.0, m_GammaMeans[i] - 5.0 * std::sqrt(m_GammaVariances[i]));
-        double theoreticalMinValue = m_GammaMeans[i] - i * std::sqrt(m_GammaVariances[i]);
-        double maxInterestZoneValue = m_GammaMeans[i] + 5.0 * std::sqrt(m_GammaVariances[i]);
-        if (theoreticalMinValue < 0.0)
-            maxInterestZoneValue -= theoreticalMinValue;
+        if (m_UniformPulses)
+        {
+            anima::GaussLaguerreQuadrature glQuad;
 
-        glQuad.SetInterestZone(minInterestZoneValue, maxInterestZoneValue);
+            double minInterestZoneValue = m_GammaMeans[i] - 5.0 * std::sqrt(m_GammaVariances[i]);
+            double maxInterestZoneValue = m_GammaMeans[i] + 5.0 * std::sqrt(m_GammaVariances[i]);
+
+            glQuad.SetNumberOfComponents(numT2Signals);
+            glQuad.SetInterestZone(minInterestZoneValue, maxInterestZoneValue);
+
+            predictedSignals = glQuad.GetVectorIntegralValue(t2Integrand);
+        }
+        else
+        {
+            double halfPixelWidth = m_PixelWidth / 2.0;
+            anima::GaussLegendreQuadrature spIntegral;
+            spIntegral.SetInterestZone(- halfPixelWidth, halfPixelWidth);
+            spIntegral.SetNumberOfComponents(numT2Signals);
+
+            anima::EPGGammaMixtureT2Integrand spIntegrand;
+            spIntegrand.SetReferenceFlipAngle(m_TestedParameters[0]);
+            spIntegrand.SetDistributionIntegrand(t2Integrand);
+            spIntegrand.SetNumberOfComponents(numT2Signals);
+            spIntegrand.SetSlicePulseProfile(m_PulseProfile);
+            spIntegrand.SetSliceExcitationProfile(m_ExcitationProfile);
+
+            predictedSignals = spIntegral.GetVectorIntegralValue(spIntegrand);
+            for (unsigned int i = 0;i < numT2Signals;++i)
+                predictedSignals[i] /= m_PixelWidth;
+        }
 
         for (unsigned int j = 0;j < numT2Signals;++j)
-        {
-            t2Integrand.SetEchoNumber(j);
-            m_PredictedSignalAttenuations(j,i) = glQuad.GetIntegralValue(t2Integrand);
-        }
+            m_PredictedSignalAttenuations(j,i) = predictedSignals[j];
     }
 
     m_CholeskyMatrix.set_size(numDistributions,numDistributions);
@@ -322,42 +342,72 @@ B1GammaMixtureT2RelaxometryCostFunction::PrepareDataForDerivative() const
 
     double b1Value = m_TestedParameters[0];
 
-    B1GammaDerivativeDistributionIntegrand::EPGVectorsMapType epgVectors;
-    B1GammaDerivativeDistributionIntegrand::EPGVectorsMapType epgDerivativeVectors;
-    B1GammaDerivativeDistributionIntegrand t2DerivativeIntegrand(m_T2SignalSimulator,epgVectors,epgDerivativeVectors);
+    std::vector <double> dataVector;
+    B1GammaDerivativeDistributionIntegrand t2DerivativeIntegrand;
+    t2DerivativeIntegrand.SetEPGSimulator(m_T2SignalSimulator);
     t2DerivativeIntegrand.SetT1Value(m_T1Value);
     t2DerivativeIntegrand.SetFlipAngle(b1Value);
-
-    anima::GaussLaguerreQuadrature glQuad;
 
     for (unsigned int i = 0;i < numDistributions;++i)
     {
         t2DerivativeIntegrand.SetGammaMean(m_GammaMeans[i]);
         t2DerivativeIntegrand.SetGammaVariance(m_GammaVariances[i]);
-        epgVectors.clear();
-        epgDerivativeVectors.clear();
 
-        double minInterestZoneValue = std::max(0.0, m_GammaMeans[i] - 5.0 * std::sqrt(m_GammaVariances[i]));
-        double theoreticalMinValue = m_GammaMeans[i] - i * std::sqrt(m_GammaVariances[i]);
-        double maxInterestZoneValue = m_GammaMeans[i] + 5.0 * std::sqrt(m_GammaVariances[i]);
-        if (theoreticalMinValue < 0.0)
-            maxInterestZoneValue -= theoreticalMinValue;
-
-        glQuad.SetInterestZone(minInterestZoneValue, maxInterestZoneValue);
-
-        for (unsigned int j = 0;j < numT2Signals;++j)
+        if (m_UniformPulses)
         {
-            t2DerivativeIntegrand.SetEchoNumber(j);
             t2DerivativeIntegrand.SetB1DerivativeFlag(true);
+
+            anima::GaussLaguerreQuadrature glQuad;
+
+            double minInterestZoneValue = m_GammaMeans[i] - 5.0 * std::sqrt(m_GammaVariances[i]);
+            double maxInterestZoneValue = m_GammaMeans[i] + 5.0 * std::sqrt(m_GammaVariances[i]);
+
+            glQuad.SetNumberOfComponents(numT2Signals);
+            glQuad.SetInterestZone(minInterestZoneValue, maxInterestZoneValue);
+
             // Handle B1 case
-            m_SignalAttenuationsJacobian[0](j,i) = glQuad.GetIntegralValue(t2DerivativeIntegrand);
+            dataVector = glQuad.GetVectorIntegralValue(t2DerivativeIntegrand);
+
+            for (unsigned int j = 0;j < numT2Signals;++j)
+                m_SignalAttenuationsJacobian[0](j,i) = dataVector[j];
 
             // Now handle parameters derivatives
             if ((i == 1)||(!m_ConstrainedParameters))
             {
                 t2DerivativeIntegrand.SetB1DerivativeFlag(false);
+                dataVector = glQuad.GetVectorIntegralValue(t2DerivativeIntegrand);
                 unsigned int index = 1 + (!m_ConstrainedParameters) * i;
-                m_SignalAttenuationsJacobian[index](j,i) = glQuad.GetIntegralValue(t2DerivativeIntegrand);
+                for (unsigned int j = 0;j < numT2Signals;++j)
+                    m_SignalAttenuationsJacobian[index](j,i) = dataVector[j];
+            }
+        }
+        else
+        {
+            double halfPixelWidth = m_PixelWidth / 2.0;
+            anima::GaussLegendreQuadrature spIntegral;
+            spIntegral.SetInterestZone(- halfPixelWidth, halfPixelWidth);
+            spIntegral.SetNumberOfComponents(numT2Signals);
+
+            anima::EPGGammaMixtureT2DerivativeIntegrand spIntegrand;
+            spIntegrand.SetReferenceFlipAngle(m_TestedParameters[0]);
+            spIntegrand.SetDistributionIntegrand(t2DerivativeIntegrand);
+            spIntegrand.SetNumberOfComponents(numT2Signals);
+            spIntegrand.SetSlicePulseProfile(m_PulseProfile);
+            spIntegrand.SetSliceExcitationProfile(m_ExcitationProfile);
+            spIntegrand.SetB1DerivativeFlag(true);
+
+            dataVector = spIntegral.GetVectorIntegralValue(spIntegrand);
+            for (unsigned int j = 0;j < numT2Signals;++j)
+                m_SignalAttenuationsJacobian[0](j,i) = dataVector[j] / m_PixelWidth;
+
+            // Now handle parameters derivatives
+            if ((i == 1)||(!m_ConstrainedParameters))
+            {
+                spIntegrand.SetB1DerivativeFlag(false);
+                dataVector = spIntegral.GetVectorIntegralValue(spIntegrand);
+                unsigned int index = 1 + (!m_ConstrainedParameters) * i;
+                for (unsigned int j = 0;j < numT2Signals;++j)
+                    m_SignalAttenuationsJacobian[index](j,i) = dataVector[j] / m_PixelWidth;
             }
         }
     }

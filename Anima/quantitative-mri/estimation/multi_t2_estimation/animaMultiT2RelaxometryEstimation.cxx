@@ -33,7 +33,12 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> resMWFArg("o","out-mwf","Result MWF image",true,"","result MWF image",cmd);
     TCLAP::ValueArg<std::string> resB1Arg("","out-b1","Result B1 image",false,"","result B1 image",cmd);
     TCLAP::ValueArg<std::string> resCostArg("c","out-cost","Result cost image",false,"","result cost image",cmd);
-    TCLAP::ValueArg<std::string> resPeaksArg("p","out-peaks","output T2 peaks positions used in estimation as a CSV file",false,"","output T2 peaks",cmd);
+    TCLAP::ValueArg<std::string> resPeaksArg("P","out-peaks","output T2 peaks positions used in estimation as a CSV file",false,"","output T2 peaks",cmd);
+
+    TCLAP::SwitchArg nonUniformPulsesArg("N","non-uniform","Use a non uniform pulse profile (default: no)",cmd);
+    TCLAP::ValueArg<std::string> excitationProfileArg("E","excitation-profile","Excitation profile text file",false,"","excitation profile file",cmd);
+    TCLAP::ValueArg<std::string> pulseProfileArg("p","pulse-profile","Pulse profile text file",false,"","pulse profile file",cmd);
+    TCLAP::ValueArg<double> pixelWidthArg("w","pixel-width","Pixel width in mm (default: 3)",false,10,"pixel width",cmd);
 
     TCLAP::ValueArg<double> echoSpacingArg("e","echo-spacing","Spacing between two successive echoes (default: 10)",false,10,"Spacing between echoes",cmd);
     TCLAP::ValueArg<double> excitationT2FlipAngleArg("","t2-ex-flip","Excitation flip angle for T2 (in degrees, default: 90)",false,90,"T2 excitation flip angle",cmd);
@@ -48,7 +53,7 @@ int main(int argc, char **argv)
     //NL params
     TCLAP::ValueArg<unsigned int> regulEstimationArg("r","regul","Regularization type (0: none, 1: Tikhonov, 2: Laplacian, 3: NL Tikhonov regularization, default: 2)",false,2,"regularization type",cmd);
     TCLAP::ValueArg<double> regulRatioArg("R","ratio-regul","Regularization ratio between none regularized and regularized residuals type (default: 1.02)",false,1.02,"regularization ratio",cmd);
-    TCLAP::ValueArg<double> weightThrArg("w","weightThr","Weight threshold: patches around have to be similar enough -> default: 0.0",false,0.0,"Weight threshold",cmd);
+    TCLAP::ValueArg<double> weightThrArg("W","weight-thr","Weight threshold: patches around have to be similar enough -> default: 0.0",false,0.0,"Weight threshold",cmd);
     TCLAP::ValueArg<double> betaArg("b","beta","Beta parameter for local noise estimation -> default: 1",false,1,"Beta for local noise estimation",cmd);
     TCLAP::ValueArg<double> meanMinArg("","meanMin","Minimun mean threshold (default: 0.95)",false,0.95,"Minimun mean threshold",cmd);
     TCLAP::ValueArg<double> varMinArg("v","varMin","Minimun variance threshold -> default: 0.5",false,0.5,"Minimun variance threshold",cmd);
@@ -95,6 +100,66 @@ int main(int argc, char **argv)
         mainFilter->SetRegularizationType(FilterType::RegularizationType::None);
 
     mainFilter->SetRegularizationRatio(regulRatioArg.getValue());
+
+    mainFilter->SetUniformPulses(!nonUniformPulsesArg.isSet());
+    if (nonUniformPulsesArg.isSet())
+    {
+        mainFilter->SetPixelWidth(pixelWidthArg.getValue());
+        if (pulseProfileArg.getValue() == "")
+        {
+            std::cerr << "Error: pulse profile needed when using non uniform pulse profiles" << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        std::vector < std::pair <double, double> > pulseProfile;
+        std::ifstream inputPulse(pulseProfileArg.getValue());
+        while (!inputPulse.eof())
+        {
+            char tmpStr[2048];
+            inputPulse.getline(tmpStr,2048);
+
+            if (strcmp(tmpStr,"") == 0)
+                continue;
+
+            std::stringstream tmpInput;
+            tmpInput << tmpStr;
+
+            double xVal, yVal;
+            tmpInput >> xVal >> yVal;
+
+            pulseProfile.push_back(std::make_pair(xVal, yVal));
+        }
+
+        mainFilter->SetPulseProfile(pulseProfile);
+
+        if (excitationProfileArg.getValue() == "")
+        {
+            std::cerr << "Error: excitation profile needed when using non uniform pulse profiles" << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        std::vector < std::pair <double, double> > excitationProfile;
+        std::ifstream inputExcitation(excitationProfileArg.getValue());
+        while (!inputExcitation.eof())
+        {
+            char tmpStr[2048];
+            inputExcitation.getline(tmpStr,2048);
+
+            if (strcmp(tmpStr,"") == 0)
+                continue;
+
+            std::stringstream tmpInput;
+            tmpInput << tmpStr;
+
+            double xVal, yVal;
+            tmpInput >> xVal >> yVal;
+
+            excitationProfile.push_back(std::make_pair(xVal, yVal));
+        }
+
+        inputExcitation.close();
+        mainFilter->SetExcitationProfile(excitationProfile);
+    }
 
     if (t1MapArg.getValue() != "")
     {
