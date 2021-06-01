@@ -45,7 +45,7 @@ int main(int ac, const char** av)
         typedef rpi::DisplacementFieldTransform <PixelType, Dimension> RPIDispType;
         RPIDispType::Pointer resTrsf = RPIDispType::New();
 
-        anima::GetSVFExponential(svfTrsf.GetPointer(),resTrsf.GetPointer(),expOrderArg.getValue(),nbpArg.getValue(),false);
+        anima::GetSVFExponential(svfTrsf.GetPointer(),resTrsf.GetPointer(),expOrderArg.getValue(),nbpArg.getValue(),1.0);
 
         inputField = const_cast <ImageType *> (resTrsf->GetParametersAsVectorField());
     }

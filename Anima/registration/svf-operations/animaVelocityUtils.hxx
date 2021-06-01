@@ -207,7 +207,7 @@ void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *
 template <class ScalarType, unsigned int NDimensions>
 void GetSVFExponential(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *baseTrsf,
                        rpi::DisplacementFieldTransform <ScalarType,NDimensions> *resultTransform,
-                       unsigned int exponentiationOrder, unsigned int numThreads, bool invert)
+                       unsigned int exponentiationOrder, unsigned int numThreads, double power)
 {
     if (baseTrsf->GetParametersAsVectorField() == NULL)
         return;
@@ -219,12 +219,12 @@ void GetSVFExponential(itk::StationaryVelocityFieldTransform <ScalarType,NDimens
     typedef anima::SVFExponentialImageFilter <ScalarType, NDimensions> ExponentialFilterType;
 
     FieldPointer tmpPtr = const_cast <FieldType *> (baseTrsf->GetParametersAsVectorField());
-    if (invert)
+    if (power != 1.0)
     {
         typedef itk::MultiplyImageFilter <FieldType,itk::Image <double, NDimensions>, FieldType> MultiplyFilterType;
         typename MultiplyFilterType::Pointer multiplier = MultiplyFilterType::New();
         multiplier->SetInput(tmpPtr);
-        multiplier->SetConstant(-1.0);
+        multiplier->SetConstant(power);
 
         multiplier->SetNumberOfWorkUnits(numThreads);
         multiplier->Update();

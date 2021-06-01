@@ -57,14 +57,14 @@ int main(int argc, char **argv)
         DenseTransformType::Pointer outTrsf = DenseTransformType::New();
 
         tmpTrsf->SetParametersAsVectorField(inputField);
-        anima::GetSVFExponential(tmpTrsf.GetPointer(),outTrsf.GetPointer(),expOrderArg.getValue(),nbpArg.getValue(),false);
+        anima::GetSVFExponential(tmpTrsf.GetPointer(),outTrsf.GetPointer(),expOrderArg.getValue(),nbpArg.getValue(),1.0);
 
         inputField = const_cast <FieldType *> (outTrsf->GetParametersAsVectorField());
 
         if (composeField)
         {
             tmpTrsf->SetParametersAsVectorField(composeField);
-            anima::GetSVFExponential(tmpTrsf.GetPointer(),outTrsf.GetPointer(),expOrderArg.getValue(),nbpArg.getValue(),false);
+            anima::GetSVFExponential(tmpTrsf.GetPointer(),outTrsf.GetPointer(),expOrderArg.getValue(),nbpArg.getValue(),1.0);
 
             composeField = const_cast <FieldType *> (outTrsf->GetParametersAsVectorField());
         }

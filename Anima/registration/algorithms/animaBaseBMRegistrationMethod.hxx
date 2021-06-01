@@ -175,7 +175,7 @@ BaseBMRegistrationMethod <TInputImageType>
             DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
             SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (currentTransform);
 
-            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfWorkUnits(),false);
+            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfWorkUnits(),1.0);
 
             resampleFilter->SetTransform(dispTrsf);
         }
@@ -195,7 +195,7 @@ BaseBMRegistrationMethod <TInputImageType>
             DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
             SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (currentTransform);
 
-            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfWorkUnits(),false);
+            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfWorkUnits(),1.0);
 
             resampleFilter->SetTransform(dispTrsf);
         }
@@ -223,7 +223,7 @@ BaseBMRegistrationMethod <TInputImageType>
             DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
             SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (currentTransform);
 
-            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfWorkUnits(),true);
+            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfWorkUnits(),-1.0);
 
             resampleFilter->SetTransform(dispTrsf);
         }
@@ -247,7 +247,7 @@ BaseBMRegistrationMethod <TInputImageType>
             DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
             SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (currentTransform);
 
-            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfWorkUnits(),true);
+            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfWorkUnits(),-1.0);
 
             resampleFilter->SetTransform(dispTrsf);
         }

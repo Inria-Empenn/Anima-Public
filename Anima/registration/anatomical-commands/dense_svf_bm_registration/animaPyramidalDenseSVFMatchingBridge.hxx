@@ -483,7 +483,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
     }
 
     DisplacementFieldTransformPointer outputDispTrsf = DisplacementFieldTransformType::New();
-    anima::GetSVFExponential(m_OutputTransform.GetPointer(), outputDispTrsf.GetPointer(), m_ExponentiationOrder, GetNumberOfWorkUnits(), false);
+    anima::GetSVFExponential(m_OutputTransform.GetPointer(), outputDispTrsf.GetPointer(), m_ExponentiationOrder, GetNumberOfWorkUnits(), 1.0);
 
     typedef typename anima::ResampleImageFilter<InputImageType, InputImageType,
                                                 typename BaseAgregatorType::ScalarType> ResampleFilterType;
@@ -508,7 +508,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::GetOutputDisplacementFieldTrans
 {
     DisplacementFieldTransformPointer outputDispTrsf = DisplacementFieldTransformType::New();
 
-    anima::GetSVFExponential(m_OutputTransform.GetPointer(), outputDispTrsf.GetPointer(), m_ExponentiationOrder, this->GetNumberOfWorkUnits(), false);
+    anima::GetSVFExponential(m_OutputTransform.GetPointer(), outputDispTrsf.GetPointer(), m_ExponentiationOrder, this->GetNumberOfWorkUnits(), 1.0);
 
     return outputDispTrsf;
 }
