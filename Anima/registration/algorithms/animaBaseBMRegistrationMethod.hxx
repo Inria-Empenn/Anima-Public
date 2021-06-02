@@ -169,18 +169,7 @@ BaseBMRegistrationMethod <TInputImageType>
         typedef anima::OrientedModelBaseResampleImageFilter <InputImageType,AgregatorScalarType> InternalFilterType;
         InternalFilterType *resampleFilter = dynamic_cast <InternalFilterType *> (m_MovingImageResampler.GetPointer());
 
-        if (m_Agregator->GetOutputTransformType() == AgregatorType::SVF)
-        {
-            // Compute temporary field and set it to resampler
-            DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
-            SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (currentTransform);
-
-            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfWorkUnits(),1.0);
-
-            resampleFilter->SetTransform(dispTrsf);
-        }
-        else
-            resampleFilter->SetTransform(currentTransform);
+        resampleFilter->SetTransform(this->GetForwardTransformForResampling(currentTransform));
     }
     else
     {
@@ -189,18 +178,7 @@ BaseBMRegistrationMethod <TInputImageType>
         typedef anima::ResampleImageFilter <InternalScalarImageType,InternalScalarImageType,AgregatorScalarType> InternalFilterType;
         InternalFilterType *resampleFilter = dynamic_cast <InternalFilterType *> (m_MovingImageResampler.GetPointer());
 
-        if (m_Agregator->GetOutputTransformType() == AgregatorType::SVF)
-        {
-            // Compute temporary field and set it to resampler
-            DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
-            SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (currentTransform);
-
-            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfWorkUnits(),1.0);
-
-            resampleFilter->SetTransform(dispTrsf);
-        }
-        else
-            resampleFilter->SetTransform(currentTransform);
+        resampleFilter->SetTransform(this->GetForwardTransformForResampling(currentTransform));
     }
 
     m_MovingImageResampler->SetInput(m_MovingImage);
@@ -217,22 +195,7 @@ BaseBMRegistrationMethod <TInputImageType>
         typedef anima::OrientedModelBaseResampleImageFilter <InputImageType,AgregatorScalarType> InternalFilterType;
         InternalFilterType *resampleFilter = dynamic_cast <InternalFilterType *> (m_ReferenceImageResampler.GetPointer());
 
-        if (m_Agregator->GetOutputTransformType() == AgregatorType::SVF)
-        {
-            // Compute temporary field and set it to resampler
-            DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
-            SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (currentTransform);
-
-            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfWorkUnits(),-1.0);
-
-            resampleFilter->SetTransform(dispTrsf);
-        }
-        else
-        {
-            AffineTransformType *affCast = dynamic_cast<AffineTransformType *> (currentTransform);
-            TransformPointer reverseTrsf = affCast->GetInverseTransform();
-            resampleFilter->SetTransform(reverseTrsf);
-        }
+        resampleFilter->SetTransform(this->GetBackwardTransformForResampling(currentTransform));
     }
     else
     {
@@ -241,22 +204,7 @@ BaseBMRegistrationMethod <TInputImageType>
         typedef anima::ResampleImageFilter <InternalScalarImageType,InternalScalarImageType,AgregatorScalarType> InternalFilterType;
         InternalFilterType *resampleFilter = dynamic_cast <InternalFilterType *> (m_ReferenceImageResampler.GetPointer());
 
-        if (m_Agregator->GetOutputTransformType() == AgregatorType::SVF)
-        {
-            // Compute temporary field and set it to resampler
-            DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
-            SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (currentTransform);
-
-            anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfWorkUnits(),-1.0);
-
-            resampleFilter->SetTransform(dispTrsf);
-        }
-        else
-        {
-            AffineTransformType *affCast = dynamic_cast<AffineTransformType *> (currentTransform);
-            TransformPointer reverseTrsf = affCast->GetInverseTransform();
-            resampleFilter->SetTransform(reverseTrsf);
-        }
+        resampleFilter->SetTransform(this->GetBackwardTransformForResampling(currentTransform));
     }
 
     m_ReferenceImageResampler->SetInput(m_FixedImage);
@@ -351,6 +299,53 @@ BaseBMRegistrationMethod <TInputImageType>
     }
 
     return true;
+}
+
+template <typename TInputImageType>
+typename BaseBMRegistrationMethod <TInputImageType>::TransformPointer
+BaseBMRegistrationMethod <TInputImageType>
+::GetForwardTransformForResampling(TransformType *transform)
+{
+    TransformPointer outTrsf;
+    if (m_Agregator->GetOutputTransformType() == AgregatorType::SVF)
+    {
+        // Compute temporary field and set it to resampler
+        DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
+        SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (transform);
+
+        anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfWorkUnits(),1.0);
+
+        outTrsf = dispTrsf;
+    }
+    else
+        outTrsf = transform;
+
+    return outTrsf;
+}
+
+template <typename TInputImageType>
+typename BaseBMRegistrationMethod <TInputImageType>::TransformPointer
+BaseBMRegistrationMethod <TInputImageType>
+::GetBackwardTransformForResampling(TransformType *transform)
+{
+    TransformPointer outTrsf;
+    if (m_Agregator->GetOutputTransformType() == AgregatorType::SVF)
+    {
+        // Compute temporary field and set it to resampler
+        DisplacementFieldTransformPointer dispTrsf = DisplacementFieldTransformType::New();
+        SVFTransformType *svfCast = dynamic_cast<SVFTransformType *> (transform);
+
+        anima::GetSVFExponential(svfCast,dispTrsf.GetPointer(),m_ExponentiationOrder,this->GetNumberOfWorkUnits(),-1.0);
+
+        outTrsf = dispTrsf;
+    }
+    else
+    {
+        AffineTransformType *affCast = dynamic_cast<AffineTransformType *> (transform);
+        outTrsf = affCast->GetInverseTransform();
+    }
+
+    return outTrsf;
 }
 
 /**
