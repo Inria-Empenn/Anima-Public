@@ -37,6 +37,7 @@ PyramidalBlockMatchingBridge<ImageDimension>::PyramidalBlockMatchingBridge()
 
     m_ReferenceMinimalValue = 0.0;
     m_FloatingMinimalValue = 0.0;
+    m_RegistrationPointLocation = 0.5;
 
     m_BlockSize = 5;
     m_BlockSpacing = 5;
@@ -259,6 +260,7 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
                 typename BlockMatchRegistrationType::Pointer tmpReg = BlockMatchRegistrationType::New();
                 tmpReg->SetReferenceBackgroundValue(m_ReferenceMinimalValue);
                 tmpReg->SetFloatingBackgroundValue(m_FloatingMinimalValue);
+                tmpReg->SetRegistrationPointLocation(m_RegistrationPointLocation);
 
                 m_bmreg = tmpReg;
                 break;
@@ -509,11 +511,35 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
     
     if (m_SymmetryType == Kissing)
     {
-        typename AffineTransformType::Pointer trsfCopy = AffineTransformType::New();
-        trsfCopy->SetMatrix(tmpTrsf->GetMatrix());
-        trsfCopy->SetOffset(tmpTrsf->GetOffset());
+        unsigned int NDimensions = InputImageType::ImageDimension;
+        vnl_matrix <double> affMatrix(NDimensions+1,NDimensions+1,0);
+        affMatrix.set_identity();
 
-        tmpTrsf->Compose(trsfCopy);
+        for (unsigned int i = 0;i < NDimensions;++i)
+        {
+            for (unsigned int j = 0;j < NDimensions;++j)
+                affMatrix(i,j) = tmpTrsf->GetMatrix()(i,j);
+
+            affMatrix(i,NDimensions) = tmpTrsf->GetOffset()[i];
+        }
+
+        affMatrix = anima::GetLogarithm(affMatrix);
+        affMatrix /= m_RegistrationPointLocation;
+        affMatrix = anima::GetExponential(affMatrix);
+
+        vnl_matrix <double> affResult(NDimensions,NDimensions,0);
+        typename AffineTransformType::OffsetType offset(NDimensions);
+
+        for (unsigned int i = 0;i < NDimensions;++i)
+        {
+            for (unsigned int j = 0;j < NDimensions;++j)
+                affResult(i,j) = affMatrix(i,j);
+
+            offset[i] = affMatrix(i,NDimensions);
+        }
+
+        tmpTrsf->SetMatrix(affResult);
+        tmpTrsf->SetOffset(offset);
     }
 
     if (!m_InitialTransform.IsNull())

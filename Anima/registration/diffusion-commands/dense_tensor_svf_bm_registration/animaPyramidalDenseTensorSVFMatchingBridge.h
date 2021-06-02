@@ -222,6 +222,9 @@ public:
     double GetPercentageKept() {return m_PercentageKept;}
     void SetPercentageKept(double PercentageKept) {m_PercentageKept=PercentageKept;}
 
+    double GetRegistrationPointLocation() {return m_RegistrationPointLocation;}
+    void SetRegistrationPointLocation(double rpl) {m_RegistrationPointLocation = rpl;}
+
     void SetBlockGenerationMask(MaskImageType *mask) {m_BlockGenerationMask = mask;}
 
 protected:
@@ -278,6 +281,9 @@ private:
     unsigned int m_NumberOfPyramidLevels;
     unsigned int m_LastPyramidLevel;
     double m_PercentageKept;
+
+    //! Registers the two images towards a point located in the range [0, 1]: 0 denotes on ref, 1: on moving, anything else lies on the path
+    double m_RegistrationPointLocation;
 
     BaseBlockMatchRegistrationPointer m_bmreg;
 };

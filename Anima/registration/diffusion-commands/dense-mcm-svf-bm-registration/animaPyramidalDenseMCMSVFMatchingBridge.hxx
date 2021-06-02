@@ -66,6 +66,7 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::PyramidalDenseMCMSVFMatching
     m_NumberOfPyramidLevels = 3;
     m_LastPyramidLevel = 0;
     m_PercentageKept = 0.8;
+    m_RegistrationPointLocation = 0.5;
     this->SetNumberOfWorkUnits(itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads());
 }
 
@@ -226,7 +227,10 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
             case Kissing:
             {
                 typedef typename anima::KissingSymmetricBMRegistrationMethod <InputImageType> BlockMatchRegistrationType;
-                m_bmreg = BlockMatchRegistrationType::New();
+                typename BlockMatchRegistrationType::Pointer tmpReg = BlockMatchRegistrationType::New();
+                tmpReg->SetRegistrationPointLocation(m_RegistrationPointLocation);
+
+                m_bmreg = tmpReg;
                 break;
             }
         }
@@ -430,7 +434,7 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
 
         typename MultiplyFilterType::Pointer fieldMultiplier = MultiplyFilterType::New();
         fieldMultiplier->SetInput(finalTrsfField);
-        fieldMultiplier->SetConstant(2.0);
+        fieldMultiplier->SetConstant(1.0 / m_RegistrationPointLocation);
         fieldMultiplier->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
         fieldMultiplier->InPlaceOn();
 

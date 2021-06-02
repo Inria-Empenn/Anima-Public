@@ -33,6 +33,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::PyramidalDenseSVFMatchingBridge
 
     m_ReferenceMinimalValue = 0.0;
     m_FloatingMinimalValue = 0.0;
+    m_RegistrationPointLocation = 0.5;
 
     m_BlockSize = 5;
     m_BlockSpacing = 2;
@@ -273,6 +274,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
                 typename BlockMatchRegistrationType::Pointer tmpReg = BlockMatchRegistrationType::New();
                 tmpReg->SetReferenceBackgroundValue(m_ReferenceMinimalValue);
                 tmpReg->SetFloatingBackgroundValue(m_FloatingMinimalValue);
+                tmpReg->SetRegistrationPointLocation(m_RegistrationPointLocation);
 
                 m_bmreg = tmpReg;
                 break;
@@ -471,7 +473,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
 
         typename MultiplyFilterType::Pointer fieldMultiplier = MultiplyFilterType::New();
         fieldMultiplier->SetInput(finalTrsfField);
-        fieldMultiplier->SetConstant(2.0);
+        fieldMultiplier->SetConstant(1.0 / m_RegistrationPointLocation);
         fieldMultiplier->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
         fieldMultiplier->InPlaceOn();
 

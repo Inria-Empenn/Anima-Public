@@ -216,6 +216,9 @@ public:
     double GetPercentageKept() {return m_PercentageKept;}
     void SetPercentageKept(double PercentageKept) {m_PercentageKept=PercentageKept;}
 
+    double GetRegistrationPointLocation() {return m_RegistrationPointLocation;}
+    void SetRegistrationPointLocation(double rpl) {m_RegistrationPointLocation = rpl;}
+
     void SetBlockGenerationMask(MaskImageType *mask) {m_BlockGenerationMask = mask;}
 
     void SetVerbose(bool value) {m_Verbose = value;}
@@ -254,6 +257,9 @@ private:
     Optimizer m_Optimizer;
 
     double m_ReferenceMinimalValue, m_FloatingMinimalValue;
+    //! Registers the two images towards a point located in the range [0, 1]: 0 denotes on ref, 1: on moving, anything else lies on the path
+    double m_RegistrationPointLocation;
+
     unsigned int m_MaximumIterations;
     double m_MinimalTransformError;
     unsigned int m_OptimizerMaximumIterations;
