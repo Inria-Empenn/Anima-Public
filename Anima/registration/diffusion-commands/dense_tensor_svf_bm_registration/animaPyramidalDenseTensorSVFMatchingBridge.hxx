@@ -78,6 +78,16 @@ template <unsigned int ImageDimension>
 void
 PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
 {
+    bool invertInputs = (m_RegistrationPointLocation < 0.5) && (m_SymmetryType == Kissing);
+    if (invertInputs)
+    {
+        InputImagePointer tmpImage = m_ReferenceImage;
+        m_ReferenceImage = m_FloatingImage;
+        m_FloatingImage = tmpImage;
+
+        m_RegistrationPointLocation = 1.0 - m_RegistrationPointLocation;
+    }
+
     this->SetupPyramids();
 
     // Iterate over pyramid levels
@@ -401,7 +411,12 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
 
         typename MultiplyFilterType::Pointer fieldMultiplier = MultiplyFilterType::New();
         fieldMultiplier->SetInput(finalTrsfField);
-        fieldMultiplier->SetConstant(1.0 / m_RegistrationPointLocation);
+
+        double multiplier = 1.0 / m_RegistrationPointLocation;
+        if (invertInputs)
+            multiplier *= -1.0;
+        fieldMultiplier->SetConstant(multiplier);
+
         fieldMultiplier->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
         fieldMultiplier->InPlaceOn();
 
@@ -410,6 +425,15 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
         VelocityFieldType *outputField = fieldMultiplier->GetOutput();
         m_OutputTransform->SetParametersAsVectorField(fieldMultiplier->GetOutput());
         outputField->DisconnectPipeline();
+    }
+
+    if (invertInputs)
+    {
+        InputImagePointer tmpImage = m_ReferenceImage;
+        m_ReferenceImage = m_FloatingImage;
+        m_FloatingImage = tmpImage;
+
+        m_RegistrationPointLocation = 1.0 - m_RegistrationPointLocation;
     }
 
     DisplacementFieldTransformPointer outputDispTrsf = DisplacementFieldTransformType::New();

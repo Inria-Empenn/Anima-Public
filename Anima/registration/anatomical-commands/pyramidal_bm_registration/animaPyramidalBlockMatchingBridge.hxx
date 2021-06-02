@@ -188,6 +188,15 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
     // Set up pyramids of images and masks
     this->SetupPyramids();
 
+    bool invertInputs = (m_RegistrationPointLocation < 0.5) && (m_SymmetryType == Kissing);
+    if (invertInputs)
+    {
+        m_RegistrationPointLocation = 1.0 - m_RegistrationPointLocation;
+        double floValue = m_FloatingMinimalValue;
+        m_FloatingMinimalValue = m_ReferenceMinimalValue;
+        m_ReferenceMinimalValue = floValue;
+    }
+
     typedef anima::AnatomicalBlockMatcher <InputImageType> BlockMatcherType;
 
     // Iterate over pyramid levels
@@ -524,7 +533,12 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
         }
 
         affMatrix = anima::GetLogarithm(affMatrix);
-        affMatrix /= m_RegistrationPointLocation;
+
+        double multiplier = 1.0 / m_RegistrationPointLocation;
+        if (invertInputs)
+            multiplier *= -1.0;
+
+        affMatrix *= multiplier;
         affMatrix = anima::GetExponential(affMatrix);
 
         vnl_matrix <double> affResult(NDimensions,NDimensions,0);
@@ -544,7 +558,15 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
 
     if (!m_InitialTransform.IsNull())
         tmpTrsf->Compose(m_InitialTransform, false);
-    
+
+    if (invertInputs)
+    {
+        m_RegistrationPointLocation = 1.0 - m_RegistrationPointLocation;
+        double floValue = m_FloatingMinimalValue;
+        m_FloatingMinimalValue = m_ReferenceMinimalValue;
+        m_ReferenceMinimalValue = floValue;
+    }
+
     typedef typename anima::ResampleImageFilter<InputImageType, InputImageType, typename AgregatorType::ScalarType> ResampleFilterType;
     typename ResampleFilterType::Pointer tmpResample = ResampleFilterType::New();
     tmpResample->SetTransform(m_OutputTransform);
@@ -673,17 +695,6 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
     // Create pyramid here, check images actually are of the same size.
     typedef anima::ResampleImageFilter<InputImageType, InputImageType,
             typename AgregatorType::ScalarType> ResampleFilterType;
-
-    m_ReferencePyramid = PyramidType::New();
-
-    m_ReferencePyramid->SetInput(m_ReferenceImage);
-    m_ReferencePyramid->SetNumberOfLevels(GetNumberOfPyramidLevels());
-    m_ReferencePyramid->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
-
-    typename ResampleFilterType::Pointer refResampler = ResampleFilterType::New();
-    refResampler->SetDefaultPixelValue(m_ReferenceMinimalValue);
-    m_ReferencePyramid->SetImageResampler(refResampler);
-    m_ReferencePyramid->Update();
 
     InputImagePointer initialFloatingImage = const_cast <InputImageType *> (m_FloatingImage.GetPointer());
 
@@ -814,14 +825,45 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
     }
 
     // Create pyramid for Floating image
-    m_FloatingPyramid = PyramidType::New();
+    m_ReferencePyramid = PyramidType::New();
+    typename ResampleFilterType::Pointer refResampler = ResampleFilterType::New();
 
-    m_FloatingPyramid->SetInput(initialFloatingImage);
+    bool invertInputs = (m_RegistrationPointLocation < 0.5) && (m_SymmetryType == Kissing);
+
+    if (!invertInputs)
+    {
+        m_ReferencePyramid->SetInput(m_ReferenceImage);
+        refResampler->SetDefaultPixelValue(m_ReferenceMinimalValue);
+    }
+    else
+    {
+        m_ReferencePyramid->SetInput(initialFloatingImage);
+        refResampler->SetDefaultPixelValue(m_FloatingMinimalValue);
+    }
+
+    m_ReferencePyramid->SetNumberOfLevels(GetNumberOfPyramidLevels());
+    m_ReferencePyramid->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
+
+    m_ReferencePyramid->SetImageResampler(refResampler);
+    m_ReferencePyramid->Update();
+
+    // Create pyramid for Floating image
+    m_FloatingPyramid = PyramidType::New();
+    typename ResampleFilterType::Pointer floResampler = ResampleFilterType::New();
+
+    if (!invertInputs)
+    {
+        m_FloatingPyramid->SetInput(initialFloatingImage);
+        floResampler->SetDefaultPixelValue(m_FloatingMinimalValue);
+    }
+    else
+    {
+        m_FloatingPyramid->SetInput(m_ReferenceImage);
+        floResampler->SetDefaultPixelValue(m_ReferenceMinimalValue);
+    }
+
     m_FloatingPyramid->SetNumberOfLevels(GetNumberOfPyramidLevels());
     m_FloatingPyramid->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
-
-    typename ResampleFilterType::Pointer floResampler = ResampleFilterType::New();
-    floResampler->SetDefaultPixelValue(m_FloatingMinimalValue);
     m_FloatingPyramid->SetImageResampler(floResampler);
 
     m_FloatingPyramid->Update();
