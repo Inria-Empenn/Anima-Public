@@ -26,6 +26,8 @@ public:
         eMesurePPVL,
         eMesureSensL,
         eMesureF1Test,
+        eMesureNbTestedLesions,
+        eMesureVolTestedLesions,
         eMesureLast
     }eMesureName;
 
@@ -180,6 +182,16 @@ public:
     void setF1test(double pi_fVal)
     {
         m_fResTab[eMesureF1Test] = pi_fVal;
+    }
+
+    void setNbTestedLesions(double pi_fVal)
+    {
+        m_fResTab[eMesureNbTestedLesions] = pi_fVal;
+    }
+
+    void setVolumeTestedLesions(double pi_fVal)
+    {
+        m_fResTab[eMesureVolTestedLesions] = pi_fVal;
     }
 
 private:

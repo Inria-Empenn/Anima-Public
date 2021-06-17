@@ -22,7 +22,9 @@ char const*const SegPerfResults::m_ppchMeasureNameTable[eMesureLast] =
     "SurfaceDistance",
     "PPVL",
     "SensL",
-    "F1_score"
+    "F1_score",
+    "NbTestedLesions",
+    "VolTestedLesions"
 };
 
 /**

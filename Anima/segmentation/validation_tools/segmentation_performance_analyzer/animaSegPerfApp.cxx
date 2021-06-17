@@ -56,6 +56,11 @@ SegPerfApp::SegPerfApp(void)
     m_fTPLMinOverlapRatio = 0.1;
     m_fTPLMaxFalsePositiveRatio = 0.7;
     m_fTPLMaxFalsePositiveRatioModerator = 0.65;
+
+    //////////////////////////////////////////////////////////////////////////
+    // Alternate metrics for empty reference image
+    m_fNumberOfSegmentedLesions = std::numeric_limits<double>::quiet_NaN();
+    m_fVolumeOfSegmentedLesions = std::numeric_limits<double>::quiet_NaN();
 }
 
 SegPerfApp::~SegPerfApp(void)
@@ -277,6 +282,21 @@ void SegPerfApp::play()
     std::string sOutBase = m_pchOutBase;
     std::string sOut = sOutBase;
 
+    if (nbLabels == 0)
+    {
+        // Empty ground truth
+        std::stringstream outBaseTemp;
+        outBaseTemp << sOut << "_global";
+        sOut = outBaseTemp.str();
+
+        SegPerfResults oRes(sOut);
+        processEmptyGroundTruthMetrics(oAnalyzer);
+        storeMetricsAndMarksForEmptyGroundTruth(oRes);
+
+        lRes = writeStoredMetricsAndMarks(oRes);
+        return;
+    }
+
     int i = 0;
 
     //////////////////////////////////////////////////////////////////////////
@@ -345,6 +365,15 @@ void SegPerfApp::processAnalyze(SegPerfCAnalyzer &pi_roAnalyzer, int pi_iIndex)
     }
 }
 
+void SegPerfApp::processEmptyGroundTruthMetrics(SegPerfCAnalyzer &pi_roAnalyzer)
+{
+    pi_roAnalyzer.computeEmptyGroundTruthMeasures();
+
+    m_fNumberOfSegmentedLesions = pi_roAnalyzer.getNumberOfTestedLesions();
+    m_fVolumeOfSegmentedLesions = pi_roAnalyzer.getVolumeOfTestedLesions();
+}
+
+
 /**
    @brief    This method store results into SegPerfResults class instance.
    @param    [in] pi_roRes is the reference output writer class instance.
@@ -400,6 +429,18 @@ void SegPerfApp::storeMetricsAndMarks(SegPerfResults&pi_roRes)
         pi_roRes.activeMeasurementOutput(SegPerfResults::eMesureF1Test);
         pi_roRes.setF1test(m_fF1);
     }
+}
+
+void SegPerfApp::storeMetricsAndMarksForEmptyGroundTruth(SegPerfResults&pi_roRes)
+{
+    pi_roRes.setTxt(m_bTxt);
+    pi_roRes.setXml(m_bXml);
+    pi_roRes.setScreen(m_bScreen);
+
+    pi_roRes.activeMeasurementOutput(SegPerfResults::eMesureNbTestedLesions);
+    pi_roRes.setNbTestedLesions(m_fNumberOfSegmentedLesions);
+    pi_roRes.activeMeasurementOutput(SegPerfResults::eMesureVolTestedLesions);
+    pi_roRes.setVolumeTestedLesions(m_fVolumeOfSegmentedLesions);
 }
 
 /**

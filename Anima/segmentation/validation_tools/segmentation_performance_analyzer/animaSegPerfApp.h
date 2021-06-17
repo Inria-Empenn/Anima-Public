@@ -26,7 +26,9 @@ public:
 
 protected:
     void processAnalyze(SegPerfCAnalyzer &pi_oAnalyzer, int pi_iIndex);
+    void processEmptyGroundTruthMetrics(SegPerfCAnalyzer &pi_oAnalyzer);
     void storeMetricsAndMarks(SegPerfResults &pi_roRes);
+    void storeMetricsAndMarksForEmptyGroundTruth(SegPerfResults &pi_roRes);
     long writeStoredMetricsAndMarks(SegPerfResults &pi_roRes);
 
 private:
@@ -76,6 +78,11 @@ private:
     double m_fTPLMinOverlapRatio;
     double m_fTPLMaxFalsePositiveRatio;
     double m_fTPLMaxFalsePositiveRatioModerator;
+
+    //////////////////////////////////////////////////////////////////////////
+    // Alternate metrics for empty reference image
+    double m_fNumberOfSegmentedLesions;
+    double m_fVolumeOfSegmentedLesions;
 
     std::string m_oStrInImage;   /*<! Path of Image to test. */
     std::string m_oStrRefImage;  /*<! Path of reference Image. */

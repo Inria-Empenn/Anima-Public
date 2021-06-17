@@ -56,7 +56,8 @@ public:
     double computeHausdorffDist();
     double computeMeanDist();
     double computeAverageSurfaceDistance();
-    void  computeITKMeasures();
+    void computeITKMeasures();
+    void computeEmptyGroundTruthMeasures();
 
     //getters
     double getUnionOverlap();
@@ -68,6 +69,8 @@ public:
     double getDiceCoefficient();
     double getJaccardCoefficient();
     double getRelativeVolumeError();
+    double getNumberOfTestedLesions() {return m_NumberOfTestedLesions;}
+    double getVolumeOfTestedLesions() {return m_VolumeOfTestedLesions;}
     bool getDetectionMarks(double&po_fPPVL, double&po_fSensL, double&po_fF1);
 
     int getNumberOfClusters();
@@ -95,7 +98,6 @@ private:
     double m_dfDetectionThresholdGamma;
     double m_dfMinLesionVolumeDetection;
 
-
     typedef itk::Image <unsigned short, 3> ImageType;
     typedef itk::ImageFileReader <ImageType> ImageReaderType;
     typedef itk::ImageRegionConstIterator <ImageType> ImageIteratorType;
@@ -107,6 +109,9 @@ private:
     ImageType::Pointer m_imageRefContour;
     ImageType::Pointer m_imageRefDuplicated;
     ImageType::Pointer m_imageTestDuplicated;
+
+    double m_NumberOfTestedLesions;
+    double m_VolumeOfTestedLesions;
 
     FilterType::Pointer m_oFilter;
     itk::ThreadIdType m_ThreadNb;

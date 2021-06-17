@@ -304,6 +304,51 @@ void SegPerfCAnalyzer::computeITKMeasures()
     }
 }
 
+void SegPerfCAnalyzer::computeEmptyGroundTruthMeasures()
+{
+    typedef itk::ConnectedComponentImageFilter<ImageType, ImageType> CCImageFilterType;
+    typedef itk::RelabelComponentImageFilter<ImageType, ImageType> RelabelImageFilterType;
+    typedef itk::ImageRegionConstIterator<ImageType> ImageConstIteratorType;
+
+    CCImageFilterType::Pointer ccFilter = CCImageFilterType::New();
+    ccFilter->SetInput(m_imageTest);
+    ccFilter->SetNumberOfWorkUnits(m_ThreadNb);
+    ccFilter->Update();
+
+    RelabelImageFilterType::Pointer relabelFilter = RelabelImageFilterType::New();
+    relabelFilter->SetInput(ccFilter->GetOutput());
+    ImageType::SpacingType spacing = m_imageTest->GetSpacing();
+    ImageType::SpacingValueType spacingTot = spacing[0];
+    unsigned int imageDim = ImageType::ImageDimension;
+    for (unsigned int i = 1; i < std::min(imageDim, (unsigned int)3); ++i)
+        spacingTot *= spacing[i];
+
+    // Compute minsize in voxels
+    double minSizeInVoxelD = m_dfMinLesionVolumeDetection / spacingTot;
+    double minSizeInVoxelD_floor = floor(minSizeInVoxelD);
+    unsigned int minSizeInVoxel = static_cast<unsigned int>(minSizeInVoxelD_floor);
+    minSizeInVoxel++; // to have strickly superior sizes
+
+    relabelFilter->SetMinimumObjectSize(minSizeInVoxel);
+
+    relabelFilter->SetNumberOfWorkUnits(m_ThreadNb);
+    relabelFilter->Update();
+
+    m_NumberOfTestedLesions = relabelFilter->GetNumberOfObjects();
+
+    m_VolumeOfTestedLesions = 0;
+    ImageConstIteratorType labeledImageItr(relabelFilter->GetOutput(), m_imageTest->GetLargestPossibleRegion());
+    while (!labeledImageItr.IsAtEnd())
+    {
+        if (labeledImageItr.Get() != 0)
+            ++m_VolumeOfTestedLesions;
+
+        ++labeledImageItr;
+    }
+
+    m_VolumeOfTestedLesions *= spacingTot;
+}
+
 /**
    @brief  Getter of Union overlap
    @return Union overlap in double
@@ -390,17 +435,18 @@ double SegPerfCAnalyzer::getRelativeVolumeError()
 */
 void SegPerfCAnalyzer::checkNumberOfLabels(int iNbLabelsImageTest, int iNbLabelsImageRef)
 {
+
+    if(iNbLabelsImageRef<=1)
+    {
+        m_uiNbLabels = 0;
+        std::cerr << "ERROR : Number of labels in ground truth is 0 !"<< std::endl;
+        return;
+    }
+
     if(iNbLabelsImageTest<=1)
     {
         m_uiNbLabels = 1;
         std::cerr << "ERROR : Number of labels in input image is 0 !" << std::endl;
-        return;
-    }
-
-    if(iNbLabelsImageRef<=1)
-    {
-        m_uiNbLabels = 1;
-        std::cerr << "ERROR : Number of labels in ground truth is 0 !"<< std::endl;
         return;
     }
 
