@@ -821,10 +821,17 @@ bool SegPerfCAnalyzer::getDetectionMarks(double&po_fPPVL, double&po_fSensL, doub
         removeOverlapTab(ppiOverlapTabTransposed, iNbLabelsTest);
     }
 
-    po_fPPVL = (double)((double)iTPLd / (double)(iNbLabelsTest-1));     //po_fTPLd  = (double)((double)iTPLd  / (double)(iNbLabelsTest-1));// The "-1" is to reject background label
+    if (iNbLabelsTest != 1)
+        po_fPPVL = (double)((double)iTPLd / (double)(iNbLabelsTest-1));     //po_fTPLd  = (double)((double)iTPLd  / (double)(iNbLabelsTest-1));// The "-1" is to reject background label
+    else
+        po_fPPVL = 0.0;
+
     po_fSensL = (double)((double)iTPLgt / (double)(iNbLabelsRef-1));    //po_fTPLgt = (double)((double)iTPLgt / (double)(iNbLabelsRef-1 ));// The "-1" is to reject background label
 
-    po_fF1 = 2 * (po_fPPVL * po_fSensL) / (po_fPPVL + po_fSensL);
+    if (po_fPPVL + po_fSensL > 0.0)
+        po_fF1 = 2 * (po_fPPVL * po_fSensL) / (po_fPPVL + po_fSensL);
+    else
+        po_fF1 = 0.0;
 
     return bRes;
 }
