@@ -234,8 +234,12 @@ TransformSeriesReader<TScalarType,NDimensions>
     SVFTransformPointer svfPointer = SVFTransformType::New();
     svfPointer->SetParametersAsVectorField(trReader->GetOutput());
 
+    double power = 1.0;
+    if (invert)
+        power = - 1.0;
+
     DenseTransformPointer dispTrsf = DenseTransformType::New();
-    anima::GetSVFExponential(svfPointer.GetPointer(),dispTrsf.GetPointer(),m_ExponentiationOrder,m_NumberOfThreads,invert);
+    anima::GetSVFExponential(svfPointer.GetPointer(),dispTrsf.GetPointer(),m_ExponentiationOrder,m_NumberOfThreads,power);
 
     m_OutputTransform->AddTransform(dispTrsf);
 }

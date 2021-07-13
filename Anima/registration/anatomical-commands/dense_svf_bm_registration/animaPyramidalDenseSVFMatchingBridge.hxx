@@ -33,6 +33,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::PyramidalDenseSVFMatchingBridge
 
     m_ReferenceMinimalValue = 0.0;
     m_FloatingMinimalValue = 0.0;
+    m_RegistrationPointLocation = 0.5;
 
     m_BlockSize = 5;
     m_BlockSpacing = 2;
@@ -103,6 +104,16 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
 
     this->InvokeEvent(itk::StartEvent());
 
+    bool invertInputs = (m_RegistrationPointLocation < 0.5) && (m_SymmetryType == Kissing);
+    if (invertInputs)
+    {
+        InputImagePointer tmpImage = m_ReferenceImage;
+        m_ReferenceImage = m_FloatingImage;
+        m_FloatingImage = tmpImage;
+
+        m_RegistrationPointLocation = 1.0 - m_RegistrationPointLocation;
+    }
+
     // Compute minimal value of reference and Floating images
     using MinMaxFilterType = itk::MinimumMaximumImageFilter <InputImageType>;
     typename MinMaxFilterType::Pointer minMaxFilter = MinMaxFilterType::New();
@@ -130,7 +141,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
     if (m_FloatingMinimalValue < 0.0)
         m_FloatingMinimalValue = -1024;
     else
-        m_FloatingMinimalValue = 0.0;
+        m_FloatingMinimalValue = 0.0;    
 
     this->SetupPyramids();
 
@@ -273,6 +284,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
                 typename BlockMatchRegistrationType::Pointer tmpReg = BlockMatchRegistrationType::New();
                 tmpReg->SetReferenceBackgroundValue(m_ReferenceMinimalValue);
                 tmpReg->SetFloatingBackgroundValue(m_FloatingMinimalValue);
+                tmpReg->SetRegistrationPointLocation(m_RegistrationPointLocation);
 
                 m_bmreg = tmpReg;
                 break;
@@ -471,7 +483,12 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
 
         typename MultiplyFilterType::Pointer fieldMultiplier = MultiplyFilterType::New();
         fieldMultiplier->SetInput(finalTrsfField);
-        fieldMultiplier->SetConstant(2.0);
+
+        double multiplier = 1.0 / m_RegistrationPointLocation;
+        if (invertInputs)
+            multiplier *= -1.0;
+        fieldMultiplier->SetConstant(multiplier);
+
         fieldMultiplier->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
         fieldMultiplier->InPlaceOn();
 
@@ -482,8 +499,20 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
         outputField->DisconnectPipeline();
     }
 
+    if (invertInputs)
+    {
+        InputImagePointer tmpImage = m_ReferenceImage;
+        m_ReferenceImage = m_FloatingImage;
+        m_FloatingImage = tmpImage;
+
+        m_RegistrationPointLocation = 1.0 - m_RegistrationPointLocation;
+        double floValue = m_FloatingMinimalValue;
+        m_FloatingMinimalValue = m_ReferenceMinimalValue;
+        m_ReferenceMinimalValue = floValue;
+    }
+
     DisplacementFieldTransformPointer outputDispTrsf = DisplacementFieldTransformType::New();
-    anima::GetSVFExponential(m_OutputTransform.GetPointer(), outputDispTrsf.GetPointer(), m_ExponentiationOrder, GetNumberOfWorkUnits(), false);
+    anima::GetSVFExponential(m_OutputTransform.GetPointer(), outputDispTrsf.GetPointer(), m_ExponentiationOrder, GetNumberOfWorkUnits(), 1.0);
 
     typedef typename anima::ResampleImageFilter<InputImageType, InputImageType,
                                                 typename BaseAgregatorType::ScalarType> ResampleFilterType;
@@ -508,7 +537,7 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::GetOutputDisplacementFieldTrans
 {
     DisplacementFieldTransformPointer outputDispTrsf = DisplacementFieldTransformType::New();
 
-    anima::GetSVFExponential(m_OutputTransform.GetPointer(), outputDispTrsf.GetPointer(), m_ExponentiationOrder, this->GetNumberOfWorkUnits(), false);
+    anima::GetSVFExponential(m_OutputTransform.GetPointer(), outputDispTrsf.GetPointer(), m_ExponentiationOrder, this->GetNumberOfWorkUnits(), 1.0);
 
     return outputDispTrsf;
 }

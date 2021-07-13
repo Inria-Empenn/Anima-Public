@@ -62,6 +62,7 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<double> scaleUpperBoundArg("","scu","Upper bound on scale for bobyqa (default: 3)",false,3,"Bobyqa scale upper bound",cmd);
 
     TCLAP::ValueArg<unsigned int> symmetryArg("","sym-reg","Registration symmetry type (0: asymmetric, 1: symmetric, 2: kissing, default: 0)",false,0,"symmetry type",cmd);
+    TCLAP::ValueArg<double> kissingLocationArg("K","kissing-point","Kissing point location along the transformation path (default: half-way = 0.5)",false,0.5,"kissing point location",cmd);
 
     TCLAP::ValueArg<unsigned int> agregatorArg("a","agregator","Transformation agregator type (0: M-Estimation, 1: least squares, 2: least trimmed squares, default: 0)",false,0,"agregator type",cmd);
     TCLAP::ValueArg<double> agregThresholdArg("","at","Agregator threshold value (for M-estimation or LTS)",false,0.5,"agregator threshold value",cmd);
@@ -107,6 +108,7 @@ int main(int argc, const char** argv)
     matcher->SetSeStoppingThreshold( seStoppingThresholdArg.getValue() );
     matcher->SetNumberOfPyramidLevels( numPyramidLevelsArg.getValue() );
     matcher->SetLastPyramidLevel( lastPyramidLevelArg.getValue() );
+    matcher->SetRegistrationPointLocation(kissingLocationArg.getValue());
 
     if (blockMaskArg.getValue() != "")
         matcher->SetBlockGenerationMask(anima::readImage<PyramidBMType::MaskImageType>(blockMaskArg.getValue()));

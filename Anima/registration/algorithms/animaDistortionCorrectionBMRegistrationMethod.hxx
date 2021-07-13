@@ -158,10 +158,10 @@ DistortionCorrectionBMRegistrationMethod <TInputImageType>
     // Now compute positive and negative updated transform
     DisplacementFieldTransformPointer positiveDispTrsf = DisplacementFieldTransformType::New();
     SVFTransformType *addOnCast = dynamic_cast <SVFTransformType *> (addOn);
-    anima::GetSVFExponential(addOnCast,positiveDispTrsf.GetPointer(),this->GetExponentiationOrder(),this->GetNumberOfWorkUnits(),false);
+    anima::GetSVFExponential(addOnCast,positiveDispTrsf.GetPointer(),this->GetExponentiationOrder(),this->GetNumberOfWorkUnits(),1.0);
 
     DisplacementFieldTransformPointer negativeDispTrsf = DisplacementFieldTransformType::New();
-    anima::GetSVFExponential(addOnCast,negativeDispTrsf.GetPointer(),this->GetExponentiationOrder(),this->GetNumberOfWorkUnits(),true);
+    anima::GetSVFExponential(addOnCast,negativeDispTrsf.GetPointer(),this->GetExponentiationOrder(),this->GetNumberOfWorkUnits(),-1.0);
 
     DisplacementFieldTransformPointer computedTransformCast = dynamic_cast <DisplacementFieldTransformType *> (computedTransform.GetPointer());
     anima::composeDistortionCorrections<typename AgregatorType::ScalarType, InputImageType::ImageDimension>

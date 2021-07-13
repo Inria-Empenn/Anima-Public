@@ -231,6 +231,9 @@ public:
 
     void SetGradientDirections(std::vector <vnl_vector_fixed <double,3> > &grads) {m_GradientDirections = grads;}
 
+    double GetRegistrationPointLocation() {return m_RegistrationPointLocation;}
+    void SetRegistrationPointLocation(double rpl) {m_RegistrationPointLocation = rpl;}
+
 protected:
     PyramidalDenseMCMSVFMatchingBridge();
     virtual ~PyramidalDenseMCMSVFMatchingBridge();
@@ -291,6 +294,9 @@ private:
     std::vector < vnl_vector_fixed <double,3> > m_GradientDirections;
     double m_SmallDelta, m_BigDelta;
     std::vector <double> m_GradientStrengths;
+
+    //! Registers the two images towards a point located in the range [0, 1]: 0 denotes on ref, 1: on moving, anything else lies on the path
+    double m_RegistrationPointLocation;
 
     BaseBlockMatchRegistrationPointer m_bmreg;
 };

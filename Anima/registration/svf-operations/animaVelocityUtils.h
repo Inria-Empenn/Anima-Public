@@ -18,7 +18,7 @@ void composeSVF(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *
 template <class ScalarType, unsigned int NDimensions>
 void GetSVFExponential(itk::StationaryVelocityFieldTransform <ScalarType,NDimensions> *baseTrsf,
                        rpi::DisplacementFieldTransform <ScalarType,NDimensions> *resultTransform,
-                       unsigned int exponentiationOrder, unsigned int numThreads, bool invert);
+                       unsigned int exponentiationOrder, unsigned int numThreads, double power);
 
 /**
  * Compose distortion correction opposite updates, ensures opposite symmetry

@@ -106,11 +106,11 @@ public:
     /**
      * Setter for images
      * */
-    void SetReferenceImage(InputImageConstPointer referenceImage) {m_ReferenceImage = referenceImage;}
-    void SetFloatingImage(InputImageConstPointer FloatingImage) {m_FloatingImage = FloatingImage;}
+    void SetReferenceImage(InputImagePointer referenceImage) {m_ReferenceImage = referenceImage;}
+    void SetFloatingImage(InputImagePointer FloatingImage) {m_FloatingImage = FloatingImage;}
 
-    InputImageType * GetReferenceImage() {return const_cast <InputImageType *> (m_ReferenceImage.GetPointer());}
-    InputImageType * GetFloatingImage() {return const_cast <InputImageType *> (m_FloatingImage.GetPointer());}
+    InputImageType *GetReferenceImage() {return m_ReferenceImage;}
+    InputImageType *GetFloatingImage() {return m_FloatingImage;}
 
     InputImagePointer GetOutputImage() {return m_OutputImage;}
 
@@ -222,6 +222,9 @@ public:
     double GetPercentageKept() {return m_PercentageKept;}
     void SetPercentageKept(double PercentageKept) {m_PercentageKept=PercentageKept;}
 
+    double GetRegistrationPointLocation() {return m_RegistrationPointLocation;}
+    void SetRegistrationPointLocation(double rpl) {m_RegistrationPointLocation = rpl;}
+
     void SetBlockGenerationMask(MaskImageType *mask) {m_BlockGenerationMask = mask;}
 
 protected:
@@ -236,7 +239,7 @@ private:
     BaseTransformPointer m_OutputTransform;
     InputImagePointer m_OutputImage;
 
-    InputImageConstPointer m_ReferenceImage, m_FloatingImage;
+    InputImagePointer m_ReferenceImage, m_FloatingImage;
     MaskImagePointer m_BlockGenerationMask;
     PyramidPointer m_ReferencePyramid, m_FloatingPyramid;
     MaskPyramidPointer m_BlockGenerationPyramid;
@@ -278,6 +281,9 @@ private:
     unsigned int m_NumberOfPyramidLevels;
     unsigned int m_LastPyramidLevel;
     double m_PercentageKept;
+
+    //! Registers the two images towards a point located in the range [0, 1]: 0 denotes on ref, 1: on moving, anything else lies on the path
+    double m_RegistrationPointLocation;
 
     BaseBlockMatchRegistrationPointer m_bmreg;
 };

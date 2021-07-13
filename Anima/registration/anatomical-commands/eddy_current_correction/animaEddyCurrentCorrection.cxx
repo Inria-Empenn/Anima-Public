@@ -256,7 +256,7 @@ int main(int argc, const char** argv)
         SVFTransformPointer svfPointer = nonLinearMatcher->GetOutputTransform();
 
         DenseTransformPointer dispTrsf = DenseTransformType::New();
-        anima::GetSVFExponential(svfPointer.GetPointer(),dispTrsf.GetPointer(),0,numThreadsArg.getValue(),false);
+        anima::GetSVFExponential(svfPointer.GetPointer(),dispTrsf.GetPointer(),0,numThreadsArg.getValue(),1.0);
 
         transformSerie->AddTransform(dispTrsf.GetPointer());
 

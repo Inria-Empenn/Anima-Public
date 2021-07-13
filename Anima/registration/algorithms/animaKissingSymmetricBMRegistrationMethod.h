@@ -17,10 +17,14 @@ public:
     typedef itk::SmartPointer <const Self> ConstPointer;
 
     typedef typename Superclass::InputImageType InputImageType;
+    typedef typename Superclass::TransformType TransformType;
     typedef typename Superclass::TransformPointer TransformPointer;
     typedef typename Superclass::BlockMatcherType BlockMatcherType;
     typedef typename Superclass::AgregatorType AgregatorType;
     typedef typename Superclass::AffineTransformType AffineTransformType;
+    typedef typename Superclass::AffineTransformPointer AffineTransformPointer;
+    typedef typename Superclass::DisplacementFieldTransformType DisplacementFieldTransformType;
+    typedef typename Superclass::DisplacementFieldTransformPointer DisplacementFieldTransformPointer;
     typedef typename Superclass::SVFTransformType SVFTransformType;
 
     /** Run-time type information (and related methods). */
@@ -30,12 +34,14 @@ public:
 
     itkSetMacro(ReferenceBackgroundValue, double)
     itkSetMacro(FloatingBackgroundValue, double)
+    itkSetMacro(RegistrationPointLocation, double)
 
 protected:
     KissingSymmetricBMRegistrationMethod()
     {
         m_ReferenceBackgroundValue = 0;
         m_FloatingBackgroundValue = 0;
+        m_RegistrationPointLocation = 0.5;
     }
 
     virtual ~KissingSymmetricBMRegistrationMethod() {}
@@ -54,11 +60,16 @@ protected:
         // Vector image : do nothing
     }
 
+    virtual TransformPointer GetBackwardTransformForResampling(TransformType *transform) ITK_OVERRIDE;
+
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(KissingSymmetricBMRegistrationMethod);
 
     double m_ReferenceBackgroundValue;
     double m_FloatingBackgroundValue;
+
+    //! Registers the two images towards a point located in the range [0, 1]: 0 denotes on ref, 1: on moving, anything else lies on the path
+    double m_RegistrationPointLocation;
 };
 
 } // end namespace anima

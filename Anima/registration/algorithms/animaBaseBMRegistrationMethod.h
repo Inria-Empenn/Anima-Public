@@ -133,6 +133,8 @@ protected:
     virtual void PerformOneIteration(InputImageType *refImage, InputImageType *movingImage, TransformPointer &addOn) = 0;
     virtual void ResampleImages(TransformType *currentTransform, InputImagePointer &refImage, InputImagePointer &movingImage);
     virtual bool ComposeAddOnWithTransform(TransformPointer &computedTransform, TransformType *addOn);
+    virtual TransformPointer GetForwardTransformForResampling(TransformType *transform);
+    virtual TransformPointer GetBackwardTransformForResampling(TransformType *transform);
 
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(BaseBMRegistrationMethod);

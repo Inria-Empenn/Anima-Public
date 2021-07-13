@@ -66,6 +66,7 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::PyramidalDenseMCMSVFMatching
     m_NumberOfPyramidLevels = 3;
     m_LastPyramidLevel = 0;
     m_PercentageKept = 0.8;
+    m_RegistrationPointLocation = 0.5;
     this->SetNumberOfWorkUnits(itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads());
 }
 
@@ -99,6 +100,16 @@ template <unsigned int ImageDimension>
 void
 PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
 {
+    bool invertInputs = (m_RegistrationPointLocation < 0.5) && (m_SymmetryType == Kissing);
+    if (invertInputs)
+    {
+        InputImagePointer tmpImage = m_ReferenceImage;
+        m_ReferenceImage = m_FloatingImage;
+        m_FloatingImage = tmpImage;
+
+        m_RegistrationPointLocation = 1.0 - m_RegistrationPointLocation;
+    }
+
     this->SetupPyramids();
 
     // Iterate over pyramid levels
@@ -226,7 +237,10 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
             case Kissing:
             {
                 typedef typename anima::KissingSymmetricBMRegistrationMethod <InputImageType> BlockMatchRegistrationType;
-                m_bmreg = BlockMatchRegistrationType::New();
+                typename BlockMatchRegistrationType::Pointer tmpReg = BlockMatchRegistrationType::New();
+                tmpReg->SetRegistrationPointLocation(m_RegistrationPointLocation);
+
+                m_bmreg = tmpReg;
                 break;
             }
         }
@@ -430,7 +444,12 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
 
         typename MultiplyFilterType::Pointer fieldMultiplier = MultiplyFilterType::New();
         fieldMultiplier->SetInput(finalTrsfField);
-        fieldMultiplier->SetConstant(2.0);
+
+        double multiplier = 1.0 / m_RegistrationPointLocation;
+        if (invertInputs)
+            multiplier *= -1.0;
+        fieldMultiplier->SetConstant(multiplier);
+
         fieldMultiplier->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
         fieldMultiplier->InPlaceOn();
 
@@ -441,8 +460,17 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
         outputField->DisconnectPipeline();
     }
 
+    if (invertInputs)
+    {
+        InputImagePointer tmpImage = m_ReferenceImage;
+        m_ReferenceImage = m_FloatingImage;
+        m_FloatingImage = tmpImage;
+
+        m_RegistrationPointLocation = 1.0 - m_RegistrationPointLocation;
+    }
+
     DisplacementFieldTransformPointer outputDispTrsf = DisplacementFieldTransformType::New();
-    anima::GetSVFExponential(m_OutputTransform.GetPointer(), outputDispTrsf.GetPointer(), m_ExponentiationOrder, GetNumberOfWorkUnits(), false);
+    anima::GetSVFExponential(m_OutputTransform.GetPointer(), outputDispTrsf.GetPointer(), m_ExponentiationOrder, GetNumberOfWorkUnits(), 1.0);
 
     typedef typename anima::MCMResampleImageFilter<InputImageType,typename BaseAgregatorType::ScalarType> ResampleFilterType;
     typename ResampleFilterType::Pointer tmpResample = ResampleFilterType::New();
