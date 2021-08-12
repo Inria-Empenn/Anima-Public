@@ -177,7 +177,7 @@ KissingSymmetricBMRegistrationMethod <TInputImageType>
         }
 
         affMatrix = anima::GetLogarithm(affMatrix);
-        affMatrix *= m_RegistrationPointLocation - 1;
+        affMatrix *= (m_RegistrationPointLocation - 1) / m_RegistrationPointLocation;
         affMatrix = anima::GetExponential(affMatrix);
 
         vnl_matrix <double> affResult(NDimensions,NDimensions,0);
