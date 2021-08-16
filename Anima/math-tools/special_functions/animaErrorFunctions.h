@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AnimaSpecialFunctionsExport.h"
+#include <cmath>
 
 namespace anima
 {
