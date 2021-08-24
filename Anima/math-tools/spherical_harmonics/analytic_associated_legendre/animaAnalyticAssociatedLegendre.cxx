@@ -3,18 +3,18 @@
 #include <vector>
 #include <cmath>
 
-unsigned int gcd(unsigned int a, unsigned int b)
+unsigned long gcd(unsigned long a, unsigned long b)
 {
     if (a < b)
     {
-        unsigned int tmp = a;
+        unsigned long tmp = a;
         a = b;
         b = tmp;
     }
 
     while ((a != b) && (b != 0))
     {
-        unsigned int newB = a % b;
+        unsigned long newB = a % b;
         a = b;
         b = newB;
     }
@@ -50,21 +50,21 @@ int main(int argc, char **argv)
     unsigned int maxIterNumber = orderAsked / 2;
 
     unsigned int currentAlpha = 0, currentGamma = 0;
-    std::vector <int> currentBeta(1,1), currentLambda(1,1);
+    std::vector <long> currentBeta(1,1), currentLambda(1,1);
 
-    for (unsigned int i = 0;i < maxIterNumber;++i)
+    for (unsigned long i = 0;i < maxIterNumber;++i)
     {
         unsigned int newIndex = i + 1;
         unsigned int newSize = newIndex + 1;
-        std::vector <int> newBetaNumerators(newSize,1), newLambdaNumerators(newSize,1);
+        std::vector <long> newBetaNumerators(newSize,1), newLambdaNumerators(newSize,1);
 
-        unsigned int pow2Value = std::pow(2,currentGamma - currentAlpha);
+        unsigned long pow2Value = std::pow(2,currentGamma - currentAlpha);
 
         // Deal with P_{2*newIndex}^0
         unsigned int newAlpha = currentGamma + 1;
         newBetaNumerators[0] = - (2 * i + 1) * pow2Value * currentBeta[0];
-        std::vector <unsigned int> newBetaDenominators(newSize, i + 1);
-        std::vector <unsigned int> newLambdaDenominators(newSize, (i + 1) * (2 * i + 3));
+        std::vector <unsigned long> newBetaDenominators(newSize, i + 1);
+        std::vector <unsigned long> newLambdaDenominators(newSize, (i + 1) * (2 * i + 3));
 
         for (unsigned int j = 1;j < newIndex;++j)
             newBetaNumerators[j] = (4 * i + 3) * currentLambda[j - 1] - (2 * i + 1) * pow2Value * currentBeta[j];
@@ -74,8 +74,8 @@ int main(int argc, char **argv)
         unsigned int maxPow2Index = 0;
         for (unsigned int j = 0;j < newSize;++j)
         {
-            unsigned int test = std::abs(newBetaNumerators[j]);
-            int gcdValue = gcd(test,newBetaDenominators[j]);
+            unsigned long test = std::abs(newBetaNumerators[j]);
+            long gcdValue = gcd(test,newBetaDenominators[j]);
 
             if (gcdValue > 1)
             {
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
             }
 
             unsigned int powIndex = 0;
-            unsigned int testedDenominator = newBetaDenominators[j];
+            unsigned long testedDenominator = newBetaDenominators[j];
             while (testedDenominator % 2 == 0)
             {
                 ++powIndex;
@@ -121,8 +121,8 @@ int main(int argc, char **argv)
         maxPow2Index = 0;
         for (unsigned int j = 0;j < newSize;++j)
         {
-            unsigned int test = std::abs(newLambdaNumerators[j]);
-            int gcdValue = gcd(test,newLambdaDenominators[j]);
+            unsigned long test = std::abs(newLambdaNumerators[j]);
+            long gcdValue = gcd(test,newLambdaDenominators[j]);
 
             if (gcdValue > 1)
             {
