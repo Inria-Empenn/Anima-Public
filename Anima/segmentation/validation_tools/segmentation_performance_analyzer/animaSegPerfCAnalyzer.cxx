@@ -1039,7 +1039,7 @@ bool SegPerfCAnalyzer::falsePositiveRatioTester(int pi_iLesionReference, int pi_
 
     //////////////////////////////////////////////////////////////////////////
     // Test in intersection size decreasing order that the regions overlapping the tested lesion are not too much outside of this lesion
-    while(dfSumWeight<pi_dfGamma && k<pi_iNbLabelsRef && !bExit)
+    while(dfSumWeight<pi_dfGamma && k<pi_iNbLabelsTest && !bExit)
     {
         dfRatioOutsideInside = (double)(pi_ppiOverlapTab[0][oSortedCollumVector[k].first])/(double)(pi_piColumnSumTab[oSortedCollumVector[k].first]);
         bExit = dfRatioOutsideInside>pi_dfBeta;
