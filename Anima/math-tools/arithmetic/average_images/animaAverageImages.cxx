@@ -5,6 +5,9 @@
 #include <itkMaskImageFilter.h>
 #include <itkCastImageFilter.h>
 
+#include <animaLogTensorImageFilter.h>
+#include <animaExpTensorImageFilter.h>
+
 #include <tclap/CmdLine.h>
 
 int main(int argc, char **argv)
@@ -49,6 +52,7 @@ int main(int argc, char **argv)
     imageIn.seekg(0, std::ios::beg);
 
     bool vectorImage = (imageIO->GetNumberOfComponents() > 1);
+    bool tensorImage = (imageIO->GetNumberOfComponents() == 6);
 
     using ImageType = itk::Image <long double, 3>;
     using SaveImageType = itk::Image <double, 3>;
@@ -150,6 +154,7 @@ int main(int argc, char **argv)
             std::cout << "Adding image " << refN << " with weight " << imageWeight << "..." << std::endl;
 			
             ImageType::Pointer tmpImage = anima::readImage <ImageType> (refN);
+
             itk::ImageRegionIterator <ImageType> tmpIt(tmpImage,tmpImage->GetLargestPossibleRegion());
             itk::ImageRegionIterator <ImageType> resIt(tmpOutput,tmpImage->GetLargestPossibleRegion());
 			
@@ -245,6 +250,17 @@ int main(int argc, char **argv)
                 continue;
 			
             outputData = anima::readImage <VectorImageType> (refN);
+            if (tensorImage)
+            {
+                using LogFilterType = anima::LogTensorImageFilter <long double, 3>;
+                LogFilterType::Pointer logFilter = LogFilterType::New();
+                logFilter->SetInput(outputData);
+                logFilter->Update();
+
+                outputData = logFilter->GetOutput();
+                outputData->DisconnectPipeline();
+            }
+
             double imageWeight = 1.0;
             if (weightsIn.is_open())
                 weightsIn >> imageWeight;
@@ -307,6 +323,16 @@ int main(int argc, char **argv)
             std::cout << "Adding image " << refN << " with weight " << imageWeight << "..." << std::endl;
 
             VectorImageType::Pointer tmpImage = anima::readImage <VectorImageType> (refN);
+            if (tensorImage)
+            {
+                using LogFilterType = anima::LogTensorImageFilter <long double, 3>;
+                LogFilterType::Pointer logFilter = LogFilterType::New();
+                logFilter->SetInput(tmpImage);
+                logFilter->Update();
+
+                tmpImage = logFilter->GetOutput();
+                tmpImage->DisconnectPipeline();
+            }
             
 			itk::ImageRegionIterator <VectorImageType> tmpIt(tmpImage,tmpImage->GetLargestPossibleRegion());
 			itk::ImageRegionIterator <VectorImageType> resIt(outputData,tmpImage->GetLargestPossibleRegion());
@@ -379,6 +405,17 @@ int main(int argc, char **argv)
             divideFilter->Update();
 
             outputData = divideFilter->GetOutput();
+            outputData->DisconnectPipeline();
+        }
+
+        if (tensorImage)
+        {
+            using ExpFilterType = anima::ExpTensorImageFilter <long double, 3>;
+            ExpFilterType::Pointer expFilter = ExpFilterType::New();
+            expFilter->SetInput(outputData);
+            expFilter->Update();
+
+            outputData = expFilter->GetOutput();
             outputData->DisconnectPipeline();
         }
         
