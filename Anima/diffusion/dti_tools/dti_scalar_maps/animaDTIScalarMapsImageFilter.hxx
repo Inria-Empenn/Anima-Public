@@ -21,11 +21,10 @@ template < unsigned int ImageDimension>
 DTIScalarMapsImageFilter < ImageDimension >::DTIScalarMapsImageFilter() :
     Superclass()
 {
-    this->SetNumberOfRequiredOutputs(4);
-    this->SetNthOutput(0, this->MakeOutput(0));
-    this->SetNthOutput(1, this->MakeOutput(1));
-    this->SetNthOutput(2, this->MakeOutput(2));
-    this->SetNthOutput(3, this->MakeOutput(3));
+    this->SetNumberOfRequiredOutputs(5);
+
+    for (unsigned int i = 0;i < 5;++i)
+        this->SetNthOutput(i, this->MakeOutput(i));
 }
 
 /**
@@ -44,11 +43,11 @@ DTIScalarMapsImageFilter< ImageDimension >
 ::DynamicThreadedGenerateData(const OutputImageRegionType& outputRegionForThread)
 {
     itk::ImageRegionConstIterator<TensorImageType> tensorIterator;
-    itk::ImageRegionIterator<ADCImageType> adcIterator;
+    itk::ImageRegionIterator<OutputImageType> adcIterator;
 
     // Allocate output
     typename  InputImageType::ConstPointer tensorImage  = this->GetInput();
-    typename ADCImageType::Pointer adcImage = this->GetOutput(0);
+    typename OutputImageType::Pointer adcImage = this->GetOutput(0);
 
     TensorImageRegionType tensorRegionForThread;
     tensorRegionForThread.SetIndex(outputRegionForThread.GetIndex());
@@ -56,29 +55,29 @@ DTIScalarMapsImageFilter< ImageDimension >
 
     tensorIterator = itk::ImageRegionConstIterator<TensorImageType>(tensorImage, tensorRegionForThread);
     adcIterator = itk::ImageRegionIterator<OutputImageType>(adcImage, outputRegionForThread);
-    tensorIterator.GoToBegin();
-    adcIterator.GoToBegin();
 
     itk::ImageRegionIterator<OutputImageType> faIterator;
-    typename FAImageType::Pointer faImage = this->GetOutput(1);
+    typename OutputImageType::Pointer faImage = this->GetOutput(1);
     faIterator = itk::ImageRegionIterator<OutputImageType>(faImage, outputRegionForThread);
-    faIterator.GoToBegin();
 
     itk::ImageRegionIterator<OutputImageType> axialIterator;
-    typename FAImageType::Pointer axialImage = this->GetOutput(2);
+    typename OutputImageType::Pointer axialImage = this->GetOutput(2);
     axialIterator = itk::ImageRegionIterator<OutputImageType>(axialImage, outputRegionForThread);
-    axialIterator.GoToBegin();
 
     itk::ImageRegionIterator<OutputImageType> radialIterator;
-    typename FAImageType::Pointer radialImage = this->GetOutput(3);
+    typename OutputImageType::Pointer radialImage = this->GetOutput(3);
     radialIterator = itk::ImageRegionIterator<OutputImageType>(radialImage, outputRegionForThread);
-    radialIterator.GoToBegin();
+
+    itk::ImageRegionIterator<OutputImageType> angleIterator;
+    typename OutputImageType::Pointer angleImage = this->GetOutput(4);
+    angleIterator = itk::ImageRegionIterator<OutputImageType>(angleImage, outputRegionForThread);
 
     typedef vnl_matrix<double> TensorSymMatrixType;
     typedef itk::Vector<double, 3> EigenVectorType;
 
-    EigenVectorType eigenValue;
+    EigenVectorType eigenValues;
     TensorSymMatrixType tensorSymMatrix(3,3);
+    TensorSymMatrixType eigenVectors(3,3);
 
     itk::SymmetricEigenAnalysis<TensorSymMatrixType, EigenVectorType> eigenAnalysis;
     eigenAnalysis.SetDimension(3);
@@ -93,9 +92,9 @@ DTIScalarMapsImageFilter< ImageDimension >
 
         anima::GetTensorFromVectorRepresentation(tensor, tensorSymMatrix,3,false);
 
-        eigenAnalysis.ComputeEigenValues(tensorSymMatrix, eigenValue);
+        eigenAnalysis.ComputeEigenValuesAndVectors(tensorSymMatrix, eigenValues, eigenVectors);
 
-        double l1(eigenValue[2]), l2(eigenValue[1]), l3(eigenValue[0]), fa(1);
+        double l1(eigenValues[2]), l2(eigenValues[1]), l3(eigenValues[0]), fa(1);
         double num = std::sqrt ((l1 -l2) * (l1 -l2) + (l2 -l3) * (l2 -l3) + (l3 - l1) * (l3 - l1));
         double den = std::sqrt (l1*l1 + l2*l2 + l3*l3);
 
@@ -109,12 +108,19 @@ DTIScalarMapsImageFilter< ImageDimension >
         axialIterator.Set(l1);
         radialIterator.Set((l2+l3) / 2.0);
 
+        if (l1 > 0)
+        {
+            double cosAngleValue = std::abs(eigenVectors(2,2)); // scalar product with main B0 direction = real z axis
+            angleIterator.Set(std::acos(cosAngleValue) * 180.0 / M_PI);
+        }
+
         this->IncrementNumberOfProcessedPoints();
         ++tensorIterator;
         ++adcIterator;
         ++faIterator;
         ++axialIterator;
         ++radialIterator;
+        ++angleIterator;
     }
 }
 

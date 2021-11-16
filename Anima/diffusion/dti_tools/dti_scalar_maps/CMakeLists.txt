@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaComputeDTIScalarMaps)
+project(animaDTIScalarMaps)
 
 ## #############################################################################
 ## List Sources

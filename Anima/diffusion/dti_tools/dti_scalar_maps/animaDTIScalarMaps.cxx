@@ -18,7 +18,7 @@ void eventCallback (itk::Object* caller, const itk::EventObject& event, void* cl
 int main(int ac, const char** av)
 {
 
-    TCLAP::CmdLine cmd("Compute an ADC, FA, axial Diffusivity, radial diffuisivity image from a DTI volume.\nINRIA / IRISA - VisAGeS/Empenn Team",' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("Compute an ADC, FA, axial Diffusivity, radial diffusivity, angles to z axis image from a DTI volume.\nINRIA / IRISA - VisAGeS/Empenn Team",' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> tensorArg("i",
                                            "input",
@@ -59,6 +59,14 @@ int main(int ac, const char** av)
                                         "",
                                         "Radial diffusivity image",
                                         cmd);
+
+    TCLAP::ValueArg<std::string> anglesArg("A",
+                                       "angle-image",
+                                       "angles image",
+                                       false,
+                                       "",
+                                       "angles image",
+                                       cmd);
 
     TCLAP::ValueArg<unsigned int> nbpArg("p",
                                          "pThread",
@@ -107,6 +115,8 @@ int main(int ac, const char** av)
             anima::writeImage<OutputsImageType>(axArg.getValue(), filter->GetAxialDiffusivityImage());
         if(radArg.getValue() != "")
             anima::writeImage<OutputsImageType>(radArg.getValue(), filter->GetRadialDiffusivityImage());
+        if(anglesArg.getValue() != "")
+            anima::writeImage<OutputsImageType>(anglesArg.getValue(), filter->GetAnglesImage());
     }
     catch( itk::ExceptionObject & err )
     {

@@ -29,8 +29,6 @@ public:
     typedef itk::VectorImage <double, ImageDimension> InputImageType;
     typedef itk::Image <double, ImageDimension> OutputImageType;
     typedef InputImageType TensorImageType;
-    typedef OutputImageType FAImageType;
-    typedef OutputImageType ADCImageType;
 
     /** Extract dimension from input and output image. */
     itkStaticConstMacro(InputImageDimension, unsigned int,
@@ -52,11 +50,11 @@ public:
     itkTypeMacro(DTIScalarMapsImageFilter, anima::NumberedThreadImageToImageFilter)
 
     /** Image typedef support. */
-    typedef typename TensorImageType::PixelType               TensorVectorType;
+    typedef typename TensorImageType::PixelType TensorVectorType;
 
-    typedef typename TensorImageType::RegionType  TensorImageRegionType;
-    typedef typename OutputImageType::RegionType  OutputImageRegionType;
-    typedef typename TensorImageType::SizeType    TensorImageSizeType;
+    typedef typename TensorImageType::RegionType TensorImageRegionType;
+    typedef typename OutputImageType::RegionType OutputImageRegionType;
+    typedef typename TensorImageType::SizeType TensorImageSizeType;
 
     /**  Create the Output */
     itk::DataObject::Pointer MakeOutput(itk::ProcessObject::DataObjectPointerArraySizeType idx) ITK_OVERRIDE;
@@ -65,6 +63,7 @@ public:
     typename OutputImageType::Pointer GetFAImage() {return this->GetOutput(1);}
     typename OutputImageType::Pointer GetAxialDiffusivityImage() {return this->GetOutput(2);}
     typename OutputImageType::Pointer GetRadialDiffusivityImage() {return this->GetOutput(3);}
+    typename OutputImageType::Pointer GetAnglesImage() {return this->GetOutput(4);}
 
 protected:
     DTIScalarMapsImageFilter();
