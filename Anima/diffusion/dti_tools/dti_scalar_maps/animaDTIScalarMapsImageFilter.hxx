@@ -17,7 +17,7 @@
 namespace anima
 {
 
-template < unsigned int ImageDimension>
+template <unsigned int ImageDimension>
 DTIScalarMapsImageFilter < ImageDimension >::DTIScalarMapsImageFilter() :
     Superclass()
 {
@@ -30,14 +30,24 @@ DTIScalarMapsImageFilter < ImageDimension >::DTIScalarMapsImageFilter() :
 /**
  *   Make Ouput
  */
-template < unsigned int ImageDimension>
+template <unsigned int ImageDimension>
 itk::DataObject::Pointer
 DTIScalarMapsImageFilter< ImageDimension >::MakeOutput(itk::ProcessObject::DataObjectPointerArraySizeType idx)
 {
     return (OutputImageType::New()).GetPointer();
 }
 
-template < unsigned int ImageDimension>
+template <unsigned int ImageDimension>
+void
+DTIScalarMapsImageFilter< ImageDimension >::SetAnglesMatrix(vnl_matrix <double> &affMatrix)
+{
+    vnl_matrix<double> tmpMat(3,3);
+    m_RigidAnglesMatrix.set_size(3,3);
+    anima::ExtractRotationFromJacobianMatrix(affMatrix,m_RigidAnglesMatrix,tmpMat);
+}
+
+
+template <unsigned int ImageDimension>
 void
 DTIScalarMapsImageFilter< ImageDimension >
 ::DynamicThreadedGenerateData(const OutputImageRegionType& outputRegionForThread)
@@ -110,7 +120,13 @@ DTIScalarMapsImageFilter< ImageDimension >
 
         if (l1 > 0)
         {
-            double cosAngleValue = std::abs(eigenVectors(2,2)); // scalar product with main B0 direction = real z axis
+            // scalar product with eigenVectors(2,:) * m_RigidAnglesMatrix * [0,0,1]'
+            double cosAngleValue = 0.0;
+
+            for (unsigned int j = 0;j < 3;++j)
+                cosAngleValue += eigenVectors(2,j) * m_RigidAnglesMatrix(j,2);
+
+            cosAngleValue = std::abs(cosAngleValue);
             angleIterator.Set(std::acos(cosAngleValue) * 180.0 / M_PI);
         }
 

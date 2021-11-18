@@ -8,9 +8,9 @@
 #include <animaNumberedThreadImageToImageFilter.h>
 #include <itkVectorImage.h>
 #include <itkImage.h>
+#include <vnl/vnl_matrix.h>
 
 namespace anima
-
 {
 /** \class DTIScalarMapsImageFilter
  * \brief Applies an variance filter to an image
@@ -65,6 +65,8 @@ public:
     typename OutputImageType::Pointer GetRadialDiffusivityImage() {return this->GetOutput(3);}
     typename OutputImageType::Pointer GetAnglesImage() {return this->GetOutput(4);}
 
+    void SetAnglesMatrix(vnl_matrix <double> &affMatrix);
+
 protected:
     DTIScalarMapsImageFilter();
     virtual ~DTIScalarMapsImageFilter() {}
@@ -73,6 +75,8 @@ protected:
 
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(DTIScalarMapsImageFilter);
+
+    vnl_matrix <double> m_RigidAnglesMatrix;
 };
 
 } // end of namespace anima

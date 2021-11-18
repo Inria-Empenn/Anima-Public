@@ -4,6 +4,7 @@
 
 #include <itkImage.h>
 #include <itkCommand.h>
+#include <itkTransformFileReader.h>
 
 #include <animaReadWriteFunctions.h>
 
@@ -61,12 +62,20 @@ int main(int ac, const char** av)
                                         cmd);
 
     TCLAP::ValueArg<std::string> anglesArg("A",
-                                       "angle-image",
-                                       "angles image",
-                                       false,
-                                       "",
-                                       "angles image",
-                                       cmd);
+                                           "angle-image",
+                                           "angles image",
+                                           false,
+                                           "",
+                                           "angles image",
+                                           cmd);
+
+    TCLAP::ValueArg<std::string> anglesAxisArg("t",
+                                               "angle-transform",
+                                               "reference transform for angles calculation (as ITK transform file, default: identity)",
+                                               false,
+                                               "",
+                                               "angles transform",
+                                               cmd);
 
     TCLAP::ValueArg<unsigned int> nbpArg("p",
                                          "pThread",
@@ -89,6 +98,43 @@ int main(int ac, const char** av)
     itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
     callback->SetCallback(eventCallback);
 
+    typedef double PrecisionType;
+    const unsigned int Dimension = 3;
+    typedef itk::AffineTransform <PrecisionType,Dimension> MatrixTransformType;
+    typedef MatrixTransformType::Pointer MatrixTransformPointer;
+    typedef vnl_matrix <double> MatrixType;
+
+    MatrixTransformPointer trsf;
+    vnl_matrix <double> matrixTrsf(3,3);
+    matrixTrsf.set_identity();
+
+    if (anglesAxisArg.getValue() != "")
+    {
+        itk::TransformFileReader::Pointer trReader = itk::TransformFileReader::New();
+        trReader->SetFileName(anglesAxisArg.getValue());
+
+        try
+        {
+            trReader->Update();
+        }
+        catch (itk::ExceptionObject &e)
+        {
+            std::cerr << "Problem reading transform file " << anglesAxisArg.getValue() << ", exiting" << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        itk::TransformFileReader::TransformListType trsfList = *(trReader->GetTransformList());
+        itk::TransformFileReader::TransformListType::iterator tr_it = trsfList.begin();
+
+        trsf = dynamic_cast <MatrixTransformType *> ((*tr_it).GetPointer());
+
+        for (unsigned int i = 0;i < 3;++i)
+        {
+            for (unsigned int j = 0;j < 3;++j)
+                matrixTrsf(i,j) = trsf->GetMatrix()(i,j);
+        }
+    }
+
     typedef itk::VectorImage<double, 3> TensorImageType;
     typedef itk::Image<double, 3> OutputsImageType;
 
@@ -96,6 +142,7 @@ int main(int ac, const char** av)
 
     FilterType::Pointer filter = FilterType::New();
     filter->SetInput(anima::readImage<TensorImageType>(tensorArg.getValue()));
+    filter->SetAnglesMatrix(matrixTrsf);
 
     if(nbpArg.getValue())
         filter->SetNumberOfWorkUnits(nbpArg.getValue());
