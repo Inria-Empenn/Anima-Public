@@ -129,6 +129,7 @@ DTIScalarMapsImageFilter< ImageDimension >
         {
             // scalar product : eigenVectors(2,:) * m_RigidAnglesMatrix * [0,0,1]'
             double cosAngleValue = 0.0;
+            double azimuthAngle = 0.0;
 
             for (unsigned int k = 0;k < 3;++k)
             {
@@ -145,16 +146,14 @@ DTIScalarMapsImageFilter< ImageDimension >
             if (rotatedEigenVector[2] < 0.0)
                 rotatedEigenVector *= -1;
 
+
+
             if (cosAngleValue != 1.0)
-                cosAzimuthValue = rotatedEigenVector[0] / std::sin(angleValue);
-
-            double azimuthAngle = 0.0;
-            if (rotatedEigenVector[1] < 0)
-                azimuthAngle = 2 * M_PI - std::acos(cosAzimuthValue);
+                azimuthAngle = std::atan2(rotatedEigenVector[1],rotatedEigenVector[0]) * 180.0 / M_PI;
             else
-                azimuthAngle = std::acos(cosAzimuthValue);
+                azimuthAngle = 0.0;
 
-            azimuthIterator.Set(azimuthAngle * 180.0 * M_PI);
+            azimuthIterator.Set(azimuthAngle);
         }
 
         this->IncrementNumberOfProcessedPoints();
