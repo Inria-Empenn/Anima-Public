@@ -69,6 +69,14 @@ int main(int ac, const char** av)
                                            "angles image",
                                            cmd);
 
+    TCLAP::ValueArg<std::string> azimuthArg("Z",
+                                            "azimuth-image",
+                                            "azimuth angles image",
+                                            false,
+                                            "",
+                                            "azimuth image",
+                                            cmd);
+
     TCLAP::ValueArg<std::string> anglesAxisArg("t",
                                                "angle-transform",
                                                "reference transform for angles calculation (as ITK transform file, default: identity)",
@@ -164,6 +172,8 @@ int main(int ac, const char** av)
             anima::writeImage<OutputsImageType>(radArg.getValue(), filter->GetRadialDiffusivityImage());
         if(anglesArg.getValue() != "")
             anima::writeImage<OutputsImageType>(anglesArg.getValue(), filter->GetAnglesImage());
+        if(azimuthArg.getValue() != "")
+            anima::writeImage<OutputsImageType>(azimuthArg.getValue(), filter->GetAzimuthAnglesImage());
     }
     catch( itk::ExceptionObject & err )
     {

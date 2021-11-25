@@ -64,6 +64,7 @@ public:
     typename OutputImageType::Pointer GetAxialDiffusivityImage() {return this->GetOutput(2);}
     typename OutputImageType::Pointer GetRadialDiffusivityImage() {return this->GetOutput(3);}
     typename OutputImageType::Pointer GetAnglesImage() {return this->GetOutput(4);}
+    typename OutputImageType::Pointer GetAzimuthAnglesImage() {return this->GetOutput(5);}
 
     void SetAnglesMatrix(vnl_matrix <double> &affMatrix);
 

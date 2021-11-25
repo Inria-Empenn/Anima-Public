@@ -21,9 +21,10 @@ template <unsigned int ImageDimension>
 DTIScalarMapsImageFilter < ImageDimension >::DTIScalarMapsImageFilter() :
     Superclass()
 {
-    this->SetNumberOfRequiredOutputs(5);
+    unsigned int numOutputs = 6;
+    this->SetNumberOfRequiredOutputs(numOutputs);
 
-    for (unsigned int i = 0;i < 5;++i)
+    for (unsigned int i = 0;i < numOutputs;++i)
         this->SetNthOutput(i, this->MakeOutput(i));
 }
 
@@ -82,6 +83,10 @@ DTIScalarMapsImageFilter< ImageDimension >
     typename OutputImageType::Pointer angleImage = this->GetOutput(4);
     angleIterator = itk::ImageRegionIterator<OutputImageType>(angleImage, outputRegionForThread);
 
+    itk::ImageRegionIterator<OutputImageType> azimuthIterator;
+    typename OutputImageType::Pointer azimuthImage = this->GetOutput(5);
+    azimuthIterator = itk::ImageRegionIterator<OutputImageType>(azimuthImage, outputRegionForThread);
+
     typedef vnl_matrix<double> TensorSymMatrixType;
     typedef itk::Vector<double, 3> EigenVectorType;
 
@@ -91,6 +96,8 @@ DTIScalarMapsImageFilter< ImageDimension >
 
     itk::SymmetricEigenAnalysis<TensorSymMatrixType, EigenVectorType> eigenAnalysis;
     eigenAnalysis.SetDimension(3);
+
+    EigenVectorType rotatedEigenVector;
 
     while (!tensorIterator.IsAtEnd())
     {
@@ -120,14 +127,34 @@ DTIScalarMapsImageFilter< ImageDimension >
 
         if (l1 > 0)
         {
-            // scalar product with eigenVectors(2,:) * m_RigidAnglesMatrix * [0,0,1]'
+            // scalar product : eigenVectors(2,:) * m_RigidAnglesMatrix * [0,0,1]'
             double cosAngleValue = 0.0;
 
-            for (unsigned int j = 0;j < 3;++j)
-                cosAngleValue += eigenVectors(2,j) * m_RigidAnglesMatrix(j,2);
+            for (unsigned int k = 0;k < 3;++k)
+            {
+                rotatedEigenVector[k] = 0;
+                for (unsigned int j = 0;j < 3;++j)
+                    rotatedEigenVector[k] += eigenVectors(2,j) * m_RigidAnglesMatrix(j,k);
+            }
 
-            cosAngleValue = std::abs(cosAngleValue);
-            angleIterator.Set(std::acos(cosAngleValue) * 180.0 / M_PI);
+            cosAngleValue = std::abs(rotatedEigenVector[2]);
+            double angleValue = std::acos(cosAngleValue);
+            angleIterator.Set(angleValue * 180.0 / M_PI);
+
+            double cosAzimuthValue = 1.0;
+            if (rotatedEigenVector[2] < 0.0)
+                rotatedEigenVector *= -1;
+
+            if (cosAngleValue != 1.0)
+                cosAzimuthValue = rotatedEigenVector[0] / std::sin(angleValue);
+
+            double azimuthAngle = 0.0;
+            if (rotatedEigenVector[1] < 0)
+                azimuthAngle = 2 * M_PI - std::acos(cosAzimuthValue);
+            else
+                azimuthAngle = std::acos(cosAzimuthValue);
+
+            azimuthIterator.Set(azimuthAngle * 180.0 * M_PI);
         }
 
         this->IncrementNumberOfProcessedPoints();
@@ -137,6 +164,7 @@ DTIScalarMapsImageFilter< ImageDimension >
         ++axialIterator;
         ++radialIterator;
         ++angleIterator;
+        ++azimuthIterator;
     }
 }
 
