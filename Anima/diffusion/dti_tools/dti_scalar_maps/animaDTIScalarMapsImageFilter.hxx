@@ -147,11 +147,7 @@ DTIScalarMapsImageFilter< ImageDimension >
                 rotatedEigenVector *= -1;
 
             if (cosAngleValue != 1.0)
-            {
                 azimuthAngle = std::atan2(rotatedEigenVector[1],rotatedEigenVector[0]);
-                if (azimuthAngle < 0.0)
-                    azimuthAngle = 2 * M_PI + azimuthAngle;
-            }
             else
                 azimuthAngle = 0.0;
 
