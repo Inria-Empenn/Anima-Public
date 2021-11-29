@@ -28,7 +28,7 @@ set (cmake_args
 
 set (location "")
 if (NOT DEFINED ${proj}_SRC_DIR)
-  set(tag v5.1.2)
+  set(tag v5.2.1)
   set(location GIT_REPOSITORY ${GITHUB_PREFIX}InsightSoftwareConsortium/ITK.git GIT_TAG ${tag})
 endif()
 
