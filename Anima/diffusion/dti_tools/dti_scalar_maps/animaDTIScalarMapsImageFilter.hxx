@@ -47,7 +47,6 @@ DTIScalarMapsImageFilter< ImageDimension >::SetAnglesMatrix(vnl_matrix <double> 
     anima::ExtractRotationFromJacobianMatrix(affMatrix,m_RigidAnglesMatrix,tmpMat);
 }
 
-
 template <unsigned int ImageDimension>
 void
 DTIScalarMapsImageFilter< ImageDimension >
@@ -127,7 +126,7 @@ DTIScalarMapsImageFilter< ImageDimension >
 
         if (l1 > 0)
         {
-            // scalar product : eigenVectors(2,:) * m_RigidAnglesMatrix * [0,0,1]'
+            // scalar product : eigenVectors(2,:) * m_RigidAnglesMatrix^T * [0,0,1]'
             double cosAngleValue = 0.0;
             double azimuthAngle = 0.0;
 
@@ -135,7 +134,7 @@ DTIScalarMapsImageFilter< ImageDimension >
             {
                 rotatedEigenVector[k] = 0;
                 for (unsigned int j = 0;j < 3;++j)
-                    rotatedEigenVector[k] += eigenVectors(2,j) * m_RigidAnglesMatrix(j,k);
+                    rotatedEigenVector[k] += eigenVectors(2,j) * m_RigidAnglesMatrix(k,j);
             }
 
             cosAngleValue = std::abs(rotatedEigenVector[2]);
