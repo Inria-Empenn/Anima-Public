@@ -570,10 +570,10 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
         lambda = algorithm.Optimize();
         p[0] = lambda;
         regularizationCost->GetValue(p);
-
-        t2OptimizedWeights = regularizationCost->GetOptimizedT2Weights();
-        m0Value = regularizationCost->GetOptimizedM0Value();
     }
+
+    t2OptimizedWeights = regularizationCost->GetOptimizedT2Weights();
+    m0Value = regularizationCost->GetOptimizedM0Value();
 
     return regularizationCost->GetCurrentResidual();
 }
