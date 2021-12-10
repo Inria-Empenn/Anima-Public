@@ -543,7 +543,7 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
         p[0] = lambda;
         ratio = regularizationCost->GetValue(p);
 
-        if (2.0 * std::abs(ratio - oldRatio) / std::abs(oldRatio + ratio) < 1.0e-2)
+        if (2.0 * std::abs(ratio - oldRatio) / std::abs(oldRatio + ratio) < 1.0e-3)
             ratioStall = true;
 
         if (ratio < 0.0)
