@@ -535,10 +535,16 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
 
     // Find upper bound for lambda (and possibly lower bound)
     double ratio = -1.0;
-    while (ratio < 0.0)
+    double oldRatio = ratio;
+    bool ratioStall = false;
+    while ((ratio < 0.0) && (!ratioStall))
     {
+        oldRatio = ratio;
         p[0] = lambda;
         ratio = regularizationCost->GetValue(p);
+
+        if (2.0 * std::abs(ratio - oldRatio) / std::abs(oldRatio + ratio) < 1.0e-2)
+            ratioStall = true;
 
         if (ratio < 0.0)
         {
@@ -547,24 +553,27 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
         }
     }
 
-    upperBound = lambda;
+    if (ratio >= 0.0)
+    {
+        upperBound = lambda;
 
-    DekkerRootFindingAlgorithm algorithm;
+        DekkerRootFindingAlgorithm algorithm;
 
-    algorithm.SetRootRelativeTolerance(1.0e-4);
-    algorithm.SetCostFunctionTolerance(1.e-8);
-    algorithm.SetRootFindingFunction(regularizationCost);
-    algorithm.SetMaximumNumberOfIterations(100);
-    algorithm.SetLowerBound(lowerBound);
-    algorithm.SetUpperBound(upperBound);
-    algorithm.SetFunctionValueAtInitialLowerBound(zeroCost);
+        algorithm.SetRootRelativeTolerance(1.0e-4);
+        algorithm.SetCostFunctionTolerance(1.e-8);
+        algorithm.SetRootFindingFunction(regularizationCost);
+        algorithm.SetMaximumNumberOfIterations(100);
+        algorithm.SetLowerBound(lowerBound);
+        algorithm.SetUpperBound(upperBound);
+        algorithm.SetFunctionValueAtInitialLowerBound(zeroCost);
 
-    lambda = algorithm.Optimize();
-    p[0] = lambda;
-    regularizationCost->GetValue(p);
+        lambda = algorithm.Optimize();
+        p[0] = lambda;
+        regularizationCost->GetValue(p);
 
-    t2OptimizedWeights = regularizationCost->GetOptimizedT2Weights();
-    m0Value = regularizationCost->GetOptimizedM0Value();
+        t2OptimizedWeights = regularizationCost->GetOptimizedT2Weights();
+        m0Value = regularizationCost->GetOptimizedM0Value();
+    }
 
     return regularizationCost->GetCurrentResidual();
 }
