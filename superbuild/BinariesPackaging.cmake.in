@@ -5,7 +5,6 @@ set(BINARY_TOOLS_LIST
   animaBMDistortionCorrection
   animaBuildSamplesFromVolumes
   animaCollapseImage
-  animaComputeDTIScalarMaps
   animaConcatenateImages
   animaConnectedComponents
   animaConvertImage
@@ -16,6 +15,7 @@ set(BINARY_TOOLS_LIST
   animaDetectedComponents
   animaDTIEstimator
   animaDTIProbabilisticTractography
+  animaDTIScalarMaps
   animaDTITractography
   animaDenseMCMSVFBMRegistration
   animaDenseSVFBMRegistration
