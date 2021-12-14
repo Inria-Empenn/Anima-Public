@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     TCLAP::SwitchArg nonUniformPulsesArg("N","non-uniform","Use a non uniform pulse profile (default: no)",cmd);
     TCLAP::ValueArg<std::string> excitationProfileArg("E","excitation-profile","Excitation profile text file",false,"","excitation profile file",cmd);
     TCLAP::ValueArg<std::string> pulseProfileArg("p","pulse-profile","Pulse profile text file",false,"","pulse profile file",cmd);
-    TCLAP::ValueArg<double> refSliceThicknesshArg("s","ref-thickness","Reference slice thickness used for profile simulation (in mm, default: 3)",false,3,"reference thickness",cmd);
+    TCLAP::ValueArg<double> refSliceThicknesshArg("","ref-thickness","Reference slice thickness used for profile simulation (in mm, default: 3)",false,3,"reference thickness",cmd);
     TCLAP::ValueArg<double> pulseWidthFactorArg("w","pulse-width-factor","Width factor applied at acquisition (default: 1.5)",false,1.5,"pulse width factor",cmd);
 
     TCLAP::ValueArg<double> echoSpacingArg("e","echo-spacing","Spacing between two successive echoes (default: 10)",false,10,"Spacing between echoes",cmd);
