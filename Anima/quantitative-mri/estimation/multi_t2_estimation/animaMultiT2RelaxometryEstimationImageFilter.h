@@ -95,7 +95,8 @@ public:
     void SetT2FlipAngles(double singleAngle, unsigned int numAngles) {m_T2FlipAngles = std::vector <double> (numAngles,singleAngle);}
 
     itkSetMacro(UniformPulses, bool)
-    itkSetMacro(PixelWidth, double)
+    itkSetMacro(ReferenceSliceThickness, double)
+    itkSetMacro(PulseWidthFactor, double)
     void SetPulseProfile(std::vector < std::pair <double, double> > &profile) {m_PulseProfile = profile;}
     void SetExcitationProfile(std::vector < std::pair <double, double> > &profile) {m_ExcitationProfile = profile;}
 
@@ -134,7 +135,8 @@ protected:
         m_LocalNeighborhood = 1;
 
         m_UniformPulses = true;
-        m_PixelWidth = 3.0;
+        m_ReferenceSliceThickness = 3.0;
+        m_PulseWidthFactor = 1.5;
     }
 
     virtual ~MultiT2RelaxometryEstimationImageFilter() {}
@@ -186,7 +188,9 @@ private:
     bool m_UniformPulses;
     std::vector < std::pair <double, double> > m_PulseProfile;
     std::vector < std::pair <double, double> > m_ExcitationProfile;
-    double m_PixelWidth;
+    double m_ReferenceSliceThickness;
+    double m_ExcitationPixelWidth;
+    double m_PulseWidthFactor;
 
     // Additional result image
     VectorOutputImagePointer m_T2OutputImage;

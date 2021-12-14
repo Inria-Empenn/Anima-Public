@@ -34,7 +34,8 @@ int main(int argc, char **argv)
     TCLAP::SwitchArg nonUniformPulsesArg("N","non-uniform","Use a non uniform pulse profile (default: no)",cmd);
     TCLAP::ValueArg<std::string> excitationProfileArg("E","excitation-profile","Excitation profile text file",false,"","excitation profile file",cmd);
     TCLAP::ValueArg<std::string> pulseProfileArg("p","pulse-profile","Pulse profile text file",false,"","pulse profile file",cmd);
-    TCLAP::ValueArg<double> pixelWidthArg("w","pixel-width","Pixel width in mm (default: 3)",false,10,"pixel width",cmd);
+    TCLAP::ValueArg<double> refSliceThicknesshArg("s","ref-thickness","Reference slice thickness used for profile simulation (in mm, default: 3)",false,3,"reference thickness",cmd);
+    TCLAP::ValueArg<double> pulseWidthFactorArg("w","pulse-width-factor","Width factor applied at acquisition (default: 1.5)",false,1.5,"pulse width factor",cmd);
 
     TCLAP::ValueArg<double> echoSpacingArg("e","echo-spacing","Spacing between two successive echoes (default: 10)",false,10,"Spacing between echoes",cmd);
     TCLAP::ValueArg<double> excitationT2FlipAngleArg("","t2-ex-flip","Excitation flip angle for T2 (in degrees, default: 90)",false,90,"T2 excitation flip angle",cmd);
@@ -71,7 +72,8 @@ int main(int argc, char **argv)
     mainFilter->SetUniformPulses(!nonUniformPulsesArg.isSet());
     if (nonUniformPulsesArg.isSet())
     {
-        mainFilter->SetPixelWidth(pixelWidthArg.getValue());
+        mainFilter->SetReferenceSliceThickness(refSliceThicknesshArg.getValue());
+        mainFilter->SetPulseWidthFactor(nonUniformPulsesArg.getValue());
         if (pulseProfileArg.getValue() == "")
         {
             std::cerr << "Error: pulse profile needed when using non uniform pulse profiles" << std::endl;

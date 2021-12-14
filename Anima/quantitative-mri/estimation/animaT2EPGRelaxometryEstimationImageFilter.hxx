@@ -86,6 +86,43 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
 
     m_InitialT2Image = initFilter->GetOutput();
     m_InitialT2Image->DisconnectPipeline();
+
+    // Prepare pixel width data from pulse profiles if present
+    if (!m_UniformPulses)
+    {
+        double sliceThickness = this->GetInput(0)->GetSpacing()[2];
+        double excitationRatioToProfile = sliceThickness / m_ReferenceSliceThickness;
+        for (unsigned int i = 0;i < m_ExcitationProfile.size();++i)
+            m_ExcitationProfile[i].first *= excitationRatioToProfile;
+
+        unsigned int zeroIndex = 0;
+        while (m_ExcitationProfile[zeroIndex].first < 0)
+            ++zeroIndex;
+
+        bool continueLoop = true;
+        while (continueLoop)
+        {
+            ++zeroIndex;
+            if (zeroIndex == m_ExcitationProfile.size())
+            {
+                continueLoop = false;
+                break;
+            }
+
+            double diff = m_ExcitationProfile[zeroIndex].second - m_ExcitationProfile[zeroIndex - 1].second;
+            if ((diff > 0) && (m_ExcitationProfile[zeroIndex - 1].second < 0.01))
+            {
+                --zeroIndex;
+                continueLoop = false;
+            }
+        }
+
+        m_ExcitationPixelWidth = m_ExcitationProfile[zeroIndex].first * 2.0;
+
+        double pulseRatioToProfile = sliceThickness * m_PulseWidthFactor / m_ReferenceSliceThickness;
+        for (unsigned int i = 0;i < m_PulseProfile.size();++i)
+            m_PulseProfile[i].first *= pulseRatioToProfile;
+    }
 }
 
 template <typename TInputImage, typename TOutputImage>
@@ -128,7 +165,7 @@ T2EPGRelaxometryEstimationImageFilter <TInputImage,TOutputImage>
     {
         cost->SetPulseProfile(m_PulseProfile);
         cost->SetExcitationProfile(m_ExcitationProfile);
-        cost->SetPixelWidth(m_PixelWidth);
+        cost->SetPixelWidth(m_ExcitationPixelWidth);
     }
 
     unsigned int dimension = cost->GetNumberOfParameters();
