@@ -59,6 +59,7 @@ And finally we provide a documentation of the main scripts available in Anima sc
    
    atlasing
    diffusion_scripts
+   ms_scripts
    relaxometry_scripts
    segmentation_scripts
 
