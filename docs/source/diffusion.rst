@@ -95,7 +95,7 @@ DTI estimation is performed using two tools in ANIMA, implementing basic matrix-
 DTI scalar maps
 """""""""""""""
 
-**animaComputeDTIScalarMaps** computes the usual fractional anisotropy (FA), apparent diffusivity coefficient (ADC), axial (AD) and radial diffusivity (RD) maps from a tensor image.
+**animaDTIScalarMaps** computes the usual fractional anisotropy (FA), apparent diffusivity coefficient (ADC), axial (AD), radial diffusivity (RD), or angle maps to the main magnetic field direction from a tensor image.
 
 Log-Euclidean tools
 """""""""""""""""""
@@ -110,6 +110,17 @@ ODF estimation and processing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In all Anima tools, the ODFs are represented in the real spherical harmonics basis proposed by Descoteaux et al. in [2]. Coefficients are stored in vector images as explained in that publication.
+
+Analytic Legendre polynomials formulaes
+"""""""""""""""""""""""""""""""""""""""
+
+It is often tricky to get associated Legendre polynomials analytic formulaes due to their recursive nature. We provide here the **animaAnalyticAssociatedLegendre** tool that allows to get their formulaes for any order and for m=0.
+
+*Example:*  this provides a latex formatted list of associated Legendre polynomials up to order 6
+
+.. code-block:: sh
+
+	animaAnalyticAssociatedLegendre -o 6
 
 ODF estimation
 """"""""""""""

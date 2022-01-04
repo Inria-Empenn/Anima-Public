@@ -1,4 +1,5 @@
 set(BINARY_TOOLS_LIST
+  animaAnalyticAssociatedLegendre
   animaApplyDistortionCorrection
   animaApplyTransformSerie
   animaAverageImages
@@ -12,19 +13,19 @@ set(BINARY_TOOLS_LIST
   animaCramersTest
   animaCreateImage
   animaCropImage
-  animaDetectedComponents
-  animaDTIEstimator
-  animaDTIProbabilisticTractography
-  animaDTIScalarMaps
-  animaDTITractography
   animaDenseMCMSVFBMRegistration
   animaDenseSVFBMRegistration
   animaDenseTensorSVFBMRegistration
   animaDenseTransformArithmetic
+  animaDetectedComponents
   animaDiceMeasure
   animaDisplacementFieldJacobian
   animaDistanceMap
   animaDistortionCorrection
+  animaDTIEstimator
+  animaDTIProbabilisticTractography
+  animaDTIScalarMaps
+  animaDTITractography
   animaDWISimulatorFromDTI
   animaDWISimulationFromMCM
   animaEddyCurrentCorrection

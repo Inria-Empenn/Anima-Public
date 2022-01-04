@@ -53,7 +53,7 @@ Images concatenation
 Image resolution changer
 ------------------------
 
-**animaImageResolutionChanger** provides a way to change the image resolution (in the sense voxel resolution in mm). It automatically recomputes the origin and adapted image size from the old and new resolutions.
+**animaImageResolutionChanger** provides a way to change the image resolution (in the sense voxel resolution in mm). It automatically recomputes the origin and adapted image size from the old and new resolutions. The tool works for 3D (scalar or vector image), and 4D scalar images. For 4D images, the resolution change is made on  sub 3D images.
 
 *Example:* this resamples the input image so that its voxel resolution is 2x2x2 mm.
 
