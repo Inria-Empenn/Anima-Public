@@ -50,6 +50,7 @@ And finally we provide a documentation of the main scripts available in Anima sc
 
 * :doc:`Atlasing <atlasing>`
 * :doc:`Diffusion imaging <diffusion_scripts>`
+* :doc:`Process images of multiple sclerosis patients <ms_scripts>`
 * :doc:`Relaxometry <relaxometry_scripts>`
 * :doc:`Segmentation <segmentation_scripts>` (brain extraction and multi-atlas segmentation)
 
