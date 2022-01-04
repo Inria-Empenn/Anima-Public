@@ -25,7 +25,6 @@ struct arguments
     unsigned int exponentiationOrder;
     unsigned int pthread;
     std::string input, output, geometry, transfo, interpolation;
-
 };
 
 void applyTransformationToGradients(std::string &inputGradientsFileName, std::string &outputGradientsFileName, const arguments &args)
@@ -327,7 +326,6 @@ applyScalarTransfo4D(itk::ImageIOBase::Pointer geometryImageIO, const arguments 
     std::cout << std::endl;
 
     anima::writeImage<OutputType>(args.output, outputImage);
-
 }
 
 // Transform application to 3D image or lower
