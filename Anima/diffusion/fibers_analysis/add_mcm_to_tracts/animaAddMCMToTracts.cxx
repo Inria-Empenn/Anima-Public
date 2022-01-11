@@ -96,15 +96,9 @@ void ComputePropertiesOnOneCell(vtkCell *cell, anima::MCMLinearInterpolateImageF
         else if (std::abs(totalWeight - 1.0) > 0.0000001)
             std::cout << "Error some weight is not equal to 1, weight : " << totalWeight << std::endl;
         
-        myParameters[0]->SetValue(ptId, workOutputModel->GetNumberOfCompartments());
-        unsigned int pos = 1;
-        for (unsigned int k = 0;k < workOutputModel->GetNumberOfCompartments();++k)
-            myParameters[pos + k]->SetValue(ptId, workOutputModel->GetCompartment(k)->GetCompartmentSize());
-        pos += workOutputModel->GetNumberOfCompartments();
-        
         interpolatedValue = workOutputModel->GetModelVector();
         for (unsigned int k = 0;k < workOutputModel->GetSize();++k)
-            myParameters[pos + k]->SetValue(ptId, interpolatedValue[k]);
+            myParameters[k]->SetValue(ptId, interpolatedValue[k]);
     }
 }
 
@@ -206,7 +200,7 @@ int main(int argc,  char **argv)
     mcmInterpolator->SetInputImage(inputImage);
     mcmInterpolator->SetReferenceOutputModel(mcm);
 
-    int nbOfComponents = mcm->GetSize() + mcm->GetNumberOfCompartments() + 1;
+    int nbOfComponents = mcm->GetSize();
 
     std::vector < vtkSmartPointer <vtkDoubleArray> > myParameters(nbOfComponents);
     for (int i = 0; i < nbOfComponents; ++i)
@@ -217,14 +211,6 @@ int main(int argc,  char **argv)
     }
 
     unsigned int pos = 0;
-    myParameters[pos]->SetName("NumberOfCompartments");
-    pos++;
-    
-    for (unsigned int i = 0;i < mcm->GetNumberOfIsotropicCompartments();++i)
-        myParameters[i + pos]->SetName((std::string(anima::DiffusionModelCompartmentName[mcm->GetCompartment(i)->GetCompartmentType()]) + "CompartmentSize").c_str());
-    for (unsigned int i = mcm->GetNumberOfIsotropicCompartments();i < mcm->GetNumberOfCompartments();++i)
-        myParameters[i + pos]->SetName((std::string(anima::DiffusionModelCompartmentName[mcm->GetCompartment(i)->GetCompartmentType()]) + "Compartment" + std::to_string(i + 1 - mcm->GetNumberOfIsotropicCompartments()) + "Size").c_str());
-    pos += mcm->GetNumberOfCompartments();
     
     for (unsigned int i = 0;i < mcm->GetNumberOfIsotropicCompartments();++i)
         myParameters[i + pos]->SetName((std::string(anima::DiffusionModelCompartmentName[mcm->GetCompartment(i)->GetCompartmentType()]) + "CompartmentWeight").c_str());
