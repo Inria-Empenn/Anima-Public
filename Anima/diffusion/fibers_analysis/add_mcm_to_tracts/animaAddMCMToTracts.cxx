@@ -47,10 +47,8 @@ void ComputePropertiesOnOneCell(vtkCell *cell, anima::MCMLinearInterpolateImageF
     vtkIdType nbOfCellPts = cellPts->GetNumberOfPoints();
 
     double currentPtPositionVTK[3];
-//    double nextPtPositionVTK[3];
-//    double lastPtPositionVTK[3];
 
-    PointType currentPtPosition;//, nextPtPosition, lastPtPosition;
+    PointType currentPtPosition;
 
     itk::ContinuousIndex<double, 3> currentIndex;
     std::vector <double> myParameterValues(nbOfComponents);
@@ -74,27 +72,10 @@ void ComputePropertiesOnOneCell(vtkCell *cell, anima::MCMLinearInterpolateImageF
 
     for (int j = 0;j < nbOfCellPts;++j)
     {
-        //Get the track direction
         cellPts->GetPoint(j, currentPtPositionVTK);
-//        int upperIndex = std::min((int)nbOfCellPts - 1,j + 1);
-//        cellPts->GetPoint(upperIndex,nextPtPositionVTK);
-//        int lowerIndex = std::max(0,j - 1);
-//        cellPts->GetPoint(lowerIndex,lastPtPositionVTK);
-
         int ptId = cell->GetPointId(j);
-
         for (int k = 0; k < 3; ++k)
-        {
             currentPtPosition[k] = currentPtPositionVTK[k];
-//            nextPtPosition[k] = nextPtPositionVTK[k];
-//            lastPtPosition[k] = lastPtPositionVTK[k];
-        }
-
-//        for (int k = 0; k < 3; ++k)
-//            trackDirection[k] = nextPtPosition[k] - lastPtPosition[k];
-//
-//        if (trackDirection.two_norm() != 0)
-//            trackDirection.normalize();
 
         //Convert physical points to continuous index and interpolate
         mcmInterpolator->GetInputImage()->TransformPhysicalPointToContinuousIndex(currentPtPosition, currentIndex);
@@ -124,66 +105,6 @@ void ComputePropertiesOnOneCell(vtkCell *cell, anima::MCMLinearInterpolateImageF
         interpolatedValue = workOutputModel->GetModelVector();
         for (unsigned int k = 0;k < workOutputModel->GetSize();++k)
             myParameters[pos + k]->SetValue(ptId, interpolatedValue[k]);
-        
-        // Find the closest fascicle direction from the workOutputModel to the current one
-//        double maxDirectionDotProduct = -1;
-//        double tempDotProduct = 0;
-//        int digitOfSelectedCompartment = 0;
-//
-//        for (int k = nbOfIsotropicCompartment; k < nbOfCompartment; ++k)
-//        {
-//            tempDirectionSphericalCordinate[0] = workOutputModel->GetCompartment(k)->GetOrientationTheta();
-//            tempDirectionSphericalCordinate[1] = workOutputModel->GetCompartment(k)->GetOrientationPhi();
-//            tempDirectionSphericalCordinate[2] = 1;
-//
-//            anima::TransformSphericalToCartesianCoordinates(tempDirectionSphericalCordinate, tempDirection);
-//
-//            tempDotProduct = std::abs(dot_product(trackDirection, tempDirection));
-//
-//            if (tempDotProduct > maxDirectionDotProduct)
-//            {
-//                maxDirectionDotProduct = tempDotProduct;
-//                digitOfSelectedCompartment = k;
-//            }
-//        }
-//
-//        if (digitOfSelectedCompartment < nbOfIsotropicCompartment)
-//        {
-//            std::cout << "The selected compartment is isotropic" << std::endl;
-//            exit(-1);
-//        }
-//
-//        CompartmentPointer outputCompartment = workOutputModel->GetCompartment(digitOfSelectedCompartment);
-//
-//        // Compute values from the selected compartment
-//        myParameterValues[0] = outputCompartment->GetApparentParallelDiffusivity();
-//        myParameterValues[1] = outputCompartment->GetApparentPerpendicularDiffusivity();
-//        myParameterValues[2] = outputCompartment->GetApparentMeanDiffusivity();
-//        myParameterValues[3] = outputCompartment->GetApparentFractionalAnisotropy();
-//        unsigned int pos = 4;
-//        if (fwCompartmentIndex != -1)
-//        {
-//            myParameterValues[pos] = workOutputModel->GetCompartmentWeight(fwCompartmentIndex);
-//            ++pos;
-//        }
-//
-//        if (irwCompartmentIndex != -1)
-//        {
-//            myParameterValues[pos] = workOutputModel->GetCompartmentWeight(irwCompartmentIndex);
-//            ++pos;
-//        }
-//
-//        for (int k = 0; k < nbOfComponents; ++k)
-//        {
-//            if (std::isnan(myParameterValues[k]))
-//            {
-//                std::cerr << "Output Nan for " << myParameters[k]->GetName() << " array" << std::endl;
-//                exit(-1);
-//            }
-//        }
-//
-//        for (unsigned int i = 0;i < pos;++i)
-//            myParameters[i]->SetValue(ptId, myParameterValues[i]);
     }
 }
 
@@ -286,22 +207,6 @@ int main(int argc,  char **argv)
     mcmInterpolator->SetReferenceOutputModel(mcm);
 
     int nbOfComponents = mcm->GetSize() + mcm->GetNumberOfCompartments() + 1;
-//    bool hasFW = false;
-//    bool hasIRW = false;
-//    for (unsigned int i = 0;i < mcm->GetNumberOfIsotropicCompartments();++i)
-//    {
-//        if (mcm->GetCompartment(i)->GetCompartmentType() == anima::FreeWater)
-//        {
-//            ++nbOfComponents;
-//            hasFW = true;
-//        }
-//
-//        if (mcm->GetCompartment(i)->GetCompartmentType() == anima::IsotropicRestrictedWater)
-//        {
-//            ++nbOfComponents;
-//            hasIRW = true;
-//        }
-//    }
 
     std::vector < vtkSmartPointer <vtkDoubleArray> > myParameters(nbOfComponents);
     for (int i = 0; i < nbOfComponents; ++i)
