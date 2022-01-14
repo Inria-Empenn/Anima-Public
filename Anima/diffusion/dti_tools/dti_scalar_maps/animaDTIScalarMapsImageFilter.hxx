@@ -137,20 +137,14 @@ DTIScalarMapsImageFilter< ImageDimension >
                     rotatedEigenVector[k] += eigenVectors(2,j) * m_RigidAnglesMatrix(k,j);
             }
 
-            cosAngleValue = std::abs(rotatedEigenVector[2]);
-            double angleValue = std::acos(cosAngleValue);
-            angleIterator.Set(angleValue * 180.0 / M_PI);
-
-            double cosAzimuthValue = 1.0;
             if (rotatedEigenVector[2] < 0.0)
                 rotatedEigenVector *= -1;
 
-            if (cosAngleValue != 1.0)
-                azimuthAngle = std::atan2(rotatedEigenVector[1],rotatedEigenVector[0]);
-            else
-                azimuthAngle = 0.0;
+            anima::TransformCartesianToSphericalCoordinates(rotatedEigenVector,rotatedEigenVector);
 
-            azimuthIterator.Set(azimuthAngle * 180.0 / M_PI);
+            double angleValue = std::acos(rotatedEigenVector[2]);
+            angleIterator.Set(rotatedEigenVector[0] * 180.0 / M_PI);
+            azimuthIterator.Set(rotatedEigenVector[1] * 180.0 / M_PI);
         }
 
         this->IncrementNumberOfProcessedPoints();
