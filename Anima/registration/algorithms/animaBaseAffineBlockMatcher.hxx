@@ -6,6 +6,7 @@
 #include <animaLogRigid3DTransform.h>
 #include <animaSplitAffine3DTransform.h>
 #include <animaDirectionScaleSkewTransform.h>
+#include <animaNLOPTOptimizers.h>
 
 namespace anima
 {
@@ -153,10 +154,9 @@ BaseAffineBlockMatcher<TInputImageType>
     if (this->GetOptimizerType() == Superclass::Exhaustive)
         return;
 
-    typedef anima::BobyqaOptimizer LocalOptimizerType;
-    LocalOptimizerType::ScalesType tmpScales(this->GetBlockTransformPointer(0)->GetNumberOfParameters());
-    LocalOptimizerType::ScalesType lowerBounds(this->GetBlockTransformPointer(0)->GetNumberOfParameters());
-    LocalOptimizerType::ScalesType upperBounds(this->GetBlockTransformPointer(0)->GetNumberOfParameters());
+    typedef anima::NLOPTOptimizers LocalOptimizerType;
+    LocalOptimizerType::ParametersType lowerBounds(this->GetBlockTransformPointer(0)->GetNumberOfParameters());
+    LocalOptimizerType::ParametersType upperBounds(this->GetBlockTransformPointer(0)->GetNumberOfParameters());
     typename InputImageType::SpacingType fixedSpacing = this->GetReferenceImage()->GetSpacing();
 
     switch (m_BlockTransformType)
@@ -165,8 +165,6 @@ BaseAffineBlockMatcher<TInputImageType>
         {
             for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
             {
-                tmpScales[i] = 1.0 / fixedSpacing[i];
-
                 lowerBounds[i] = - m_TranslateMax * fixedSpacing[i];
                 upperBounds[i] = m_TranslateMax * fixedSpacing[i];
             }
@@ -178,11 +176,8 @@ BaseAffineBlockMatcher<TInputImageType>
         {
             for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
             {
-                tmpScales[i] = this->GetSearchRadius() * 180.0 / (m_SearchAngleRadius * M_PI);
                 lowerBounds[i] = - m_AngleMax * M_PI / 180.0;
                 upperBounds[i] = m_AngleMax * M_PI / 180.0;
-
-                tmpScales[i+InputImageType::ImageDimension] = 1.0 / fixedSpacing[i];
 
                 lowerBounds[i+InputImageType::ImageDimension] = - m_TranslateMax * fixedSpacing[i];
                 upperBounds[i+InputImageType::ImageDimension] = m_TranslateMax * fixedSpacing[i];
@@ -197,25 +192,18 @@ BaseAffineBlockMatcher<TInputImageType>
             for (unsigned int i = 0;i < InputImageType::ImageDimension;++i)
             {
                 // Angles
-                tmpScales[i] = this->GetSearchRadius() * 180.0 / (m_SearchAngleRadius * M_PI);
                 lowerBounds[i] = - m_AngleMax * M_PI / 180.0;
                 upperBounds[i] = m_AngleMax * M_PI / 180.0;
 
                 // Translations
-                tmpScales[InputImageType::ImageDimension + i] = 1.0 / fixedSpacing[i];
-
                 lowerBounds[InputImageType::ImageDimension + i] = - m_TranslateMax * fixedSpacing[i];
                 upperBounds[InputImageType::ImageDimension + i] = m_TranslateMax * fixedSpacing[i];
 
                 // Scales
-                tmpScales[2 * InputImageType::ImageDimension + i] = this->GetSearchRadius() / m_SearchScaleRadius;
-
                 lowerBounds[2 * InputImageType::ImageDimension + i] = - std::log (m_ScaleMax);
                 upperBounds[2 * InputImageType::ImageDimension + i] = std::log (m_ScaleMax);
 
                 // Second angles
-                tmpScales[3 * InputImageType::ImageDimension + i] = this->GetSearchRadius() * 180.0 / (m_SearchAngleRadius * M_PI);
-
                 lowerBounds[3 * InputImageType::ImageDimension + i] = - m_AngleMax * M_PI / 180.0;
                 upperBounds[3 * InputImageType::ImageDimension + i] = m_AngleMax * M_PI / 180.0;
             }
@@ -227,8 +215,6 @@ BaseAffineBlockMatcher<TInputImageType>
         default:
         {
             // There is 1 parameter: 1 translation in voxel coordinates
-            tmpScales[0] = 1.0;
-
             lowerBounds[0] = - m_TranslateMax;
             upperBounds[0] = m_TranslateMax;
 
@@ -237,9 +223,8 @@ BaseAffineBlockMatcher<TInputImageType>
     }
 
     LocalOptimizerType * tmpOpt = dynamic_cast <LocalOptimizerType *> (optimizer.GetPointer());
-    tmpOpt->SetScales(tmpScales);
-    tmpOpt->SetLowerBounds(lowerBounds);
-    tmpOpt->SetUpperBounds(upperBounds);
+    tmpOpt->SetLowerBoundParameters(lowerBounds);
+    tmpOpt->SetUpperBoundParameters(upperBounds);
 }
 
 } // end namespace anima

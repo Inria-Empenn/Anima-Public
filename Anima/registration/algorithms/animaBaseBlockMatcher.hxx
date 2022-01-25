@@ -1,7 +1,7 @@
 #pragma once
 #include "animaBaseBlockMatcher.h"
 
-#include <animaBobyqaOptimizer.h>
+#include <animaNLOPTOptimizers.h>
 #include <animaVoxelExhaustiveOptimizer.h>
 #include <animaBlockMatchInitializer.h>
 #include <itkPoolMultiThreader.h>
@@ -80,15 +80,19 @@ BaseBlockMatcher <TInputImageType>
     {
         case Bobyqa:
         {
-            typedef anima::BobyqaOptimizer LocalOptimizerType;
-            optimizer = LocalOptimizerType::New();
-            LocalOptimizerType *tmpOpt = (LocalOptimizerType *)optimizer.GetPointer();
-            tmpOpt->SetRhoBegin(m_SearchRadius);
-            tmpOpt->SetRhoEnd(m_FinalRadius);
+            anima::NLOPTOptimizers::Pointer tmpOpt = anima::NLOPTOptimizers::New();
 
-            tmpOpt->SetNumberSamplingPoints(m_BlockTransformPointers[0]->GetNumberOfParameters() + 2);
-            tmpOpt->SetMaximumIteration(m_OptimizerMaximumIterations);
+            tmpOpt->SetAlgorithm(NLOPT_LN_BOBYQA);
+            double xTol = 1.0e-4;
+            double fTol = 1.0e-2 * xTol;
+
             tmpOpt->SetMaximize(this->GetMaximizedMetric());
+            tmpOpt->SetXTolRel(xTol);
+            tmpOpt->SetFTolRel(fTol);
+            tmpOpt->SetMaxEval(m_OptimizerMaximumIterations);
+            tmpOpt->SetVectorStorageSize(2000);
+
+            optimizer = tmpOpt;
 
             break;
         }
