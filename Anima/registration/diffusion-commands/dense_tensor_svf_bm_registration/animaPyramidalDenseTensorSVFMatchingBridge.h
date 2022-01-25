@@ -174,9 +174,6 @@ public:
     double GetSearchScaleRadius() {return m_SearchScaleRadius;}
     void SetSearchScaleRadius(double SearchScaleRadius) {m_SearchScaleRadius=SearchScaleRadius;}
 
-    double GetFinalRadius() {return m_FinalRadius;}
-    void SetFinalRadius(double FinalRadius) {m_FinalRadius=FinalRadius;}
-
     double GetStepSize() {return m_StepSize;}
     void SetStepSize(double StepSize) {m_StepSize=StepSize;}
 
@@ -264,7 +261,6 @@ private:
     double m_SearchRadius;
     double m_SearchAngleRadius;
     double m_SearchScaleRadius;
-    double m_FinalRadius;
     double m_StepSize;
     double m_TranslateUpperBound;
     double m_AngleUpperBound;

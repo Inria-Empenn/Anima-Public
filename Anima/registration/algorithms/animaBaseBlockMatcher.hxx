@@ -23,7 +23,6 @@ BaseBlockMatcher <TInputImageType>
     m_BlockVarianceThreshold = 25;
 
     m_SearchRadius = 2;
-    m_FinalRadius = 0.001;
     m_OptimizerMaximumIterations = 100;
     m_StepSize = 1.0;
 

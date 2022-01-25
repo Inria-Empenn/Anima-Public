@@ -46,7 +46,6 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<double> searchRadiusArg("","sr","Search radius in pixels (exhaustive search window, rho start for bobyqa, default: 2)",false,2,"optimizer search radius",cmd);
     TCLAP::ValueArg<double> searchAngleRadiusArg("","sar","Search angle radius in degrees (rho start for bobyqa, default: 5)",false,5,"optimizer search angle radius",cmd);
     TCLAP::ValueArg<double> searchScaleRadiusArg("","scr","Search scale radius (rho start for bobyqa, default: 0.1)",false,0.1,"optimizer search scale radius",cmd);
-    TCLAP::ValueArg<double> finalRadiusArg("","fr","Final radius (rho end for bobyqa, default: 0.001)",false,0.001,"optimizer final radius",cmd);
     TCLAP::ValueArg<double> searchStepArg("","st","Search step for exhaustive search (default: 1)",false,1,"exhaustive optimizer search step",cmd);
 
     TCLAP::ValueArg<double> translateUpperBoundArg("","tub","Upper bound on translation for bobyqa (in voxels, default: 10)",false,10,"Bobyqa translate upper bound",cmd);
@@ -122,7 +121,6 @@ int main(int ac, const char** av)
     matcher->SetOptimizer( (Optimizer) optimizerArg.getValue() );
     matcher->SetMaximumIterations( maxIterationsArg.getValue() );
     matcher->SetMinimalTransformError( minErrorArg.getValue() );
-    matcher->SetFinalRadius(finalRadiusArg.getValue());
     matcher->SetOptimizerMaximumIterations( optimizerMaxIterationsArg.getValue() );
     matcher->SetSearchRadius( searchRadiusArg.getValue() );
     matcher->SetSearchAngleRadius( searchAngleRadiusArg.getValue() );

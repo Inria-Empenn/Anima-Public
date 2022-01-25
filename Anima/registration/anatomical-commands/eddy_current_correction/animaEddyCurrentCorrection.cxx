@@ -54,7 +54,6 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<unsigned int> optimizerMaxIterationsArg("","oi","Maximum iterations for local optimizer (default: 100)",false,100,"maximum local optimizer iterations",cmd);
 
     TCLAP::ValueArg<double> searchRadiusArg("","sr","Search radius in pixels (exhaustive search window, rho start for bobyqa, default: 2)",false,2,"optimizer search radius",cmd);
-    TCLAP::ValueArg<double> finalRadiusArg("","fr","Final radius (rho end for bobyqa, default: 0.001)",false,0.001,"optimizer final radius",cmd);
     TCLAP::ValueArg<double> searchStepArg("","st","Search step for exhaustive search (default: 2)",false,2,"exhaustive optimizer search step",cmd);
     TCLAP::ValueArg<double> translateUpperBoundArg("","tub","Upper bound on translation for bobyqa (in voxels, default: 10)",false,10,"Bobyqa translate upper bound",cmd);
 
@@ -127,7 +126,6 @@ int main(int argc, const char** argv)
         matcher->SetOptimizer((PyramidBMType::Optimizer) optimizerArg.getValue());
         matcher->SetMaximumIterations(maxIterationsArg.getValue());
         matcher->SetMinimalTransformError(minErrorArg.getValue());
-        matcher->SetFinalRadius(finalRadiusArg.getValue());
         matcher->SetOptimizerMaximumIterations(optimizerMaxIterationsArg.getValue());
         matcher->SetSearchRadius(searchRadiusArg.getValue());
         matcher->SetStepSize(searchStepArg.getValue());
@@ -211,7 +209,6 @@ int main(int argc, const char** argv)
         nonLinearMatcher->SetOptimizer((NonLinearPyramidBMType::Optimizer) optimizerArg.getValue());
         nonLinearMatcher->SetMaximumIterations(maxIterationsArg.getValue());
         nonLinearMatcher->SetMinimalTransformError(minErrorArg.getValue());
-        nonLinearMatcher->SetFinalRadius(finalRadiusArg.getValue());
         nonLinearMatcher->SetOptimizerMaximumIterations(optimizerMaxIterationsArg.getValue());
         nonLinearMatcher->SetSearchRadius(searchRadiusArg.getValue());
         nonLinearMatcher->SetStepSize(searchStepArg.getValue());

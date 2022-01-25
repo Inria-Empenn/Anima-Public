@@ -50,7 +50,6 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::PyramidalDenseMCMSVFMatching
     m_SearchRadius = 2;
     m_SearchAngleRadius = 5;
     m_SearchScaleRadius = 0.1;
-    m_FinalRadius = 0.001;
     m_StepSize = 1;
     m_TranslateUpperBound = 50;
     m_AngleUpperBound = 180;
@@ -387,9 +386,6 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
         double scr = m_SearchScaleRadius;
         mainMatcher->SetSearchScaleRadius(scr);
 
-        double fr = m_FinalRadius;
-        mainMatcher->SetFinalRadius(fr);
-
         double ss = m_StepSize;
         mainMatcher->SetStepSize(ss);
 
@@ -410,7 +406,6 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
             reverseMatcher->SetSearchRadius(sr);
             reverseMatcher->SetSearchAngleRadius(sar);
             reverseMatcher->SetSearchScaleRadius(scr);
-            reverseMatcher->SetFinalRadius(fr);
             reverseMatcher->SetStepSize(ss);
             reverseMatcher->SetTranslateMax(tub);
             reverseMatcher->SetAngleMax(aub);

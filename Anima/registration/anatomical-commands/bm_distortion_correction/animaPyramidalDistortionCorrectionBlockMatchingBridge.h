@@ -109,9 +109,6 @@ public:
 
     double GetSearchSkewRadius() {return m_SearchSkewRadius;}
     void SetSearchSkewRadius(double SearchSkewRadius) {m_SearchSkewRadius=SearchSkewRadius;}
-
-    double GetFinalRadius() {return m_FinalRadius;}
-    void SetFinalRadius(double FinalRadius) {m_FinalRadius=FinalRadius;}
     
     double GetTranlateUpperBound() {return m_TranlateUpperBound;}
     void SetTranlateUpperBound(double TranlateUpperBound) {m_TranlateUpperBound=TranlateUpperBound;}
@@ -188,7 +185,6 @@ private:
     double m_SearchRadius;
     double m_SearchScaleRadius;
     double m_SearchSkewRadius;
-    double m_FinalRadius;
     double m_TranlateUpperBound;
     double m_ScaleUpperBound;
     double m_SkewUpperBound;

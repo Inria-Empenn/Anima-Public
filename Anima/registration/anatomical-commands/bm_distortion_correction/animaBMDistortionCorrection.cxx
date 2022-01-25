@@ -34,7 +34,6 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<double> searchRadiusArg("","sr","Search radius in pixels (rho start for bobyqa, default: 2)",false,2,"optimizer search radius",cmd);
     TCLAP::ValueArg<double> searchScaleRadiusArg("","scr","Search scale radius (rho start for bobyqa, default: 0.1)",false,0.1,"optimizer search scale radius",cmd);
     TCLAP::ValueArg<double> searchSkewRadiusArg("","skr","Search skew radius (rho start for bobyqa, default: 0.1)",false,0.1,"optimizer search skew radius",cmd);
-    TCLAP::ValueArg<double> finalRadiusArg("","fr","Final radius (rho end for bobyqa, default: 0.001)",false,0.001,"optimizer final radius",cmd);
     
     TCLAP::ValueArg<double> translateUpperBoundArg("","tub","Upper bound on translation for bobyqa (in voxels, default: 10)",false,10,"Bobyqa translate upper bound",cmd);
     TCLAP::ValueArg<double> scaleUpperBoundArg("","scu","Upper bound on scale for bobyqa (default: 5)",false,5,"Bobyqa scale upper bound",cmd);
@@ -84,7 +83,6 @@ int main(int argc, const char** argv)
     matcher->SetSearchRadius( searchRadiusArg.getValue() );
     matcher->SetSearchScaleRadius( searchScaleRadiusArg.getValue() );
     matcher->SetSearchSkewRadius( searchSkewRadiusArg.getValue() );
-    matcher->SetFinalRadius(finalRadiusArg.getValue());
     matcher->SetTranlateUpperBound( translateUpperBoundArg.getValue() );
     matcher->SetScaleUpperBound( std::log(scaleUpperBoundArg.getValue()) );
     matcher->SetSkewUpperBound( std::tan(skewUpperBoundArg.getValue() * M_PI / 180.0) );
