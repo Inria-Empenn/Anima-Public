@@ -31,9 +31,6 @@ public:
     void SetBlockTransformType(TransformDefinition val) {m_BlockTransformType = val;}
     TransformDefinition &GetBlockTransformType() {return m_BlockTransformType;}
 
-    void SetSearchAngleRadius(double val) {m_SearchAngleRadius = val;}
-    void SetSearchScaleRadius(double val) {m_SearchScaleRadius = val;}
-
     void SetAngleMax(double val) {m_AngleMax = val;}
     void SetTranslateMax(double val) {m_TranslateMax = val;}
     void SetScaleMax(double val) {m_ScaleMax = val;}
@@ -50,10 +47,6 @@ private:
     TransformDefinition m_BlockTransformType;
 
     unsigned int m_AffineDirection;
-
-    // Bobyqa radiuses
-    double m_SearchAngleRadius;
-    double m_SearchScaleRadius;
 
     //Bobyqa bounds parameters
     double m_AngleMax;

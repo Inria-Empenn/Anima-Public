@@ -30,12 +30,8 @@ int main(int argc, const char** argv)
     
     TCLAP::ValueArg<unsigned int> directionArg("d","dir","Gradient phase direction in image (default: 1 = Y axis)",false,1,"gradient phase direction",cmd);
     TCLAP::ValueArg<unsigned int> optimizerMaxIterationsArg("","oi","Maximum iterations for local optimizer (default: 100)",false,100,"maximum local optimizer iterations",cmd);
-    
-    TCLAP::ValueArg<double> searchRadiusArg("","sr","Search radius in pixels (rho start for bobyqa, default: 2)",false,2,"optimizer search radius",cmd);
-    TCLAP::ValueArg<double> searchScaleRadiusArg("","scr","Search scale radius (rho start for bobyqa, default: 0.1)",false,0.1,"optimizer search scale radius",cmd);
-    TCLAP::ValueArg<double> searchSkewRadiusArg("","skr","Search skew radius (rho start for bobyqa, default: 0.1)",false,0.1,"optimizer search skew radius",cmd);
-    
-    TCLAP::ValueArg<double> translateUpperBoundArg("","tub","Upper bound on translation for bobyqa (in voxels, default: 10)",false,10,"Bobyqa translate upper bound",cmd);
+        
+    TCLAP::ValueArg<double> translateUpperBoundArg("","tub","Upper bound on translation for bobyqa (in voxels, default: 3)",false,3,"Bobyqa translate upper bound",cmd);
     TCLAP::ValueArg<double> scaleUpperBoundArg("","scu","Upper bound on scale for bobyqa (default: 5)",false,5,"Bobyqa scale upper bound",cmd);
     TCLAP::ValueArg<double> skewUpperBoundArg("","sku","Upper bound on skew for bobyqa (in degrees, default: 45)",false,45,"Bobyqa skew upper bound",cmd);
 
@@ -80,9 +76,6 @@ int main(int argc, const char** argv)
     matcher->SetStDevThreshold( stdevThresholdArg.getValue() );
     matcher->SetMaximumIterations( maxIterationsArg.getValue() );
     matcher->SetOptimizerMaximumIterations( optimizerMaxIterationsArg.getValue() );
-    matcher->SetSearchRadius( searchRadiusArg.getValue() );
-    matcher->SetSearchScaleRadius( searchScaleRadiusArg.getValue() );
-    matcher->SetSearchSkewRadius( searchSkewRadiusArg.getValue() );
     matcher->SetTranlateUpperBound( translateUpperBoundArg.getValue() );
     matcher->SetScaleUpperBound( std::log(scaleUpperBoundArg.getValue()) );
     matcher->SetSkewUpperBound( std::tan(skewUpperBoundArg.getValue() * M_PI / 180.0) );

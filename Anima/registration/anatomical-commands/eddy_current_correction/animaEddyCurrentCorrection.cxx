@@ -53,9 +53,8 @@ int main(int argc, const char** argv)
 
     TCLAP::ValueArg<unsigned int> optimizerMaxIterationsArg("","oi","Maximum iterations for local optimizer (default: 100)",false,100,"maximum local optimizer iterations",cmd);
 
-    TCLAP::ValueArg<double> searchRadiusArg("","sr","Search radius in pixels (exhaustive search window, rho start for bobyqa, default: 2)",false,2,"optimizer search radius",cmd);
     TCLAP::ValueArg<double> searchStepArg("","st","Search step for exhaustive search (default: 2)",false,2,"exhaustive optimizer search step",cmd);
-    TCLAP::ValueArg<double> translateUpperBoundArg("","tub","Upper bound on translation for bobyqa (in voxels, default: 10)",false,10,"Bobyqa translate upper bound",cmd);
+    TCLAP::ValueArg<double> translateUpperBoundArg("","tub","Upper bound on translation for bobyqa (in voxels, default: 3)",false,3,"Bobyqa translate upper bound",cmd);
 
     TCLAP::ValueArg<unsigned int> symmetryArg("","sym-reg","Registration symmetry type (0: asymmetric, 1: symmetric, 2: kissing, default: 0)",false,0,"symmetry type",cmd);
     TCLAP::ValueArg<unsigned int> agregatorArg("a","agregator","Transformation agregator type (0: M-Estimation, 1: least squares, 2: least trimmed squares, default: 0)",false,0,"agregator type",cmd);
@@ -127,7 +126,6 @@ int main(int argc, const char** argv)
         matcher->SetMaximumIterations(maxIterationsArg.getValue());
         matcher->SetMinimalTransformError(minErrorArg.getValue());
         matcher->SetOptimizerMaximumIterations(optimizerMaxIterationsArg.getValue());
-        matcher->SetSearchRadius(searchRadiusArg.getValue());
         matcher->SetStepSize(searchStepArg.getValue());
         matcher->SetTranslateUpperBound(translateUpperBoundArg.getValue());
         matcher->SetSymmetryType((PyramidBMType::SymmetryType) symmetryArg.getValue());
@@ -210,7 +208,6 @@ int main(int argc, const char** argv)
         nonLinearMatcher->SetMaximumIterations(maxIterationsArg.getValue());
         nonLinearMatcher->SetMinimalTransformError(minErrorArg.getValue());
         nonLinearMatcher->SetOptimizerMaximumIterations(optimizerMaxIterationsArg.getValue());
-        nonLinearMatcher->SetSearchRadius(searchRadiusArg.getValue());
         nonLinearMatcher->SetStepSize(searchStepArg.getValue());
         nonLinearMatcher->SetTranslateUpperBound(translateUpperBoundArg.getValue());
         nonLinearMatcher->SetSymmetryType((NonLinearPyramidBMType::SymmetryType) symmetryArg.getValue());

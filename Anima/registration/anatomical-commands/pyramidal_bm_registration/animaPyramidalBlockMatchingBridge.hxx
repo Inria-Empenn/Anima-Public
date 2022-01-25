@@ -52,9 +52,6 @@ PyramidalBlockMatchingBridge<ImageDimension>::PyramidalBlockMatchingBridge()
     m_MaximumIterations = 10;
     m_MinimalTransformError = 0.01;
     m_OptimizerMaximumIterations = 100;
-    m_SearchRadius = 2;
-    m_SearchAngleRadius = 5;
-    m_SearchScaleRadius = 0.1;
     m_StepSize = 1;
     m_TranslateUpperBound = 50;
     m_AngleUpperBound = 180;
@@ -444,15 +441,6 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
         mainMatcher->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
         mainMatcher->SetOptimizerMaximumIterations(GetOptimizerMaximumIterations());
 
-        double sr = GetSearchRadius();
-        mainMatcher->SetSearchRadius(sr);
-
-        double sar = GetSearchAngleRadius();
-        mainMatcher->SetSearchAngleRadius(sar);
-
-        double scr = GetSearchScaleRadius();
-        mainMatcher->SetSearchScaleRadius(scr);
-
         double ss = GetStepSize();
         mainMatcher->SetStepSize(ss);
 
@@ -470,9 +458,6 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
             reverseMatcher->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
             reverseMatcher->SetOptimizerMaximumIterations(GetOptimizerMaximumIterations());
 
-            reverseMatcher->SetSearchRadius(sr);
-            reverseMatcher->SetSearchAngleRadius(sar);
-            reverseMatcher->SetSearchScaleRadius(scr);
             reverseMatcher->SetStepSize(ss);
             reverseMatcher->SetTranslateMax(tub);
             reverseMatcher->SetAngleMax(aub);

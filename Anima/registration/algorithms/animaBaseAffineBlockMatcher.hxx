@@ -21,9 +21,6 @@ BaseAffineBlockMatcher<TInputImageType>
     m_TranslateMax = 10;
     m_ScaleMax = 3;
 
-    m_SearchAngleRadius = 5;
-    m_SearchScaleRadius = 0.1;
-
     m_AffineDirection = 1;
 }
 
@@ -152,7 +149,18 @@ BaseAffineBlockMatcher<TInputImageType>
 ::TransformDependantOptimizerSetup(OptimizerPointer &optimizer)
 {
     if (this->GetOptimizerType() == Superclass::Exhaustive)
+    {
+        typedef anima::VoxelExhaustiveOptimizer LocalOptimizerType;
+        LocalOptimizerType *tmpOpt = dynamic_cast <LocalOptimizerType *> (optimizer.GetPointer());
+
+        LocalOptimizerType::ScalesType steps(InputImageType::ImageDimension);
+
+        for (unsigned i = 0; i < steps.Size(); ++i)
+            steps[i] = std::round(m_TranslateMax);
+
+        tmpOpt->SetNumberOfSteps(steps);
         return;
+    }
 
     typedef anima::NLOPTOptimizers LocalOptimizerType;
     LocalOptimizerType::ParametersType lowerBounds(this->GetBlockTransformPointer(0)->GetNumberOfParameters());

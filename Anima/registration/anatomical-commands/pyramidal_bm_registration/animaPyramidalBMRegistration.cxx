@@ -51,12 +51,9 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<unsigned int> optimizerMaxIterationsArg("","oi","Maximum iterations for local optimizer (default: 100)",false,100,"maximum local optimizer iterations",cmd);
     TCLAP::ValueArg<unsigned int> initTypeArg("I","init-type", "If no input transformation is given, initialization type (0: identity, 1: align gravity centers, 2: gravity PCA closest transform, default: 1)",false,1,"initialization type",cmd);
 
-    TCLAP::ValueArg<double> searchRadiusArg("","sr","Search radius in pixels (exhaustive search window, rho start for bobyqa, default: 2)",false,2,"optimizer search radius",cmd);
-    TCLAP::ValueArg<double> searchAngleRadiusArg("","sar","Search angle radius in degrees (rho start for bobyqa, default: 5)",false,5,"optimizer search angle radius",cmd);
-    TCLAP::ValueArg<double> searchScaleRadiusArg("","scr","Search scale radius (rho start for bobyqa, default: 0.1)",false,0.1,"optimizer search scale radius",cmd);
     TCLAP::ValueArg<double> searchStepArg("","st","Search step for exhaustive search (default: 2)",false,2,"exhaustive optimizer search step",cmd);
 
-    TCLAP::ValueArg<double> translateUpperBoundArg("","tub","Upper bound on translation for bobyqa (in voxels, default: 10)",false,10,"Bobyqa translate upper bound",cmd);
+    TCLAP::ValueArg<double> translateUpperBoundArg("","tub","Upper bound on translation for bobyqa (in voxels, default: 3)",false,3,"Bobyqa translate upper bound",cmd);
     TCLAP::ValueArg<double> angleUpperBoundArg("","aub","Upper bound on angles for bobyqa (in degrees, default: 180)",false,180,"Bobyqa angle upper bound",cmd);
     TCLAP::ValueArg<double> scaleUpperBoundArg("","scu","Upper bound on scale for bobyqa (default: 3)",false,3,"Bobyqa scale upper bound",cmd);
 
@@ -92,9 +89,6 @@ int main(int argc, const char** argv)
     matcher->SetMaximumIterations( maxIterationsArg.getValue() );
     matcher->SetMinimalTransformError( minErrorArg.getValue() );
     matcher->SetOptimizerMaximumIterations( optimizerMaxIterationsArg.getValue() );
-    matcher->SetSearchRadius( searchRadiusArg.getValue() );
-    matcher->SetSearchAngleRadius( searchAngleRadiusArg.getValue() );
-    matcher->SetSearchScaleRadius( searchScaleRadiusArg.getValue() );
     matcher->SetStepSize( searchStepArg.getValue() );
     matcher->SetTranslateUpperBound( translateUpperBoundArg.getValue() );
     matcher->SetAngleUpperBound( angleUpperBoundArg.getValue() );

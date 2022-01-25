@@ -175,15 +175,6 @@ public:
     unsigned int GetOptimizerMaximumIterations() {return m_OptimizerMaximumIterations;}
     void SetOptimizerMaximumIterations(unsigned int OptimizerMaximumIterations) {m_OptimizerMaximumIterations=OptimizerMaximumIterations;}
 
-    double GetSearchRadius() {return m_SearchRadius;}
-    void SetSearchRadius(double SearchRadius) {m_SearchRadius=SearchRadius;}
-
-    double GetSearchAngleRadius() {return m_SearchAngleRadius;}
-    void SetSearchAngleRadius(double SearchAngleRadius) {m_SearchAngleRadius=SearchAngleRadius;}
-
-    double GetSearchScaleRadius() {return m_SearchScaleRadius;}
-    void SetSearchScaleRadius(double SearchScaleRadius) {m_SearchScaleRadius=SearchScaleRadius;}
-
     double GetStepSize() {return m_StepSize;}
     void SetStepSize(double StepSize) {m_StepSize=StepSize;}
 
@@ -275,9 +266,6 @@ private:
     unsigned int m_MaximumIterations;
     double m_MinimalTransformError;
     unsigned int m_OptimizerMaximumIterations;
-    double m_SearchRadius;
-    double m_SearchAngleRadius;
-    double m_SearchScaleRadius;
     double m_StepSize;
     double m_TranslateUpperBound;
     double m_AngleUpperBound;

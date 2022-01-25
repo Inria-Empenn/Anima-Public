@@ -35,9 +35,6 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::PyramidalDisto
     m_StDevThreshold = 5;
     m_MaximumIterations = 10;
     m_OptimizerMaximumIterations = 100;
-    m_SearchRadius = 2;
-    m_SearchScaleRadius = 0.1;
-    m_SearchSkewRadius = 0.1;
     m_TranlateUpperBound = 50;
     m_ScaleUpperBound = std::log(5.0);
     m_SkewUpperBound = std::tan(M_PI / 3.0);
@@ -245,9 +242,6 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
         
         bmreg->SetCurrentTransform(m_OutputTransform.GetPointer());
 
-        mainMatcher->SetSearchRadius(m_SearchRadius);
-        mainMatcher->SetSearchScaleRadius(m_SearchScaleRadius);
-        mainMatcher->SetSearchSkewRadius(m_SearchSkewRadius);
         mainMatcher->SetTranslateMax(m_TranlateUpperBound);
         mainMatcher->SetScaleMax(m_ScaleUpperBound);
         mainMatcher->SetSkewMax(m_SkewUpperBound);

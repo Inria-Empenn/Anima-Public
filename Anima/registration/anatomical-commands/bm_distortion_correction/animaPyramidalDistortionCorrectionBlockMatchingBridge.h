@@ -100,15 +100,6 @@ public:
     
     unsigned int GetMaximumIterations() {return m_MaximumIterations;}
     void SetMaximumIterations(unsigned int MaximumIterations) {m_MaximumIterations=MaximumIterations;}
-
-    double GetSearchRadius() {return m_SearchRadius;}
-    void SetSearchRadius(double SearchRadius) {m_SearchRadius=SearchRadius;}
-
-    double GetSearchScaleRadius() {return m_SearchScaleRadius;}
-    void SetSearchScaleRadius(double SearchScaleRadius) {m_SearchScaleRadius=SearchScaleRadius;}
-
-    double GetSearchSkewRadius() {return m_SearchSkewRadius;}
-    void SetSearchSkewRadius(double SearchSkewRadius) {m_SearchSkewRadius=SearchSkewRadius;}
     
     double GetTranlateUpperBound() {return m_TranlateUpperBound;}
     void SetTranlateUpperBound(double TranlateUpperBound) {m_TranlateUpperBound=TranlateUpperBound;}
@@ -182,9 +173,6 @@ private:
     unsigned int m_MaximumIterations;
     unsigned int m_OptimizerMaximumIterations;
     unsigned int m_HistogramSize;
-    double m_SearchRadius;
-    double m_SearchScaleRadius;
-    double m_SearchSkewRadius;
     double m_TranlateUpperBound;
     double m_ScaleUpperBound;
     double m_SkewUpperBound;

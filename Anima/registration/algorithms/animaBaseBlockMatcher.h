@@ -65,10 +65,7 @@ public:
     void SetBlockSpacing(unsigned int val) {m_BlockSpacing = val;}
     unsigned int GetBlockSpacing() {return m_BlockSpacing;}
 
-    void SetSearchRadius(double val) {m_SearchRadius = val;}
-    double GetSearchRadius() {return m_SearchRadius;}
     void SetStepSize (double val) {m_StepSize = val;}
-
     void SetOptimizerMaximumIterations (unsigned int val) {m_OptimizerMaximumIterations = val;}
 
     void Update();
@@ -151,7 +148,6 @@ private:
 
     // Optimizer parameters
     OptimizerDefinition m_OptimizerType;
-    double m_SearchRadius;
     unsigned int m_OptimizerMaximumIterations;
     double m_StepSize;
 

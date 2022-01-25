@@ -22,7 +22,6 @@ BaseBlockMatcher <TInputImageType>
 
     m_BlockVarianceThreshold = 25;
 
-    m_SearchRadius = 2;
     m_OptimizerMaximumIterations = 100;
     m_StepSize = 1.0;
 
@@ -121,13 +120,9 @@ BaseBlockMatcher <TInputImageType>
 
             LocalOptimizerType::ScalesType tmpScales(InputImageType::ImageDimension);
 
-            for (unsigned i = 0; i < steps.Size(); ++i)
-            {
-                steps[i] = m_SearchRadius;
+            for (unsigned i = 0; i < tmpScales.Size(); ++i)
                 tmpScales[i] = m_StepSize;
-            }
 
-            tmpOpt->SetNumberOfSteps(steps);
             tmpOpt->SetScales(tmpScales);
             tmpOpt->SetMaximize(this->GetMaximizedMetric());
             break;
