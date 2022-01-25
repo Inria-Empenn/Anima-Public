@@ -16,7 +16,7 @@ T2RelaxometryCostFunction::GetValue(const ParametersType & parameters) const
     for(unsigned int i = 0;i < numT2Signals;++i)
     {
         double echo = (i + 1) * m_T2EchoSpacing;
-        simulatedT2Values[i] = std::exp(- echo / m_T2Value) / (1.0 - std::exp(- m_TRValue / m_T1Value));
+        simulatedT2Values[i] = std::exp(- echo / m_T2Value) * (1.0 - std::exp(- m_TRValue / m_T1Value));
     }
 
     double sumSignals = 0;
