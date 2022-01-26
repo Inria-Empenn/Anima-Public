@@ -434,12 +434,12 @@ filterInputs(WeightImageType *weights, typename itk::Image < itk::Vector <Scalar
     smoothedField->DisconnectPipeline();
     smootherPtr = 0;
 
-    // Now remove outliers
+    // Now reweight outlier with Welsch function
     FieldPixelType curTrsf;
 
     unsigned int nbPts = this->GetInputRegions().size();
     std::vector < double > residuals(nbPts);
-    double averageResidual = 0, varResidual = 0;
+    double averageResidual = 0;
     for (unsigned int i = 0;i < nbPts;++i)
     {
         double weightSmoothed = smoothedWeights->GetPixel(posIndexes[i]);
@@ -456,8 +456,6 @@ filterInputs(WeightImageType *weights, typename itk::Image < itk::Vector <Scalar
         for (unsigned int j = 0;j < NDegreesOfFreedom;++j)
             residual += (curTrsf[j] - curTrsfs[i][j]) * (curTrsf[j] - curTrsfs[i][j]);
 
-        varResidual += residual;
-        residual = sqrt(residual);
         averageResidual += residual;
         residuals[i] = residual;
     }
@@ -465,16 +463,12 @@ filterInputs(WeightImageType *weights, typename itk::Image < itk::Vector <Scalar
     smoothedField = 0;
     smoothedWeights = 0;
 
-    varResidual = sqrt((varResidual - averageResidual * averageResidual / nbPts) / (nbPts - 1.0));
     averageResidual /= nbPts;
 
     for (unsigned int i = 0;i < nbPts;++i)
     {
-        if (residuals[i] > averageResidual + m_OutlierRejectionSigma * varResidual)
-        {
-            output->SetPixel(posIndexes[i],zeroTrsf);
-            weights->SetPixel(posIndexes[i],m_ZeroWeight);
-        }
+        double newWeight = weights->GetPixel(posIndexes[i]) * std::exp(- residuals[i] / (averageResidual * m_OutlierRejectionSigma));
+        weights->SetPixel(posIndexes[i],newWeight);
     }
 
     weightSmooth = WeightSmootherType::New();
