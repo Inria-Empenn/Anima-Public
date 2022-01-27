@@ -30,8 +30,6 @@ MultiT2RegularizationCostFunction::GetValue(const ParametersType & parameters) c
 
     m_NNLSOptimizer->StartOptimization();
 
-    m_CurrentResidual = m_NNLSOptimizer->GetCurrentResidual();
-
     anima::NNLSOptimizer::VectorType t2Weights = m_NNLSOptimizer->GetCurrentPosition();
     unsigned int numT2Peaks = t2Weights.size();
     m_OptimizedM0Value = 0.0;
@@ -44,6 +42,18 @@ MultiT2RegularizationCostFunction::GetValue(const ParametersType & parameters) c
     {
         for (unsigned int i = 0;i < numT2Peaks;++i)
             m_OptimizedT2Weights[i] = t2Weights[i] / m_OptimizedM0Value;
+    }
+
+    m_CurrentResidual = 0.0;
+    for (unsigned int i = 0;i < rowSize;++i)
+    {
+        double diff = 0.0;
+        for (unsigned int j = 0;j < colSize;++j)
+            diff += m_AMatrix(i,j) * t2Weights[j];
+
+        diff -= m_T2RelaxometrySignals[i];
+
+        m_CurrentResidual += diff * diff;
     }
 
     double ratio = m_CurrentResidual / m_ReferenceResidual;
