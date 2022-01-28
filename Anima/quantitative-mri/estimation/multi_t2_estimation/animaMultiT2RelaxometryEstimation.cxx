@@ -51,8 +51,8 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> t2LowerBoundArg("","low-t2","Lower T2 value (default: 15)",false,15,"T2 lower value",cmd);
     TCLAP::ValueArg<double> t2UpperBoundArg("","up-t2","Upper T2 value (default: 2000)",false,2000,"T2 upper value",cmd);
 
-    //NL params
     TCLAP::ValueArg<unsigned int> regulEstimationArg("r","regul","Regularization type (0: none, 1: Tikhonov, 2: Laplacian, 3: NL Tikhonov regularization, default: 2)",false,2,"regularization type",cmd);
+    TCLAP::SwitchArg lCurveOptimArg("L","l-curve","Use a L-curve regularization weight optimization (default: no)",cmd);
     TCLAP::ValueArg<double> regulRatioArg("R","ratio-regul","Regularization ratio between none regularized and regularized residuals type (default: 1.02)",false,1.02,"regularization ratio",cmd);
     TCLAP::ValueArg<double> weightThrArg("W","weight-thr","Weight threshold: patches around have to be similar enough -> default: 0.0",false,0.0,"Weight threshold",cmd);
     TCLAP::ValueArg<double> betaArg("b","beta","Beta parameter for local noise estimation -> default: 1",false,1,"Beta for local noise estimation",cmd);
@@ -100,6 +100,7 @@ int main(int argc, char **argv)
     else
         mainFilter->SetRegularizationType(FilterType::RegularizationType::None);
 
+    mainFilter->SetOptimizeRegularizationWeightWithLCurve(lCurveOptimArg.isSet());
     mainFilter->SetRegularizationRatio(regulRatioArg.getValue());
 
     mainFilter->SetUniformPulses(!nonUniformPulsesArg.isSet());

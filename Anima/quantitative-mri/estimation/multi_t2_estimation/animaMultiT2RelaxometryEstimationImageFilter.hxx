@@ -35,6 +35,20 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
         m_T2CompartmentValues[i] = std::exp(logValue);
     }
 
+    unsigned int numLCurveValues = 50;
+    m_LambdaLCurveValues.resize(numLCurveValues);
+    logStart = std::log(1.0e-8);
+    logEnd = std::log(10.0);
+    step = (logEnd - logStart) / (numLCurveValues - 1);
+
+    logValue = logStart;
+    m_LambdaLCurveValues[0] = std::exp(logValue);
+    for (unsigned int i = 1;i < numLCurveValues;++i)
+    {
+        logValue += step;
+        m_LambdaLCurveValues[i] = std::exp(logValue);
+    }
+
     this->GetB1OutputImage()->FillBuffer(1.0);
 
     m_T2OutputImage = VectorOutputImageType::New();
@@ -355,8 +369,13 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
             regularizationCost->SetReferenceRatio(m_RegularizationRatio);
             regularizationCost->SetRegularizationType(m_RegularizationType);
 
-            double lambda = std::sqrt(0.05 * residual / normT2Weights);
-            residual = this->ComputeRegularizedSolution(regularizationCost,lambda,t2OptimizedWeights,m0Value);
+            if (!m_OptimizeRegularizationWeightWithLCurve)
+            {
+                double lambda = std::sqrt(0.05 * residual / normT2Weights);
+                residual = this->ComputeRegularizedSolution(regularizationCost,lambda,t2OptimizedWeights,m0Value);
+            }
+            else
+                residual = this->ComputeLCurveRegularizedSolution(regularizationCost,t2OptimizedWeights,m0Value);
         }
 
         outCostIterator.Set(residual);
@@ -608,6 +627,75 @@ MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
         p[0] = lambda;
         regularizationCost->GetValue(p);
     }
+
+    t2OptimizedWeights = regularizationCost->GetOptimizedT2Weights();
+    m0Value = regularizationCost->GetOptimizedM0Value();
+
+    return regularizationCost->GetCurrentResidual();
+}
+
+template <class TPixelScalarType>
+double
+MultiT2RelaxometryEstimationImageFilter <TPixelScalarType>
+::ComputeLCurveRegularizedSolution(RegularizationCostFunctionType *regularizationCost,
+                                   itk::OptimizerParameters <double> &t2OptimizedWeights, double &m0Value)
+{
+    unsigned int numLCurveValues = m_LambdaLCurveValues.size();
+
+    std::vector <double> tmpLogResiduals(numLCurveValues), tmpLogRegularizationResiduals(numLCurveValues);
+    itk::OptimizerParameters <double> p(1);
+
+    p[0] = std::sqrt(m_LambdaLCurveValues[0]);
+    regularizationCost->GetValue(p);
+    double minLogResiduals = std::log(1.0e-32 + regularizationCost->GetCurrentResidual());
+    double maxLogRegularizationResiduals = std::log(1.0e-32 + regularizationCost->GetCurrentRegularizationResidual());
+
+    p[0] = std::sqrt(m_LambdaLCurveValues[numLCurveValues - 1]);
+    regularizationCost->GetValue(p);
+    double maxLogResiduals = std::log(1.0e-32 + regularizationCost->GetCurrentResidual());
+    double minLogRegularizationResiduals = std::log(1.0e-32 + regularizationCost->GetCurrentRegularizationResidual());
+
+    double previousLogResidual = 10.0;
+    double previousLogRegularizationResidual = -10.0;
+    double previousDerivative = 0.0;
+    double resDer = 0.0;
+
+    double logStart = std::log(1.0e-8);
+    double logEnd = std::log(10.0);
+    double step = (logEnd - logStart) / (numLCurveValues - 1);
+
+    unsigned int upperIndex = numLCurveValues - 1;
+    for (unsigned int i = 1;i < numLCurveValues;++i)
+    {
+        p[0] = std::sqrt(m_LambdaLCurveValues[i]);
+        regularizationCost->GetValue(p);
+
+        double currentLogResidual = 20 * (regularizationCost->GetCurrentResidual() - minLogResiduals) / (maxLogResiduals - minLogResiduals) - 10.0;
+        double currentLogRegularizationResidual = 20 * (regularizationCost->GetCurrentRegularizationResidual() - minLogRegularizationResiduals) / (maxLogRegularizationResiduals - minLogRegularizationResiduals) - 10.0;
+
+        resDer = (currentLogResidual - previousLogResidual) / step;
+        double regResDer = (currentLogRegularizationResidual - previousLogRegularizationResidual) / step;
+
+        double derNorm = std::sqrt(resDer * resDer + regResDer * regResDer);
+
+        resDer /= derNorm;
+
+        if (resDer > 0.5)
+        {
+            upperIndex = i;
+            break;
+        }
+
+        previousLogRegularizationResidual = currentLogRegularizationResidual;
+        previousLogResidual = currentLogResidual;
+        previousDerivative = resDer / derNorm;
+    }
+
+    // Optimal lambda is in betweem upperIndex - 1 and upperIndex
+
+    double logLambda = ((resDer - 0.5) * std::log(m_LambdaLCurveValues[upperIndex - 1]) + (0.5 - previousDerivative) * std::log(m_LambdaLCurveValues[upperIndex])) / (resDer - previousDerivative);
+    p[0] = std::exp(0.5 * logLambda);
+    regularizationCost->GetValue(p);
 
     t2OptimizedWeights = regularizationCost->GetOptimizedT2Weights();
     m0Value = regularizationCost->GetOptimizedM0Value();

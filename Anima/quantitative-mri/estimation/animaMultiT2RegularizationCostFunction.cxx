@@ -56,6 +56,22 @@ MultiT2RegularizationCostFunction::GetValue(const ParametersType & parameters) c
         m_CurrentResidual += diff * diff;
     }
 
+    m_CurrentRegularizationResidual = 0.0;
+
+    if (lambda != 0.0)
+    {
+        for (unsigned int i = rowSize;i < rowSize + colSize;++i)
+        {
+            double diff = 0.0;
+            for (unsigned int j = 0;j < colSize;++j)
+                diff += m_AMatrix(i,j) * t2Weights[j];
+
+            diff -= m_T2RelaxometrySignals[i];
+
+            m_CurrentRegularizationResidual += diff * diff / (lambda * lambda);
+        }
+    }
+
     double ratio = m_CurrentResidual / m_ReferenceResidual;
 
     return ratio - m_ReferenceRatio;

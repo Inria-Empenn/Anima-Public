@@ -69,6 +69,7 @@ public:
     InputImageType *GetT1Map() {return m_T1Map;}
 
     itkSetMacro(RegularizationType, RegularizationType)
+    itkSetMacro(OptimizeRegularizationWeightWithLCurve, bool)
     itkSetMacro(RegularizationRatio, double)
     itkSetObjectMacro(InitialB1Map, InputImageType)
     itkSetObjectMacro(InitialM0Map, InputImageType)
@@ -121,6 +122,7 @@ protected:
         m_UpperT2Bound = 2000;
 
         m_RegularizationType = RegularizationType::Tikhonov;
+        m_OptimizeRegularizationWeightWithLCurve = false;
         m_RegularizationRatio = 1.02;
 
         m_T2ExcitationFlipAngle = M_PI / 6;
@@ -154,6 +156,10 @@ protected:
     double ComputeRegularizedSolution(RegularizationCostFunctionType *regularizationCost, double &lambdaSq,
                                       itk::OptimizerParameters <double> &t2OptimizedWeights, double &m0Value);
 
+    //! Implements Canales et al. L-curve regularization weight optimization (see Media 2021)
+    double ComputeLCurveRegularizedSolution(RegularizationCostFunctionType *regularizationCost,
+                                            itk::OptimizerParameters <double> &t2OptimizedWeights, double &m0Value);
+
 private:
     MultiT2RelaxometryEstimationImageFilter(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
@@ -173,7 +179,10 @@ private:
     VectorOutputImagePointer m_InitialT2Map;
 
     RegularizationType m_RegularizationType;
+    bool m_OptimizeRegularizationWeightWithLCurve;
     double m_RegularizationRatio;
+    std::vector <double> m_LambdaLCurveValues;
+
     std::vector <PatchSearcherType> m_NLPatchSearchers;
     double m_MeanMinThreshold;
     double m_VarMinThreshold;
