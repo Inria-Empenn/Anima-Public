@@ -22,6 +22,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Install opengl
+      run: sudo apt-get -y install libgl1-mesa-dev
+
     - name: webfactory/ssh-agent
       uses: webfactory/ssh-agent@v0.5.4
       with:
