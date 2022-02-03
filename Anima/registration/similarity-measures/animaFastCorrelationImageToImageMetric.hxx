@@ -73,13 +73,10 @@ FastCorrelationImageToImageMetric<TFixedImage,TMovingImage>
     }
 
     RealType movingVariance = smm - sm * sm / this->m_NumberOfPixelsCounted;
-    if (movingVariance <= 0)
-        return 0;
-
     RealType covData = sfm - m_SumFixed * sm / this->m_NumberOfPixelsCounted;
     RealType multVars = m_VarFixed * movingVariance;
 
-    if (this->m_NumberOfPixelsCounted > 1 && multVars > 0)
+    if (this->m_NumberOfPixelsCounted > 1 && multVars > 1.0e-16)
     {
         if (m_SquaredCorrelation)
             measure = covData * covData / multVars;
@@ -88,7 +85,10 @@ FastCorrelationImageToImageMetric<TFixedImage,TMovingImage>
     }
     else
     {
-        measure = itk::NumericTraits< MeasureType >::Zero;
+        if (m_SquaredCorrelation)
+            measure = itk::NumericTraits< MeasureType >::Zero;
+        else
+            measure = - 1.0;
     }
 
     return measure;

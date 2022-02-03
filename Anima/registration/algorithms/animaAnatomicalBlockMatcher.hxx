@@ -91,7 +91,7 @@ AnatomicalBlockMatcher<TInputImageType>
             return 1;
 
         case Correlation:
-            return (val + 1) / 2.0;
+            return (val > 0) ?  val : 0;
 
         case SquaredCorrelation:
         default:
