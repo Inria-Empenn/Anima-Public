@@ -33,7 +33,7 @@ BeforeThreadedGenerateData ()
     typename ThresholdFilterType::Pointer thrFilter = ThresholdFilterType::New();
     thrFilter->SetInput(m_WeightImage);
     thrFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
-    thrFilter->ThresholdBelow(1.0e-3);
+    thrFilter->ThresholdBelow(1.0e-2);
 
     typename LabelerFilterType::Pointer labelFilter = LabelerFilterType::New();
     labelFilter->SetInput(thrFilter->GetOutput());

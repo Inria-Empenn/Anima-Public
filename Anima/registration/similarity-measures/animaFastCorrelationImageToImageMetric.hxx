@@ -81,7 +81,7 @@ FastCorrelationImageToImageMetric<TFixedImage,TMovingImage>
         if (m_SquaredCorrelation)
             measure = covData * covData / multVars;
         else
-            measure = std::max(0.0,covData / sqrt(multVars));
+            measure = std::max(-1.0,covData / sqrt(multVars));
     }
     else
     {
