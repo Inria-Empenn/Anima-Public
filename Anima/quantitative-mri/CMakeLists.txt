@@ -5,4 +5,5 @@ project(ANIMA-QUANTITATIVE-MRI)
 ################################################################################
 
 add_subdirectory(mr-simulation)
+add_subdirectory(cbf_estimation)
 add_subdirectory(estimation)
