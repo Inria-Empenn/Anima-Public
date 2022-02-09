@@ -1,7 +1,7 @@
 Registration tools
 ==================
 
-This part describes registration features in Anima. It includes linear and non linear registration (of anatomical and DTI images), as well as EPI distortion correction and tools for applying series of transformations to images. One note on transformations that come out of these tools: they are all in real coordinates (as opposed to voxel coordinates).
+This part describes registration features in Anima. It includes linear and non linear registration (of anatomical and DTI images), as well as EPI distortion correction and tools for applying series of transformations to images. One note on transformations that come out of these tools: they are all in real coordinates (as opposed to voxel coordinates). A further reference on the under the hood core framework of the block-matching algorithms used can be found on my new evolutive article on registration [15].
 
 Linear registration
 -------------------
@@ -160,7 +160,7 @@ We provide a tool named **animaLinearTransformArithmetic** to compose and perfor
 Dense field transformations arithmetic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-We provide a tool named **animaDenseTransformArithmetic** to compose and perform log-Euclidean operations on dense field (diffeomorphic) transformations as proposed by Arisgny et al. [11]. The tool proposes regular composition or BCH approximation to the composition of SVFs in the log-Euclidean framework (``-c``). It can also take the exponential of an SVF, dense diffeomorphism logarithm is the only operation not implemented yet.
+We provide a tool named **animaDenseTransformArithmetic** to compose and perform log-Euclidean operations on dense field (diffeomorphic) transformations as proposed by Arisgny et al. [11]. The tool proposes regular composition or BCH approximation to the composition of SVFs in the log-Euclidean framework (``-c``). It can also take the exponential of an SVF, dense diffeomorphism logarithm is the only operation not implemented yet. The norm of the resulting vector field (after all previous steps) can be computed using the option ``-N``.
 
 References
 ----------
@@ -179,3 +179,4 @@ References
 12. O\. Commowick, R\. Hédouin, E\. Caruyer, C\. Barillot. *L2 Similarity Metrics for Diffusion Multi-Compartment Model Images Registration*, 20th International Conference on Medical Image Computing and Computer Assisted Intervention (MICCAI), 257-265, 2017.
 13. A\. Legouhy, O\. Commowick, F\. Rousseau, C\. Barillot. *Anisotropic similarity, a constrained affine transformation: application to brain development analysis*, ISMRM, 2018.
 14. A\. Legouhy, O\. Commowick, F\. Rousseau, C\. Barillot. *Unbiased Longitudinal Brain Atlas Creation Using Robust Linear Registration and Log-Euclidean Framework for Diffeomorphisms*, International Symposium on Biomedical Imaging, 2019.
+15. O\. Commowick. *A versatile block-matching framework for images registration*, `Article on github <https://github.com/ocommowi/registration-article/releases/tag/v1.0>`_, 2022.

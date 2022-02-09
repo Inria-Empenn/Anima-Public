@@ -111,7 +111,7 @@ If you give arguments size of zero the corresponding dimension will be collapsed
 Image smoothing
 ---------------
 
-**animaImageSmoother** simply applies Gaussian smoothing with a specific sigma value to an image using Young - Van Vliet's recursive smoothing filter implemented in ITK [1].
+**animaImageSmoother** simply applies Gaussian smoothing with a specific sigma value to an image using Young - Van Vliet's recursive smoothing filter implemented in ITK [1]. With the option ``-G``, the gradient of the image will be computed instead of the smoothed image.
 
 Morphological operations
 ------------------------
