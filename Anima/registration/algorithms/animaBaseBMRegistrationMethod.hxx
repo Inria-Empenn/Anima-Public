@@ -275,9 +275,6 @@ BaseBMRegistrationMethod <TInputImageType>
             ++diffItr;
         }
 
-        if (smallEnoughTransform)
-            return false;
-
         if (m_SVFElasticRegSigma > 0)
         {
             typedef typename SVFTransformType::VectorFieldType VelocityFieldType;
@@ -296,6 +293,9 @@ BaseBMRegistrationMethod <TInputImageType>
 
             tmpTrsf->SetParametersAsVectorField(tmpSmoothed);
         }
+
+        if (smallEnoughTransform)
+            return false;
     }
 
     return true;
