@@ -245,10 +245,6 @@ applyScalarTransfo4D(itk::ImageIOBase::Pointer geometryImageIO, const arguments 
     minMaxFilter->Update();
 
     double minImageValue = minMaxFilter->GetMinimum();
-    if (minImageValue < 0)
-        minImageValue = -1024;
-    else
-        minImageValue = 0;
 
     unsigned int numImages = inputImage->GetLargestPossibleRegion().GetSize()[InternalImageDimension];
 
@@ -407,10 +403,6 @@ applyScalarTransfo(itk::ImageIOBase::Pointer geometryImageIO, const arguments &a
     minMaxFilter->Update();
 
     double minImageValue = minMaxFilter->GetMinimum();
-    if (minImageValue < 0)
-        minImageValue = -1024;
-    else
-        minImageValue = 0;
 
     scalarResampler->SetDefaultPixelValue(minImageValue);
     scalarResampler->SetInput(inputImage);

@@ -6,6 +6,7 @@
 #include <itkTransformFileWriter.h>
 #include <itkCenteredTransformInitializer.h>
 #include <itkMinimumMaximumImageFilter.h>
+#include <itkAddImageFilter.h>
 
 #include <animaAsymmetricBMRegistrationMethod.h>
 #include <animaSymmetricBMRegistrationMethod.h>
@@ -169,17 +170,6 @@ void PyramidalBlockMatchingBridge<ImageDimension>::Update()
     minMaxFilter->Update();
 
     m_FloatingMinimalValue = minMaxFilter->GetMinimum();
-
-    // Only CT images are below zero, little hack to set minimal values to either -1024 or 0
-    if (m_ReferenceMinimalValue < 0.0)
-        m_ReferenceMinimalValue = -1024;
-    else
-        m_ReferenceMinimalValue = 0.0;
-
-    if (m_FloatingMinimalValue < 0.0)
-        m_FloatingMinimalValue = -1024;
-    else
-        m_FloatingMinimalValue = 0.0;
 
     // Set up pyramids of images and masks
     this->SetupPyramids();
@@ -706,13 +696,41 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
 
         if (m_TransformInitializationType != Identity)
         {
+            InputImagePointer offsetRefImage = m_ReferenceImage;
+            if (m_ReferenceMinimalValue < 0.0)
+            {
+                typedef itk::AddImageFilter <InputImageType, InputImageType, InputImageType> AddFilterType;
+                typename AddFilterType::Pointer addFilter = AddFilterType::New();
+                addFilter->SetInput(m_ReferenceImage);
+                addFilter->SetConstant(- m_ReferenceMinimalValue);
+                addFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
+                addFilter->Update();
+
+                offsetRefImage = addFilter->GetOutput();
+                offsetRefImage->DisconnectPipeline();
+            }
+
             typename ImageCalculatorType::Pointer fixedCalculator = ImageCalculatorType::New();
-            fixedCalculator->SetImage(m_ReferenceImage);
+            fixedCalculator->SetImage(offsetRefImage);
             fixedCalculator->Compute();
             typename ImageCalculatorType::VectorType fixedBar = fixedCalculator->GetCenterOfGravity();
 
+            InputImagePointer offsetFloatingImage = m_FloatingImage;
+            if (m_ReferenceMinimalValue < 0.0)
+            {
+                typedef itk::AddImageFilter <InputImageType, InputImageType, InputImageType> AddFilterType;
+                typename AddFilterType::Pointer addFilter = AddFilterType::New();
+                addFilter->SetInput(m_FloatingImage);
+                addFilter->SetConstant(- m_FloatingMinimalValue);
+                addFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
+                addFilter->Update();
+
+                offsetFloatingImage = addFilter->GetOutput();
+                offsetFloatingImage->DisconnectPipeline();
+            }
+
             typename ImageCalculatorType::Pointer movingCalculator = ImageCalculatorType::New();
-            movingCalculator->SetImage(m_FloatingImage);
+            movingCalculator->SetImage(offsetFloatingImage);
             movingCalculator->Compute();
             typename ImageCalculatorType::VectorType movingBar = movingCalculator->GetCenterOfGravity();
 
@@ -723,8 +741,12 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
                 typename ImageCalculatorType::VectorType fixedPrincipalMom = fixedCalculator->GetPrincipalMoments();
                 typename ImageCalculatorType::ScalarType fixedMass = fixedCalculator->GetTotalMass();
 
+                std::cout << fixedPrincipalMom << " " << fixedMass << std::endl;
+
                 typename ImageCalculatorType::VectorType movingPrincipalMom = movingCalculator->GetPrincipalMoments();
                 typename ImageCalculatorType::ScalarType movingMass = movingCalculator->GetTotalMass();
+
+                std::cout << movingPrincipalMom << " " << movingMass << std::endl;
 
                 vnl_matrix<double> scalMatrix(ImageDimension, ImageDimension, 0);
                 itk::Vector<double, ImageDimension> scalOffset;
@@ -745,6 +767,8 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
 
                 for (unsigned int i = 0; i < ImageDimension; ++i)
                     scalOffset[i] = movingBar[i] - scalingFactor * fixedBar[i];
+
+                std::cout << scalMatrix << " " << scalOffset << std::endl;
 
                 m_InitialTransform->SetMatrix(scalMatrix);
                 m_InitialTransform->SetOffset(scalOffset);

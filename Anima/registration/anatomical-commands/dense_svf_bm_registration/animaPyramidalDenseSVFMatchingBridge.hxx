@@ -127,17 +127,6 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
 
     m_FloatingMinimalValue = minMaxFilter->GetMinimum();
 
-    // Only CT images are below zero, little hack to set minimal values to either -1024 or 0
-    if (m_ReferenceMinimalValue < 0.0)
-        m_ReferenceMinimalValue = -1024;
-    else
-        m_ReferenceMinimalValue = 0.0;
-
-    if (m_FloatingMinimalValue < 0.0)
-        m_FloatingMinimalValue = -1024;
-    else
-        m_FloatingMinimalValue = 0.0;    
-
     this->SetupPyramids();
 
     // Iterate over pyramid levels
