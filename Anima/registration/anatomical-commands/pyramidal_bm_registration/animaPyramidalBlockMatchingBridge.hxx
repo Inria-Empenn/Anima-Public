@@ -741,12 +741,8 @@ void PyramidalBlockMatchingBridge<ImageDimension>::SetupPyramids()
                 typename ImageCalculatorType::VectorType fixedPrincipalMom = fixedCalculator->GetPrincipalMoments();
                 typename ImageCalculatorType::ScalarType fixedMass = fixedCalculator->GetTotalMass();
 
-                std::cout << fixedPrincipalMom << " " << fixedMass << std::endl;
-
                 typename ImageCalculatorType::VectorType movingPrincipalMom = movingCalculator->GetPrincipalMoments();
                 typename ImageCalculatorType::ScalarType movingMass = movingCalculator->GetTotalMass();
-
-                std::cout << movingPrincipalMom << " " << movingMass << std::endl;
 
                 vnl_matrix<double> scalMatrix(ImageDimension, ImageDimension, 0);
                 itk::Vector<double, ImageDimension> scalOffset;
