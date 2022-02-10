@@ -3,6 +3,7 @@
 
 #include <itkImageRegionIteratorWithIndex.h>
 #include <itkImageRegionConstIteratorWithIndex.h>
+#include <itkThresholdLabelerImageFilter.h>
 
 #include <animaSmoothingRecursiveYvvGaussianImageFilter.h>
 
@@ -18,33 +19,19 @@ BeforeThreadedGenerateData ()
     if (nbInputs != 1)
         itkExceptionMacro("Error: There should be one input...");
 
-    WeightImagePointer tmpWeights = WeightImageType::New();
     typedef itk::ImageRegionIterator <WeightImageType> WeightIteratorType;
+    typedef itk::ThresholdLabelerImageFilter <WeightImageType, WeightImageType> ThresholdFilterType;
 
-    WeightIteratorType weightOriginalIterator(m_WeightImage,this->GetInput()->GetLargestPossibleRegion());
+    typename ThresholdFilterType::Pointer thrFilter = ThresholdFilterType::New();
+    thrFilter->SetInput(m_WeightImage);
+    typename ThresholdFilterType::RealThresholdVector thr(1);
+    thr[0] = 0.0;
+    thrFilter->SetRealThresholds(thr);
+    thrFilter->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
+    thrFilter->Update();
 
-    tmpWeights->SetRegions (this->GetInput()->GetLargestPossibleRegion());
-    tmpWeights->SetSpacing (this->GetInput()->GetSpacing());
-    tmpWeights->SetOrigin (this->GetInput()->GetOrigin());
-    tmpWeights->SetDirection (this->GetInput()->GetDirection());
-    tmpWeights->Allocate();
-    tmpWeights->FillBuffer(0);
-
-    WeightIteratorType tmpWeightIterator(tmpWeights,tmpWeights->GetLargestPossibleRegion());
-
-    while (!tmpWeightIterator.IsAtEnd())
-    {
-        if (weightOriginalIterator.Value() <= 0)
-        {
-            ++weightOriginalIterator;
-            ++tmpWeightIterator;
-            continue;
-        }
-
-        tmpWeightIterator.Set(1.0);
-        ++weightOriginalIterator;
-        ++tmpWeightIterator;
-    }
+    WeightImagePointer tmpWeights = thrFilter->GetOutput();
+    tmpWeights->DisconnectPipeline();
 
     typedef anima::SmoothingRecursiveYvvGaussianImageFilter<WeightImageType,WeightImageType> WeightSmootherType;
     typename WeightSmootherType::Pointer weightSmooth = WeightSmootherType::New();
@@ -96,13 +83,14 @@ BeforeThreadedGenerateData ()
         for (unsigned int i = 0;i < NDegreesOfFreedom;++i)
             dist += (curDisp[i] - originDisp[i]) * (curDisp[i] - originDisp[i]);
 
-        averageDist += dist;
+        averageDist += std::sqrt(dist);
 
         ++numPairings;
         ++tmpWeightIteratorWithIndex;
     }
 
     m_AverageResidualValue = averageDist / numPairings;
+    m_AverageResidualValue *= m_AverageResidualValue;
 
     // Now compute image of spatial weights
     OutputImageRegionType tmpRegion;
@@ -142,19 +130,11 @@ BeforeThreadedGenerateData ()
         for (unsigned int i = 0;i < NDimensions;++i)
             centerDist += (centerPosition[i] - curPosition[i]) * (centerPosition[i] - curPosition[i]);
 
-        if (centerDist > 9.0 * m_FluidSigma * m_FluidSigma)
-        {
-            ++spatialWeightItr;
-            continue;
-        }
+        double weightFunctionValue = std::exp(- centerDist / (3.0 * m_FluidSigma));
 
-        centerDist = std::sqrt(centerDist) / (3.0 * m_FluidSigma);
-        // Wendland function phi_{3,1}
-        double wendlandFunctionValue = std::pow((1.0 - centerDist), 4) * (4.0 * centerDist + 1.0);
-
-        if (wendlandFunctionValue > 0.05)
+        if (weightFunctionValue > 0.01)
         {
-            m_InternalSpatialKernelWeights.push_back(wendlandFunctionValue);
+            m_InternalSpatialKernelWeights.push_back(weightFunctionValue);
             m_InternalSpatialKernelIndexes.push_back(curIndex);
         }
 
@@ -211,7 +191,6 @@ DynamicThreadedGenerateData (const OutputImageRegionType &outputRegionForThread)
             }
 
             double weight = 0.0;
-
             if (indexOk)
                 weight = m_WeightImage->GetPixel(inputIndex);
 
@@ -220,7 +199,6 @@ DynamicThreadedGenerateData (const OutputImageRegionType &outputRegionForThread)
                 logTrsfsVector[pos] = this->GetInput()->GetPixel(inputIndex);
                 weightsVector[pos] = weight;
                 sumAbsoluteWeights += weightsVector[pos];
-
                 weightsVector[pos] *= m_InternalSpatialKernelWeights[i];
                 ++pos;
             }
@@ -228,7 +206,7 @@ DynamicThreadedGenerateData (const OutputImageRegionType &outputRegionForThread)
 
         unsigned int numEltsRegion = pos;
 
-        if ((sumAbsoluteWeights <= 0)||(numEltsRegion < 1))
+        if (sumAbsoluteWeights == 0)
         {
             outIterator.Set(outValue);
             ++outIterator;
@@ -250,12 +228,14 @@ DynamicThreadedGenerateData (const OutputImageRegionType &outputRegionForThread)
             for (unsigned int i = 0;i < numEltsRegion;++i)
             {
                 double tmpWeight = weightsVector[i] * deltaVector[i];
-                outValue += logTrsfsVector[i] * tmpWeight;
+                for (unsigned int j = 0;j < NDegreesOfFreedom;++j)
+                    outValue[j] += logTrsfsVector[i][j] * tmpWeight;
 
                 sumWeights += tmpWeight;
             }
 
-            outValue /= sumWeights;
+            for (unsigned int j = 0;j < NDegreesOfFreedom;++j)
+                outValue[j] /= sumWeights;
 
             if (numIter == m_MaxNumIterations)
                 stopLoop = true;
@@ -288,8 +268,13 @@ checkConvergenceThreshold (OutputPixelType &outValOld, OutputPixelType &outVal)
 {
     for (unsigned int i = 0;i < NDegreesOfFreedom;++i)
     {
-        if (std::abs(outVal[i] - outValOld[i]) > m_ConvergenceThreshold)
-            return false;
+        double denom = std::abs(outVal[i]) + std::abs(outValOld[i]) / 2.0;
+
+        if (denom != 0)
+        {
+            if (std::abs((outVal[i] - outValOld[i]) / denom) > m_ConvergenceThreshold)
+                return false;
+        }
     }
 
     return true;
