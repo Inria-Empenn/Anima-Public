@@ -56,7 +56,6 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::PyramidalDenseMCMSVFMatching
     m_ElasticSigma = 3;
     m_OutlierSigma = 3;
     m_MEstimateConvergenceThreshold = 0.01;
-    m_NeighborhoodApproximation = 2.5;
     m_BCHCompositionOrder = 1;
     m_ExponentiationOrder = 1;
     m_NumberOfPyramidLevels = 3;
@@ -167,9 +166,6 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>::Update()
                 agreg->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
             agreg->SetGeometryInformation(refImage.GetPointer());
-
-            agreg->SetNeighborhoodHalfSize((unsigned int)floor(m_ExtrapolationSigma * m_NeighborhoodApproximation));
-            agreg->SetDistanceBoundary(m_ExtrapolationSigma * meanSpacing * m_NeighborhoodApproximation);
             agreg->SetMEstimateConvergenceThreshold(m_MEstimateConvergenceThreshold);
 
             agregPtr = agreg;

@@ -44,7 +44,6 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<double> elasticSigmaArg("","es","Sigma for elastic regularization (default: 2)",false,2,"elastic regularization sigma",cmd);
     TCLAP::ValueArg<double> outlierSigmaArg("","os","Sigma for outlier rejection among local pairings (default: 3)",false,3,"outlier rejection sigma",cmd);
     TCLAP::ValueArg<double> mEstimateConvergenceThresholdArg("","met","Threshold to consider m-estimator converged (default: 0.01)",false,0.01,"m-estimation convergence threshold",cmd);
-    TCLAP::ValueArg<double> neighborhoodApproximationArg("","na","Half size of the neighborhood approximation (multiplied by extrapolation sigma, default: 2.5)",false,2.5,"half size of neighborhood approximation",cmd);
     
     TCLAP::ValueArg<unsigned int> expOrderArg("e","exp-order","Order of field exponentiation approximation (in between 0 and 1, default: 0)",false,0,"exponentiation order",cmd);
 
@@ -88,7 +87,6 @@ int main(int argc, const char** argv)
     matcher->SetElasticSigma(elasticSigmaArg.getValue());
     matcher->SetOutlierSigma(outlierSigmaArg.getValue());
     matcher->SetMEstimateConvergenceThreshold(mEstimateConvergenceThresholdArg.getValue());
-    matcher->SetNeighborhoodApproximation(neighborhoodApproximationArg.getValue());
     matcher->SetWeightedAgregation( weightedAgregationArg.isSet() );
     matcher->SetNumberOfPyramidLevels( numPyramidLevelsArg.getValue() );
     matcher->SetLastPyramidLevel( lastPyramidLevelArg.getValue() );

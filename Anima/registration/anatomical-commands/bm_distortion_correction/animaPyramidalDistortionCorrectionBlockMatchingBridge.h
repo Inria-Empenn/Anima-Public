@@ -130,9 +130,6 @@ public:
     
     double GetMEstimateConvergenceThreshold() {return m_MEstimateConvergenceThreshold;}
     void SetMEstimateConvergenceThreshold(double mEstimateConvergenceThreshold) {m_MEstimateConvergenceThreshold = mEstimateConvergenceThreshold;}
-    
-    double GetNeighborhoodApproximation() {return m_NeighborhoodApproximation;}
-    void SetNeighborhoodApproximation(double neighborhoodApproximation) {m_NeighborhoodApproximation = neighborhoodApproximation;}
 
     unsigned int GetExponentiationOrder() {return m_ExponentiationOrder;}
     void SetExponentiationOrder(unsigned int order) {m_ExponentiationOrder = order;}
@@ -186,7 +183,6 @@ private:
     double m_ElasticSigma;
     double m_OutlierSigma;
     double m_MEstimateConvergenceThreshold;
-    double m_NeighborhoodApproximation;
     unsigned int m_ExponentiationOrder;
     
     unsigned int m_NumberOfPyramidLevels;

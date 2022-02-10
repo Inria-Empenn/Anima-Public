@@ -49,7 +49,6 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<double> elasticSigmaArg("","es","Sigma for elastic regularization (default: 3)",false,3,"elastic regularization sigma",cmd);
     TCLAP::ValueArg<double> outlierSigmaArg("","os","Sigma for outlier rejection among local pairings (default: 3)",false,3,"outlier rejection sigma",cmd);
     TCLAP::ValueArg<double> mEstimateConvergenceThresholdArg("","met","Threshold to consider m-estimator converged (default: 0.01)",false,0.01,"m-estimation convergence threshold",cmd);
-    TCLAP::ValueArg<double> neighborhoodApproximationArg("","na","Half size of the neighborhood approximation (multiplied by extrapolation sigma, default: 2.5)",false,2.5,"half size of neighborhood approximation",cmd);
     TCLAP::ValueArg<unsigned int> bchOrderArg("b","bch-order","BCH composition order (default: 1)",false,1,"BCH order",cmd);
     TCLAP::ValueArg<unsigned int> expOrderArg("e","exp-order","Order of field exponentiation approximation (in between 0 and 1, default: 0)",false,0,"exponentiation order",cmd);
 
@@ -102,7 +101,6 @@ int main(int argc, const char** argv)
     matcher->SetElasticSigma(elasticSigmaArg.getValue());
     matcher->SetOutlierSigma(outlierSigmaArg.getValue());
     matcher->SetMEstimateConvergenceThreshold(mEstimateConvergenceThresholdArg.getValue());
-    matcher->SetNeighborhoodApproximation(neighborhoodApproximationArg.getValue());
     matcher->SetBCHCompositionOrder(bchOrderArg.getValue());
     matcher->SetExponentiationOrder(expOrderArg.getValue());
     matcher->SetNumberOfPyramidLevels( numPyramidLevelsArg.getValue() );

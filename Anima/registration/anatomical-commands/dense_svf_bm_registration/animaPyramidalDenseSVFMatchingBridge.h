@@ -186,9 +186,6 @@ public:
     double GetMEstimateConvergenceThreshold() {return m_MEstimateConvergenceThreshold;}
     void SetMEstimateConvergenceThreshold(double mEstimateConvergenceThreshold) {m_MEstimateConvergenceThreshold = mEstimateConvergenceThreshold;}
 
-    double GetNeighborhoodApproximation() {return m_NeighborhoodApproximation;}
-    void SetNeighborhoodApproximation(double neighborhoodApproximation) {m_NeighborhoodApproximation = neighborhoodApproximation;}
-
     unsigned int GetBCHCompositionOrder() {return m_BCHCompositionOrder;}
     void SetBCHCompositionOrder(unsigned int order) {m_BCHCompositionOrder = order;}
 
@@ -260,7 +257,6 @@ private:
     double m_ElasticSigma;
     double m_OutlierSigma;
     double m_MEstimateConvergenceThreshold;
-    double m_NeighborhoodApproximation;
     unsigned int m_BCHCompositionOrder;
     unsigned int m_ExponentiationOrder;
 

@@ -17,9 +17,6 @@ DenseSVFTransformAgregator() : Superclass()
 {
     m_ExtrapolationSigma = 4.0;
     m_OutlierRejectionSigma = 3.0;
-
-    m_NeighborhoodHalfSize = (unsigned int)floor(m_ExtrapolationSigma * 3);
-    m_DistanceBoundary = m_ExtrapolationSigma * 3;
     m_MEstimateConvergenceThreshold = 0.001;
 
     m_NumberOfThreads = itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
@@ -132,7 +129,6 @@ estimateSVFFromTranslations()
     fieldSmoother->SetInput(velocityField);
     fieldSmoother->SetWeightImage(weights);
     fieldSmoother->SetFluidSigma(m_ExtrapolationSigma);
-    fieldSmoother->SetDistanceBoundary(m_DistanceBoundary);
     fieldSmoother->SetMEstimateFactor(m_OutlierRejectionSigma);
 
     fieldSmoother->SetConvergenceThreshold(m_MEstimateConvergenceThreshold);
@@ -216,7 +212,6 @@ estimateSVFFromRigidTransforms()
     fieldSmoother->SetInput(rigidField);
     fieldSmoother->SetWeightImage(weights);
     fieldSmoother->SetFluidSigma(m_ExtrapolationSigma);
-    fieldSmoother->SetDistanceBoundary(m_DistanceBoundary);
     fieldSmoother->SetMEstimateFactor(m_OutlierRejectionSigma);
 
     fieldSmoother->SetConvergenceThreshold(m_MEstimateConvergenceThreshold);
@@ -379,7 +374,6 @@ estimateSVFFromAffineTransforms()
     fieldSmoother->SetInput(affineField);
     fieldSmoother->SetWeightImage(weights);
     fieldSmoother->SetFluidSigma(m_ExtrapolationSigma);
-    fieldSmoother->SetDistanceBoundary(m_DistanceBoundary);
     fieldSmoother->SetMEstimateFactor(m_OutlierRejectionSigma);
 
     fieldSmoother->SetConvergenceThreshold(m_MEstimateConvergenceThreshold);

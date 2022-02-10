@@ -44,7 +44,6 @@ public:
 
     itkSetMacro(FluidSigma, double)
     itkSetMacro(MEstimateFactor, double)
-    void SetDistanceBoundary (double num) {m_SqrDistanceBoundary = num * num;}
 
     itkSetMacro(ConvergenceThreshold, double)
     itkSetMacro(MaxNumIterations, unsigned int)
@@ -55,7 +54,6 @@ protected:
         m_FluidSigma = 4.0;
         m_MEstimateFactor = 1.0;
         m_AverageResidualValue = 1.0;
-        m_SqrDistanceBoundary = 9.0 * m_FluidSigma * m_FluidSigma;
     }
 
     virtual ~MEstimateSVFImageFilter() {}
@@ -71,7 +69,6 @@ private:
     WeightImagePointer m_WeightImage;
 
     double m_FluidSigma, m_MEstimateFactor;
-    double m_SqrDistanceBoundary;
     std::vector <unsigned int> m_NeighborhoodHalfSizes;
     unsigned int m_MaxNumIterations;
     double m_ConvergenceThreshold;
