@@ -16,6 +16,11 @@ The script simply takes as an input the image or images to be brain-extracted an
 	
 	~/Anima-Scripts-Public/brain_extraction/animaAtlasBasedBrainExtraction.py -i T1Image.nrrd
 
+You may also now specify a folder with the ``-a`` option that contains another atlas than the one used by default in the script. The folder must contain three files to work:
+
+* ``Reference_T1.nrrd``: the atlas T1w image, not brain masked
+* ``Reference_T1_masked.nrrd``: the brain masked atlas T1w image
+* ``BrainMask.nrrd``: the atlas brain mask
 
 Multi-atlas segmentation
 ------------------------
