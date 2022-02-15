@@ -29,9 +29,6 @@ NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
         }
     }
 
-    m_NumberOfProcessedPoints = 0;
-    this->UpdateProgress(0.0);
-
     // Since image requested region may now be smaller than the image, fill the outputs with zeros
     typedef typename TOutputImage::PixelType OutputPixelType;
 
@@ -51,7 +48,7 @@ NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
     this->AllocateOutputs();
     this->BeforeThreadedGenerateData();
 
-    m_HighestProcessedSlice = 0;
+    this->ResetMultiThreadingPart();
 
     ThreadStruct str;
     str.Filter = this;
@@ -62,6 +59,17 @@ NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
     this->GetMultiThreader()->SingleMethodExecute();
 
     this->AfterThreadedGenerateData();
+}
+
+template< typename TInputImage, typename TOutputImage >
+void
+NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
+::ResetMultiThreadingPart()
+{
+    m_HighestProcessedSlice = 0;
+
+    m_NumberOfProcessedPoints = 0;
+    this->UpdateProgress(0.0);
 }
 
 template< typename TInputImage, typename TOutputImage >
