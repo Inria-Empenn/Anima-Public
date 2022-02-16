@@ -20,6 +20,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Update APT
+      run: sudo apt-get update
+      
     - name: Install opengl
       run: sudo apt-get -y install libgl1-mesa-dev
 
