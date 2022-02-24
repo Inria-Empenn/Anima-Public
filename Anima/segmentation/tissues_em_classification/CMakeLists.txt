@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaTissuesEMSegmentation)
+project(animaTissuesEMClassification)
 
 ## #############################################################################
 ## List Sources
