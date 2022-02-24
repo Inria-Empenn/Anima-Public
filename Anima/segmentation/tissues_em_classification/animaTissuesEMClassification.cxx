@@ -1,7 +1,7 @@
 #include <iostream>
 #include <tclap/CmdLine.h>
 
-#include <animaTissuesEMImageFilter.h>
+#include <animaTissuesEMClassificationImageFilter.h>
 #include <animaReadWriteFunctions.h>
 #include <itkImage.h>
 #include <itkVectorImage.h>
@@ -9,7 +9,7 @@
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_PRIVATE_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inArg("i","input","Image or list of images (as text file) to segment",true,"","input image(s)",cmd);
     TCLAP::ValueArg<std::string> resArg("o","output","Result segmentation label map",true,"","result segmentation",cmd);
@@ -35,7 +35,7 @@ int main(int argc, char **argv)
     }
 
     typedef itk::Image <double, 3> InputImageType;
-    typedef anima::TissuesEMImageFilter <InputImageType> MainFilterType;
+    typedef anima::TissuesEMClassificationImageFilter <InputImageType> MainFilterType;
     itk::TimeProbe tmpTime;
     tmpTime.Start();
 
