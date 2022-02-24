@@ -11,12 +11,12 @@ namespace anima
 {
 
 template <typename TInputImage>
-class TissuesEMImageFilter :
+class TissuesEMClassificationImageFilter :
         public anima::MaskedImageToImageFilter< TInputImage, itk::VectorImage <double, 3> >
 {
 public:
     /** Standard class typedefs. */
-    typedef TissuesEMImageFilter Self;
+    typedef TissuesEMClassificationImageFilter Self;
     typedef itk::VectorImage <double,3> TOutputImage;
     typedef anima::MaskedImageToImageFilter <TInputImage, TOutputImage> Superclass;
     typedef itk::SmartPointer<Self> Pointer;
@@ -26,7 +26,7 @@ public:
     itkNewMacro(Self)
 
     /** Run-time type information (and related methods) */
-    itkTypeMacro(TissuesEMImageFilter, anima::MaskedImageToImageFilter)
+    itkTypeMacro(TissuesEMClassificationImageFilter, anima::MaskedImageToImageFilter)
 
     typedef typename TOutputImage::PixelType OutputPixelType;
     typedef typename TInputImage::PixelType InputPixelType;
@@ -83,7 +83,7 @@ public:
     itkGetMacro(NumberOfClasses, unsigned int)
 
 protected:
-    TissuesEMImageFilter()
+    TissuesEMClassificationImageFilter()
         : Superclass()
     {
         m_NumberOfClasses = 3;
@@ -91,7 +91,7 @@ protected:
         m_Verbose = true;
     }
 
-    virtual ~TissuesEMImageFilter() {}
+    virtual ~TissuesEMClassificationImageFilter() {}
 
     /** Compute the E-step of the algorithm
       *  (i.e. the reference standard from the parameters and the data).
@@ -112,7 +112,7 @@ protected:
     static ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION ThreadEstimateClassesParams(void *arg);
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(TissuesEMImageFilter);
+    ITK_DISALLOW_COPY_AND_ASSIGN(TissuesEMClassificationImageFilter);
 
     unsigned int m_MaximumIterations;
     double m_RelativeConvergenceThreshold;
@@ -132,4 +132,4 @@ private:
 
 } // end namespace anima
 
-#include "animaTissuesEMImageFilter.hxx"
+#include "animaTissuesEMClassificationImageFilter.hxx"

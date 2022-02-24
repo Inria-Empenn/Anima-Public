@@ -1,5 +1,5 @@
 #pragma once
-#include "animaTissuesEMImageFilter.h"
+#include "animaTissuesEMClassificationImageFilter.h"
 
 #include <itkImageRegionIterator.h>
 #include <itkImageRegionConstIterator.h>
@@ -13,7 +13,7 @@ namespace anima
 
 template <typename TInputImage>
 bool
-TissuesEMImageFilter <TInputImage>
+TissuesEMClassificationImageFilter <TInputImage>
 ::endConditionReached()
 {
     for (unsigned int i = 0;i < m_NumberOfClasses;++i)
@@ -49,7 +49,7 @@ TissuesEMImageFilter <TInputImage>
 
 template <typename TInputImage>
 void
-TissuesEMImageFilter <TInputImage>
+TissuesEMClassificationImageFilter <TInputImage>
 ::GenerateOutputInformation()
 {
     // Override the method in itkImageSource, so we can set the vector length of
@@ -66,7 +66,7 @@ TissuesEMImageFilter <TInputImage>
 
 template <typename TInputImage>
 void
-TissuesEMImageFilter <TInputImage>
+TissuesEMClassificationImageFilter <TInputImage>
 ::BeforeThreadedGenerateData()
 {
     this->Superclass::BeforeThreadedGenerateData();
@@ -135,7 +135,7 @@ TissuesEMImageFilter <TInputImage>
 
 template <typename TInputImage>
 void
-TissuesEMImageFilter <TInputImage>
+TissuesEMClassificationImageFilter <TInputImage>
 ::GenerateData()
 {
     this->AllocateOutputs();
@@ -190,7 +190,7 @@ TissuesEMImageFilter <TInputImage>
 
 template <typename TInputImage>
 void
-TissuesEMImageFilter <TInputImage>
+TissuesEMClassificationImageFilter <TInputImage>
 ::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
     typedef itk::ImageRegionConstIterator <TInputImage> InIteratorType;
@@ -270,7 +270,7 @@ TissuesEMImageFilter <TInputImage>
 
 template <typename TInputImage>
 void
-TissuesEMImageFilter <TInputImage>
+TissuesEMClassificationImageFilter <TInputImage>
 ::EstimateClassesParameters()
 {
     itk::PoolMultiThreader::Pointer threaderMstep = itk::PoolMultiThreader::New();
@@ -289,7 +289,7 @@ TissuesEMImageFilter <TInputImage>
 
 template <typename TInputImage>
 ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
-TissuesEMImageFilter <TInputImage>
+TissuesEMClassificationImageFilter <TInputImage>
 ::ThreadEstimateClassesParams(void *arg)
 {
     itk::MultiThreaderBase::WorkUnitInfo *threadArgs = (itk::MultiThreaderBase::WorkUnitInfo *)arg;
@@ -313,7 +313,7 @@ TissuesEMImageFilter <TInputImage>
 
 template <typename TInputImage>
 void
-TissuesEMImageFilter <TInputImage>
+TissuesEMClassificationImageFilter <TInputImage>
 ::EstimateClassesParameters(unsigned int classStart, unsigned int classEnd)
 {
     typedef itk::ImageRegionConstIterator <TInputImage> InIteratorType;
@@ -423,8 +423,8 @@ TissuesEMImageFilter <TInputImage>
 }
 
 template <typename TInputImage>
-typename TissuesEMImageFilter <TInputImage>::MaskImagePointer &
-TissuesEMImageFilter <TInputImage>
+typename TissuesEMClassificationImageFilter <TInputImage>::MaskImagePointer &
+TissuesEMClassificationImageFilter <TInputImage>
 ::GetClassificationAsLabelMap()
 {
     if (m_LabelMap)
@@ -481,8 +481,8 @@ TissuesEMImageFilter <TInputImage>
 
 
 template <typename TInputImage>
-typename TissuesEMImageFilter <TInputImage>::RealImagePointer &
-TissuesEMImageFilter <TInputImage>
+typename TissuesEMClassificationImageFilter <TInputImage>::RealImagePointer &
+TissuesEMClassificationImageFilter <TInputImage>
 ::GetZScoreMap()
 {
     this->GetClassificationAsLabelMap();
