@@ -87,12 +87,6 @@ set(${PROJECT_NAME}_USE_FILE
   )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-configure_file(${CMAKE_SOURCE_DIR}/cmake/${PROJECT_NAME}Exports.cmake.in
-    ${${PROJECT_NAME}_BINARY_DIR}/cmake/${PROJECT_NAME}Exports.cmake
-    @ONLY IMMEDIATE
-)
-
-include(${PROJECT_NAME}Exports)
 
 ################################################################################
 # Find dependencies
@@ -101,7 +95,6 @@ include(${PROJECT_NAME}Exports)
 include(AnimaDependencies)
 include(AnimaModulesSetup)
 include(ITKLibs)
-
 
 ################################################################################
 # Documentation
