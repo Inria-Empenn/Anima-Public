@@ -51,15 +51,20 @@ void StaniszCompartment::UpdateSignals(double smallDelta, double bigDelta, doubl
         internalTermCos /= denomValue * denomValue;
         internalTermSin /= denomValue * denomValue;
 
-        m_FirstSummation += internalTermCos;
-        m_SecondSummation += internalTermCos * n * n;
-        m_ThirdSummation += internalTermSin;
-        m_FourthSummation += internalTermCos / denomValue;
+        double firstSummationIncrement = internalTermCos;
+        double secondSummationIncrement = internalTermCos * n * n;
+        double thirdSummationIncrement = internalTermSin;
+        double fourthSummationIncrement = internalTermCos / denomValue;
 
-        bool  stopFirstSummation = (internalTermCos              < m_SignalSummationTolerance * m_FirstSummation);
-        bool stopSecondSummation = (internalTermCos * n * n      < m_SignalSummationTolerance * m_SecondSummation);
-        bool  stopThirdSummation = (internalTermSin              < m_SignalSummationTolerance * m_ThirdSummation);
-        bool stopFourthSummation = (internalTermCos / denomValue < m_SignalSummationTolerance * m_FourthSummation);
+        bool stopFirstSummation = (firstSummationIncrement < m_SignalSummationTolerance * m_FirstSummation);
+        bool stopSecondSummation = (secondSummationIncrement < m_SignalSummationTolerance * m_SecondSummation);
+        bool stopThirdSummation = (std::abs(thirdSummationIncrement) < m_SignalSummationTolerance * std::abs(m_ThirdSummation));
+        bool stopFourthSummation = (fourthSummationIncrement < m_SignalSummationTolerance * m_FourthSummation);
+
+        m_FirstSummation += firstSummationIncrement;
+        m_SecondSummation += secondSummationIncrement;
+        m_ThirdSummation += thirdSummationIncrement;
+        m_FourthSummation += fourthSummationIncrement;
 
         if (stopFirstSummation && stopSecondSummation && stopThirdSummation && stopFourthSummation)
             break;
