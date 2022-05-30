@@ -26,8 +26,8 @@ void
 MCMFileWriter <PixelType, ImageDimension>
 ::SetFileName(std::string fileName)
 {
-    if (fileName.find('.') != std::string::npos)
-        fileName.erase(fileName.find_first_of('.'));
+    // if (fileName.find('.') != std::string::npos)
+    //     fileName.erase(fileName.find_first_of('.'));
     m_FileName = fileName;
 }
 

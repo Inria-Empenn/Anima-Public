@@ -69,6 +69,8 @@ protected:
         m_CurrentGradientStrength = 0.0;
 
         m_ModifiedParameters = true;
+
+        m_SignalSummationTolerance = 1.0e-4;
     }
 
     virtual ~StaniszCompartment() {}
@@ -90,6 +92,8 @@ private:
     double m_CurrentGradientStrength;
 
     bool m_ModifiedParameters;
+
+    double m_SignalSummationTolerance;
 
     const unsigned int m_MaximumNumberOfSumElements = 2000;
 };

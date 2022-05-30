@@ -55,6 +55,14 @@ void StaniszCompartment::UpdateSignals(double smallDelta, double bigDelta, doubl
         m_SecondSummation += internalTermCos * n * n;
         m_ThirdSummation += internalTermSin;
         m_FourthSummation += internalTermCos / denomValue;
+
+        bool  stopFirstSummation = (internalTermCos              < m_SignalSummationTolerance * m_FirstSummation);
+        bool stopSecondSummation = (internalTermCos * n * n      < m_SignalSummationTolerance * m_SecondSummation);
+        bool  stopThirdSummation = (internalTermSin              < m_SignalSummationTolerance * m_ThirdSummation);
+        bool stopFourthSummation = (internalTermCos / denomValue < m_SignalSummationTolerance * m_FourthSummation);
+
+        if (stopFirstSummation && stopSecondSummation && stopThirdSummation && stopFourthSummation)
+            break;
     }
 
     m_CurrentSmallDelta = smallDelta;
