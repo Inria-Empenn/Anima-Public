@@ -9,7 +9,7 @@ namespace anima
 void StaniszCompartment::UpdateSignals(double smallDelta, double bigDelta, double gradientStrength)
 {
     if ((std::abs(smallDelta - m_CurrentSmallDelta) < 1.0e-6) &&
-            (std::abs(bigDelta - m_CurrentBigDelta)) &&
+            (std::abs(bigDelta - m_CurrentBigDelta) < 1.0e-6) &&
             (std::abs(gradientStrength - m_CurrentGradientStrength) < 1.0e-6) &&
             (!m_ModifiedParameters))
         return;
