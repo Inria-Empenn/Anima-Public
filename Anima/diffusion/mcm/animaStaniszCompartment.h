@@ -70,7 +70,7 @@ protected:
 
         m_ModifiedParameters = true;
 
-        m_SignalSummationTolerance = std::pow(std::numeric_limits<double>::epsilon(), 0.25);
+        m_SignalSummationTolerance = 0.01;
     }
 
     virtual ~StaniszCompartment() {}
