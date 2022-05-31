@@ -18,6 +18,8 @@ void StaniszCompartment::UpdateSignals(double smallDelta, double bigDelta, doubl
     double tissueRadius = this->GetTissueRadius();
     double axialDiff = this->GetAxialDiffusivity();
     double alphaRs = alpha * tissueRadius;
+    double cosAlphaRs = std::cos(alphaRs);
+    double sinAlphaRs = std::sin(alphaRs);
     double alphaRsSquare = alphaRs * alphaRs;
     double deltaDiff = bigDelta - smallDelta / 3.0;
 
@@ -39,13 +41,13 @@ void StaniszCompartment::UpdateSignals(double smallDelta, double bigDelta, doubl
 
         if (n % 2 == 0)
         {
-            internalTermCos *= 1.0 - std::cos(alphaRs);
-            internalTermSin *= std::sin(alphaRs);
+            internalTermCos *= 1.0 - cosAlphaRs;
+            internalTermSin *= sinAlphaRs;
         }
         else
         {
-            internalTermCos *= 1.0 + std::cos(alphaRs);
-            internalTermSin *= - std::sin(alphaRs);
+            internalTermCos *= 1.0 + cosAlphaRs;
+            internalTermSin *= - sinAlphaRs;
         }
 
         internalTermCos /= denomValue * denomValue;
@@ -56,10 +58,10 @@ void StaniszCompartment::UpdateSignals(double smallDelta, double bigDelta, doubl
         double thirdSummationIncrement = internalTermSin;
         double fourthSummationIncrement = internalTermCos / denomValue;
 
-        bool stopFirstSummation = (firstSummationIncrement < m_SignalSummationTolerance * m_FirstSummation);
-        bool stopSecondSummation = (secondSummationIncrement < m_SignalSummationTolerance * m_SecondSummation);
+        bool stopFirstSummation = (std::abs(firstSummationIncrement) < m_SignalSummationTolerance * std::abs(m_FirstSummation));
+        bool stopSecondSummation = (std::abs(secondSummationIncrement) < m_SignalSummationTolerance * std::abs(m_SecondSummation));
         bool stopThirdSummation = (std::abs(thirdSummationIncrement) < m_SignalSummationTolerance * std::abs(m_ThirdSummation));
-        bool stopFourthSummation = (fourthSummationIncrement < m_SignalSummationTolerance * m_FourthSummation);
+        bool stopFourthSummation = (std::abs(fourthSummationIncrement) < m_SignalSummationTolerance * std::abs(m_FourthSummation));
 
         m_FirstSummation += firstSummationIncrement;
         m_SecondSummation += secondSummationIncrement;
