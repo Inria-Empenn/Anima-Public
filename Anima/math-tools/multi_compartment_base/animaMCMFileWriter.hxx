@@ -33,7 +33,7 @@ MCMFileWriter <PixelType, ImageDimension>
     {
         std::size_t lastPointPos = m_FileName.find_last_of(".");
         std::size_t lastSlashPos = m_FileName.find_last_of("/");
-        if (lastPointPos > lastSlashPos)
+        if (lastSlashPos == std::string::npos || lastPointPos > lastSlashPos)
             m_FileName.erase(lastPointPos);
     }
 }
