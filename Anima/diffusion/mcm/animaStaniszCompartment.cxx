@@ -6,7 +6,7 @@
 namespace anima
 {
 
-StaniszCompartment::KeyType &StaniszCompartment::GenerateKey(double smallDelta, double bigDelta, double gradientStrength)
+StaniszCompartment::KeyType StaniszCompartment::GenerateKey(double smallDelta, double bigDelta, double gradientStrength)
 {
     unsigned int smallDeltaInt = std::floor(smallDelta * 1.0e6);
     unsigned int bigDeltaInt = std::floor(bigDelta * 1.0e6);

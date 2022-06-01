@@ -70,7 +70,7 @@ protected:
     typedef std::tuple <unsigned int, unsigned int, unsigned int> KeyType;
     typedef std::map <KeyType, double> MapType;
 
-    KeyType &GenerateKey(double smallDelta, double bigDelta, double gradientStrength);
+    KeyType GenerateKey(double smallDelta, double bigDelta, double gradientStrength);
 
     void UpdateSignals(double smallDelta, double bigDelta, double gradientStrength);
 
