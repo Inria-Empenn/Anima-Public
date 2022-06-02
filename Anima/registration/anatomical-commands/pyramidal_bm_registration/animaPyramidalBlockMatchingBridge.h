@@ -143,7 +143,7 @@ public:
     void SetOutputNearestSimilarityTransformFile(std::string outputNearestSimilarityTransformFile) {m_outputNearestSimilarityTransformFile = outputNearestSimilarityTransformFile;}
 
     unsigned int GetBlockSize() {return m_BlockSize;}
-    void SetBlockSize(int blockSize) {m_BlockSize=blockSize;}
+    void SetBlockSize(unsigned int blockSize) {m_BlockSize=blockSize;}
 
     unsigned int GetBlockSpacing() {return m_BlockSpacing;}
     void SetBlockSpacing(unsigned int blockSpacing) {m_BlockSpacing=blockSpacing;}
