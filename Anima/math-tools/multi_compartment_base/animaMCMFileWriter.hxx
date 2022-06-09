@@ -26,9 +26,16 @@ void
 MCMFileWriter <PixelType, ImageDimension>
 ::SetFileName(std::string fileName)
 {
-    if (fileName.find('.') != std::string::npos)
-        fileName.erase(fileName.find_first_of('.'));
     m_FileName = fileName;
+    std::replace(m_FileName.begin(),m_FileName.end(), '\\', '/');
+
+    if (m_FileName.find(".") != std::string::npos)
+    {
+        std::size_t lastPointPos = m_FileName.find_last_of(".");
+        std::size_t lastSlashPos = m_FileName.find_last_of("/");
+        if (lastSlashPos == std::string::npos || lastPointPos > lastSlashPos)
+            m_FileName.erase(lastPointPos);
+    }
 }
 
 template <class PixelType, unsigned int ImageDimension>
@@ -45,7 +52,6 @@ MCMFileWriter <PixelType, ImageDimension>
     if (!m_InputImage->GetDescriptionModel())
         throw itk::ExceptionObject(__FILE__, __LINE__,"No reference model provided for writing MCM file",ITK_LOCATION);
 
-    std::replace(m_FileName.begin(),m_FileName.end(),'\\','/');
     std::string noPathName = m_FileName;
     std::size_t lastSlashPos = m_FileName.find_last_of("/");
 
