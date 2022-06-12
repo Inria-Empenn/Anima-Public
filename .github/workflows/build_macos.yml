@@ -1,4 +1,4 @@
-name: macos arm64 test build
+name: macos build
 
 on:
   push:
@@ -25,7 +25,7 @@ jobs:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_SHARED_LIBS:BOOL=OFF -DBUILD_ANIMA_TESTING:BOOL=ON -DUSE_ANIMA_PRIVATE:BOOL=ON -DUSE_GITHUB_SSH:BOOL=ON -DCMAKE_OSX_ARCHITECTURES:STRING="arm64"
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_SHARED_LIBS:BOOL=OFF -DBUILD_ANIMA_TESTING:BOOL=ON -DUSE_ANIMA_PRIVATE:BOOL=ON -DUSE_GITHUB_SSH:BOOL=ON
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
