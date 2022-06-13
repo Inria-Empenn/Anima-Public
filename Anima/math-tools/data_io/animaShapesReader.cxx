@@ -3,6 +3,7 @@
 
 #include <vtkPolyDataReader.h>
 #include <vtkXMLPolyDataReader.h>
+#include <animaTRKReader.h>
 #include <vtksys/SystemTools.hxx>
 #include <tinyxml2.h>
 
@@ -31,6 +32,8 @@ void ShapesReader::Update()
         this->ReadFileAsMedinriaFibers();
     else if (extensionName == "csv")
         this->ReadFileAsCSV();
+    else if (extensionName == "trk")
+        this->ReadFileAsTRK();
     else
         throw itk::ExceptionObject(__FILE__, __LINE__,"Unsupported shapes extension.",ITK_LOCATION);
 }
@@ -103,6 +106,16 @@ void ShapesReader::ReadFileAsMedinriaFibers()
     }
     else
         throw itk::ExceptionObject(__FILE__, __LINE__,"Unsupported fibers extension inside FDS files.",ITK_LOCATION);
+}
+
+void ShapesReader::ReadFileAsTRK()
+{
+    anima::TRKReader trkReader;
+
+    trkReader.SetFileName(m_FileName);
+    trkReader.Update();
+
+    m_OutputData = trkReader.GetOutputData();
 }
 
 void ShapesReader::ReadFileAsCSV()
