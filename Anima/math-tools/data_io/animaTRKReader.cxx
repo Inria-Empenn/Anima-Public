@@ -8,6 +8,8 @@
 #include <vtkCellData.h>
 #include <vtkDoubleArray.h>
 
+#include <itkMacro.h>
+
 namespace anima
 {
 
@@ -16,7 +18,17 @@ void TRKReader::Update()
     anima::TRKHeaderStructure headerStr;
 
     std::ifstream inFile(m_FileName,std::ios::binary);
+    if (!inFile.is_open())
+        throw itk::ExceptionObject(__FILE__, __LINE__,"Unable to op en file " + m_FileName,ITK_LOCATION);
+
     inFile.read((char *) &headerStr, sizeof(anima::TRKHeaderStructure));
+
+    if (strcmp("RAS", headerStr.voxel_order) != 0)
+    {
+        std::string error = "TRK reader expects file voxel order to be RAS, not ";
+        error += headerStr.voxel_order;
+        throw itk::ExceptionObject(__FILE__, __LINE__,error,ITK_LOCATION);
+    }
 
     // Now create polydata and fill it
     m_OutputData = vtkSmartPointer <vtkPolyData>::New();
@@ -84,6 +96,8 @@ void TRKReader::Update()
         m_OutputData->InsertNextCell (VTK_POLY_LINE, npts, ids);
         delete[] ids;
     }
+
+    inFile.close();
 
     m_OutputData->SetPoints(myPoints);
     for (unsigned int k = 0;k < headerStr.n_scalars;++k)

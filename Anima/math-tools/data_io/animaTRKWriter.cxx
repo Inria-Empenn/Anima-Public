@@ -107,6 +107,9 @@ void TRKWriter::Update()
     headerStr.hdr_size = 1000;
 
     std::ofstream outFile(m_FileName,std::ios::binary);
+    if (!outFile.is_open())
+        throw itk::ExceptionObject(__FILE__, __LINE__,"Unable to op en file " + m_FileName,ITK_LOCATION);
+
     outFile.write((char *) &headerStr, sizeof(anima::TRKHeaderStructure));
 
     // handle individual tracks now : transform and store
