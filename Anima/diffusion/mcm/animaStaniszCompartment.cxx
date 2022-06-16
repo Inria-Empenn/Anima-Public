@@ -3,6 +3,8 @@
 #include <animaVectorOperations.h>
 #include <animaMCMConstants.h>
 
+#include <limits>
+
 namespace anima
 {
 
@@ -82,13 +84,13 @@ void StaniszCompartment::UpdateSignals(double smallDelta, double bigDelta, doubl
             break;
     }
 
-    if (std::abs(firstSummation) < 1.0e-8)
+    if (std::abs(firstSummation) < std::numeric_limits <double>::epsilon())
         firstSummation = 0;
-    if (std::abs(secondSummation) < 1.0e-8)
+    if (std::abs(secondSummation) < std::numeric_limits <double>::epsilon())
         secondSummation = 0;
-    if (std::abs(thirdSummation) < 1.0e-8)
+    if (std::abs(thirdSummation) < std::numeric_limits <double>::epsilon())
         thirdSummation = 0;
-    if (std::abs(fourthSummation) < 1.0e-8)
+    if (std::abs(fourthSummation) < std::numeric_limits <double>::epsilon())
         fourthSummation = 0;
 
     m_FirstSummations[gradientKey] = firstSummation;
