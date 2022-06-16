@@ -43,6 +43,7 @@ void StaniszCompartment::UpdateSignals(double smallDelta, double bigDelta, doubl
         double denomValue = alphaRsSquare - npiSquare;
         
         double internalTermCos = std::exp(- expInternalValue);
+
         if (internalTermCos == 0)
             continue;
 
@@ -80,6 +81,15 @@ void StaniszCompartment::UpdateSignals(double smallDelta, double bigDelta, doubl
         if (stopFirstSummation && stopSecondSummation && stopThirdSummation && stopFourthSummation)
             break;
     }
+
+    if (std::abs(firstSummation) < 1.0e-8)
+        firstSummation = 0;
+    if (std::abs(secondSummation) < 1.0e-8)
+        secondSummation = 0;
+    if (std::abs(thirdSummation) < 1.0e-8)
+        thirdSummation = 0;
+    if (std::abs(fourthSummation) < 1.0e-8)
+        fourthSummation = 0;
 
     m_FirstSummations[gradientKey] = firstSummation;
     m_SecondSummations[gradientKey] = secondSummation;
