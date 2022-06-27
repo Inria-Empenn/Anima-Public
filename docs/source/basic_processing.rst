@@ -91,7 +91,7 @@ Image conversion
 Shapes format conversion
 ------------------------
 
-**animaConvertShapes** allows you to convert shapes (fibers, surfaces, etc.) between file formats supported by Anima (vtk, vtp, fds, csv).
+**animaConvertShapes** allows you to convert shapes (fibers, surfaces, etc.) between file formats supported by Anima (vtk, vtp, fds, csv, trk). TRK is a simpler fiber track reader/writer than the one in Trackvis. We follow recommendations from `Tractometer <http://www.tractometer.org/ismrm_2015_challenge/tracts_file_specs>`_. When converting from a TRK file to any other format, the image used for tractography should be given as an input too using ``-r`` option. This input image should be in RAS format as mentioned in Tractometer. If this is not the case, you may use **animaConvertImage** to get the image in RAS format.
 
 *Example:* this converts a VTK ascii file to a VTP file.
 
