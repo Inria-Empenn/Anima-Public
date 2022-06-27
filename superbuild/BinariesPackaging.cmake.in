@@ -105,6 +105,7 @@ set(BINARY_TOOLS_LIST
   animaT2RelaxometryEstimation
   animaTensorApplyTransformSerie
   animaThrImage
+  animaTissuesEMClassification
   animaTotalLesionLoad
   animaTracksMCMPropertiesExtraction
   animaTransformSerieXmlGenerator
