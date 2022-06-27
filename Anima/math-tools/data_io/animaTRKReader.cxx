@@ -19,16 +19,15 @@ void TRKReader::Update()
 
     std::ifstream inFile(m_FileName,std::ios::binary);
     if (!inFile.is_open())
-        throw itk::ExceptionObject(__FILE__, __LINE__,"Unable to op en file " + m_FileName,ITK_LOCATION);
+        throw itk::ExceptionObject(__FILE__, __LINE__,"Unable to open file " + m_FileName,ITK_LOCATION);
 
     inFile.read((char *) &headerStr, sizeof(anima::TRKHeaderStructure));
 
     if (strcmp("RAS", headerStr.voxel_order) != 0)
-    {
-        std::string error = "TRK reader expects file voxel order to be RAS, not ";
-        error += headerStr.voxel_order;
-        throw itk::ExceptionObject(__FILE__, __LINE__,error,ITK_LOCATION);
-    }
+        std::cout << "Warning: TRK reader expects voxel order to be RAS, found " << headerStr.voxel_order << std::endl;
+
+    if (headerStr.version != 2)
+        throw itk::ExceptionObject(__FILE__, __LINE__,"TRK reader only supports version 2",ITK_LOCATION);
 
     // Now create polydata and fill it
     m_OutputData = vtkSmartPointer <vtkPolyData>::New();
@@ -61,6 +60,8 @@ void TRKReader::Update()
         for (unsigned int j = 0;j < 4;++j)
             vox_to_ras(i,j) = headerStr.vox_to_ras[i][j];
     }
+
+    std::cout << vox_to_ras << std::endl;
 
     for (unsigned int i = 0;i < nCells;++i)
     {

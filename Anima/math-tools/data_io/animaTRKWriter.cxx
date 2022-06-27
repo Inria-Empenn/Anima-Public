@@ -87,6 +87,8 @@ void TRKWriter::Update()
 
     headerStr.vox_to_ras[3][3] = 1;
 
+    // Assumes for now that the image used for tractography is in RAS as explained in tractometer
+    // http://www.tractometer.org/ismrm_2015_challenge/tracts_file_specs
     strcpy(headerStr.voxel_order,"RAS");
     headerStr.reserved[0] = '\0';
     headerStr.pad2[0] = '\0';
