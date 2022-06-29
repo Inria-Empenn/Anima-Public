@@ -12,7 +12,9 @@ int main(int ac, const char** av)
 
     TCLAP::ValueArg<std::string> inputArg("i","in","input data filename",true,"","input data",cmd);
     TCLAP::ValueArg<std::string> outputArg("o","out","output data filename",true,"","output data",cmd);
+
     TCLAP::ValueArg<std::string> refImArg("r","ref","reference image filename",false,"","reference image",cmd);
+    TCLAP::SwitchArg voxCoordsArg("V","voxel coordinates in TRK","If set, coordinates stored in TRK files are in pure voxel coordinates, otherwise it is voxmm",cmd);
 
     try
     {
@@ -39,6 +41,7 @@ int main(int ac, const char** av)
     anima::ShapesWriter shapesWriter;
     shapesWriter.SetInputData(shapesReader.GetOutput());
     shapesWriter.SetFileName(outputArg.getValue());
+    shapesWriter.SetVoxelCoordinatesOutput(voxCoordsArg.isSet());
 
     if (refImArg.getValue() != "")
     {

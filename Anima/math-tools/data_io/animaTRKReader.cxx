@@ -23,9 +23,6 @@ void TRKReader::Update()
 
     inFile.read((char *) &headerStr, sizeof(anima::TRKHeaderStructure));
 
-    if (strcmp("RAS", headerStr.voxel_order) != 0)
-        std::cout << "Warning: TRK reader expects voxel order to be RAS, found " << headerStr.voxel_order << std::endl;
-
     if (headerStr.version != 2)
         throw itk::ExceptionObject(__FILE__, __LINE__,"TRK reader only supports version 2",ITK_LOCATION);
 
@@ -60,8 +57,6 @@ void TRKReader::Update()
         for (unsigned int j = 0;j < 4;++j)
             vox_to_ras(i,j) = headerStr.vox_to_ras[i][j];
     }
-
-    std::cout << vox_to_ras << std::endl;
 
     for (unsigned int i = 0;i < nCells;++i)
     {

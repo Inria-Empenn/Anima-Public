@@ -6,6 +6,8 @@
 #include <vtkCellData.h>
 #include <vtkDoubleArray.h>
 
+#include <itkSpatialOrientationAdapter.h>
+
 namespace anima
 {
 
@@ -76,20 +78,44 @@ void TRKWriter::Update()
 
     ImageType::DirectionType direction = m_ReferenceImage->GetDirection();
     ImageType::PointType origin = m_ReferenceImage->GetOrigin();
+    ImageType::SpacingType spacing = m_ReferenceImage->GetSpacing();
+
     for (unsigned int i = 0;i < 3;++i)
     {
         for (unsigned int j = 0;j < 3;++j)
             headerStr.vox_to_ras[i][j] = direction(i,j);
 
-        headerStr.vox_to_ras[i][3] = 0;
-        headerStr.vox_to_ras[3][i] = origin[i];
+        if (m_VoxelCoordinatesOutput)
+        {
+            for (unsigned int j = 0;j < 3;++j)
+                headerStr.vox_to_ras[i][j] *= spacing[j];
+        }
+
+        headerStr.vox_to_ras[3][i] = 0;
+        headerStr.vox_to_ras[i][3] = origin[i];
     }
 
     headerStr.vox_to_ras[3][3] = 1;
 
-    // Assumes for now that the image used for tractography is in RAS as explained in tractometer
-    // http://www.tractometer.org/ismrm_2015_challenge/tracts_file_specs
-    strcpy(headerStr.voxel_order,"RAS");
+    // http://www.tractometer.org/ismrm_2015_challenge/tracts_file_specs is the ref but many options exist
+    itk::SpatialOrientationAdapter orientationAdapter;
+    itk::SpatialOrientationAdapter::OrientationType orientationType = orientationAdapter.FromDirectionCosines(direction);
+
+    itk::SpatialOrientation::CoordinateTerms testOrientation = (itk::SpatialOrientation::CoordinateTerms)(orientationType >> itk::SpatialOrientation::ITK_COORDINATE_TertiaryMinor);
+    headerStr.voxel_order[3] = '\0';
+    headerStr.voxel_order[2] = m_OrientationsMap[testOrientation];
+
+    itk::SpatialOrientationAdapter::OrientationType truncatedOrientationType;
+    truncatedOrientationType = (itk::SpatialOrientationAdapter::OrientationType)(orientationType - (testOrientation << itk::SpatialOrientation::ITK_COORDINATE_TertiaryMinor));
+    testOrientation = (itk::SpatialOrientation::CoordinateTerms)(truncatedOrientationType >> itk::SpatialOrientation::ITK_COORDINATE_SecondaryMinor);
+
+    headerStr.voxel_order[1] = m_OrientationsMap[testOrientation];
+
+    truncatedOrientationType = (itk::SpatialOrientationAdapter::OrientationType)(truncatedOrientationType - (testOrientation << itk::SpatialOrientation::ITK_COORDINATE_SecondaryMinor));
+    testOrientation = (itk::SpatialOrientation::CoordinateTerms)(truncatedOrientationType >> itk::SpatialOrientation::ITK_COORDINATE_PrimaryMinor);
+
+    headerStr.voxel_order[0] = m_OrientationsMap[testOrientation];
+
     headerStr.reserved[0] = '\0';
     headerStr.pad2[0] = '\0';
     headerStr.pad1[0] = '\0';

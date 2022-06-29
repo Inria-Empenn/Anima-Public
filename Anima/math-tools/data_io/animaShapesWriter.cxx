@@ -108,6 +108,7 @@ void ShapesWriter::WriteFileAsTRK()
     trkWriter.SetFileName(m_FileName);
     trkWriter.SetInputData(m_InputData);
     trkWriter.SetReferenceImage(m_ReferenceImage);
+    trkWriter.SetVoxelCoordinatesOutput(m_VoxelCoordinatesOutput);
 
     trkWriter.Update();
 }
