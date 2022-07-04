@@ -18,11 +18,11 @@
 # -- Project information -----------------------------------------------------
 
 project = 'Anima'
-copyright = '2020, Inria/IRISA - Empenn team'
+copyright = '2022, Inria/IRISA - Empenn team'
 author = 'ocommowi'
 
 # The full version, including alpha/beta/rc tags
-release = '4.0'
+release = '4.2'
 
 
 # -- General configuration ---------------------------------------------------

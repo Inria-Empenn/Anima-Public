@@ -24,12 +24,12 @@ We provide from Anima 3.0 new tools for multi-compartment T2 and myelin water fr
 
 * **animaGammaMixtureT2RelaxometryEstimation** implements variable projection estimation of the parameters and weights of three T2 Gamma distributions using two different modes (toggled by the ``-U`` option) [3,4]: only middle T2 compartment mean estimation or all class mean parameters estimation. In both cases, all weights are deduced from the estimated parameters using variable projection
 * **animaGMMT2RelaxometryEstimation** implements, for robustness to clinical acquisitions, a fixed parameter estimation of a Gaussian T2 mixture [7]. In this implementation, only the weights of the three T2 compartments are estimated, their PDFs being fixed according to prior knowledge on the tissues.
-* **animaMultiT2RelaxometryEstimation** provides an implementation of several methods of the literature for multi-peak T2 estimation [2,5,6]. It provides several types of regularization: Tikhonov, Laplacian or non local regularization. Again these methods make the deduction of myelin water fraction more difficult and quite sensitive to the regularization.
+* **animaMultiT2RelaxometryEstimation** provides an implementation of several methods of the literature for multi-peak T2 estimation [2,5,6,8]. It provides several types of regularization: Tikhonov, Laplacian, L-curve or non local regularization. Again these methods make the deduction of myelin water fraction more difficult and quite sensitive to the regularization.
 
 MRI simulation
 --------------
 
-Several MR simulation tools are included in ANIMA, which simulate sequences from relaxation time maps. All of them are described in detail `here <https://team.inria.fr/empenn/files/2017/08/mr_simulation_guide.pdf>`_. 
+Several MR simulation tools are included in Anima, which simulate sequences from relaxation time maps. All of them are described in detail `here <https://team.inria.fr/empenn/files/2017/08/mr_simulation_guide.pdf>`_. 
 
 References
 ----------
@@ -41,3 +41,4 @@ References
 5. Prasloski et al. *Applications of stimulated echo correction to multicomponent T2 analysis*. MRM, 67(6):1803-1814, 2012.
 6. Yoo et al. *Non-local spatial regularization of MRI T2 relaxation images for myelin water quantification*. MICCAI, pp 614-621, 2013.
 7. S\. Chatterjee, O\. Commowick, O\. Afacan, B\. Combes, A\. Kerbrat, S\.K\. Warfield, C\. Barillot. *A 3-year follow-up study of enhancing and non enhancing multiple sclerosis lesions in MS patients with clinically isolated syndrom using a multi-compartment T2 relaxometry model*, ISMRM, 2018.
+8. Erick Canales-Rodriguez et al. *Comparison of non-parametric T2 relaxometry methods for myelin water quantification*. Medical image analysis, 69:101959, 2021.
