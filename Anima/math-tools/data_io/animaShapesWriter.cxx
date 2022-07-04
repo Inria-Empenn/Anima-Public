@@ -6,6 +6,7 @@
 #include <vtksys/SystemTools.hxx>
 
 #include <vtkPointData.h>
+#include <animaTRKWriter.h>
 
 #include <fstream>
 #include <algorithm>
@@ -27,6 +28,8 @@ void ShapesWriter::Update()
         this->WriteFileAsMedinriaFibers();
     else if (extensionName == "csv")
         this->WriteFileAsCSV();
+    else if (extensionName == "trk")
+        this->WriteFileAsTRK();
     else
         throw itk::ExceptionObject(__FILE__, __LINE__,"Unsupported shapes extension.",ITK_LOCATION);
 }
@@ -94,6 +97,20 @@ void ShapesWriter::WriteFileAsMedinriaFibers()
     outputHeaderFile << "</VTKFile>" << std::endl;
 
     outputHeaderFile.close();
+}
+
+void ShapesWriter::WriteFileAsTRK()
+{
+    if (m_ReferenceImage.IsNull())
+        throw itk::ExceptionObject(__FILE__, __LINE__, "TRK writing needs a reference image. You either forgot to pass it or it was made on purpose (tractography algorithms do not write to TRK directly)", ITK_LOCATION);
+
+    anima::TRKWriter trkWriter;
+    trkWriter.SetFileName(m_FileName);
+    trkWriter.SetInputData(m_InputData);
+    trkWriter.SetReferenceImage(m_ReferenceImage);
+    trkWriter.SetVoxelCoordinatesOutput(m_VoxelCoordinatesOutput);
+
+    trkWriter.Update();
 }
 
 void ShapesWriter::WriteFileAsCSV()

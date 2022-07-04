@@ -72,6 +72,8 @@ convert(const arguments &args)
             input = anima::reorientImage(input,itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSA);
         else if(args.reorient == "SAGITTAL")
             input = anima::reorientImage(input,itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_ASL);
+        else if(args.reorient == "RAS")
+            input = anima::reorientImage(input,itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_LPI);
     }
 
     if (args.gradientFileName != "")
@@ -168,7 +170,7 @@ int main(int ac, const char** av)
             "orientation",
             false,
             "",
-            "Reorient the image in 'AXIAL' or 'CORONAL' or 'SAGITTAL' direction. [defalut: No reorientation]",
+            "Reorient the image in 'AXIAL', 'CORONAL', 'SAGITTAL' or 'RAS' (in the Trackvis sense) direction. [defalut: No reorientation]",
             cmd);
 
     TCLAP::ValueArg<std::string> gradsArg("g","grad","input gradients (apply converted image orientation matrix to get to MrTrix compatible format (iamge coordinates)",false,"","Input gradients",cmd);
