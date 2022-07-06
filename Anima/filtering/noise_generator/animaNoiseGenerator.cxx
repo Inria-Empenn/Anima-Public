@@ -39,8 +39,8 @@ addNoise(itk::ImageIOBase::Pointer imageIO, const arguments &args)
         if (fileExtension == ".gz")
         {
             pointLocation = filePrefix.find_last_of(".");
-            filePrefix = filePrefix.substr(0, pointLocation);
             fileExtension = filePrefix.substr(pointLocation) + ".gz";
+            filePrefix = filePrefix.substr(0, pointLocation);
         }
         
         for (unsigned int i = 0;i < args.nreplicates;++i)
