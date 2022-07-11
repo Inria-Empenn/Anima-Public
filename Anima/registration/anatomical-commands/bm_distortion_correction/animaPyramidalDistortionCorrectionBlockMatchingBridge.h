@@ -9,9 +9,9 @@
 
 enum Metric
 {
-    Correlation = 0,
-    SquaredCorrelation,
-    MeanSquares
+    MeanSquares = 0,
+    Correlation,
+    SquaredCorrelation
 };
 
 enum TransformKind

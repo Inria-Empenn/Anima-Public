@@ -42,7 +42,7 @@ int main(int argc, const char** argv)
 
     TCLAP::ValueArg<unsigned int> blockTransfoArg("t","in-transform","Transformation computed between blocks (0: translation, 1: rigid, 2: affine, 3: directional affine, default: 0)",false,0,"transformation between blocks",cmd);
     TCLAP::ValueArg<unsigned int> directionArg("d","dir","Affine direction for directional transform output (default: 1 = Y axis)",false,1,"direction of directional affine",cmd);
-    TCLAP::ValueArg<unsigned int> blockMetricArg("","metric","Similarity metric between blocks (0: squared correlation coefficient, 1: correlation coefficient, 2: mean squares, default: 0)",false,0,"similarity metric",cmd);
+    TCLAP::ValueArg<unsigned int> blockMetricArg("","metric","Similarity metric between blocks (0: mean squares, 1: correlation coefficient, 2: squared correlation coefficient, default: 2)",false,2,"similarity metric",cmd);
     TCLAP::ValueArg<unsigned int> optimizerArg("","opt","Optimizer for optimal block search (0: Exhaustive, 1: Bobyqa, default: 1)",false,1,"optimizer",cmd);
 
     TCLAP::ValueArg<unsigned int> maxIterationsArg("","mi","Maximum block match iterations (default: 10)",false,10,"maximum iterations",cmd);

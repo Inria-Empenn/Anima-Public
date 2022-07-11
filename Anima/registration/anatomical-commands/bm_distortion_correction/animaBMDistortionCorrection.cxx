@@ -37,7 +37,7 @@ int main(int argc, const char** argv)
 
     TCLAP::ValueArg<unsigned int> blockTransfoArg("t","in-transform","Transformation computed between blocks (0: direction, 1: direction+scale, 2: direction+scale+skew, default: 2)",false,2,"transformation between blocks",cmd);
     TCLAP::ValueArg<unsigned int> agregatorArg("","agregator","Transformation agregator type (0: Baloo, 1: M-smoother, default: 0)",false,0,"agregator type",cmd);
-    TCLAP::ValueArg<unsigned int> blockMetricArg("","metric","Similarity metric between blocks (0: correlation coefficient, 1: squared correlation coefficient, 2: mean squares, default: 1)",false,1,"similarity metric",cmd);
+    TCLAP::ValueArg<unsigned int> blockMetricArg("","metric","Similarity metric between blocks (0: mean squares, 1: correlation coefficient, 2: squared correlation coefficient, default: 2)",false,2,"similarity metric",cmd);
 
     TCLAP::SwitchArg weightedAgregationArg("w","no-weighted-agregation", "If set, weighted agregation is deactivated", cmd, false);
     TCLAP::ValueArg<double> extrapolationSigmaArg("","fs","Sigma for extrapolation of local pairings (default: 3)",false,3,"extrapolation sigma",cmd);

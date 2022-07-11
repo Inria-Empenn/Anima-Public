@@ -73,9 +73,9 @@ public:
 
     enum Metric
     {
-        SquaredCorrelation = 0,
+        MeanSquares = 0,
         Correlation,
-        MeanSquares
+        SquaredCorrelation
     };
 
     enum Optimizer
