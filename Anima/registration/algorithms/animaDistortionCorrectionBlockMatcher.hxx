@@ -166,7 +166,8 @@ DistortionCorrectionBlockMatcher<TInputImageType>
             similarityWeight = 1;
 
         case Correlation:
-            similarityWeight = (val + 1) / 2.0;
+            similarityWeight = (val > 0) ? val : 0;
+            similarityWeight = (similarityWeight + 1) / 2.0;
 
         case SquaredCorrelation:
         default:
