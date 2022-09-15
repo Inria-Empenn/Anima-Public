@@ -111,8 +111,7 @@ EPGSignalSimulator::RealVectorType &EPGSignalSimulator::GetFADerivative()
     m_OutputB1Derivative.resize(m_NumberOfEchoes);
 
     m_SimulatedDerivativeT2Values.set_size(m_NumberOfEchoes + 1,3 * m_NumberOfEchoes + 1);
-    for (unsigned int i = 0;i <= m_NumberOfEchoes;++i)
-        m_SimulatedDerivativeT2Values(0,i) = 0.0;
+    m_SimulatedDerivativeT2Values.fill(0.0);
 
     // Loop on all signals to be generated
     for (unsigned int i = 0;i < m_NumberOfEchoes;++i)
