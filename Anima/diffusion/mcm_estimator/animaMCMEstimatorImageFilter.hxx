@@ -511,6 +511,7 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>
             {
                 minimalNumberOfCompartments = 1;
                 moseValue = 0;
+                aiccValue = std::numeric_limits <double>::max();
 
                 if (hasIsoCompartment)
                     this->EstimateFreeWaterModel(mcmData,observedSignals,threadId,aiccValue,b0Value,sigmaSqValue);
