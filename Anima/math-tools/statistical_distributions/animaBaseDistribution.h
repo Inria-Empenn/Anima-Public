@@ -11,6 +11,9 @@ namespace anima
 	class ANIMASTATISTICALDISTRIBUTIONS_EXPORT BaseDistribution
 	{
 	public:
+		using GeneratorType = std::mt19937;
+		using VectorType = std::vector<double>;
+
 		BaseDistribution()
 		{
 			m_ShapeParameter = 1.0;
@@ -24,8 +27,8 @@ namespace anima
 		double GetScaleParameter() {return m_ScaleParameter;}
 
 		virtual double GetDensity(const double &x) = 0;
-		virtual void Fit(const std::vector<double> &sample, const std::string &method) = 0;
-		virtual void Random(std::vector<double> &sample, std::mt19937 &generator) = 0;
+		virtual void Fit(const VectorType &sample, const std::string &method) = 0;
+		virtual void Random(VectorType &sample, GeneratorType &generator) = 0;
 
 	private:
 		double m_ShapeParameter;

@@ -18,7 +18,7 @@ double GammaDistribution::GetDensity(const double &x)
     return std::pow(x, shapeParameter - 1.0) * std::exp(- x / scaleParameter) / denomValue;
 }
 
-void GammaDistribution::Fit(const std::vector<double> &sample, const std::string &method)
+void GammaDistribution::Fit(const VectorType &sample, const std::string &method)
 {
     unsigned int dimValue = sample.size();
     double shapeParameter, scaleParameter;
@@ -78,12 +78,12 @@ void GammaDistribution::Fit(const std::vector<double> &sample, const std::string
     this->SetScaleParameter(scaleParameter);
 }
 
-void GammaDistribution::Random(std::vector<double> &sample, Generator &generator)
+void GammaDistribution::Random(VectorType &sample, GeneratorType &generator)
 {
-    Distribution d(this->GetShapeParameter(), this->GetScaleParameter());
+    DistributionType distributionValue(this->GetShapeParameter(), this->GetScaleParameter());
     unsigned int nSamples = sample.size();
     for (unsigned int i = 0;i < nSamples;++i)
-        sample[i] = d(generator);
+        sample[i] = distributionValue(generator);
 }
     
 } // end of namespace anima

@@ -7,11 +7,10 @@ namespace anima
 	class ANIMASTATISTICALDISTRIBUTIONS_EXPORT GammaDistribution : public BaseDistribution
 	{
 	public:
-		using Distribution = std::gamma_distribution<>;
-		using Generator = std::mt19937;
+		using DistributionType = std::gamma_distribution<>;
 		double GetDensity(const double &x);
-		void Fit(const std::vector<double> &sample, const std::string &method);
-		void Random(std::vector<double> &sample, Generator &generator);
+		void Fit(const VectorType &sample, const std::string &method);
+		void Random(VectorType &sample, GeneratorType &generator);
 	};
     
 } // end of namespace
