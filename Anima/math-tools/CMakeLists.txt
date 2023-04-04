@@ -18,6 +18,7 @@ add_subdirectory(special_functions)
 add_subdirectory(sphere_operations)
 add_subdirectory(spherical_harmonics)
 add_subdirectory(statistics)
+add_subdirectory(statistical_distributions)
 add_subdirectory(statistical_tests)
 
 if (BUILD_TESTING)
