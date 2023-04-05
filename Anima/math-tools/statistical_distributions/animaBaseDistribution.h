@@ -20,14 +20,14 @@ namespace anima
 			m_ScaleParameter = 1.0;
 		}
 
-		void SetShapeParameter(const double val) {m_ShapeParameter = val;}
+		void SetShapeParameter(const double val);
 		double GetShapeParameter() {return m_ShapeParameter;}
 
-		void SetScaleParameter(const double val) {m_ScaleParameter = val;}
+		void SetScaleParameter(const double val);
 		double GetScaleParameter() {return m_ScaleParameter;}
 
 		virtual double GetDensity(const double &x) = 0;
-		virtual double GetLogDensity(const double &x);
+		virtual double GetLogDensity(const double &x) = 0;
 		virtual void Fit(const VectorType &sample, const std::string &method) = 0;
 		virtual void Random(VectorType &sample, GeneratorType &generator) = 0;
 
