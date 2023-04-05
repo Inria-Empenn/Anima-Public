@@ -7,6 +7,7 @@ add_subdirectory(gamma_estimation)
 
 if(BUILD_TESTING)
   add_subdirectory(gamma_estimation_test)
+  add_subdirectory(dirichlet_estimation_test)
 endif()
 
 add_subdirectory(local_patch_covariance_distance)

@@ -6,14 +6,14 @@
 namespace anima
 {
 
-double GammaDistribution::GetDensity(const double &x)
+double GammaDistribution::GetDensity(const SingleValueType &x)
 {
     if (x < std::numeric_limits<double>::epsilon())
         return 0.0;
     return std::exp(this->GetLogDensity(x));
 }
 
-double GammaDistribution::GetLogDensity(const double &x)
+double GammaDistribution::GetLogDensity(const SingleValueType &x)
 {
     if (x < std::numeric_limits<double>::epsilon())
         throw itk::ExceptionObject(__FILE__, __LINE__, "The log-density of the Gamma distribution is not defined for negative or null arguments.", ITK_LOCATION);
@@ -26,7 +26,7 @@ double GammaDistribution::GetLogDensity(const double &x)
     return resValue;
 }
 
-void GammaDistribution::Fit(const VectorType &sample, const std::string &method)
+void GammaDistribution::Fit(const MultipleValueType &sample, const std::string &method)
 {
     unsigned int dimValue = sample.size();
     double doubleDimValue = static_cast<double>(dimValue);
@@ -92,7 +92,7 @@ void GammaDistribution::Fit(const VectorType &sample, const std::string &method)
     this->SetScaleParameter(scaleParameter);
 }
 
-void GammaDistribution::Random(VectorType &sample, GeneratorType &generator)
+void GammaDistribution::Random(MultipleValueType &sample, GeneratorType &generator)
 {
     DistributionType distributionValue(this->GetShapeParameter(), this->GetScaleParameter());
     unsigned int nSamples = sample.size();
