@@ -27,6 +27,7 @@ namespace anima
 		double GetScaleParameter() {return m_ScaleParameter;}
 
 		virtual double GetDensity(const double &x) = 0;
+		virtual double GetLogDensity(const double &x);
 		virtual void Fit(const VectorType &sample, const std::string &method) = 0;
 		virtual void Random(VectorType &sample, GeneratorType &generator) = 0;
 

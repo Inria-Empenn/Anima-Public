@@ -1,5 +1,5 @@
 #include "animaGammaDistribution.h"
-#include <boost/math/special_functions/gamma.hpp>
+#include <cmath>
 #include <limits>
 #include <itkMacro.h>
 
@@ -8,14 +8,18 @@ namespace anima
 
 double GammaDistribution::GetDensity(const double &x)
 {
+    return std::exp(this->GetLogDensity(x));
+}
+
+double GammaDistribution::GetLogDensity(const double &x)
+{
     double shapeParameter = this->GetShapeParameter();
     double scaleParameter = this->GetScaleParameter();
-    double epsValue = std::sqrt(std::numeric_limits<double>::epsilon());
-    double denomValue = boost::math::tgamma(shapeParameter) * std::pow(scaleParameter, shapeParameter);
-    if (denomValue < epsValue || scaleParameter < epsValue)
-        return 0.0;
-
-    return std::pow(x, shapeParameter - 1.0) * std::exp(- x / scaleParameter) / denomValue;
+    double resValue = (shapeParameter - 1.0) * std::log(x);
+    resValue -= x / scaleParameter;
+    resValue -= std::lgamma(shapeParameter);
+    resValue -= shapeParameter * std::log(scaleParameter);
+    return resValue;
 }
 
 void GammaDistribution::Fit(const VectorType &sample, const std::string &method)
@@ -67,8 +71,8 @@ void GammaDistribution::Fit(const VectorType &sample, const std::string &method)
         
         if (method == "unbiased-closed-form")
         {
-            shapeParameter = shapeParameter - (3.0 * shapeParameter - 2.0 / 3.0 * shapeParameter / (1.0 + shapeParameter) - 4.0 / 5.0 * shapeParameter / ((1.0 + shapeParameter) * (1.0 + shapeParameter))) / (double)dimValue;
-            scaleParameter = scaleParameter * (double)dimValue / ((double)dimValue - 1.0);
+            shapeParameter -= (3.0 * shapeParameter - 2.0 / 3.0 * shapeParameter / (1.0 + shapeParameter) - 4.0 / 5.0 * shapeParameter / ((1.0 + shapeParameter) * (1.0 + shapeParameter))) / (double)dimValue;
+            scaleParameter *= (double)dimValue / ((double)dimValue - 1.0);
         }
     }
     else
