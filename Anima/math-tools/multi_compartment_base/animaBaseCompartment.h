@@ -10,21 +10,30 @@
 #include <AnimaMCMBaseExport.h>
 #include <animaMCMConstants.h>
 
+#define FOREACH_COMPONENT(COMPONENT) \
+COMPONENT(FreeWater)   \
+COMPONENT(StationaryWater)  \
+COMPONENT(IsotropicRestrictedWater)   \
+COMPONENT(Stanisz)  \
+COMPONENT(Stick)  \
+COMPONENT(Zeppelin)  \
+COMPONENT(Tensor)  \
+COMPONENT(NODDI)  \
+COMPONENT(DDI)  \
+
+#define GENERATE_ENUM(ENUM) ENUM,
+#define GENERATE_STRING(STRING) #STRING,
+
 namespace anima
 {
 
 // Types of diffusion model compartments, update if new derived class of base compartment is created
-enum DiffusionModelCompartmentType
-{
-    FreeWater = 0,
-    StationaryWater,
-    IsotropicRestrictedWater,
-    Stanisz,
-    Stick,
-    Zeppelin,
-    Tensor,
-    NODDI,
-    DDI
+enum DiffusionModelCompartmentType {
+    FOREACH_COMPONENT(GENERATE_ENUM)
+};
+
+static const char *DiffusionModelCompartmentName[] = {
+    FOREACH_COMPONENT(GENERATE_STRING)
 };
 
 class ANIMAMCMBASE_EXPORT BaseCompartment : public itk::LightObject
