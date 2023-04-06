@@ -9,17 +9,14 @@ namespace anima
 void DirichletDistribution::SetConcentrationParameter(const SingleValueType val)
 {
     unsigned int numParameters = val.size();
-    SingleValueType concentrationParameter(numParameters);
 
     for (unsigned int i = 0;i < numParameters;++i)
     {
-        double tmpValue = val[i];
-        if (tmpValue < std::numeric_limits<double>::epsilon())
+        if (val[i] < std::numeric_limits<double>::epsilon())
             throw itk::ExceptionObject(__FILE__, __LINE__, "The concentration parameters of a statistical distribution should be strictly positive.", ITK_LOCATION);
-        concentrationParameter[i] = tmpValue;
     }
 
-    this->BaseDistribution::SetConcentrationParameter(concentrationParameter);
+    this->BaseDistribution::SetConcentrationParameter(val);
 }
 
 double DirichletDistribution::GetDensity(const SingleValueType &x)
