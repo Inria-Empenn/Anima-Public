@@ -6,6 +6,20 @@
 namespace anima
 {
 
+void GammaDistribution::SetShapeParameter(const SingleValueType val)
+{
+    if (val < std::numeric_limits<double>::epsilon())
+        throw itk::ExceptionObject(__FILE__, __LINE__, "The shape parameter of the Gamma distribution should be strictly positive.", ITK_LOCATION);
+    this->BaseDistribution::SetShapeParameter(val);
+}
+
+void GammaDistribution::SetScaleParameter(const SingleValueType val)
+{
+    if (val < std::numeric_limits<double>::epsilon())
+        throw itk::ExceptionObject(__FILE__, __LINE__, "The scale parameter of the Gamma distribution should be strictly positive.", ITK_LOCATION);
+    this->BaseDistribution::SetScaleParameter(val);
+}
+
 double GammaDistribution::GetDensity(const SingleValueType &x)
 {
     if (x < std::numeric_limits<double>::epsilon())

@@ -13,6 +13,13 @@ namespace anima
 	public:
 		using UniformDistributionType = std::uniform_real_distribution<double>;
 		using BetaDistributionType = boost::math::beta_distribution<double>;
+
+		DirichletDistribution()
+		{
+			this->SetConcentrationParameter({1.0, 1.0});
+		}
+
+		void SetConcentrationParameter(const SingleValueType val);
 		double GetDensity(const SingleValueType &x);
 		double GetLogDensity(const SingleValueType &x);
 		void Fit(const MultipleValueType &sample, const std::string &method);

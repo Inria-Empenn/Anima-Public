@@ -15,19 +15,15 @@ namespace anima
 		using MultipleValueType = TMultipleValueType;
 		using GeneratorType = std::mt19937;
 
-		BaseDistribution()
-		{
-			m_ShapeParameter = 1.0;
-			m_ScaleParameter = 1.0;
-		}
+		BaseDistribution() {}
 
-		void SetShapeParameter(const SingleValueType val);
+		virtual void SetShapeParameter(const SingleValueType val) {m_ShapeParameter = val;}
 		SingleValueType GetShapeParameter() {return m_ShapeParameter;}
 
-		void SetScaleParameter(const SingleValueType val);
-		double GetScaleParameter() {return m_ScaleParameter;}
+		virtual void SetScaleParameter(const SingleValueType val) {m_ScaleParameter = val;}
+		SingleValueType GetScaleParameter() {return m_ScaleParameter;}
 
-		void SetConcentrationParameter(const SingleValueType val);
+		virtual void SetConcentrationParameter(const SingleValueType val) {m_ConcentrationParameter = val;}
 		SingleValueType GetConcentrationParameter() {return m_ConcentrationParameter;}
 
 		virtual double GetDensity(const SingleValueType &x) = 0;
@@ -36,10 +32,8 @@ namespace anima
 		virtual void Random(MultipleValueType &sample, GeneratorType &generator) = 0;
 
 	private:
-		double m_ShapeParameter;
-		double m_ScaleParameter;
+		SingleValueType m_ShapeParameter;
+		SingleValueType m_ScaleParameter;
 		SingleValueType m_ConcentrationParameter;
 	};
 } // end of namespace
-
-#include <animaBaseDistribution.hxx>

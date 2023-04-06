@@ -10,6 +10,15 @@ namespace anima
 	{
 	public:
 		using DistributionType = std::gamma_distribution<double>;
+
+		GammaDistribution()
+		{
+			this->SetShapeParameter(1.0);
+			this->SetScaleParameter(1.0);
+		}
+
+		void SetShapeParameter(const SingleValueType val);
+		void SetScaleParameter(const SingleValueType val);
 		double GetDensity(const SingleValueType &x);
 		double GetLogDensity(const SingleValueType &x);
 		void Fit(const MultipleValueType &sample, const std::string &method);
