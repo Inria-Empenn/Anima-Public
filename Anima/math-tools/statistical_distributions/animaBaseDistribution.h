@@ -27,8 +27,8 @@ namespace anima
 		void SetScaleParameter(const SingleValueType val);
 		double GetScaleParameter() {return m_ScaleParameter;}
 
-		void SetConcentrationParameters(const SingleValueType val);
-		SingleValueType GetConcentrationParameters() {return m_ConcentrationParameters;}
+		void SetConcentrationParameter(const SingleValueType val);
+		SingleValueType GetConcentrationParameter() {return m_ConcentrationParameter;}
 
 		virtual double GetDensity(const SingleValueType &x) = 0;
 		virtual double GetLogDensity(const SingleValueType &x) = 0;
@@ -38,7 +38,7 @@ namespace anima
 	private:
 		double m_ShapeParameter;
 		double m_ScaleParameter;
-		SingleValueType m_ConcentrationParameters;
+		SingleValueType m_ConcentrationParameter;
 	};
 } // end of namespace
 

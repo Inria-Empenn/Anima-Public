@@ -23,17 +23,17 @@ void BaseDistribution<TSingleValueType,TMultipleValueType>::SetScaleParameter(co
 }
 
 template <typename TSingleValueType, typename TMultipleValueType>
-void BaseDistribution<TSingleValueType,TMultipleValueType>::SetConcentrationParameters(const SingleValueType val)
+void BaseDistribution<TSingleValueType,TMultipleValueType>::SetConcentrationParameter(const SingleValueType val)
 {
     unsigned int numParameters = val.size();
-    m_ConcentrationParameters.resize(numParameters);
+    m_ConcentrationParameter.resize(numParameters);
 
     for (unsigned int i = 0;i < numParameters;++i)
     {
         double tmpValue = val[i];
         if (tmpValue < std::numeric_limits<double>::epsilon())
             throw itk::ExceptionObject(__FILE__, __LINE__, "The concentration parameters of a statistical distribution should be strictly positive.", ITK_LOCATION);
-        m_ConcentrationParameters[i] = tmpValue;
+        m_ConcentrationParameter[i] = tmpValue;
     }
 }
     

@@ -26,7 +26,7 @@ int main(int argc, char **argv)
     concentrationParameters[1] = bArg.getValue();
 
     anima::DirichletDistribution dirichletDistribution;
-    dirichletDistribution.SetConcentrationParameters(concentrationParameters);
+    dirichletDistribution.SetConcentrationParameter(concentrationParameters);
 
     std::mt19937 generator(1234);
 
@@ -42,6 +42,14 @@ int main(int argc, char **argv)
             sumValue += sample(i, j);
         std::cout << sumValue << " ";
     }
+    std::cout << std::endl;
+
+    dirichletDistribution.Fit(sample, "mle");
+
+    concentrationParameters = dirichletDistribution.GetConcentrationParameter();
+    std::cout << "Concentration parameters: ";
+    for (unsigned int i = 0;i < sample.cols();++i)
+        std::cout << concentrationParameters[i] << " ";
     std::cout << std::endl;
 
     return EXIT_SUCCESS;
