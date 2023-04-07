@@ -191,6 +191,8 @@ MCMFileReader <PixelType, ImageDimension>
         additionalCompartment = anima::TensorCompartment::New();
     else if (compartmentType == "NODDI")
         additionalCompartment = anima::NODDICompartment::New();
+	else if (compartmentType == "DDI")
+        additionalCompartment = anima::DDICompartment::New();
     else
     {
         std::string error("Unsupported compartment type: ");
