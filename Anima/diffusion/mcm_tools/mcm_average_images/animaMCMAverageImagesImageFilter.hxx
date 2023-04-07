@@ -1,6 +1,8 @@
 #pragma once
 #include "animaMCMAverageImagesImageFilter.h"
 
+#include <animaMCMWeightedAverager.h>
+
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIterator.h>
 
@@ -57,10 +59,33 @@ typename MCMAverageImagesImageFilter <TPixelType>::MCMAveragerPointer
 MCMAverageImagesImageFilter <TPixelType>
 ::CreateAverager()
 {
-    MCMAveragerPointer mcmAverager = anima::MCMWeightedAverager::New();
-    mcmAverager->SetOutputModel(m_ReferenceOutputModel);
+	MCMAveragerPointer outAverager = nullptr;
+	
+	using InternalAveragerPointer = anima::MCMDDIWeightedAverager;
+	
+	bool hasDDICompartment = false;
+	for(int i=0; i<m_ReferenceOutputModel->GetNumberOfCompartments() && !hasDDICompartment; ++i)
+	{
+		hasDDICompartment = m_ReferenceOutputModel->GetCompartment(i)->GetCompartmentType() == DiffusionModelCompartmentType::DDI;
+	}
+	
+	if(hasDDICompartment)
+	{
+		InternalAveragerPointer mcmAverager = InternalAveragerType::New();
+		mcmAverager->SetOutputModel(this->GetReferenceOutputModel());
+		mcmAverager->SetDDIInterpolationMethod(m_DDIAveragingMethod);
 
-    return mcmAverager;
+		outAverager = mcmAverager.GetPointer();
+	}
+	else
+	{
+		MCMAveragerPointer mcmAverager = anima::MCMWeightedAverager::New();
+		mcmAverager->SetOutputModel(m_ReferenceOutputModel);
+		
+		outAverager = mcmAverager;
+	}
+	
+    return outAverager;
 }
 
 template <class TPixelType>

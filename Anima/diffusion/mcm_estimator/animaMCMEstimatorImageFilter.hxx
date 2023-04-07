@@ -729,47 +729,56 @@ MCMEstimatorImageFilter<InputPixelType, OutputPixelType>::CreateCostFunction(std
 {
     CostFunctionBasePointer returnCost;
 
-    if (m_NoiseType != Gaussian)
-        itkExceptionMacro("Cost function type not supported");
+	if (m_NoiseType != Gaussian)
+		itkExceptionMacro("Cost function type not supported");
 
-    anima::BaseMCMCost::Pointer baseCost;
-    if (m_MLEstimationStrategy != VariableProjection)
-    {
-        anima::GaussianMCMCost::Pointer internalCost = anima::GaussianMCMCost::New();
-        internalCost->SetMarginalEstimation(m_MLEstimationStrategy == Marginal);
-        baseCost = internalCost;
-    }
-    else
-    {
-        anima::GaussianMCMVariableProjectionCost::Pointer internalCost = anima::GaussianMCMVariableProjectionCost::New();
-        baseCost = internalCost;
-    }
+	anima::BaseMCMCost::Pointer baseCost;
+	if (m_MLEstimationStrategy != VariableProjection)
+	{
+		if (this->GetNoiseType() == NCC)
+		{
+			anima::NonCentralChiMCMCost::Pointer internalCost = anima::NonCentralChiMCMCost::New();
+			internalCost->SetNumberOfCoils(this->GetNumberOfCoils());
+			baseCost = internalCost;
+		}
+		else
+		{
+			anima::GaussianMCMCost::Pointer internalCost = anima::GaussianMCMCost::New();
+			internalCost->SetMarginalEstimation(m_MLEstimationStrategy == Marginal);
+			baseCost = internalCost;
+		}
+	}
+	else
+	{
+		anima::GaussianMCMVariableProjectionCost::Pointer internalCost = anima::GaussianMCMVariableProjectionCost::New();
+		baseCost = internalCost;
+	}
 
-    baseCost->SetObservedSignals(observedSignals);
-    baseCost->SetGradients(m_GradientDirections);
-    baseCost->SetSmallDelta(m_SmallDelta);
-    baseCost->SetBigDelta(m_BigDelta);
-    baseCost->SetGradientStrengths(m_GradientStrengths);
-    baseCost->SetMCMStructure(mcmModel);
+	baseCost->SetObservedSignals(observedSignals);
+	baseCost->SetGradients(m_GradientDirections);
+	baseCost->SetSmallDelta(m_SmallDelta);
+	baseCost->SetBigDelta(m_BigDelta);
+	baseCost->SetGradientStrengths(m_GradientStrengths);
+	baseCost->SetMCMStructure(mcmModel);
 
-    if (m_Optimizer == "levenberg")
-    {
-        anima::MCMMultipleValuedCostFunction::Pointer tmpCost =
-                anima::MCMMultipleValuedCostFunction::New();
+	if (m_Optimizer == "levenberg")
+	{
+		anima::MCMMultipleValuedCostFunction::Pointer tmpCost =
+				anima::MCMMultipleValuedCostFunction::New();
 
-        tmpCost->SetInternalCost(baseCost);
+		tmpCost->SetInternalCost(baseCost);
 
-        returnCost = tmpCost;
-    }
-    else
-    {
-        anima::MCMSingleValuedCostFunction::Pointer tmpCost =
-                anima::MCMSingleValuedCostFunction::New();
+		returnCost = tmpCost;
+	}
+	else
+	{
+		anima::MCMSingleValuedCostFunction::Pointer tmpCost =
+				anima::MCMSingleValuedCostFunction::New();
 
-        tmpCost->SetInternalCost(baseCost);
+		tmpCost->SetInternalCost(baseCost);
 
-        returnCost = tmpCost;
-    }
+		returnCost = tmpCost;
+	}
 
     return returnCost;
 }

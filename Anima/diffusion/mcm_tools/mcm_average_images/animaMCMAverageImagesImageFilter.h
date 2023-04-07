@@ -50,9 +50,11 @@ public:
     MCModelType *GetReferenceOutputModel() {return m_ReferenceOutputModel;}
 
     void AddMaskImage(MaskImageType *maskImage) {m_MaskImages.push_back(maskImage);}
+    
+    itkSetMacro(DDIAveragingMethod, int)
 
 protected:
-    MCMAverageImagesImageFilter() {}
+    MCMAverageImagesImageFilter() {m_DDIAveragingMethod = 3;}
     virtual ~MCMAverageImagesImageFilter() {}
 
     bool isZero(const itk::VariableLengthVector <double> &value) const
@@ -76,6 +78,7 @@ private:
     std::vector <MCModelPointer> m_ReferenceInputModels;
     std::vector <MaskImagePointer> m_MaskImages;
     MCModelPointer m_ReferenceOutputModel;
+    int m_DDIAveragingMethod;
 };
 
 } // end namespace anima

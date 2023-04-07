@@ -8,6 +8,8 @@ add_subdirectory(dti_estimator)
 add_subdirectory(dti_tools)
 add_subdirectory(mcm)
 add_subdirectory(mcm_estimator)
+add_subdirectory(mcm_estimator/low_memory)
+add_subdirectory(mcm_model_averaging)
 add_subdirectory(mcm_tools)
 
 if(USE_VTK AND VTK_FOUND)
