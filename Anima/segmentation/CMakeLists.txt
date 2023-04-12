@@ -5,7 +5,10 @@ project(ANIMA-SEGMENTATION)
 ################################################################################
 
 add_subdirectory(basic_tools)
+add_subdirectory(commands)
 add_subdirectory(graph_cut)
 add_subdirectory(isosurface)
+add_subdirectory(lesion-simulation)
+add_subdirectory(staple)
 add_subdirectory(tissues_em_classification)
 add_subdirectory(validation_tools)
