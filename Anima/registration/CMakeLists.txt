@@ -5,7 +5,6 @@ project(ANIMA-REGISTRATION)
 ################################################################################
 
 add_subdirectory(anatomical-commands)
-add_subdirectory(dense-mcm-svf-bm-registration)
 add_subdirectory(diffusion-commands)
 add_subdirectory(symmetry)
 add_subdirectory(resamplers)
