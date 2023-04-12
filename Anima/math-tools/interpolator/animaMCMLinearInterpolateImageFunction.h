@@ -98,13 +98,13 @@ protected:
     void TestModelsAdequation(MCModelPointer &inputModel, MCModelPointer &outputModel);
 
     //! Resets averager pointers, can be overloaded to handle more models
-    virtual void ResetAveragePointers(MCModelPointer &model);
+    void ResetAveragePointers(MCModelPointer &model);
 
     //! Check if model can actually be interpolated
-    virtual bool CheckModelCompatibility(MCModelPointer &model);
+    bool CheckModelCompatibility(MCModelPointer &model);
 
-    //! Sets averager specific parameters if sub-classes are derived
-    virtual void SetSpecificAveragerParameters(unsigned int threadIndex) const {}
+    //! Sets averager specific parameters
+    void SetSpecificAveragerParameters(unsigned int threadIndex) const;
 
     unsigned int GetFreeWorkIndex() const;
     void UnlockWorkIndex(unsigned int index) const;
@@ -116,6 +116,8 @@ private:
     /** Number of neighbors used in the interpolation */
     static const unsigned long m_Neighbors;
     static const unsigned int m_SphereDimension = 3;
+
+    unsigned int m_DDIInterpolationMethod;
 
     mutable std::mutex m_LockUsedModels;
     mutable std::vector <int> m_UsedModels;

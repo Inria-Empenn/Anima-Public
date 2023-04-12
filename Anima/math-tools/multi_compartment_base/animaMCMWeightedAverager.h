@@ -44,8 +44,10 @@ public:
 
     void SetInputModels(std::vector <MCMPointer> &models) {m_InputModels = models; m_UpToDate = false;}
     void SetInputWeights(std::vector <double> &weights) {m_InputWeights = weights; m_UpToDate = false;}
-
-    void SetNumberOfOutputDirectionalCompartments(unsigned int val);
+    
+	void SetDDIInterpolationMethod(unsigned int method);
+    
+	void SetNumberOfOutputDirectionalCompartments(unsigned int val);
     void ResetNumberOfOutputDirectionalCompartments();
 
     void SetOutputModel(MCMType *model);
@@ -63,21 +65,21 @@ protected:
     ~MCMWeightedAverager() {}
 
     void ComputeTensorDistanceMatrix();
-    virtual void ComputeNonTensorDistanceMatrix();
+    void ComputeNonTensorDistanceMatrix();
 
     void ComputeOutputTensorCompatibleModel();
-    virtual void ComputeOutputNonTensorModel();
+    void ComputeOutputNonTensorModel();
 
 private:
     std::vector <MCMPointer> m_InputModels;
     std::vector <double> m_InputWeights;
 
     unsigned int m_NumberOfOutputDirectionalCompartments;
+	unsigned int m_DDIInterpolationMethod;
 
     MCMPointer m_OutputModel;
     bool m_UpToDate;
-
-protected:
+	
     // Internal work variables
     std::vector < itk::VariableLengthVector <double> > m_InternalLogTensors;
 
@@ -86,6 +88,9 @@ protected:
     std::vector <double> m_WorkCompartmentWeights;
     vnl_matrix <double> m_InternalDistanceMatrix;
     std::vector < std::vector <double> > m_InternalSpectralMemberships;
+	
+    std::vector <double> m_InternalDDIKappa, m_InternalDDINu, m_InternalDDIDiffusivity;
+    std::vector < vnl_vector <double> > m_InternalDDIDirections;
 
     vnl_matrix <double> m_InternalWorkMatrix, m_InternalWorkEigenVectors;
     vnl_diag_matrix <double> m_InternalWorkEigenValues, m_InternalWorkEigenValuesInputSticks;
