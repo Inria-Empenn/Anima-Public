@@ -52,3 +52,7 @@ add_subdirectory(low_memory_tools)
 add_subdirectory(nlmeans_patient_to_group_comparison)
 add_subdirectory(patient_to_group_odf_comparison)
 add_subdirectory(patient_to_group_comparison)
+
+if (BUILD_TESTING)
+  add_subdirectory(cramers_test)
+endif()
