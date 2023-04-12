@@ -5,7 +5,7 @@
 #include <animaMCMFileWriter.h>
 #include <animaMCMImage.h>
 
-#include <animaPrivateMultiCompartmentModelCreator.h>
+#include <animaMultiCompartmentModelCreator.h>
 
 int main(int argc, char *argv[])
 {
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
     size[1] = nbPoints1;
     size[2] = 1;
 
-    anima::PrivateMultiCompartmentModelCreator mcmCreator;
+    anima::MultiCompartmentModelCreator mcmCreator;
     mcmCreator.SetCompartmentType(anima::DDI);
     mcmCreator.SetNumberOfCompartments(1);
     mcmCreator.SetModelWithFreeWaterComponent(false);

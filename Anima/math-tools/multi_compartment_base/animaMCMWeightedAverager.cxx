@@ -1,4 +1,5 @@
 #include <animaMCMWeightedAverager.h>
+#include <animaDDIAveragingTools.h>
 
 namespace anima
 {
@@ -32,7 +33,7 @@ void MCMWeightedAverager::SetNumberOfOutputDirectionalCompartments(unsigned int 
 }
 
 
-void MCMDDIWeightedAverager::SetDDIInterpolationMethod(unsigned int method)
+void MCMWeightedAverager::SetDDIInterpolationMethod(unsigned int method)
 {
     if (m_DDIInterpolationMethod == method)
         return;

@@ -3,14 +3,14 @@
 #include <string>
 
 #include <itkImageRegionIterator.h>
-#include <animaMCMPrivateFileReader.h>
+#include <animaMCMFileReader.h>
 #include <animaMCMFileWriter.h>
 #include <itkImageFileReader.h>
 
 int main(int argc, char **argv)
 {
     typedef anima::MCMImage <double,3> ImageType;
-    typedef anima::MCMPrivateFileReader <double,3> ImageReaderType;
+    typedef anima::MCMFileReader <double,3> ImageReaderType;
     typedef anima::MCMFileWriter <double,3> ImageWriterType;
     
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);

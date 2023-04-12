@@ -15,6 +15,7 @@
 #include <animaMCMMultipleValuedCostFunction.h>
 #include <animaGaussianMCMCost.h>
 #include <animaGaussianMCMVariableProjectionCost.h>
+#include <animaNonCentralChiMCMCost.h>
 
 #include <animaVectorOperations.h>
 #include <animaSphereOperations.h>

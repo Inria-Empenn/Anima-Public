@@ -11,6 +11,7 @@
 #include <animaZeppelinCompartment.h>
 #include <animaTensorCompartment.h>
 #include <animaNODDICompartment.h>
+#include <animaDDICompartment.h>
 
 #include <itkImageRegionIterator.h>
 #include <tinyxml2.h>

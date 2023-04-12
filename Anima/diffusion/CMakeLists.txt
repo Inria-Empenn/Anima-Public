@@ -4,8 +4,7 @@ project(ANIMA-DIFFUSION)
 # Here go the add_subdirectories, no code should be at the root of the project
 ################################################################################
 
-add_subdirectory(dti_estimator)
-add_subdirectory(dti_tools)
+add_subdirectory(dti)
 add_subdirectory(mcm)
 add_subdirectory(mcm_estimator)
 add_subdirectory(mcm_estimator/low_memory)

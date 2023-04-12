@@ -1,4 +1,4 @@
-project(AnimaMCMPrivate)
+project(AnimaMCM)
 
 ## #############################################################################
 ## List Sources
@@ -23,7 +23,6 @@ add_library(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   AnimaMCMBase
-  AnimaMCM
   AnimaSpecialFunctions
   ITKOptimizers
   ITKCommon

@@ -1,10 +1,10 @@
 #include <tclap/CmdLine.h>
 
-#include <animaMCMPrivateFileReader.h>
+#include <animaMCMFileReader.h>
 #include <animaMCMFileWriter.h>
 
 #include <animaDDITestAveragingOnRealValueImageFilter.h>
-#include <animaPrivateMultiCompartmentModelCreator.h>
+#include <animaMultiCompartmentModelCreator.h>
 
 int main(int argc, char **argv)
 {
@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     anima::DDITestAveragingOnRealValueImageFilter::Pointer mainFilter = anima::DDITestAveragingOnRealValueImageFilter::New();
 
     typedef anima::MCMImage<double, 3> ImageType;
-    typedef anima::MCMPrivateFileReader <double,3> MCMReaderType;
+    typedef anima::MCMFileReader <double,3> MCMReaderType;
     typedef anima::MCMFileWriter <double, 3> MCMWriterType;
 
     MCMReaderType mcmReader;
@@ -43,7 +43,7 @@ int main(int argc, char **argv)
     mainFilter->SetMethod(methodArg.getValue());
     mainFilter->SetNumberOfWorkUnits(nbpArg.getValue());
 
-    anima::PrivateMultiCompartmentModelCreator mcmCreator;
+    anima::MultiCompartmentModelCreator mcmCreator;
     mcmCreator.SetModelWithFreeWaterComponent(false);
     mcmCreator.SetModelWithRestrictedWaterComponent(false);
     mcmCreator.SetModelWithStaniszComponent(false);

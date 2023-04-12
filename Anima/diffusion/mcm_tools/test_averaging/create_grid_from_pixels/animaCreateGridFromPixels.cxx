@@ -3,7 +3,7 @@
 #include <animaReadWriteFunctions.h>
 
 #include <animaVectorOperations.h>
-#include <animaPrivateMultiCompartmentModelCreator.h>
+#include <animaMultiCompartmentModelCreator.h>
 #include <animaMCMFileWriter.h>
 
 using namespace anima;
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
     size[1] = nbPoints1;
     size[2] = 1;
 
-    anima::PrivateMultiCompartmentModelCreator mcmCreator;
+    anima::MultiCompartmentModelCreator mcmCreator;
     mcmCreator.SetCompartmentType(anima::DDI);
     mcmCreator.SetNumberOfCompartments(numInput);
     mcmCreator.SetModelWithFreeWaterComponent(false);

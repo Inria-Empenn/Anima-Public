@@ -4,7 +4,7 @@
 #include <itkImageRegionConstIteratorWithIndex.h>
 
 #include <animaDDIAveragingTools.h>
-#include <animaMCMPrivateWeightedAverager.h>
+#include <animaMCMWeightedAverager.h>
 
 namespace anima
 {
@@ -51,8 +51,8 @@ void DDITestAveragingOnRealValueImageFilter::DynamicThreadedGenerateData(const I
 
     InputImageType::SizeType totalSize = region.GetSize();
 
-    typedef anima::MCMPrivateWeightedAverager::Pointer MCMAveragerPointer;
-    MCMAveragerPointer mcmAverager = anima::MCMPrivateWeightedAverager::New();
+    typedef anima::MCMWeightedAverager::Pointer MCMAveragerPointer;
+    MCMAveragerPointer mcmAverager = anima::MCMWeightedAverager::New();
     mcmAverager->SetDDIInterpolationMethod(m_Method);
     mcmAverager->SetOutputModel(m_ReferenceOutputModel);
 

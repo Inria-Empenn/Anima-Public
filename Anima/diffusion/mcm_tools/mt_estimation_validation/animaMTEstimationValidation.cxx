@@ -3,7 +3,7 @@
 #include <animaMCML2DistanceComputer.h>
 #include <animaBaseTensorTools.h>
 
-#include <animaMCMPrivateFileReader.h>
+#include <animaMCMFileReader.h>
 #include <animaReadWriteFunctions.h>
 #include <itkImageRegionIterator.h>
 
@@ -11,7 +11,7 @@ int main(int argc, char **argv)
 {
     typedef anima::MCMImage <double,3> ImageType;
     typedef ImageType::MCMPointer MCMPointer;
-    typedef anima::MCMPrivateFileReader <double,3> ImageReaderType;
+    typedef anima::MCMFileReader <double,3> ImageReaderType;
 
     TCLAP::CmdLine cmd("Computes various squared distances between estimated and reference multi-tensors models.\n\
                        Assumes same number of compartments at each voxel.\n INRIA / IRISA - VisAGeS/Empenn Team",
