@@ -108,6 +108,8 @@ protected:
 
     unsigned int GetFreeWorkIndex() const;
     void UnlockWorkIndex(unsigned int index) const;
+	
+    itkSetMacro(DDIInterpolationMethod, unsigned int)
 
 private:
     MCMLinearInterpolateImageFunction(const Self&); //purposely not implemented
