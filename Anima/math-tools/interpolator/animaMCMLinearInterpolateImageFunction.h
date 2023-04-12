@@ -72,6 +72,8 @@ public:
         return SizeType::Filled(1);
     }
 
+    itkSetMacro(DDIInterpolationMethod, unsigned int)
+
 protected:
     MCMLinearInterpolateImageFunction();
     virtual ~MCMLinearInterpolateImageFunction() {}
@@ -108,8 +110,6 @@ protected:
 
     unsigned int GetFreeWorkIndex() const;
     void UnlockWorkIndex(unsigned int index) const;
-	
-    itkSetMacro(DDIInterpolationMethod, unsigned int)
 
 private:
     MCMLinearInterpolateImageFunction(const Self&); //purposely not implemented
