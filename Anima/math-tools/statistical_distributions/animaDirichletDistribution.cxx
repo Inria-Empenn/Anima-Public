@@ -73,13 +73,66 @@ double DirichletDistribution::GetLogDensity(const SingleValueType &x)
     return resValue;
 }
 
+std::vector<std::vector<double>> CalculateMatrixLogarithm(const std::vector<std::vector<double>>& matrix) {
+    std::vector<std::vector<double>> result;
+    result.reserve(matrix.size());
+
+    for (const auto& row : matrix) {
+        std::vector<double> logRow;
+        logRow.reserve(row.size());
+
+        for (const auto& element : row) {
+            if (element != 0)
+                logRow.push_back(std::log(element));
+            else
+                logRow.push_back(0);
+        }
+
+        result.push_back(logRow);
+    }
+
+    return result;
+}
+
 void DirichletDistribution::Fit(const MultipleValueType &sample, const std::string &method)
 {
     unsigned int numParameters = sample.cols();
     SingleValueType alphaParameters(numParameters, 1.0);
+    unsigned int numObservations = sample.rows();
+    unsigned int k;
 
-    // Here comes the estimation code
+    // calcul des log de la matrice
+    std::vector<std::vector<double>> samplelog = calculateLogarithm(sample);
+    
+    std::vector<double> parametersLog;
+    // Extract the columns into a separate range
+    for (unsigned int i=0 ; i<numParameters, i++){
+        size_t columnToSum = 1;
+        std::vector<double> columnValues;
+    
+        for (const auto& row : matrix) {
+            if (columnToSum < row.size()) {
+            columnValues.push_back(row[columnToSum]);
+            } else {
+                // Handle column index out of range error
+                throw std::out_of_range("Column index out of range");
+            }
+    }
 
+        // Sum the columns values 
+        double pk = std::accumulate(columnValues.begin(), columnValues.end(), 0.0);
+        parametersLog.push_back(pk);
+    } 
+
+    double psi_new = 0;
+
+    //boucle sur k
+    for (unsigned int i = 0;i < 6;++i)
+    {
+        psi_new = digamma(std::accumulate(alphaParameters.begin(), alphaParameters.end(), 0)) + 1/numObservations * pk;
+        alphaParameters[k] = inverse_digamma(psi_new);
+    }
+     
     this->SetConcentrationParameter(alphaParameters);
 }
 
