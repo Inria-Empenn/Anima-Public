@@ -2,6 +2,8 @@
 
 #include "animaGammaFunctions.h"
 #include <iostream>
+#include <boost/math/special_functions/digamma.hpp>
+#include <boost/math/special_functions/trigamma.hpp>
 
 #include <itkMacro.h>
 
@@ -18,6 +20,41 @@ double psi_function(unsigned int n, double emc)
         resVal += 1.0 / ((double)i);
 
     return resVal;
+}
+
+double digamma(double z)
+{
+    double resVal = 0;
+    resVal += boost::math::digamma(z);
+
+    return resVal;
+}
+
+double trigamma(double z)
+{
+    double resVal = 0;
+    resVal += boost::math::trigamma(z);
+    
+    return resVal;
+}
+
+double inverse_digamma(double Y)
+{
+    double gam = - boost::math::digamma(1);
+
+    if (Y < -2.22)
+        double X  = -1./(Y + gam);
+    else
+        double X = exp(Y) + 0.5;
+ 
+    % make 5  Newton iterations:
+    X = X - (psi(X)-Y)./boost::math::trigamma(X);
+    X = X - (psi(X)-Y)./boost::math::trigamma(X);
+    X = X - (psi(X)-Y)./boost::math::trigamma(X);
+    X = X - (psi(X)-Y)./boost::math::trigamma(X);
+    X = X - (psi(X)-Y)./boost::math::trigamma(X);
+
+    return X;
 }
 
 double gammaHalfPlusN(unsigned int n)
