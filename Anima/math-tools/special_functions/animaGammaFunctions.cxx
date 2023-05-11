@@ -10,51 +10,47 @@
 namespace anima
 {
 
-double psi_function(unsigned int n, double emc)
+double psi_function(unsigned int n)
 {
     if (n < 1)
         throw itk::ExceptionObject(__FILE__, __LINE__,"The Psi function is not defined in 0.",ITK_LOCATION);
 
-    double resVal = - emc;
+    double resVal = digamma(1.0);
     for (unsigned int i = 1;i < n;++i)
         resVal += 1.0 / ((double)i);
 
     return resVal;
 }
 
-double digamma(double z)
+double digamma(const double x)
 {
-    double resVal = 0;
-    resVal += boost::math::digamma(z);
-
-    return resVal;
+    return boost::math::digamma(x);
 }
 
-double trigamma(double z)
+double trigamma(const double x)
 {
-    double resVal = 0;
-    resVal += boost::math::trigamma(z);
+    return boost::math::trigamma(x);
+}
+
+double inverse_digamma(const double x)
+{
+    double emc = -digamma(1.0);
+    double resValue = 0.0;
     
-    return resVal;
-}
-
-double inverse_digamma(double Y)
-{
-    double gam = - boost::math::digamma(1);
-
-    if (Y < -2.22)
-        double X  = -1./(Y + gam);
+    if (x < -2.22)
+        resValue  = -1.0 / (x - emc);
     else
-        double X = exp(Y) + 0.5;
+        resValue = std::exp(x) + 0.5;
  
-    % make 5  Newton iterations:
-    X = X - (psi(X)-Y)./boost::math::trigamma(X);
-    X = X - (psi(X)-Y)./boost::math::trigamma(X);
-    X = X - (psi(X)-Y)./boost::math::trigamma(X);
-    X = X - (psi(X)-Y)./boost::math::trigamma(X);
-    X = X - (psi(X)-Y)./boost::math::trigamma(X);
-
-    return X;
+    bool continueLoop = true;
+    while (continueLoop)
+    {
+        double oldResValue = resValue;
+        resValue -= (digamma(resValue) - x) / trigamma(resValue);
+        continueLoop = std::abs(resValue - oldResValue) > std::sqrt(std::numeric_limits<double>::epsilon());
+    }   
+    
+    return resValue;
 }
 
 double gammaHalfPlusN(unsigned int n)

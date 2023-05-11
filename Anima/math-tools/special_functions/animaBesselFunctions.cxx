@@ -127,7 +127,7 @@ double bessel_ratio_i_derivative_approx(double x, unsigned int N)
     return firstTerm - secondTerm + thirdTerm;
 }
 
-double log_bessel_order_derivative_i(double x, unsigned int order, double emc, unsigned int approx_order)
+double log_bessel_order_derivative_i(double x, unsigned int order, unsigned int approx_order)
 {
     double y = x;
     if (y > 2795.0)
@@ -143,7 +143,7 @@ double log_bessel_order_derivative_i(double x, unsigned int order, double emc, u
         tmpVal /= std::tgamma(i+1);
         tmpVal /= std::tgamma(order+i+1);
         denom += tmpVal;
-        tmpVal *= anima::psi_function(order+i+1, emc);
+        tmpVal *= anima::psi_function(order+i+1);
         num += tmpVal;
     }
 
