@@ -33,17 +33,6 @@ int main(int argc, char **argv)
     vnl_matrix<double> sample(nSampleArg.getValue(), 2);
     dirichletDistribution.Random(sample, generator);
 
-    std::cout << sample << std::endl;
-
-    for (unsigned int i = 0;i < sample.rows();++i)
-    {
-        double sumValue = 0.0;
-        for (unsigned int j = 0;j < sample.cols();++j)
-            sumValue += sample(i, j);
-        std::cout << sumValue << " ";
-    }
-    std::cout << std::endl;
-
     dirichletDistribution.Fit(sample, "mle");
 
     concentrationParameters = dirichletDistribution.GetConcentrationParameter();

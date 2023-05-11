@@ -1,4 +1,5 @@
 #include "animaDirichletDistribution.h"
+#include <animaGammaFunctions.h>
 #include <cmath>
 #include <limits>
 #include <itkMacro.h>
@@ -73,66 +74,79 @@ double DirichletDistribution::GetLogDensity(const SingleValueType &x)
     return resValue;
 }
 
-std::vector<std::vector<double>> CalculateMatrixLogarithm(const std::vector<std::vector<double>>& matrix) {
-    std::vector<std::vector<double>> result;
-    result.reserve(matrix.size());
-
-    for (const auto& row : matrix) {
-        std::vector<double> logRow;
-        logRow.reserve(row.size());
-
-        for (const auto& element : row) {
-            if (element != 0)
-                logRow.push_back(std::log(element));
-            else
-                logRow.push_back(0);
-        }
-
-        result.push_back(logRow);
-    }
-
-    return result;
-}
-
 void DirichletDistribution::Fit(const MultipleValueType &sample, const std::string &method)
 {
-    unsigned int numParameters = sample.cols();
-    SingleValueType alphaParameters(numParameters, 1.0);
     unsigned int numObservations = sample.rows();
-    unsigned int k;
+    unsigned int numParameters = sample.cols();
+    SingleValueType alphaParameters(numParameters);
 
-    // calcul des log de la matrice
-    std::vector<std::vector<double>> samplelog = calculateLogarithm(sample);
-    
-    std::vector<double> parametersLog;
-    // Extract the columns into a separate range
-    for (unsigned int i=0 ; i<numParameters, i++){
-        size_t columnToSum = 1;
-        std::vector<double> columnValues;
-    
-        for (const auto& row : matrix) {
-            if (columnToSum < row.size()) {
-            columnValues.push_back(row[columnToSum]);
-            } else {
-                // Handle column index out of range error
-                throw std::out_of_range("Column index out of range");
-            }
-    }
-
-        // Sum the columns values 
-        double pk = std::accumulate(columnValues.begin(), columnValues.end(), 0.0);
-        parametersLog.push_back(pk);
-    } 
-
-    double psi_new = 0;
-
-    //boucle sur k
-    for (unsigned int i = 0;i < 6;++i)
+    SingleValueType logParameters(numParameters, 0.0);
+    for (unsigned int i = 0;i < numParameters;++i)
     {
-        psi_new = digamma(std::accumulate(alphaParameters.begin(), alphaParameters.end(), 0)) + 1/numObservations * pk;
-        alphaParameters[k] = inverse_digamma(psi_new);
+        unsigned int sumCount = 0;
+        for (unsigned int j = 0;j < numObservations;++j)
+        {
+            if (sample(i, j) < std::numeric_limits<double>::epsilon())
+                continue;
+            logParameters[i] += std::log(sample(j, i));
+            sumCount++;
+        }
+        logParameters[i] /= sumCount;
     }
-     
+
+    // Compute initial sum of alpha's
+    // Eq. (23) in https://tminka.github.io/papers/dirichlet/minka-dirichlet.pdf
+    double sumValue = 0.0;
+    unsigned int sumLength = 0;
+    for (unsigned int j = 0;j < numParameters - 1;++j)
+    {
+        double firstMoment = 0.0;
+        double secondMoment = 0.0;
+        unsigned int realNumObservations = 0;
+
+        for (unsigned int i = 0;i < numObservations;++i)
+        {
+            double tmpValue = sample(i, j);
+            if (tmpValue < std::numeric_limits<double>::epsilon())
+                continue;
+            firstMoment += tmpValue;
+            secondMoment += tmpValue * tmpValue;
+            realNumObservations++;
+        }
+
+        firstMoment /= realNumObservations;
+        secondMoment /= realNumObservations;
+
+        double sampleVariance = secondMoment - firstMoment * firstMoment;
+        double inLogValue = firstMoment * (1.0 - firstMoment) / sampleVariance - 1.0;
+
+        if (inLogValue < std::numeric_limits<double>::epsilon())
+            continue;
+        
+        sumValue += std::log(inLogValue);
+        sumLength++;
+    }
+    sumValue /= sumLength;
+    double alphaSum = std::exp(sumValue);
+    
+    // Fixed point iteration method
+    // Eq. (9) in https://tminka.github.io/papers/dirichlet/minka-dirichlet.pdf
+    bool continueLoop = true;
+    while (continueLoop)
+    {
+        double oldAlphaSum = alphaSum;
+
+        for (unsigned int i = 0;i < numParameters;++i)
+        {
+            double psiNew = anima::digamma(alphaSum) + logParameters[i];
+            alphaParameters[i] = anima::inverse_digamma(psiNew);
+        }
+
+        alphaSum = std::accumulate(alphaParameters.begin(), alphaParameters.end(), 0.0);
+
+        continueLoop = std::abs(alphaSum - oldAlphaSum) > std::sqrt(std::numeric_limits<double>::epsilon());
+    }
+
     this->SetConcentrationParameter(alphaParameters);
 }
 
