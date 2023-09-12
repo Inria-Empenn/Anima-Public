@@ -1,12 +1,12 @@
 Multiple sclerosis scripts
 ==========================
 
-This section describes Anima scripts for helping multiple sclerosis (MS) lesions segmentation. 
+This section describes Anima scripts created to segment lesions from brain MRI images in multiple sclerosis (MS) patients.
 
-MSSEG 2016 prerpocessing script
+MSSEG 2016 preprocessing script
 -------------------------------
 
-This script (**animaMSExamPreparationMSSEG2016.py**) combines several processing steps to preprocess a single time point containing T1, T2/PD, FLAIR and Gd T1 images using the same script that was used in the MSSEG 2016 challenge [1]. It relies on a precomputed brain mask that may be obtained from `volBrain <https://www.volbrain.upv.es>`_ (as for the challenge) or :doc:`the brain extraction scripts of Anima <segmentation_scripts>`. The script performs denoising, bias correctino, brain masking and registration to the FLAIR image as explained in [1].
+This script (**animaMSExamPreparationMSSEG2016.py**) combines several processing steps to preprocess a single time point containing T1, T2/PD, FLAIR and Gd T1 images using the same script that was used in the MSSEG 2016 challenge [1]. It relies on a precomputed brain mask that may be obtained from `volBrain <https://www.volbrain.upv.es>`_ (as for the challenge) or :doc:`the brain extraction scripts of Anima <segmentation_scripts>`. The script performs denoising, bias correction, brain masking and registration to the FLAIR image as explained in [1].
 
 MSSEG-2 longitudinal preprocessing script
 -----------------------------------------
