@@ -78,20 +78,34 @@ void DirichletDistribution::Fit(const MultipleValueType &sample, const std::stri
 {
     unsigned int numObservations = sample.rows();
     unsigned int numParameters = sample.cols();
-    SingleValueType alphaParameters(numParameters);
 
+    SingleValueType alphaParameters(numParameters, 1.0);
+
+    bool allZeros = true;
     SingleValueType logParameters(numParameters, 0.0);
-    for (unsigned int i = 0;i < numParameters;++i)
+    for (unsigned int j = 0;j < numParameters;++j)
     {
         unsigned int sumCount = 0;
-        for (unsigned int j = 0;j < numObservations;++j)
+        for (unsigned int i = 0;i < numObservations;++i)
         {
-            if (sample(i, j) < std::numeric_limits<double>::epsilon())
+            double sampleValue = sample(i, j);
+            if (sampleValue < std::numeric_limits<double>::epsilon())
                 continue;
-            logParameters[i] += std::log(sample(j, i));
+            logParameters[j] += std::log(sampleValue);
             sumCount++;
         }
-        logParameters[i] /= sumCount;
+
+        if (sumCount != 0)
+        {
+            logParameters[j] /= sumCount;
+            allZeros = false;
+        }
+    }
+
+    if (allZeros)
+    {
+        this->SetConcentrationParameter(alphaParameters);
+        return;
     }
 
     // Compute initial sum of alpha's
@@ -114,10 +128,17 @@ void DirichletDistribution::Fit(const MultipleValueType &sample, const std::stri
             realNumObservations++;
         }
 
+        if (realNumObservations < 2)
+            continue;
+        
         firstMoment /= realNumObservations;
         secondMoment /= realNumObservations;
 
         double sampleVariance = secondMoment - firstMoment * firstMoment;
+
+        if (sampleVariance < std::numeric_limits<double>::epsilon())
+            continue;
+
         double inLogValue = firstMoment * (1.0 - firstMoment) / sampleVariance - 1.0;
 
         if (inLogValue < std::numeric_limits<double>::epsilon())
@@ -126,25 +147,70 @@ void DirichletDistribution::Fit(const MultipleValueType &sample, const std::stri
         sumValue += std::log(inLogValue);
         sumLength++;
     }
-    sumValue /= sumLength;
+
+    if (sumLength == 0)
+    {
+        // Try Eq. (21) from https://tminka.github.io/papers/dirichlet/minka-dirichlet.pdf
+        for (unsigned int j = 0;j < numParameters;++j)
+        {
+            double firstMoment = 0.0;
+            double secondMoment = 0.0;
+            unsigned int realNumObservations = 0;
+
+            for (unsigned int i = 0;i < numObservations;++i)
+            {
+                double tmpValue = sample(i, j);
+                if (tmpValue < std::numeric_limits<double>::epsilon())
+                    continue;
+                firstMoment += tmpValue;
+                secondMoment += tmpValue * tmpValue;
+                realNumObservations++;
+            }
+
+            if (realNumObservations < 2)
+                continue;
+            
+            firstMoment /= realNumObservations;
+            secondMoment /= realNumObservations;
+
+            double sampleVariance = secondMoment - firstMoment * firstMoment;
+
+            if (sampleVariance < std::numeric_limits<double>::epsilon())
+                continue;
+            
+            double tmpAlphaSum = (firstMoment - secondMoment) / sampleVariance;
+
+            if (tmpAlphaSum < sumValue || j == 0)
+                sumValue = tmpAlphaSum;
+        }
+
+        if (sumValue == 0)
+            sumValue = numParameters;
+
+        sumValue = std::log(sumValue);
+    }
+    else
+        sumValue /= sumLength;
+    
     double alphaSum = std::exp(sumValue);
+    double digammaValue = digamma(alphaSum);
     
     // Fixed point iteration method
     // Eq. (9) in https://tminka.github.io/papers/dirichlet/minka-dirichlet.pdf
     bool continueLoop = true;
     while (continueLoop)
     {
-        double oldAlphaSum = alphaSum;
+        double oldDigammaValue = digammaValue;
 
         for (unsigned int i = 0;i < numParameters;++i)
         {
-            double psiNew = anima::digamma(alphaSum) + logParameters[i];
+            double psiNew = digammaValue + logParameters[i];
             alphaParameters[i] = anima::inverse_digamma(psiNew);
         }
 
         alphaSum = std::accumulate(alphaParameters.begin(), alphaParameters.end(), 0.0);
-
-        continueLoop = std::abs(alphaSum - oldAlphaSum) > std::sqrt(std::numeric_limits<double>::epsilon());
+        digammaValue = digamma(alphaSum);
+        continueLoop = std::abs(digammaValue - oldDigammaValue) > std::sqrt(std::numeric_limits<double>::epsilon());
     }
 
     this->SetConcentrationParameter(alphaParameters);
