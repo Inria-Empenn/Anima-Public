@@ -4,6 +4,7 @@
 
 add_subdirectory(build_samples)
 add_subdirectory(gamma_estimation)
+add_subdirectory(dirichlet_estimation)
 
 if(BUILD_TESTING)
   add_subdirectory(gamma_estimation_test)

@@ -1,0 +1,256 @@
+#include <animaDirichletDistribution.h>
+#include <animaReadWriteFunctions.h>
+#include <itkImageRegionConstIterator.h>
+#include <itkImageRegionIterator.h>
+
+#include <tclap/CmdLine.h>
+
+int main(int argc, char **argv)
+{
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ', ANIMA_VERSION);
+    
+    TCLAP::ValueArg<std::string>   inArg("i", "inputfiles", "Input image list in text file", true, "", "input image list", cmd);
+    TCLAP::ValueArg<std::string> maskArg("m", "maskfiles", "Input masks list in text file (mask images should contain only zeros or ones)", false, "", "input masks list", cmd);
+    TCLAP::ValueArg<std::string>  outArg("o", "outputfile", "Output image with concentration parameters", true, "", "output kappa image", cmd);
+	
+    try
+    {
+        cmd.parse(argc,argv);
+    }
+    catch (TCLAP::ArgException& e)
+    {
+        std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    using InputImageType = itk::VectorImage <double, 3>;
+    using MaskImageType = itk::Image <unsigned int, 3>;
+    using OutputImageType = itk::VectorImage <double, 3>;
+    using OutputPixelType = OutputImageType::PixelType;
+
+    // Read input sample
+    std::ifstream imageIn(inArg.getValue());
+    char imageN[2048];
+    std::vector <InputImageType::Pointer> inputImages;
+    while (!imageIn.eof())
+    {
+        imageIn.getline(imageN, 2048);
+        if (strcmp(imageN, "") == 0)
+            continue;
+        inputImages.push_back(anima::readImage<InputImageType>(imageN));
+    }
+    imageIn.close();
+    
+    unsigned int nbImages = inputImages.size();
+    unsigned int nbComponents = inputImages[0]->GetVectorLength();
+
+    for (unsigned int i = 1;i < nbImages;++i)
+    {
+        if (inputImages[i]->GetVectorLength() != nbComponents)
+        {
+            std::cerr << "The number of components should be the same for all input images." << std::endl;
+            return EXIT_FAILURE;
+        }
+    }
+    
+    std::vector <MaskImageType::Pointer> maskImages;
+    if (maskArg.getValue() != "")
+    {
+        // Read input masks
+        std::ifstream masksIn(maskArg.getValue());
+        char maskN[2048];
+        while (!masksIn.eof())
+        {
+            masksIn.getline(maskN, 2048);
+            if (strcmp(maskN, "") == 0)
+                continue;
+            maskImages.push_back(anima::readImage<MaskImageType>(maskN));
+        }
+        masksIn.close();
+
+        if (maskImages.size() != nbImages)
+        {
+            std::cerr << "The number of mask images should match the number of input images." << std::endl;
+            return EXIT_FAILURE;
+        }
+    }
+
+    std::cout << "- Number of input images: " << nbImages << std::endl;
+    std::cout << "- Number of components:   " << nbComponents << std::endl;
+    
+    using InputImageIteratorType = itk::ImageRegionConstIterator <InputImageType>;
+    using MaskImageIteratorType = itk::ImageRegionConstIterator <MaskImageType>;
+    using OutputImageIteratorType = itk::ImageRegionIterator <OutputImageType>;
+    std::vector<InputImageIteratorType> inItrs(nbImages);
+    std::vector<MaskImageIteratorType> maskItrs(nbImages);
+    for (unsigned int i = 0;i < nbImages;++i)
+    {
+        inItrs[i] = InputImageIteratorType(inputImages[i], inputImages[i]->GetLargestPossibleRegion());
+        if (maskArg.getValue() != "")
+            maskItrs[i] = MaskImageIteratorType(maskImages[i], maskImages[i]->GetLargestPossibleRegion());
+    }
+
+    // Initialize output image
+    OutputPixelType outputValue(nbComponents);
+    outputValue.Fill(0.0);
+
+    OutputImageType::Pointer outputImage = OutputImageType::New();
+    outputImage->SetRegions(inputImages[0]->GetLargestPossibleRegion());
+    outputImage->CopyInformation(inputImages[0]);
+    outputImage->Allocate();
+    outputImage->FillBuffer(outputValue);  
+    
+    OutputImageIteratorType outItr(outputImage, outputImage->GetLargestPossibleRegion());
+    vnl_matrix<double> inputValues;
+    anima::DirichletDistribution dirichletDistribution;
+    std::vector<double> computedOutputValue;
+
+    unsigned int pos = 0;
+	while (!outItr.IsAtEnd())
+	{
+        unsigned int nbUsedImages = 0;
+        if (maskArg.getValue() != "")
+        {
+            for (unsigned int i = 0;i < nbImages;++i)
+                nbUsedImages += maskItrs[i].Get();
+        }
+        else
+            nbUsedImages = nbImages;
+        
+        if (nbUsedImages == 0)
+		{
+            for (unsigned int i = 0;i < nbImages;++i)
+            {
+                ++inItrs[i];
+                if (maskArg.getValue() != "")
+                    ++maskItrs[i];
+            }
+			++outItr;
+			continue;
+		}
+        
+        inputValues.set_size(nbUsedImages, nbComponents);
+
+        bool validInputData = true;
+        if (maskArg.getValue() != "")
+        {
+            unsigned int pos = 0;
+            for (unsigned int i = 0;i < nbImages;++i)
+            {
+                if (maskItrs[i].Get())
+                {
+                    outputValue = inItrs[i].Get();
+
+                    double sumValue = 0.0;
+                    for (unsigned int j = 0;j < nbComponents;++j)
+                        sumValue += outputValue[j];
+                    
+                    if (std::abs(sumValue - 1.0) > 1.0e-8)
+                    {
+                        validInputData = false;
+                        break;
+                    }
+
+                    sumValue = 0.0;
+                    for (unsigned int j = 0;j < nbComponents;++j)
+                    {
+                        double tmpValue = outputValue[j];
+                        if (tmpValue > 1.0 || tmpValue < 0.0)
+                        {
+                            validInputData = false;
+                            break;
+                        }
+
+                        tmpValue = std::max(1.0e-4, tmpValue);
+                        inputValues(pos, j) = tmpValue;
+                        sumValue += tmpValue;
+                    }
+
+                    if (!validInputData)
+                        break;
+                    
+                    for (unsigned int j = 0;j < nbComponents;++j)
+                        inputValues(pos, j) /= sumValue;
+                        
+                    ++pos;
+                }
+            }
+        }
+        else
+        {
+            for (unsigned int i = 0;i < nbImages;++i)
+            {
+                outputValue = inItrs[i].Get();
+
+                double sumValue = 0.0;
+                for (unsigned int j = 0;j < nbComponents;++j)
+                    sumValue += outputValue[j];
+                
+                if (std::abs(sumValue - 1.0) > 1.0e-8)
+                {
+                    validInputData = false;
+                    break;
+                }
+
+                sumValue = 0.0;
+                for (unsigned int j = 0;j < nbComponents;++j)
+                {
+                    double tmpValue = outputValue[j];
+                    if (tmpValue > 1.0 || tmpValue < 0.0)
+                    {
+                        validInputData = false;
+                        break;
+                    }
+
+                    tmpValue = std::max(1.0e-4, tmpValue);
+                    inputValues(i, j) = tmpValue; 
+                    sumValue += tmpValue;
+                }
+
+                if (!validInputData)
+                    break;
+                
+                for (unsigned int j = 0;j < nbComponents;++j)
+                    inputValues(i, j) /= sumValue;
+            }
+        }
+
+        if (!validInputData)
+        {
+            for (unsigned int i = 0;i < nbImages;++i)
+            {
+                ++inItrs[i];
+                if (maskArg.getValue() != "")
+                    ++maskItrs[i];
+            }
+			++outItr;
+			continue;
+        }
+
+        dirichletDistribution.Fit(inputValues, "mle");
+        computedOutputValue = dirichletDistribution.GetConcentrationParameter();
+
+        if (!std::isfinite(computedOutputValue[0]))
+        {
+            std::cout << inputValues << std::endl;
+            exit(-1);
+        }
+
+        for (unsigned int i = 0;i < nbComponents;++i)
+            outputValue[i] = computedOutputValue[i];
+        
+        outItr.Set(outputValue);
+
+        for (unsigned int i = 0;i < nbImages;++i)
+        {
+            ++inItrs[i];
+            if (maskArg.getValue() != "")
+                ++maskItrs[i];
+        }
+        ++outItr;
+	}
+    
+    anima::writeImage <OutputImageType> (outArg.getValue(), outputImage);
+	
+	return EXIT_SUCCESS;
+}
