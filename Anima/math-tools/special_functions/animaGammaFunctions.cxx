@@ -24,6 +24,15 @@ double psi_function(unsigned int n)
 
 double digamma(const double x)
 {
+    if (x >= 600.0)
+        return std::log(x - 0.5);
+    
+    if (x < 1.0e-4)
+    {
+        double gammaValue = -boost::math::digamma(1.0);
+        return -1.0 / x - gammaValue;
+    }
+
     return boost::math::digamma(x);
 }
 
@@ -34,11 +43,20 @@ double trigamma(const double x)
 
 double inverse_digamma(const double x)
 {
-    double emc = -digamma(1.0);
+    if (x > digamma(600.0))
+        return std::exp(x) + 0.5;
+    
+    if (x < digamma(1.0e-4))
+    {
+        double gammaValue = -boost::math::digamma(1.0);
+        return -1.0 / (x + gammaValue);
+    }
+
+    double gammaValue = -digamma(1.0);
     double resValue = 0.0;
     
     if (x < -2.22)
-        resValue  = -1.0 / (x - emc);
+        resValue  = -1.0 / (x + gammaValue);
     else
         resValue = std::exp(x) + 0.5;
  
@@ -46,7 +64,19 @@ double inverse_digamma(const double x)
     while (continueLoop)
     {
         double oldResValue = resValue;
-        resValue -= (digamma(resValue) - x) / trigamma(resValue);
+        double residualValue = digamma(resValue) - x;
+        if (std::abs(residualValue) < std::sqrt(std::numeric_limits<double>::epsilon()))
+            break;
+        double stepValue = resValue / 2.0; // bisection
+        double denomValue = trigamma(resValue);
+        if (std::abs(denomValue) > std::sqrt(std::numeric_limits<double>::epsilon()))
+        {
+            double tmpStepValue = residualValue / denomValue;
+            if (tmpStepValue < resValue)
+                stepValue = tmpStepValue;
+        }
+            
+        resValue -= stepValue;
         continueLoop = std::abs(resValue - oldResValue) > std::sqrt(std::numeric_limits<double>::epsilon());
     }   
     
