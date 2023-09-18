@@ -98,24 +98,16 @@ int main(int argc, char **argv)
 
 	while (!kappaItr.IsAtEnd())
 	{
-        inputValues.clear();
-
         unsigned int nbUsedImages = 0;
         if (maskArg.getValue() != "")
         {
             for (unsigned int i = 0;i < nbImages;++i)
-            {
-                bool maskValue = maskItrs[i].Get();
-                nbUsedImages += maskValue;
-                if (maskValue)
-                    inputValues.push_back(inItrs[i].Get());
-            }
+                nbUsedImages += maskItrs[i].Get();
         }
         else
             nbUsedImages = nbImages;
         
-
-		if (nbUsedImages == 0)
+        if (nbUsedImages == 0)
 		{
             for (unsigned int i = 0;i < nbImages;++i)
             {
@@ -127,6 +119,58 @@ int main(int argc, char **argv)
             ++thetaItr;
 			continue;
 		}
+        
+        inputValues.resize(nbUsedImages);
+
+        bool validInputData = true;
+        if (maskArg.getValue() != "")
+        {
+            unsigned int pos = 0;
+            for (unsigned int i = 0;i < nbImages;++i)
+            {
+                if (maskItrs[i].Get())
+                {
+                    double tmpValue = inItrs[i].Get();
+
+                    if (tmpValue < std::sqrt(std::numeric_limits<double>::epsilon()))
+                    {
+                        validInputData = false;
+                        break;
+                    }
+
+                    inputValues[pos] = tmpValue;
+                    ++pos;
+                }
+            }
+        }
+        else
+        {
+            for (unsigned int i = 0;i < nbImages;++i)
+            {
+                double tmpValue = inItrs[i].Get();
+
+                if (tmpValue < std::sqrt(std::numeric_limits<double>::epsilon()))
+                {
+                    validInputData = false;
+                    break;
+                }
+
+                inputValues[i] = tmpValue;
+            }
+        }
+
+        if (!validInputData)
+        {
+            for (unsigned int i = 0;i < nbImages;++i)
+            {
+                ++inItrs[i];
+                if (maskArg.getValue() != "")
+                    ++maskItrs[i];
+            }
+			++kappaItr;
+            ++thetaItr;
+			continue;
+        }
 
         gammaDistribution.Fit(inputValues, methodArg.getValue());
         
