@@ -35,20 +35,21 @@ int main(int argc, char **argv)
     anima::MCMFileReader <double, 3> mcmReader;
     mcmReader.SetFileName(inArg.getValue());
     mcmReader.Update();
-    MCModelPointer mcmPtr = mcmReader.GetModelVectorImage()->GetDescriptionModel()->Clone();
+    InputImageType::Pointer mcmImage = mcmReader.GetModelVectorImage();
+    MCModelPointer mcmPtr = mcmImage->GetDescriptionModel()->Clone();
     InputPixelType mcmValue;
     unsigned int numCompartments = mcmPtr->GetNumberOfCompartments();
     unsigned int numIsoCompartments = mcmPtr->GetNumberOfIsotropicCompartments();
     
     using InputImageIteratorType = itk::ImageRegionConstIterator <InputImageType>;
     using OutputImageIteratorType = itk::ImageRegionIterator <OutputImageType>;
-    InputImageIteratorType inItr(mcmReader.GetModelVectorImage(), mcmReader.GetModelVectorImage()->GetLargestPossibleRegion());
+    InputImageIteratorType inItr(mcmImage, mcmImage->GetLargestPossibleRegion());
     
     // Initialize output image
     unsigned int nbOutputComponents = numIsoCompartments + 1;
     OutputImageType::Pointer outputImage = OutputImageType::New();
-    outputImage->SetRegions(mcmReader.GetModelVectorImage()->GetLargestPossibleRegion());
-    outputImage->CopyInformation(mcmReader.GetModelVectorImage());
+    outputImage->SetRegions(mcmImage->GetLargestPossibleRegion());
+    outputImage->CopyInformation(mcmImage);
     outputImage->SetVectorLength(nbOutputComponents);
     outputImage->Allocate();
 
