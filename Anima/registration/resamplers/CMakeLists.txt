@@ -1,4 +1,5 @@
 add_subdirectory(apply_transform_serie)
+add_subdirectory(apply_vtk_transform)
 add_subdirectory(apply_distortion_correction)
 
 if (USE_VTK AND VTK_FOUND)

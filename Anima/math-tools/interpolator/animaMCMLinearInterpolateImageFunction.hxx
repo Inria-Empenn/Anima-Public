@@ -82,12 +82,9 @@ template<class TInputImage, class TCoordRep>
 bool
 MCMLinearInterpolateImageFunction< TInputImage, TCoordRep >
 ::CheckModelCompatibility(MCModelPointer &model)
-{
-    unsigned int numIsoCompartments = model->GetNumberOfIsotropicCompartments();
-    if (!model->GetCompartment(numIsoCompartments)->GetTensorCompatible())
-        return false;
-
-    return true;
+{	
+	unsigned int numIsoCompartments = model->GetNumberOfIsotropicCompartments();
+    return  !((model->GetCompartment(numIsoCompartments)->GetCompartmentType() != anima::DDI) && (!model->GetCompartment(numIsoCompartments)->GetTensorCompatible()));
 }
 
 template<class TInputImage, class TCoordRep>
@@ -118,6 +115,17 @@ MCMLinearInterpolateImageFunction< TInputImage, TCoordRep >
     }
 }
 
+
+template<class TInputImage, class TCoordRep>
+void
+MCMLinearInterpolateImageFunction< TInputImage, TCoordRep >
+::SetSpecificAveragerParameters(unsigned int threadIndex) const
+{
+    typedef anima::MCMWeightedAverager InternalAveragerType;
+    InternalAveragerType *castAverager = dynamic_cast <InternalAveragerType *> (this->GetAveragers()[threadIndex].GetPointer());
+
+    castAverager->SetDDIInterpolationMethod(m_DDIInterpolationMethod);
+}
 
 template<class TInputImage, class TCoordRep>
 unsigned int

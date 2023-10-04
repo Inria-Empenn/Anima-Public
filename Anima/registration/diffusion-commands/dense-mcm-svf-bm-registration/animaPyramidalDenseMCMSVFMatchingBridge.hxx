@@ -77,6 +77,7 @@ PyramidalDenseMCMSVFMatchingBridge<ImageDimension>
 {
     typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
     interpolator->SetReferenceOutputModel(image->GetDescriptionModel());
+    interpolator->SetDDIInterpolationMethod(3);
 
     interpolator->Register();
     return interpolator;

@@ -49,6 +49,7 @@ set_lib_install_rules(${PROJECT_NAME})
 ## Subdirs executables
 ## #############################################################################
 
+add_subdirectory(combined_relaxometry_estimation)
 add_subdirectory(gamma_mixture_t2_estimation)
 add_subdirectory(gmm_t2_estimation)
 add_subdirectory(multi_t2_estimation)

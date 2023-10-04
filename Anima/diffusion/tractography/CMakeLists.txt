@@ -29,6 +29,8 @@ target_link_libraries(${PROJECT_NAME}
   AnimaDataIO
   AnimaOptimizers
   AnimaSHTools
+  AnimaMCM
+  AnimaMCMBase
   )
 
 ################################################################################
@@ -55,5 +57,7 @@ add_subdirectory(dti_tractography)
 add_subdirectory(fibers_counter)
 add_subdirectory(fibers_filterer)
 add_subdirectory(odf_probabilistic_tractography)
+add_subdirectory(mcm_probabilistic_tractography)
+add_subdirectory(mcm_tractography)
 
 endif() #USE_VTK AND VTK_FOUND

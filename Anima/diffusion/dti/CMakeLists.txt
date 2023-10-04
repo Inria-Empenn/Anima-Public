@@ -1,0 +1,6 @@
+add_subdirectory(dti_estimator)
+add_subdirectory(dti_scalar_maps)
+add_subdirectory(dwi_simulator_from_dti)
+add_subdirectory(flip_tensors)
+add_subdirectory(background_noise_variance_estimator)
+add_subdirectory(dti_non_central_chi_estimator)

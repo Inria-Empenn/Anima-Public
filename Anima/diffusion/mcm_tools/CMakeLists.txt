@@ -1,2 +1,8 @@
+add_subdirectory(dwi_simulation_from_mcm)
+add_subdirectory(generate_isoradius_ddi_surface)
+add_subdirectory(get_scalar_map_from_ddi)
 add_subdirectory(mcm_average_images)
+add_subdirectory(mcm_merge_block_images)
 add_subdirectory(mcm_scalar_maps)
+add_subdirectory(mt_estimation_validation)
+add_subdirectory(test_averaging)
