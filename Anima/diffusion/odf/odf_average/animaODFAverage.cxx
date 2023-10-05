@@ -16,7 +16,7 @@ void eventCallback (itk::Object* caller, const itk::EventObject& event, void* cl
 
 int main(int argc,  char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_PRIVATE_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inArg("i","input-odf","ODF images list as a text file",true,"","ODF images list",cmd);
     TCLAP::ValueArg<std::string> maskArg("m","masks","Masks images list as a text file",true,"","Masks images list",cmd);

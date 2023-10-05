@@ -12,9 +12,9 @@ void eventCallback (itk::Object* caller, const itk::EventObject& event, void* cl
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_PRIVATE_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
 
-    TCLAP::ValueArg<std::string> inArg("i","input","Input tractography image (.vtk or .vtp)",true,"","input tractography image",cmd);
+    TCLAP::ValueArg<std::string>  inArg("i","input","Input tractography image (.vtk or .vtp)",true,"","input tractography image",cmd);
     TCLAP::ValueArg<std::string> resArg("o","outputfile","Result TOD image",true,"","result TOD image",cmd);
     TCLAP::ValueArg<std::string> refArg("g","geometry","Output image geometry",true,"","output geometry",cmd);
 
