@@ -233,9 +233,9 @@ void TODEstimatorImageFilter::DynamicThreadedGenerateData(const TODEstimatorImag
         //        index[2] *= dirZ;
 
         std::vector<VectorType> vecCoefs;
-        if(!(m_ImgDir[index[0] + Xmax * (index[1] + Ymax * index[2])].size()) == 0)
+        unsigned int tmpSize = m_ImgDir[index[0] + Xmax * (index[1] + Ymax * index[2])].size();
+        if (tmpSize != 0)
         {
-            int tmpSize = m_ImgDir[index[0] + Xmax * (index[1] + Ymax * index[2])].size();
             DirVectorType mainDirs;
             DirVectorType localDir(tmpSize);
             localDir = m_ImgDir[index[0] + Xmax * (index[1] + Ymax * index[2])];
