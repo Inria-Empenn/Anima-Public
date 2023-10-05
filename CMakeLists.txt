@@ -22,7 +22,6 @@ option(USE_NLOPT "Build NLOPT dependencies" ON)
 option(BUILD_ANIMA_TOOLS "Build ANIMA tools" ON)
 option(BUILD_ANIMA_TESTING "Build ANIMA testing executables" OFF)
 option(BUILD_ANIMA_DOCUMENTATION "Build ANIMA doxygen" OFF)
-option(USE_ANIMA_PRIVATE "Use ANIMA private part, requires authorized access" OFF)
 
 # Define default build type if needed
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -131,11 +130,6 @@ endif()
 
 include(Anima)
 
-if (USE_ANIMA_PRIVATE)
-  set(USE_GITHUB_SSH ON CACHE BOOL "Use by default Git SSH addresses, requires public key set on github" FORCE)
-  include(Anima_Private)
-endif()
-
 configure_file(${CMAKE_SOURCE_DIR}/superbuild/BinariesPackaging.cmake.in
   ${CMAKE_BINARY_DIR}/BinariesPackaging.cmake
   @ONLY IMMEDIATE)
@@ -143,6 +137,5 @@ configure_file(${CMAKE_SOURCE_DIR}/superbuild/BinariesPackaging.cmake.in
 add_custom_target(pack-binaries
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -P ${CMAKE_BINARY_DIR}/BinariesPackaging.cmake
-  DEPENDS Anima_Private
   COMMENT "-- Generating binary packages"
   )
