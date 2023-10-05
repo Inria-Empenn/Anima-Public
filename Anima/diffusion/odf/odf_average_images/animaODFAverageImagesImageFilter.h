@@ -13,7 +13,6 @@
 
 #include <vnl/vnl_matrix.h>
 
-
 namespace anima
 {
 class ODFAverageImageFilter :
@@ -51,80 +50,69 @@ public:
     typedef itk::VariableLengthVector <PixelScalarType> VectorType;
     typedef std::vector<std::vector<double>> HistoArrayType;
 
-    void SetMask(unsigned int i, MaskImagePointer mask);
+    void SetMaskImage(unsigned int i, MaskImagePointer mask);
 
-    void SetWeightImage(MaskImageType *weightImage) {m_WeightImage = weightImage;}
-    MaskImageType *getWeightImage() {return m_WeightImage;}
-    DoubleImageType *getPondImage() {return m_PondImage;}
-    MaskImagePointer getMaskAverage();
+    void SetWeightImage(const MaskImagePointer weightImage) {m_WeightImage = weightImage;}
+    MaskImageType *GetWeightImage() {return m_WeightImage;}
+    DoubleImageType *GetPonderationImage() {return m_PonderationImage;}
+    MaskImagePointer GetAverageMaskImage();
 
-    itkSetMacro(weight, double)
-    itkSetMacro(testCombi, double)
-    itkSetMacro(flagGFA, bool)
-    itkSetMacro(Tournier, bool)
-    itkSetMacro(AicImage, DoubleImagePointer)
+    itkSetMacro(Weight, double)
+    itkSetMacro(TestCombi, double)
+    itkSetMacro(UseGFA, bool)
+    itkSetMacro(AICImage, DoubleImagePointer)
 
 protected:
     ODFAverageImageFilter()
         : Superclass()
     {
-        m_nbSamplesTheta = 10;
-        m_nbSamplesPhi = 2 * m_nbSamplesTheta;
-        m_weight = 0.0;
-
-        m_flagGFA = false;
+        m_ThetaGridSize = 10;
+        m_PhiGridSize = 2 * m_ThetaGridSize;
+        m_Weight = 0.0;
+        m_UseGFA = false;
     }
 
-    virtual ~ODFAverageImageFilter()
-    {
-    }
+    virtual ~ODFAverageImageFilter() {}
 
     void BeforeThreadedGenerateData() ITK_OVERRIDE;
     void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
     void AfterThreadedGenerateData() ITK_OVERRIDE;
 
-    void discretizeSH();
-    void discretizeODF(VectorType &Coef, std::vector<double> &resHisto);
-    void getAverageHisto(std::vector<VectorType> &coefs, VectorType &resCoef, double smallWeight, double bigWeight);
-    void getAverageODF(std::vector<std::vector<double>> &histos, VectorType &resCoef, double smallWeight, double bigWeight);
-    VectorType getSquareRootODFCoef(std::vector<double> &histo);
-    VectorType getSquareODFCoef(std::vector<double> &histo);
+    void DiscretizeSH();
+    void DiscretizeODF(VectorType &Coef, std::vector<double> &resHisto);
+    void GetAverageHisto(std::vector<VectorType> &coefs, VectorType &resCoef, double smallWeight, double bigWeight);
+    void GetAverageODF(std::vector<std::vector<double>> &histos, VectorType &resCoef, double smallWeight, double bigWeight);
+    VectorType GetSquareRootODFCoef(std::vector<double> &histo);
+    VectorType GetSquareODFCoef(std::vector<double> &histo);
 
     double GetGeneralizedFractionalAnisotropy(VectorType &modelValue);
-
-
 
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(ODFAverageImageFilter);
 
-    int m_nbSamplesPhi;
-    int m_nbSamplesTheta;
-    int m_vectorLength;
+    unsigned int m_PhiGridSize;
+    unsigned int m_ThetaGridSize;
+    unsigned int m_VectorLength;
 
     double m_ODFSHOrder;
-    double m_smallWeight;
-    double m_bigWeight;
-    double m_weight;
-    double m_minAic;
-    double m_testCombi;
+    double m_SmallWeight;
+    double m_BigWeight;
+    double m_Weight;
+    double m_MinAICValue;
+    double m_TestCombi;
 
-    bool m_flagGFA;
-    bool m_Tournier;
+    bool m_UseGFA;
 
     MaskImagePointer m_WeightImage;
-    DoubleImagePointer m_PondImage;
-    DoubleImagePointer m_AicImage;
+    DoubleImagePointer m_PonderationImage;
+    DoubleImagePointer m_AICImage;
 
-    std::vector<MaskImagePointer> m_Masks;
+    std::vector<MaskImagePointer> m_MaskImages;
 
-    vnl_matrix<double> m_spherHarm;
+    vnl_matrix<double> m_SHValues;
 
     anima::ODFSphericalHarmonicBasis *m_ODFSHBasis;
-
-    HistoArrayType m_histoODFs, m_SQRTHistoODFs;
-
-
-
+    HistoArrayType m_HistoODFs, m_SqrtHistoODFs;
 };
 } // end of namespace anima
 

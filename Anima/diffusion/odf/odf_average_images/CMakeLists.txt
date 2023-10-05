@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaODFAverage)
+project(animaODFAverageImages)
 
 ## #############################################################################
 ## List Sources
@@ -25,10 +25,6 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   ${ITKIO_LIBRARIES}
   AnimaSHTools
-  AnimaDataIO
-  ITKCommon
-  ${VTK_PREFIX}CommonCore
-  ${VTKSYS_LIBRARY}
   )
 
 ## #############################################################################
