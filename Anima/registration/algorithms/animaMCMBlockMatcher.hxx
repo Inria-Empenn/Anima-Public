@@ -39,6 +39,7 @@ MCMBlockMatcher<TInputImageType>
 {
     typename MCMInterpolatorType::Pointer interpolator = MCMInterpolatorType::New();
     interpolator->SetReferenceOutputModel(this->GetReferenceImage()->GetDescriptionModel());
+    interpolator->SetDDIInterpolationMethod(3);
 
     interpolator->Register();
     return interpolator;

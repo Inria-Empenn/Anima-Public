@@ -1,3 +1,0 @@
-add_subdirectory(dti_scalar_maps)
-add_subdirectory(dwi_simulator_from_dti)
-add_subdirectory(flip_tensors)

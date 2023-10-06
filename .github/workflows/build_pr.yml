@@ -25,7 +25,7 @@ jobs:
       run: sudo apt-get -y install libgl1-mesa-dev
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_SHARED_LIBS:BOOL=OFF -DBUILD_ANIMA_TESTING:BOOL=ON -DUSE_ANIMA_PRIVATE:BOOL=OFF -DUSE_GITHUB_SSH:BOOL=OFF
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_SHARED_LIBS:BOOL=OFF -DBUILD_ANIMA_TESTING:BOOL=ON
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}      

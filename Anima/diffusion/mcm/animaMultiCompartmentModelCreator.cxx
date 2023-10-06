@@ -1,5 +1,6 @@
 #include <animaMultiCompartmentModelCreator.h>
 
+#include <animaDDICompartment.h>
 #include <animaFreeWaterCompartment.h>
 #include <animaIsotropicRestrictedWaterCompartment.h>
 #include <animaNODDICompartment.h>
@@ -223,8 +224,31 @@ void MultiCompartmentModelCreator::CreateNODDICompartment(BaseCompartmentPointer
 
 void MultiCompartmentModelCreator::CreateDDICompartment(BaseCompartmentPointer &compartmentPointer, bool applyConstraints)
 {
-    std::string error("DDI model not implemented in the public version of ANIMA");
-    throw itk::ExceptionObject(__FILE__, __LINE__,error,ITK_LOCATION);
+    typedef anima::DDICompartment DDIType;
+
+    DDIType::Pointer ddiComp = DDIType::New();
+    ddiComp->SetEstimateOrientationConcentration(!this->GetUseConstrainedOrientationConcentration());
+    ddiComp->SetEstimateAxialDiffusivity(!this->GetUseConstrainedDiffusivity());
+    ddiComp->SetEstimateExtraAxonalFraction(!this->GetUseConstrainedExtraAxonalFraction());
+
+    ddiComp->SetOrientationConcentration(this->GetOrientationConcentration());
+    ddiComp->SetAxialDiffusivity(this->GetAxialDiffusivity());
+    ddiComp->SetRadialDiffusivity1((this->GetRadialDiffusivity1() + this->GetRadialDiffusivity2()) / 2.0);
+    ddiComp->SetExtraAxonalFraction(this->GetExtraAxonalFraction());
+
+    if (applyConstraints)
+    {
+        if (this->GetUseCommonDiffusivities())
+            ddiComp->SetEstimateAxialDiffusivity(false);
+
+        if (this->GetUseCommonConcentrations())
+            ddiComp->SetEstimateOrientationConcentration(false);
+
+        if (this->GetUseCommonExtraAxonalFractions())
+            ddiComp->SetEstimateExtraAxonalFraction(false);
+    }
+
+    compartmentPointer = ddiComp;
 }
 
 } // end namespace anima

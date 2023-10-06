@@ -151,7 +151,7 @@ void TRKWriter::Update()
             directionMatrix(i,j) = headerStr.vox_to_ras[i][j];
     }
 
-    directionMatrix = vnl_matrix_inverse <double> (directionMatrix).as_matrix();
+    directionMatrix = vnl_matrix_inverse<double>(directionMatrix).inverse();
 
     for (unsigned int i = 0;i < headerStr.n_count;++i)
     {
