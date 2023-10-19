@@ -101,9 +101,10 @@ int main(int argc, char **argv)
     outputImage->FillBuffer(outputValue);  
     
     OutputImageIteratorType outItr(outputImage, outputImage->GetLargestPossibleRegion());
-    vnl_matrix<double> inputValues;
+    vnl_matrix<double> inputValues, correctedInputValues;
     anima::DirichletDistribution dirichletDistribution;
     std::vector<double> computedOutputValue;
+    std::vector<double> meanComponents(nbComponents, -1.0);
 
     unsigned int pos = 0;
 	while (!outItr.IsAtEnd())
@@ -162,7 +163,7 @@ int main(int argc, char **argv)
                         }
 
                         tmpValue = std::max(1.0e-4, tmpValue);
-                        inputValues(pos, j) = tmpValue;
+                        inputValues.put(pos, j, tmpValue);
                         sumValue += tmpValue;
                     }
 
@@ -203,7 +204,7 @@ int main(int argc, char **argv)
                     }
 
                     tmpValue = std::max(1.0e-4, tmpValue);
-                    inputValues(i, j) = tmpValue; 
+                    inputValues.put(i, j, tmpValue); 
                     sumValue += tmpValue;
                 }
 
@@ -227,7 +228,42 @@ int main(int argc, char **argv)
 			continue;
         }
 
-        dirichletDistribution.Fit(inputValues, "mle");
+        std::fill(meanComponents.begin(), meanComponents.end(), -1.0);
+        unsigned int nbValidComponents = 0;
+        for (unsigned int j = 0;j < nbComponents;++j)
+        {
+            double meanValue = 0.0;
+            for (unsigned int i = 0;i < nbUsedImages;++i)
+                meanValue += inputValues.get(i, j);
+            meanValue /= static_cast<double>(nbUsedImages);
+
+            double varValue = 0.0;
+            for (unsigned int i = 0;i < nbUsedImages;++i)
+                varValue += (inputValues.get(i, j) - meanValue) * (inputValues.get(i, j) - meanValue);
+            varValue /= (nbUsedImages - 1.0);
+            
+            if (varValue < std::sqrt(std::numeric_limits<double>::epsilon()))
+                meanComponents[j] = meanValue;
+            else
+                nbValidComponents++;
+        }
+
+        correctedInputValues.set_size(nbUsedImages, nbValidComponents);
+
+        for (unsigned int i = 0;i < nbUsedImages;++i)
+        {
+            unsigned int pos = 0;
+            for (unsigned int j = 0;j < nbComponents;++j)
+            {
+                if (meanComponents[j] == -1.0)
+                {
+                    correctedInputValues.put(i, pos, inputValues.get(i, j));
+                    pos++;
+                }
+            }
+        }
+
+        dirichletDistribution.Fit(correctedInputValues, "mle");
         computedOutputValue = dirichletDistribution.GetConcentrationParameter();
 
         if (!std::isfinite(computedOutputValue[0]))
@@ -236,8 +272,17 @@ int main(int argc, char **argv)
             exit(-1);
         }
 
-        for (unsigned int i = 0;i < nbComponents;++i)
-            outputValue[i] = computedOutputValue[i];
+        unsigned int pos = 0;
+        for (unsigned int j = 0;j < nbComponents;++j)
+        {
+            if (meanComponents[j] == -1.0)
+            {
+                outputValue[j] = computedOutputValue[pos];
+                pos++;
+            }
+            else
+                outputValue[j] = meanComponents[j];
+        }
         
         outItr.Set(outputValue);
 
