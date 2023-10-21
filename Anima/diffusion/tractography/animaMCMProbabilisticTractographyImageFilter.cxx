@@ -133,14 +133,18 @@ MCMProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDi
     if (effectiveNumDirs > 0)
     {
         //        log_prior = anima::safe_log(anima::ComputeVMFPdf(resVec, oldDirection, this->GetKappaOfPriorDistribution()));
-        log_prior = anima::safe_log(anima::EvaluateWatsonPDF(resVec, oldDirection, this->GetKappaOfPriorDistribution()));
+        m_WatsonDistribution.SetMeanAxis(oldDirection);
+        m_WatsonDistribution.SetConcentrationParameter(this->GetKappaOfPriorDistribution());
+        log_prior = m_WatsonDistribution.GetLogDensity(resVec);
         
         log_proposal = 0;
         double sumWeights = 0;
         for (unsigned int i = 0;i < effectiveNumDirs;++i)
         {
             //            log_proposal += mixtureWeights[i] * anima::ComputeVMFPdf(resVec, maximaMCM[i], kappaValues[i]);
-            log_proposal += mixtureWeights[i] * anima::EvaluateWatsonPDF(resVec, maximaMCM[i], kappaValues[i]);
+            m_WatsonDistribution.SetMeanAxis(maximaMCM[i]);
+            m_WatsonDistribution.SetConcentrationParameter(kappaValues[i]);
+            log_proposal += mixtureWeights[i] * m_WatsonDistribution.GetDensity(resVec);
             sumWeights += mixtureWeights[i];
         }
         
@@ -290,6 +294,9 @@ double MCMProbabilisticTractographyImageFilter::ComputeLogWeightUpdate(double b0
 
     double concentrationParameter = b0Value / std::sqrt(noiseValue);
 
+    m_WatsonDistribution.SetMeanAxis(newDirection);
+    m_WatsonDistribution.SetConcentrationParameter(concentrationParameter);
+
     bool oneTested = false;
     for (unsigned int i = workModel->GetNumberOfIsotropicCompartments();i < workModel->GetNumberOfCompartments();++i)
     {
@@ -306,7 +313,7 @@ double MCMProbabilisticTractographyImageFilter::ComputeLogWeightUpdate(double b0
             anima::Normalize(tmpVec,tmpVec);
         }
 
-        double tmpVal = std::log(anima::EvaluateWatsonPDF(tmpVec, newDirection, concentrationParameter));
+        double tmpVal = m_WatsonDistribution.GetLogDensity(tmpVec);
         if ((tmpVal > logLikelihood)||(!oneTested))
         {
             logLikelihood = tmpVal;

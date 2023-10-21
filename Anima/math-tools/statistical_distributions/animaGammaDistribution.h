@@ -13,16 +13,24 @@ namespace anima
 
 		GammaDistribution()
 		{
-			this->SetShapeParameter(1.0);
-			this->SetScaleParameter(1.0);
+			m_ShapeParameter = 1.0;
+			m_ScaleParameter = 1.0;
 		}
 
-		void SetShapeParameter(const SingleValueType val);
-		void SetScaleParameter(const SingleValueType val);
 		double GetDensity(const SingleValueType &x);
 		double GetLogDensity(const SingleValueType &x);
 		void Fit(const MultipleValueType &sample, const std::string &method);
 		void Random(MultipleValueType &sample, GeneratorType &generator);
+
+		void SetShapeParameter(const double val);
+		double GetShapeParameter() {return m_ShapeParameter;}
+
+		void SetScaleParameter(const double val);
+		double GetScaleParameter() {return m_ScaleParameter;}
+
+	private:
+		double m_ShapeParameter;
+		double m_ScaleParameter;
 	};
     
 } // end of namespace

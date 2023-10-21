@@ -29,6 +29,7 @@ target_link_libraries(${PROJECT_NAME}
   AnimaDataIO
   AnimaOptimizers
   AnimaSHTools
+  AnimaStatisticalDistributions
   AnimaMCM
   AnimaMCMBase
   )

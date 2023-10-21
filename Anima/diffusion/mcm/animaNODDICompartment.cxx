@@ -494,7 +494,8 @@ void NODDICompartment::UpdateKappaValues()
     double dawsonValue = anima::EvaluateDawsonIntegral(std::sqrt(kappa), true);
     m_Tau1 = (1.0 / dawsonValue - 1.0) / (2.0 * kappa);
     m_Tau1Deriv = (1.0 - (1.0 - dawsonValue * (2.0 * kappa - 1.0)) / (2.0 * dawsonValue * dawsonValue)) / (2.0 * kappa * kappa);
-    anima::GetStandardWatsonSHCoefficients(kappa,m_WatsonSHCoefficients,m_WatsonSHCoefficientDerivatives);
+    m_WatsonDistribution.SetConcentrationParameter(kappa);
+    m_WatsonDistribution.GetStandardWatsonSHCoefficients(m_WatsonSHCoefficients, m_WatsonSHCoefficientDerivatives);
     
     m_ModifiedConcentration = false;
 }

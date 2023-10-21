@@ -7,7 +7,7 @@
 namespace anima
 {
 
-void DirichletDistribution::SetConcentrationParameter(const SingleValueType val)
+void DirichletDistribution::SetConcentrationParameters(const std::vector<double> &val)
 {
     unsigned int numParameters = val.size();
 
@@ -17,7 +17,7 @@ void DirichletDistribution::SetConcentrationParameter(const SingleValueType val)
             throw itk::ExceptionObject(__FILE__, __LINE__, "The concentration parameters of a statistical distribution should be strictly positive.", ITK_LOCATION);
     }
 
-    this->BaseDistribution::SetConcentrationParameter(val);
+    m_ConcentrationParameters = val;
 }
 
 double DirichletDistribution::GetDensity(const SingleValueType &x)
@@ -55,8 +55,7 @@ double DirichletDistribution::GetLogDensity(const SingleValueType &x)
     if (std::abs(sumValue - 1.0) > std::numeric_limits<double>::epsilon())
         throw itk::ExceptionObject(__FILE__, __LINE__, "The log-density of the Dirichlet distribution is not defined for elements outside the simplex.", ITK_LOCATION);
 
-    SingleValueType alphaParameters = this->GetConcentrationParameter();
-    if (alphaParameters.size() != numParameters)
+    if (m_ConcentrationParameters.size() != numParameters)
         throw itk::ExceptionObject(__FILE__, __LINE__, "The input argument does not belong to the same simplex as the one on which the Dirichlet distribution is defined.", ITK_LOCATION);
 
     double logBeta = 0.0;
@@ -64,9 +63,9 @@ double DirichletDistribution::GetLogDensity(const SingleValueType &x)
     double resValue = 0.0;
     for (unsigned int i = 0;i < numParameters;++i)
     {
-        logBeta += std::lgamma(alphaParameters[i]);
-        alphaZero += alphaParameters[i];
-        resValue += (alphaParameters[i] - 1.0) * std::log(x[i]);
+        logBeta += std::lgamma(m_ConcentrationParameters[i]);
+        alphaZero += m_ConcentrationParameters[i];
+        resValue += (m_ConcentrationParameters[i] - 1.0) * std::log(x[i]);
     }
     logBeta -= std::lgamma(alphaZero);
     resValue -= logBeta;
@@ -79,10 +78,10 @@ void DirichletDistribution::Fit(const MultipleValueType &sample, const std::stri
     unsigned int numObservations = sample.rows();
     unsigned int numParameters = sample.cols();
 
-    SingleValueType alphaParameters(numParameters, 1.0);
+    std::vector<double> alphaParameters(numParameters, 1.0);
 
     bool allZeros = true;
-    SingleValueType logParameters(numParameters, 0.0);
+    std::vector<double> logParameters(numParameters, 0.0);
     for (unsigned int j = 0;j < numParameters;++j)
     {
         unsigned int sumCount = 0;
@@ -104,7 +103,7 @@ void DirichletDistribution::Fit(const MultipleValueType &sample, const std::stri
 
     if (allZeros)
     {
-        this->SetConcentrationParameter(alphaParameters);
+        this->SetConcentrationParameters(alphaParameters);
         return;
     }
 
@@ -213,7 +212,7 @@ void DirichletDistribution::Fit(const MultipleValueType &sample, const std::stri
         continueLoop = std::abs(digammaValue - oldDigammaValue) > std::sqrt(std::numeric_limits<double>::epsilon());
     }
 
-    this->SetConcentrationParameter(alphaParameters);
+    this->SetConcentrationParameters(alphaParameters);
 }
 
 void DirichletDistribution::Random(MultipleValueType &sample, GeneratorType &generator)
@@ -221,8 +220,7 @@ void DirichletDistribution::Random(MultipleValueType &sample, GeneratorType &gen
     unsigned int numObservations = sample.rows();
     unsigned int numParameters = sample.cols();
 
-    SingleValueType alphaParameters = this->GetConcentrationParameter();
-    if (alphaParameters.size() != numParameters)
+    if (m_ConcentrationParameters.size() != numParameters)
         throw itk::ExceptionObject(__FILE__, __LINE__, "The requested sample does not belong to the same simplex as the one on which the Dirichlet distribution is defined.", ITK_LOCATION);
 
     BetaDistributionType betaDist;
@@ -234,9 +232,9 @@ void DirichletDistribution::Random(MultipleValueType &sample, GeneratorType &gen
         {
             double alphaPartialSum = 0.0;
             for (unsigned int k = j + 1;k < numParameters;++k)
-                alphaPartialSum += alphaParameters[k];
+                alphaPartialSum += m_ConcentrationParameters[k];
 
-            betaDist = BetaDistributionType(alphaParameters[j], alphaPartialSum);
+            betaDist = BetaDistributionType(m_ConcentrationParameters[j], alphaPartialSum);
             double phiValue = boost::math::quantile(betaDist, unifDist(generator));
 
             sample(i, j) = (1.0 - samplePartialSum) * phiValue;

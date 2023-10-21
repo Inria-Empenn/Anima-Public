@@ -264,7 +264,7 @@ int main(int argc, char **argv)
         }
 
         dirichletDistribution.Fit(correctedInputValues, "mle");
-        computedOutputValue = dirichletDistribution.GetConcentrationParameter();
+        computedOutputValue = dirichletDistribution.GetConcentrationParameters();
 
         if (!std::isfinite(computedOutputValue[0]))
         {

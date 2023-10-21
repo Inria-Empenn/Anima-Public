@@ -16,14 +16,19 @@ namespace anima
 
 		DirichletDistribution()
 		{
-			this->SetConcentrationParameter({1.0, 1.0});
+			m_ConcentrationParameters.clear();
 		}
 
-		void SetConcentrationParameter(const SingleValueType val);
 		double GetDensity(const SingleValueType &x);
 		double GetLogDensity(const SingleValueType &x);
 		void Fit(const MultipleValueType &sample, const std::string &method);
 		void Random(MultipleValueType &sample, GeneratorType &generator);
+
+		void SetConcentrationParameters(const std::vector<double> &val);
+		std::vector<double> GetConcentrationParameters() {return m_ConcentrationParameters;}
+
+	private:
+		std::vector<double> m_ConcentrationParameters;
 	};
     
 } // end of namespace
