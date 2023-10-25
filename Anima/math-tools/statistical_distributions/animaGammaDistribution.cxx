@@ -47,7 +47,7 @@ void GammaDistribution::Fit(const MultipleValueType &sample, const std::string &
 {
     unsigned int dimValue = sample.size();
     double doubleDimValue = static_cast<double>(dimValue);
-    double epsValue = std::numeric_limits<double>::epsilon();
+    double epsValue = std::sqrt(std::numeric_limits<double>::epsilon());
     double shapeParameter, scaleParameter;
 
     if (method == "mle")
@@ -58,7 +58,7 @@ void GammaDistribution::Fit(const MultipleValueType &sample, const std::string &
         for (unsigned int i = 0;i < dimValue;++i)
         {
             double tmpValue = sample[i];
-            if (tmpValue < std::numeric_limits<double>::epsilon())
+            if (tmpValue < epsValue)
                 throw itk::ExceptionObject(__FILE__, __LINE__, "Negative or null values are not allowed in a sample drawn from the Gamma distribution.", ITK_LOCATION);
             meanValue += tmpValue;
             meanLogValue += std::log(tmpValue);
@@ -69,9 +69,11 @@ void GammaDistribution::Fit(const MultipleValueType &sample, const std::string &
 
         double sValue = logMeanValue - meanLogValue;
         shapeParameter = (3.0 - sValue + std::sqrt((sValue - 3.0) * (sValue - 3.0) + 24.0 * sValue)) / (12.0 * sValue);
-        scaleParameter = 0.0;
-        if (shapeParameter > epsValue)
-            scaleParameter = meanValue / shapeParameter;
+
+        if (shapeParameter < epsValue)
+            throw itk::ExceptionObject(__FILE__, __LINE__, "The shape parameter of a Gamma distribution cannot be negative or null.", ITK_LOCATION);
+
+        scaleParameter = meanValue / shapeParameter;
     }
     else if (method == "biased-closed-form" || method == "unbiased-closed-form")
     {
@@ -94,7 +96,7 @@ void GammaDistribution::Fit(const MultipleValueType &sample, const std::string &
         scaleParameter = doubleDimValue * sumLogXValue - sumLogValue * sumValue;
         if (denValue > epsValue)
             shapeParameter /= denValue;
-            scaleParameter /= (doubleDimValue * doubleDimValue);
+        scaleParameter /= (doubleDimValue * doubleDimValue);
         
         if (method == "unbiased-closed-form")
         {

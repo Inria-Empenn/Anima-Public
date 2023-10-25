@@ -17,6 +17,7 @@ namespace anima
             m_MeanAxis[1] = 0;
             m_MeanAxis[2] = 1;
             m_ConcentrationParameter = 1.0;
+            m_RValue = 0.0;
 		}
 
         bool BelongsToSupport(const SingleValueType &x);
@@ -24,6 +25,8 @@ namespace anima
 		double GetLogDensity(const SingleValueType &x);
 		void Fit(const MultipleValueType &sample, const std::string &method);
 		void Random(MultipleValueType &sample, GeneratorType &generator);
+        SingleValueType GetMean() {return m_MeanAxis;}
+        double GetVariance() {return 1.0 - m_RValue;}
 
 		void SetMeanAxis(const itk::Vector<double,3> &x);
         SingleValueType GetMeanAxis() {return m_MeanAxis;}
@@ -39,6 +42,7 @@ namespace anima
     private:
         itk::Vector<double,3> m_MeanAxis;
         double m_ConcentrationParameter;
+        double m_RValue;
         double ComputeConcentrationMLE(const double rValue, const double aValue, const double cValue, double &logLik);
         const unsigned int m_AmbientDimension = 3;
 	};

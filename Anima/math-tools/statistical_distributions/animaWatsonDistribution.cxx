@@ -139,30 +139,29 @@ void WatsonDistribution::Fit(const MultipleValueType &sample, const std::string 
 
     double aValue = 0.5;
     double cValue = static_cast<double>(m_AmbientDimension) / 2.0;
-    double rValue = 0.0;
 
     // Compute estimate of mean axis assuming estimated concentration parameter is positive
-    rValue = 0.0;
+    double bipolarRValue = 0.0;
     for (unsigned int i = 0;i < m_AmbientDimension;++i)
     {
         for (unsigned int j = 0;j < m_AmbientDimension;++j)
-            rValue += eigenVecs(2, i) * scatterMatrix(i, j) * eigenVecs(2, j);
+            bipolarRValue += eigenVecs(2, i) * scatterMatrix(i, j) * eigenVecs(2, j);
     }
 
     double bipolarLogLik;
-    double bipolarKappa = ComputeConcentrationMLE(rValue, aValue, cValue, bipolarLogLik);
+    double bipolarKappa = ComputeConcentrationMLE(bipolarRValue, aValue, cValue, bipolarLogLik);
     bool bipolarValid = bipolarKappa > 0;
 
     // Compute estimate of mean axis assuming estimated concentration parameter is negative
-    rValue = 0.0;
+    double gridleRValue = 0.0;
     for (unsigned int i = 0;i < m_AmbientDimension;++i)
     {
         for (unsigned int j = 0;j < m_AmbientDimension;++j)
-            rValue += eigenVecs(0, i) * scatterMatrix(i, j) * eigenVecs(0, j);
+            gridleRValue += eigenVecs(0, i) * scatterMatrix(i, j) * eigenVecs(0, j);
     }
 
     double gridleLogLik;
-    double gridleKappa = ComputeConcentrationMLE(rValue, aValue, cValue, gridleLogLik);
+    double gridleKappa = ComputeConcentrationMLE(gridleRValue, aValue, cValue, gridleLogLik);
     bool gridleValid = gridleKappa < 0;
 
     if (bipolarValid && gridleValid)
@@ -172,12 +171,14 @@ void WatsonDistribution::Fit(const MultipleValueType &sample, const std::string 
             for (unsigned int i = 0;i < m_AmbientDimension;++i)
                 meanAxis[i] = eigenVecs(0, i);
             concentrationParameter = gridleKappa;
+            m_RValue = gridleRValue;
         }
         else
         {
             for (unsigned int i = 0;i < m_AmbientDimension;++i)
                 meanAxis[i] = eigenVecs(2, i);
             concentrationParameter = bipolarKappa;
+            m_RValue = bipolarRValue;
         }
     }
     else if (bipolarValid)
@@ -185,16 +186,19 @@ void WatsonDistribution::Fit(const MultipleValueType &sample, const std::string 
         for (unsigned int i = 0;i < m_AmbientDimension;++i)
                 meanAxis[i] = eigenVecs(2, i);
         concentrationParameter = bipolarKappa;
+        m_RValue = bipolarRValue;
     }
     else if (gridleValid)
     {
         for (unsigned int i = 0;i < m_AmbientDimension;++i)
                 meanAxis[i] = eigenVecs(0, i);
         concentrationParameter = bipolarKappa;
+        m_RValue = gridleRValue;
     }
     else
     {
         concentrationParameter = 0.0;
+        m_RValue = gridleRValue;
     }
 
     meanAxis.Normalize();

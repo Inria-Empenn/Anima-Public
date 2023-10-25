@@ -22,5 +22,7 @@ namespace anima
 		virtual double GetLogDensity(const SingleValueType &x) = 0;
 		virtual void Fit(const MultipleValueType &sample, const std::string &method) = 0;
 		virtual void Random(MultipleValueType &sample, GeneratorType &generator) = 0;
+		virtual SingleValueType GetMean() = 0;
+		virtual double GetVariance() = 0;
 	};
 } // end of namespace

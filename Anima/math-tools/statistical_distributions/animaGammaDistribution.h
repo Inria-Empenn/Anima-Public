@@ -22,6 +22,8 @@ namespace anima
 		double GetLogDensity(const SingleValueType &x);
 		void Fit(const MultipleValueType &sample, const std::string &method);
 		void Random(MultipleValueType &sample, GeneratorType &generator);
+		SingleValueType GetMean() {return m_ShapeParameter * m_ScaleParameter;}
+		double GetVariance() {return m_ShapeParameter * m_ScaleParameter * m_ScaleParameter;}
 
 		void SetShapeParameter(const double val);
 		double GetShapeParameter() {return m_ShapeParameter;}
