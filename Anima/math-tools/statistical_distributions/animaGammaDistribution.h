@@ -17,6 +17,7 @@ namespace anima
 			m_ScaleParameter = 1.0;
 		}
 
+		bool BelongsToSupport(const SingleValueType &x);
 		double GetDensity(const SingleValueType &x);
 		double GetLogDensity(const SingleValueType &x);
 		void Fit(const MultipleValueType &sample, const std::string &method);

@@ -7,6 +7,26 @@
 namespace anima
 {
 
+bool DirichletDistribution::BelongsToSupport(const SingleValueType &x)
+{
+    double epsValue = std::sqrt(std::numeric_limits<double>::epsilon());
+    unsigned int numParameters = x.size();
+
+    double sumValue = 0.0;
+    for (unsigned int i = 0;i < numParameters;++i)
+    {
+        double tmpValue = x[i];
+        if (tmpValue < epsValue || tmpValue > 1.0 - epsValue)
+            return false;
+        sumValue += tmpValue;
+    }
+
+    if (std::abs(sumValue - 1.0) > epsValue)
+        return false;
+    
+    return true;
+}
+
 void DirichletDistribution::SetConcentrationParameters(const std::vector<double> &val)
 {
     unsigned int numParameters = val.size();
@@ -22,18 +42,7 @@ void DirichletDistribution::SetConcentrationParameters(const std::vector<double>
 
 double DirichletDistribution::GetDensity(const SingleValueType &x)
 {
-    unsigned int numParameters = x.size();
-
-    double sumValue = 0.0;
-    for (unsigned int i = 0;i < numParameters;++i)
-    {
-        double tmpValue = x[i];
-        if (tmpValue < 0 || tmpValue > 1)
-            return 0.0;
-        sumValue += tmpValue;
-    }
-
-    if (std::abs(sumValue - 1.0) > std::numeric_limits<double>::epsilon())
+    if (!this->BelongsToSupport(x))
         return 0.0;
 
     return std::exp(this->GetLogDensity(x));
@@ -41,20 +50,11 @@ double DirichletDistribution::GetDensity(const SingleValueType &x)
 
 double DirichletDistribution::GetLogDensity(const SingleValueType &x)
 {
-    unsigned int numParameters = x.size();
-
-    double sumValue = 0.0;
-    for (unsigned int i = 0;i < numParameters;++i)
-    {
-        double tmpValue = x[i];
-        if (tmpValue < 0 || tmpValue > 1)
-            throw itk::ExceptionObject(__FILE__, __LINE__, "The log-density of the Dirichlet distribution is not defined for elements outside the simplex.", ITK_LOCATION);
-        sumValue += tmpValue;
-    }
-
-    if (std::abs(sumValue - 1.0) > std::numeric_limits<double>::epsilon())
+    if (!this->BelongsToSupport(x))
         throw itk::ExceptionObject(__FILE__, __LINE__, "The log-density of the Dirichlet distribution is not defined for elements outside the simplex.", ITK_LOCATION);
-
+    
+    unsigned int numParameters = x.size();
+    
     if (m_ConcentrationParameters.size() != numParameters)
         throw itk::ExceptionObject(__FILE__, __LINE__, "The input argument does not belong to the same simplex as the one on which the Dirichlet distribution is defined.", ITK_LOCATION);
 

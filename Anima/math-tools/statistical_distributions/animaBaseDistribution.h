@@ -17,6 +17,7 @@ namespace anima
 
 		BaseDistribution() {}
 
+		virtual bool BelongsToSupport(const SingleValueType &x) = 0;
 		virtual double GetDensity(const SingleValueType &x) = 0;
 		virtual double GetLogDensity(const SingleValueType &x) = 0;
 		virtual void Fit(const MultipleValueType &sample, const std::string &method) = 0;

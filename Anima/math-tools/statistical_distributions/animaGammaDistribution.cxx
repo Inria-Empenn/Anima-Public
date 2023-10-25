@@ -6,6 +6,11 @@
 namespace anima
 {
 
+bool GammaDistribution::BelongsToSupport(const SingleValueType &x)
+{
+    return x > std::sqrt(std::numeric_limits<double>::epsilon());
+}
+
 void GammaDistribution::SetShapeParameter(const double val)
 {
     if (val < std::numeric_limits<double>::epsilon())
@@ -22,14 +27,14 @@ void GammaDistribution::SetScaleParameter(const double val)
 
 double GammaDistribution::GetDensity(const SingleValueType &x)
 {
-    if (x < std::numeric_limits<double>::epsilon())
+    if (!this->BelongsToSupport(x))
         return 0.0;
     return std::exp(this->GetLogDensity(x));
 }
 
 double GammaDistribution::GetLogDensity(const SingleValueType &x)
 {
-    if (x < std::numeric_limits<double>::epsilon())
+    if (!this->BelongsToSupport(x))
         throw itk::ExceptionObject(__FILE__, __LINE__, "The log-density of the Gamma distribution is not defined for negative or null arguments.", ITK_LOCATION);
     double resValue = (m_ShapeParameter - 1.0) * std::log(x);
     resValue -= x / m_ScaleParameter;
