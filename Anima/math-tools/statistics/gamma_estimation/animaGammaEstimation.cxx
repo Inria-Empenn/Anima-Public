@@ -95,17 +95,35 @@ int main(int argc, char **argv)
 
     std::vector<double> inputValues;
     anima::GammaDistribution gammaDistribution;
+    double epsValue = std::sqrt(std::numeric_limits<double>::epsilon());
+    std::vector<bool> usefulValues(nbImages, false);
 
 	while (!kappaItr.IsAtEnd())
 	{
         unsigned int nbUsedImages = 0;
+        std::fill(usefulValues.begin(), usefulValues.end(), false);
         if (maskArg.getValue() != "")
         {
             for (unsigned int i = 0;i < nbImages;++i)
-                nbUsedImages += maskItrs[i].Get();
+            {
+                if (maskItrs[i].Get() && inItrs[i].Get() > epsValue)
+                {
+                    usefulValues[i] = true;
+                    nbUsedImages++;
+                }
+            }
         }
         else
-            nbUsedImages = nbImages;
+        {
+            for (unsigned int i = 0;i < nbImages;++i)
+            {
+                if (inItrs[i].Get() > epsValue)
+                {
+                    usefulValues[i] = true;
+                    nbUsedImages++;
+                }
+            }
+        }
         
         if (nbUsedImages == 0)
 		{
@@ -121,55 +139,14 @@ int main(int argc, char **argv)
 		}
         
         inputValues.resize(nbUsedImages);
-
-        bool validInputData = true;
-        if (maskArg.getValue() != "")
+        unsigned int pos = 0;
+        for (unsigned int i = 0;i < nbImages;++i)
         {
-            unsigned int pos = 0;
-            for (unsigned int i = 0;i < nbImages;++i)
+            if (usefulValues[i])
             {
-                if (maskItrs[i].Get())
-                {
-                    double tmpValue = inItrs[i].Get();
-
-                    if (tmpValue < std::sqrt(std::numeric_limits<double>::epsilon()))
-                    {
-                        validInputData = false;
-                        break;
-                    }
-
-                    inputValues[pos] = tmpValue;
-                    ++pos;
-                }
+                inputValues[pos] = inItrs[i].Get();
+                ++pos;
             }
-        }
-        else
-        {
-            for (unsigned int i = 0;i < nbImages;++i)
-            {
-                double tmpValue = inItrs[i].Get();
-
-                if (tmpValue < std::sqrt(std::numeric_limits<double>::epsilon()))
-                {
-                    validInputData = false;
-                    break;
-                }
-
-                inputValues[i] = tmpValue;
-            }
-        }
-
-        if (!validInputData)
-        {
-            for (unsigned int i = 0;i < nbImages;++i)
-            {
-                ++inItrs[i];
-                if (maskArg.getValue() != "")
-                    ++maskItrs[i];
-            }
-			++kappaItr;
-            ++thetaItr;
-			continue;
         }
 
         gammaDistribution.Fit(inputValues, methodArg.getValue());
