@@ -9,7 +9,7 @@ namespace anima
     class ANIMASTATISTICALDISTRIBUTIONS_EXPORT WatsonDistribution : public BaseDistribution<itk::Vector<double,3>,std::vector<itk::Vector<double,3>>>
 	{
 	public:
-		using DistributionType = std::uniform_real_distribution<double>;
+		using UniformDistributionType = std::uniform_real_distribution<double>;
 
 		WatsonDistribution()
 		{
@@ -19,8 +19,9 @@ namespace anima
             m_ConcentrationParameter = 1.0;
 		}
 
-        double GetDensity(const SingleValueType &val);
-		double GetLogDensity(const SingleValueType &val);
+        bool BelongsToSupport(const SingleValueType &x);
+        double GetDensity(const SingleValueType &x);
+		double GetLogDensity(const SingleValueType &x);
 		void Fit(const MultipleValueType &sample, const std::string &method);
 		void Random(MultipleValueType &sample, GeneratorType &generator);
 
@@ -38,6 +39,8 @@ namespace anima
     private:
         itk::Vector<double,3> m_MeanAxis;
         double m_ConcentrationParameter;
+        double ComputeConcentrationMLE(const double rValue, const double aValue, const double cValue, double &logLik);
+        const unsigned int m_AmbientDimension = 3;
 	};
     
 } // end of namespace anima

@@ -1,9 +1,12 @@
 #include "animaWatsonDistribution.h"
 
 #include <animaErrorFunctions.h>
+#include <animaKummerFunctions.h>
 #include <animaVectorOperations.h>
+#include <animaMatrixOperations.h>
 
 #include <itkMacro.h>
+#include <itkSymmetricEigenAnalysis.h>
 
 #include <cmath>
 #include <limits>
@@ -11,9 +14,14 @@
 namespace anima
 {
 
+bool WatsonDistribution::BelongsToSupport(const SingleValueType &x)
+{
+    return std::abs(x.GetNorm() - 1.0) < std::sqrt(std::numeric_limits<double>::epsilon());
+}
+
 void WatsonDistribution::SetMeanAxis(const itk::Vector<double,3> &val)
 {
-    if (std::abs(val.GetSquaredNorm() - 1.0) > std::numeric_limits<double>::epsilon())
+    if (!this->BelongsToSupport(val))
         throw itk::ExceptionObject(__FILE__, __LINE__, "The mean axis parameter of the Watson distribution should be of unit norm.", ITK_LOCATION);
     m_MeanAxis = val;
 }
@@ -25,7 +33,7 @@ void WatsonDistribution::SetConcentrationParameter(const double &val)
 
 double WatsonDistribution::GetDensity(const SingleValueType &x)
 {
-    if (std::abs(x.GetSquaredNorm() - 1.0) > std::numeric_limits<double>::epsilon())
+    if (!this->BelongsToSupport(x))
         return 0.0;
     
     // Case 1: k = 0 - Uniform distribution on the 2-sphere
@@ -50,22 +58,146 @@ double WatsonDistribution::GetDensity(const SingleValueType &x)
 
 double WatsonDistribution::GetLogDensity(const SingleValueType &x)
 {
-    if (std::abs(x.GetSquaredNorm() - 1.0) > std::numeric_limits<double>::epsilon())
+    if (!this->BelongsToSupport(x))
         throw itk::ExceptionObject(__FILE__, __LINE__, "The log-density of the Watson distribution is not defined for arguments outside the 2-sphere.", ITK_LOCATION);
     
     return std::log(this->GetDensity(x));
 }
 
+double WatsonDistribution::ComputeConcentrationMLE(const double rValue, const double aValue, const double cValue, double &logLik)
+{
+    double bBoundValue = (rValue * cValue - aValue) / (2.0 * rValue * (1.0 - rValue));
+    double rootInValue = 1.0 + (4.0 * (cValue + 1.0) * rValue * (1.0 - rValue)) / (aValue * (cValue - aValue));
+    bBoundValue *= (1.0 + std::sqrt(rootInValue));
+
+    double lBoundValue = (rValue * cValue - aValue) / (rValue * (1.0 - rValue));
+    lBoundValue *= (1.0 + (1.0 - rValue) / (cValue - aValue));
+
+    double uBoundValue = (rValue * cValue - aValue) / (rValue * (1.0 - rValue));
+    uBoundValue *= (1.0 + rValue / aValue);
+
+    double concentrationParameter = 0.0;
+    if (rValue > aValue / cValue)
+        concentrationParameter = (bBoundValue + lBoundValue) / 2.0;
+    if (rValue < aValue / cValue)
+        concentrationParameter = (bBoundValue + uBoundValue) / 2.0;
+
+    logLik = concentrationParameter * (rValue - 1.0) - std::log(anima::GetScaledKummerFunctionValue(concentrationParameter, aValue, cValue));
+
+    return concentrationParameter;
+}
+
 void WatsonDistribution::Fit(const MultipleValueType &sample, const std::string &method)
 {
-    itk::Vector<double,3> meanAxis;
-    meanAxis[0] = 0.0;
-    meanAxis[1] = 0.0;
-    meanAxis[2] = 1.0;
-    double concentrationParameter = 1.0;
+    /**********************************************************************************************//**
+         * \fn void Random(std::vector<itk::Vector<double,3>>, std::mt19937 &generator)
+         *
+         * \brief	Closed-form approximations of the maximum likelihood estimators for the mean axis 
+         *          and the concentration parameter of the Watson distribution using the procedure 
+         *          described in Sra & Karp, The multivariate Watson distribution: Maximum-likelihood 
+         *          estimation and other aspects, Journal of Multivariate Analysis, 2013, Vol. 114, 
+         *          pp. 256-69.
+         *
+         * \author	Aymeric Stamm
+         * \date	October 2023
+         *
+         * \param	sample A numeric matrix of shape n x 3 specifying a sample of size n drawn from the 
+         *          Watson distribution on the 2-sphere.
+         * \param	method A string specifying the estimation method. Unused here.
+         **************************************************************************************************/
     
-    // else
-    //     throw itk::ExceptionObject(__FILE__, __LINE__, "Unsupported estimation method for the Gamma distribution.", ITK_LOCATION);
+    unsigned int numberOfObservations = sample.size();
+    itk::Vector<double,3> meanAxis;
+    meanAxis.Fill(0.0);
+    meanAxis[2] = 1.0;
+    double concentrationParameter = 0.0;
+
+    using MatrixType = itk::Matrix<double,3,3>;
+    MatrixType scatterMatrix;
+    scatterMatrix.Fill(0.0);
+    for (unsigned int i = 0;i < numberOfObservations;++i)
+    {
+        for (unsigned int j = 0;j < m_AmbientDimension;++j)
+        {
+            for (unsigned int k = j;k < m_AmbientDimension;++k)
+            {
+                double tmpValue = sample[i][j] * sample[i][k];
+                scatterMatrix(j, k) += tmpValue;
+                if (j != k)
+                    scatterMatrix(k, j) += tmpValue;
+            }
+        }
+    }
+
+    scatterMatrix /= static_cast<double>(numberOfObservations);
+
+    // Eigen decomposition of S
+    itk::SymmetricEigenAnalysis<MatrixType,SingleValueType,MatrixType> eigenDecomp(m_AmbientDimension);
+    SingleValueType eigenVals;
+    MatrixType eigenVecs;
+    eigenDecomp.ComputeEigenValuesAndVectors(scatterMatrix, eigenVals, eigenVecs);
+
+    double aValue = 0.5;
+    double cValue = static_cast<double>(m_AmbientDimension) / 2.0;
+    double rValue = 0.0;
+
+    // Compute estimate of mean axis assuming estimated concentration parameter is positive
+    rValue = 0.0;
+    for (unsigned int i = 0;i < m_AmbientDimension;++i)
+    {
+        for (unsigned int j = 0;j < m_AmbientDimension;++j)
+            rValue += eigenVecs(2, i) * scatterMatrix(i, j) * eigenVecs(2, j);
+    }
+
+    double bipolarLogLik;
+    double bipolarKappa = ComputeConcentrationMLE(rValue, aValue, cValue, bipolarLogLik);
+    bool bipolarValid = bipolarKappa > 0;
+
+    // Compute estimate of mean axis assuming estimated concentration parameter is negative
+    rValue = 0.0;
+    for (unsigned int i = 0;i < m_AmbientDimension;++i)
+    {
+        for (unsigned int j = 0;j < m_AmbientDimension;++j)
+            rValue += eigenVecs(0, i) * scatterMatrix(i, j) * eigenVecs(0, j);
+    }
+
+    double gridleLogLik;
+    double gridleKappa = ComputeConcentrationMLE(rValue, aValue, cValue, gridleLogLik);
+    bool gridleValid = gridleKappa < 0;
+
+    if (bipolarValid && gridleValid)
+    {
+        if (gridleLogLik > bipolarLogLik)
+        {
+            for (unsigned int i = 0;i < m_AmbientDimension;++i)
+                meanAxis[i] = eigenVecs(0, i);
+            concentrationParameter = gridleKappa;
+        }
+        else
+        {
+            for (unsigned int i = 0;i < m_AmbientDimension;++i)
+                meanAxis[i] = eigenVecs(2, i);
+            concentrationParameter = bipolarKappa;
+        }
+    }
+    else if (bipolarValid)
+    {
+        for (unsigned int i = 0;i < m_AmbientDimension;++i)
+                meanAxis[i] = eigenVecs(2, i);
+        concentrationParameter = bipolarKappa;
+    }
+    else if (gridleValid)
+    {
+        for (unsigned int i = 0;i < m_AmbientDimension;++i)
+                meanAxis[i] = eigenVecs(0, i);
+        concentrationParameter = bipolarKappa;
+    }
+    else
+    {
+        concentrationParameter = 0.0;
+    }
+
+    meanAxis.Normalize();
 
     this->SetMeanAxis(meanAxis);
     this->SetConcentrationParameter(concentrationParameter);
@@ -74,48 +206,31 @@ void WatsonDistribution::Fit(const MultipleValueType &sample, const std::string 
 void WatsonDistribution::Random(MultipleValueType &sample, GeneratorType &generator)
 {   
     /**********************************************************************************************//**
-         * \fn template <class ScalarType, class VectorType>
-         * 	   void
-         *     SampleFromWatsonDistribution(const ScalarType &kappa,
-         * 					const VectorType &meanDirection,
-         * 					VectorType &resVec,
-         * 					unsigned int DataDimension,
-         * 					std::mt19937 &generator)
+         * \fn void Random(std::vector<itk::Vector<double,3>>, std::mt19937 &generator)
          *
-         * \brief	Sample from the Watson distribution using the procedure described in
-         * 			Fisher et al., Statistical Analysis of Spherical Data, 1993, p.59.
+         * \brief	Sample from the Watson distribution using the procedure described in Fisher et al., 
+         *          Statistical Analysis of Spherical Data, Cambridge University Press, 1993, pp. 59.
          *
          * \author	Aymeric Stamm
          * \date	October 2013
          *
-         * \param	kappa		   	Concentration parameter of the Watson distribution.
-         * \param	meanDirection	Mean direction of the Watson distribution.
-         * \param	resVec			Resulting sample.
-         * \param	DataDimension	Dimension of the sphere + 1.
-         * \param	generator		Pseudo-random number generator.
+         * \param	sample    A numeric matrix of shape n x 3 storing a sample of size n drawn from the 
+         *                    Watson distribution on the 2-sphere.
+         * \param	generator A pseudo-random number generator.
          **************************************************************************************************/
 
-    SingleValueType tmpVec, resVec, rotationNormal;
+    SingleValueType tmpVec, resVec;
     tmpVec.Fill(0.0);
+    tmpVec[2] = 1.0;
 
-    // Code to compute rotation matrix from vectors, taken from registration code
-    tmpVec[2] = 1;
-
-    anima::ComputeCrossProduct(tmpVec, m_MeanAxis, rotationNormal);
-    rotationNormal.Normalize();
+    // Compute rotation matrix to bring [0,0,1] on meanAxis
+    itk::Matrix<double,3,3> rotationMatrix = anima::GetRotationMatrixFromVectors(tmpVec, m_MeanAxis);
 
     // Now resuming onto sampling around direction [0,0,1]
-    anima::TransformCartesianToSphericalCoordinates(m_MeanAxis, tmpVec);
-
-    double rotationAngle = tmpVec[0];
-
-    if (std::abs(tmpVec.GetSquaredNorm() - 1.0) > std::sqrt(std::numeric_limits<double>::epsilon()))
-        throw itk::ExceptionObject(__FILE__, __LINE__,"The Watson distribution is defined on the 2-sphere.",ITK_LOCATION);
-
     double U, V, S;
-
-    DistributionType distributionValue(0.0, 1.0);
+    UniformDistributionType distributionValue(0.0, 1.0);
     unsigned int nSamples = sample.size();
+
     for (unsigned int i = 0;i < nSamples;++i)
     {
         if (m_ConcentrationParameter > std::sqrt(std::numeric_limits<double>::epsilon())) // Bipolar distribution
@@ -157,15 +272,20 @@ void WatsonDistribution::Random(MultipleValueType &sample, GeneratorType &genera
             }
         }
         else // Uniform distribution
-            S = M_PI * distributionValue(generator);
+            S = std::cos(M_PI * distributionValue(generator));
 
         double phi = 2.0 * M_PI * distributionValue(generator);
 
         tmpVec[0] = std::sqrt(1.0 - S * S) * std::cos(phi);
         tmpVec[1] = std::sqrt(1.0 - S * S) * std::sin(phi);
         tmpVec[2] = S;
-        
-        anima::RotateAroundAxis(tmpVec, rotationAngle, rotationNormal, resVec);
+
+        for (unsigned int j = 0;j < m_AmbientDimension;++j)
+        {
+            resVec[j] = 0.0;
+            for (unsigned int k = 0;k < m_AmbientDimension;++k)
+                resVec[j] += rotationMatrix(j, k) * tmpVec[k];
+        }
         
         double resNorm = resVec.Normalize();
         

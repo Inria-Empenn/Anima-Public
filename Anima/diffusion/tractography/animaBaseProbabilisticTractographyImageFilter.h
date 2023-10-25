@@ -226,6 +226,9 @@ protected:
     //! Holds an object of class WatsonDistribution for sampling new directions
     anima::WatsonDistribution m_WatsonDistribution;
 
+    //! Holds a sample of size 1 of directions
+    DirectionVectorType m_SampleOfDirections;
+
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(BaseProbabilisticTractographyImageFilter);
 

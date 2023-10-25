@@ -7,8 +7,9 @@ add_subdirectory(gamma_estimation)
 add_subdirectory(dirichlet_estimation)
 
 if(BUILD_TESTING)
-  add_subdirectory(gamma_estimation_test)
   add_subdirectory(dirichlet_estimation_test)
+  add_subdirectory(gamma_estimation_test)
+  add_subdirectory(watson_estimation_test)
 endif()
 
 add_subdirectory(boot_strap_4d_volume)

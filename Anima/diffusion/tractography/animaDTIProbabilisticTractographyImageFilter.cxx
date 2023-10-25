@@ -63,7 +63,10 @@ DTIProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDi
 //    else
 //        anima::SampleFromVMFDistribution(concentrationParameter,sampling_direction,resVec,random_generator);
 
-    anima::SampleFromWatsonDistribution(concentrationParameter,sampling_direction,resVec,3,random_generator);
+    m_WatsonDistribution.SetMeanAxis(sampling_direction);
+    m_WatsonDistribution.SetConcentrationParameter(concentrationParameter);
+    m_WatsonDistribution.Random(m_SampleOfDirections, random_generator);
+    resVec = m_SampleOfDirections[0];
     
     if (is2d)
     {

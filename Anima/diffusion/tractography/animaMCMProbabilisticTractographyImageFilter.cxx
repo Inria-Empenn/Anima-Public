@@ -122,7 +122,10 @@ MCMProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDi
     //    else
     //        anima::SampleFromVMFDistribution(chosenKappa,sampling_direction,resVec,random_generator);
     
-    anima::SampleFromWatsonDistribution(chosenKappa,sampling_direction,resVec,3,random_generator);
+    m_WatsonDistribution.SetMeanAxis(sampling_direction);
+    m_WatsonDistribution.SetConcentrationParameter(chosenKappa);
+    m_WatsonDistribution.Random(m_SampleOfDirections, random_generator);
+    resVec = m_SampleOfDirections[0];
     
     if (is2d)
     {
