@@ -210,19 +210,17 @@ int main(int argc, char **argv)
         }
 
         correctedInputValues.set_size(nbUsedImages, nbValidComponents);
-        for (unsigned int i = 0;i < nbUsedImages;++i)
+        pos = 0;
+        for (unsigned int j = 0;j < nbComponents;++j)
         {
-            unsigned int posComponent = 0;
-            for (unsigned int j = 0;j < nbComponents;++j)
+            if (usefulComponents[j])
             {
-                if (usefulComponents[j])
-                {
-                    correctedInputValues.put(i, posComponent, inputValues.get(i, j));
-                    posComponent++;
-                }
+                for (unsigned int i = 0;i < nbUsedImages;++i)
+                    correctedInputValues.put(i, pos, inputValues.get(i, j));
+                pos++;
             }
         }
-        
+
         dirichletDistribution.Fit(correctedInputValues, "mle");
         computedOutputValue = dirichletDistribution.GetConcentrationParameters();
 
