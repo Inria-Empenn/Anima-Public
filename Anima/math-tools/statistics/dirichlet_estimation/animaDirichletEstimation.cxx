@@ -98,25 +98,58 @@ int main(int argc, char **argv)
     outputImage->SetRegions(inputImages[0]->GetLargestPossibleRegion());
     outputImage->CopyInformation(inputImages[0]);
     outputImage->Allocate();
-    outputImage->FillBuffer(outputValue);  
+    outputImage->FillBuffer(outputValue);
     
     OutputImageIteratorType outItr(outputImage, outputImage->GetLargestPossibleRegion());
     vnl_matrix<double> inputValues, correctedInputValues;
     anima::DirichletDistribution dirichletDistribution;
     std::vector<double> computedOutputValue;
-    std::vector<double> meanComponents(nbComponents, -1.0);
+    std::vector<bool> usefulValues(nbImages, false);
+    std::vector<bool> usefulComponents(nbComponents, false);
+    double epsValue = std::sqrt(std::numeric_limits<double>::epsilon());
 
-    unsigned int pos = 0;
 	while (!outItr.IsAtEnd())
 	{
+        // Discard background voxels or voxels full of zeros
         unsigned int nbUsedImages = 0;
+        std::fill(usefulValues.begin(), usefulValues.end(), false);
         if (maskArg.getValue() != "")
         {
             for (unsigned int i = 0;i < nbImages;++i)
-                nbUsedImages += maskItrs[i].Get();
+            {
+                if (maskItrs[i].Get())
+                {
+                    outputValue = inItrs[i].Get();
+
+                    double sumValue = 0.0;
+                    for (unsigned int j = 0;j < nbComponents;++j)
+                        sumValue += outputValue[j];
+                    
+                    if (sumValue > epsValue)
+                    {
+                        usefulValues[i] = true;
+                        nbUsedImages++;
+                    }       
+                }
+            }
         }
         else
-            nbUsedImages = nbImages;
+        {
+            for (unsigned int i = 0;i < nbImages;++i)
+            {
+                outputValue = inItrs[i].Get();
+                
+                double sumValue = 0.0;
+                for (unsigned int j = 0;j < nbComponents;++j)
+                    sumValue += outputValue[j];
+                
+                if (sumValue > epsValue)
+                {
+                    usefulValues[i] = true;
+                    nbUsedImages++;
+                }
+            }
+        }
         
         if (nbUsedImages == 0)
 		{
@@ -131,104 +164,19 @@ int main(int argc, char **argv)
 		}
         
         inputValues.set_size(nbUsedImages, nbComponents);
-
-        bool validInputData = true;
-        if (maskArg.getValue() != "")
+        unsigned int pos = 0;
+        for (unsigned int i = 0;i < nbImages;++i)
         {
-            unsigned int pos = 0;
-            for (unsigned int i = 0;i < nbImages;++i)
-            {
-                if (maskItrs[i].Get())
-                {
-                    outputValue = inItrs[i].Get();
-
-                    double sumValue = 0.0;
-                    for (unsigned int j = 0;j < nbComponents;++j)
-                        sumValue += outputValue[j];
-                    
-                    if (std::abs(sumValue - 1.0) > 1.0e-8)
-                    {
-                        validInputData = false;
-                        break;
-                    }
-
-                    sumValue = 0.0;
-                    for (unsigned int j = 0;j < nbComponents;++j)
-                    {
-                        double tmpValue = outputValue[j];
-                        if (tmpValue > 1.0 || tmpValue < 0.0)
-                        {
-                            validInputData = false;
-                            break;
-                        }
-
-                        tmpValue = std::max(1.0e-4, tmpValue);
-                        inputValues.put(pos, j, tmpValue);
-                        sumValue += tmpValue;
-                    }
-
-                    if (!validInputData)
-                        break;
-                    
-                    for (unsigned int j = 0;j < nbComponents;++j)
-                        inputValues(pos, j) /= sumValue;
-                        
-                    ++pos;
-                }
-            }
-        }
-        else
-        {
-            for (unsigned int i = 0;i < nbImages;++i)
+            if (usefulValues[i])
             {
                 outputValue = inItrs[i].Get();
-
-                double sumValue = 0.0;
                 for (unsigned int j = 0;j < nbComponents;++j)
-                    sumValue += outputValue[j];
-                
-                if (std::abs(sumValue - 1.0) > 1.0e-8)
-                {
-                    validInputData = false;
-                    break;
-                }
-
-                sumValue = 0.0;
-                for (unsigned int j = 0;j < nbComponents;++j)
-                {
-                    double tmpValue = outputValue[j];
-                    if (tmpValue > 1.0 || tmpValue < 0.0)
-                    {
-                        validInputData = false;
-                        break;
-                    }
-
-                    tmpValue = std::max(1.0e-4, tmpValue);
-                    inputValues.put(i, j, tmpValue); 
-                    sumValue += tmpValue;
-                }
-
-                if (!validInputData)
-                    break;
-                
-                for (unsigned int j = 0;j < nbComponents;++j)
-                    inputValues(i, j) /= sumValue;
+                    inputValues.put(pos, j, outputValue[j]);
+                pos++;
             }
         }
 
-        if (!validInputData)
-        {
-            for (unsigned int i = 0;i < nbImages;++i)
-            {
-                ++inItrs[i];
-                if (maskArg.getValue() != "")
-                    ++maskItrs[i];
-            }
-			++outItr;
-			continue;
-        }
-
-        std::fill(meanComponents.begin(), meanComponents.end(), -1.0);
+        std::fill(usefulComponents.begin(), usefulComponents.end(), false);
         unsigned int nbValidComponents = 0;
         for (unsigned int j = 0;j < nbComponents;++j)
         {
@@ -242,27 +190,39 @@ int main(int argc, char **argv)
                 varValue += (inputValues.get(i, j) - meanValue) * (inputValues.get(i, j) - meanValue);
             varValue /= (nbUsedImages - 1.0);
             
-            if (varValue < std::sqrt(std::numeric_limits<double>::epsilon()))
-                meanComponents[j] = meanValue;
-            else
-                nbValidComponents++;
-        }
-
-        correctedInputValues.set_size(nbUsedImages, nbValidComponents);
-
-        for (unsigned int i = 0;i < nbUsedImages;++i)
-        {
-            unsigned int pos = 0;
-            for (unsigned int j = 0;j < nbComponents;++j)
+            if (varValue > epsValue)
             {
-                if (meanComponents[j] == -1.0)
-                {
-                    correctedInputValues.put(i, pos, inputValues.get(i, j));
-                    pos++;
-                }
+                usefulComponents[j] = true;
+                nbValidComponents++;
             }
         }
 
+        if (nbValidComponents == 0)
+        {
+            for (unsigned int i = 0;i < nbImages;++i)
+            {
+                ++inItrs[i];
+                if (maskArg.getValue() != "")
+                    ++maskItrs[i];
+            }
+			++outItr;
+			continue;
+        }
+
+        correctedInputValues.set_size(nbUsedImages, nbValidComponents);
+        for (unsigned int i = 0;i < nbUsedImages;++i)
+        {
+            unsigned int posComponent = 0;
+            for (unsigned int j = 0;j < nbComponents;++j)
+            {
+                if (usefulComponents[j])
+                {
+                    correctedInputValues.put(i, posComponent, inputValues.get(i, j));
+                    posComponent++;
+                }
+            }
+        }
+        
         dirichletDistribution.Fit(correctedInputValues, "mle");
         computedOutputValue = dirichletDistribution.GetConcentrationParameters();
 
@@ -272,16 +232,15 @@ int main(int argc, char **argv)
             exit(-1);
         }
 
-        unsigned int pos = 0;
+        outputValue.Fill(1.0);
+        pos = 0;
         for (unsigned int j = 0;j < nbComponents;++j)
         {
-            if (meanComponents[j] == -1.0)
+            if (usefulComponents[j])
             {
                 outputValue[j] = computedOutputValue[pos];
                 pos++;
             }
-            else
-                outputValue[j] = meanComponents[j];
         }
         
         outItr.Set(outputValue);

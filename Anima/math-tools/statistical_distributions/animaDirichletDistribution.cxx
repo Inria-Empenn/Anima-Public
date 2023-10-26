@@ -1,7 +1,6 @@
 #include "animaDirichletDistribution.h"
 #include <animaGammaFunctions.h>
 #include <cmath>
-#include <limits>
 #include <itkMacro.h>
 
 namespace anima
@@ -9,19 +8,18 @@ namespace anima
 
 bool DirichletDistribution::BelongsToSupport(const SingleValueType &x)
 {
-    double epsValue = std::sqrt(std::numeric_limits<double>::epsilon());
     unsigned int numParameters = x.size();
 
     double sumValue = 0.0;
     for (unsigned int i = 0;i < numParameters;++i)
     {
         double tmpValue = x[i];
-        if (tmpValue < epsValue || tmpValue > 1.0 - epsValue)
+        if (tmpValue < this->GetEpsilon() || tmpValue > 1.0 - this->GetEpsilon())
             return false;
         sumValue += tmpValue;
     }
 
-    if (std::abs(sumValue - 1.0) > epsValue)
+    if (std::abs(sumValue - 1.0) > this->GetEpsilon())
         return false;
     
     return true;
@@ -30,10 +28,10 @@ bool DirichletDistribution::BelongsToSupport(const SingleValueType &x)
 void DirichletDistribution::SetConcentrationParameters(const std::vector<double> &val)
 {
     unsigned int numParameters = val.size();
-
+    
     for (unsigned int i = 0;i < numParameters;++i)
     {
-        if (val[i] < std::numeric_limits<double>::epsilon())
+        if (val[i] < this->GetEpsilon())
             throw itk::ExceptionObject(__FILE__, __LINE__, "The concentration parameters of a statistical distribution should be strictly positive.", ITK_LOCATION);
     }
 
@@ -80,118 +78,131 @@ void DirichletDistribution::Fit(const MultipleValueType &sample, const std::stri
 
     std::vector<double> alphaParameters(numParameters, 1.0);
 
-    bool allZeros = true;
-    std::vector<double> logParameters(numParameters, 0.0);
-    for (unsigned int j = 0;j < numParameters;++j)
+    std::vector<bool> usefulValues(numObservations, false);
+    SingleValueType sampleValue(numParameters);
+    unsigned int numUsefulValues = 0;
+    for (unsigned int i = 0;i < numObservations;++i)
     {
-        unsigned int sumCount = 0;
-        for (unsigned int i = 0;i < numObservations;++i)
+        for (unsigned int j = 0;j < numParameters;++j)
+            sampleValue[j] = sample.get(i, j);
+        if (this->BelongsToSupport(sampleValue))
         {
-            double sampleValue = sample(i, j);
-            if (sampleValue < std::numeric_limits<double>::epsilon())
-                continue;
-            logParameters[j] += std::log(sampleValue);
-            sumCount++;
-        }
-
-        if (sumCount != 0)
-        {
-            logParameters[j] /= sumCount;
-            allZeros = false;
+            usefulValues[i] = true;
+            numUsefulValues++;
         }
     }
 
-    if (allZeros)
+    if (numUsefulValues < 2)
     {
         this->SetConcentrationParameters(alphaParameters);
         return;
     }
 
+    std::vector<double> logParameters(numParameters, 0.0);
+    for (unsigned int j = 0;j < numParameters;++j)
+    {
+        for (unsigned int i = 0;i < numObservations;++i)
+        {
+            if (!usefulValues[i])
+                continue;
+            logParameters[j] += std::log(sample.get(i, j));
+        }
+
+        logParameters[j] /= static_cast<double>(numUsefulValues);
+    }
+
     // Compute initial sum of alpha's
-    // Eq. (23) in https://tminka.github.io/papers/dirichlet/minka-dirichlet.pdf
-    double sumValue = 0.0;
-    unsigned int sumLength = 0;
-    for (unsigned int j = 0;j < numParameters - 1;++j)
+    // From https://tminka.github.io/papers/dirichlet/minka-dirichlet.pdf
+    // there are several options. We pick the one maximizing the first term in Eq. (4)
+    
+    // First compute empirical moments of order 1 and 2
+    std::vector<double> firstMomentValues(numParameters);
+    std::vector<double> secondMomentValues(numParameters);
+    for (unsigned int j = 0;j < numParameters;++j)
     {
         double firstMoment = 0.0;
         double secondMoment = 0.0;
-        unsigned int realNumObservations = 0;
-
         for (unsigned int i = 0;i < numObservations;++i)
         {
-            double tmpValue = sample(i, j);
-            if (tmpValue < std::numeric_limits<double>::epsilon())
+            if (!usefulValues[i])
                 continue;
+            double tmpValue = sample.get(i, j);
             firstMoment += tmpValue;
             secondMoment += tmpValue * tmpValue;
-            realNumObservations++;
         }
+        firstMoment /= static_cast<double>(numUsefulValues);
+        secondMoment /= static_cast<double>(numUsefulValues);
 
-        if (realNumObservations < 2)
-            continue;
-        
-        firstMoment /= realNumObservations;
-        secondMoment /= realNumObservations;
-
-        double sampleVariance = secondMoment - firstMoment * firstMoment;
-
-        if (sampleVariance < std::numeric_limits<double>::epsilon())
-            continue;
-
-        double inLogValue = firstMoment * (1.0 - firstMoment) / sampleVariance - 1.0;
-
-        if (inLogValue < std::numeric_limits<double>::epsilon())
-            continue;
-        
-        sumValue += std::log(inLogValue);
-        sumLength++;
+        firstMomentValues[j] = firstMoment;
+        secondMomentValues[j] = secondMoment;
     }
 
-    if (sumLength == 0)
-    {
-        // Try Eq. (21) from https://tminka.github.io/papers/dirichlet/minka-dirichlet.pdf
-        for (unsigned int j = 0;j < numParameters;++j)
-        {
-            double firstMoment = 0.0;
-            double secondMoment = 0.0;
-            unsigned int realNumObservations = 0;
+    double alphaSum = 0.0;
 
-            for (unsigned int i = 0;i < numObservations;++i)
+    // Then, try Eq. (23) in https://tminka.github.io/papers/dirichlet/minka-dirichlet.pdf
+    for (unsigned int j = 0;j < numParameters;++j)
+    {
+        double sumValue = 0.0;
+        bool skipCandidate = false;
+        for (unsigned int k = 0;k < numParameters;++k)
+        {
+            if (j == k)
+                continue;
+            
+            double firstMoment = firstMomentValues[k];
+            double secondMoment = secondMomentValues[k];
+            
+            double sampleVariance = secondMoment - firstMoment * firstMoment;
+            if (sampleVariance < this->GetEpsilon())
             {
-                double tmpValue = sample(i, j);
-                if (tmpValue < std::numeric_limits<double>::epsilon())
-                    continue;
-                firstMoment += tmpValue;
-                secondMoment += tmpValue * tmpValue;
-                realNumObservations++;
+                skipCandidate = true;
+                break;
             }
 
-            if (realNumObservations < 2)
-                continue;
+            double inLogValue = firstMoment * (1.0 - firstMoment) / sampleVariance - 1.0;
+            if (inLogValue < this->GetEpsilon())
+            {
+                skipCandidate = true;
+                break;
+            }
             
-            firstMoment /= realNumObservations;
-            secondMoment /= realNumObservations;
-
-            double sampleVariance = secondMoment - firstMoment * firstMoment;
-
-            if (sampleVariance < std::numeric_limits<double>::epsilon())
-                continue;
-            
-            double tmpAlphaSum = (firstMoment - secondMoment) / sampleVariance;
-
-            if (tmpAlphaSum < sumValue || j == 0)
-                sumValue = tmpAlphaSum;
+            sumValue += std::log(inLogValue);
         }
 
-        if (sumValue == 0)
-            sumValue = numParameters;
+        if (skipCandidate)
+            continue;
+        
+        double candidateAlphaSum = std::exp(sumValue / (numParameters - 1.0));
 
-        sumValue = std::log(sumValue);
+        if (candidateAlphaSum > alphaSum)
+            alphaSum = candidateAlphaSum;
     }
-    else
-        sumValue /= sumLength;
+
+    // Then, try Eq. (21) from https://tminka.github.io/papers/dirichlet/minka-dirichlet.pdf
+    for (unsigned int j = 0;j < numParameters;++j)
+    {
+        double firstMoment = firstMomentValues[j];
+        double secondMoment = secondMomentValues[j];
+        
+        double sampleVariance = secondMoment - firstMoment * firstMoment;
+        if (sampleVariance < this->GetEpsilon())
+            continue;
+
+        double candidateAlphaSum = (firstMoment - secondMoment) / sampleVariance;
+        if (candidateAlphaSum < this->GetEpsilon())
+            continue;
+        
+        if (candidateAlphaSum > alphaSum)
+            alphaSum = candidateAlphaSum;
+    }
+
+    // Finally, if no solutions, output flat Dirichlet distribution
+    if (alphaSum < this->GetEpsilon())
+    {
+        this->SetConcentrationParameters(alphaParameters);
+        return;
+    }
     
-    double alphaSum = std::exp(sumValue);
     double digammaValue = digamma(alphaSum);
     
     // Fixed point iteration method
@@ -211,6 +222,10 @@ void DirichletDistribution::Fit(const MultipleValueType &sample, const std::stri
         digammaValue = digamma(alphaSum);
         continueLoop = std::abs(digammaValue - oldDigammaValue) > std::sqrt(std::numeric_limits<double>::epsilon());
     }
+
+    m_TotalConcentration = alphaSum;
+    for (unsigned int i = 0;i < numParameters;++i)
+        m_MeanValues[i] = alphaParameters[i] / alphaSum;
 
     this->SetConcentrationParameters(alphaParameters);
 }
@@ -242,6 +257,26 @@ void DirichletDistribution::Random(MultipleValueType &sample, GeneratorType &gen
         }
         sample(i, numParameters - 1) = 1.0 - samplePartialSum;
     }
+}
+
+vnl_matrix<double> DirichletDistribution::GetCovarianceMatrix()
+{
+    unsigned int numComponents = m_ConcentrationParameters.size();
+    vnl_matrix<double> covarianceMatrix(numComponents, numComponents);
+
+    for (unsigned int i = 0;i < numComponents;++i)
+    {
+        covarianceMatrix(i, i) = m_MeanValues[i] * (1.0 - m_MeanValues[i]) / (1.0 + m_TotalConcentration);
+        
+        for (unsigned int j = i + 1;j < numComponents;++j)
+        {
+            double tmpValue = -1.0 * m_MeanValues[i] * m_MeanValues[j] / (1.0 + m_TotalConcentration);
+            covarianceMatrix(i, j) = tmpValue;
+            covarianceMatrix(j, i) = tmpValue;
+        }
+    }
+
+    return covarianceMatrix;
 }
     
 } // end of namespace anima
