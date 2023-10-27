@@ -72,7 +72,7 @@ int main(int argc,  char **argv)
         if (strcmp(tmpStr,"") == 0)
             continue;
 
-        std::cout << "Loading image " << nbOfImages << " : " << tmpStr << std::endl;
+        std::cout << "Loading image " << nbOfImages + 1 << ": " << tmpStr << std::endl;
 
         MCMReaderType mcmReader;
         mcmReader.SetFileName(tmpStr);

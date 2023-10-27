@@ -1,6 +1,8 @@
 #pragma once
 #include "animaMCMOrientationPriorsImageFilter.h"
 #include <animaSpectralClusteringFilter.h>
+#include <animaDirichletDistribution.h>
+#include <animaWatsonDistribution.h>
 
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIterator.h>
@@ -114,13 +116,14 @@ MCMOrientationPriorsImageFilter <TPixelType>
     std::vector<OrientationVectorType> workInputOrientations;
     std::vector<double> workAllWeights(numInputs * m_NumberOfAnisotropicCompartments);
     vnl_matrix<double> workInputWeights;
+    std::vector<double> workConcentrationParameters;
     std::vector<bool> usefulInputsForWeights(numInputs, false);
     std::vector<unsigned int> workAllMemberships(numInputs * m_NumberOfAnisotropicCompartments);
     OrientationVectorType workSphericalOrientation, workCartesianOrientation;
     workSphericalOrientation[2] = 1.0;
     std::vector<unsigned int> clusterMembers;
-    // anima::WatsonDistribution watsonDistribution;
-    // anima::DirichletDistribution dirichletDistribution;
+    anima::WatsonDistribution watsonDistribution;
+    anima::DirichletDistribution dirichletDistribution;
 
     std::vector<OutputPixelType> outputOrientationValues(m_NumberOfAnisotropicCompartments);
     for (unsigned int i = 0;i < m_NumberOfAnisotropicCompartments;++i)
@@ -130,8 +133,6 @@ MCMOrientationPriorsImageFilter <TPixelType>
 
     while (!inputIterators[0].IsAtEnd())
     {
-        std::fill(workInputWeights.begin(),workInputWeights.end(),0.0);
-
         unsigned int numUsefulInputs = 0;
         for (unsigned int i = 0;i < numInputs;++i)
         {
@@ -229,13 +230,11 @@ MCMOrientationPriorsImageFilter <TPixelType>
             for (unsigned int j = 0;j < clusterSize;++j)
                 workInputOrientations[j] = workAllOrientations[clusterMembers[j]];
                 
-            // watsonDistribution.Fit(workInputOrientations, "mle");
-            // workCartesianOrientation = watsonDistribution.GetMeanAxis();
-            // for (unsigned int j = 0;j < 3;++j)
-            //     outputOrientationValues[i][j] = workCartesianOrientation[j];
-            // outputOrientationValues[i][3] = watsonDistribution.GetConcentrationParameter();
+            watsonDistribution.Fit(workInputOrientations, "mle");
+            workCartesianOrientation = watsonDistribution.GetMeanAxis();
             for (unsigned int j = 0;j < 3;++j)
-                outputOrientationValues[i][j] = workInputOrientations[0][j];
+                outputOrientationValues[i][j] = workCartesianOrientation[j];
+            outputOrientationValues[i][3] = watsonDistribution.GetConcentrationParameter();
             outputIterators[i].Set(outputOrientationValues[i]);
             ++outputIterators[i];
         }
@@ -310,12 +309,10 @@ MCMOrientationPriorsImageFilter <TPixelType>
             pos++;
         }
 
-        // dirichletDistribution.Fit(workInputWeights, "mle");
-        // workAllWeights = dirichletDistribution.GetConcentrationParameters();
-        // for (unsigned int i = 0;i < m_NumberOfAnisotropicCompartments;++i)
-        //     outputWeightValues[i] = workAllWeights[i];
+        dirichletDistribution.Fit(workInputWeights, "mle");
+        workConcentrationParameters = dirichletDistribution.GetConcentrationParameters();
         for (unsigned int i = 0;i < m_NumberOfAnisotropicCompartments;++i)
-            outputWeightValues[i] = workInputWeights.get(0, i);
+            outputWeightValues[i] = workConcentrationParameters[i];
         outputIterators[m_NumberOfAnisotropicCompartments].Set(outputWeightValues);
         ++outputIterators[m_NumberOfAnisotropicCompartments];
 

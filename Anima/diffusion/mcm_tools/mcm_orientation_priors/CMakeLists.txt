@@ -26,6 +26,7 @@ target_link_libraries(${PROJECT_NAME}
   ${ITKIO_LIBRARIES}
   ${TinyXML2_LIBRARY}
   AnimaMCM
+  AnimaStatisticalDistributions
   )
 
 ## #############################################################################
