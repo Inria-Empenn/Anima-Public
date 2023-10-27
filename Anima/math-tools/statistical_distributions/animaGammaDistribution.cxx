@@ -6,31 +6,48 @@
 namespace anima
 {
 
-double GammaDistribution::GetDensity(const double &x)
+bool GammaDistribution::BelongsToSupport(const SingleValueType &x)
 {
-    if (x < std::numeric_limits<double>::epsilon())
+    return x > std::sqrt(std::numeric_limits<double>::epsilon());
+}
+
+void GammaDistribution::SetShapeParameter(const double val)
+{
+    if (val < std::numeric_limits<double>::epsilon())
+        throw itk::ExceptionObject(__FILE__, __LINE__, "The shape parameter of the Gamma distribution should be strictly positive.", ITK_LOCATION);
+    m_ShapeParameter = val;
+}
+
+void GammaDistribution::SetScaleParameter(const double val)
+{
+    if (val < std::numeric_limits<double>::epsilon())
+        throw itk::ExceptionObject(__FILE__, __LINE__, "The scale parameter of the Gamma distribution should be strictly positive.", ITK_LOCATION);
+    m_ScaleParameter = val;
+}
+
+double GammaDistribution::GetDensity(const SingleValueType &x)
+{
+    if (!this->BelongsToSupport(x))
         return 0.0;
     return std::exp(this->GetLogDensity(x));
 }
 
-double GammaDistribution::GetLogDensity(const double &x)
+double GammaDistribution::GetLogDensity(const SingleValueType &x)
 {
-    if (x < std::numeric_limits<double>::epsilon())
+    if (!this->BelongsToSupport(x))
         throw itk::ExceptionObject(__FILE__, __LINE__, "The log-density of the Gamma distribution is not defined for negative or null arguments.", ITK_LOCATION);
-    double shapeParameter = this->GetShapeParameter();
-    double scaleParameter = this->GetScaleParameter();
-    double resValue = (shapeParameter - 1.0) * std::log(x);
-    resValue -= x / scaleParameter;
-    resValue -= std::lgamma(shapeParameter);
-    resValue -= shapeParameter * std::log(scaleParameter);
+    double resValue = (m_ShapeParameter - 1.0) * std::log(x);
+    resValue -= x / m_ScaleParameter;
+    resValue -= std::lgamma(m_ShapeParameter);
+    resValue -= m_ShapeParameter * std::log(m_ScaleParameter);
     return resValue;
 }
 
-void GammaDistribution::Fit(const VectorType &sample, const std::string &method)
+void GammaDistribution::Fit(const MultipleValueType &sample, const std::string &method)
 {
     unsigned int dimValue = sample.size();
     double doubleDimValue = static_cast<double>(dimValue);
-    double epsValue = std::numeric_limits<double>::epsilon();
+    double epsValue = std::sqrt(std::numeric_limits<double>::epsilon());
     double shapeParameter, scaleParameter;
 
     if (method == "mle")
@@ -41,7 +58,7 @@ void GammaDistribution::Fit(const VectorType &sample, const std::string &method)
         for (unsigned int i = 0;i < dimValue;++i)
         {
             double tmpValue = sample[i];
-            if (tmpValue < std::numeric_limits<double>::epsilon())
+            if (tmpValue < epsValue)
                 throw itk::ExceptionObject(__FILE__, __LINE__, "Negative or null values are not allowed in a sample drawn from the Gamma distribution.", ITK_LOCATION);
             meanValue += tmpValue;
             meanLogValue += std::log(tmpValue);
@@ -52,9 +69,11 @@ void GammaDistribution::Fit(const VectorType &sample, const std::string &method)
 
         double sValue = logMeanValue - meanLogValue;
         shapeParameter = (3.0 - sValue + std::sqrt((sValue - 3.0) * (sValue - 3.0) + 24.0 * sValue)) / (12.0 * sValue);
-        scaleParameter = 0.0;
-        if (shapeParameter > epsValue)
-            scaleParameter = meanValue / shapeParameter;
+
+        if (shapeParameter < epsValue)
+            throw itk::ExceptionObject(__FILE__, __LINE__, "The shape parameter of a Gamma distribution cannot be negative or null.", ITK_LOCATION);
+
+        scaleParameter = meanValue / shapeParameter;
     }
     else if (method == "biased-closed-form" || method == "unbiased-closed-form")
     {
@@ -77,7 +96,7 @@ void GammaDistribution::Fit(const VectorType &sample, const std::string &method)
         scaleParameter = doubleDimValue * sumLogXValue - sumLogValue * sumValue;
         if (denValue > epsValue)
             shapeParameter /= denValue;
-            scaleParameter /= (doubleDimValue * doubleDimValue);
+        scaleParameter /= (doubleDimValue * doubleDimValue);
         
         if (method == "unbiased-closed-form")
         {
@@ -92,9 +111,9 @@ void GammaDistribution::Fit(const VectorType &sample, const std::string &method)
     this->SetScaleParameter(scaleParameter);
 }
 
-void GammaDistribution::Random(VectorType &sample, GeneratorType &generator)
+void GammaDistribution::Random(MultipleValueType &sample, GeneratorType &generator)
 {
-    DistributionType distributionValue(this->GetShapeParameter(), this->GetScaleParameter());
+    DistributionType distributionValue(m_ShapeParameter, m_ScaleParameter);
     unsigned int nSamples = sample.size();
     for (unsigned int i = 0;i < nSamples;++i)
         sample[i] = distributionValue(generator);

@@ -4,7 +4,6 @@
 #include <animaVectorOperations.h>
 #include <animaDistributionSampling.h>
 #include <animaVMFDistribution.h>
-#include <animaWatsonDistribution.h>
 #include <animaLogarithmFunctions.h>
 #include <animaBaseTensorTools.h>
 
@@ -64,7 +63,10 @@ DTIProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDi
 //    else
 //        anima::SampleFromVMFDistribution(concentrationParameter,sampling_direction,resVec,random_generator);
 
-    anima::SampleFromWatsonDistribution(concentrationParameter,sampling_direction,resVec,3,random_generator);
+    m_WatsonDistribution.SetMeanAxis(sampling_direction);
+    m_WatsonDistribution.SetConcentrationParameter(concentrationParameter);
+    m_WatsonDistribution.Random(m_SampleOfDirections, random_generator);
+    resVec = m_SampleOfDirections[0];
     
     if (is2d)
     {
@@ -75,10 +77,14 @@ DTIProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDi
     if (LC > m_ThresholdForProlateTensor)
     {
 //        log_prior = anima::safe_log(anima::ComputeVMFPdf(resVec, oldDirection, this->GetKappaOfPriorDistribution()));
-        log_prior = anima::safe_log(anima::EvaluateWatsonPDF(resVec, oldDirection, this->GetKappaOfPriorDistribution()));
+        m_WatsonDistribution.SetMeanAxis(oldDirection);
+        m_WatsonDistribution.SetConcentrationParameter(this->GetKappaOfPriorDistribution());
+        log_prior = m_WatsonDistribution.GetLogDensity(resVec);
 
 //        log_proposal = anima::safe_log(anima::ComputeVMFPdf(resVec, sampling_direction, concentrationParameter));
-        log_proposal = anima::safe_log(anima::EvaluateWatsonPDF(resVec, sampling_direction, concentrationParameter));
+        m_WatsonDistribution.SetMeanAxis(sampling_direction);
+        m_WatsonDistribution.SetConcentrationParameter(concentrationParameter);
+        log_proposal = m_WatsonDistribution.GetLogDensity(resVec);
     }
     
     if (anima::ComputeScalarProduct(oldDirection, resVec) < 0)
@@ -199,19 +205,23 @@ double DTIProbabilisticTractographyImageFilter::ComputeLogWeightUpdate(double b0
     if (noiseValue > 0)
         concentrationParameter = b0Value / std::sqrt(noiseValue);
     
+    m_WatsonDistribution.SetMeanAxis(newDirection);
+
     if (LC > m_ThresholdForProlateTensor)
     {
         Vector3DType dtiPrincipalDirection(0.0);
         
         this->GetDTIPrincipalDirection(modelValue, dtiPrincipalDirection, is2d);
-        logLikelihood = std::log(anima::EvaluateWatsonPDF(dtiPrincipalDirection, newDirection, concentrationParameter));
+        m_WatsonDistribution.SetConcentrationParameter(concentrationParameter);
+        logLikelihood = m_WatsonDistribution.GetLogDensity(dtiPrincipalDirection);
     }
     else
     {
         Vector3DType dtiMinorDirection(0.0);
         
         this->GetDTIMinorDirection(modelValue, dtiMinorDirection);
-        logLikelihood = std::log(anima::EvaluateWatsonPDF(dtiMinorDirection, newDirection, - concentrationParameter));
+        m_WatsonDistribution.SetConcentrationParameter(-concentrationParameter);
+        logLikelihood = m_WatsonDistribution.GetLogDensity(dtiMinorDirection);
     }
     
     double resVal = log_prior + logLikelihood - log_proposal;

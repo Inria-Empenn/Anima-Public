@@ -27,7 +27,7 @@ ANIMASPECIALFUNCTIONS_EXPORT double bessel_ratio_i_derivative(double x, unsigned
 ANIMASPECIALFUNCTIONS_EXPORT double bessel_ratio_i_derivative_approx(double x, unsigned int N);
 
 //! Computes the derivative of the log of modified Bessel function of the first kind w.r.t. its order (emc is the Euler-Mascheroni constant)
-ANIMASPECIALFUNCTIONS_EXPORT double log_bessel_order_derivative_i(double x, unsigned int order, double emc, unsigned int approx_order = 50);
+ANIMASPECIALFUNCTIONS_EXPORT double log_bessel_order_derivative_i(double x, unsigned int order, unsigned int approx_order = 50);
 
 //! Support function for besserl_ratio_i
 ANIMASPECIALFUNCTIONS_EXPORT double a0r_support(double x, unsigned int N);
