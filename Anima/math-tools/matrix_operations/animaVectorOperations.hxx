@@ -1,11 +1,12 @@
 #include "animaVectorOperations.h"
-#include <cmath>
-
 #include <animaLogarithmFunctions.h>
 
 #include <vnl/vnl_diag_matrix.h>
+#include <vnl/vnl_matrix_fixed.h>
+
 #include <itkMacro.h>
 
+#include <cmath>
 #include <limits>
 
 namespace anima

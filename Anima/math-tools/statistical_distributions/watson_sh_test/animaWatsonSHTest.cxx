@@ -1,4 +1,6 @@
 #include <animaWatsonDistribution.h>
+#include <animaErrorFunctions.h>
+
 #include <iostream>
 
 int main(int argc, char **argv)
@@ -8,7 +10,14 @@ int main(int argc, char **argv)
     std::cout << "Testing SH approximation for kappa : " << kappa << std::endl;
 
     std::vector <double> coefs, derivatives;
-    anima::GetStandardWatsonSHCoefficients(kappa,coefs,derivatives);
+    anima::WatsonDistribution watsonDistr;
+    itk::Vector<double,3> meanAxis;
+    meanAxis[0] = 0.0;
+    meanAxis[1] = 0.0;
+    meanAxis[2] = 1.0;
+    watsonDistr.SetMeanAxis(meanAxis);
+    watsonDistr.SetConcentrationParameter(kappa);
+    watsonDistr.GetStandardWatsonSHCoefficients(coefs, derivatives);
 
     std::cout << "Dawson integral: " << anima::EvaluateDawsonIntegral(std::sqrt(kappa),false) << std::endl;
 

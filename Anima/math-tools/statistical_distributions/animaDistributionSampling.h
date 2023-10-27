@@ -34,22 +34,6 @@ void SampleFromVMFDistribution(const ScalarType &kappa, const VectorType &meanDi
 template <class VectorType, class ScalarType>
 void SampleFromVMFDistributionNumericallyStable(const ScalarType &kappa, const VectorType &meanDirection, VectorType &resVec, std::mt19937 &generator);
 
-template <class ScalarType, class VectorType>
-void
-SampleFromWatsonDistribution(const ScalarType &kappa, const VectorType &meanDirection, VectorType &resVec, unsigned int DataDimension, std::mt19937 &generator);
-
-template <class ScalarType, unsigned int DataDimension>
-void
-SampleFromWatsonDistribution(const ScalarType &kappa, const vnl_vector_fixed < ScalarType, DataDimension > &meanDirection, vnl_vector_fixed < ScalarType, DataDimension > &resVec, std::mt19937 &generator);
-
-template <class ScalarType, unsigned int DataDimension>
-void
-SampleFromWatsonDistribution(const ScalarType &kappa, const itk::Point < ScalarType, DataDimension > &meanDirection, itk::Point < ScalarType, DataDimension > &resVec, std::mt19937 &generator);
-
-template <class ScalarType, unsigned int DataDimension>
-void
-SampleFromWatsonDistribution(const ScalarType &kappa, const itk::Vector < ScalarType, DataDimension > &meanDirection, itk::Vector < ScalarType, DataDimension > &resVec, std::mt19937 &generator);
-
 } // end of namespace anima
 
 #include "animaDistributionSampling.hxx"
