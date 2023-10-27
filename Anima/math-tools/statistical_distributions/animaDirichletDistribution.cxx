@@ -1,6 +1,8 @@
 #include "animaDirichletDistribution.h"
 #include <animaGammaFunctions.h>
+
 #include <cmath>
+
 #include <itkMacro.h>
 
 namespace anima
@@ -224,6 +226,7 @@ void DirichletDistribution::Fit(const MultipleValueType &sample, const std::stri
     }
 
     m_TotalConcentration = alphaSum;
+    m_MeanValues.resize(numParameters);
     for (unsigned int i = 0;i < numParameters;++i)
         m_MeanValues[i] = alphaParameters[i] / alphaSum;
 
