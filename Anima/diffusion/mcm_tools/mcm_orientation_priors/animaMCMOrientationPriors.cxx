@@ -104,8 +104,14 @@ int main(int argc,  char **argv)
     mainFilter->SetNumberOfWorkUnits(nbThreadsArg.getValue());
     mainFilter->Update();
 
-    anima::writeImage <OutputImageType> (outOrientationArg.getValue(),mainFilter->GetOutput(0));
-    anima::writeImage <OutputImageType> (outWeightsArg.getValue(),mainFilter->GetOutput(1));
+    unsigned int numberOfAnisotropicCompartments = mainFilter->GetNumberOfAnisotropicCompartments();
+    for (unsigned int i = 0;i < numberOfAnisotropicCompartments;++i)
+    {
+        std::string fileName = outOrientationArg.getValue() + "_" + std::to_string(i) + ".nrrd";
+        anima::writeImage <OutputImageType> (fileName, mainFilter->GetOutput(i));
+    }
+    
+    anima::writeImage <OutputImageType> (outWeightsArg.getValue(), mainFilter->GetOutput(numberOfAnisotropicCompartments));
 
     return EXIT_SUCCESS;
 }

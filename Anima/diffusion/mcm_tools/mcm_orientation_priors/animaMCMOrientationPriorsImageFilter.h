@@ -44,6 +44,7 @@ public:
     using MCModelPointer = MCModelType::Pointer;
 
     void AddMaskImage(MaskImageType *maskImage) {m_MaskImages.push_back(maskImage);}
+    unsigned int GetNumberOfAnisotropicCompartments() {return m_NumberOfAnisotropicCompartments;}
 
 protected:
     MCMOrientationPriorsImageFilter()

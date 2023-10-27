@@ -89,7 +89,7 @@ MCMOrientationPriorsImageFilter <TPixelType>
 
     using OutputIteratorType = itk::ImageRegionIterator <OutputImageType>;
     std::vector<OutputIteratorType> outputIterators(numOutputs);
-    for (unsigned int i = 0; i < numInputs; ++i)
+    for (unsigned int i = 0; i < numOutputs; ++i)
         outputIterators[i] = OutputIteratorType(this->GetOutput(i), region);
 
     using MaskIteratorType = itk::ImageRegionConstIterator <MaskImageType>;
@@ -173,8 +173,6 @@ MCMOrientationPriorsImageFilter <TPixelType>
             continue;
         }
 
-        // Actual work comes here
-
         // Grab list of all orientations, memberships and weights from all MCM models
         for (unsigned int i = 0;i < numInputs;++i)
         {
@@ -218,11 +216,10 @@ MCMOrientationPriorsImageFilter <TPixelType>
         // Perform clustering based on orientations
         clusterFilter.SetInputData(squaredDistanceMatrix);
         clusterFilter.SetNbClass(m_NumberOfAnisotropicCompartments);
+        clusterFilter.SetVerbose(false);
         clusterFilter.Update();
 
-        // Characterize each cluster by
-        // - A Watson distribution for orientations,
-        // - A Beta distribution for the weight.
+        // Characterize orientations in each cluster by a Watson distribution
         for (unsigned int i = 0;i < m_NumberOfAnisotropicCompartments;++i)
         {
             clusterMembers = clusterFilter.GetClassMembers(i);
@@ -236,10 +233,15 @@ MCMOrientationPriorsImageFilter <TPixelType>
             // for (unsigned int j = 0;j < 3;++j)
             //     outputOrientationValues[i][j] = workCartesianOrientation[j];
             // outputOrientationValues[i][3] = watsonDistribution.GetConcentrationParameter();
+            for (unsigned int j = 0;j < 3;++j)
+                outputOrientationValues[i][j] = workInputOrientations[0][j];
             outputIterators[i].Set(outputOrientationValues[i]);
             ++outputIterators[i];
         }
 
+        // Characterize anisotropic weights in each cluster by a Dirichlet distribution
+
+        // First, find MCMs whose anisotropic compartments did spread in all clusters
         std::fill(usefulInputsForWeights.begin(), usefulInputsForWeights.end(), false);
         unsigned int nbUsefulInputsForWeights = 0;
         for (unsigned int i = 0;i < numInputs;++i)
@@ -265,11 +267,32 @@ MCMOrientationPriorsImageFilter <TPixelType>
             }
         }
 
+        // Next, compute Dirichlet priors in each cluster
+        if (nbUsefulInputsForWeights < 2)
+        {
+            outputWeightValues.Fill(1.0);
+            outputIterators[m_NumberOfAnisotropicCompartments].Set(outputWeightValues);
+            ++outputIterators[m_NumberOfAnisotropicCompartments];
+
+            for (unsigned int i = 0;i < numInputs;++i)
+                ++inputIterators[i];
+            
+            if (numMasks == numInputs)
+            {
+                for (unsigned int i = 0;i < numMasks;++i)
+                    ++maskIterators[i];
+            }
+
+            continue;
+        }
+        
         workInputWeights.set_size(nbUsefulInputsForWeights, m_NumberOfAnisotropicCompartments);
         unsigned int pos = 0;
         for (unsigned int i = 0;i < numInputs;++i)
         {
-            unsigned int numCompartments = 0;
+            if (!usefulInputsForWeights[i])
+                continue;
+            
             for (unsigned int j = 0;j < m_NumberOfAnisotropicCompartments;++j)
             {
                 clusterMembers = clusterFilter.GetClassMembers(j);
@@ -282,15 +305,16 @@ MCMOrientationPriorsImageFilter <TPixelType>
                     }
                 }
             }
-
-            if (usefulInputsForWeights[i])
-                pos++;
+            
+            pos++;
         }
 
         // dirichletDistribution.Fit(workInputWeights, "mle");
         // workAllWeights = dirichletDistribution.GetConcentrationParameters();
         // for (unsigned int i = 0;i < m_NumberOfAnisotropicCompartments;++i)
         //     outputWeightValues[i] = workAllWeights[i];
+        for (unsigned int i = 0;i < m_NumberOfAnisotropicCompartments;++i)
+            outputWeightValues[i] = workInputWeights.get(0, i);
         outputIterators[m_NumberOfAnisotropicCompartments].Set(outputWeightValues);
         ++outputIterators[m_NumberOfAnisotropicCompartments];
 
