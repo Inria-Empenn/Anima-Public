@@ -107,6 +107,7 @@ MCMOrientationPriorsImageFilter <TPixelType>
     
     using ClusterFilterType = anima::SpectralClusteringFilter<double>;
     using OrientationVectorType = itk::Vector<double,3>;
+
     ClusterFilterType clusterFilter;
     ClusterFilterType::MatrixType squaredDistanceMatrix;
     std::vector<OrientationVectorType> workAllOrientations(numInputs * m_NumberOfAnisotropicCompartments);
@@ -121,10 +122,10 @@ MCMOrientationPriorsImageFilter <TPixelType>
     // anima::WatsonDistribution watsonDistribution;
     // anima::DirichletDistribution dirichletDistribution;
 
-    std::vector< itk::VariableLengthVector<double> > outputOrientationValues(m_NumberOfAnisotropicCompartments);
+    std::vector<OutputPixelType> outputOrientationValues(m_NumberOfAnisotropicCompartments);
     for (unsigned int i = 0;i < m_NumberOfAnisotropicCompartments;++i)
         outputOrientationValues[i].SetSize(4);
-    itk::VariableLengthVector<double> outputWeightValues;
+    OutputPixelType outputWeightValues;
     outputWeightValues.SetSize(m_NumberOfAnisotropicCompartments);
 
     while (!inputIterators[0].IsAtEnd())
@@ -209,7 +210,7 @@ MCMOrientationPriorsImageFilter <TPixelType>
                 double distanceValue = std::acos(cosValue) / M_PI;
                 squaredDistanceMatrix.put(i, j, distanceValue * distanceValue);
                 if (j != i)
-                    squaredDistanceMatrix.put(i, j, distanceValue * distanceValue);
+                    squaredDistanceMatrix.put(j, i, distanceValue * distanceValue);
             }
         }
 

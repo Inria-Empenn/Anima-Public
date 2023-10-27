@@ -30,11 +30,10 @@ public:
     itkTypeMacro(MCMOrientationPriorsImageFilter, ImageToImageFilter)
 
     using InputImagePointer = typename InputImageType::ConstPointer;
-    using OutputImagePointer = typename OutputImageType::Pointer;
-
     using InputRegionType = typename InputImageType::RegionType;
-    using InputIndexType = typename InputImageType::IndexType;
-    using PixelType = typename InputImageType::PixelType;
+
+    using OutputImagePointer = typename OutputImageType::Pointer;
+    using OutputPixelType = typename OutputImageType::PixelType;
 
     using MaskImageType = itk::Image <unsigned char, 3>;
     using MaskImagePointer = MaskImageType::Pointer;
