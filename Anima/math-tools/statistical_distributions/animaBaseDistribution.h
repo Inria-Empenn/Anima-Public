@@ -3,6 +3,7 @@
 #include <limits>
 #include <random>
 #include <string>
+#include <vector>
 
 #include <AnimaStatisticalDistributionsExport.h>
 
@@ -26,6 +27,6 @@ namespace anima
 		virtual ValueType GetMean() = 0;
 		virtual double GetVariance() = 0;
 
-		double GetEpsilon() {return std::sqrt(std::numeric_limits<double>::epsilon());}
+		double GetEpsilon() { return std::sqrt(std::numeric_limits<double>::epsilon()); }
 	};
 } // end of namespace

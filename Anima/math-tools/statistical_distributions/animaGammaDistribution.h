@@ -2,8 +2,6 @@
 
 #include <animaBaseDistribution.h>
 
-#include <vector>
-
 namespace anima
 {
 	class ANIMASTATISTICALDISTRIBUTIONS_EXPORT GammaDistribution : public BaseDistribution<double>
@@ -22,18 +20,18 @@ namespace anima
 		double GetLogDensity(const ValueType &x);
 		void Fit(const SampleType &sample, const std::string &method);
 		void Random(SampleType &sample, GeneratorType &generator);
-		ValueType GetMean() {return m_ShapeParameter * m_ScaleParameter;}
-		double GetVariance() {return m_ShapeParameter * m_ScaleParameter * m_ScaleParameter;}
+		ValueType GetMean() { return m_ShapeParameter * m_ScaleParameter; }
+		double GetVariance() { return m_ShapeParameter * m_ScaleParameter * m_ScaleParameter; }
 
 		void SetShapeParameter(const double val);
-		double GetShapeParameter() {return m_ShapeParameter;}
+		double GetShapeParameter() { return m_ShapeParameter; }
 
 		void SetScaleParameter(const double val);
-		double GetScaleParameter() {return m_ScaleParameter;}
+		double GetScaleParameter() { return m_ScaleParameter; }
 
 	private:
 		double m_ShapeParameter;
 		double m_ScaleParameter;
 	};
-    
+
 } // end of namespace

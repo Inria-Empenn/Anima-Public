@@ -2,7 +2,6 @@
 
 #include <animaBaseDistribution.h>
 
-#include <vector>
 #include <vnl/vnl_matrix.h>
 #include <vnl/vnl_trace.h>
 #include <boost/math/distributions/beta.hpp>
@@ -27,11 +26,11 @@ namespace anima
 		double GetLogDensity(const ValueType &x);
 		void Fit(const SampleType &sample, const std::string &method);
 		void Random(SampleType &sample, GeneratorType &generator);
-		ValueType GetMean() {return m_MeanValues;}
-		double GetVariance() {return vnl_trace(this->GetCovarianceMatrix());}
+		ValueType GetMean() { return m_MeanValues; }
+		double GetVariance() { return vnl_trace(this->GetCovarianceMatrix()); }
 
 		void SetConcentrationParameters(const std::vector<double> &val);
-		std::vector<double> GetConcentrationParameters() {return m_ConcentrationParameters;}
+		std::vector<double> GetConcentrationParameters() { return m_ConcentrationParameters; }
 
 		vnl_matrix<double> GetCovarianceMatrix();
 
@@ -40,5 +39,5 @@ namespace anima
 		ValueType m_MeanValues;
 		double m_TotalConcentration;
 	};
-    
+
 } // end of namespace
