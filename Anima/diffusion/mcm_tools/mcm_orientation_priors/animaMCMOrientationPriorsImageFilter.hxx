@@ -115,7 +115,7 @@ MCMOrientationPriorsImageFilter <TPixelType>
     std::vector<OrientationVectorType> workAllOrientations(numInputs * m_NumberOfAnisotropicCompartments);
     std::vector<OrientationVectorType> workInputOrientations;
     std::vector<double> workAllWeights(numInputs * m_NumberOfAnisotropicCompartments);
-    vnl_matrix<double> workInputWeights;
+    std::vector< std::vector<double> > workInputWeights;
     std::vector<double> workConcentrationParameters;
     std::vector<bool> usefulInputsForWeights(numInputs, false);
     std::vector<unsigned int> workAllMemberships(numInputs * m_NumberOfAnisotropicCompartments);
@@ -286,7 +286,9 @@ MCMOrientationPriorsImageFilter <TPixelType>
             continue;
         }
         
-        workInputWeights.set_size(nbUsefulInputsForWeights, m_NumberOfAnisotropicCompartments);
+        workInputWeights.resize(nbUsefulInputsForWeights);
+        for (unsigned int i = 0;i < nbUsefulInputsForWeights;++i)
+            workInputWeights[i].resize(m_NumberOfAnisotropicCompartments);
         unsigned int pos = 0;
         for (unsigned int i = 0;i < numInputs;++i)
         {
@@ -300,7 +302,7 @@ MCMOrientationPriorsImageFilter <TPixelType>
                 {
                     if (workAllMemberships[clusterMembers[k]] == i)
                     {
-                        workInputWeights.put(pos, j, workAllWeights[clusterMembers[k]]);
+                        workInputWeights[pos][j] = workAllWeights[clusterMembers[k]];
                         break;
                     }
                 }

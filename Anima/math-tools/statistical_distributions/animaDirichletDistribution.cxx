@@ -8,7 +8,7 @@
 namespace anima
 {
 
-bool DirichletDistribution::BelongsToSupport(const SingleValueType &x)
+bool DirichletDistribution::BelongsToSupport(const ValueType &x)
 {
     unsigned int numParameters = x.size();
 
@@ -40,7 +40,7 @@ void DirichletDistribution::SetConcentrationParameters(const std::vector<double>
     m_ConcentrationParameters = val;
 }
 
-double DirichletDistribution::GetDensity(const SingleValueType &x)
+double DirichletDistribution::GetDensity(const ValueType &x)
 {
     if (!this->BelongsToSupport(x))
         return 0.0;
@@ -48,7 +48,7 @@ double DirichletDistribution::GetDensity(const SingleValueType &x)
     return std::exp(this->GetLogDensity(x));
 }
 
-double DirichletDistribution::GetLogDensity(const SingleValueType &x)
+double DirichletDistribution::GetLogDensity(const ValueType &x)
 {
     if (!this->BelongsToSupport(x))
         throw itk::ExceptionObject(__FILE__, __LINE__, "The log-density of the Dirichlet distribution is not defined for elements outside the simplex.", ITK_LOCATION);
@@ -73,20 +73,20 @@ double DirichletDistribution::GetLogDensity(const SingleValueType &x)
     return resValue;
 }
 
-void DirichletDistribution::Fit(const MultipleValueType &sample, const std::string &method)
+void DirichletDistribution::Fit(const SampleType &sample, const std::string &method)
 {
-    unsigned int numObservations = sample.rows();
-    unsigned int numParameters = sample.cols();
+    unsigned int numObservations = sample.size();
+    unsigned int numParameters = sample[0].size();
 
     std::vector<double> alphaParameters(numParameters, 1.0);
 
     std::vector<bool> usefulValues(numObservations, false);
-    SingleValueType sampleValue(numParameters);
+    ValueType sampleValue(numParameters);
     unsigned int numUsefulValues = 0;
     for (unsigned int i = 0;i < numObservations;++i)
     {
         for (unsigned int j = 0;j < numParameters;++j)
-            sampleValue[j] = sample.get(i, j);
+            sampleValue[j] = sample[i][j];
         if (this->BelongsToSupport(sampleValue))
         {
             usefulValues[i] = true;
@@ -107,7 +107,7 @@ void DirichletDistribution::Fit(const MultipleValueType &sample, const std::stri
         {
             if (!usefulValues[i])
                 continue;
-            logParameters[j] += std::log(sample.get(i, j));
+            logParameters[j] += std::log(sample[i][j]);
         }
 
         logParameters[j] /= static_cast<double>(numUsefulValues);
@@ -128,7 +128,7 @@ void DirichletDistribution::Fit(const MultipleValueType &sample, const std::stri
         {
             if (!usefulValues[i])
                 continue;
-            double tmpValue = sample.get(i, j);
+            double tmpValue = sample[i][j];
             firstMoment += tmpValue;
             secondMoment += tmpValue * tmpValue;
         }
@@ -233,10 +233,10 @@ void DirichletDistribution::Fit(const MultipleValueType &sample, const std::stri
     this->SetConcentrationParameters(alphaParameters);
 }
 
-void DirichletDistribution::Random(MultipleValueType &sample, GeneratorType &generator)
+void DirichletDistribution::Random(SampleType &sample, GeneratorType &generator)
 {
-    unsigned int numObservations = sample.rows();
-    unsigned int numParameters = sample.cols();
+    unsigned int numObservations = sample.size();
+    unsigned int numParameters = sample[0].size();
 
     if (m_ConcentrationParameters.size() != numParameters)
         throw itk::ExceptionObject(__FILE__, __LINE__, "The requested sample does not belong to the same simplex as the one on which the Dirichlet distribution is defined.", ITK_LOCATION);
@@ -255,10 +255,10 @@ void DirichletDistribution::Random(MultipleValueType &sample, GeneratorType &gen
             betaDist = BetaDistributionType(m_ConcentrationParameters[j], alphaPartialSum);
             double phiValue = boost::math::quantile(betaDist, unifDist(generator));
 
-            sample(i, j) = (1.0 - samplePartialSum) * phiValue;
-            samplePartialSum += sample(i, j);
+            sample[i][j] = (1.0 - samplePartialSum) * phiValue;
+            samplePartialSum += sample[i][j];
         }
-        sample(i, numParameters - 1) = 1.0 - samplePartialSum;
+        sample[i][numParameters - 1] = 1.0 - samplePartialSum;
     }
 }
 

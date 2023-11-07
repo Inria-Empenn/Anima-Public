@@ -6,7 +6,7 @@ int main(int argc, char **argv)
 {
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ', ANIMA_VERSION);
     
-    TCLAP::ValueArg<double> kappaArg("k", "kappa", "Shape parameter.", true, 1, "shape parameter", cmd);
+    TCLAP::ValueArg<double> kappaArg("k", "kappa", "Concentration parameter.", true, 1, "concentration parameter", cmd);
     TCLAP::ValueArg<unsigned int> nSampleArg("n", "nsample", "Sample size.", false, 10000, "sample size", cmd);
     
     try

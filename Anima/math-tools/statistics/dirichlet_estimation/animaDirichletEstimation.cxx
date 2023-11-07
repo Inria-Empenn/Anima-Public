@@ -101,7 +101,7 @@ int main(int argc, char **argv)
     outputImage->FillBuffer(outputValue);
     
     OutputImageIteratorType outItr(outputImage, outputImage->GetLargestPossibleRegion());
-    vnl_matrix<double> inputValues, correctedInputValues;
+    std::vector<std::vector<double>> inputValues, correctedInputValues;
     anima::DirichletDistribution dirichletDistribution;
     std::vector<double> computedOutputValue;
     std::vector<bool> usefulValues(nbImages, false);
@@ -163,15 +163,16 @@ int main(int argc, char **argv)
 			continue;
 		}
         
-        inputValues.set_size(nbUsedImages, nbComponents);
+        inputValues.resize(nbUsedImages);
         unsigned int pos = 0;
         for (unsigned int i = 0;i < nbImages;++i)
         {
+            inputValues[i].resize(nbComponents);
             if (usefulValues[i])
             {
                 outputValue = inItrs[i].Get();
                 for (unsigned int j = 0;j < nbComponents;++j)
-                    inputValues.put(pos, j, outputValue[j]);
+                    inputValues[pos][j] = outputValue[j];
                 pos++;
             }
         }
@@ -182,12 +183,12 @@ int main(int argc, char **argv)
         {
             double meanValue = 0.0;
             for (unsigned int i = 0;i < nbUsedImages;++i)
-                meanValue += inputValues.get(i, j);
+                meanValue += inputValues[i][j];
             meanValue /= static_cast<double>(nbUsedImages);
 
             double varValue = 0.0;
             for (unsigned int i = 0;i < nbUsedImages;++i)
-                varValue += (inputValues.get(i, j) - meanValue) * (inputValues.get(i, j) - meanValue);
+                varValue += (inputValues[i][j] - meanValue) * (inputValues[i][j] - meanValue);
             varValue /= (nbUsedImages - 1.0);
             
             if (varValue > epsValue)
@@ -209,26 +210,22 @@ int main(int argc, char **argv)
 			continue;
         }
 
-        correctedInputValues.set_size(nbUsedImages, nbValidComponents);
+        correctedInputValues.resize(nbUsedImages);
+        for (unsigned int i = 0;i < nbUsedImages;++i)
+            correctedInputValues[i].resize(nbValidComponents);
         pos = 0;
         for (unsigned int j = 0;j < nbComponents;++j)
         {
             if (usefulComponents[j])
             {
                 for (unsigned int i = 0;i < nbUsedImages;++i)
-                    correctedInputValues.put(i, pos, inputValues.get(i, j));
+                    correctedInputValues[i][pos] = inputValues[i][j];
                 pos++;
             }
         }
 
         dirichletDistribution.Fit(correctedInputValues, "mle");
         computedOutputValue = dirichletDistribution.GetConcentrationParameters();
-
-        if (!std::isfinite(computedOutputValue[0]))
-        {
-            std::cout << inputValues << std::endl;
-            exit(-1);
-        }
 
         outputValue.Fill(1.0);
         pos = 0;

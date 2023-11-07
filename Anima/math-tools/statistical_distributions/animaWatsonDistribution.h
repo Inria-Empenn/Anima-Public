@@ -6,7 +6,7 @@
 
 namespace anima
 {   
-    class ANIMASTATISTICALDISTRIBUTIONS_EXPORT WatsonDistribution : public BaseDistribution<itk::Vector<double,3>,std::vector<itk::Vector<double,3>>>
+    class ANIMASTATISTICALDISTRIBUTIONS_EXPORT WatsonDistribution : public BaseDistribution<itk::Vector<double,3>>
 	{
 	public:
 		using UniformDistributionType = std::uniform_real_distribution<double>;
@@ -20,16 +20,16 @@ namespace anima
             m_RValue = 0.0;
 		}
 
-        bool BelongsToSupport(const SingleValueType &x);
-        double GetDensity(const SingleValueType &x);
-		double GetLogDensity(const SingleValueType &x);
-		void Fit(const MultipleValueType &sample, const std::string &method);
-		void Random(MultipleValueType &sample, GeneratorType &generator);
-        SingleValueType GetMean() {return m_MeanAxis;}
+        bool BelongsToSupport(const ValueType &x);
+        double GetDensity(const ValueType &x);
+		double GetLogDensity(const ValueType &x);
+		void Fit(const SampleType &sample, const std::string &method);
+		void Random(SampleType &sample, GeneratorType &generator);
+        ValueType GetMean() {return m_MeanAxis;}
         double GetVariance() {return 1.0 - m_RValue;}
 
 		void SetMeanAxis(const itk::Vector<double,3> &x);
-        SingleValueType GetMeanAxis() {return m_MeanAxis;}
+        ValueType GetMeanAxis() {return m_MeanAxis;}
 
         void SetConcentrationParameter(const double &x);
         double GetConcentrationParameter() {return m_ConcentrationParameter;}

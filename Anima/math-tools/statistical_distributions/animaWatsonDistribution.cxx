@@ -14,12 +14,12 @@
 namespace anima
 {
 
-bool WatsonDistribution::BelongsToSupport(const SingleValueType &x)
+bool WatsonDistribution::BelongsToSupport(const ValueType &x)
 {
-    return std::abs(x.GetNorm() - 1.0) < std::sqrt(std::numeric_limits<double>::epsilon());
+    return std::abs(x.GetNorm() - 1.0) < this->GetEpsilon();
 }
 
-void WatsonDistribution::SetMeanAxis(const itk::Vector<double,3> &val)
+void WatsonDistribution::SetMeanAxis(const ValueType &val)
 {
     if (!this->BelongsToSupport(val))
         throw itk::ExceptionObject(__FILE__, __LINE__, "The mean axis parameter of the Watson distribution should be of unit norm.", ITK_LOCATION);
@@ -31,17 +31,17 @@ void WatsonDistribution::SetConcentrationParameter(const double &val)
     m_ConcentrationParameter = val;
 }
 
-double WatsonDistribution::GetDensity(const SingleValueType &x)
+double WatsonDistribution::GetDensity(const ValueType &x)
 {
     if (!this->BelongsToSupport(x))
         return 0.0;
     
     // Case 1: k = 0 - Uniform distribution on the 2-sphere
-    if (std::abs(m_ConcentrationParameter) <= std::numeric_limits<double>::epsilon())
+    if (std::abs(m_ConcentrationParameter) <= this->GetEpsilon())
         return 1.0 / (4.0 * M_PI);
     
     // Case 2: k > 0 - Anisotropic distribution on the 2-sphere
-    if (m_ConcentrationParameter > std::numeric_limits<double>::epsilon())
+    if (m_ConcentrationParameter > this->GetEpsilon())
     {
         double kappaSqrt = std::sqrt(m_ConcentrationParameter);
         double c = anima::ComputeScalarProduct(x, m_MeanAxis);
@@ -56,7 +56,7 @@ double WatsonDistribution::GetDensity(const SingleValueType &x)
     return Ck * std::exp(inExp);
 }
 
-double WatsonDistribution::GetLogDensity(const SingleValueType &x)
+double WatsonDistribution::GetLogDensity(const ValueType &x)
 {
     if (!this->BelongsToSupport(x))
         throw itk::ExceptionObject(__FILE__, __LINE__, "The log-density of the Watson distribution is not defined for arguments outside the 2-sphere.", ITK_LOCATION);
@@ -87,7 +87,7 @@ double WatsonDistribution::ComputeConcentrationMLE(const double rValue, const do
     return concentrationParameter;
 }
 
-void WatsonDistribution::Fit(const MultipleValueType &sample, const std::string &method)
+void WatsonDistribution::Fit(const SampleType &sample, const std::string &method)
 {
     /**********************************************************************************************//**
          * \fn void Random(std::vector<itk::Vector<double,3>>, std::mt19937 &generator)
@@ -132,8 +132,8 @@ void WatsonDistribution::Fit(const MultipleValueType &sample, const std::string 
     scatterMatrix /= static_cast<double>(numberOfObservations);
 
     // Eigen decomposition of S
-    itk::SymmetricEigenAnalysis<MatrixType,SingleValueType,MatrixType> eigenDecomp(m_AmbientDimension);
-    SingleValueType eigenVals;
+    itk::SymmetricEigenAnalysis<MatrixType,ValueType,MatrixType> eigenDecomp(m_AmbientDimension);
+    ValueType eigenVals;
     MatrixType eigenVecs;
     eigenDecomp.ComputeEigenValuesAndVectors(scatterMatrix, eigenVals, eigenVecs);
 
@@ -207,7 +207,7 @@ void WatsonDistribution::Fit(const MultipleValueType &sample, const std::string 
     this->SetConcentrationParameter(concentrationParameter);
 }
 
-void WatsonDistribution::Random(MultipleValueType &sample, GeneratorType &generator)
+void WatsonDistribution::Random(SampleType &sample, GeneratorType &generator)
 {   
     /**********************************************************************************************//**
          * \fn void Random(std::vector<itk::Vector<double,3>>, std::mt19937 &generator)
@@ -223,7 +223,7 @@ void WatsonDistribution::Random(MultipleValueType &sample, GeneratorType &genera
          * \param	generator A pseudo-random number generator.
          **************************************************************************************************/
 
-    SingleValueType tmpVec, resVec;
+    ValueType tmpVec, resVec;
     tmpVec.Fill(0.0);
     tmpVec[2] = 1.0;
 

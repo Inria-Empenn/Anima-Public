@@ -6,7 +6,7 @@
 
 namespace anima
 {
-	class ANIMASTATISTICALDISTRIBUTIONS_EXPORT GammaDistribution : public BaseDistribution<double,std::vector<double>>
+	class ANIMASTATISTICALDISTRIBUTIONS_EXPORT GammaDistribution : public BaseDistribution<double>
 	{
 	public:
 		using DistributionType = std::gamma_distribution<double>;
@@ -17,12 +17,12 @@ namespace anima
 			m_ScaleParameter = 1.0;
 		}
 
-		bool BelongsToSupport(const SingleValueType &x);
-		double GetDensity(const SingleValueType &x);
-		double GetLogDensity(const SingleValueType &x);
-		void Fit(const MultipleValueType &sample, const std::string &method);
-		void Random(MultipleValueType &sample, GeneratorType &generator);
-		SingleValueType GetMean() {return m_ShapeParameter * m_ScaleParameter;}
+		bool BelongsToSupport(const ValueType &x);
+		double GetDensity(const ValueType &x);
+		double GetLogDensity(const ValueType &x);
+		void Fit(const SampleType &sample, const std::string &method);
+		void Random(SampleType &sample, GeneratorType &generator);
+		ValueType GetMean() {return m_ShapeParameter * m_ScaleParameter;}
 		double GetVariance() {return m_ShapeParameter * m_ScaleParameter * m_ScaleParameter;}
 
 		void SetShapeParameter(const double val);
