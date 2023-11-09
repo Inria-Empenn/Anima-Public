@@ -1,8 +1,9 @@
 #include <animaMCMFileReader.h>
-#include <animaReadWriteFunctions.h>
 #include <animaMCMOrientationPriorsImageFilter.h>
+#include <animaReadWriteFunctions.h>
 
 #include <itkTimeProbe.h>
+
 #include <tclap/CmdLine.h>
 
 int main(int argc, char **argv)

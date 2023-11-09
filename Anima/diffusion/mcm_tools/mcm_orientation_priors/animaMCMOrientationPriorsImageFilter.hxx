@@ -1,7 +1,7 @@
 #pragma once
 #include "animaMCMOrientationPriorsImageFilter.h"
-#include <animaSpectralClusteringFilter.h>
 #include <animaDirichletDistribution.h>
+#include <animaSpectralClusteringFilter.h>
 #include <animaWatsonDistribution.h>
 
 #include <itkImageRegionConstIterator.h>
@@ -122,9 +122,8 @@ namespace anima
         anima::WatsonDistribution watsonDistribution;
         anima::DirichletDistribution dirichletDistribution;
 
-        std::vector<OutputPixelType> outputOrientationValues(m_NumberOfAnisotropicCompartments);
-        for (unsigned int i = 0; i < m_NumberOfAnisotropicCompartments; ++i)
-            outputOrientationValues[i].SetSize(3); // AST: redo 4 instead of 3
+        OutputPixelType outputOrientationValue;
+        outputOrientationValue.SetSize(3); // AST: redo 4 instead of 3
         OutputPixelType outputWeightValues;
         outputWeightValues.SetSize(m_NumberOfAnisotropicCompartments);
 
@@ -149,10 +148,10 @@ namespace anima
 
             if (numUsefulInputs == 0)
             {
+                outputOrientationValue.Fill(0.0);
                 for (unsigned int i = 0; i < m_NumberOfAnisotropicCompartments; ++i)
                 {
-                    outputOrientationValues[i].Fill(0.0);
-                    outputIterators[i].Set(outputOrientationValues[i]);
+                    outputIterators[i].Set(outputOrientationValue);
                     ++outputIterators[i];
                 }
 
@@ -230,9 +229,9 @@ namespace anima
                 watsonDistribution.Fit(workInputOrientations, "mle");
                 workCartesianOrientation = watsonDistribution.GetMeanAxis();
                 for (unsigned int j = 0; j < 3; ++j)
-                    outputOrientationValues[i][j] = workCartesianOrientation[j];
-                // outputOrientationValues[i][3] = watsonDistribution.GetConcentrationParameter(); // AST: change back
-                outputIterators[i].Set(outputOrientationValues[i]);
+                    outputOrientationValue[j] = workCartesianOrientation[j];
+                // outputOrientationValue[3] = watsonDistribution.GetConcentrationParameter(); // AST: change back
+                outputIterators[i].Set(outputOrientationValue);
                 ++outputIterators[i];
             }
 
