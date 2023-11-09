@@ -31,6 +31,8 @@ namespace anima
         for (unsigned int i = prevNum; i < numOutputs; ++i)
             this->SetNthOutput(i, this->MakeOutput(i).GetPointer());
 
+        m_MeanOrientationImages.resize(m_NumberOfAnisotropicCompartments);
+
         //---------------------------------------------------
         // Call the superclass' implementation of this method
         //---------------------------------------------------
@@ -42,11 +44,13 @@ namespace anima
         for (unsigned int i = 0; i < m_NumberOfAnisotropicCompartments; ++i)
         {
             OutputImageType *output = this->GetOutput(i);
-            output->SetVectorLength(3); // AST: now fixed for Watson WARNING: should redo 4 instead of 3
+            output->SetVectorLength(4);
+            m_MeanOrientationImages[i]->SetVectorLength(3);
         }
 
         OutputImageType *output = this->GetOutput(m_NumberOfAnisotropicCompartments);
         output->SetVectorLength(m_NumberOfAnisotropicCompartments);
+        m_MeanFractionsImage->SetVectorLength(m_NumberOfAnisotropicCompartments);
     }
 
     template <class TPixelType>
@@ -91,6 +95,12 @@ namespace anima
         for (unsigned int i = 0; i < numOutputs; ++i)
             outputIterators[i] = OutputIteratorType(this->GetOutput(i), region);
 
+        std::vector<OutputIteratorType> meanOrientationIterators(m_NumberOfAnisotropicCompartments);
+        for (unsigned int i = 0; i < m_NumberOfAnisotropicCompartments; ++i)
+            meanOrientationIterators[i] = OutputIteratorType(m_MeanOrientationImages[i], region);
+
+        OutputIteratorType meanFractionsIterator(m_MeanFractionsImage, region);
+
         using MaskIteratorType = itk::ImageRegionConstIterator<MaskImageType>;
         std::vector<MaskIteratorType> maskIterators;
         if (m_MaskImages.size() == numInputs)
@@ -122,8 +132,9 @@ namespace anima
         anima::WatsonDistribution watsonDistribution;
         anima::DirichletDistribution dirichletDistribution;
 
-        OutputPixelType outputOrientationValue;
-        outputOrientationValue.SetSize(3); // AST: redo 4 instead of 3
+        OutputPixelType outputOrientationPrior, outputOrientationValue;
+        outputOrientationPrior.SetSize(4);
+        outputOrientationValue.SetSize(3);
         OutputPixelType outputWeightValues;
         outputWeightValues.SetSize(m_NumberOfAnisotropicCompartments);
 
@@ -148,16 +159,21 @@ namespace anima
 
             if (numUsefulInputs == 0)
             {
+                outputOrientationPrior.Fill(0.0);
                 outputOrientationValue.Fill(0.0);
                 for (unsigned int i = 0; i < m_NumberOfAnisotropicCompartments; ++i)
                 {
-                    outputIterators[i].Set(outputOrientationValue);
+                    outputIterators[i].Set(outputOrientationPrior);
                     ++outputIterators[i];
+                    meanOrientationIterators[i].Set(outputOrientationValue);
+                    ++meanOrientationIterators[i];
                 }
 
                 outputWeightValues.Fill(0.0);
                 outputIterators[m_NumberOfAnisotropicCompartments].Set(outputWeightValues);
                 ++outputIterators[m_NumberOfAnisotropicCompartments];
+                meanFractionsIterator.Set(outputWeightValues);
+                ++meanFractionsIterator;
 
                 for (unsigned int i = 0; i < numInputs; ++i)
                     ++inputIterators[i];
@@ -229,10 +245,15 @@ namespace anima
                 watsonDistribution.Fit(workInputOrientations, "mle");
                 workCartesianOrientation = watsonDistribution.GetMeanAxis();
                 for (unsigned int j = 0; j < 3; ++j)
+                {
+                    outputOrientationPrior[j] = workCartesianOrientation[j];
                     outputOrientationValue[j] = workCartesianOrientation[j];
-                // outputOrientationValue[3] = watsonDistribution.GetConcentrationParameter(); // AST: change back
-                outputIterators[i].Set(outputOrientationValue);
+                }
+                outputOrientationPrior[3] = watsonDistribution.GetConcentrationParameter();
+                outputIterators[i].Set(outputOrientationPrior);
                 ++outputIterators[i];
+                meanOrientationIterators[i].Set(outputOrientationValue);
+                ++meanOrientationIterators[i];
             }
 
             // Characterize anisotropic weights in each cluster by a Dirichlet distribution
@@ -269,6 +290,8 @@ namespace anima
                 outputWeightValues.Fill(1.0);
                 outputIterators[m_NumberOfAnisotropicCompartments].Set(outputWeightValues);
                 ++outputIterators[m_NumberOfAnisotropicCompartments];
+                meanFractionsIterator.Set(outputWeightValues);
+                ++meanFractionsIterator;
 
                 for (unsigned int i = 0; i < numInputs; ++i)
                     ++inputIterators[i];
@@ -308,14 +331,20 @@ namespace anima
             }
 
             dirichletDistribution.Fit(workInputWeights, "mle");
-            // workConcentrationParameters = dirichletDistribution.GetConcentrationParameters(); // AST: change back
-            workConcentrationParameters = dirichletDistribution.GetMean();
 
+            workConcentrationParameters = dirichletDistribution.GetConcentrationParameters();
             for (unsigned int i = 0; i < m_NumberOfAnisotropicCompartments; ++i)
                 outputWeightValues[i] = workConcentrationParameters[i];
 
             outputIterators[m_NumberOfAnisotropicCompartments].Set(outputWeightValues);
             ++outputIterators[m_NumberOfAnisotropicCompartments];
+
+            workConcentrationParameters = dirichletDistribution.GetMean();
+            for (unsigned int i = 0; i < m_NumberOfAnisotropicCompartments; ++i)
+                outputWeightValues[i] = workConcentrationParameters[i];
+
+            meanFractionsIterator.Set(outputWeightValues);
+            ++meanFractionsIterator;
 
             for (unsigned int i = 0; i < numInputs; ++i)
                 ++inputIterators[i];

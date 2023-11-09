@@ -43,12 +43,15 @@ namespace anima
 
         void AddMaskImage(MaskImageType *maskImage) { m_MaskImages.push_back(maskImage); }
         unsigned int GetNumberOfAnisotropicCompartments() { return m_NumberOfAnisotropicCompartments; }
+        OutputImagePointer GetMeanOrientationImage(const unsigned int i) { return m_MeanOrientationImages[i]; }
+        OutputImagePointer GetMeanFractionsImage() { return m_MeanFractionsImage; }
 
     protected:
         MCMOrientationPriorsImageFilter()
         {
             m_ReferenceInputModels.clear();
             m_MaskImages.clear();
+            m_MeanOrientationImages.clear();
             m_NumberOfAnisotropicCompartments = 0;
         }
 
@@ -74,6 +77,8 @@ namespace anima
 
         std::vector<MCModelPointer> m_ReferenceInputModels;
         std::vector<MaskImagePointer> m_MaskImages;
+        std::vector<OutputImagePointer> m_MeanOrientationImages;
+        OutputImagePointer m_MeanFractionsImage;
         unsigned int m_NumberOfAnisotropicCompartments;
     };
 

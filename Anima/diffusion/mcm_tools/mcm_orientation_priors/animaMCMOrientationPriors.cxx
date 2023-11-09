@@ -20,13 +20,21 @@ int main(int argc, char **argv)
         true, "", "output orientation priors", cmd);
     TCLAP::ValueArg<std::string> outWeightsArg(
         "w", "output-weights",
-        "A string specifying the filename for the output vector image that will store priors on the weights.",
+        "A string specifying the filename for the output vector image that will store fractions prior.",
         true, "", "output weights priors", cmd);
 
     TCLAP::ValueArg<std::string> maskArg(
         "m", "input-masks",
         "A text file specifying a list of mask images in the same common geometry as the input MCM images (default: none).",
         false, "", "input mask images", cmd);
+    TCLAP::ValueArg<std::string> meanOrientationsArg(
+        "", "mean-orientations",
+        "A string specifying the basename for the output vector images that will store mean orientations.",
+        false, "", "output mean orientation images", cmd);
+    TCLAP::ValueArg<std::string> meanFractionsArg(
+        "", "mean-fractions",
+        "A string specifying the filename for the output vector image that will store fractions mean.",
+        false, "", "output mean fractions image", cmd);
     TCLAP::ValueArg<unsigned int> nbThreadsArg(
         "T", "nthreads",
         "An integer value specifying the number of threads to run on (default: all cores).",
@@ -108,6 +116,18 @@ int main(int argc, char **argv)
     }
 
     anima::writeImage<OutputImageType>(outWeightsArg.getValue(), mainFilter->GetOutput(numberOfAnisotropicCompartments));
+
+    if (meanOrientationsArg.getValue() != "")
+    {
+        for (unsigned int i = 0; i < numberOfAnisotropicCompartments; ++i)
+        {
+            std::string fileName = meanOrientationsArg.getValue() + "_" + std::to_string(i) + ".nrrd";
+            anima::writeImage<OutputImageType>(fileName, mainFilter->GetMeanOrientationImage(i));
+        }
+    }
+
+    if (meanFractionsArg.getValue() != "")
+        anima::writeImage<OutputImageType>(meanFractionsArg.getValue(), mainFilter->GetMeanFractionsImage());
 
     return EXIT_SUCCESS;
 }
