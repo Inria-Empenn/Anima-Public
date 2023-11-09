@@ -8,30 +8,48 @@
 int main(int argc, char **argv)
 {
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ', ANIMA_VERSION);
-    
-    TCLAP::ValueArg<std::string>   inArg("i", "inputfiles", "Input image list in text file", true, "", "input image list", cmd);
-    TCLAP::ValueArg<std::string> maskArg("m", "maskfiles", "Input masks list in text file (mask images should contain only zeros or ones)", false, "", "input masks list", cmd);
-    TCLAP::ValueArg<std::string>  outArg("o", "outputfile", "Output image with concentration parameters", true, "", "output kappa image", cmd);
-	
+
+    TCLAP::ValueArg<std::string> inArg(
+        "i", "input-files",
+        "A text file specifying the input image list.",
+        true, "", "input image list", cmd);
+    TCLAP::ValueArg<std::string> outArg(
+        "o", "output-file",
+        "A string specifying the name of a file in which a 3D vector image with the concentration parameters of the Dirichlet distribution will be written.",
+        true, "", "output concentration image", cmd);
+    TCLAP::ValueArg<std::string> maskArg(
+        "m", "mask-files",
+        "A text file specifying the input mask list.",
+        false, "", "input masks list", cmd);
+    TCLAP::ValueArg<std::string> meanArg(
+        "", "mean-file",
+        "A 3D vector image storing the mean of the Dirichlet prior.",
+        false, "", "output mean image", cmd);
+    TCLAP::ValueArg<std::string> varArg(
+        "", "variance-file",
+        "A 3D scalar image storing the variance of the Dirichlet prior.",
+        false, "", "output variance image", cmd);
+
     try
     {
-        cmd.parse(argc,argv);
+        cmd.parse(argc, argv);
     }
-    catch (TCLAP::ArgException& e)
+    catch (TCLAP::ArgException &e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
         return EXIT_FAILURE;
     }
 
-    using InputImageType = itk::VectorImage <double, 3>;
-    using MaskImageType = itk::Image <unsigned int, 3>;
-    using OutputImageType = itk::VectorImage <double, 3>;
+    using InputImageType = itk::VectorImage<double, 3>;
+    using MaskImageType = itk::Image<unsigned int, 3>;
+    using OutputImageType = itk::VectorImage<double, 3>;
     using OutputPixelType = OutputImageType::PixelType;
+    using VarianceImageType = itk::Image<double, 3>;
 
     // Read input sample
     std::ifstream imageIn(inArg.getValue());
     char imageN[2048];
-    std::vector <InputImageType::Pointer> inputImages;
+    std::vector<InputImageType::Pointer> inputImages;
     while (!imageIn.eof())
     {
         imageIn.getline(imageN, 2048);
@@ -40,11 +58,11 @@ int main(int argc, char **argv)
         inputImages.push_back(anima::readImage<InputImageType>(imageN));
     }
     imageIn.close();
-    
+
     unsigned int nbImages = inputImages.size();
     unsigned int nbComponents = inputImages[0]->GetVectorLength();
 
-    for (unsigned int i = 1;i < nbImages;++i)
+    for (unsigned int i = 1; i < nbImages; ++i)
     {
         if (inputImages[i]->GetVectorLength() != nbComponents)
         {
@@ -52,8 +70,8 @@ int main(int argc, char **argv)
             return EXIT_FAILURE;
         }
     }
-    
-    std::vector <MaskImageType::Pointer> maskImages;
+
+    std::vector<MaskImageType::Pointer> maskImages;
     if (maskArg.getValue() != "")
     {
         // Read input masks
@@ -77,13 +95,15 @@ int main(int argc, char **argv)
 
     std::cout << "- Number of input images: " << nbImages << std::endl;
     std::cout << "- Number of components:   " << nbComponents << std::endl;
-    
-    using InputImageIteratorType = itk::ImageRegionConstIterator <InputImageType>;
-    using MaskImageIteratorType = itk::ImageRegionConstIterator <MaskImageType>;
-    using OutputImageIteratorType = itk::ImageRegionIterator <OutputImageType>;
+
+    using InputImageIteratorType = itk::ImageRegionConstIterator<InputImageType>;
+    using MaskImageIteratorType = itk::ImageRegionConstIterator<MaskImageType>;
+    using OutputImageIteratorType = itk::ImageRegionIterator<OutputImageType>;
+    using VarianceImageIteratorType = itk::ImageRegionIterator<VarianceImageType>;
+
     std::vector<InputImageIteratorType> inItrs(nbImages);
     std::vector<MaskImageIteratorType> maskItrs(nbImages);
-    for (unsigned int i = 0;i < nbImages;++i)
+    for (unsigned int i = 0; i < nbImages; ++i)
     {
         inItrs[i] = InputImageIteratorType(inputImages[i], inputImages[i]->GetLargestPossibleRegion());
         if (maskArg.getValue() != "")
@@ -99,7 +119,31 @@ int main(int argc, char **argv)
     outputImage->CopyInformation(inputImages[0]);
     outputImage->Allocate();
     outputImage->FillBuffer(outputValue);
-    
+
+    OutputImageType::Pointer meanImage;
+    OutputImageIteratorType meanItr;
+    if (meanArg.getValue() != "")
+    {
+        meanImage = OutputImageType::New();
+        meanImage->SetRegions(inputImages[0]->GetLargestPossibleRegion());
+        meanImage->CopyInformation(inputImages[0]);
+        meanImage->Allocate();
+        meanImage->FillBuffer(outputValue);
+        meanItr = OutputImageIteratorType(meanImage, meanImage->GetLargestPossibleRegion());
+    }
+
+    VarianceImageType::Pointer varImage;
+    VarianceImageIteratorType varItr;
+    if (varArg.getValue() != "")
+    {
+        varImage = VarianceImageType::New();
+        varImage->SetRegions(inputImages[0]->GetLargestPossibleRegion());
+        varImage->CopyInformation(inputImages[0]);
+        varImage->Allocate();
+        varImage->FillBuffer(0.0);
+        varItr = VarianceImageIteratorType(varImage, varImage->GetLargestPossibleRegion());
+    }
+
     OutputImageIteratorType outItr(outputImage, outputImage->GetLargestPossibleRegion());
     std::vector<std::vector<double>> inputValues, correctedInputValues;
     anima::DirichletDistribution dirichletDistribution;
@@ -108,41 +152,41 @@ int main(int argc, char **argv)
     std::vector<bool> usefulComponents(nbComponents, false);
     double epsValue = std::sqrt(std::numeric_limits<double>::epsilon());
 
-	while (!outItr.IsAtEnd())
-	{
+    while (!outItr.IsAtEnd())
+    {
         // Discard background voxels or voxels full of zeros
         unsigned int nbUsedImages = 0;
         std::fill(usefulValues.begin(), usefulValues.end(), false);
         if (maskArg.getValue() != "")
         {
-            for (unsigned int i = 0;i < nbImages;++i)
+            for (unsigned int i = 0; i < nbImages; ++i)
             {
                 if (maskItrs[i].Get())
                 {
                     outputValue = inItrs[i].Get();
 
                     double sumValue = 0.0;
-                    for (unsigned int j = 0;j < nbComponents;++j)
+                    for (unsigned int j = 0; j < nbComponents; ++j)
                         sumValue += outputValue[j];
-                    
+
                     if (sumValue > epsValue)
                     {
                         usefulValues[i] = true;
                         nbUsedImages++;
-                    }       
+                    }
                 }
             }
         }
         else
         {
-            for (unsigned int i = 0;i < nbImages;++i)
+            for (unsigned int i = 0; i < nbImages; ++i)
             {
                 outputValue = inItrs[i].Get();
-                
+
                 double sumValue = 0.0;
-                for (unsigned int j = 0;j < nbComponents;++j)
+                for (unsigned int j = 0; j < nbComponents; ++j)
                     sumValue += outputValue[j];
-                
+
                 if (sumValue > epsValue)
                 {
                     usefulValues[i] = true;
@@ -150,28 +194,32 @@ int main(int argc, char **argv)
                 }
             }
         }
-        
+
         if (nbUsedImages == 0)
-		{
-            for (unsigned int i = 0;i < nbImages;++i)
+        {
+            for (unsigned int i = 0; i < nbImages; ++i)
             {
                 ++inItrs[i];
                 if (maskArg.getValue() != "")
                     ++maskItrs[i];
             }
-			++outItr;
-			continue;
-		}
-        
+            ++outItr;
+            if (meanImage)
+                ++meanItr;
+            if (varImage)
+                ++varItr;
+            continue;
+        }
+
         inputValues.resize(nbUsedImages);
         unsigned int pos = 0;
-        for (unsigned int i = 0;i < nbImages;++i)
+        for (unsigned int i = 0; i < nbImages; ++i)
         {
-            inputValues[i].resize(nbComponents);
             if (usefulValues[i])
             {
                 outputValue = inItrs[i].Get();
-                for (unsigned int j = 0;j < nbComponents;++j)
+                inputValues[pos].resize(nbComponents);
+                for (unsigned int j = 0; j < nbComponents; ++j)
                     inputValues[pos][j] = outputValue[j];
                 pos++;
             }
@@ -179,18 +227,18 @@ int main(int argc, char **argv)
 
         std::fill(usefulComponents.begin(), usefulComponents.end(), false);
         unsigned int nbValidComponents = 0;
-        for (unsigned int j = 0;j < nbComponents;++j)
+        for (unsigned int j = 0; j < nbComponents; ++j)
         {
             double meanValue = 0.0;
-            for (unsigned int i = 0;i < nbUsedImages;++i)
+            for (unsigned int i = 0; i < nbUsedImages; ++i)
                 meanValue += inputValues[i][j];
             meanValue /= static_cast<double>(nbUsedImages);
 
             double varValue = 0.0;
-            for (unsigned int i = 0;i < nbUsedImages;++i)
+            for (unsigned int i = 0; i < nbUsedImages; ++i)
                 varValue += (inputValues[i][j] - meanValue) * (inputValues[i][j] - meanValue);
             varValue /= (nbUsedImages - 1.0);
-            
+
             if (varValue > epsValue)
             {
                 usefulComponents[j] = true;
@@ -200,25 +248,29 @@ int main(int argc, char **argv)
 
         if (nbValidComponents == 0)
         {
-            for (unsigned int i = 0;i < nbImages;++i)
+            for (unsigned int i = 0; i < nbImages; ++i)
             {
                 ++inItrs[i];
                 if (maskArg.getValue() != "")
                     ++maskItrs[i];
             }
-			++outItr;
-			continue;
+            ++outItr;
+            if (meanImage)
+                ++meanItr;
+            if (varImage)
+                ++varItr;
+            continue;
         }
 
         correctedInputValues.resize(nbUsedImages);
-        for (unsigned int i = 0;i < nbUsedImages;++i)
+        for (unsigned int i = 0; i < nbUsedImages; ++i)
             correctedInputValues[i].resize(nbValidComponents);
         pos = 0;
-        for (unsigned int j = 0;j < nbComponents;++j)
+        for (unsigned int j = 0; j < nbComponents; ++j)
         {
             if (usefulComponents[j])
             {
-                for (unsigned int i = 0;i < nbUsedImages;++i)
+                for (unsigned int i = 0; i < nbUsedImages; ++i)
                     correctedInputValues[i][pos] = inputValues[i][j];
                 pos++;
             }
@@ -229,27 +281,45 @@ int main(int argc, char **argv)
 
         outputValue.Fill(1.0);
         pos = 0;
-        for (unsigned int j = 0;j < nbComponents;++j)
+        double sumAlpha = 0.0;
+        for (unsigned int j = 0; j < nbComponents; ++j)
         {
             if (usefulComponents[j])
             {
                 outputValue[j] = computedOutputValue[pos];
                 pos++;
             }
+
+            sumAlpha += outputValue[j];
         }
-        
+
         outItr.Set(outputValue);
 
-        for (unsigned int i = 0;i < nbImages;++i)
+        if (meanImage)
+            meanItr.Set(outputValue / sumAlpha);
+
+        if (varImage)
+            varItr.Set(dirichletDistribution.GetVariance());
+
+        for (unsigned int i = 0; i < nbImages; ++i)
         {
             ++inItrs[i];
             if (maskArg.getValue() != "")
                 ++maskItrs[i];
         }
         ++outItr;
-	}
-    
-    anima::writeImage <OutputImageType> (outArg.getValue(), outputImage);
-	
-	return EXIT_SUCCESS;
+        if (meanImage)
+            ++meanItr;
+        if (varImage)
+            ++varItr;
+    }
+
+    anima::writeImage<OutputImageType>(outArg.getValue(), outputImage);
+
+    if (meanImage)
+        anima::writeImage<OutputImageType>(meanArg.getValue(), meanImage);
+    if (varImage)
+        anima::writeImage<VarianceImageType>(varArg.getValue(), varImage);
+
+    return EXIT_SUCCESS;
 }

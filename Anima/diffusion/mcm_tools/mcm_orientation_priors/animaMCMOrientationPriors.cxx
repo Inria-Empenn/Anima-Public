@@ -5,51 +5,46 @@
 #include <itkTimeProbe.h>
 #include <tclap/CmdLine.h>
 
-int main(int argc,  char **argv)
+int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS Team", ' ', ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inArg(
-        "i", "input-mcms", 
-        "A text file specifying a list of MCM images in a common geometry.", 
-        true, "", "input MCM images", cmd
-    );
+        "i", "input-mcms",
+        "A text file specifying a list of MCM images in a common geometry.",
+        true, "", "input MCM images", cmd);
     TCLAP::ValueArg<std::string> outOrientationArg(
-        "o", "output-orientation", 
-        "A string specifying the basename for the output vector images that will store priors on the orientations.", 
-        true, "", "output orientation priors",cmd
-    );
+        "o", "output-orientation",
+        "A string specifying the basename for the output vector images that will store priors on the orientations.",
+        true, "", "output orientation priors", cmd);
     TCLAP::ValueArg<std::string> outWeightsArg(
-        "w", "output-weights", 
-        "A string specifying the filename for the output vector image that will store priors on the weights.", 
-        true, "", "output weights priors", cmd
-    );
-    
+        "w", "output-weights",
+        "A string specifying the filename for the output vector image that will store priors on the weights.",
+        true, "", "output weights priors", cmd);
+
     TCLAP::ValueArg<std::string> maskArg(
-        "m", "input-masks", 
-        "A text file specifying a list of mask images in the same common geometry as the input MCM images (default: none).", 
-        false, "", "input mask images", cmd
-    );
+        "m", "input-masks",
+        "A text file specifying a list of mask images in the same common geometry as the input MCM images (default: none).",
+        false, "", "input mask images", cmd);
     TCLAP::ValueArg<unsigned int> nbThreadsArg(
-        "T", "nthreads", 
-        "An integer value specifying the number of threads to run on (default: all cores).", 
-        false, itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(), "number of threads", cmd
-    );
+        "T", "nthreads",
+        "An integer value specifying the number of threads to run on (default: all cores).",
+        false, itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(), "number of threads", cmd);
 
     try
     {
-        cmd.parse(argc,argv);
+        cmd.parse(argc, argv);
     }
-    catch (TCLAP::ArgException& e)
+    catch (TCLAP::ArgException &e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
         return EXIT_FAILURE;
     }
 
-    using MainFilterType = anima::MCMOrientationPriorsImageFilter <double>;
+    using MainFilterType = anima::MCMOrientationPriorsImageFilter<double>;
     MainFilterType::Pointer mainFilter = MainFilterType::New();
 
-    using MCMReaderType = anima::MCMFileReader <double,3>;
+    using MCMReaderType = anima::MCMFileReader<double, 3>;
     using MaskImageType = MainFilterType::MaskImageType;
     using OutputImageType = MainFilterType::OutputImageType;
 
@@ -67,9 +62,9 @@ int main(int argc,  char **argv)
     while (!inputFile.eof())
     {
         char tmpStr[2048];
-        inputFile.getline(tmpStr,2048);
+        inputFile.getline(tmpStr, 2048);
 
-        if (strcmp(tmpStr,"") == 0)
+        if (strcmp(tmpStr, "") == 0)
             continue;
 
         std::cout << "Loading image " << nbOfImages + 1 << ": " << tmpStr << std::endl;
@@ -92,12 +87,12 @@ int main(int argc,  char **argv)
         char tmpStr[2048];
         while (!masksIn.eof())
         {
-            masksIn.getline(tmpStr,2048);
+            masksIn.getline(tmpStr, 2048);
 
-            if (strcmp(tmpStr,"") == 0)
+            if (strcmp(tmpStr, "") == 0)
                 continue;
 
-            mainFilter->AddMaskImage(anima::readImage <MaskImageType> (tmpStr));
+            mainFilter->AddMaskImage(anima::readImage<MaskImageType>(tmpStr));
         }
     }
 
@@ -105,13 +100,13 @@ int main(int argc,  char **argv)
     mainFilter->Update();
 
     unsigned int numberOfAnisotropicCompartments = mainFilter->GetNumberOfAnisotropicCompartments();
-    for (unsigned int i = 0;i < numberOfAnisotropicCompartments;++i)
+    for (unsigned int i = 0; i < numberOfAnisotropicCompartments; ++i)
     {
         std::string fileName = outOrientationArg.getValue() + "_" + std::to_string(i) + ".nrrd";
-        anima::writeImage <OutputImageType> (fileName, mainFilter->GetOutput(i));
+        anima::writeImage<OutputImageType>(fileName, mainFilter->GetOutput(i));
     }
-    
-    anima::writeImage <OutputImageType> (outWeightsArg.getValue(), mainFilter->GetOutput(numberOfAnisotropicCompartments));
+
+    anima::writeImage<OutputImageType>(outWeightsArg.getValue(), mainFilter->GetOutput(numberOfAnisotropicCompartments));
 
     return EXIT_SUCCESS;
 }

@@ -28,6 +28,7 @@ namespace anima
 		void Random(SampleType &sample, GeneratorType &generator);
 		ValueType GetMean() { return m_MeanValues; }
 		double GetVariance() { return vnl_trace(this->GetCovarianceMatrix()); }
+		double GetDistance(Self *otherDistribution);
 
 		void SetConcentrationParameters(const std::vector<double> &val);
 		std::vector<double> GetConcentrationParameters() { return m_ConcentrationParameters; }

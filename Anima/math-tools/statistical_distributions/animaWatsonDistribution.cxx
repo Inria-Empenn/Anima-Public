@@ -369,4 +369,10 @@ namespace anima
         }
     }
 
+    double WatsonDistribution::GetDistance(Self *otherDistribution)
+    {
+        WatsonDistribution *watsonDistr = dynamic_cast<WatsonDistribution *>(otherDistribution);
+        return std::abs(this->GetConcentrationParameter() - watsonDistr->GetConcentrationParameter());
+    }
+
 } // end of namespace anima

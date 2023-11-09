@@ -22,6 +22,7 @@ namespace anima
 		void Random(SampleType &sample, GeneratorType &generator);
 		ValueType GetMean() { return m_ShapeParameter * m_ScaleParameter; }
 		double GetVariance() { return m_ShapeParameter * m_ScaleParameter * m_ScaleParameter; }
+		double GetDistance(Self *otherDistribution);
 
 		void SetShapeParameter(const double val);
 		double GetShapeParameter() { return m_ShapeParameter; }

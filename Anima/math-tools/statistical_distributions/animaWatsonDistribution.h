@@ -27,6 +27,7 @@ namespace anima
         void Random(SampleType &sample, GeneratorType &generator);
         ValueType GetMean() { return m_MeanAxis; }
         double GetVariance() { return 1.0 - m_RValue; }
+        double GetDistance(Self *otherDistribution);
 
         void SetMeanAxis(const itk::Vector<double, 3> &x);
         ValueType GetMeanAxis() { return m_MeanAxis; }
@@ -39,10 +40,10 @@ namespace anima
             std::vector<double> &derivatives);
 
     private:
+        double ComputeConcentrationMLE(const double rValue, const double aValue, const double cValue, double &logLik);
         itk::Vector<double, 3> m_MeanAxis;
         double m_ConcentrationParameter;
         double m_RValue;
-        double ComputeConcentrationMLE(const double rValue, const double aValue, const double cValue, double &logLik);
         const unsigned int m_AmbientDimension = 3;
     };
 

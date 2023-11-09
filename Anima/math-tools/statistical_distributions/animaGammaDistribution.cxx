@@ -1,4 +1,5 @@
 #include "animaGammaDistribution.h"
+#include <animaGammaFunctions.h>
 
 #include <itkMacro.h>
 
@@ -116,6 +117,32 @@ namespace anima
         unsigned int nSamples = sample.size();
         for (unsigned int i = 0; i < nSamples; ++i)
             sample[i] = distributionValue(generator);
+    }
+
+    double GammaDistribution::GetDistance(Self *otherDistribution)
+    {
+        /**
+         * \fn GetDistance(GammaDistribution *otherDistribution)
+         *
+         * \author Aymeric Stamm (2023).
+         *
+         * \param otherDistribution A pointer specifying another object of class `GammaDistribution`.
+         *
+         * \return A numeric value storing the Kullback-Leibler divergence between the current Gamma
+         * distribution and the input Gamma distribution. The calculation is done as described in
+         * McCrimmon (2018), Distance metrics for Gamma distributions, arXiv:1802.01041v1.
+         */
+
+        double thisKappa = this->GetShapeParameter();
+        double thisTheta = this->GetScaleParameter();
+
+        GammaDistribution *gammaDistr = dynamic_cast<GammaDistribution *>(otherDistribution);
+        double otherKappa = gammaDistr->GetShapeParameter();
+        double otherTheta = gammaDistr->GetScaleParameter();
+
+        double distanceValue = (thisKappa - otherKappa) * (anima::digamma(thisKappa) + std::log(thisTheta) - anima::digamma(otherKappa) - std::log(otherTheta));
+        distanceValue += (thisKappa * thisTheta - otherKappa * otherTheta) * (thisTheta - otherTheta) / (thisTheta * otherTheta);
+        return distanceValue;
     }
 
 } // end of namespace anima

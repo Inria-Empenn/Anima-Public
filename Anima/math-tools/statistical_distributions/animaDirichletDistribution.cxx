@@ -78,6 +78,11 @@ namespace anima
 
         std::vector<double> alphaParameters(numParameters, 1.0);
 
+        m_TotalConcentration = static_cast<double>(numParameters);
+        m_MeanValues.resize(numParameters);
+        for (unsigned int i = 0; i < numParameters; ++i)
+            m_MeanValues[i] = alphaParameters[i] / m_TotalConcentration;
+
         std::vector<bool> usefulValues(numObservations, false);
         ValueType sampleValue(numParameters);
         unsigned int numUsefulValues = 0;
@@ -224,9 +229,8 @@ namespace anima
         }
 
         m_TotalConcentration = alphaSum;
-        m_MeanValues.resize(numParameters);
         for (unsigned int i = 0; i < numParameters; ++i)
-            m_MeanValues[i] = alphaParameters[i] / alphaSum;
+            m_MeanValues[i] = alphaParameters[i] / m_TotalConcentration;
 
         this->SetConcentrationParameters(alphaParameters);
     }
@@ -258,6 +262,22 @@ namespace anima
             }
             sample[i][numParameters - 1] = 1.0 - samplePartialSum;
         }
+    }
+
+    double DirichletDistribution::GetDistance(Self *otherDistribution)
+    {
+        std::vector<double> thisConcentrationParameters = this->GetConcentrationParameters();
+
+        DirichletDistribution *dirichletDistr = dynamic_cast<DirichletDistribution *>(otherDistribution);
+        std::vector<double> otherConcentrationParameters = dirichletDistr->GetConcentrationParameters();
+
+        unsigned int numParameters = thisConcentrationParameters.size();
+        if (otherConcentrationParameters.size() != numParameters)
+            throw itk::ExceptionObject(__FILE__, __LINE__, "The two compared distributions should be on the same support.", ITK_LOCATION);
+
+        double distanceValue = 0.0;
+
+        return distanceValue;
     }
 
     vnl_matrix<double> DirichletDistribution::GetCovarianceMatrix()
