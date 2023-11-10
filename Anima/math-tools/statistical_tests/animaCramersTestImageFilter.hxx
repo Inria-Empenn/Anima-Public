@@ -6,11 +6,9 @@
 #include <itkTimeProbe.h>
 #include <itkProgressReporter.h>
 
-#include <ctime>
 #include <cmath>
-
-#include <animaDistributionSampling.h>
-
+#include <ctime>
+#include <random>
 namespace anima
 {
 
@@ -185,6 +183,7 @@ CramersTestImageFilter<PixelScalarType>
 
     std::vector <unsigned int> sampleGen, sampleGenOtherGroup;
     std::mt19937 generator(time(0));
+    std::uniform_real_distribution<double> unifDistr(0.0, 1.0);
 
     for (unsigned int i = 1;i <= m_NbSamples;++i)
     {
@@ -194,7 +193,7 @@ CramersTestImageFilter<PixelScalarType>
         unsigned int j = 0;
         while (j < minNbGroup)
         {
-            int tmpVal = std::min((int)(nbSubjects - 1),(int)floor(anima::SampleFromUniformDistribution(0.0,1.0,generator) * nbSubjects));
+            int tmpVal = std::min((int)(nbSubjects - 1),(int)floor(unifDistr(generator) * nbSubjects));
             if (tmpVal < 0)
                 tmpVal = 0;
 

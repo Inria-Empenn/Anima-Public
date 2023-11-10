@@ -18,6 +18,7 @@ namespace anima
 		bool BelongsToSupport(const ValueType &x);
 		double GetDensity(const ValueType &x);
 		double GetLogDensity(const ValueType &x);
+		double GetCumulative(const ValueType &x);
 		void Fit(const SampleType &sample, const std::string &method);
 		void Random(SampleType &sample, GeneratorType &generator);
 		ValueType GetMean() { return m_ShapeParameter * m_ScaleParameter; }

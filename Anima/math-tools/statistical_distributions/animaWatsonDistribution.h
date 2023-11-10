@@ -29,7 +29,7 @@ namespace anima
         double GetVariance() { return 1.0 - m_RValue; }
         double GetDistance(Self *otherDistribution);
 
-        void SetMeanAxis(const itk::Vector<double, 3> &x);
+        void SetMeanAxis(const ValueType &x);
         ValueType GetMeanAxis() { return m_MeanAxis; }
 
         void SetConcentrationParameter(const double &x);
@@ -41,7 +41,7 @@ namespace anima
 
     private:
         double ComputeConcentrationMLE(const double rValue, const double aValue, const double cValue, double &logLik);
-        itk::Vector<double, 3> m_MeanAxis;
+        ValueType m_MeanAxis;
         double m_ConcentrationParameter;
         double m_RValue;
         const unsigned int m_AmbientDimension = 3;

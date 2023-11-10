@@ -437,7 +437,8 @@ double
 QMRISampleCreationImageFilter<TInputImage, TOutputImage>
 ::GetRandomLesionSizeFromDistribution()
 {
-    double yValue = anima::SampleFromUniformDistribution(0.0,1.0,m_Generator);
+    std::uniform_real_distribution <double> unifDistr(0.0, 1.0);
+    double yValue = unifDistr(m_Generator);
     unsigned int upperIndex = std::lower_bound (m_YAxisLesionSizesDistribution.begin(), m_YAxisLesionSizesDistribution.end(), yValue) - m_YAxisLesionSizesDistribution.begin();
 
     if (upperIndex >= m_YAxisLesionSizesDistribution.size())

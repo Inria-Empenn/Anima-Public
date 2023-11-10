@@ -1,5 +1,4 @@
 #include "animaWatsonDistribution.h"
-
 #include <animaErrorFunctions.h>
 #include <animaKummerFunctions.h>
 #include <animaMatrixOperations.h>
@@ -86,7 +85,7 @@ namespace anima
     void WatsonDistribution::Fit(const SampleType &sample, const std::string &method)
     {
         /**********************************************************************************************
-         * \fn void Random(std::vector<itk::Vector<double,3>>, std::mt19937 &generator)
+         * \fn void Fit(std::vector<itk::Vector<double,3>>, std::mt19937 &generator)
          *
          * \brief	Closed-form approximations of the maximum likelihood estimators for the mean axis
          *          and the concentration parameter of the Watson distribution using the procedure
@@ -103,7 +102,7 @@ namespace anima
          **********************************************************************************************/
 
         unsigned int numberOfObservations = sample.size();
-        itk::Vector<double, 3> meanAxis;
+        ValueType meanAxis;
         meanAxis.Fill(0.0);
         meanAxis[2] = 1.0;
         double concentrationParameter = 0.0;
@@ -280,6 +279,7 @@ namespace anima
             tmpVec[1] = std::sqrt(1.0 - S * S) * std::sin(phi);
             tmpVec[2] = S;
 
+            // Rotate to bring everthing back around meanAxis
             for (unsigned int j = 0; j < m_AmbientDimension; ++j)
             {
                 resVec[j] = 0.0;
@@ -289,7 +289,7 @@ namespace anima
 
             double resNorm = resVec.Normalize();
 
-            if (std::abs(resNorm - 1.0) > std::sqrt(std::numeric_limits<double>::epsilon()))
+            if (std::abs(resNorm - 1.0) > this->GetEpsilon())
             {
                 std::cout << "Sampled direction norm: " << resNorm << std::endl;
                 std::cout << "Mean direction: " << m_MeanAxis << std::endl;
@@ -371,8 +371,27 @@ namespace anima
 
     double WatsonDistribution::GetDistance(Self *otherDistribution)
     {
+        const unsigned int numberOfMonteCarloSamples = 10000;
+        SampleType thisWatsonSample(numberOfMonteCarloSamples), otherWatsonSample(numberOfMonteCarloSamples);
+        GeneratorType generator;
+
+        this->Random(thisWatsonSample, generator);
         WatsonDistribution *watsonDistr = dynamic_cast<WatsonDistribution *>(otherDistribution);
-        return std::abs(this->GetConcentrationParameter() - watsonDistr->GetConcentrationParameter());
+        watsonDistr->Random(otherWatsonSample, generator);
+
+        double thisKLValue = 0.0, otherKLValue = 0.0;
+        for (unsigned int i = 0; i < numberOfMonteCarloSamples; ++i)
+        {
+            thisKLValue += this->GetLogDensity(thisWatsonSample[i]);
+            thisKLValue -= watsonDistr->GetLogDensity(thisWatsonSample[i]);
+            otherKLValue += watsonDistr->GetLogDensity(otherWatsonSample[i]);
+            otherKLValue -= this->GetLogDensity(otherWatsonSample[i]);
+        }
+
+        thisKLValue /= static_cast<double>(numberOfMonteCarloSamples);
+        otherKLValue /= static_cast<double>(numberOfMonteCarloSamples);
+
+        return thisKLValue + otherKLValue;
     }
 
 } // end of namespace anima

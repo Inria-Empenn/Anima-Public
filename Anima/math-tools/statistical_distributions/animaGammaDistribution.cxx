@@ -3,6 +3,8 @@
 
 #include <itkMacro.h>
 
+#include <boost/math/special_functions/gamma.hpp>
+
 namespace anima
 {
 
@@ -41,6 +43,22 @@ namespace anima
         resValue -= std::lgamma(m_ShapeParameter);
         resValue -= m_ShapeParameter * std::log(m_ScaleParameter);
         return resValue;
+    }
+
+    double GammaDistribution::GetCumulative(const ValueType &x)
+    {
+        /**
+         * \fn double GetCumulative(const double &x)
+         *
+         * \author Aymeric Stamm (2023).
+         *
+         * \param x A numeric value specifying a point on the support of the Gamma distribution.
+         *
+         * \return A numeric value storing the value of the cumulative distribution function of
+         * the Gamma distribution at point `x`. See: https://statproofbook.github.io/P/gam-cdf.
+         */
+
+        return boost::math::gamma_p<double, double>(this->GetShapeParameter(), x / this->GetScaleParameter());
     }
 
     void GammaDistribution::Fit(const SampleType &sample, const std::string &method)
@@ -122,15 +140,16 @@ namespace anima
     double GammaDistribution::GetDistance(Self *otherDistribution)
     {
         /**
-         * \fn GetDistance(GammaDistribution *otherDistribution)
+         * \fn double GetDistance(GammaDistribution *otherDistribution)
          *
          * \author Aymeric Stamm (2023).
          *
          * \param otherDistribution A pointer specifying another object of class `GammaDistribution`.
          *
-         * \return A numeric value storing the Kullback-Leibler divergence between the current Gamma
-         * distribution and the input Gamma distribution. The calculation is done as described in
-         * McCrimmon (2018), Distance metrics for Gamma distributions, arXiv:1802.01041v1.
+         * \return A numeric value storing the symmetric Kullback-Leibler divergence between the
+         * current Gamma distribution and the input Gamma distribution. The calculation is done as
+         * described in McCrimmon (2018), Distance metrics for Gamma distributions, arXiv:1802.01041v1.
+         * Also documented here: https://statproofbook.github.io/P/gam-kl.
          */
 
         double thisKappa = this->GetShapeParameter();

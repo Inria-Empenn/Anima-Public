@@ -14,14 +14,6 @@
 namespace anima
 {
 
-template <class T>
-double SampleFromUniformDistribution(const T &a, const T &b, std::mt19937 &generator)
-{
-    // Define distribution U[a,b) [double values]
-    std::uniform_real_distribution<T> uniDbl(a,b);
-    return uniDbl(generator);
-}
-
 template <class VectorType>
 void SampleFromUniformDistributionOn2Sphere(std::mt19937 &generator, VectorType &resVec)
 {
@@ -87,89 +79,6 @@ void SampleFromMultivariateGaussianDistribution(const VectorType &mean, const vn
         for (unsigned int j = 0;j < vectorSize;++j)
             resVec[i] += stdMatrix(i,j) * tmpVec[j];
     }
-}
-
-template <class VectorType, class ScalarType>
-void SampleFromVMFDistribution(const ScalarType &kappa, const VectorType &meanDirection, VectorType &resVec, std::mt19937 &generator)
-{
-    VectorType tmpVec;
-
-    for (unsigned int i = 0;i < 3;++i)
-    {
-        tmpVec[i] = 0;
-        resVec[i] = 0;
-    }
-
-    // Code to compute rotation matrix from vectors, similar to registration code
-    tmpVec[2] = 1;
-
-    vnl_matrix <double> rotationMatrix = anima::GetRotationMatrixFromVectors(tmpVec,meanDirection).GetVnlMatrix();
-    anima::TransformCartesianToSphericalCoordinates(meanDirection, tmpVec);
-
-    if (std::abs(tmpVec[2] - 1.0) > 1.0e-6)
-        throw itk::ExceptionObject(__FILE__, __LINE__,"Von Mises & Fisher sampling requires mean direction of norm 1.",ITK_LOCATION);
-
-    double tmpVal = std::sqrt(kappa * kappa + 1.0);
-    double b = (-2.0 * kappa + 2.0 * tmpVal) / 2.0;
-    double a = (1.0 + kappa + tmpVal) / 2.0;
-    double d = 4.0 * a * b / (1.0 + b) - 2.0 * anima::safe_log(2.0);
-
-    boost::math::beta_distribution<double> betaDist(1.0, 1.0);
-
-    double T = 1.0;
-    double U = std::exp(d);
-    double W = 0;
-
-    while (2.0 * anima::safe_log(T) - T + d < anima::safe_log(U))
-    {
-        double Z = boost::math::quantile(betaDist, SampleFromUniformDistribution(0.0, 1.0, generator));
-        U = SampleFromUniformDistribution(0.0, 1.0, generator);
-        tmpVal = 1.0 - (1.0 - b) * Z;
-        T = 2.0 * a * b / tmpVal;
-        W = (1.0 - (1.0 + b) * Z) / tmpVal;
-    }
-
-    double theta = anima::SampleFromUniformDistribution(0.0, 2.0 * M_PI, generator);
-    tmpVec[0] = std::sqrt(1.0 - W*W) * std::cos(theta);
-    tmpVec[1] = std::sqrt(1.0 - W*W) * std::sin(theta);
-    tmpVec[2] = W;
-
-    for (unsigned int i = 0;i < 3;++i)
-        for (unsigned int j = 0;j < 3;++j)
-            resVec[i] += rotationMatrix(i,j) * tmpVec[j];
-}
-
-template <class VectorType, class ScalarType>
-void SampleFromVMFDistributionNumericallyStable(const ScalarType &kappa, const VectorType &meanDirection, VectorType &resVec, std::mt19937 &generator)
-{
-    VectorType tmpVec;
-
-    for (unsigned int i = 0;i < 3;++i)
-    {
-        tmpVec[i] = 0;
-        resVec[i] = 0;
-    }
-
-    // Code to compute rotation matrix from vectors, similar to registration code
-    tmpVec[2] = 1;
-
-    vnl_matrix <double> rotationMatrix = anima::GetRotationMatrixFromVectors(tmpVec,meanDirection).GetVnlMatrix();
-    anima::TransformCartesianToSphericalCoordinates(meanDirection, tmpVec);
-
-    if (std::abs(tmpVec[2] - 1.0) > 1.0e-6)
-        throw itk::ExceptionObject(__FILE__, __LINE__,"Von Mises & Fisher sampling requires mean direction of norm 1.",ITK_LOCATION);
-
-    double xi = SampleFromUniformDistribution(0.0, 1.0, generator);
-    double W = 1.0 + (anima::safe_log(xi) + anima::safe_log(1.0 - (xi - 1.0) * exp(-2.0 * kappa) / xi)) / kappa;
-    double theta = SampleFromUniformDistribution(0.0, 2.0 * M_PI, generator);
-
-    tmpVec[0] = std::sqrt(1.0 - W*W) * std::cos(theta);
-    tmpVec[1] = std::sqrt(1.0 - W*W) * std::sin(theta);
-    tmpVec[2] = W;
-
-    for (unsigned int i = 0;i < 3;++i)
-        for (unsigned int j = 0;j < 3;++j)
-            resVec[i] += rotationMatrix(i,j) * tmpVec[j];
 }
 
 } // end of namespace anima

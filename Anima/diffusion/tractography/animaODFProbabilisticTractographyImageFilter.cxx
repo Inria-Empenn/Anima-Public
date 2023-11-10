@@ -8,7 +8,6 @@
 #include <animaVectorOperations.h>
 #include <animaMatrixOperations.h>
 #include <animaDistributionSampling.h>
-#include <animaVMFDistribution.h>
 #include <animaWatsonDistribution.h>
 
 namespace anima
@@ -104,11 +103,6 @@ ODFProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDi
         chosenKappa = kappaValues[chosenDirection];
     }
 
-    //    if (chosenKappa > 700)
-    //        anima::SampleFromVMFDistributionNumericallyStable(chosenKappa,sampling_direction,resVec,random_generator);
-    //    else
-    //        anima::SampleFromVMFDistribution(chosenKappa,sampling_direction,resVec,random_generator);
-
     m_WatsonDistribution.SetMeanAxis(sampling_direction);
     m_WatsonDistribution.SetConcentrationParameter(chosenKappa);
     m_WatsonDistribution.Random(m_SampleOfDirections, random_generator);
@@ -122,7 +116,6 @@ ODFProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDi
 
     if (numDirs > 0)
     {
-        //        log_prior = anima::safe_log( anima::ComputeVMFPdf(resVec, oldDirection, this->GetKappaOfPriorDistribution()));
         m_WatsonDistribution.SetMeanAxis(oldDirection);
         m_WatsonDistribution.SetConcentrationParameter(this->GetKappaOfPriorDistribution());
         log_prior = m_WatsonDistribution.GetLogDensity(resVec);
@@ -130,7 +123,6 @@ ODFProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDi
         log_proposal = 0;
         for (unsigned int i = 0;i < numDirs;++i)
         {
-            //            log_proposal += mixtureWeights[i] * anima::ComputeVMFPdf(resVec, maximaODF[i], kappaValues[i]);
             m_WatsonDistribution.SetMeanAxis(maximaODF[i]);
             m_WatsonDistribution.SetConcentrationParameter(kappaValues[i]);
             log_proposal += mixtureWeights[i] * m_WatsonDistribution.GetDensity(resVec);

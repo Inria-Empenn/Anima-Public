@@ -71,10 +71,60 @@ namespace anima
         return resValue;
     }
 
+    double DirichletDistribution::GetCumulative(const ValueType &x)
+    {
+        /**
+         * \fn double GetCumulative(const std::vector<double> &x)
+         *
+         * \author Aymeric Stamm (2023).
+         *
+         * \param x A numeric vector specifying a point on the support of the Dirichlet distribution.
+         *
+         * \return A numeric value storing the value of the CDF of the Dirichlet distribution at point `x`.
+         * There is no closed-form expression of this function. Hence it is evaluated numerically via
+         * Monte-Carlo approximation as suggested here:
+         * https://stats.stackexchange.com/questions/57262/implementation-of-dirichlet-cdf.
+         */
+
+        if (!this->BelongsToSupport(x))
+            throw itk::ExceptionObject(__FILE__, __LINE__, "The CDF of the Dirichlet distribution is not defined for elements outside the simplex.", ITK_LOCATION);
+
+        unsigned int numParameters = x.size();
+
+        if (m_ConcentrationParameters.size() != numParameters)
+            throw itk::ExceptionObject(__FILE__, __LINE__, "The input argument does not belong to the same simplex as the one on which the Dirichlet distribution is defined.", ITK_LOCATION);
+
+        const unsigned int numberOfMonteCarloSamples = 10000;
+        SampleType dirichletSample(numberOfMonteCarloSamples);
+        GeneratorType generator;
+        this->Random(dirichletSample, generator);
+
+        double sumValue = 0.0;
+        for (unsigned int i = 0; i < numberOfMonteCarloSamples; ++i)
+        {
+            double sampleValue = 1.0;
+            for (unsigned int j = 0; j < numParameters; ++j)
+            {
+                if (dirichletSample[i][j] > x[j])
+                {
+                    sampleValue = 0.0;
+                    break;
+                }
+            }
+
+            sumValue += sampleValue;
+        }
+
+        return sumValue / static_cast<double>(numberOfMonteCarloSamples);
+    }
+
     void DirichletDistribution::Fit(const SampleType &sample, const std::string &method)
     {
         unsigned int numObservations = sample.size();
         unsigned int numParameters = sample[0].size();
+
+        if (m_ConcentrationParameters.size() != numParameters)
+            throw itk::ExceptionObject(__FILE__, __LINE__, "The input argument does not belong to the same simplex as the one on which the Dirichlet distribution is defined.", ITK_LOCATION);
 
         std::vector<double> alphaParameters(numParameters, 1.0);
 
@@ -238,10 +288,10 @@ namespace anima
     void DirichletDistribution::Random(SampleType &sample, GeneratorType &generator)
     {
         unsigned int numObservations = sample.size();
-        unsigned int numParameters = sample[0].size();
+        unsigned int numParameters = m_ConcentrationParameters.size();
 
-        if (m_ConcentrationParameters.size() != numParameters)
-            throw itk::ExceptionObject(__FILE__, __LINE__, "The requested sample does not belong to the same simplex as the one on which the Dirichlet distribution is defined.", ITK_LOCATION);
+        for (unsigned int i = 0; i < numObservations; ++i)
+            sample[i].resize(numParameters);
 
         BetaDistributionType betaDist;
         UniformDistributionType unifDist(0.0, 1.0);
@@ -266,16 +316,39 @@ namespace anima
 
     double DirichletDistribution::GetDistance(Self *otherDistribution)
     {
-        std::vector<double> thisConcentrationParameters = this->GetConcentrationParameters();
+        /**
+         * \fn double GetDistance(DirichletDistribution *otherDistribution)
+         *
+         * \author Aymeric Stamm (2023).
+         *
+         * \param otherDistribution A pointer specifying another object of class `DirichletDistribution`.
+         *
+         * \return A numeric value storing the symmetric Kullback-Leibler divergence between the current
+         * Dirichlet distribution and the input Gamma distribution. The implementation follows the formula
+         * in https://statproofbook.github.io/P/dir-kl.
+         */
+
+        std::vector<double> thisConcentrationParams = this->GetConcentrationParameters();
 
         DirichletDistribution *dirichletDistr = dynamic_cast<DirichletDistribution *>(otherDistribution);
-        std::vector<double> otherConcentrationParameters = dirichletDistr->GetConcentrationParameters();
+        std::vector<double> otherConcentrationParams = dirichletDistr->GetConcentrationParameters();
 
-        unsigned int numParameters = thisConcentrationParameters.size();
-        if (otherConcentrationParameters.size() != numParameters)
+        unsigned int numParams = thisConcentrationParams.size();
+        if (otherConcentrationParams.size() != numParams)
             throw itk::ExceptionObject(__FILE__, __LINE__, "The two compared distributions should be on the same support.", ITK_LOCATION);
 
+        double thisSumDigamma = anima::digamma(this->GetTotalConcentration());
+        double otherSumDigamma = anima::digamma(dirichletDistr->GetTotalConcentration());
+
         double distanceValue = 0.0;
+        for (unsigned int i = 0; i < numParams; ++i)
+        {
+            double thisParam = thisConcentrationParams[i];
+            double otherParam = otherConcentrationParams[i];
+            double tmpValue = (thisParam - otherParam);
+            tmpValue *= (anima::digamma(thisParam) - anima::digamma(otherParam) - thisSumDigamma + otherSumDigamma);
+            distanceValue += tmpValue;
+        }
 
         return distanceValue;
     }
