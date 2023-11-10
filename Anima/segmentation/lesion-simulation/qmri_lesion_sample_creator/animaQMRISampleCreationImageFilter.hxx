@@ -251,13 +251,15 @@ void
 QMRISampleCreationImageFilter<TInputImage, TOutputImage>
 ::GenerateQMRIHealthySamples()
 {
-    typedef itk::MultiplyImageFilter<TInputImage, itk::Image<double, TInputImage::ImageDimension>, TInputImage> MultiplyConstantFilterType;
-    typedef itk::AddImageFilter<TInputImage, TInputImage, TInputImage> AddFilterType;
+    using MultiplyConstantFilterType =  itk::MultiplyImageFilter<TInputImage, itk::Image<double, TInputImage::ImageDimension>, TInputImage>;
+    using AddFilterType = itk::AddImageFilter<TInputImage, TInputImage, TInputImage>;
+
+    std::normal_distribution<double> normDistr(0.0, 1.0);
 
     unsigned int numInputs = this->GetNumberOfIndexedInputs();
     for (unsigned int i = 0;i < numInputs;++i)
     {
-        double addOn = anima::SampleFromGaussianDistribution(0.0,0.1,m_Generator);
+        double addOn = normDistr(m_Generator);
         typename MultiplyConstantFilterType::Pointer multiplyFilter = MultiplyConstantFilterType::New();
         multiplyFilter->SetInput(m_QMRIStdevImages[i]);
         multiplyFilter->SetConstant(addOn);
