@@ -3,7 +3,6 @@
 #include <animaVectorOperations.h>
 #include <animaMatrixOperations.h>
 #include <animaLogarithmFunctions.h>
-#include <animaDistributionSampling.h>
 #include <animaWatsonDistribution.h>
 #include <animaBaseCompartment.h>
 #include <animaMCMLinearInterpolateImageFunction.h>

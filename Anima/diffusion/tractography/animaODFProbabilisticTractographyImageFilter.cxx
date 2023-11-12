@@ -7,7 +7,6 @@
 
 #include <animaVectorOperations.h>
 #include <animaMatrixOperations.h>
-#include <animaDistributionSampling.h>
 #include <animaWatsonDistribution.h>
 
 namespace anima

@@ -1,6 +1,6 @@
 #include <animaLogExpMapsUnitSphere.h>
-#include <animaDistributionSampling.h>
 #include <animaRealUniformDistribution.h>
+#include <animaSphericalUniformDistribution.h>
 
 #include <itkVariableLengthVector.h>
 
@@ -27,6 +27,10 @@ int main(int argc, char **argv)
     RandomGeneratorType generator(time(0));
 
     // This is what will actually supply drawn values.
+    using SphericalUniformDistribution = anima::SphericalUniformDistribution;
+    SphericalUniformDistribution sphUnifDistr;
+    SphericalUniformDistribution::SampleType sphUnifSample(numPointsArg.getValue());
+    sphUnifDistr.Random(sphUnifSample, generator);
     std::vector<std::vector<double>> random_sphere_points(numPointsArg.getValue());
     std::vector<double> random_sphere_point(3, 0);
     std::vector<double> average_point(3);
@@ -34,8 +38,9 @@ int main(int argc, char **argv)
 
     for (unsigned int i = 0; i < numPointsArg.getValue(); ++i)
     {
-        anima::SampleFromUniformDistributionOn2Sphere(generator, random_sphere_point);
-        random_sphere_points[i] = random_sphere_point;
+        random_sphere_points[i].resize(3);
+        for (unsigned int j = 0; j < 3; ++j)
+            random_sphere_points[i][j] = sphUnifSample[i][j];
     }
 
     if (equalWeightsArg.isSet())
