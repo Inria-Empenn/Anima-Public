@@ -18,6 +18,11 @@ namespace anima
     {
         if (!this->BelongsToSupport(val))
             throw itk::ExceptionObject(__FILE__, __LINE__, "The mean axis parameter of the Watson distribution should be of unit norm.", ITK_LOCATION);
+        m_MeanAxis[0] = 0.0;
+        m_MeanAxis[1] = 0.0;
+        m_MeanAxis[2] = 1.0;
+        // Compute rotation matrix to bring [0,0,1] on meanAxis
+        m_NorthToMeanAxisRotationMatrix = anima::GetRotationMatrixFromVectors(m_MeanAxis, val);
         m_MeanAxis = val;
     }
 
@@ -57,6 +62,43 @@ namespace anima
             throw itk::ExceptionObject(__FILE__, __LINE__, "The log-density of the Watson distribution is not defined for arguments outside the 2-sphere.", ITK_LOCATION);
 
         return std::log(this->GetDensity(x));
+    }
+
+    double WatsonDistribution::GetCumulative(const ValueType &x)
+    {
+        if (!this->BelongsToSupport(x))
+            throw itk::ExceptionObject(__FILE__, __LINE__, "The CDF is not defined outside the support.", ITK_LOCATION);
+
+        ValueType carCoords, sphCoords;
+        carCoords.Fill(0.0);
+        for (unsigned int i = 0; i < m_AmbientDimension; ++i)
+            for (unsigned int j = 0; j < m_AmbientDimension; ++j)
+                carCoords[i] += m_NorthToMeanAxisRotationMatrix(j, i) * x[j];
+        anima::TransformCartesianToSphericalCoordinates(carCoords, sphCoords);
+
+        double thetaVal = sphCoords[0];
+        while (thetaVal > M_PI)
+            thetaVal -= (2.0 * M_PI);
+        while (thetaVal < 0)
+            thetaVal += (2.0 * M_PI);
+        double phiVal = sphCoords[1];
+        while (phiVal > 2.0 * M_PI)
+            phiVal -= (2.0 * M_PI);
+        while (phiVal < 0)
+            phiVal += 2.0 * M_PI;
+
+        double phiCumul = phiVal / (2.0 * M_PI);
+
+        double cosTheta = std::cos(thetaVal);
+        double sqrtKappa = std::sqrt(m_ConcentrationParameter);
+        double dawsonValue = anima::EvaluateDawsonIntegral(sqrtKappa, true);
+        double dawsonCosValue = anima::EvaluateDawsonIntegral(sqrtKappa * cosTheta, true);
+        double thetaCumul = dawsonValue;
+        thetaCumul -= cosTheta * std::exp(-m_ConcentrationParameter * (1.0 - cosTheta * cosTheta)) * dawsonCosValue;
+        thetaCumul /= 2.0;
+        thetaCumul /= anima::GetScaledKummerFunctionValue(m_ConcentrationParameter, 0.5, 1.5);
+
+        return phiCumul * thetaCumul;
     }
 
     double WatsonDistribution::ComputeConcentrationMLE(const double rValue, const double aValue, const double cValue, double &logLik)
@@ -219,11 +261,6 @@ namespace anima
          **********************************************************************************************/
 
         ValueType tmpVec, resVec;
-        tmpVec.Fill(0.0);
-        tmpVec[2] = 1.0;
-
-        // Compute rotation matrix to bring [0,0,1] on meanAxis
-        itk::Matrix<double, 3, 3> rotationMatrix = anima::GetRotationMatrixFromVectors(tmpVec, m_MeanAxis);
 
         // Now resuming onto sampling around direction [0,0,1]
         double U, V, S;
@@ -284,7 +321,7 @@ namespace anima
             {
                 resVec[j] = 0.0;
                 for (unsigned int k = 0; k < m_AmbientDimension; ++k)
-                    resVec[j] += rotationMatrix(j, k) * tmpVec[k];
+                    resVec[j] += m_NorthToMeanAxisRotationMatrix(j, k) * tmpVec[k];
             }
 
             double resNorm = resVec.Normalize();
@@ -299,6 +336,56 @@ namespace anima
 
             sample[i] = resVec;
         }
+    }
+
+    WatsonDistribution::ValueType WatsonDistribution::GetMean()
+    {
+        ValueType meanValue;
+        meanValue.Fill(0.0);
+        return meanValue;
+    }
+
+    vnl_matrix<double> WatsonDistribution::GetCovarianceMatrix()
+    {
+        /**
+         * \fn vnl_matrix<double> WatsonDistribution::GetCovarianceMatrix()
+         *
+         * \author Aymeric Stamm
+         * \date November 2023
+         *
+         * \return A numeric matrix of size `m_AmbientDimension x m_AmbientDimension` storing the
+         * covariance matrix of the Watson distribution.
+         */
+
+        vnl_matrix<double> covarianceMatrix(m_AmbientDimension, m_AmbientDimension, 0.0);
+
+        if (std::abs(m_ConcentrationParameter) < this->GetEpsilon())
+        {
+            for (unsigned int i = 0; i < m_AmbientDimension; ++i)
+                covarianceMatrix.put(i, i, 1.0 / 3.0);
+            return covarianceMatrix;
+        }
+
+        vnl_matrix<double> tmpMatrix(m_AmbientDimension, m_AmbientDimension, 0.0);
+
+        double sqrtKappa = std::sqrt(m_ConcentrationParameter);
+        double dawsonValue = anima::EvaluateDawsonIntegral(sqrtKappa, true);
+        double kummerValue = anima::GetScaledKummerFunctionValue(m_ConcentrationParameter, 0.5, 1.5);
+
+        double tmpValue = (1.0 - dawsonValue) / (2.0 * m_ConcentrationParameter * kummerValue);
+        tmpMatrix.put(2, 2, tmpValue);
+
+        tmpValue = (2.0 * dawsonValue - (1.0 - dawsonValue) / m_ConcentrationParameter) / (4.0 * kummerValue);
+        tmpMatrix.put(0, 0, tmpValue);
+        tmpMatrix.put(1, 1, tmpValue);
+
+        for (unsigned int i = 0; i < m_AmbientDimension; ++i)
+            for (unsigned int j = 0; j < m_AmbientDimension; ++j)
+                for (unsigned int k = 0; k < m_AmbientDimension; ++k)
+                    for (unsigned int l = 0; l < m_AmbientDimension; ++l)
+                        covarianceMatrix(i, j) += m_NorthToMeanAxisRotationMatrix(i, k) * tmpMatrix(k, l) * m_NorthToMeanAxisRotationMatrix(j, l);
+
+        return covarianceMatrix;
     }
 
     void WatsonDistribution::GetStandardWatsonSHCoefficients(std::vector<double> &coefficients,

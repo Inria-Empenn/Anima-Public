@@ -2,6 +2,7 @@
 
 #include <animaBaseDistribution.h>
 
+#include <itkMatrix.h>
 #include <itkVector.h>
 
 namespace anima
@@ -23,9 +24,10 @@ namespace anima
         bool BelongsToSupport(const ValueType &x);
         double GetDensity(const ValueType &x);
         double GetLogDensity(const ValueType &x);
+        double GetCumulative(const ValueType &x);
         void Fit(const SampleType &sample, const std::string &method);
         void Random(SampleType &sample, GeneratorType &generator);
-        ValueType GetMean() { return m_MeanAxis; }
+        ValueType GetMean();
         double GetVariance() { return 1.0 - m_RValue; }
         double GetDistance(Self *otherDistribution);
 
@@ -35,6 +37,7 @@ namespace anima
         void SetConcentrationParameter(const double &x);
         double GetConcentrationParameter() { return m_ConcentrationParameter; }
 
+        vnl_matrix<double> GetCovarianceMatrix();
         void GetStandardWatsonSHCoefficients(
             std::vector<double> &coefficients,
             std::vector<double> &derivatives);
@@ -44,6 +47,7 @@ namespace anima
         ValueType m_MeanAxis;
         double m_ConcentrationParameter;
         double m_RValue;
+        itk::Matrix<double, 3, 3> m_NorthToMeanAxisRotationMatrix;
         const unsigned int m_AmbientDimension = 3;
     };
 

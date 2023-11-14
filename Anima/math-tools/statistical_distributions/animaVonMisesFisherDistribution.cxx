@@ -56,6 +56,31 @@ namespace anima
         return std::log(this->GetDensity(x));
     }
 
+    double VonMisesFisherDistribution::GetCumulative(const ValueType &x)
+    {
+        if (!this->BelongsToSupport(x))
+            throw itk::ExceptionObject(__FILE__, __LINE__, "The CDF is not defined outside the support.", ITK_LOCATION);
+
+        ValueType sphCoords;
+        anima::TransformCartesianToSphericalCoordinates(x, sphCoords);
+        double thetaVal = sphCoords[0];
+        while (thetaVal > M_PI)
+            thetaVal -= (2.0 * M_PI);
+        while (thetaVal < 0)
+            thetaVal += (2.0 * M_PI);
+        double phiVal = sphCoords[1];
+        while (phiVal > 2.0 * M_PI)
+            phiVal -= (2.0 * M_PI);
+        while (phiVal < 0)
+            phiVal += 2.0 * M_PI;
+
+        double phiCumul = phiVal / (2.0 * M_PI);
+        double thetaCumul = (1.0 - std::exp(-m_ConcentrationParameter * (1.0 - std::cos(thetaVal))));
+        thetaCumul /= (1.0 - std::exp(-2.0 * m_ConcentrationParameter));
+
+        return phiCumul * thetaCumul;
+    }
+
     void VonMisesFisherDistribution::Fit(const SampleType &sample, const std::string &method)
     {
         /**********************************************************************************************
