@@ -3,8 +3,6 @@
 #include <animaVectorOperations.h>
 #include <animaMatrixOperations.h>
 #include <animaLogarithmFunctions.h>
-#include <animaDistributionSampling.h>
-#include <animaVMFDistribution.h>
 #include <animaWatsonDistribution.h>
 #include <animaBaseCompartment.h>
 #include <animaMCMLinearInterpolateImageFunction.h>
@@ -117,12 +115,11 @@ MCMProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDi
         itkExceptionMacro("Null old direction, we're doomed");
 
     Vector3DType resVec;
-    //    if (chosenKappa > 700)
-    //        anima::SampleFromVMFDistributionNumericallyStable(chosenKappa,sampling_direction,resVec,random_generator);
-    //    else
-    //        anima::SampleFromVMFDistribution(chosenKappa,sampling_direction,resVec,random_generator);
     
-    anima::SampleFromWatsonDistribution(chosenKappa,sampling_direction,resVec,3,random_generator);
+    m_WatsonDistribution.SetMeanAxis(sampling_direction);
+    m_WatsonDistribution.SetConcentrationParameter(chosenKappa);
+    m_WatsonDistribution.Random(m_SampleOfDirections, random_generator);
+    resVec = m_SampleOfDirections[0];
     
     if (is2d)
     {
@@ -132,15 +129,17 @@ MCMProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDi
     
     if (effectiveNumDirs > 0)
     {
-        //        log_prior = anima::safe_log(anima::ComputeVMFPdf(resVec, oldDirection, this->GetKappaOfPriorDistribution()));
-        log_prior = anima::safe_log(anima::EvaluateWatsonPDF(resVec, oldDirection, this->GetKappaOfPriorDistribution()));
+        m_WatsonDistribution.SetMeanAxis(oldDirection);
+        m_WatsonDistribution.SetConcentrationParameter(this->GetKappaOfPriorDistribution());
+        log_prior = m_WatsonDistribution.GetLogDensity(resVec);
         
         log_proposal = 0;
         double sumWeights = 0;
         for (unsigned int i = 0;i < effectiveNumDirs;++i)
         {
-            //            log_proposal += mixtureWeights[i] * anima::ComputeVMFPdf(resVec, maximaMCM[i], kappaValues[i]);
-            log_proposal += mixtureWeights[i] * anima::EvaluateWatsonPDF(resVec, maximaMCM[i], kappaValues[i]);
+            m_WatsonDistribution.SetMeanAxis(maximaMCM[i]);
+            m_WatsonDistribution.SetConcentrationParameter(kappaValues[i]);
+            log_proposal += mixtureWeights[i] * m_WatsonDistribution.GetDensity(resVec);
             sumWeights += mixtureWeights[i];
         }
         
@@ -290,6 +289,9 @@ double MCMProbabilisticTractographyImageFilter::ComputeLogWeightUpdate(double b0
 
     double concentrationParameter = b0Value / std::sqrt(noiseValue);
 
+    m_WatsonDistribution.SetMeanAxis(newDirection);
+    m_WatsonDistribution.SetConcentrationParameter(concentrationParameter);
+
     bool oneTested = false;
     for (unsigned int i = workModel->GetNumberOfIsotropicCompartments();i < workModel->GetNumberOfCompartments();++i)
     {
@@ -306,7 +308,7 @@ double MCMProbabilisticTractographyImageFilter::ComputeLogWeightUpdate(double b0
             anima::Normalize(tmpVec,tmpVec);
         }
 
-        double tmpVal = std::log(anima::EvaluateWatsonPDF(tmpVec, newDirection, concentrationParameter));
+        double tmpVal = m_WatsonDistribution.GetLogDensity(tmpVec);
         if ((tmpVal > logLikelihood)||(!oneTested))
         {
             logLikelihood = tmpVal;

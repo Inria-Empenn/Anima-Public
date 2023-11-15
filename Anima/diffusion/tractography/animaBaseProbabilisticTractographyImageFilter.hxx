@@ -58,6 +58,8 @@ BaseProbabilisticTractographyImageFilter <TInputModelImageType>
 
     m_HighestProcessedSeed = 0;
     m_ProgressReport = 0;
+
+    m_SampleOfDirections.resize(1);
 }
 
 template <class TInputModelImageType>

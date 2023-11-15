@@ -1,38 +1,38 @@
 #pragma once
 
+#include <limits>
+#include <random>
 #include <string>
 #include <vector>
-#include <random>
 
 #include <AnimaStatisticalDistributionsExport.h>
 
 namespace anima
 {
+	template <typename TValueType>
 	class ANIMASTATISTICALDISTRIBUTIONS_EXPORT BaseDistribution
 	{
 	public:
+		using Self = BaseDistribution;
+		using ValueType = TValueType;
+		using SampleType = std::vector<ValueType>;
 		using GeneratorType = std::mt19937;
-		using VectorType = std::vector<double>;
 
-		BaseDistribution()
-		{
-			m_ShapeParameter = 1.0;
-			m_ScaleParameter = 1.0;
-		}
+		BaseDistribution() {}
 
-		void SetShapeParameter(const double val);
-		double GetShapeParameter() {return m_ShapeParameter;}
+		virtual bool BelongsToSupport(const ValueType &x) = 0;
+		virtual double GetDensity(const ValueType &x) = 0;
+		virtual double GetLogDensity(const ValueType &x) = 0;
+		virtual double GetCumulative(const ValueType &x) = 0;
+		virtual void Fit(const SampleType &sample, const std::string &method) = 0;
+		virtual void Random(SampleType &sample, GeneratorType &generator) = 0;
+		virtual ValueType GetMean() = 0;
+		virtual double GetVariance() = 0;
+		virtual double GetDistance(Self *otherDistribution) = 0;
 
-		void SetScaleParameter(const double val);
-		double GetScaleParameter() {return m_ScaleParameter;}
-
-		virtual double GetDensity(const double &x) = 0;
-		virtual double GetLogDensity(const double &x) = 0;
-		virtual void Fit(const VectorType &sample, const std::string &method) = 0;
-		virtual void Random(VectorType &sample, GeneratorType &generator) = 0;
-
-	private:
-		double m_ShapeParameter;
-		double m_ScaleParameter;
+	protected:
+		double GetEpsilon() { return std::sqrt(std::numeric_limits<double>::epsilon()); }
 	};
 } // end of namespace
+
+#include "animaBaseDistribution.hxx"

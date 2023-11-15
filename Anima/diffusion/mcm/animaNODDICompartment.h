@@ -2,6 +2,7 @@
 
 #include <animaBaseCompartment.h>
 #include <AnimaMCMExport.h>
+#include <animaWatsonDistribution.h>
 
 namespace anima
 {
@@ -84,6 +85,12 @@ protected:
         
         m_CurrentBValue = -1.0;
         m_CurrentGradient.fill(0.0);
+
+        itk::Vector<double,3> meanAxis;
+        meanAxis[0] = 0.0;
+        meanAxis[1] = 0.0;
+        meanAxis[2] = 1.0;
+        m_WatsonDistribution.SetMeanAxis(meanAxis);
     }
     
     virtual ~NODDICompartment() {}
@@ -112,6 +119,8 @@ private:
     double m_Tau1, m_Tau1Deriv;
     double m_ExtraAxonalSignal, m_IntraAxonalSignal;
     double m_IntraAngleDerivative, m_IntraKappaDerivative, m_IntraAxialDerivative;
+
+    anima::WatsonDistribution m_WatsonDistribution;
 };
 
 } //end namespace anima

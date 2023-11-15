@@ -1,5 +1,7 @@
 #pragma once
 
+#include <animaWatsonDistribution.h>
+
 #include <itkVectorImage.h>
 #include <itkImage.h>
 
@@ -220,6 +222,12 @@ protected:
 
     //! Computes additional scalar maps that are model dependent to add to the output
     virtual void ComputeAdditionalScalarMaps() {}
+
+    //! Holds an object of class WatsonDistribution for sampling new directions
+    anima::WatsonDistribution m_WatsonDistribution;
+
+    //! Holds a sample of size 1 of directions
+    DirectionVectorType m_SampleOfDirections;
 
 private:
     ITK_DISALLOW_COPY_AND_ASSIGN(BaseProbabilisticTractographyImageFilter);
