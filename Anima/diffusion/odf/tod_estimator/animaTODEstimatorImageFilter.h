@@ -1,138 +1,112 @@
 #pragma once
 
-#include <iostream>
-#include <itkImageSource.h>
-#include <itkVectorImage.h>
-#include <itkImage.h>
-#include <vector>
-
 #include <animaNumberedThreadImageToImageFilter.h>
 #include <animaODFSphericalHarmonicBasis.h>
-#include <animaVectorOperations.h>
-#include <animaReadWriteFunctions.h>
 
 #include <vtkPoints.h>
-#include <vtkVector.h>
 
 namespace anima
 {
 
-//template <typename TOutputPixelType>
-class TODEstimatorImageFilter :
-public anima::NumberedThreadImageToImageFilter < itk::Image<double,3>, itk::VectorImage<double,3> >
-{
-public:
-
-    typedef TODEstimatorImageFilter Self;
-//    typedef itk::Vector<float, 3> pointType;
-    typedef itk::Point<float, 3> PointType;
-//    typedef PointType DirType;
-    typedef itk::Vector<double, 3> DirType;
-    typedef std::vector<DirType> DirVectorType;
-    typedef std::vector<PointType> FiberType;
-
-    typedef double MathScalarType;
-
-    typedef itk::Matrix <MathScalarType,3,3> Matrix3DType;
-    typedef itk::Vector <MathScalarType,3> Vector3DType;
-    typedef itk::VariableLengthVector <MathScalarType> VectorType;
-
-    typedef anima::ODFSphericalHarmonicBasis baseSH;
-    typedef std::complex <double> complexType;
-
-    typedef itk::VectorImage<double, 3> TOutputImage;
-    typedef itk::Image<int, 3> TRefImage;
-
-    typedef anima::NumberedThreadImageToImageFilter <InputImageType, OutputImageType> Superclass;
-    typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self>  ConstPointer;
-
-
-    itkNewMacro(Self)
-
-    itkTypeMacro(TODEstimatorImageFilter, anima::NumberedThreadImageToImageFilter);
-
-    typedef typename TOutputImage::Pointer OutputImagePointer;
-
-    typedef typename Superclass::InputImageRegionType InputImageRegionType;
-    typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
-
-    itkSetMacro(InputFileName,std::string);
-    itkSetMacro(RefFileName,std::string);
-    itkSetMacro(LOrder,unsigned int);
-    itkSetMacro(Normalize, bool);
-
-
-protected:
-    TODEstimatorImageFilter()
-        : Superclass()
+    template <typename ScalarType>
+    class TODEstimatorImageFilter : public anima::NumberedThreadImageToImageFilter<itk::Image<ScalarType, 3>, itk::VectorImage<ScalarType, 3>>
     {
-    }
+    public:
+        /** Standard class typedefs. */
+        using Self = TODEstimatorImageFilter;
+        using InputImageType = itk::Image<ScalarType, 3>;
+        using OutputImageType = itk::VectorImage<ScalarType, 3>;
+        using ReferenceImageType = itk::Image<unsigned int, 3>;
+        using Superclass = anima::NumberedThreadImageToImageFilter<InputImageType, OutputImageType>;
+        using Pointer = itk::SmartPointer<Self>;
+        using ConstPointer = itk::SmartPointer<const Self>;
 
-    virtual ~TODEstimatorImageFilter()
-    {
+        /** Method for creation through the object factory. */
+        itkNewMacro(Self);
 
-    }
+        /** Run-time type information (and related methods) */
+        itkTypeMacro(TODEstimatorImageFilter, anima::NumberedThreadImageToImageFilter);
 
-//    void GenerateData() ITK_OVERRIDE;
+        /** Superclass typedefs. */
+        using InputImageRegionType = typename Superclass::InputImageRegionType;
+        using OutputImageRegionType = typename Superclass::OutputImageRegionType;
 
-    void BeforeThreadedGenerateData() ITK_OVERRIDE;
-    void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
-    void AfterThreadedGenerateData() ITK_OVERRIDE;
+        using InputImagePointerType = typename InputImageType::Pointer;
+        using OutputImagePointerType = typename OutputImageType::Pointer;
+        using ReferenceImagePointerType = typename ReferenceImageType::Pointer;
+        using InputImagePixelType = typename InputImageType::PixelType;
+        using OutputImagePixelType = typename OutputImageType::PixelType;
+        using ReferenceImagePixelType = ReferenceImageType::PixelType;
 
+        using PointType = itk::Point<ScalarType, 3>;
+        using DirType = itk::Vector<double, 3>;
+        using DirVectorType = std::vector<DirType>;
+        using FiberType = std::vector<PointType>;
+        using Matrix3DType = itk::Matrix<double, 3, 3>;
+        using Vector3DType = itk::Vector<double, 3>;
+        using MatrixType = vnl_matrix<double>;
+        using BasisType = anima::ODFSphericalHarmonicBasis;
+        using ComplexType = std::complex<double>;
 
-    FiberType readFiber(vtkIdType numberOfPoints, const vtkIdType *indices, vtkPoints *points);
-    PointType getCenterVoxel(int index, FiberType &fiber);
-    DirType getFiberDirection(int index, FiberType &fiber);
-    void getSHCoefs(DirType dir, VectorType &resSH, baseSH &basis);
-    void ComputeCoefs();
-    void processFiber(FiberType &fiber, baseSH &basis);
+        itkSetMacro(InputFileName, std::string);
+        itkSetMacro(ReferenceFileName, std::string);
+        itkSetMacro(LOrder, unsigned int);
+        itkSetMacro(UseNormalization, bool);
 
-    void getMainDirections(DirVectorType inDirs, DirVectorType &mainDirs);
-    double getEuclideanDistance(DirType dir1, DirType dir2);
-    DirType getNewClusterAverage(int numCluster, DirVectorType &dirs, std::vector<int> &cluster);
+    protected:
+        TODEstimatorImageFilter() {}
 
-    void getSHCoef(DirType dir, VectorType &coefs);
+        virtual ~TODEstimatorImageFilter() {}
 
-    void precomputeSH();
-    void discretizeODF(VectorType ODFCoefs, std::vector<double> &ODFDiscret);
-    VectorType getSquareRootODF(std::vector<double> ODFDiscret);
-    VectorType getSquareODF(std::vector<double> ODFDiscret);
-    void getAverageCoefs(std::vector<VectorType> &vecCoefs, VectorType &avgCoef);
-    
-    void averageODFs(std::vector<VectorType> &vecCoefs, VectorType &resOdf);
+        void BeforeThreadedGenerateData() ITK_OVERRIDE;
+        void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
 
-    vnl_matrix <double> GetRotationMatrix(DirType dir1, DirType dir2);
+        FiberType ReadFiber(vtkIdType numberOfPoints, const vtkIdType *indices, vtkPoints *points);
+        PointType GetCenterVoxel(int index, FiberType &fiber);
+        DirType GetFiberDirection(int index, FiberType &fiber);
+        void GetSHCoefs(DirType dir, OutputImagePixelType &resSH, BasisType &basis);
+        void ComputeCoefs();
+        void ProcessFiber(FiberType &fiber, BasisType &basis);
 
-//    void GenerateOutputInformation() ITK_OVERRIDE;
+        void GetMainDirections(DirVectorType inDirs, DirVectorType &mainDirs);
+        double GetEuclideanDistance(DirType dir1, DirType dir2);
+        DirType GetNewClusterAverage(int numCluster, DirVectorType &dirs, std::vector<int> &cluster);
 
-private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(TODEstimatorImageFilter);
+        void GetSHCoef(DirType dir, OutputImagePixelType &coefs);
 
-    std::string m_InputFileName;
-    std::string m_RefFileName;
+        void PrecomputeSH();
+        void DiscretizeODF(OutputImagePixelType ODFCoefs, std::vector<double> &ODFDiscret);
+        OutputImagePixelType GetSquareRootODF(std::vector<double> ODFDiscret);
+        OutputImagePixelType GetSquareODF(std::vector<double> ODFDiscret);
+        void GetAverageCoefs(std::vector<OutputImagePixelType> &vecCoefs, OutputImagePixelType &avgCoef);
 
-    DirType m_CstDir;
+        void AverageODFs(std::vector<OutputImagePixelType> &vecCoefs, OutputImagePixelType &resOdf);
 
-    unsigned int m_LOrder;
-    int m_VectorLength;
+        MatrixType GetRotationMatrix(DirType dir1, DirType dir2);
 
-    double m_NbSample;
+    private:
+        ITK_DISALLOW_COPY_AND_ASSIGN(TODEstimatorImageFilter);
 
-    bool m_Normalize;
+        std::string m_InputFileName;
+        std::string m_ReferenceFileName;
 
+        DirType m_CstDir;
 
-    VectorType m_GaussCoefs;
+        unsigned int m_LOrder;
+        int m_VectorLength;
 
-    std::vector<std::vector<double>> m_SphereSampl;
-    vnl_matrix<double> m_SpherHarm;
+        double m_NbSample;
 
-    anima::ODFSphericalHarmonicBasis *m_ODFSHBasis;
-    std::vector<std::vector<DirType>> m_ImgDir;
+        bool m_UseNormalization;
 
-    itk::Image<int, 3>::Pointer test;
+        OutputImagePixelType m_GaussCoefs;
 
-};
+        std::vector<std::vector<double>> m_SphereSampl;
+        MatrixType m_SpherHarm;
+
+        anima::ODFSphericalHarmonicBasis *m_ODFSHBasis;
+        std::vector<DirVectorType> m_ImgDir;
+    };
 } // end namespace anima
 
 #include "animaTODEstimatorImageFilter.hxx"

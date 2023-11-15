@@ -1,54 +1,61 @@
+#include <animaReadWriteFunctions.h>
 #include <animaTODEstimatorImageFilter.h>
+
 #include <itkTimeProbe.h>
+
 #include <tclap/CmdLine.h>
 
-#include <animaReadWriteFunctions.h>
-
-void eventCallback (itk::Object* caller, const itk::EventObject& event, void* clientData)
+void eventCallback(itk::Object *caller, const itk::EventObject &event, void *clientData)
 {
-    itk::ProcessObject * processObject = (itk::ProcessObject*) caller;
-    std::cout<<"\033[K\rProgression: "<<(int)(processObject->GetProgress() * 100)<<"%"<<std::flush;
+    itk::ProcessObject *processObject = (itk::ProcessObject *)caller;
+    std::cout << "\033[K\rProgression: " << (int)(processObject->GetProgress() * 100) << "%" << std::flush;
 }
 
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
+    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ', ANIMA_VERSION);
 
-    TCLAP::ValueArg<std::string>  inArg("i","input","Input tractography image (.vtk or .vtp)",true,"","input tractography image",cmd);
-    TCLAP::ValueArg<std::string> resArg("o","outputfile","Result TOD image",true,"","result TOD image",cmd);
-    TCLAP::ValueArg<std::string> refArg("g","geometry","Output image geometry",true,"","output geometry",cmd);
+    TCLAP::ValueArg<std::string> inArg(
+        "i", "input-file",
+        "A string specifying the name of a file storing the input tractography image. Supported formats are `.vtk`, `.vtp` or `.fds`.",
+        true, "", "input tractography image", cmd);
+    TCLAP::ValueArg<std::string> outArg(
+        "o", "output-file",
+        "A string specifying the name of a file storing the output TOD image.",
+        true, "", "output TOD image", cmd);
+    TCLAP::ValueArg<std::string> refArg(
+        "g", "geometry-file",
+        "A string specifying the name of a file storing the reference geometry image.",
+        true, "", "reference geometry image", cmd);
 
-    TCLAP::SwitchArg normArg("N", "Normalize", "Normalize TOD", cmd, false);
+    TCLAP::SwitchArg normArg(
+        "N", "normalize-tod",
+        "A switch to turn on TOD normalization.",
+        cmd, false);
 
-    TCLAP::ValueArg<unsigned int> orderArg("k","order","Order of spherical harmonics basis (default 4)",false,4,"Order of SH basis",cmd);
-
-    TCLAP::ValueArg<unsigned int> nbpArg("p","numberofthreads","Number of threads to run on (default: all cores)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+    TCLAP::ValueArg<unsigned int> nbpArg(
+        "T", "nb-threads",
+        "An integer value specifying the number of threads to run on (default: all cores).",
+        false, itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(), "number of threads", cmd);
 
     try
     {
-        cmd.parse(argc,argv);
+        cmd.parse(argc, argv);
     }
-    catch (TCLAP::ArgException& e)
+    catch (TCLAP::ArgException &e)
     {
         std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
         return EXIT_FAILURE;
     }
 
-    typedef anima::TODEstimatorImageFilter FilterType;
+    using FilterType = anima::TODEstimatorImageFilter<float>;
+    using InputImageType = FilterType::InputImageType;
 
     FilterType::Pointer mainFilter = FilterType::New();
-
-//    if (orderArg.getValue() % 2 == 0)
-//        mainFilter->SetLOrder(orderArg.getValue());
-//    else
-//        mainFilter->SetLOrder(orderArg.getValue() - 1);
-    typedef FilterType::InputImageType InputImageType;
     mainFilter->SetInput(anima::readImage<InputImageType>(refArg.getValue()));
-
-    mainFilter->SetLOrder(orderArg.getValue());
     mainFilter->SetInputFileName(inArg.getValue());
-    mainFilter->SetRefFileName(refArg.getValue());
-    mainFilter->SetNormalize(normArg.getValue());
+    mainFilter->SetReferenceFileName(refArg.getValue());
+    mainFilter->SetUseNormalization(normArg.getValue());
     mainFilter->SetNumberOfWorkUnits(nbpArg.getValue());
 
     itk::CStyleCommand::Pointer callback = itk::CStyleCommand::New();
@@ -57,14 +64,12 @@ int main(int argc, char **argv)
 
     itk::TimeProbe tmpTime;
     tmpTime.Start();
-
     mainFilter->Update();
-
     tmpTime.Stop();
 
-    std::cout << std::endl << "Execution Time: " << tmpTime.GetTotal() << std::endl;
+    std::cout << "\nExecution Time: " << tmpTime.GetTotal() << "s" << std::endl;
 
-    anima::writeImage <FilterType::TOutputImage> (resArg.getValue(),mainFilter->GetOutput());
+    anima::writeImage<FilterType::OutputImageType>(outArg.getValue(), mainFilter->GetOutput());
 
     return EXIT_SUCCESS;
 }
