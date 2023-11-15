@@ -1,7 +1,6 @@
 #include <animaDirichletDistribution.h>
 #include <tclap/CmdLine.h>
 #include <random>
-#include <vnl/vnl_matrix.h>
 
 int main(int argc, char **argv)
 {
@@ -30,14 +29,16 @@ int main(int argc, char **argv)
 
     std::mt19937 generator(1234);
 
-    vnl_matrix<double> sample(nSampleArg.getValue(), 2);
+    std::vector <std::vector<double> > sample(nSampleArg.getValue());
+    for (unsigned int i = 0;i < nSampleArg.getValue();++i)
+        sample[i].resize(2);
     dirichletDistribution.Random(sample, generator);
 
     dirichletDistribution.Fit(sample, "mle");
 
     concentrationParameters = dirichletDistribution.GetConcentrationParameters();
     std::cout << "Concentration parameters: ";
-    for (unsigned int i = 0;i < sample.cols();++i)
+    for (unsigned int i = 0;i < sample[0].size();++i)
         std::cout << concentrationParameters[i] << " ";
     std::cout << std::endl;
 

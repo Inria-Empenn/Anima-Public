@@ -2,8 +2,6 @@
 #include <cmath>
 
 #include <animaVectorOperations.h>
-#include <animaDistributionSampling.h>
-#include <animaVMFDistribution.h>
 #include <animaLogarithmFunctions.h>
 #include <animaBaseTensorTools.h>
 
@@ -57,11 +55,6 @@ DTIProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDi
         sampling_direction = oldDirection;
         concentrationParameter = this->GetKappaOfPriorDistribution();
     }
-    
-//    if (concentrationParameter > 700)
-//        anima::SampleFromVMFDistributionNumericallyStable(concentrationParameter,sampling_direction,resVec,random_generator);
-//    else
-//        anima::SampleFromVMFDistribution(concentrationParameter,sampling_direction,resVec,random_generator);
 
     m_WatsonDistribution.SetMeanAxis(sampling_direction);
     m_WatsonDistribution.SetConcentrationParameter(concentrationParameter);
@@ -76,12 +69,10 @@ DTIProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDi
     
     if (LC > m_ThresholdForProlateTensor)
     {
-//        log_prior = anima::safe_log(anima::ComputeVMFPdf(resVec, oldDirection, this->GetKappaOfPriorDistribution()));
         m_WatsonDistribution.SetMeanAxis(oldDirection);
         m_WatsonDistribution.SetConcentrationParameter(this->GetKappaOfPriorDistribution());
         log_prior = m_WatsonDistribution.GetLogDensity(resVec);
 
-//        log_proposal = anima::safe_log(anima::ComputeVMFPdf(resVec, sampling_direction, concentrationParameter));
         m_WatsonDistribution.SetMeanAxis(sampling_direction);
         m_WatsonDistribution.SetConcentrationParameter(concentrationParameter);
         log_proposal = m_WatsonDistribution.GetLogDensity(resVec);

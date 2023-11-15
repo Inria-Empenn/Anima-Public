@@ -3,8 +3,6 @@
 #include <animaVectorOperations.h>
 #include <animaMatrixOperations.h>
 #include <animaLogarithmFunctions.h>
-#include <animaDistributionSampling.h>
-#include <animaVMFDistribution.h>
 #include <animaWatsonDistribution.h>
 #include <animaBaseCompartment.h>
 #include <animaMCMLinearInterpolateImageFunction.h>
@@ -117,10 +115,6 @@ MCMProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDi
         itkExceptionMacro("Null old direction, we're doomed");
 
     Vector3DType resVec;
-    //    if (chosenKappa > 700)
-    //        anima::SampleFromVMFDistributionNumericallyStable(chosenKappa,sampling_direction,resVec,random_generator);
-    //    else
-    //        anima::SampleFromVMFDistribution(chosenKappa,sampling_direction,resVec,random_generator);
     
     m_WatsonDistribution.SetMeanAxis(sampling_direction);
     m_WatsonDistribution.SetConcentrationParameter(chosenKappa);
@@ -135,7 +129,6 @@ MCMProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDi
     
     if (effectiveNumDirs > 0)
     {
-        //        log_prior = anima::safe_log(anima::ComputeVMFPdf(resVec, oldDirection, this->GetKappaOfPriorDistribution()));
         m_WatsonDistribution.SetMeanAxis(oldDirection);
         m_WatsonDistribution.SetConcentrationParameter(this->GetKappaOfPriorDistribution());
         log_prior = m_WatsonDistribution.GetLogDensity(resVec);
@@ -144,7 +137,6 @@ MCMProbabilisticTractographyImageFilter::ProposeNewDirection(Vector3DType &oldDi
         double sumWeights = 0;
         for (unsigned int i = 0;i < effectiveNumDirs;++i)
         {
-            //            log_proposal += mixtureWeights[i] * anima::ComputeVMFPdf(resVec, maximaMCM[i], kappaValues[i]);
             m_WatsonDistribution.SetMeanAxis(maximaMCM[i]);
             m_WatsonDistribution.SetConcentrationParameter(kappaValues[i]);
             log_proposal += mixtureWeights[i] * m_WatsonDistribution.GetDensity(resVec);
