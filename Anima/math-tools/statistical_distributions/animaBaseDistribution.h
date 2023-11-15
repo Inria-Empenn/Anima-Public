@@ -23,7 +23,7 @@ namespace anima
 		virtual bool BelongsToSupport(const ValueType &x) = 0;
 		virtual double GetDensity(const ValueType &x) = 0;
 		virtual double GetLogDensity(const ValueType &x) = 0;
-		virtual double GetCumulative(const ValueType &x);
+		virtual double GetCumulative(const ValueType &x) = 0;
 		virtual void Fit(const SampleType &sample, const std::string &method) = 0;
 		virtual void Random(SampleType &sample, GeneratorType &generator) = 0;
 		virtual ValueType GetMean() = 0;

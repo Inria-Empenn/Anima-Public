@@ -2,6 +2,8 @@
 
 #include <itkMacro.h>
 
+#include <algorithm>
+
 namespace anima
 {
 
