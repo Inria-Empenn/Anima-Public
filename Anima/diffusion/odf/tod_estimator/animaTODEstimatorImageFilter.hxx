@@ -141,7 +141,6 @@ namespace anima
 
         while (!outItr.IsAtEnd())
         {
-
             index = outItr.GetIndex();
 
             std::vector<OutputImagePixelType> vecCoefs;

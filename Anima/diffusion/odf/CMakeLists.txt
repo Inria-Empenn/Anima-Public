@@ -1,4 +1,4 @@
 add_subdirectory(generalized_fa)
 add_subdirectory(odf_estimator)
 add_subdirectory(tod_estimator)
-add_subdirectory(odf_average_images)
+add_subdirectory(odf_average)

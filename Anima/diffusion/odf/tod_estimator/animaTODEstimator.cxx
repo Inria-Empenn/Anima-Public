@@ -64,7 +64,17 @@ int main(int argc, char **argv)
 
     itk::TimeProbe tmpTime;
     tmpTime.Start();
-    mainFilter->Update();
+
+    try
+    {
+        mainFilter->Update();
+    }
+    catch (itk::ExceptionObject &e)
+    {
+        std::cerr << e << std::endl;
+        return EXIT_FAILURE;
+    }
+
     tmpTime.Stop();
 
     std::cout << "\nExecution Time: " << tmpTime.GetTotal() << "s" << std::endl;
