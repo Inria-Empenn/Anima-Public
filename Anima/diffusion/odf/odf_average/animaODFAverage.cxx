@@ -19,17 +19,17 @@ int main(int argc, char **argv)
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ', ANIMA_VERSION);
 
     TCLAP::ValueArg<std::string> inArg(
-        "i", "input-odf",
-        "ODF images list as a text file",
-        true, "", "ODF images list", cmd);
+        "i", "input-odf-file",
+        "A string specifying the name of a text file in which the ODF images are listed.",
+        true, "", "odf image list", cmd);
     TCLAP::ValueArg<std::string> weightArg(
-        "m", "masks",
-        "Masks images list as a text file",
-        true, "", "Masks images list", cmd);
+        "w", "input-weight-file",
+        "A string specifying the name of a text file in which the weight images are listed.",
+        true, "", "weight image list", cmd);
     TCLAP::ValueArg<std::string> outArg(
-        "o", "output",
-        "Result average ODF",
-        true, "", "result ODF image", cmd);
+        "o", "output-file",
+        "A string specifying the name of the output average ODF image.",
+        true, "", "output odf image", cmd);
 
     TCLAP::ValueArg<unsigned int> nbpArg(
         "T", "nb-threads",
