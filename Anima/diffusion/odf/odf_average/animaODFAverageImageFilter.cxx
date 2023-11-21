@@ -188,8 +188,6 @@ namespace anima
         for (unsigned int i = 0; i < m_VectorLength; ++i)
             squareModelValue[i] = squareCoef.get(i, 0);
 
-        squareModelValue[0] = 1.0 / (2.0 * std::sqrt(M_PI));
-
         return squareModelValue;
     }
 
