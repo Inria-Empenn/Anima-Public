@@ -20,15 +20,15 @@ int main(int argc, char **argv)
 
     TCLAP::ValueArg<std::string> inArg(
         "i", "input-odf-file",
-        "A string specifying the name of a text file in which the ODF images are listed.",
+        "A path or file name specifying the text file in which the ODF images are listed.",
         true, "", "odf image list", cmd);
     TCLAP::ValueArg<std::string> weightArg(
         "w", "input-weight-file",
-        "A string specifying the name of a text file in which the weight images are listed.",
+        "A path or file name specifying the text file in which the weight images are listed.",
         true, "", "weight image list", cmd);
     TCLAP::ValueArg<std::string> outArg(
         "o", "output-file",
-        "A string specifying the name of the output average ODF image.",
+        "A path or file name specifying the output average ODF image.",
         true, "", "output odf image", cmd);
 
     TCLAP::ValueArg<unsigned int> nbpArg(
@@ -72,22 +72,36 @@ int main(int argc, char **argv)
 
     std::vector<std::string> inputFiles;
     std::vector<std::string> weightFiles;
-    unsigned int numInputs = 0;
+
     while (!odfFile.eof())
     {
-        char tmpStr[2048], maskStr[2048];
-        odfFile.getline(tmpStr, 2048);
-        weightFile.getline(maskStr, 2048);
+        char tmpStr[2048], weightStr[2048];
 
-        if (strcmp(tmpStr, "") == 0)
+        odfFile.getline(tmpStr, 2048);
+        if (odfFile.fail())
+        {
+            std::cerr << "Error: Failed to read an ODF image." << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        weightFile.getline(weightStr, 2048);
+        if (weightFile.fail())
+        {
+            std::cerr << "Error: Failed to read a weight image." << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        if (strcmp(tmpStr, "") == 0 || strcmp(weightStr, "") == 0)
             continue;
 
         inputFiles.push_back(tmpStr);
-        weightFiles.push_back(maskStr);
-        numInputs++;
+        weightFiles.push_back(weightStr);
     }
+
     odfFile.close();
     weightFile.close();
+
+    unsigned int numInputs = weightFiles.size();
 
     for (unsigned int i = 0; i < numInputs; ++i)
     {
