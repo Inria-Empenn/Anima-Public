@@ -45,6 +45,7 @@ include(CheckEnvironment)
 
 include(ExternalProject)
 include(ConfigureExternalProjectVariables)
+include(EP_GeneratePatchCommand)
 
 #Variables for dependencies and update custom, updated in external projects
 set(Anima_DEPS "")
