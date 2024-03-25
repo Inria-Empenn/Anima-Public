@@ -35,6 +35,8 @@ set(common_cache_args
   ${MACOSX_RPATH_OPTION}
 )
 
+set(EP_PATH_SOURCE ${PROJECT_SOURCE_DIR}/External-Projects)
+
 if (CMAKE_EXTRA_GENERATOR)
   set(cmake_gen "${CMAKE_EXTRA_GENERATOR} -G ${CMAKE_GENERATOR}")
 else()

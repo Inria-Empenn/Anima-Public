@@ -32,6 +32,16 @@ if (NOT DEFINED ${proj}_SRC_DIR)
   set(location GIT_REPOSITORY ${GITHUB_PREFIX}InsightSoftwareConsortium/ITK.git GIT_TAG ${tag})
 endif()
 
+## #############################################################################
+## Check if patch has to be applied
+## #############################################################################
+  
+ep_GeneratePatchCommand(ITK ITK_PATCH_COMMAND ITK.patch)
+
+## #############################################################################
+## Add external-project
+## #############################################################################
+
 ExternalProject_Add(${proj}
   ${location}
   DEPENDS ${VTK_PROJ_DEP}
@@ -40,6 +50,7 @@ ExternalProject_Add(${proj}
   CMAKE_GENERATOR ${cmake_gen}
   CMAKE_GENERATOR_PLATFORM ${CMAKE_GENERATOR_PLATFORM}
   CMAKE_ARGS ${cmake_args}
+  PATCH_COMMAND ${ITK_PATCH_COMMAND}
   BUILD_ALWAYS 1
   BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}
   INSTALL_COMMAND ""
