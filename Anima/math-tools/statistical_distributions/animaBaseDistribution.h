@@ -10,7 +10,7 @@
 namespace anima
 {
 	template <typename TValueType>
-	class ANIMASTATISTICALDISTRIBUTIONS_EXPORT BaseDistribution
+	class BaseDistribution
 	{
 	public:
 		using Self = BaseDistribution;
