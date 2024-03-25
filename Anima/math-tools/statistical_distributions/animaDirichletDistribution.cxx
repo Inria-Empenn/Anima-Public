@@ -1,6 +1,7 @@
 #include "animaDirichletDistribution.h"
 #include <animaGammaFunctions.h>
 
+#include <numeric>
 #include <itkMacro.h>
 
 namespace anima
