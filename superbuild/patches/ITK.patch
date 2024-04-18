@@ -1,0 +1,12 @@
+unchanged:
+--- a/Modules/Filtering/MathematicalMorphology/include/itkMathematicalMorphologyEnums.h
++++ b/Modules/Filtering/MathematicalMorphology/include/itkMathematicalMorphologyEnums.h
+@@ -19,6 +19,7 @@
+ #define itkMathematicalMorphologyEnums_h
+ 
+ #include <iostream>
++#include <cstdint>
+ #include "ITKMathematicalMorphologyExport.h"
+ 
+ 
+ 
