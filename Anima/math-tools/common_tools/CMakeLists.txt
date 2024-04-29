@@ -7,4 +7,5 @@ add_subdirectory(convert_image)
 add_subdirectory(convert_shape)
 add_subdirectory(merge_block_images)
 add_subdirectory(vectorize_images)
+add_subdirectory(image_to_mask)
 
