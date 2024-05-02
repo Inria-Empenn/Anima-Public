@@ -85,11 +85,17 @@ namespace anima
             {
                 DirType dir = GetFiberDirection(i, fiber);
                 if(output->GetDirection()[0][0] > 0)
+                {
                     dir[0] *= -1;
+                }
                 if(output->GetDirection()[1][1] < 0)
+                {
                     dir[1] *= -1;
+                }
                 if(output->GetDirection()[2][2] < 0)
+                {
                     dir[2] *= -1;
+                }
 
 
                 PointType point = GetCenterVoxel(i, fiber);
