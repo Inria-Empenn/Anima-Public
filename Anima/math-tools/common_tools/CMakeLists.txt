@@ -6,5 +6,6 @@ add_subdirectory(collapse_image)
 add_subdirectory(convert_image)
 add_subdirectory(convert_shape)
 add_subdirectory(merge_block_images)
+add_subdirectory(shapes_to_density)
 add_subdirectory(vectorize_images)
 
