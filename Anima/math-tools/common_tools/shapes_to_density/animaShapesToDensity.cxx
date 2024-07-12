@@ -63,7 +63,7 @@ int main(int argc,  char **argv)
 
     //Initialize data objects for the main algorithm
     double ptVals[3], ptValsNext[3];
-    OutImageType::IndexType index, indexNext;
+    OutImageType::IndexType index, indexNext, indexTemp;
     OutImageType::PointType point, pointNext;
 
 
@@ -108,10 +108,10 @@ int main(int argc,  char **argv)
                     //We enter this loop only if maxStep >=2.
                     //In that case, we create artificial index points, to try to modify all and only all the voxels through which the streamline passes between point and pointNext
                     //We repeat maxStep - 1 times and not maxStep times, because otherwise, index = indexNext, and we would increment indexNext twice
-                    index[0] = index[0] + std::round(dx/maxStep);
-                    index[1] = index[1] + std::round(dy/maxStep);
-                    index[2] = index[2] + std::round(dz/maxStep);
-                    outImage->SetPixel(index, outImage->GetPixel(index) + 1.0); //increment the number of streamlines passing through the voxel with this index
+                    indexTemp[0] = index[0] + std::round(l*dx/maxStep);
+                    indexTemp[1] = index[1] + std::round(l*dy/maxStep);
+                    indexTemp[2] = index[2] + std::round(l*dz/maxStep);
+                    outImage->SetPixel(indexTemp, outImage->GetPixel(indexTemp) + 1.0); //increment the number of streamlines passing through the voxel with the index indexTemp
                 }
             }
         }
