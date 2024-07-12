@@ -10,7 +10,7 @@
 
 /**
  * @brief Converts an input track file (vtp or vtk) into a density map.
- * The density map is a 3D image giving for each voxel the number of streamlines from the input image passing through it.
+ * @details The density map is a 3D image giving for each voxel the number of streamlines from the input image passing through it.
  * 
  */
 int main(int argc,  char **argv)
