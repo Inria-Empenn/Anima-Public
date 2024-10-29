@@ -20,7 +20,7 @@ int main(int argc,  char **argv)
     //Define arguments
     TCLAP::ValueArg <std::string> inTrackArg("i","in-tracks","input track file (vtp, vtk)",true,"","input tracks",cmd);
     TCLAP::ValueArg <std::string> geometryArg("g","geometry","Output image geometry",true,"","output geometry",cmd);
-    TCLAP::ValueArg <std::string> outArg("o","out","Output image representing fibers convert in binary image",true,"","output image",cmd);
+    TCLAP::ValueArg <std::string> outArg("o","out","Output density map",true,"","output image",cmd);
 
     //Try to parse
     try
@@ -106,12 +106,14 @@ int main(int argc,  char **argv)
                 for (int l = 1; l < maxStep; l++)
                 {
                     //We enter this loop only if maxStep >=2.
-                    //In that case, we create artificial index points, to try to modify all and only all the voxels through which the streamline passes between point and pointNext
+                    //In that case, we create artificial index points, 
+                    //  to try to modify all and only all the voxels through which the streamline passes between point and pointNext
                     //We repeat maxStep - 1 times and not maxStep times, because otherwise, index = indexNext, and we would increment indexNext twice
                     indexTemp[0] = index[0] + std::round(l*dx/maxStep);
                     indexTemp[1] = index[1] + std::round(l*dy/maxStep);
                     indexTemp[2] = index[2] + std::round(l*dz/maxStep);
-                    outImage->SetPixel(indexTemp, outImage->GetPixel(indexTemp) + 1.0); //increment the number of streamlines passing through the voxel with the index indexTemp
+                    //increment the number of streamlines passing through the voxel with the index indexTemp
+                    outImage->SetPixel(indexTemp, outImage->GetPixel(indexTemp) + 1.0); 
                 }
             }
         }
