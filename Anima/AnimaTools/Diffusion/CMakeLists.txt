@@ -3,7 +3,6 @@
 ################################################################################
 
 add_subdirectory(dti)
-add_subdirectory(mcm)
 add_subdirectory(MCMEstimator)
 add_subdirectory(MCMEstimator/LowMemory)
 add_subdirectory(MCM_ModelAveraging)

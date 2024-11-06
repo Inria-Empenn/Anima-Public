@@ -1,2 +1,2 @@
-add_subdirectory(symmetry_constrained_registration)
-add_subdirectory(symmetry_plane)
+add_subdirectory(SymmetryConstrainedRegistration)
+add_subdirectory(SymmetryPlane)

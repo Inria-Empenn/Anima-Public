@@ -1,10 +1,9 @@
-
 ################################################################################
 # Here go the add_subdirectories, no code should be at the root of the project
 ################################################################################
 
-add_subdirectory(DetectedComponents)
-add_subdirectory(DiceMeasure)
-add_subdirectory(FuzzyDiceMeasure)
-add_subdirectory(LesionEvolutionDetection)
-add_subdirectory(SegmentationPerformanceAnalyzer)
+#TODO
+
+#add_subdirectory(MatrixOp)
+#add_subdirectory(Registration)
+#add_subdirectory(Relaxometry)

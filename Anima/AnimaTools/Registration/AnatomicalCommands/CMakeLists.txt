@@ -1,5 +1,6 @@
-add_subdirectory(bm_distortion_correction)
-add_subdirectory(dense_svf_bm_registration)
-add_subdirectory(distortion_correction)
-add_subdirectory(eddy_current_correction)
-add_subdirectory(pyramidal_bm_registration)
+
+add_subdirectory(BMDistortionCorrection)
+add_subdirectory(DenseSVF_BMRegistration)
+add_subdirectory(DistortionCorrection)
+add_subdirectory(EddyCurrentCorrection)
+add_subdirectory(PyramidalBMRegistration)

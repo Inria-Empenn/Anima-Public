@@ -1,3 +1,4 @@
-add_subdirectory(grow_lesion_seeds)
-add_subdirectory(pick_lesion_seeds)
-add_subdirectory(qmri_lesion_sample_creator)
+add_subdirectory(Filter)
+add_subdirectory(GrowLesionSeeds)
+add_subdirectory(PickLesionSeeds)
+add_subdirectory(QmriLesionSampleCreator)
