@@ -1,2 +1,2 @@
-add_subdirectory(collapse_label_image)
-add_subdirectory(connected_components_metrics)
+add_subdirectory(CollapseLabelImage)
+add_subdirectory(ConnectedComponentsMetrics)

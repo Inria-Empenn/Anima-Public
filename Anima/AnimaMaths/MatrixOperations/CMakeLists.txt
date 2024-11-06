@@ -21,7 +21,7 @@ add_library(${PROJECT_NAME} INTERFACE
 ## Link
 ## #############################################################################
 
-target_link_libraries(${PROJECT_NAME} PUBLIC
+target_link_libraries(${PROJECT_NAME} INTERFACE
   AnimaMaths
   )
   

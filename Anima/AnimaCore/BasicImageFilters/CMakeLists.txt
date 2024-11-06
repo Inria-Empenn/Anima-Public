@@ -1,4 +1,4 @@
-project(AnimaTransformations)
+project(AnimaBasicImageFilters)
 
 ## #############################################################################
 ## List Sources

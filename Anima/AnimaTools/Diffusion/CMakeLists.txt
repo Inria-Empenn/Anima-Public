@@ -4,14 +4,13 @@
 
 add_subdirectory(dti)
 add_subdirectory(mcm)
-add_subdirectory(mcm_estimator)
-add_subdirectory(mcm_estimator/low_memory)
-add_subdirectory(mcm_model_averaging)
-add_subdirectory(mcm_tools)
+add_subdirectory(MCMEstimator)
+add_subdirectory(MCMEstimator/LowMemory)
+add_subdirectory(MCM_ModelAveraging)
+add_subdirectory(MCMTools)
 
 if(USE_VTK AND VTK_FOUND)
-  add_subdirectory(fibers_analysis)
-  add_subdirectory(tractography)
+  add_subdirectory(FibersAnalysis)
 endif()
 
 add_subdirectory(odf)

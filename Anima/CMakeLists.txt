@@ -138,26 +138,31 @@ endif(EXISTS ${CMAKE_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in)
 # add_subdirectories
 ################################################################################
 
-if (BUILD_MODULE_MATHS)
-  add_subdirectory(math-tools)
-endif()
+#if (BUILD_MODULE_MATHS)
+#  add_subdirectory(math-tools)
+#endif()
+#
+#if (BUILD_MODULE_FILTERING)
+#  add_subdirectory(filtering)
+#endif()
+#
+#if (BUILD_MODULE_REGISTRATION)
+#  add_subdirectory(registration)
+#endif()
+#
+#if (BUILD_MODULE_QUANTITATIVE_MRI)
+#  add_subdirectory(quantitative-mri)
+#endif()
+#
+#if (BUILD_MODULE_DIFFUSION)
+#  add_subdirectory(diffusion)
+#endif()
+#
+#if (BUILD_MODULE_SEGMENTATION)
+#  add_subdirectory(segmentation)
+#endif()
 
-if (BUILD_MODULE_FILTERING)
-  add_subdirectory(filtering)
-endif()
-
-if (BUILD_MODULE_REGISTRATION)
-  add_subdirectory(registration)
-endif()
-
-if (BUILD_MODULE_QUANTITATIVE_MRI)
-  add_subdirectory(quantitative-mri)
-endif()
-
-if (BUILD_MODULE_DIFFUSION)
-  add_subdirectory(diffusion)
-endif()
-
-if (BUILD_MODULE_SEGMENTATION)
-  add_subdirectory(segmentation)
-endif()
+add_subdirectory(AnimaCore)
+add_subdirectory(AnimaLibs)
+add_subdirectory(AnimaMaths)
+add_subdirectory(AnimaTools)
