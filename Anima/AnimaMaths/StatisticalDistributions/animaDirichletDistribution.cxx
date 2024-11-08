@@ -14,16 +14,26 @@ namespace anima
         double sumValue = 0.0;
         for (unsigned int i = 0; i < numParameters; ++i)
         {
-            double tmpValue = x[i];
-            if (tmpValue < this->GetEpsilon() || tmpValue > 1.0 - this->GetEpsilon())
-                return false;
-            sumValue += tmpValue;
+            bool retFlag;
+            bool retVal = toto(x, i, sumValue, retFlag);
+            if (retFlag) return retVal;
         }
 
         if (std::abs(sumValue - 1.0) > this->GetEpsilon())
             return false;
 
         return true;
+    }
+
+    bool DirichletDistribution::toto(const std::vector<double>& x, unsigned int i, double& sumValue, bool& retFlag)
+    {
+        retFlag = true;
+        double tmpValue = x[i];
+        if (tmpValue < this->GetEpsilon() || tmpValue > 1.0 - this->GetEpsilon())
+            return false;
+        sumValue += tmpValue;
+        retFlag = false;
+        return {};
     }
 
     void DirichletDistribution::SetConcentrationParameters(const std::vector<double> &val)

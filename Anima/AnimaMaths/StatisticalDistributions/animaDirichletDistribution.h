@@ -23,6 +23,7 @@ namespace anima
 		}
 
 		bool BelongsToSupport(const ValueType &x);
+		bool toto(const std::vector<double>& x, unsigned int i, double& sumValue, bool& retFlag);
 		double GetDensity(const ValueType &x);
 		double GetLogDensity(const ValueType &x);
 		double GetCumulative(const ValueType &x);
