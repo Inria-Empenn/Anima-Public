@@ -9,7 +9,7 @@
 
 namespace anima
 {
-	class ANIMASTATISTICALDISTRIBUTIONS_EXPORT DirichletDistribution : public BaseDistribution<std::vector<double>>
+	class ANIMAMATHSSTATISTICALDISTRIBUTIONS_EXPORT DirichletDistribution : public BaseDistribution<std::vector<double>>
 	{
 	public:
 		using UniformDistributionType = std::uniform_real_distribution<double>;

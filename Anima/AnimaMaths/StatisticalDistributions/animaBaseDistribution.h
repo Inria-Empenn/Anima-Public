@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include <AnimaStatisticalDistributionsExport.h>
+#include <AnimaMathsStatisticalDistributionsExport.h>
 
 namespace anima
 {

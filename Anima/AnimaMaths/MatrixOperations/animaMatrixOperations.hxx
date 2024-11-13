@@ -1,7 +1,7 @@
 #pragma once
-#include "animaMatrixOperations.h"
+//#include "animaMatrixOperations.h"
 
-#include <animaVectorOperations.h>
+//#include <animaVectorOperations.h>
 #include <animaLinearTransformEstimationTools.h>
 #include <itkSymmetricEigenAnalysis.h>
 

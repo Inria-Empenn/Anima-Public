@@ -1,5 +1,5 @@
 #pragma once
-#include "AnimaRelaxometryExport.h"
+#include "AnimaRelaxoEstimationExport.h"
 #include <animaEPGSignalSimulator.h>
 #include <animaB1GMMDistributionIntegrand.h>
 #include <animaB1GammaDistributionIntegrand.h>
@@ -16,7 +16,7 @@ namespace anima
  *
  * Integration over slice profile is inspired from Lebel et al. MRM 64:1005–1014 (2010) and freely adapted for Gauss quadrature
  */
-class ANIMARELAXOMETRY_EXPORT EPGMonoT2Integrand
+class ANIMARELAXOESTIMATION_EXPORT EPGMonoT2Integrand
 {
 public:
     EPGMonoT2Integrand() {}
@@ -47,7 +47,7 @@ private:
  *
  * Integration over slice profile is inspired from Lebel et al. MRM 64:1005–1014 (2010) and freely adapted for Gauss quadrature
  */
-class ANIMARELAXOMETRY_EXPORT EPGGMMT2Integrand
+class ANIMARELAXOESTIMATION_EXPORT EPGGMMT2Integrand
 {
 public:
     EPGGMMT2Integrand()
@@ -83,7 +83,7 @@ private:
  *
  * Integration over slice profile is inspired from Lebel et al. MRM 64:1005–1014 (2010) and freely adapted for Gauss quadrature
  */
-class ANIMARELAXOMETRY_EXPORT EPGGammaMixtureT2Integrand
+class ANIMARELAXOESTIMATION_EXPORT EPGGammaMixtureT2Integrand
 {
 public:
     EPGGammaMixtureT2Integrand()
@@ -119,7 +119,7 @@ private:
  *
  * Integration over slice profile is inspired from Lebel et al. MRM 64:1005–1014 (2010) and freely adapted for Gauss quadrature
  */
-class ANIMARELAXOMETRY_EXPORT EPGGammaMixtureT2DerivativeIntegrand
+class ANIMARELAXOESTIMATION_EXPORT EPGGammaMixtureT2DerivativeIntegrand
 {
 public:
     EPGGammaMixtureT2DerivativeIntegrand()

@@ -6,7 +6,7 @@
 #include <itkOptimizer.h>
 
 #include <animaCholeskyDecomposition.h>
-#include "AnimaOptimizersExport.h"
+#include "AnimaMathsOptimizersExport.h"
 
 namespace anima
 {
@@ -16,7 +16,7 @@ namespace anima
  *
  * \ingroup Numerics Optimizers
  */
-class ANIMAOPTIMIZERS_EXPORT NNLSOptimizer : public itk::Optimizer
+class ANIMAMATHSOPTIMIZERS_EXPORT NNLSOptimizer : public itk::Optimizer
 {
 public:
     /** Standard class typedefs. */

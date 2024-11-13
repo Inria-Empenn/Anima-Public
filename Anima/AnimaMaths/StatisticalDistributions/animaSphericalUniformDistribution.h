@@ -6,7 +6,7 @@
 
 namespace anima
 {
-    class ANIMASTATISTICALDISTRIBUTIONS_EXPORT SphericalUniformDistribution : public BaseDistribution<itk::Vector<double, 3>>
+    class ANIMAMATHSSTATISTICALDISTRIBUTIONS_EXPORT SphericalUniformDistribution : public BaseDistribution<itk::Vector<double, 3>>
     {
     public:
         using UniformDistributionType = std::uniform_real_distribution<double>;

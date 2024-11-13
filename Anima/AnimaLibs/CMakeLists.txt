@@ -5,10 +5,27 @@ project(AnimaLibs)
 # ##############################################################################
 
 
+add_subdirectory(Interpolator)
+
 add_subdirectory(Diffusion/MCM)
-add_subdirectory(Diffusion/MCMBase)
+add_subdirectory(Diffusion/MCMSimilarity)
 add_subdirectory(Diffusion/Tractography)
+
+add_subdirectory(Registration/Algorithms)
+add_subdirectory(Registration/Common)
+add_subdirectory(Registration/DiffusionMetrics)
+add_subdirectory(Registration/GenericMetrics)
+add_subdirectory(Registration/ResamplersFilters)
+add_subdirectory(Registration/SVFOperations)
+add_subdirectory(Registration/TransformationAgregators)
 add_subdirectory(Registration/Transformations)
+
+add_subdirectory(Regularization/Filters)
+
+add_subdirectory(Relaxometry/Estimation)
+add_subdirectory(Relaxometry/Simulation)
+
+add_subdirectory(Segmentation)
 
 
 

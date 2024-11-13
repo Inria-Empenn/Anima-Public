@@ -4,7 +4,7 @@
 #include <vector>
 
 #include <itkOptimizer.h>
-#include "AnimaOptimizersExport.h"
+#include "AnimaMathsOptimizersExport.h"
 
 namespace anima
 {
@@ -12,7 +12,7 @@ namespace anima
  * \brief Bounded variable least squares optimizer. Coming from Stark and Parker paper
  * P.B. Stark and R.L. Parker. Bounded-variable least-squares: an algorithm and applications. Computational Statistics, 1995
  */
-class ANIMAOPTIMIZERS_EXPORT BVLSOptimizer : public itk::Optimizer
+class ANIMAMATHSOPTIMIZERS_EXPORT BVLSOptimizer : public itk::Optimizer
 {
 public:
     /** Standard class typedefs. */

@@ -143,7 +143,7 @@ void ShapesWriter::WriteFileAsCSV()
             continue;
         }
         
-        for (unsigned int j = 0;j < arraySize;++j)
+        for (unsigned int j = 0; j < static_cast<unsigned int>(arraySize); ++j)
             outputFile << "," << inputData->GetArrayName(i) << "#" << j;
     }
     
@@ -199,7 +199,7 @@ void ShapesWriter::WriteFileAsCSV()
         
         // 3. Write array values if any
         for (unsigned int k = 0;k < numArrays;++k)
-            for (unsigned int j = 0;j < arraySizes[k];++j)
+            for (unsigned int j = 0; j < static_cast<unsigned int>(arraySizes[k]); ++j)
                 outputFile << "," << inputData->GetArray(k)->GetComponent(i, j);
     }
     

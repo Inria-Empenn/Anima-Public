@@ -4,17 +4,17 @@
 #include <vector>
 #include <string>
 
-#include "AnimaSHToolsExport.h"
+#include "AnimaMathsSHToolsExport.h"
 
 namespace anima
 {
 
-ANIMASHTOOLS_EXPORT void GetEulerAnglesFromRotationMatrix(vnl_matrix <double> &R, std::vector <double> &resVal);
-ANIMASHTOOLS_EXPORT void EstimateLocalODFRotationMatrix(vnl_matrix <double> &resVal, unsigned int l,
+ANIMAMATHSSHTOOLS_EXPORT void GetEulerAnglesFromRotationMatrix(vnl_matrix <double> &R, std::vector <double> &resVal);
+ANIMAMATHSSHTOOLS_EXPORT void EstimateLocalODFRotationMatrix(vnl_matrix <double> &resVal, unsigned int l,
                                     double alpha, double beta, double gamma);
 
-ANIMASHTOOLS_EXPORT std::vector <std::vector <double> > InitializeSampleDirections(unsigned int nbTheta, unsigned int nbPhi, std::string sampleDirFileName);
+ANIMAMATHSSHTOOLS_EXPORT std::vector <std::vector <double> > InitializeSampleDirections(unsigned int nbTheta, unsigned int nbPhi, std::string sampleDirFileName);
 
-ANIMASHTOOLS_EXPORT double GetDValue(unsigned int l, int m, int mp, double angle);
+ANIMAMATHSSHTOOLS_EXPORT double GetDValue(unsigned int l, int m, int mp, double angle);
 
 } // end of namespace anima

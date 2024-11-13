@@ -42,11 +42,3 @@ generate_export_header(${PROJECT_NAME}
 ## #############################################################################
 
 set_lib_install_rules(${PROJECT_NAME})
-
-## #############################################################################
-## Subdirs executables
-## #############################################################################
-
-add_subdirectory(graph_cut)
-add_subdirectory(gc_strem_ms_lesions_segmentation)
-add_subdirectory(remove_touching_border)

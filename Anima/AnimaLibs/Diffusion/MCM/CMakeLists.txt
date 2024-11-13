@@ -1,4 +1,4 @@
-project(AnimaMCM)
+project(AnimaDiffMCM)
 
 ## #############################################################################
 ## List Sources
@@ -6,9 +6,10 @@ project(AnimaMCM)
 
 list_source_files(${PROJECT_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/Base
+  ${CMAKE_CURRENT_SOURCE_DIR}/ClusteringFilters
+  ${CMAKE_CURRENT_SOURCE_DIR}/MCMMain
   )
-
-  message("************ ${${PROJECT_NAME}_CFILES} ***********")
 
 ## #############################################################################
 ## add lib
@@ -22,19 +23,31 @@ add_library(${PROJECT_NAME}
 # set target properties
 # ##############################################################################
 
-set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${${PROJECT_NAME}_HEADERS} ${${PROJECT_NAME}_TEMPLATES}")
-target_include_directories(${PROJECT_NAME}  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+#set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${${PROJECT_NAME}_HEADERS} ${${PROJECT_NAME}_TEMPLATES}")
+target_include_directories(${PROJECT_NAME}  PUBLIC
+                           ${CMAKE_CURRENT_SOURCE_DIR}/Base
+                           ${CMAKE_CURRENT_SOURCE_DIR}/ClusteringFilters
+                           ${CMAKE_CURRENT_SOURCE_DIR}/MCMMain)
 
 ## #############################################################################
 ## Link
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME}
-  AnimaMCMBase
-  AnimaSpecialFunctions
-  AnimaStatisticalDistributions
-  ITKOptimizers
   ITKCommon
+  ITKOptimizers
+  ${ITKIO_LIBRARIES}
+
+  AnimaDataIO
+  AnimaBasicImageFilters
+  AnimaRegistrationTransformations
+  AnimaInterpolator
+
+  AnimaMathsMatrixOperations
+  AnimaMathsOptimizers
+  AnimaMathsSpecialFunctions
+  AnimaMathsSphereOperations
+  AnimaMathsStatisticalDistributions
   ${TinyXML2_LIBRARY}
   )
 
@@ -54,3 +67,4 @@ generate_export_header(${PROJECT_NAME}
 ## #############################################################################
 
 set_lib_install_rules(${PROJECT_NAME})
+

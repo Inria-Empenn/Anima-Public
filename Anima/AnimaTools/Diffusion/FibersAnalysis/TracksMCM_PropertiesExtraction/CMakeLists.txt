@@ -26,12 +26,12 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   ${ITKIO_LIBRARIES}
   AnimaMCM
-  AnimaMCMBase
+  AnimaDiffMCMBase
   AnimaMCM
-  AnimaMCMBase
+  AnimaDiffMCMBase
   AnimaDataIO
   AnimaTractography
-  AnimaOptimizers
+  AnimaMathsOptimizers
   ${TinyXML2_LIBRARY}
   ${VTK_PREFIX}CommonCore
   ${VTK_PREFIX}IOXML

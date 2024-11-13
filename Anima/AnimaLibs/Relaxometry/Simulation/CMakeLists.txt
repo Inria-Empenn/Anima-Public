@@ -1,4 +1,4 @@
-project(AnimaRelaxometrySimulation)
+project(AnimaRelaxoSimulation)
 
 ## #############################################################################
 ## List Sources
@@ -17,6 +17,15 @@ add_library(${PROJECT_NAME}
   ${${PROJECT_NAME}_CFILES}
   )
 
+
+## ##############################################################################
+## set target properties
+## ##############################################################################
+
+#set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${${PROJECT_NAME}_HEADERS} ${${PROJECT_NAME}_TEMPLATES}")
+target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR} )
+
+
 ## #############################################################################
 ## Link
 ## #############################################################################
@@ -24,6 +33,7 @@ add_library(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} PUBLIC
   itkvnl
   )
+
 
 ################################################################################
 # Auto generate the export file for the libs

@@ -2,6 +2,7 @@
 #include <animaErrorFunctions.h>
 #include <animaKummerFunctions.h>
 #include <animaMatrixOperations.h>
+#include <animaVectorOperations.h>
 
 #include <itkMacro.h>
 #include <itkSymmetricEigenAnalysis.h>

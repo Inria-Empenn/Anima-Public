@@ -2,13 +2,13 @@
 
 #include <vector>
 #include <itkSingleValuedCostFunction.h>
-#include "AnimaSHToolsExport.h"
+#include "AnimaMathsSHToolsExport.h"
 #include <animaODFSphericalHarmonicBasis.h>
 
 namespace anima
 {
 
-class ANIMASHTOOLS_EXPORT ODFMaximaCostFunction :
+class ANIMAMATHSSHTOOLS_EXPORT ODFMaximaCostFunction :
 public itk::SingleValuedCostFunction
 {
 public:

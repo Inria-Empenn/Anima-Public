@@ -1,12 +1,12 @@
 #pragma once
-#include "AnimaOptimizersExport.h"
+#include "AnimaMathsOptimizersExport.h"
 
 #include <animaBaseRootFindingAlgorithm.h>
 
 namespace anima
 {
 
-class ANIMAOPTIMIZERS_EXPORT BracketAndSolveRootFindingAlgorithm : public BaseRootFindingAlgorithm
+class ANIMAMATHSOPTIMIZERS_EXPORT BracketAndSolveRootFindingAlgorithm : public BaseRootFindingAlgorithm
 {
 public:
     using Superclass = BaseRootFindingAlgorithm;

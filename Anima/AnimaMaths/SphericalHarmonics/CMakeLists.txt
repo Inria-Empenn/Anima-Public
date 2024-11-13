@@ -1,4 +1,4 @@
-project(AnimaSHTools)
+project(AnimaMathsSHTools)
 
 ## #############################################################################
 ## List Sources
@@ -22,7 +22,7 @@ add_library(${PROJECT_NAME}
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME}
-  AnimaSpecialFunctions
+  AnimaMathsSpecialFunctions
   ITKOptimizers
   )
 

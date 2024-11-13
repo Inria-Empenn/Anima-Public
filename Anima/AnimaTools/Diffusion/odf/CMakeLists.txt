@@ -1,4 +1,5 @@
 add_subdirectory(GeneralizedFA)
-add_subdirectory(ODF_Estimator)
-add_subdirectory(TOD_Estimator)
-add_subdirectory(ODF_Average)
+add_subdirectory(OdfAverage)
+add_subdirectory(OdfEstimator)
+add_subdirectory(OdfProbabilisticTractography)
+add_subdirectory(TodEstimator)

@@ -1,5 +1,5 @@
 #pragma once
-#include "AnimaRelaxometryExport.h"
+#include "AnimaRelaxoEstimationExport.h"
 
 #include <animaEPGSignalSimulator.h>
 
@@ -10,7 +10,7 @@ namespace anima
  * \class B1GammaDistributionIntegrand
  * @brief Integrand to compute the internal integral per distribution in B1GammaMixtureT2RelaxometryCostFunction
  */
-class ANIMARELAXOMETRY_EXPORT B1GammaDistributionIntegrand
+class ANIMARELAXOESTIMATION_EXPORT B1GammaDistributionIntegrand
 {
 public:
     B1GammaDistributionIntegrand() {}

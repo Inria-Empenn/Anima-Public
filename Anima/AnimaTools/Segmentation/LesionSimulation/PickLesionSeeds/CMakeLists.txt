@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaPickLesionSeeds)
+project(animaSegPickLesionSeeds)
 
 ## #############################################################################
 ## List Sources
@@ -18,6 +18,15 @@ add_executable(${PROJECT_NAME}
   ${${PROJECT_NAME}_CFILES}
   )
 
+# ##############################################################################
+# set target properties
+# ##############################################################################
+
+#set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${${PROJECT_NAME}_HEADERS} ${${PROJECT_NAME}_TEMPLATES}")
+target_include_directories(${PROJECT_NAME}  PUBLIC
+                           ${CMAKE_CURRENT_SOURCE_DIR}
+                           ${CMAKE_CURRENT_SOURCE_DIR}/../Filter/)
+
 
 ## #############################################################################
 ## Link
@@ -25,6 +34,7 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   ${ITKIO_LIBRARIES}
+  AnimaMathsMatrixOperations
   )
 
 ## #############################################################################

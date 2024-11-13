@@ -1,12 +1,12 @@
 #pragma once
 
-#include "AnimaSpecialFunctionsExport.h"
+#include "AnimaMathsSpecialFunctionsExport.h"
 
 namespace anima
 {
 
-ANIMASPECIALFUNCTIONS_EXPORT double legendre_first_derivative(int L, int M, double value);
-ANIMASPECIALFUNCTIONS_EXPORT double legendre_second_derivative(int L, int M, double value);
+ANIMAMATHSSPECIALFUNCTIONS_EXPORT double legendre_first_derivative(int L, int M, double value);
+ANIMAMATHSSPECIALFUNCTIONS_EXPORT double legendre_second_derivative(int L, int M, double value);
 
 }
 

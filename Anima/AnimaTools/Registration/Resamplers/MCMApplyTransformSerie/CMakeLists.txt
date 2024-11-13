@@ -28,7 +28,7 @@ target_link_libraries(${PROJECT_NAME}
   ${ITK_TRANSFORM_LIBRARIES}
   ${TinyXML2_LIBRARY}
   AnimaMCM
-  AnimaMCMBase
+  AnimaDiffMCMBase
   )
 
 ## #############################################################################

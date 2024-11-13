@@ -1,5 +1,5 @@
 #pragma once
-#include "AnimaOptimizersExport.h"
+#include "AnimaMathsOptimizersExport.h"
 #include <itkSingleValuedCostFunction.h>
 
 #include <limits>
@@ -44,7 +44,7 @@ private:
     ParametersType m_ParametersVector;
 };
 
-class ANIMAOPTIMIZERS_EXPORT BaseRootFindingAlgorithm
+class ANIMAMATHSOPTIMIZERS_EXPORT BaseRootFindingAlgorithm
 {
 public:
     using BaseCostFunctionType = itk::SingleValuedCostFunction;

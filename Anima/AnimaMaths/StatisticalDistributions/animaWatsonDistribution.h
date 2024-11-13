@@ -7,7 +7,7 @@
 
 namespace anima
 {
-    class ANIMASTATISTICALDISTRIBUTIONS_EXPORT WatsonDistribution : public BaseDistribution<itk::Vector<double, 3>>
+    class ANIMAMATHSSTATISTICALDISTRIBUTIONS_EXPORT WatsonDistribution : public BaseDistribution<itk::Vector<double, 3>>
     {
     public:
         using UniformDistributionType = std::uniform_real_distribution<double>;

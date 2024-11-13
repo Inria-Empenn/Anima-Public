@@ -4,7 +4,7 @@
 
 namespace anima
 {
-	class ANIMASTATISTICALDISTRIBUTIONS_EXPORT GammaDistribution : public BaseDistribution<double>
+	class ANIMAMATHSSTATISTICALDISTRIBUTIONS_EXPORT GammaDistribution : public BaseDistribution<double>
 	{
 	public:
 		using DistributionType = std::gamma_distribution<double>;

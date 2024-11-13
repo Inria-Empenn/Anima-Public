@@ -1,4 +1,4 @@
-project(AnimaRelaxometryEstimation)
+project(AnimaRelaxoEstimation)
 
 ## #############################################################################
 ## List Sources
@@ -17,14 +17,23 @@ add_library(${PROJECT_NAME}
   ${${PROJECT_NAME}_CFILES}
   )
 
+
+## ##############################################################################
+## set target properties
+## ##############################################################################
+
+#set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${${PROJECT_NAME}_HEADERS} ${${PROJECT_NAME}_TEMPLATES}")
+target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR} )
+
+
 ## #############################################################################
 ## Link
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-  AnimaRelaxometrySimulation
-  AnimaIntegration
-  AnimaOptimizers
+  AnimaRelaxoSimulation
+  AnimaMathsNumericalIntegration
+  AnimaMathsOptimizers
   ITKCommon
   )
 
@@ -44,5 +53,3 @@ generate_export_header(${PROJECT_NAME}
 ## #############################################################################
 
 set_lib_install_rules(${PROJECT_NAME})
-
-

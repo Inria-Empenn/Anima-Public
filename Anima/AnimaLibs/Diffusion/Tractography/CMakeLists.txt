@@ -27,11 +27,10 @@ add_library(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   ${TinyXML2_LIBRARY}
   AnimaDataIO
-  AnimaOptimizers
-  AnimaSHTools
+  AnimaMathsOptimizers
+  AnimaMathsSHTools
   AnimaStatisticalDistributions
-  AnimaMCM
-  AnimaMCMBase
+  AnimaDiffMCM
   )
 
 ################################################################################
@@ -48,17 +47,5 @@ generate_export_header(${PROJECT_NAME}
 ## #############################################################################
 
 set_lib_install_rules(${PROJECT_NAME})
-
-## #############################################################################
-## Subdirs exe directories
-## #############################################################################
-
-add_subdirectory(dti_probabilistic_tractography)
-add_subdirectory(dti_tractography)
-add_subdirectory(fibers_counter)
-add_subdirectory(fibers_filterer)
-add_subdirectory(odf_probabilistic_tractography)
-add_subdirectory(mcm_probabilistic_tractography)
-add_subdirectory(mcm_tractography)
 
 endif() #USE_VTK AND VTK_FOUND

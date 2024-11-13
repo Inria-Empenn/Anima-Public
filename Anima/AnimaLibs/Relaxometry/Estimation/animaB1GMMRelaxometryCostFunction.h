@@ -1,6 +1,6 @@
 #pragma once
 #include <itkSingleValuedCostFunction.h>
-#include "AnimaRelaxometryExport.h"
+#include "AnimaRelaxoEstimationExport.h"
 
 #include <animaEPGSignalSimulator.h>
 #include <animaCholeskyDecomposition.h>
@@ -17,7 +17,7 @@ namespace anima
  * The cost function includes (via variable projection) estimation of compartment weights
  *
  */
-class ANIMARELAXOMETRY_EXPORT B1GMMRelaxometryCostFunction :
+class ANIMARELAXOESTIMATION_EXPORT B1GMMRelaxometryCostFunction :
         public itk::SingleValuedCostFunction
 {
 public:

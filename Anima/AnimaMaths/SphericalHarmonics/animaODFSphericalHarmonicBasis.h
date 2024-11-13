@@ -3,11 +3,11 @@
 #include <animaSphericalHarmonic.h>
 #include <itkVariableLengthVector.h>
 #include <vector>
-#include <AnimaSHToolsExport.h>
+#include <AnimaMathsSHToolsExport.h>
 
 namespace anima
 {
-class ANIMASHTOOLS_EXPORT ODFSphericalHarmonicBasis
+class ANIMAMATHSSHTOOLS_EXPORT ODFSphericalHarmonicBasis
 {
 public:
     ODFSphericalHarmonicBasis(unsigned int L = 4);

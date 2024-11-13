@@ -3,9 +3,7 @@
 ################################################################################
 
 add_subdirectory(Arithmetic)
-add_subdirectory(ClusteringFilter)
 add_subdirectory(CommonTools)
-add_subdirectory(Interpolator)
 add_subdirectory(NonLocalBase)
 add_subdirectory(StatisticalTests)
 add_subdirectory(Statistics)

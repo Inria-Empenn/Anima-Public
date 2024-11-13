@@ -7,7 +7,7 @@
 
 namespace anima
 {
-    class ANIMASTATISTICALDISTRIBUTIONS_EXPORT MultivariateNormalDistribution : public BaseDistribution<std::vector<double>>
+    class ANIMAMATHSSTATISTICALDISTRIBUTIONS_EXPORT MultivariateNormalDistribution : public BaseDistribution<std::vector<double>>
     {
     public:
         using NormalDistributionType = std::normal_distribution<double>;

@@ -1,4 +1,4 @@
-project(AnimaOptimizers)
+project(AnimaMathsOptimizers)
 
 ## #############################################################################
 ## List Sources
@@ -6,7 +6,7 @@ project(AnimaOptimizers)
 
 list_source_files(${PROJECT_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/nlopt_optimizers
+  ${CMAKE_CURRENT_SOURCE_DIR}/NloptOptimizers
   )
 
 if(USE_NLOPT)
@@ -25,16 +25,17 @@ add_library(${PROJECT_NAME}
 # set target properties
 # ##############################################################################
 
-set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${${PROJECT_NAME}_HEADERS} ${${PROJECT_NAME}_TEMPLATES}")
-target_include_directories(${PROJECT_NAME}  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/nlopt_optimizers)
+#set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${${PROJECT_NAME}_HEADERS} ${${PROJECT_NAME}_TEMPLATES}")
+target_include_directories(${PROJECT_NAME}  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/NloptOptimizers)
 
 ## #############################################################################
 ## Link
 ## #############################################################################
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME} PUBLIC
   ITKOptimizers
-  AnimaMatrixOperations
+  AnimaMathsMatrixOperations
+  AnimaRegistrationTransformations
   ${NLOPT_LIBRARY}
   )
 
@@ -54,14 +55,3 @@ generate_export_header(${PROJECT_NAME}
 ## #############################################################################
 
 set_lib_install_rules(${PROJECT_NAME})
-
-## #############################################################################
-## Subdirs exe directories
-## #############################################################################
-
-if (BUILD_TESTING)
-    add_subdirectory(nnls_test)
-    if (USE_NLOPT)
-      add_subdirectory(bvls_test)
-    endif()
-endif()

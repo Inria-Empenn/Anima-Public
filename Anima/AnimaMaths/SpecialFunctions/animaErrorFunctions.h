@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AnimaSpecialFunctionsExport.h"
+#include "AnimaMathsSpecialFunctionsExport.h"
 
 #include <cmath>
 
@@ -22,14 +22,14 @@ namespace anima
         double m_XValue;
     };
 
-    ANIMASPECIALFUNCTIONS_EXPORT double EvaluateDawsonIntegral(const double x, const bool scaled = false);
+    ANIMAMATHSSPECIALFUNCTIONS_EXPORT double EvaluateDawsonIntegral(const double x, const bool scaled = false);
 
-    ANIMASPECIALFUNCTIONS_EXPORT double EvaluateDawsonFunctionNR(double x);
+    ANIMAMATHSSPECIALFUNCTIONS_EXPORT double EvaluateDawsonFunctionNR(double x);
 
-    ANIMASPECIALFUNCTIONS_EXPORT double EvaluateDawsonFunction(double x);
+    ANIMAMATHSSPECIALFUNCTIONS_EXPORT double EvaluateDawsonFunction(double x);
 
-    ANIMASPECIALFUNCTIONS_EXPORT double EvaluateWImFunction(double x);
+    ANIMAMATHSSPECIALFUNCTIONS_EXPORT double EvaluateWImFunction(double x);
 
-    ANIMASPECIALFUNCTIONS_EXPORT double EvaluateWImY100Function(double y100, double x);
+    ANIMAMATHSSPECIALFUNCTIONS_EXPORT double EvaluateWImY100Function(double y100, double x);
 
 } // end namespace anima
