@@ -5,8 +5,7 @@ project(AnimaMathsSHTools)
 ## #############################################################################
 
 list_source_files(${PROJECT_NAME}
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  )
+                  ${CMAKE_CURRENT_SOURCE_DIR})
 
 
 ## #############################################################################
@@ -14,17 +13,16 @@ list_source_files(${PROJECT_NAME}
 ## #############################################################################
 
 add_library(${PROJECT_NAME}
-  ${${PROJECT_NAME}_CFILES}
-  )
+            ${${PROJECT_NAME}_CFILES})
+  
 
 ## #############################################################################
 ## Link
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME}
-  AnimaMathsSpecialFunctions
-  ITKOptimizers
-  )
+                      AnimaMathsSpecialFunctions
+                      ITKOptimizers)
 
 
 ################################################################################
@@ -33,8 +31,7 @@ target_link_libraries(${PROJECT_NAME}
 
 generate_export_header(${PROJECT_NAME}
   STATIC_DEFINE ${PROJECT_NAME}_BUILT_AS_STATIC
-  EXPORT_FILE_NAME "${CMAKE_BINARY_DIR}/exports/${PROJECT_NAME}Export.h"
-  )
+  EXPORT_FILE_NAME "${CMAKE_BINARY_DIR}/exports/${PROJECT_NAME}Export.h")
 
 
 ## #############################################################################
@@ -43,4 +40,3 @@ generate_export_header(${PROJECT_NAME}
 
 set_lib_install_rules(${PROJECT_NAME})
 
-add_subdirectory(analytic_associated_legendre)

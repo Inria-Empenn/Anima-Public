@@ -8,4 +8,5 @@ add_subdirectory(ConvertShape)
 add_subdirectory(MergeBlockImages)
 add_subdirectory(VectorizeImages)
 add_subdirectory(ImageToMask)
+add_subdirectory(ImageArithmetic)
 

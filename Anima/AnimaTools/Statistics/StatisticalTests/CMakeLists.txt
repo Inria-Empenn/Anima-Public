@@ -1,0 +1,9 @@
+
+add_subdirectory(DoubleLogPvalue)
+add_subdirectory(FDR_CorrectPvalues)
+add_subdirectory(FibersFDR_CorrectPvalues)
+add_subdirectory(LowMemoryTools)
+add_subdirectory(NLMeansPatientToGroupComparison)
+add_subdirectory(PatientToGroupComparison)
+add_subdirectory(PatientToGroupODF_Comparison)
+

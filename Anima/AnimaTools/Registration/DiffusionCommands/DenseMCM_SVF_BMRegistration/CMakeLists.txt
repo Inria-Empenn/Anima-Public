@@ -29,9 +29,16 @@ target_link_libraries(${PROJECT_NAME}
   ITKStatistics
   AnimaMathsOptimizers
   ${NLOPT_LIBRARY}
-  AnimaMCM
-  AnimaDiffMCMBase
+  AnimaDiffMCM
   AnimaMCMSimilarity
+  AnimaRegistrationAlgorithms
+  AnimaRegistrationDiffusionMetrics
+  AnimaRegistrationGenericMetrics
+  AnimaRegistrationResamplersFilters
+  AnimaRegistrationSVFOperations
+  AnimaRegistrationTransformationAgregators
+  AnimaRegularizationFilters
+  RegistrationCommon
   )
 
 ## #############################################################################

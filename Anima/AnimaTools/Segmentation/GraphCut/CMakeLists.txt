@@ -1,2 +1,3 @@
-add_subdirectory(Filter)
+add_subdirectory(GcStremMSLesionsSegmentation)
+add_subdirectory(GraphCut)
 add_subdirectory(RemoveTouchingBorder)

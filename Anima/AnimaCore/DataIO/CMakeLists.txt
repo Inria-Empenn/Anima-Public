@@ -5,23 +5,21 @@ project(AnimaDataIO)
 ## #############################################################################
 
 list_source_files(${PROJECT_NAME}
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  )
+                  ${CMAKE_CURRENT_SOURCE_DIR})
+
 
 ## #############################################################################
 ## add lib
 ## #############################################################################
 
 add_library(${PROJECT_NAME}
-  ${${PROJECT_NAME}_CFILES}
-  )
+            ${${PROJECT_NAME}_CFILES})
 
 
 # ##############################################################################
 # set target properties
 # ##############################################################################
 
-#set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${${PROJECT_NAME}_HEADERS} ${${PROJECT_NAME}_TEMPLATES}")
 target_include_directories(${PROJECT_NAME}  INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
 
@@ -30,8 +28,8 @@ target_include_directories(${PROJECT_NAME}  INTERFACE ${CMAKE_CURRENT_SOURCE_DIR
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME}
-  ${TinyXML2_LIBRARY}
   ITKCommon
+  ${TinyXML2_LIBRARY}
   ${VTK_PREFIX}IOXML
   ${VTK_PREFIX}IOLegacy
   ${VTKSYS_LIBRARY}

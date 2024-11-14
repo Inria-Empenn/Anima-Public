@@ -5,27 +5,34 @@ project(AnimaMCMSimilarity)
 ## #############################################################################
 
 list_source_files(${PROJECT_NAME}
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  )
+                  ${CMAKE_CURRENT_SOURCE_DIR} )
+
 
 ## #############################################################################
 ## add executable
 ## #############################################################################
 
 add_library(${PROJECT_NAME}
-  ${${PROJECT_NAME}_CFILES}
-  )
+            ${${PROJECT_NAME}_CFILES})
+
 
 ## #############################################################################
 ## Link
 ## #############################################################################
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME} PUBLIC
   ${ITK_TRANSFORM_LIBRARIES}
-  AnimaDiffMCMBase
-  AnimaMCM
+  AnimaDiffMCM
   ITKOptimizers
   )
+
+
+## ##############################################################################
+## set target properties
+## ##############################################################################
+
+target_include_directories(${PROJECT_NAME}  INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+
 
 ################################################################################
 # Auto generate the export file for the libs
@@ -41,3 +48,4 @@ generate_export_header(${PROJECT_NAME}
 ## #############################################################################
 
 set_lib_install_rules(${PROJECT_NAME})
+

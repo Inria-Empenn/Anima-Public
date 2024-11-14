@@ -1,13 +1,12 @@
-project(RegistrationCommon)
+project(AnimaRegistrationCommon)
 
 ## #############################################################################
 ## List Sources
 ## #############################################################################
 
 list_source_files(${PROJECT_NAME}
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/Filter
-  )
+                  ${CMAKE_CURRENT_SOURCE_DIR}
+                  ${CMAKE_CURRENT_SOURCE_DIR}/Filter)
 
 
 ## #############################################################################
@@ -15,14 +14,19 @@ list_source_files(${PROJECT_NAME}
 ## #############################################################################
 
 add_library(${PROJECT_NAME} INTERFACE
-  ${${PROJECT_NAME}_CFILES}
-  )
+            ${${PROJECT_NAME}_CFILES})
 
-# ## #############################################################################
-# ## Link
-# ## #############################################################################
-# 
-# target_link_libraries(${PROJECT_NAME} INTERFACE
-#   AnimaMaths
-#   )
+
+## ##############################################################################
+## set target properties
+## ##############################################################################
+
+target_include_directories(${PROJECT_NAME} INTERFACE
+                           ${CMAKE_CURRENT_SOURCE_DIR}
+                           ${CMAKE_CURRENT_SOURCE_DIR}/Filter)
+
   
+## #############################################################################
+## Link
+## #############################################################################
+

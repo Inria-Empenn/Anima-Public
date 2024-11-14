@@ -5,8 +5,9 @@ project(ANIMA-REGISTRATION)
 ################################################################################
 
 add_subdirectory(AnatomicalCommands)
+#add_subdirectory(ArithmeticTools)
 add_subdirectory(DiffusionCommands)
 add_subdirectory(Resamplers)
 add_subdirectory(Symmetry)
-add_subdirectory(Tools)
+add_subdirectory(CommonTools)
 

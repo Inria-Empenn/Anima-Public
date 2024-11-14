@@ -31,8 +31,16 @@ target_link_libraries(${PROJECT_NAME}
   ITKSmoothing
   ITKStatistics
 
+  AnimaBasicImageFilters
+  AnimaInterpolator
   AnimaMathsOptimizers
+  AnimaRegistrationAlgorithms
+  AnimaRegistrationGenericMetrics
+  AnimaRegistrationResamplersFilters
+  AnimaRegistrationSVFOperations
   AnimaRegistrationTransformationAgregators
+  AnimaRegularizationFilters
+  RegistrationCommon
   )
 
 ## #############################################################################

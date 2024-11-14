@@ -5,8 +5,7 @@ project(AnimaRelaxoEstimation)
 ## #############################################################################
 
 list_source_files(${PROJECT_NAME}
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  )
+                  ${CMAKE_CURRENT_SOURCE_DIR})
 
 
 ## #############################################################################
@@ -14,15 +13,13 @@ list_source_files(${PROJECT_NAME}
 ## #############################################################################
 
 add_library(${PROJECT_NAME}
-  ${${PROJECT_NAME}_CFILES}
-  )
+            ${${PROJECT_NAME}_CFILES})
 
 
 ## ##############################################################################
 ## set target properties
 ## ##############################################################################
 
-#set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${${PROJECT_NAME}_HEADERS} ${${PROJECT_NAME}_TEMPLATES}")
 target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR} )
 
 
@@ -31,11 +28,10 @@ target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-  AnimaRelaxoSimulation
-  AnimaMathsNumericalIntegration
-  AnimaMathsOptimizers
-  ITKCommon
-  )
+                      AnimaRelaxoSimulation
+                      AnimaMathsNumericalIntegration
+                      AnimaMathsOptimizers
+                      ITKCommon)
 
 
 ################################################################################
@@ -44,8 +40,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 
 generate_export_header(${PROJECT_NAME}
   STATIC_DEFINE ${PROJECT_NAME}_BUILT_AS_STATIC
-  EXPORT_FILE_NAME "${CMAKE_BINARY_DIR}/exports/${PROJECT_NAME}Export.h"
-  )
+  EXPORT_FILE_NAME "${CMAKE_BINARY_DIR}/exports/${PROJECT_NAME}Export.h")
 
 
 ## #############################################################################
@@ -53,3 +48,4 @@ generate_export_header(${PROJECT_NAME}
 ## #############################################################################
 
 set_lib_install_rules(${PROJECT_NAME})
+
