@@ -27,6 +27,7 @@ target_link_libraries(${PROJECT_NAME}
   ITKMathematicalMorphology
   ${ITKIO_LIBRARIES}
   ${ITK_TRANSFORM_LIBRARIES}
+  AnimaBasicImageFilters
   AnimaGraphCutSegmentation
   )
 

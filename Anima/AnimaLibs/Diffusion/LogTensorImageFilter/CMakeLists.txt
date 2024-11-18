@@ -1,4 +1,7 @@
-project(AnimaRegistrationAlgorithms)
+# Should not be here if VTK not found but you're never too careful
+if(USE_VTK AND VTK_FOUND)
+
+project(AnimaDiffLogTensorImageFilter)
 
 ## #############################################################################
 ## List Sources
@@ -29,10 +32,8 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME} INTERFACE
-                      AnimaRegistrationCommon
-                      AnimaRegistrationGenericMetrics
-                      AnimaRegistrationResamplersFilters
-                      AnimaRegistrationSVFOperations
-                      AnimaRegistrationTransformationAgregators
-                      AnimaRegularizationFilters)
+  ${ITKIO_LIBRARIES}
+  AnimaMathsMatrixOperations)
+
+endif() #USE_VTK AND VTK_FOUND
 

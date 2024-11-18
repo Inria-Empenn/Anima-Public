@@ -18,7 +18,7 @@ if(BUILD_TESTING)
   # Link
   # ############################################################################
 
-  target_link_libraries(${PROJECT_NAME} AnimaStatisticalDistributions)
+  target_link_libraries(${PROJECT_NAME} AnimaMathsStatisticalDistributions)
 
   # ############################################################################
   # install

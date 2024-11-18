@@ -18,7 +18,9 @@ if(BUILD_TOOLS AND USE_NLOPT)
   # Link
   # ############################################################################
 
-  target_link_libraries(${PROJECT_NAME} ${ITKIO_LIBRARIES} AnimaDataIO
+  target_link_libraries(${PROJECT_NAME} ${ITKIO_LIBRARIES}
+                        AnimaDataIO
+                        AnimaBasicImageFilters
                         AnimaMathsSHTools)
 
   # ############################################################################

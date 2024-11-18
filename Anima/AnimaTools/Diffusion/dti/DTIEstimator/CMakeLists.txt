@@ -7,8 +7,7 @@ project(animaDiffDTIEstimator)
 ## #############################################################################
 
 list_source_files(${PROJECT_NAME}
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  )
+  ${CMAKE_CURRENT_SOURCE_DIR})
    
 
 ## #############################################################################
@@ -16,8 +15,7 @@ list_source_files(${PROJECT_NAME}
 ## #############################################################################
 
 add_executable(${PROJECT_NAME}
-  ${${PROJECT_NAME}_CFILES}
-  )
+  ${${PROJECT_NAME}_CFILES})
 
 
 ## #############################################################################
@@ -27,7 +25,11 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   ${NLOPT_LIBRARY}
   ${ITKIO_LIBRARIES}
-  )
+  AnimaBasicImageFilters
+  AnimaDataIO
+  AnimaDiffMCM
+  AnimaMathsMatrixOperations)
+
 
 ## #############################################################################
 ## install

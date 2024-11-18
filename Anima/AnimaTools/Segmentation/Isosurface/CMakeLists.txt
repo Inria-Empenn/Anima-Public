@@ -28,6 +28,7 @@ target_link_libraries(${PROJECT_NAME}
   ITKVtkGlue
   ${VTK_PREFIX}IOXML
   ${VTK_PREFIX}IOLegacy
+  AnimaBasicImageFilters
   )
 
 ## #############################################################################

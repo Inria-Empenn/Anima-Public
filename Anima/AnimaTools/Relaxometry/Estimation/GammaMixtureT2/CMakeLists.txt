@@ -25,8 +25,9 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   ${ITKIO_LIBRARIES}
+  AnimaBasicImageFilters
   AnimaMathsOptimizers
-  AnimaRelaxometry
+  AnimaRelaxoEstimation
   )
 
 ## #############################################################################

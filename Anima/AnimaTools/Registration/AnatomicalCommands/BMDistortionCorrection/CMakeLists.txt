@@ -40,7 +40,7 @@ target_link_libraries(${PROJECT_NAME}
   AnimaRegistrationSVFOperations
   AnimaRegistrationTransformationAgregators
   AnimaRegularizationFilters
-  RegistrationCommon
+  AnimaRegistrationCommon
   )
 
 ## #############################################################################

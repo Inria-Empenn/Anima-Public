@@ -13,27 +13,29 @@ list_source_files(${PROJECT_NAME}
 ## #############################################################################
 
 add_library(${PROJECT_NAME}
-            ${${PROJECT_NAME}_CFILES})
+  ${${PROJECT_NAME}_CFILES})
 
 
 # ##############################################################################
 # set target properties
 # ##############################################################################
 
-target_include_directories(${PROJECT_NAME}  INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(${PROJECT_NAME} INTERFACE
+  ${CMAKE_CURRENT_SOURCE_DIR})
 
 
 ## #############################################################################
 ## Link
 ## #############################################################################
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME} PUBLIC
   ITKCommon
   ${TinyXML2_LIBRARY}
   ${VTK_PREFIX}IOXML
   ${VTK_PREFIX}IOLegacy
   ${VTKSYS_LIBRARY}
-  )
+  AnimaMathsMatrixOperations)
+  #AnimaDiffMCM)
 
 
 ## ###############################################################################
@@ -42,8 +44,7 @@ target_link_libraries(${PROJECT_NAME}
 
 generate_export_header(${PROJECT_NAME}
   STATIC_DEFINE ${PROJECT_NAME}_BUILT_AS_STATIC
-  EXPORT_FILE_NAME "${CMAKE_BINARY_DIR}/exports/${PROJECT_NAME}Export.h"
-  )
+  EXPORT_FILE_NAME "${CMAKE_BINARY_DIR}/exports/${PROJECT_NAME}Export.h")
 
 
 ## #############################################################################

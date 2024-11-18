@@ -7,16 +7,15 @@ project(animaImageMosaicing)
 ## #############################################################################
 
 list_source_files(${PROJECT_NAME}
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  )
+  ${CMAKE_CURRENT_SOURCE_DIR})
+
 
 ## #############################################################################
 ## add executable
 ## #############################################################################
 
 add_executable(${PROJECT_NAME}
-  ${${PROJECT_NAME}_CFILES}
-  )
+  ${${PROJECT_NAME}_CFILES})
 
 
 ## #############################################################################
@@ -27,12 +26,14 @@ target_link_libraries(${PROJECT_NAME}
   ${ITKIO_LIBRARIES}
   ${ITK_TRANSFORM_LIBRARIES}
   ${TinyXML2_LIBRARY}
-  )
+  AnimaRegistrationResamplersFilters)
+
 
 ## #############################################################################
 ## install
 ## #############################################################################
 
 set_exe_install_rules(${PROJECT_NAME})
+
 
 endif()

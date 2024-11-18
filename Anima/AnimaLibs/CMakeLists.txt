@@ -6,10 +6,13 @@ project(AnimaLibs)
 
 add_subdirectory(Common/NonLocalBase)
 
+add_subdirectory(Diffusion/dti/BackgroundNoisVarianceEstimator)
+add_subdirectory(Diffusion/LogTensorImageFilter)
 add_subdirectory(Diffusion/MCM)
 add_subdirectory(Diffusion/MCMSimilarity)
 add_subdirectory(Diffusion/Tractography)
 
+add_subdirectory(Filtering/dti/filters)
 add_subdirectory(Filtering/ClusteringFilter)
 add_subdirectory(Filtering/Jacobian)
 
@@ -29,7 +32,7 @@ add_subdirectory(Regularization/Filters)
 add_subdirectory(Relaxometry/Estimation)
 add_subdirectory(Relaxometry/Simulation)
 
-add_subdirectory(Segmentation/RandomInitializer)
+add_subdirectory(Segmentation)
 
 
 

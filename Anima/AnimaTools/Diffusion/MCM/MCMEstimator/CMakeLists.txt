@@ -26,10 +26,11 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   ${ITKIO_LIBRARIES}
-  AnimaMCM
+  ITKOptimizers
+  AnimaBasicImageFilters
+  AnimaDiffMCM
   AnimaMathsSpecialFunctions
   AnimaMathsOptimizers
-  ITKOptimizers
   )
 
 ## #############################################################################

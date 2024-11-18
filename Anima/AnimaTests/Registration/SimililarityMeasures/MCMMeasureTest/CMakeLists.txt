@@ -25,8 +25,7 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   ${ITK_TRANSFORM_LIBRARIES}
-  AnimaMCM
-  AnimaMCMBase
+  AnimaDiffMCM
   AnimaMCMSimilarity
   AnimaOptimizers
   ${NLOPT_LIBRARY}

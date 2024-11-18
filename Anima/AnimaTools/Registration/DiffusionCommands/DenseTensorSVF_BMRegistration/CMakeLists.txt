@@ -23,13 +23,16 @@ add_executable(${PROJECT_NAME}
 ## Link
 ## #############################################################################
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME} PUBLIC
   ${ITKIO_LIBRARIES}
   ${ITK_TRANSFORM_LIBRARIES}
   ITKOptimizers
   ITKStatistics
+  AnimaFilDTIFilters
+  AnimaDiffLogTensorImageFilter
   AnimaMathsOptimizers
-  )
+  AnimaRegistrationAlgorithms
+  AnimaRegistrationDiffusionMetrics)
 
 ## #############################################################################
 ## install

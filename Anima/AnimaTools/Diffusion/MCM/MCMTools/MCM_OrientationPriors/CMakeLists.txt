@@ -18,8 +18,11 @@ if(BUILD_TOOLS)
   # Link
   # ############################################################################
 
-  target_link_libraries(${PROJECT_NAME} ${ITKIO_LIBRARIES} ${TinyXML2_LIBRARY}
-                        AnimaMCM AnimaStatisticalDistributions)
+  target_link_libraries(${PROJECT_NAME}
+                        ${ITKIO_LIBRARIES}
+                        ${TinyXML2_LIBRARY}
+                        AnimaDiffMCM
+                        AnimaMathsStatisticalDistributions)
 
   # ############################################################################
   # install

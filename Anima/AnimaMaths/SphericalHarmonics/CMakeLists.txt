@@ -14,7 +14,15 @@ list_source_files(${PROJECT_NAME}
 
 add_library(${PROJECT_NAME}
             ${${PROJECT_NAME}_CFILES})
-  
+
+
+## ##############################################################################
+## set target properties
+## ##############################################################################
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+                           ${CMAKE_CURRENT_SOURCE_DIR})
+
 
 ## #############################################################################
 ## Link
@@ -22,6 +30,7 @@ add_library(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
                       AnimaMathsSpecialFunctions
+					  AnimaMathsMatrixOperations
                       ITKOptimizers)
 
 
