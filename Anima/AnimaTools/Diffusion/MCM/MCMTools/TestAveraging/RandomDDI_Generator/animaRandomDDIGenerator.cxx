@@ -2,9 +2,10 @@
 #include <fstream>
 #include <iostream>
 
-#include<cstdlib>
-#include<ctime>
+#include <cstdlib>
+#include <ctime>
 #include <animaMatrixOperations.h>
+#include <animaVectorOperations.h>
 
 #include <tclap/CmdLine.h>
 
@@ -54,7 +55,7 @@ int main(int argc, char *argv[])
         angles(0) = phi;
         angles(1) = theta;
         angles(2) = 1;
-        TransformSphericalToCartesianCoordinates(angles, direction);
+        anima::TransformSphericalToCartesianCoordinates(angles, direction);
 
         std::stringstream convertNumber;
         convertNumber << i;

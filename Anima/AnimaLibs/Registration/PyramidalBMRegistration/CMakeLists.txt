@@ -1,35 +1,30 @@
-if(BUILD_TOOLS)
-
-project(animaGrowLesionSeeds)
+project(PyramidalBMRegistration)
 
 ## #############################################################################
 ## List Sources
 ## #############################################################################
 
 list_source_files(${PROJECT_NAME}
-  ${CMAKE_CURRENT_SOURCE_DIR})
+                  ${CMAKE_CURRENT_SOURCE_DIR})
 
 
 ## #############################################################################
-## add executable
+## add lib
 ## #############################################################################
 
-add_executable(${PROJECT_NAME}
-  ${${PROJECT_NAME}_CFILES})
+add_library(${PROJECT_NAME} INTERFACE
+            ${${PROJECT_NAME}_CFILES})
 
 
+## ##############################################################################
+## set target properties
+## ##############################################################################
+
+target_include_directories(${PROJECT_NAME} INTERFACE
+                           ${CMAKE_CURRENT_SOURCE_DIR})
+
+  
 ## #############################################################################
 ## Link
 ## #############################################################################
 
-target_link_libraries(${PROJECT_NAME}
-  ${ITKIO_LIBRARIES}
-  AnimaRegularizationFilters)
-
-## #############################################################################
-## install
-## #############################################################################
-
-set_exe_install_rules(${PROJECT_NAME})
-
-endif()

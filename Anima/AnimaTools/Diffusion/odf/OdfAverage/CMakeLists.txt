@@ -19,9 +19,10 @@ if(BUILD_TOOLS)
   # ############################################################################
 
   target_link_libraries(${PROJECT_NAME}
-                        ${ITKIO_LIBRARIES}
-                        AnimaBasicImageFilters
-                        AnimaMathsSHTools)
+    ${ITKIO_LIBRARIES}
+    AnimaBasicImageFilters
+    AnimaMathsSHTools
+    AnimaMathsSphereOperations)
 
   # ############################################################################
   # install

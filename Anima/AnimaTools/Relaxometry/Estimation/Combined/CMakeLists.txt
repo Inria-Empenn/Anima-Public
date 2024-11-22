@@ -28,8 +28,9 @@ target_link_libraries(${PROJECT_NAME}
   ${NLOPT_LIBRARY}
   AnimaBasicImageFilters
   AnimaMathsOptimizers
-  AnimaRelaxometry
-  )
+  AnimaRegularizationFilters
+  AnimaRelaxoEstimation)
+
 
 ## #############################################################################
 ## install

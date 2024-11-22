@@ -1,11 +1,11 @@
 #pragma once
 
-#include "animaTLinksFilter.h"
-#include "animaGraphCutFilter.h"
-#include "animaCheckStructureNeighborFilter.h"
-#include "animaRemoveTouchingBorderFilter.h"
-#include "animaComputeMahalanobisImagesFilter.h"
-#include "animaComputeSolution.h"
+#include <animaTLinksFilter.h>
+#include <animaGraphCutFilter.h>
+#include <animaCheckStructureNeighborFilter.h>
+#include <animaRemoveTouchingBorderFilter.h>
+#include <animaComputeMahalanobisImagesFilter.h>
+#include <animaComputeSolution.h>
 
 #include <itkMaximumImageFilter.h>
 #include <itkMinimumImageFilter.h>

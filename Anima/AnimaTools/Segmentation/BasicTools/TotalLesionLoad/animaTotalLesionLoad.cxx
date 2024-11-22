@@ -2,7 +2,7 @@
 
 #include <itkTimeProbe.h>
 #include <animaReadWriteFunctions.h>
-#include "animaRemoveTouchingBorderFilter.h"
+#include <animaRemoveTouchingBorderFilter.h>
 
 int main(int argc, const char** argv)
 {

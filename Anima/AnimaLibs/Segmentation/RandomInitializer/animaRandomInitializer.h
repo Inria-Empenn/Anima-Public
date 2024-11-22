@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AnimaGraphCutSegmentationExport.h"
+#include <AnimaSegmentationExport.h>
 #include "animaModelInitializer.h"
 #include "time.h"
 
@@ -9,8 +9,8 @@ namespace anima
 
 /** @brief Class initializing ramdomly a gaussian model
  *
-   */
-class ANIMAGRAPHCUTSEGMENTATION_EXPORT RandomInitializer: public ModelInitializer
+ */
+class ANIMASEGMENTATION_EXPORT RandomInitializer: public ModelInitializer
 {
 public:
 
@@ -32,11 +32,11 @@ public:
     void Update() ITK_OVERRIDE;
 
     /** @brief Set min values of random means
-       */
+     */
     void SetMinValues(std::vector<double> &min){this->minValues=min;}
 
     /** @brief Set max values of random means
-       */
+     */
     void SetMaxValues(std::vector<double> &max){this->maxValues=max;}
 
     itkSetMacro(NbGaussian, unsigned int)
@@ -68,16 +68,15 @@ protected:
 
 
     /** @brief min values
-        */
+     */
     std::vector<double> minValues;
 
     /** @brief max values
-       */
+     */
     std::vector<double> maxValues;
 
     unsigned int m_NbGaussian;
     unsigned int m_DimensionGaussian;
-
 };
 
 }

@@ -2,7 +2,7 @@
 
 #include <itkTimeProbe.h>
 #include <animaReadWriteFunctions.h>
-#include "animaGraphCutFilter.h"
+#include <animaGraphCutFilter.h>
 
 int main(int argc, const char** argv)
 {

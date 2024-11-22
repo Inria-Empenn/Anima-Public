@@ -15,8 +15,8 @@ list_source_files(${PROJECT_NAME}
 ## #############################################################################
 
 add_executable(${PROJECT_NAME}
-  ${${PROJECT_NAME}_CFILES}
-  )
+  ${${PROJECT_NAME}_CFILES})
+
 
 # ##############################################################################
 # set target properties
@@ -24,8 +24,7 @@ add_executable(${PROJECT_NAME}
 
 #set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${${PROJECT_NAME}_HEADERS} ${${PROJECT_NAME}_TEMPLATES}")
 target_include_directories(${PROJECT_NAME}  PUBLIC
-                           ${CMAKE_CURRENT_SOURCE_DIR}
-                           ${CMAKE_CURRENT_SOURCE_DIR}/../Filter/)
+  ${CMAKE_CURRENT_SOURCE_DIR})
 
 
 ## #############################################################################
@@ -35,7 +34,8 @@ target_include_directories(${PROJECT_NAME}  PUBLIC
 target_link_libraries(${PROJECT_NAME}
   ${ITKIO_LIBRARIES}
   AnimaMathsMatrixOperations
-  )
+  AnimaSegmentation)
+
 
 ## #############################################################################
 ## install

@@ -33,7 +33,7 @@ target_link_libraries(${PROJECT_NAME}
   ITKSmoothing
   ITKStatistics
   AnimaRegistrationAlgorithms
-  )
+  AnimaRegistrationPyramidalDenseSVFMatchingBridge)
 
 ## #############################################################################
 ## install

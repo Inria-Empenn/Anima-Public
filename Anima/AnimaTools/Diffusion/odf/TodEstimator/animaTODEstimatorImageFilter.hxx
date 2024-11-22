@@ -3,6 +3,7 @@
 #include "animaTODEstimatorImageFilter.h"
 #include <animaLogExpMapsUnitSphere.h>
 #include <animaMatrixOperations.h>
+#include <animaVectorOperations.h>
 #include <animaODFFunctions.h>
 #include <animaShapesReader.h>
 #include <animaSphereOperations.h>

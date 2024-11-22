@@ -13,7 +13,7 @@ list_source_files(${PROJECT_NAME}
 ## #############################################################################
 
 add_library(${PROJECT_NAME} INTERFACE
-            ${${PROJECT_NAME}_CFILES})
+  ${${PROJECT_NAME}_CFILES})
 
 
 ## #############################################################################

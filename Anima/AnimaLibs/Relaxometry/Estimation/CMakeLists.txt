@@ -5,7 +5,8 @@ project(AnimaRelaxoEstimation)
 ## #############################################################################
 
 list_source_files(${PROJECT_NAME}
-                  ${CMAKE_CURRENT_SOURCE_DIR})
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/Filters)
 
 
 ## #############################################################################
@@ -13,14 +14,16 @@ list_source_files(${PROJECT_NAME}
 ## #############################################################################
 
 add_library(${PROJECT_NAME}
-            ${${PROJECT_NAME}_CFILES})
+  ${${PROJECT_NAME}_CFILES})
 
 
 ## ##############################################################################
 ## set target properties
 ## ##############################################################################
 
-target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR} )
+target_include_directories(${PROJECT_NAME} INTERFACE
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/Filters)
 
 
 ## #############################################################################
@@ -28,10 +31,10 @@ target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-                      AnimaRelaxoSimulation
-                      AnimaMathsNumericalIntegration
-                      AnimaMathsOptimizers
-                      ITKCommon)
+  AnimaRelaxoSimulation
+  AnimaMathsNumericalIntegration
+  AnimaMathsOptimizers
+  ITKCommon)
 
 
 ################################################################################
