@@ -127,7 +127,6 @@ int main(int argc, char **argv)
 
     //Set interpolateVoxels (true if and only if we need to add interpolate voxels)
     bool interpolateVoxels = !noInterpolationArg.isSet();
-    std::cout<<interpolateVoxels<<std::endl;
 
     //Initialize data objects for the main algorithm
     double ptVals[3], ptValsNext[3];
