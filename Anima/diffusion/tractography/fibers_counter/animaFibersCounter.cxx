@@ -68,7 +68,7 @@ void incrementInterpolateVoxels(IndexType index, IndexType indexNext, double inc
  */
 int main(int argc, char **argv)
 {
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ', ANIMA_VERSION);
+    TCLAP::CmdLine cmd("This binary converts an input tracks file (vtp or vtk) into a density map, giving for each voxel the number or proportion of tracks from the input image passing through it. \n Warning : Anima uses LPS convention; if input file uses another convention (for example RAS) one must convert to LPS convention first. \n For example to move from RAS to LPS convention, one must rotate the input tracks file by 180° around z-axis. \n INRIA / IRISA - VisAGeS/Empenn Team", ' ', ANIMA_VERSION);
 
     //Define arguments
     TCLAP::ValueArg<std::string> inArg("i", "input", "Input tracks file (vtp, vtk)", true, "", "input tracks file (vtp, vtk)", cmd);
