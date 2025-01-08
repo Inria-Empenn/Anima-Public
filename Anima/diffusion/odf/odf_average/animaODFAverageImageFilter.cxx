@@ -139,8 +139,6 @@ namespace anima
                 for (unsigned int i = 0; i < numInputs; ++i)
                 {
                     this->NormalizeODF(inItrs[i].Get(), inputValue);
-                    std::cout<<inItrs[i].Get()<<std::endl;
-                    std::cout<<inputValue<<std::endl;
                     this->DiscretizeODF(inputValue, workValue);
                     workValues[i] = this->GetSquareRootODFCoef(workValue);
                 }
@@ -150,7 +148,6 @@ namespace anima
                 outputValue = this->GetSquareODFCoef(workValue);
 
                 outItr.Set(outputValue);
-                std::cout<<outputValue<<std::endl;
 
                 //Move to next voxel
                 for (unsigned int i = 0; i < numInputs; ++i)
