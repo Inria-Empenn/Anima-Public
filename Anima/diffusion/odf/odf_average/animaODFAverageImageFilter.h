@@ -10,6 +10,9 @@ namespace anima
     class ODFAverageImageFilter : public anima::NumberedThreadImageToImageFilter<itk::VectorImage<float, 3>, itk::VectorImage<float, 3>>
     {
     public:
+        ODFAverageImageFilter();
+        ~ODFAverageImageFilter() override;
+
         using Self = ODFAverageImageFilter;
         using InputImageType = itk::VectorImage<float, 3>;
         using OutputImageType = itk::VectorImage<float, 3>;
@@ -43,35 +46,23 @@ namespace anima
         void AddWeightImage(const unsigned int i, const WeightImagePointer &weightImage);
 
     protected:
-        ODFAverageImageFilter() : Superclass()
-        {
-            m_NbSamplesTheta = 10;
-            m_NbSamplesPhi = 2 * m_NbSamplesTheta;
-            m_WeightImages.clear();
-            m_SolveSHMatrix.clear();
-            m_SpherHarm.clear();
-        }
-
-        virtual ~ODFAverageImageFilter() {}
-
-        void BeforeThreadedGenerateData() ITK_OVERRIDE;
-        void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
-        void AfterThreadedGenerateData() ITK_OVERRIDE;
+        void BeforeThreadedGenerateData() override;
+        void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) override;
+        void AfterThreadedGenerateData() override;
 
         void DiscretizeODF(const InputPixelType &Coef, VectorType &resHisto);
         void GetAverageHisto(const HistoArrayType &coefs, const VectorType &weightValues, OutputPixelType &resCoef);
+        void NormalizeODF(const InputPixelType &inputCoef, InputPixelType &outputCoef);
         VectorType GetSquareRootODFCoef(const VectorType &histo);
         OutputPixelType GetSquareODFCoef(const VectorType &histo);
 
     private:
         ITK_DISALLOW_COPY_AND_ASSIGN(ODFAverageImageFilter);
 
-        unsigned int m_NbSamplesPhi;
-        unsigned int m_NbSamplesTheta;
         unsigned int m_VectorLength;
+        double m_EpsValue;
 
         std::vector<WeightImagePointer> m_WeightImages;
-
         MatrixType m_SpherHarm;
         MatrixType m_SolveSHMatrix;
 

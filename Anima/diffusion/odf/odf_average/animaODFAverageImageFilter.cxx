@@ -4,11 +4,28 @@
 
 #include <itkImageRegionIterator.h>
 
+#define NB_SAMPLES_THETA 10
+#define NB_SAMPLES_PHI   (2 * NB_SAMPLES_THETA)
+#define DELTA_PHI        (2.0 * M_PI / static_cast<double>(NB_SAMPLES_PHI))
+#define DELTA_THETA      (M_PI / (static_cast<double>(NB_SAMPLES_THETA) - 1.0))
+
+
 namespace anima
 {
+    ODFAverageImageFilter::ODFAverageImageFilter()
+    {
+        m_EpsValue = std::sqrt(std::numeric_limits<double>::epsilon());
+        m_VectorLength = 0;
+        m_ODFSHBasis = nullptr;
+    }
+
+    ODFAverageImageFilter::~ODFAverageImageFilter() = default;
 
     void ODFAverageImageFilter::AddWeightImage(const unsigned int i, const WeightImagePointer &weightImage)
     {
+        /**
+         * Add a newly read weight image to the vector m_WeightImages 
+         */
         if (i == m_WeightImages.size())
         {
             m_WeightImages.push_back(weightImage);
@@ -21,29 +38,31 @@ namespace anima
         m_WeightImages[i] = weightImage;
     }
 
+
     void ODFAverageImageFilter::BeforeThreadedGenerateData()
     {
+        /**
+         * Preliminary computations
+         */
         Superclass::BeforeThreadedGenerateData();
 
-        unsigned int odfSHOrder = std::round(-1.5 + 0.5 * std::sqrt(8.0 * static_cast<double>(this->GetInput(0)->GetVectorLength()) + 1.0));
-        m_VectorLength = (odfSHOrder + 1) * (odfSHOrder + 2) / 2;
+        m_VectorLength = this->GetInput(0)->GetVectorLength();
+        //Get the SH order from the vector length
+        unsigned int odfSHOrder = std::round(-1.5 + 0.5 * std::sqrt(8.0 * static_cast<double>(m_VectorLength) + 1.0));
 
-        m_SpherHarm.set_size(m_NbSamplesPhi * m_NbSamplesTheta, m_VectorLength);
+        //Discretize SH (m_SpherHarm will contain the values of each spherical harmonic (columns) for each sample point (lines))
+        m_SpherHarm.set_size(NB_SAMPLES_PHI * NB_SAMPLES_THETA, m_VectorLength);
         m_ODFSHBasis = new anima::ODFSphericalHarmonicBasis(odfSHOrder);
 
-        // Discretize SH
         double sqrt2 = std::sqrt(2.0);
-        double deltaPhi = 2.0 * M_PI / (static_cast<double>(m_NbSamplesPhi) - 1.0);
-        double deltaTheta = M_PI / (static_cast<double>(m_NbSamplesTheta) - 1.0);
-
         unsigned int k = 0;
-        for (unsigned int i = 0; i < m_NbSamplesTheta; ++i)
+        for (unsigned int i = 0; i < NB_SAMPLES_THETA; ++i)
         {
-            double theta = static_cast<double>(i) * deltaTheta;
+            double theta = static_cast<double>(i) * DELTA_THETA;
 
-            for (unsigned int j = 0; j < m_NbSamplesPhi; ++j)
+            for (unsigned int j = 0; j < NB_SAMPLES_PHI; ++j)
             {
-                double phi = static_cast<double>(j) * deltaPhi;
+                double phi = static_cast<double>(j) * DELTA_PHI;
                 unsigned int c = 0;
                 for (double l = 0; l <= odfSHOrder; l += 2)
                     for (double m = -l; m <= l; m++)
@@ -55,33 +74,38 @@ namespace anima
         m_SolveSHMatrix = vnl_matrix_inverse<double>(m_SpherHarm.transpose() * m_SpherHarm).as_matrix() * m_SpherHarm.transpose();
     }
 
+
     void ODFAverageImageFilter::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
     {
+        /**
+         *Main function. For each voxel of output image, compute the average of the corresponding input voxels in input images. 
+         */
+
+        //Initializations
         using InputImageIteratorType = itk::ImageRegionConstIterator<InputImageType>;
         using InputWeightIteratorType = itk::ImageRegionConstIterator<WeightImageType>;
         using OutputImageIteratorType = itk::ImageRegionIterator<OutputImageType>;
 
         unsigned int numInputs = this->GetNumberOfIndexedInputs();
 
-        std::vector<InputImageIteratorType> inItrs(numInputs);
-        std::vector<InputWeightIteratorType> weightItrs(numInputs);
+        std::vector<InputImageIteratorType> inItrs(numInputs); //vector of input images (which are here iterators on the input images)
+        std::vector<InputWeightIteratorType> weightItrs(numInputs); //vector of iterators on weight images
         for (unsigned int i = 0; i < numInputs; ++i)
         {
             inItrs[i] = InputImageIteratorType(this->GetInput(i), outputRegionForThread);
             weightItrs[i] = InputWeightIteratorType(m_WeightImages[i], outputRegionForThread);
         }
 
-        OutputImageIteratorType outItr(this->GetOutput(), outputRegionForThread);
+        OutputImageIteratorType outItr(this->GetOutput(), outputRegionForThread); //iterator on output image
 
         VectorType weightValues(numInputs);
-        VectorType workValue(m_NbSamplesPhi * m_NbSamplesTheta);
+        VectorType workValue(NB_SAMPLES_PHI * NB_SAMPLES_THETA);
         HistoArrayType workValues(numInputs);
 
         InputPixelType inputValue(m_VectorLength);
         OutputPixelType outputValue(m_VectorLength);
 
-        double epsValue = std::sqrt(std::numeric_limits<double>::epsilon());
-
+        //Average computation
         while (!outItr.IsAtEnd())
         {
             double weightSum = 0.0;
@@ -92,11 +116,13 @@ namespace anima
                 weightValues[i] = weightValue;
             }
 
-            if (weightSum < epsValue)
+            if (weightSum < m_EpsValue)
+            //If in a voxel, the sum of weights is equal (or very close) to 0, then we output a null distribution
             {
                 outputValue.Fill(0.0);
                 outItr.Set(outputValue);
 
+                //Move to next voxel
                 for (unsigned int i = 0; i < numInputs; ++i)
                 {
                     ++inItrs[i];
@@ -106,67 +132,109 @@ namespace anima
                 ++outItr;
 
                 this->IncrementNumberOfProcessedPoints();
-                continue;
             }
 
-            for (unsigned int i = 0; i < numInputs; ++i)
+            else
             {
-                inputValue = inItrs[i].Get();
-                this->DiscretizeODF(inputValue, workValue);
-                workValues[i] = this->GetSquareRootODFCoef(workValue);
+                for (unsigned int i = 0; i < numInputs; ++i)
+                {
+                    this->NormalizeODF(inItrs[i].Get(), inputValue);
+                    std::cout<<inItrs[i].Get()<<std::endl;
+                    std::cout<<inputValue<<std::endl;
+                    this->DiscretizeODF(inputValue, workValue);
+                    workValues[i] = this->GetSquareRootODFCoef(workValue);
+                }
+
+                this->GetAverageHisto(workValues, weightValues, outputValue);
+                this->DiscretizeODF(outputValue, workValue);
+                outputValue = this->GetSquareODFCoef(workValue);
+
+                outItr.Set(outputValue);
+                std::cout<<outputValue<<std::endl;
+
+                //Move to next voxel
+                for (unsigned int i = 0; i < numInputs; ++i)
+                {
+                    ++inItrs[i];
+                    ++weightItrs[i];
+                }
+
+                ++outItr;
+
+                this->IncrementNumberOfProcessedPoints();
             }
-
-            this->GetAverageHisto(workValues, weightValues, outputValue);
-            this->DiscretizeODF(outputValue, workValue);
-            outputValue = this->GetSquareODFCoef(workValue);
-
-            outItr.Set(outputValue);
-
-            for (unsigned int i = 0; i < numInputs; ++i)
-            {
-                ++inItrs[i];
-                ++weightItrs[i];
-            }
-
-            ++outItr;
-
-            this->IncrementNumberOfProcessedPoints();
         }
     }
 
+
     void ODFAverageImageFilter::AfterThreadedGenerateData()
     {
+        /**
+         * Delete pointers which are not SmartPointers
+         */
         delete m_ODFSHBasis;
     }
 
+
     void ODFAverageImageFilter::DiscretizeODF(const InputPixelType &modelValue, VectorType &odf)
     {
+        /**
+         * Move an ODF from representation by SH coefficients to a sample form (vector with values at sample points)
+         */
         unsigned int k = 0;
-        double deltaPhi = 2.0 * M_PI / (static_cast<double>(m_NbSamplesPhi) - 1.0);
-        double deltaTheta = M_PI / (static_cast<double>(m_NbSamplesTheta) - 1.0);
-
-        for (unsigned int i = 0; i < m_NbSamplesTheta; ++i)
+        for (unsigned int i = 0; i < NB_SAMPLES_THETA; ++i)
         {
-            double theta = static_cast<double>(i) * deltaTheta;
-            for (unsigned int j = 0; j < m_NbSamplesPhi; ++j)
+            double theta = static_cast<double>(i) * DELTA_THETA;
+            for (unsigned int j = 0; j < NB_SAMPLES_PHI; ++j)
             {
-                double phi = static_cast<double>(j) * deltaPhi;
+                double phi = static_cast<double>(j) * DELTA_PHI;
                 odf[k] = m_ODFSHBasis->getValueAtPosition(modelValue, theta, phi);
                 k++;
             }
         }
     }
 
+
+    void ODFAverageImageFilter::NormalizeODF(const InputPixelType &inputCoef, InputPixelType &outputCoef)
+    {
+        /**
+         * Normalizes an ODF so that it integrates to 1 over a sphere, by multiplying each SH component by a constant factor normValue
+         */
+        double normValue;
+
+        if (std::abs(inputCoef[0]) < m_EpsValue){
+            outputCoef.Fill(0.0); 
+        }
+        else{
+            normValue = 1/(inputCoef[0]*std::sqrt(4*M_PI)); //equivalent to normValue*inputCoef[0]
+            outputCoef[0] = 1/std::sqrt(4*M_PI);               
+            for (unsigned int j = 1; j < m_VectorLength; j++){
+                outputCoef[j] = normValue * inputCoef[j];
+            }
+        }
+    }
+    
+
     ODFAverageImageFilter::VectorType ODFAverageImageFilter::GetSquareRootODFCoef(const VectorType &odf)
     {
-        MatrixType squareRootOdf(m_NbSamplesTheta * m_NbSamplesPhi, 1);
+        /**
+         * Returns the square root of an input ODF
+         * Output ODF is represented by coefficients
+         * Input ODF is in sample form
+         * 
+         */
+
+        MatrixType squareRootOdf(NB_SAMPLES_THETA * NB_SAMPLES_PHI, 1);
         MatrixType squareRootCoef(m_VectorLength, 1);
 
-        for (unsigned int i = 0; i < m_NbSamplesTheta * m_NbSamplesPhi; ++i)
+        //Compute square root of each sample point
+        for (unsigned int i = 0; i < NB_SAMPLES_THETA * NB_SAMPLES_PHI; ++i)
             squareRootOdf.put(i, 0, std::sqrt(std::max(0.0, odf[i])));
 
+        //Convert from sample form to representation by coefficients
         squareRootCoef = m_SolveSHMatrix * squareRootOdf;
 
+        //Store the result in a vector instead of a matrix
         VectorType squareRootModelValue(m_VectorLength);
         for (unsigned int i = 0; i < m_VectorLength; ++i)
             squareRootModelValue[i] = squareRootCoef.get(i, 0);
@@ -174,16 +242,27 @@ namespace anima
         return squareRootModelValue;
     }
 
+
     ODFAverageImageFilter::OutputPixelType ODFAverageImageFilter::GetSquareODFCoef(const VectorType &odf)
     {
-        MatrixType squareOdf(m_NbSamplesTheta * m_NbSamplesPhi, 1);
+        /**
+         * Returns the square root of an input ODF
+         * Output ODF is represented by coefficients
+         * Input ODF is in sample form
+         * 
+         */
+
+        MatrixType squareOdf(NB_SAMPLES_THETA * NB_SAMPLES_PHI, 1);
         MatrixType squareCoef(m_VectorLength, 1);
 
-        for (unsigned int i = 0; i < m_NbSamplesTheta * m_NbSamplesPhi; ++i)
+        //Compute the square of each sample point
+        for (unsigned int i = 0; i < NB_SAMPLES_THETA * NB_SAMPLES_PHI; ++i)
             squareOdf.put(i, 0, std::pow(odf[i], 2.0));
 
+        //Convert from sample form to representation by coefficients
         squareCoef = m_SolveSHMatrix * squareOdf;
 
+        //Store the result in a vector instead of a matrix
         OutputPixelType squareModelValue(m_VectorLength);
         for (unsigned int i = 0; i < m_VectorLength; ++i)
             squareModelValue[i] = squareCoef.get(i, 0);
@@ -191,8 +270,15 @@ namespace anima
         return squareModelValue;
     }
 
+
     void ODFAverageImageFilter::GetAverageHisto(const HistoArrayType &coefs, const VectorType &weightValues, OutputPixelType &resCoef)
     {
+        /**
+         * Compute the weighted average of input ODFs using method of Goh et al., 2O11 (Algorithm 1)
+         * coefs: Vector of size numInputs, each element being a vector of size m_VectorLength representing an ODF
+         * weightValues: Vector of size numInputs with the weights of the input ODFs (each element is a scalar)
+         * resCoef: Output ODF represented by coefficients
+         */
         unsigned int numImages = this->GetNumberOfIndexedInputs();
 
         VectorType mean, nextMean = coefs[0];
@@ -200,7 +286,6 @@ namespace anima
 
         const unsigned int maxIter = 100;
         const double epsValue = 0.000035;
-
         unsigned int nIter = 0;
         double normTan = 1.0;
 
@@ -234,4 +319,4 @@ namespace anima
             resCoef[i] = nextMean[i];
     }
 
-} // end namespace anima
+} //end namespace anima
