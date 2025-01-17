@@ -1,5 +1,4 @@
-
-add_subdirectory(BackgroundNoisVvarianceEstimator)
+add_subdirectory(BackgroundNoiseVarianceEstimator)
 add_subdirectory(DTIEstimator)
 add_subdirectory(DTINonCentralChiEstimator)
 add_subdirectory(DTIProbabilisticTractography)
@@ -7,4 +6,3 @@ add_subdirectory(DTIScalarMaps)
 add_subdirectory(DTITractography)
 add_subdirectory(DWISimulatorFromDTI)
 add_subdirectory(FlipTensors)
-

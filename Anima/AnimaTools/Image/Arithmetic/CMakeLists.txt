@@ -1,33 +1,36 @@
-project(AnimaDiffDTIBackgroundNoisVvarianceEstimatorFilter)
+if(BUILD_TOOLS)
+
+project(animaImageArithmetic)
 
 ## #############################################################################
 ## List Sources
 ## #############################################################################
 
 list_source_files(${PROJECT_NAME}
-                  ${CMAKE_CURRENT_SOURCE_DIR} )
-
+  ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 ## #############################################################################
 ## add executable
 ## #############################################################################
 
-add_library(${PROJECT_NAME} INTERFACE
-            ${${PROJECT_NAME}_CFILES})
-
+add_executable(${PROJECT_NAME}
+  ${${PROJECT_NAME}_CFILES}
+)
 
 ## #############################################################################
 ## Link
 ## #############################################################################
 
-target_link_libraries(${PROJECT_NAME} INTERFACE
-  ${ITK_TRANSFORM_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}
+  ${ITKIO_LIBRARIES}
+  AnimaCore
+)
 
+## #############################################################################
+## install
+## #############################################################################
 
-## ##############################################################################
-## set target properties
-## ##############################################################################
+set_exe_install_rules(${PROJECT_NAME})
 
-target_include_directories(${PROJECT_NAME} INTERFACE
-  ${CMAKE_CURRENT_SOURCE_DIR})
-
+endif()

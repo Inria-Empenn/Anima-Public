@@ -1,13 +1,57 @@
 project(AnimaCore)
 
-## ##############################################################################
-## Here go the add_subdirectories, no code should be at the root of the project
-## ##############################################################################
+## #############################################################################
+## List Sources
+## #############################################################################
 
-add_subdirectory(BasicImageFilters)
+list_source_files(${PROJECT_NAME}
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/BasicImageFilters
+  ${CMAKE_CURRENT_SOURCE_DIR}/DataIO
+)
 
-if(USE_VTK AND VTK_FOUND)
-  add_subdirectory(DataIO)
-endif()
+## #############################################################################
+## add lib
+## #############################################################################
 
+add_library(${PROJECT_NAME}
+  ${${PROJECT_NAME}_CFILES}
+)
 
+# ##############################################################################
+# set target properties
+# ##############################################################################
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/BasicImageFilters
+  ${CMAKE_CURRENT_SOURCE_DIR}/DataIO
+)
+
+## #############################################################################
+## Link
+## #############################################################################
+
+target_link_libraries(${PROJECT_NAME} PUBLIC
+  ITKCommon
+  ${TinyXML2_LIBRARY}
+  ${VTK_PREFIX}IOXML
+  ${VTK_PREFIX}IOLegacy
+  ${VTKSYS_LIBRARY}
+  AnimaMathsMatrixOperations
+)
+
+## ###############################################################################
+##  Auto generate the export file for the libs
+## ###############################################################################
+
+generate_export_header(${PROJECT_NAME}
+  STATIC_DEFINE ${PROJECT_NAME}_BUILT_AS_STATIC
+  EXPORT_FILE_NAME "${CMAKE_BINARY_DIR}/exports/${PROJECT_NAME}Export.h"
+)
+
+## #############################################################################
+## install
+## #############################################################################
+
+set_lib_install_rules(${PROJECT_NAME})

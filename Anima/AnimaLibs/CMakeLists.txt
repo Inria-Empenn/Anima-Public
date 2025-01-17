@@ -6,7 +6,7 @@ project(AnimaLibs)
 
 add_subdirectory(Common/NonLocalBase)
 
-add_subdirectory(Diffusion/dti/BackgroundNoisVarianceEstimator)
+add_subdirectory(Diffusion/dti/BackgroundNoiseVarianceEstimator)
 add_subdirectory(Diffusion/LogTensorImageFilter)
 add_subdirectory(Diffusion/MCM)
 add_subdirectory(Diffusion/MCMSimilarity)

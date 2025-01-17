@@ -12,4 +12,3 @@ add_subdirectory(SphereOperations)
 add_subdirectory(SphericalHarmonics)
 add_subdirectory(StatisticalDistributions)
 add_subdirectory(Statistics/StatisticalTests)
-

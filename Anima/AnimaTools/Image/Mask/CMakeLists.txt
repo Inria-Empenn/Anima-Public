@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMathsVectorizeImages)
+project(animaImageMask)
 
 ## #############################################################################
 ## List Sources
@@ -8,16 +8,14 @@ project(animaMathsVectorizeImages)
 
 list_source_files(${PROJECT_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}
-  )
+)
 
-## #############################################################################
 ## add executable
 ## #############################################################################
 
 add_executable(${PROJECT_NAME}
   ${${PROJECT_NAME}_CFILES}
-  )
-
+)
 
 ## #############################################################################
 ## Link
@@ -25,7 +23,8 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   ${ITKIO_LIBRARIES}
-  )
+  AnimaCore
+)
 
 ## #############################################################################
 ## install

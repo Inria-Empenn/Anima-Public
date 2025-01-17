@@ -1,0 +1,4 @@
+
+add_subdirectory(AverageLinearTransforms)
+add_subdirectory(DenseTransformArithmetic)
+add_subdirectory(LinearTransformArithmetic)

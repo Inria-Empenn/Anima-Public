@@ -8,7 +8,7 @@ project(animaApplyTransformSerie)
 
 list_source_files(${PROJECT_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}
-  )
+)
 
 ## #############################################################################
 ## add executable
@@ -16,33 +16,31 @@ list_source_files(${PROJECT_NAME}
 
 add_executable(${PROJECT_NAME}
   ${${PROJECT_NAME}_CFILES}
-  )
-
+)
 
 ## ##############################################################################
 ## set target properties
 ## ##############################################################################
 
 target_include_directories(${PROJECT_NAME} PRIVATE 
-                           ${CMAKE_CURRENT_SOURCE_DIR})
-
+  ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 ## #############################################################################
 ## Link
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME}
-  ${ITKIO_LIBRARIES}
   ${ITK_TRANSFORM_LIBRARIES}
+  ${ITKIO_LIBRARIES}
   ${TinyXML2_LIBRARY}
-  AnimaDataIO
-  AnimaBasicImageFilters
+  AnimaCore
   AnimaDiffMCM
   AnimaMathsMatrixOperations
   AnimaRegistrationResamplersFilters
   AnimaRegistrationSVFOperations
   AnimaRegistrationTransformations
-  )
+)
 
 ## #############################################################################
 ## install

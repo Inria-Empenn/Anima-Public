@@ -1,4 +1,5 @@
-add_subdirectory(Jacobian)
 add_subdirectory(ImageMosaicing)
 add_subdirectory(ImageResolutionChanger)
+add_subdirectory(Jacobian)
+add_subdirectory(LinearTransformToSVF)
 add_subdirectory(TransformSerieXmlGenerator)

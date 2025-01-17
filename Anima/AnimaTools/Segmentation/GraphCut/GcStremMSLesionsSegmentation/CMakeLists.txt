@@ -7,29 +7,30 @@ project(animaGcStremMsLesionsSegmentation)
 ## #############################################################################
 
 list_source_files(${PROJECT_NAME}
-  ${CMAKE_CURRENT_SOURCE_DIR})
-
+  ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 ## #############################################################################
 ## add executable
 ## #############################################################################
 
 add_executable(${PROJECT_NAME}
-  ${${PROJECT_NAME}_CFILES})
-
+  ${${PROJECT_NAME}_CFILES}
+)
 
 ## #############################################################################
 ## Link
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME}
-  ITKMathematicalMorphology
-  ${ITKIO_LIBRARIES}
   ${ITK_TRANSFORM_LIBRARIES}
+  ${ITKIO_LIBRARIES}
   ITKIOCSV
+  ITKMathematicalMorphology
   ITKStatistics
-  AnimaBasicImageFilters
-  AnimaSegmentation)
+  AnimaCore
+  AnimaSegmentation
+)
 
 ## #############################################################################
 ## install

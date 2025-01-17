@@ -1,40 +1,39 @@
 if(BUILD_TOOLS AND USE_NLOPT)
 
-  project(animaDiffTODEstimator)
+project(animaDiffTODEstimator)
 
-  # ############################################################################
-  # List Sources
-  # ############################################################################
+# ############################################################################
+# List Sources
+# ############################################################################
 
-  list_source_files(${PROJECT_NAME}
-    ${CMAKE_CURRENT_SOURCE_DIR})
+list_source_files(${PROJECT_NAME}
+  ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
+# ############################################################################
+# add executable
+# ############################################################################
 
-  # ############################################################################
-  # add executable
-  # ############################################################################
+add_executable(${PROJECT_NAME}
+  ${${PROJECT_NAME}_CFILES}
+)
 
-  add_executable(${PROJECT_NAME}
-    ${${PROJECT_NAME}_CFILES})
+# ############################################################################
+# Link
+# ############################################################################
 
+target_link_libraries(${PROJECT_NAME}
+  ${ITKIO_LIBRARIES}
+  AnimaCore
+  AnimaMathsMatrixOperations
+  AnimaMathsSHTools
+  AnimaMathsSphereOperations
+)
 
-  # ############################################################################
-  # Link
-  # ############################################################################
+# ############################################################################
+# install
+# ############################################################################
 
-  target_link_libraries(${PROJECT_NAME}
-    ${ITKIO_LIBRARIES}
-    AnimaDataIO
-    AnimaBasicImageFilters
-    AnimaMathsMatrixOperations
-    AnimaMathsSHTools
-    AnimaMathsSphereOperations)
-
-
-  # ############################################################################
-  # install
-  # ############################################################################
-
-  set_exe_install_rules(${PROJECT_NAME})
+set_exe_install_rules(${PROJECT_NAME})
 
 endif()
