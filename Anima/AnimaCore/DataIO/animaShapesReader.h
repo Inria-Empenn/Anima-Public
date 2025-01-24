@@ -4,11 +4,11 @@
 #include <vtkPolyData.h>
 #include <string>
 
-#include "AnimaDataIOExport.h"
+#include "AnimaCoreExport.h"
 
 namespace anima {
 
-class ANIMADATAIO_EXPORT ShapesReader
+class ANIMACORE_EXPORT ShapesReader
 {
 public:
     ShapesReader()

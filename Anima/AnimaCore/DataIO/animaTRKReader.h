@@ -1,13 +1,13 @@
 #pragma once
 
-#include <AnimaDataIOExport.h>
+#include <AnimaCoreExport.h>
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 
 namespace anima
 {
 
-class ANIMADATAIO_EXPORT TRKReader
+class ANIMACORE_EXPORT TRKReader
 {
 public:
     TRKReader()

@@ -5,11 +5,11 @@
 #include <itkImage.h>
 #include <string>
 
-#include "AnimaDataIOExport.h"
+#include <AnimaCoreExport.h>
 
 namespace anima {
 
-class ANIMADATAIO_EXPORT ShapesWriter
+class ANIMACORE_EXPORT ShapesWriter
 {
 public:
     ShapesWriter()
