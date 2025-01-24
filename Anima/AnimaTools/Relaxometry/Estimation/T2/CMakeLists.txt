@@ -1,6 +1,6 @@
 if(BUILD_TOOLS AND USE_NLOPT AND NLOPT_FOUND)
 
-project(animaRelaxoT2Estimation)
+project(${projectPrefix}T2Estimation)
 
 ## #############################################################################
 ## List Sources
