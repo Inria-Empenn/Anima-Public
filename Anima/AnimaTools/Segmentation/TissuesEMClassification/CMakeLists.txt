@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaTissuesEMClassification)
+project(${PROJECT_PREFIX}TissuesEMClassification)
 
 ## #############################################################################
 ## List Sources

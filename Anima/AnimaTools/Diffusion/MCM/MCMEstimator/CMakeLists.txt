@@ -1,6 +1,6 @@
 if(BUILD_TOOLS AND USE_NLOPT)
 
-project(animaDiffMCMEstimator)
+project(${PROJECT_PREFIX}MCMEstimator)
 
 ## #############################################################################
 ## List Sources

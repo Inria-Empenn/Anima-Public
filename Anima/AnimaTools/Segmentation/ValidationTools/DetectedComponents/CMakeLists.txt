@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDetectedComponents)
+project(${PROJECT_PREFIX}DetectedComponents)
 
 ## #############################################################################
 ## List Sources

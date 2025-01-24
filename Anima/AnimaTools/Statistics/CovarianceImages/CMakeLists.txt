@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMathsCovarianceImages)
+project(${PROJECT_PREFIX}MathsCovarianceImages)
 
 ## #############################################################################
 ## List Sources

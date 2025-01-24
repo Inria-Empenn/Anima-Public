@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaFiltKMeansStandardization)
+project(${PROJECT_PREFIX}KMeansStandardization)
 
 ## #############################################################################
 ## List Sources

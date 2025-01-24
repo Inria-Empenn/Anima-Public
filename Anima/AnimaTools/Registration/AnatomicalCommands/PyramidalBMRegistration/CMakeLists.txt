@@ -1,7 +1,7 @@
 if(BUILD_TOOLS)
 if(USE_RPI AND RPI_FOUND)
 
-project(animaPyramidalBMRegistration)
+project(${PROJECT_PREFIX}PyramidalBMRegistration)
 
 ## #############################################################################
 ## List Sources

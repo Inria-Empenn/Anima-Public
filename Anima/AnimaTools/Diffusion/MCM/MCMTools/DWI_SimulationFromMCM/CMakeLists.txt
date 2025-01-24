@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDiffDWISimulationFromMCM)
+project(${PROJECT_PREFIX}DWISimulationFromMCM)
 
 ## #############################################################################
 ## List Sources

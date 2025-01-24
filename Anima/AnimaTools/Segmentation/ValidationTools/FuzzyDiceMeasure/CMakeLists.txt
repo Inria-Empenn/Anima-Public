@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaFuzzyDiceMeasure)
+project(${PROJECT_PREFIX}FuzzyDiceMeasure)
 
 ## #############################################################################
 ## List Sources

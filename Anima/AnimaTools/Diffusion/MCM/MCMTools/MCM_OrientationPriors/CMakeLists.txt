@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDiffMCMOrientationPriors)
+project(${PROJECT_PREFIX}DiffMCMOrientationPriors)
 
 # ############################################################################
 # List Sources

@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMCMProbabilisticTractography)
+project(${PROJECT_PREFIX}MCMProbabilisticTractography)
 
 ## #############################################################################
 ## List Sources

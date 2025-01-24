@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaGrowLesionSeeds)
+project(${PROJECT_PREFIX}GrowLesionSeeds)
 
 ## #############################################################################
 ## List Sources

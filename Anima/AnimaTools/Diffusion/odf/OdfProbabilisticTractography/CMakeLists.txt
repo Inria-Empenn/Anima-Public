@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDiffODFProbabilisticTractography)
+project(${PROJECT_PREFIX}ODFProbabilisticTractography)
 
 ## #############################################################################
 ## List Sources

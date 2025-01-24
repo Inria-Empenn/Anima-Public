@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaFiltNoiseGenerator)
+project(${PROJECT_PREFIX}NoiseGenerator)
 
 ## #############################################################################
 ## List Sources

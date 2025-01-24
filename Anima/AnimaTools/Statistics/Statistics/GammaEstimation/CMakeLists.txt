@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMathsGammaEstimation)
+project(${PROJECT_PREFIX}MathsGammaEstimation)
 
 ## #############################################################################
 ## List Sources

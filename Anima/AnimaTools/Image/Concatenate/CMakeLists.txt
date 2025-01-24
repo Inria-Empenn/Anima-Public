@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaImageConcatenate)
+project(${PROJECT_PREFIX}Concatenate)
 
 ## #############################################################################
 ## List Sources

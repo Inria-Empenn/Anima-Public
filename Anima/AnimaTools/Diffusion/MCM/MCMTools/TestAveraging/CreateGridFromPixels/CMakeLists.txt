@@ -1,4 +1,4 @@
-project(animaDiffCreateGridFromPixels)
+project(${PROJECT_PREFIX}CreateGridFromPixels)
 
 ## #############################################################################
 ## List Sources

@@ -1,6 +1,6 @@
 if(BUILD_TOOLS AND USE_NLOPT)
 
-project(animaDiffTODEstimator)
+project(${PROJECT_PREFIX}TODEstimator)
 
 # ############################################################################
 # List Sources

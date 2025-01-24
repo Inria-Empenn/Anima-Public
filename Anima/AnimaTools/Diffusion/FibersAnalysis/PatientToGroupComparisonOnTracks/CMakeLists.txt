@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDiffPatientToGroupComparisonOnTracks)
+project(${PROJECT_PREFIX}PatientToGroupComparisonOnTracks)
 
 ## #############################################################################
 ## List Sources

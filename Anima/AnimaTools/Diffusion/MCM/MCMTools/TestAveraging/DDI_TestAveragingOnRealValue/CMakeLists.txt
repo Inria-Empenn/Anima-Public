@@ -1,4 +1,4 @@
-project(animaDiffDDITestAveragingOnRealValue)
+project(${PROJECT_PREFIX}DDITestAveragingOnRealValue)
 
 ## #############################################################################
 ## List Sources

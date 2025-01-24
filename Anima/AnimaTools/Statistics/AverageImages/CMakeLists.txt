@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMathsAverageImages)
+project(${PROJECT_PREFIX}MathsAverageImages)
 
 ## #############################################################################
 ## List Sources

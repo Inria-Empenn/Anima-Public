@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaImageArithmetic)
+project(${PROJECT_PREFIX}Arithmetic)
 
 ## #############################################################################
 ## List Sources

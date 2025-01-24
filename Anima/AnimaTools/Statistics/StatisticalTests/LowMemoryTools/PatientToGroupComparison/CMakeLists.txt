@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMathsLowMemPatientToGroupComparison)
+project(${PROJECT_PREFIX}MathsLowMemPatientToGroupComparison)
 
 ## #############################################################################
 ## List Sources

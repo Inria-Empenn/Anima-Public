@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaFiltExpTensors)
+project(${PROJECT_PREFIX}ExpTensors)
 
 ## #############################################################################
 ## List Sources

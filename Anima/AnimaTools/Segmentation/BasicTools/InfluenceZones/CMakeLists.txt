@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaInfluenceZones)
+project(${PROJECT_PREFIX}InfluenceZones)
 
 ## #############################################################################
 ## List Sources

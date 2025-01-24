@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDiffFiberPropertyExtractAndRescale)
+project(${PROJECT_PREFIX}FiberPropertyExtractAndRescale)
 
 ## #############################################################################
 ## List Sources

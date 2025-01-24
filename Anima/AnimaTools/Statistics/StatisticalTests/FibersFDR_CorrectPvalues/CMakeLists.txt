@@ -2,7 +2,7 @@ if(BUILD_TOOLS)
 
 if (USE_VTK AND VTK_FOUND)
 
-project(animaMathsFibersFDRCorrectPValues)
+project(${PROJECT_PREFIX}MathsFibersFDRCorrectPValues)
 
 ## #############################################################################
 ## List Sources

@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaRelaxoGammaMixtureT2Estimation)
+project(${PROJECT_PREFIX}GammaMixtureT2Estimation)
 
 ## #############################################################################
 ## List Sources

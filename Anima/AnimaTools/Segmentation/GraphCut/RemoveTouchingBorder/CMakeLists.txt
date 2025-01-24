@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaRemoveTouchingBorder)
+project(${PROJECT_PREFIX}RemoveTouchingBorder)
 
 ## #############################################################################
 ## List Sources

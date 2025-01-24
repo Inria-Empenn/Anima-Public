@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaFiltNLMeans)
+project(${PROJECT_PREFIX}NLMeans)
 
 ## #############################################################################
 ## List Sources

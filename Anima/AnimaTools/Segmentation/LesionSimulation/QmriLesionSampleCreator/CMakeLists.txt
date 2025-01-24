@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaQMRILesionSampleCreator)
+project(${PROJECT_PREFIX}QMRILesionSampleCreator)
 
 ## #############################################################################
 ## List Sources

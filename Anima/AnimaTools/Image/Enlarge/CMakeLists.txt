@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaImageEnlarge)
+project(${PROJECT_PREFIX}Enlarge)
 
 ## #############################################################################
 ## List Sources

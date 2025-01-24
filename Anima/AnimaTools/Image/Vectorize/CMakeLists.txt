@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaImageVectorize)
+project(${PROJECT_PREFIX}Vectorize)
 
 ## #############################################################################
 ## List Sources

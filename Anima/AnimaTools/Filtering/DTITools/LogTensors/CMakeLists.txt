@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaFiltLogTensors)
+project(${PROJECT_PREFIX}LogTensors)
 
 ## #############################################################################
 ## List Sources

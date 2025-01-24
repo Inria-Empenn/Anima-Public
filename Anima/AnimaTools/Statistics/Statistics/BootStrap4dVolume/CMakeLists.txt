@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMathsBootstrap4DVolume)
+project(${PROJECT_PREFIX}MathsBootstrap4DVolume)
 
 ## #############################################################################
 ## List Sources

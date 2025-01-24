@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDTITractography)
+project(${PROJECT_PREFIX}DTITractography)
 
 ## #############################################################################
 ## List Sources

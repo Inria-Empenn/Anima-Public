@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMajorityLabelVoting)
+project(${PROJECT_PREFIX}MajorityLabelVoting)
 
 ## #############################################################################
 ## List Sources

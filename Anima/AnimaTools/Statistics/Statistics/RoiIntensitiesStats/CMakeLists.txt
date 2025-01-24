@@ -1,7 +1,7 @@
 
 if(BUILD_TOOLS)
 
-project(animaMathsROIIntensitiesStats)
+project(${PROJECT_PREFIX}MathsROIIntensitiesStats)
 
 ## #############################################################################
 ## List Sources

@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-PROJECT (animaSegPerfAnalyzer)
+PROJECT (${PROJECT_PREFIX}PerfAnalyzer)
 
 ## #############################################################################
 ## List Sources

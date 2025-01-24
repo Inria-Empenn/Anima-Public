@@ -1,7 +1,7 @@
 if(BUILD_TOOLS)
 if(USE_RPI AND RPI_FOUND)
 
-project(animaEddyCurrentCorrection)
+project(${PROJECT_PREFIX}EddyCurrentCorrection)
 
 ## #############################################################################
 ## List Sources

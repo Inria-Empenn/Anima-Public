@@ -1,10 +1,8 @@
-#project(ANIMA-SEGMENTATION)
-
 cmake_path(GET CMAKE_CURRENT_SOURCE_DIR STEM DIRNAME  )
 set(PROJECT_PREFIX anima${DIRNAME})
 
 ################################################################################
-# Here go the add_subdirectories, no code should be at the root of the project
+# Here go the add_subdirectories, no code should be at the root
 ################################################################################
 
 add_subdirectory(BasicTools)

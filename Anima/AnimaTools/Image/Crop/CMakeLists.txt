@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaImageCrop)
+project(${PROJECT_PREFIX}Crop)
 
 ## #############################################################################
 ## List Sources

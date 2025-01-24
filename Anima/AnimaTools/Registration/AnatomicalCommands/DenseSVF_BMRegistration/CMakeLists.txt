@@ -1,7 +1,7 @@
 if(BUILD_TOOLS)
 if(USE_RPI AND RPI_FOUND)
 
-project(animaDenseSVFBMRegistration)
+project(${PROJECT_PREFIX}DenseSVFBMRegistration)
 
 ## #############################################################################
 ## List Sources

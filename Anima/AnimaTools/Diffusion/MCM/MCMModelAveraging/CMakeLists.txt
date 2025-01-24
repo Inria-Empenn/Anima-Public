@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMCMModelAveraging)
+project(${PROJECT_PREFIX}MCMModelAveraging)
 
 ## #############################################################################
 ## List Sources

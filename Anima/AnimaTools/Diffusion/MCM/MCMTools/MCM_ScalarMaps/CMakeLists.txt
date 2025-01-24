@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDiffMCMScalarMaps)
+project(${PROJECT_PREFIX}MCMScalarMaps)
 
 ## #############################################################################
 ## List Sources

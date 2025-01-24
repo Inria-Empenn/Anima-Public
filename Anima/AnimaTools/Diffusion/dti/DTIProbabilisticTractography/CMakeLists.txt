@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDTIProbabilisticTractography)
+project(${PROJECT_PREFIX}DTIProbabilisticTractography)
 
 ## #############################################################################
 ## List Sources

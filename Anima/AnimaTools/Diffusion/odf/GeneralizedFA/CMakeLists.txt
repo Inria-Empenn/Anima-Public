@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDiffGeneralizedFA)
+project(${PROJECT_PREFIX}GeneralizedFA)
 
 ## #############################################################################
 ## List Sources

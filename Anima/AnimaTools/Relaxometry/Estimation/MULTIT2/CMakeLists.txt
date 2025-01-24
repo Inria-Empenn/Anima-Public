@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaRelaxoMultiT2Estimation)
+project(${PROJECT_PREFIX}MultiT2Estimation)
 
 ## #############################################################################
 ## List Sources

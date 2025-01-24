@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMathsPatientToGroupComparison)
+project(${PROJECT_PREFIX}MathsPatientToGroupComparison)
 
 ## #############################################################################
 ## List Sources

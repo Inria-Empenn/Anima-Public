@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaFiltNyulStandardization)
+project(${PROJECT_PREFIX}NyulStandardization)
 
 ## #############################################################################
 ## List Sources

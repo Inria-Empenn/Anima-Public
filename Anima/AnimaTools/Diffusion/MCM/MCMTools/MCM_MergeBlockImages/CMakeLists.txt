@@ -1,6 +1,6 @@
 if(BUILD_TOOLS AND USE_NLOPT AND NLOPT_FOUND)
 
-project(animaDiffMCMMergeBlockImages)
+project(${PROJECT_PREFIX}DiffMCMMergeBlockImages)
 
 ## #############################################################################
 ## List Sources

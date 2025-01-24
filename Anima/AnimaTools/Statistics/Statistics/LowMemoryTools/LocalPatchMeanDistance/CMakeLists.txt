@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMathsLowMemLocalPatchMeanDistance)
+project(${PROJECT_PREFIX}MathsLowMemLocalPatchMeanDistance)
 
 ## #############################################################################
 ## List Sources

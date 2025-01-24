@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDistanceMap)
+project(${PROJECT_PREFIX}DistanceMap)
 
 ## #############################################################################
 ## List Sources

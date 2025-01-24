@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMathsDenseTransformArithmetic)
+project(${PROJECT_PREFIX}DenseTransformArithmetic)
 
 ## #############################################################################
 ## List Sources

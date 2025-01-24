@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaRelaxoT2EPGEstimation)
+project(${PROJECT_PREFIX}T2EPGEstimation)
 
 ## #############################################################################
 ## List Sources

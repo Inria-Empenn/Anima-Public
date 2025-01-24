@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaSimuBlochGRE)
+project(${PROJECT_PREFIX}SimuBlochGRE)
 
 ## #############################################################################
 ## List Sources

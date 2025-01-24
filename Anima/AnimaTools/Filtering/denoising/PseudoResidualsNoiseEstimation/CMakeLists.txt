@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaFiltPseudoResidualsNoiseEstimation)
+project(${PROJECT_PREFIX}PseudoResidualsNoiseEstimation)
 
 ## #############################################################################
 ## List Sources

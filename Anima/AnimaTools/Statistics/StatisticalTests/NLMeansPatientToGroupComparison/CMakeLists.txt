@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMathsNLMeansPatientToGroupComparison)
+project(${PROJECT_PREFIX}MathsNLMeansPatientToGroupComparison)
 
 ## #############################################################################
 ## List Sources

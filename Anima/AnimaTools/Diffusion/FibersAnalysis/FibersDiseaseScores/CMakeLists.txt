@@ -2,7 +2,7 @@ if(BUILD_TOOLS)
 
 if (USE_VTK AND VTK_FOUND)
 
-project(animaDiffFibersDiseaseScores)
+project(${PROJECT_PREFIX}FibersDiseaseScores)
 
 ## #############################################################################
 ## List Sources

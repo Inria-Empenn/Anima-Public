@@ -1,6 +1,6 @@
 if(BUILD_TOOLS AND USE_RPI AND RPI_FOUND)
 
-project(animaApplyTransformSerie)
+project(${PROJECT_PREFIX}ApplyTransformSerie)
 
 ## #############################################################################
 ## List Sources

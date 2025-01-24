@@ -1,6 +1,6 @@
 if(BUILD_TOOLS AND USE_NLOPT AND NLOPT_FOUND)
 
-project(animaSymmetryPlane)
+project(${PROJECT_PREFIX}SymmetryPlane)
 
 ## #############################################################################
 ## List Sources

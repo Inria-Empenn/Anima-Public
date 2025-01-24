@@ -1,6 +1,6 @@
 if(BUILD_TOOLS AND USE_RPI AND RPI_FOUND)
 
-project(animaApplyDistortionCorrection)
+project(${PROJECT_PREFIX}ApplyDistortionCorrection)
 
 ## #############################################################################
 ## List Sources

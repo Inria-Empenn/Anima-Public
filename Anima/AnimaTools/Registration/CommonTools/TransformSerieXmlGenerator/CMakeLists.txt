@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaTransformSerieXmlGenerator)
+project(${PROJECT_PREFIX}TransformSerieXmlGenerator)
 
 ## #############################################################################
 ## List Sources

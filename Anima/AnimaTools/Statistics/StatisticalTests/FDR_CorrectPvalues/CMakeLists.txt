@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMathsFDRCorrectPValues)
+project(${PROJECT_PREFIX}MathsFDRCorrectPValues)
 
 ## #############################################################################
 ## List Sources

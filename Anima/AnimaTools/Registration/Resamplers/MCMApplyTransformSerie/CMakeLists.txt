@@ -1,6 +1,6 @@
 if(BUILD_TOOLS AND USE_RPI AND RPI_FOUND)
 
-project(animaMCMApplyTransformSerie)
+project(${PROJECT_PREFIX}MCMApplyTransformSerie)
 
 ## #############################################################################
 ## List Sources

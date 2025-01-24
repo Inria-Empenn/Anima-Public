@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaN4BiasCorrection)
+project(${PROJECT_PREFIX}N4BiasCorrection)
 
 ## #############################################################################
 ## List Sources

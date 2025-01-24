@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaThrImage)
+project(${PROJECT_PREFIX}ThrImage)
 
 ## #############################################################################
 ## List Sources

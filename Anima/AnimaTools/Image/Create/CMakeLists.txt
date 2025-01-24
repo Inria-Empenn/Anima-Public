@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaImageCreate)
+project(${PROJECT_PREFIX}Create)
 
 ## #############################################################################
 ## List Sources

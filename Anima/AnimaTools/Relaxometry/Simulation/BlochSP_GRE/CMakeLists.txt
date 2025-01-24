@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaRelaxoSimuBlochSP-GRE)
+project(${PROJECT_PREFIX}SimuBlochSP-GRE)
 
 ## #############################################################################
 ## List Sources

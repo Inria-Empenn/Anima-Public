@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaRelaxoSimuBlochCoherentGRE)
+project(${PROJECT_PREFIX}SimuBlochCoherentGRE)
 
 ## #############################################################################
 ## List Sources

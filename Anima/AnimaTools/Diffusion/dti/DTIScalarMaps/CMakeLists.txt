@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDiffDTIScalarMaps)
+project(${PROJECT_PREFIX}DTIScalarMaps)
 
 ## #############################################################################
 ## List Sources

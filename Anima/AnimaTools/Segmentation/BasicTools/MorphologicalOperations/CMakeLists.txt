@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMorphologicalOperations)
+project(${PROJECT_PREFIX}MorphologicalOperations)
 
 ## #############################################################################
 ## List Sources

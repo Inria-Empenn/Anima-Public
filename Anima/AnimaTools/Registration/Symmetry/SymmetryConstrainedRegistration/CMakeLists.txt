@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaSymmetryConstrainedRegistration)
+project(${PROJECT_PREFIX}SymmetryConstrainedRegistration)
 
 ## #############################################################################
 ## List Sources

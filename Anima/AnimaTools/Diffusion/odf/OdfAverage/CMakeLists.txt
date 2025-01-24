@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDiffODFAverage)
+project(${PROJECT_PREFIX}ODFAverage)
 
 # ############################################################################
 # List Sources

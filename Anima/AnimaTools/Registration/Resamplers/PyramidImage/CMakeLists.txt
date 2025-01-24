@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaPyramidImage)
+project(${PROJECT_PREFIX}PyramidImage)
 
 ## #############################################################################
 ## List Sources

@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaGraphCut)
+project(${PROJECT_PREFIX}GraphCut)
 
 ## #############################################################################
 ## List Sources

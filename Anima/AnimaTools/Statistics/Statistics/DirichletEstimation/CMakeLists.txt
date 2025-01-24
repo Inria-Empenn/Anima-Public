@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMathsDirichletEstimation)
+project(${PROJECT_PREFIX}MathsDirichletEstimation)
 
 ## #############################################################################
 ## List Sources

@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaLesionEvolutionDetection)
+project(${PROJECT_PREFIX}LesionEvolutionDetection)
 
 ## #############################################################################
 ## List Sources

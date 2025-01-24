@@ -1,7 +1,7 @@
 
 if(BUILD_TOOLS)
 
-project(animaMathsBuildSamplesFromVolumes)
+project(${PROJECT_PREFIX}MathsBuildSamplesFromVolumes)
 
 ## #############################################################################
 ## List Sources

@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaTotalLesionLoad)
+project(${PROJECT_PREFIX}TotalLesionLoad)
 
 ## #############################################################################
 ## List Sources

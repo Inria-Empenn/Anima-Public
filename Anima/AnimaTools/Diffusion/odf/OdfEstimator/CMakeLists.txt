@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDiffODFEstimator)
+project(${PROJECT_PREFIX}ODFEstimator)
 
 ## #############################################################################
 ## List Sources

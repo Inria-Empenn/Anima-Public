@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDistortionCorrection)
+project(${PROJECT_PREFIX}DistortionCorrection)
 
 ## #############################################################################
 ## List Sources

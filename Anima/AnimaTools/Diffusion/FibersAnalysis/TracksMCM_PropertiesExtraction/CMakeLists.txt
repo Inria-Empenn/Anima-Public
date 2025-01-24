@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDiffTracksMCMPropertiesExtraction)
+project(${PROJECT_PREFIX}TracksMCMPropertiesExtraction)
 
 ## #############################################################################
 ## List Sources

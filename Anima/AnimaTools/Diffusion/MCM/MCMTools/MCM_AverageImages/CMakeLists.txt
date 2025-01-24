@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDiffMCMAverageImages)
+project(${PROJECT_PREFIX}MCMAverageImages)
 
 ## #############################################################################
 ## List Sources

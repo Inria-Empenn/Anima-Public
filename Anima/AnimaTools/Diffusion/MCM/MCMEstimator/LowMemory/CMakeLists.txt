@@ -1,6 +1,6 @@
 if(BUILD_TOOLS AND USE_NLOPT)
 
-project(animaDiffLowMemMCMEstimator)
+project(${PROJECT_PREFIX}LowMemMCMEstimator)
 
 ## #############################################################################
 ## List Sources

@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaSegPickLesionSeeds)
+project(${PROJECT_PREFIX}SegPickLesionSeeds)
 
 ## #############################################################################
 ## List Sources

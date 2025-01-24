@@ -1,6 +1,6 @@
 if(BUILD_TOOLS AND USE_RPI AND RPI_FOUND)
 
-project(animaDisplacementFieldJacobian)
+project(${PROJECT_PREFIX}DisplacementFieldJacobian)
 
 ## #############################################################################
 ## List Sources

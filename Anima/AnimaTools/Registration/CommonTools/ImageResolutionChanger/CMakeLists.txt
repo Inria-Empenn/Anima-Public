@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaImageResolutionChanger)
+project(${PROJECT_PREFIX}ResolutionChanger)
 
 ## #############################################################################
 ## List Sources

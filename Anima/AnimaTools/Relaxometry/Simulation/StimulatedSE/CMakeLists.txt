@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaRelaxoSimuStimulatedSpinEcho)
+project(${PROJECT_PREFIX}SimuStimulatedSpinEcho)
 
 ## #############################################################################
 ## List Sources

@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaFiltImageSmoother)
+project(${PROJECT_PREFIX}ImageSmoother)
 
 ## #############################################################################
 ## List Sources

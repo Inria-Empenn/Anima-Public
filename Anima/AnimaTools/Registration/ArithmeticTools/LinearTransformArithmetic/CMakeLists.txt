@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMathsLinearTransformArithmetic)
+project(${PROJECT_PREFIX}MathsLinearTransformArithmetic)
 
 ## #############################################################################
 ## List Sources

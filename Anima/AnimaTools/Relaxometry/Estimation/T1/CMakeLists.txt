@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaRelaxoT1Estimation)
+project(${PROJECT_PREFIX}T1Estimation)
 
 ## #############################################################################
 ## List Sources

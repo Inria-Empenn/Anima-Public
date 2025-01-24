@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMathsLinearTransformToSVF)
+project(${PROJECT_PREFIX}MathsLinearTransformToSVF)
 
 ## #############################################################################
 ## List Sources

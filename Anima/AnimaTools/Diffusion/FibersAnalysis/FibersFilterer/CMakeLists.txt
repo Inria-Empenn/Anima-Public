@@ -1,6 +1,6 @@
 if(BUILD_TOOLS AND USE_VTK AND VTK_FOUND)
 
-project(animaDiffFibersFilterer)
+project(${PROJECT_PREFIX}FibersFilterer)
 
 ## #############################################################################
 ## List Sources

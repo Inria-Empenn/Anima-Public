@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaAnalyticAssociatedLegendre)
+project(${PROJECT_PREFIX}AnalyticAssociatedLegendre)
 
 ## #############################################################################
 ## List Sources

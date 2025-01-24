@@ -1,6 +1,6 @@
 if(BUILD_TOOLS AND USE_NLOPT AND NLOPT_FOUND)
 
-project(${projectPrefix}T2Estimation)
+project(${PROJECT_PREFIX}T2Estimation)
 
 ## #############################################################################
 ## List Sources

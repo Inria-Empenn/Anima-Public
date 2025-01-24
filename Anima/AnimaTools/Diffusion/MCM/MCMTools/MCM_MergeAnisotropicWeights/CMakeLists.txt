@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDiffMCMMergeAnisotropicWeights)
+project(${PROJECT_PREFIX}MCMMergeAnisotropicWeights)
 
 ## #############################################################################
 ## List Sources

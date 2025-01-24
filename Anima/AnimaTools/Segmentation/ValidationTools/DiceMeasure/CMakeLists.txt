@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDiceMeasure)
+project(${PROJECT_PREFIX}DiceMeasure)
 
 ## #############################################################################
 ## List Sources

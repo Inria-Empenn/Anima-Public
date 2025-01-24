@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaKMeansClustering)
+project(${PROJECT_PREFIX}KMeansClustering)
 
 ## #############################################################################
 ## List Sources

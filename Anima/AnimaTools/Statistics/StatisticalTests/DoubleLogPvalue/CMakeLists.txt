@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMathsDoubleLogPValue)
+project(${PROJECT_PREFIX}MathsDoubleLogPValue)
 
 ## #############################################################################
 ## List Sources

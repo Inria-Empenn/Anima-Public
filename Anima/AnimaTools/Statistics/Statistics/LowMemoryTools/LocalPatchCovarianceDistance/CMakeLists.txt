@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMathsLowMemLocalPatchCovarianceDistance)
+project(${PROJECT_PREFIX}MathsLowMemLocalPatchCovarianceDistance)
 
 ## #############################################################################
 ## List Sources

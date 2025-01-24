@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaImageCollapse)
+project(${PROJECT_PREFIX}Collapse)
 
 ## #############################################################################
 ## List Sources

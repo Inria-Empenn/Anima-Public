@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaImageMerge)
+project(${PROJECT_PREFIX}Merge)
 
 ## #############################################################################
 ## List Sources

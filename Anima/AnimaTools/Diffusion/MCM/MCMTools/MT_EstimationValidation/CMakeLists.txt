@@ -1,4 +1,4 @@
-project(animaDiffMTEstimationValidation)
+project(${PROJECT_PREFIX}MTEstimationValidation)
 
 ## #############################################################################
 ## List Sources

@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaFillHoleImage)
+project(${PROJECT_PREFIX}FillHoleImage)
 
 ## #############################################################################
 ## List Sources

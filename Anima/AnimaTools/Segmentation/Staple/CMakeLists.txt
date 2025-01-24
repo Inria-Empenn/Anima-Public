@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMultiThreadedSTAPLE)
+project(${PROJECT_PREFIX}MultiThreadedSTAPLE)
 
 ## #############################################################################
 ## List Sources

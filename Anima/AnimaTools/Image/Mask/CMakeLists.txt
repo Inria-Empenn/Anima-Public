@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaImageMask)
+project(${PROJECT_PREFIX}Mask)
 
 ## #############################################################################
 ## List Sources

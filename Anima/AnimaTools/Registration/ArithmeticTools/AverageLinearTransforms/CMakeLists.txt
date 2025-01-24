@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMathsAverageLinearTransforms)
+project(${PROJECT_PREFIX}MathsAverageLinearTransforms)
 
 ## #############################################################################
 ## List Sources

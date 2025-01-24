@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaRelaxoGMMT2Estimation)
+project(${PROJECT_PREFIX}GMMT2Estimation)
 
 ## #############################################################################
 ## List Sources

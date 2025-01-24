@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMathsLowMemCramersTest)
+project(${PROJECT_PREFIX}MathsLowMemCramersTest)
 
 ## #############################################################################
 ## List Sources

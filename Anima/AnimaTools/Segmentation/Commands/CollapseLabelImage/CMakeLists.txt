@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaCollapseLabelImage)
+project(${PROJECT_PREFIX}CollapseLabelImage)
 
 ## #############################################################################
 ## List Sources

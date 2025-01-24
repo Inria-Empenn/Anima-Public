@@ -1,4 +1,4 @@
-project(animaDiffDDIAveragingOnAGrid)
+project(${PROJECT_PREFIX}DDIAveragingOnAGrid)
 
 ## #############################################################################
 ## List Sources

@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaConnectedComponentsMetrics)
+project(${PROJECT_PREFIX}ConnectedComponentsMetrics)
 
 ## #############################################################################
 ## List Sources

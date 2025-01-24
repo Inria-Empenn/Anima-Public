@@ -1,4 +1,4 @@
-project(animaDiffRandomDDIGenerator)
+project(${PROJECT_PREFIX}RandomDDIGenerator)
 
 ## #############################################################################
 ## List Sources

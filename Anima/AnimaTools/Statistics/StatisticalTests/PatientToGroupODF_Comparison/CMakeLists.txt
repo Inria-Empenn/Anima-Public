@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMathsPatientToGroupODFComparison)
+project(${PROJECT_PREFIX}MathsPatientToGroupODFComparison)
 
 ## #############################################################################
 ## List Sources

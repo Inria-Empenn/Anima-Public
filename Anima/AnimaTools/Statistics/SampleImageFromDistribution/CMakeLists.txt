@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMathsSampleImageFromDistribution)
+project(${PROJECT_PREFIX}MathsSampleImageFromDistribution)
 
 ## #############################################################################
 ## List Sources

@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(AnimaDiffBackgroundNoiseVarianceEstimator)
+project(${PROJECT_PREFIX}BackgroundNoiseVarianceEstimator)
 
 ## #############################################################################
 ## List Sources

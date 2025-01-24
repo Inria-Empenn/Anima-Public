@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDiffGenerateIsoradiusDDISurface)
+project(${PROJECT_PREFIX}GenerateIsoradiusDDISurface)
 
 ## #############################################################################
 ## List Sources

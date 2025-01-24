@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDiffDWISimulatorFromDTI)
+project(${PROJECT_PREFIX}DWISimulatorFromDTI)
 
 ## #############################################################################
 ## List Sources

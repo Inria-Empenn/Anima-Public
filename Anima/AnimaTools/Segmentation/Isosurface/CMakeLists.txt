@@ -1,6 +1,6 @@
 if(BUILD_TOOLS AND USE_VTK AND VTK_FOUND)
 
-project(animaIsosurface)
+project(${PROJECT_PREFIX}Isosurface)
 
 ## #############################################################################
 ## List Sources

@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaImageConvert)
+project(${PROJECT_PREFIX}Convert)
 
 ## #############################################################################
 ## List Sources

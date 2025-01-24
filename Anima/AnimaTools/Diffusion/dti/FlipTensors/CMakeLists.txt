@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDiffFlipTensors)
+project(${PROJECT_PREFIX}FlipTensors)
 
 ## #############################################################################
 ## List Sources

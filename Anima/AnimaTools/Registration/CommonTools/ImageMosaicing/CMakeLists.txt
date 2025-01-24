@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaImageMosaicing)
+project(${PROJECT_PREFIX}Mosaicing)
 
 ## #############################################################################
 ## List Sources

@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaMathsLocalPatchCovarianceDistance)
+project(${PROJECT_PREFIX}MathsLocalPatchCovarianceDistance)
 
 ## #############################################################################
 ## List Sources

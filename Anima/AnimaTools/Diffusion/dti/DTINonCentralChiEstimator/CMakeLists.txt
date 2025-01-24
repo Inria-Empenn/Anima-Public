@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaDiffDTINonCentralChiEstimator)
+project(${PROJECT_PREFIX}DiffDTINonCentralChiEstimator)
 
 ## #############################################################################
 ## List Sources

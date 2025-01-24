@@ -1,6 +1,6 @@
 if(BUILD_TOOLS)
 
-project(animaOtsuThrImage)
+project(${PROJECT_PREFIX}OtsuThrImage)
 
 ## #############################################################################
 ## List Sources
