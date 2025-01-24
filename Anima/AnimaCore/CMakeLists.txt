@@ -38,7 +38,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   ${VTK_PREFIX}IOXML
   ${VTK_PREFIX}IOLegacy
   ${VTKSYS_LIBRARY}
-  AnimaMathsMatrixOperations
 )
 
 ## ###############################################################################

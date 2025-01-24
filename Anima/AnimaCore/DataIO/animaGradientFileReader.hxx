@@ -7,7 +7,6 @@
 #include <cstdlib>
 #include <itkMacro.h>
 
-#include <animaVectorOperations.h>
 #include <animaMCMConstants.h>
 
 namespace anima
@@ -118,7 +117,14 @@ Update()
         // Normalize gradient directions
         for (unsigned int i = 0;i < m_TotalNumberOfDirections;++i)
         {
-            if ((m_BValues[i] <= m_B0ValueThreshold)||(anima::ComputeNorm(m_Gradients[i]) == 0))
+            double gradientNorm = 0.0;
+            for (unsigned int j = 0;j < m_Gradients[i].size();++j)
+            {
+                gradientNorm += m_Gradients[i][j] * m_Gradients[i][j];
+            }
+            gradientNorm = std::sqrt(gradientNorm);
+
+            if (m_BValues[i] <= m_B0ValueThreshold || gradientNorm == 0)
             {
                 m_BValues[i] = 0;
 
@@ -130,9 +136,12 @@ Update()
 
             double norm = 1;
             if (!m_GradientIndependentNormalization)
-                norm = anima::ComputeNorm(m_Gradients[i]);
+                norm = gradientNorm;
 
-            anima::Normalize(m_Gradients[i],m_Gradients[i]);
+            for (unsigned int j = 0;j < m_Gradients[i].size();++j)
+            {
+                m_Gradients[i][j] /= gradientNorm;
+            }
 
             if (!m_GradientIndependentNormalization)
                 m_BValues[i] *= norm;
