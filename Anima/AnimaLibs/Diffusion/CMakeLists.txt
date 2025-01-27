@@ -1,4 +1,4 @@
-project(libAnimaInterpolator)
+project(libAnimaDiffusion)
 
 ## #############################################################################
 ## List Sources
@@ -25,6 +25,13 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_INCLUDE_PATH
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
   ITKCommon
+  AnimaCore
+  AnimaClusteringFilter
+  AnimaInterpolator
+  AnimaMathsOptimizers
+  AnimaMathsSHTools
+  AnimaMathsSphereOperations
+  AnimaMathsStatisticalDistributions
 )
 
 ################################################################################
@@ -41,10 +48,3 @@ generate_export_header(${PROJECT_NAME}
 ## #############################################################################
 
 set_lib_install_rules(${PROJECT_NAME})
-
-
-## #############################################################################
-## old
-## #############################################################################
-include(old.cmake)
-

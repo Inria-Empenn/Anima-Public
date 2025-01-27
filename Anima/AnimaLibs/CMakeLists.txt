@@ -1,8 +1,18 @@
-project(AnimaLibs)
 
 ## ##############################################################################
-## Here go the add_subdirectories, no code should be at the root of the project
+## Here go the add_subdirectories, no code should be at the root
 ## ##############################################################################
+
+add_subdirectory(Common)
+add_subdirectory(Diffusion)
+add_subdirectory(Filtering)
+add_subdirectory(Interpolator)
+add_subdirectory(Registration)
+add_subdirectory(Regularization)
+add_subdirectory(Relaxometry)
+add_subdirectory(Segmentation)
+
+
 
 add_subdirectory(Common/NonLocalBase)
 
@@ -16,7 +26,7 @@ add_subdirectory(Filtering/dti/filters)
 add_subdirectory(Filtering/ClusteringFilter)
 add_subdirectory(Filtering/Jacobian)
 
-add_subdirectory(Interpolator)
+#add_subdirectory(Interpolator)
 
 add_subdirectory(Registration/Algorithms)
 add_subdirectory(Registration/Common)
@@ -34,9 +44,5 @@ add_subdirectory(Regularization/Filters)
 add_subdirectory(Relaxometry/Estimation)
 add_subdirectory(Relaxometry/Simulation)
 
-add_subdirectory(Segmentation)
-
-
-
-
+# add_subdirectory(Segmentation)
 
