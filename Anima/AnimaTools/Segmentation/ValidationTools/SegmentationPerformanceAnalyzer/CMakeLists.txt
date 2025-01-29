@@ -1,5 +1,3 @@
-if(BUILD_TOOLS)
-
 PROJECT (${PROJECT_PREFIX}PerfAnalyzer)
 
 ## #############################################################################
@@ -26,5 +24,3 @@ target_link_libraries(${PROJECT_NAME}
   ${ITKIO_LIBRARIES}
   AnimaCore
 )
-
-endif()

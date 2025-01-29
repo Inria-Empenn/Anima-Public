@@ -1,5 +1,3 @@
-if(BUILD_TOOLS)
-
 if (USE_VTK AND VTK_FOUND)
 
 project(${PROJECT_PREFIX}MathsFibersFDRCorrectPValues)
@@ -37,7 +35,5 @@ target_link_libraries(${PROJECT_NAME}
 ## #############################################################################
 
 set_exe_install_rules(${PROJECT_NAME})
-
-endif()
 
 endif()

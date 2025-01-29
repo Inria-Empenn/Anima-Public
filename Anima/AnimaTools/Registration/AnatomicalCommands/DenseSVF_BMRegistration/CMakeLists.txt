@@ -1,4 +1,3 @@
-if(BUILD_TOOLS)
 if(USE_RPI AND RPI_FOUND)
 
 project(${PROJECT_PREFIX}DenseSVFBMRegistration)
@@ -40,5 +39,4 @@ target_link_libraries(${PROJECT_NAME}
 
 set_exe_install_rules(${PROJECT_NAME})
 
-endif()
 endif()

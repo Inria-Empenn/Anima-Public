@@ -1,4 +1,4 @@
-if(BUILD_TOOLS AND USE_VTK AND VTK_FOUND)
+if(USE_VTK AND VTK_FOUND)
 
 project(${PROJECT_PREFIX}ApplyVtkTransform)
 
