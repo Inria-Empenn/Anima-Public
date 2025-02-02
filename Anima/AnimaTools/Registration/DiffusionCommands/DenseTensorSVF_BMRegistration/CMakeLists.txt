@@ -1,4 +1,4 @@
-if(BUILD_TOOLS AND USE_RPI AND RPI_FOUND)
+if(USE_RPI AND RPI_FOUND)
 
 project(${PROJECT_PREFIX}DenseTensorSVFBMRegistration)
 

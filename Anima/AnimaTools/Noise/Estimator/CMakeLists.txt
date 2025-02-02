@@ -1,5 +1,3 @@
-if(BUILD_TOOLS)
-
 cmake_path(GET CMAKE_CURRENT_SOURCE_DIR STEM DIRNAME)
 set(PROJECT_PREFIX ${PROJECT_PREFIX}${DIRNAME})
 
@@ -28,5 +26,3 @@ target_link_libraries(${PROJECT_NAME} ${ITKIO_LIBRARIES})
 ## #############################################################################
 
 set_exe_install_rules(${PROJECT_NAME})
-
-endif()

@@ -1,5 +1,3 @@
-if(BUILD_TOOLS)
-
 project(${PROJECT_PREFIX}NLMeansPatientToGroupComparison)
 
 ## #############################################################################
@@ -29,5 +27,3 @@ target_link_libraries(${PROJECT_NAME}
 ## #############################################################################
 
 set_exe_install_rules(${PROJECT_NAME})
-
-endif()

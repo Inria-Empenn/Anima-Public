@@ -1,5 +1,3 @@
-if(BUILD_TOOLS)
-
 project(${PROJECT_PREFIX}SimuBlochIR-GRE)
 
 ## #############################################################################
@@ -25,5 +23,3 @@ target_link_libraries(${PROJECT_NAME} ${ITKIO_LIBRARIES})
 ## #############################################################################
 
 set_exe_install_rules(${PROJECT_NAME})
-
-endif()

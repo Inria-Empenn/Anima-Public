@@ -1,4 +1,4 @@
-if(BUILD_TOOLS AND USE_NLOPT)
+if(USE_NLOPT)
 
 project(${PROJECT_PREFIX}LowMemMCMEstimator)
 
