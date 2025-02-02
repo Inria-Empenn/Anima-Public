@@ -4,6 +4,7 @@
 
 #include <itkImage.h>
 #include <itkCommand.h>
+#include <itkAffineTransform.h>
 #include <itkTransformFileReader.h>
 
 #include <animaReadWriteFunctions.h>

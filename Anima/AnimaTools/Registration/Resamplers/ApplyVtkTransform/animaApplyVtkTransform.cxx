@@ -1,15 +1,12 @@
 #include <tclap/CmdLine.h>
 #include <sstream>
 
-
 #include <vtkPolyDataReader.h>
 #include <vtkPolyDataWriter.h>
 
 #include <vtkPolyData.h>
 #include <vtkPoints.h>
 #include <vtkTransform.h>
-
-
 
 int main(int ac, const char** av)
 {

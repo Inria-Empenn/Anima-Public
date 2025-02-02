@@ -3,6 +3,7 @@
 ################################################################################
 
 add_subdirectory(MCMEstimator)
+add_subdirectory(MCMEstimator/LowMemory)
 add_subdirectory(MCMModelAveraging)
 add_subdirectory(MCMProbabilisticTractography)
 add_subdirectory(MCMTools)

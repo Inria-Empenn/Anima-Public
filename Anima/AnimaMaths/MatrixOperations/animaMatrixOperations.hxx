@@ -1,8 +1,6 @@
 #pragma once
-//#include "animaMatrixOperations.h"
 
-//#include <animaVectorOperations.h>
-#include <animaLinearTransformEstimationTools.h>
+#include <animaQuaternionTools.h>
 #include <itkSymmetricEigenAnalysis.h>
 
 namespace anima

@@ -6,6 +6,7 @@ project(libAnimaRelaxometry)
 
 list_source_files_recurse(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR})
 list_include_dirs(${PROJECT_NAME})
+
 ## #############################################################################
 ## add lib
 ## #############################################################################
@@ -16,19 +17,13 @@ add_library(${PROJECT_NAME} ${${PROJECT_NAME}_CFILES})
 ## set target properties
 ## ##############################################################################
 
-
 target_include_directories(${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_INCLUDE_PATHS})
 
 ## #############################################################################
 ## Link
 ## #############################################################################
 
-target_link_libraries(${PROJECT_NAME} PUBLIC
-  ITKCommon
-  AnimaMathsNumericalIntegration
-  AnimaMathsOptimizers
-  AnimaRelaxoSimulation
-)
+target_link_libraries(${PROJECT_NAME} PUBLIC libAnimaMaths)
 
 ################################################################################
 # Auto generate the export file for the libs

@@ -6,25 +6,19 @@ project(${PROJECT_PREFIX}ApplyTransformSerie)
 ## List Sources
 ## #############################################################################
 
-list_source_files(${PROJECT_NAME}
-  ${CMAKE_CURRENT_SOURCE_DIR}
-)
+list_source_files(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR})
 
 ## #############################################################################
 ## add executable
 ## #############################################################################
 
-add_executable(${PROJECT_NAME}
-  ${${PROJECT_NAME}_CFILES}
-)
+add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_CFILES})
 
 ## ##############################################################################
 ## set target properties
 ## ##############################################################################
 
-target_include_directories(${PROJECT_NAME} PRIVATE 
-  ${CMAKE_CURRENT_SOURCE_DIR}
-)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 ## #############################################################################
 ## Link
@@ -33,13 +27,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME}
   ${ITK_TRANSFORM_LIBRARIES}
   ${ITKIO_LIBRARIES}
-  ${TinyXML2_LIBRARY}
-  AnimaCore
-  AnimaDiffMCM
-  AnimaMathsMatrixOperations
-  AnimaRegistrationResamplersFilters
-  AnimaRegistrationSVFOperations
-  AnimaRegistrationTransformations
+  libAnimaCore
+  libAnimaMaths
+  libAnimaRegistration
 )
 
 ## #############################################################################

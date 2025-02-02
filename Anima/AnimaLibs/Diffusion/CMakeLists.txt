@@ -6,6 +6,7 @@ project(libAnimaDiffusion)
 
 list_source_files_recurse(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR})
 list_include_dirs(${PROJECT_NAME})
+
 ## #############################################################################
 ## add lib
 ## #############################################################################
@@ -16,7 +17,6 @@ add_library(${PROJECT_NAME} ${${PROJECT_NAME}_CFILES})
 ## set target properties
 ## ##############################################################################
 
-
 target_include_directories(${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_INCLUDE_PATHS})
 
 ## #############################################################################
@@ -24,14 +24,10 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_INCLUDE_PATH
 ## #############################################################################
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-  ITKCommon
-  AnimaCore
-  AnimaClusteringFilter
-  AnimaInterpolator
-  AnimaMathsOptimizers
-  AnimaMathsSHTools
-  AnimaMathsSphereOperations
-  AnimaMathsStatisticalDistributions
+  ${ITKIO_LIBRARIES}
+  ITKOptimizers
+  libAnimaCore
+  libAnimaMaths
 )
 
 ################################################################################

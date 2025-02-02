@@ -6,17 +6,13 @@ project(${PROJECT_PREFIX}DisplacementFieldJacobian)
 ## List Sources
 ## #############################################################################
 
-list_source_files(${PROJECT_NAME}
-  ${CMAKE_CURRENT_SOURCE_DIR}
-)
+list_source_files(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR})
 
 ## #############################################################################
 ## add executable
 ## #############################################################################
 
-add_executable(${PROJECT_NAME}
-  ${${PROJECT_NAME}_CFILES}
-)
+add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_CFILES})
 
 ## #############################################################################
 ## Link
@@ -25,10 +21,9 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   ${ITK_TRANSFORM_LIBRARIES}
   ${ITKIO_LIBRARIES}
-  ${TinyXML2_LIBRARY}
-  AnimaCore
-  AnimaJacobianFilter
-  AnimaRegistrationSVFOperations
+  libAnimaCore
+  libAnimaMaths
+  libAnimaRegistration
 )
 
 ## #############################################################################

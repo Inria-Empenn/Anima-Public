@@ -13,6 +13,7 @@
 
 #include <animaVectorOperations.h>
 #include <animaBaseTensorTools.h>
+#include <animaMatrixLogExp.h>
 
 namespace anima
 {

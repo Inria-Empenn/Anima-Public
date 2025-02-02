@@ -1,12 +1,10 @@
-
-cmake_path(GET CMAKE_CURRENT_SOURCE_DIR STEM DIRNAME  )
+cmake_path(GET CMAKE_CURRENT_SOURCE_DIR STEM DIRNAME)
 set(PROJECT_PREFIX anima${DIRNAME})
 
 add_subdirectory(Arithmetic)
 add_subdirectory(Collapse)
 add_subdirectory(Concatenate)
 add_subdirectory(Convert)
-add_subdirectory(ConvertShape)
 add_subdirectory(Create)
 add_subdirectory(Crop)
 add_subdirectory(Enlarge)

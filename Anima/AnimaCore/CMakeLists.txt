@@ -1,32 +1,23 @@
-project(AnimaCore)
+project(libAnimaCore)
 
 ## #############################################################################
 ## List Sources
 ## #############################################################################
 
-list_source_files(${PROJECT_NAME}
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/BasicImageFilters
-  ${CMAKE_CURRENT_SOURCE_DIR}/DataIO
-)
+list_source_files_recurse(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR})
+list_include_dirs(${PROJECT_NAME})
 
 ## #############################################################################
 ## add lib
 ## #############################################################################
 
-add_library(${PROJECT_NAME}
-  ${${PROJECT_NAME}_CFILES}
-)
+add_library(${PROJECT_NAME} ${${PROJECT_NAME}_CFILES})
 
 # ##############################################################################
 # set target properties
 # ##############################################################################
 
-target_include_directories(${PROJECT_NAME} PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/BasicImageFilters
-  ${CMAKE_CURRENT_SOURCE_DIR}/DataIO
-)
+target_include_directories(${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_INCLUDE_PATHS})
 
 ## #############################################################################
 ## Link
@@ -37,7 +28,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   ${TinyXML2_LIBRARY}
   ${VTK_PREFIX}IOXML
   ${VTK_PREFIX}IOLegacy
-  ${VTKSYS_LIBRARY}
 )
 
 ## ###############################################################################

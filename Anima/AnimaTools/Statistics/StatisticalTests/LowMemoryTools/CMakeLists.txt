@@ -1,4 +1,4 @@
 add_subdirectory(CramersTest)
 add_subdirectory(NLMeansPatientToGroupComparison)
-add_subdirectory(PatientToGroupODF_Comparison)
 add_subdirectory(PatientToGroupComparison)
+add_subdirectory(PatientToGroupODF_Comparison)
