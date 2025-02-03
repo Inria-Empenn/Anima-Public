@@ -2,14 +2,14 @@
 
 #include <animaMultiCompartmentModel.h>
 #include <animaBaseCompartment.h>
-#include <AnimaDiffMCMExport.h>
+#include <libAnimaDiffusionExport.h>
 
 namespace anima
 {
 
 //! Really this class is some simplified factory that creates the MCM that it knows
 // One could think of making it a singleton, but parameter are somewhat in the way
-class ANIMADIFFMCM_EXPORT MultiCompartmentModelCreator
+class LIBANIMADIFFUSION_EXPORT MultiCompartmentModelCreator
 {
 public:
     MultiCompartmentModelCreator();

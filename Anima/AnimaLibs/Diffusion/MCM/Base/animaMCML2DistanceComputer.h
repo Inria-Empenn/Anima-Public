@@ -6,7 +6,7 @@
 
 #include <vnl/vnl_math.h>
 
-#include <AnimaDiffMCMExport.h>
+#include <libAnimaDiffusionExport.h>
 
 namespace anima
 {
@@ -14,7 +14,7 @@ namespace anima
 /**
  * @brief Computes a L2 distance between two MCM of any type
  */
-class ANIMADIFFMCM_EXPORT MCML2DistanceComputer : public itk::LightObject
+class LIBANIMADIFFUSION_EXPORT MCML2DistanceComputer : public itk::LightObject
 {
 public:
     typedef MCML2DistanceComputer Self;

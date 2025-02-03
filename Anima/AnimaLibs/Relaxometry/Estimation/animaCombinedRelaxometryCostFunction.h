@@ -1,12 +1,12 @@
 #pragma once
 
 #include <itkSingleValuedCostFunction.h>
-#include "AnimaRelaxoEstimationExport.h"
+#include <libAnimaRelaxometryExport.h>
 
 namespace anima
 {
     
-class ANIMARELAXOESTIMATION_EXPORT CombinedRelaxometryCostFunction :
+class LIBANIMARELAXOMETRY_EXPORT CombinedRelaxometryCostFunction :
 public itk::SingleValuedCostFunction
 {
 public:

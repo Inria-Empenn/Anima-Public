@@ -7,7 +7,7 @@
 #include <itkObjectFactory.h>
 #include <itkVariableLengthVector.h>
 
-#include <AnimaDiffMCMExport.h>
+#include <libAnimaDiffusionExport.h>
 #include <animaMCMConstants.h>
 
 namespace anima
@@ -27,7 +27,7 @@ enum DiffusionModelCompartmentType
     DDI
 };
 
-class ANIMADIFFMCM_EXPORT BaseCompartment : public itk::LightObject
+class LIBANIMADIFFUSION_EXPORT BaseCompartment : public itk::LightObject
 {
 public:
     // Useful typedefs

@@ -2,12 +2,12 @@
 
 #include <itkMultipleValuedCostFunction.h>
 #include <animaBaseMCMCost.h>
-#include <AnimaDiffMCMExport.h>
+#include <libAnimaDiffusionExport.h>
 
 namespace anima
 {
 
-class ANIMADIFFMCM_EXPORT MCMMultipleValuedCostFunction : public itk::MultipleValuedCostFunction
+class LIBANIMADIFFUSION_EXPORT MCMMultipleValuedCostFunction : public itk::MultipleValuedCostFunction
 {
 public:
     /** Standard class typedefs. */

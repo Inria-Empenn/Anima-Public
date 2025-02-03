@@ -5,9 +5,11 @@
 #include <vnl/vnl_matrix.h>
 #include <vnl/vnl_trace.h>
 
+#include <libAnimaMathsExport.h>
+
 namespace anima
 {
-    class ANIMAMATHSSTATISTICALDISTRIBUTIONS_EXPORT MultivariateNormalDistribution : public BaseDistribution<std::vector<double>>
+    class LIBANIMAMATHS_EXPORT MultivariateNormalDistribution : public BaseDistribution<std::vector<double>>
     {
     public:
         using NormalDistributionType = std::normal_distribution<double>;

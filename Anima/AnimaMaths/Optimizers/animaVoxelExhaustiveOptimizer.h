@@ -2,12 +2,12 @@
 
 #include <itkSingleValuedNonLinearOptimizer.h>
 #include <vnl/vnl_matrix.h>
-#include "AnimaMathsOptimizersExport.h"
+#include <libAnimaMathsExport.h>
 
 namespace anima
 {
 
-class ANIMAMATHSOPTIMIZERS_EXPORT VoxelExhaustiveOptimizer :
+class LIBANIMAMATHS_EXPORT VoxelExhaustiveOptimizer :
 public itk::SingleValuedNonLinearOptimizer
 {
 public:

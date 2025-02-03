@@ -6,7 +6,7 @@
 #include <animaBaseMCMCost.h>
 
 #include <animaMultiCompartmentModel.h>
-#include <AnimaDiffMCMExport.h>
+#include <libAnimaDiffusionExport.h>
 
 namespace anima
 {    
@@ -15,7 +15,7 @@ namespace anima
  * @brief Class for computing marginal and profile costs and derivatives.
  * This is not thread safe at all so be sure to intantiate one per thread
  */
-class ANIMADIFFMCM_EXPORT GaussianMCMCost : public anima::BaseMCMCost
+class LIBANIMADIFFUSION_EXPORT GaussianMCMCost : public anima::BaseMCMCost
 {
 public:
     /** Standard class typedefs. */

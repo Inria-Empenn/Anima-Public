@@ -1,12 +1,12 @@
 #pragma once
 
 #include <animaBaseMCMCost.h>
-#include <AnimaDiffMCMExport.h>
+#include <libAnimaDiffusionExport.h>
 
 namespace anima
 {
 
-class ANIMADIFFMCM_EXPORT NonCentralChiMCMCost : public anima::BaseMCMCost
+class LIBANIMADIFFUSION_EXPORT NonCentralChiMCMCost : public anima::BaseMCMCost
 {
 public:
     /** Standard class typedefs. */

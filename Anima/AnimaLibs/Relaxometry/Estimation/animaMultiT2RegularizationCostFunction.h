@@ -1,6 +1,6 @@
 #pragma once
 #include <itkSingleValuedCostFunction.h>
-#include "AnimaRelaxoEstimationExport.h"
+#include <libAnimaRelaxometryExport.h>
 
 #include <animaNNLSOptimizer.h>
 #include <vnl/vnl_matrix.h>
@@ -12,7 +12,7 @@ namespace anima
  * \class MultiT2RegularizationCostFunction
  * \brief Cost function for estimating final solution of multi T2 estimation with Regularization regularization
  */
-class ANIMARELAXOESTIMATION_EXPORT MultiT2RegularizationCostFunction :
+class LIBANIMARELAXOMETRY_EXPORT MultiT2RegularizationCostFunction :
         public itk::SingleValuedCostFunction
 {
 public:

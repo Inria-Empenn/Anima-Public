@@ -4,7 +4,7 @@
 #include <vnl/vnl_diag_matrix.h>
 #include <vnl/vnl_vector.h>
 
-#include "AnimaMathsOptimizersExport.h"
+#include <libAnimaMathsExport.h>
 
 namespace anima
 {
@@ -14,7 +14,7 @@ namespace anima
  * where L is lower triangular and D diagonal. May be used to solve efficiently any linear system
  * using the solve methods. Refer to Gill, Golub et al. Methods for modifying matrix factorizations. 1974
  */
-class ANIMAMATHSOPTIMIZERS_EXPORT CholeskyDecomposition
+class LIBANIMAMATHS_EXPORT CholeskyDecomposition
 {
 public:
     typedef vnl_matrix<double> MatrixType;

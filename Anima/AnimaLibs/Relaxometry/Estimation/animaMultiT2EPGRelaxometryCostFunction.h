@@ -3,7 +3,7 @@
 #include <vnl/vnl_matrix.h>
 #include <itkSingleValuedCostFunction.h>
 #include <animaNNLSOptimizer.h>
-#include "AnimaRelaxoEstimationExport.h"
+#include <libAnimaRelaxometryExport.h>
 
 namespace anima
 {
@@ -12,7 +12,7 @@ namespace anima
  * \brief Cost function for estimating B1 from T2 relaxometry acquisition, following a multi-T2 EPG decay model.
  *
  */
-class ANIMARELAXOESTIMATION_EXPORT MultiT2EPGRelaxometryCostFunction :
+class LIBANIMARELAXOMETRY_EXPORT MultiT2EPGRelaxometryCostFunction :
 public itk::SingleValuedCostFunction
 {
 public:

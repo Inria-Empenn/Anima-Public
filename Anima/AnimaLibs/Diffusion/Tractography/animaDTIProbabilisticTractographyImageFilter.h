@@ -5,12 +5,12 @@
 
 #include <random>
 
-#include "AnimaTractographyExport.h"
+#include <libAnimaDiffusionExport.h>
 
 namespace anima
 {
 
-class ANIMATRACTOGRAPHY_EXPORT DTIProbabilisticTractographyImageFilter : public BaseProbabilisticTractographyImageFilter < itk::VectorImage <double, 3> >
+class LIBANIMADIFFUSION_EXPORT DTIProbabilisticTractographyImageFilter : public BaseProbabilisticTractographyImageFilter < itk::VectorImage <double, 3> >
 {
 public:
     /** SmartPointer typedef support  */

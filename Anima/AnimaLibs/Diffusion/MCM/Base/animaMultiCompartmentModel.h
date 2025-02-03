@@ -1,7 +1,7 @@
 #pragma once
 
 #include <animaBaseCompartment.h>
-#include <AnimaDiffMCMExport.h>
+#include <libAnimaDiffusionExport.h>
 
 #include <itkLightObject.h>
 #include <itkObjectFactory.h>
@@ -16,7 +16,7 @@ namespace anima
      * to have one less weight in them, the first one being removed. This comes from the fact
      * that they sum up to 1.
      */
-class ANIMADIFFMCM_EXPORT MultiCompartmentModel : public itk::LightObject
+class LIBANIMADIFFUSION_EXPORT MultiCompartmentModel : public itk::LightObject
 {
 public:
     // Useful typedefs

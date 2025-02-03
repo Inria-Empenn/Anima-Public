@@ -1,41 +1,41 @@
 #pragma once
 
-#include "AnimaMathsSpecialFunctionsExport.h"
+#include <libAnimaMathsExport.h>
 
 #include <cmath>
 
 namespace anima
 {
 
-    ANIMAMATHSSPECIALFUNCTIONS_EXPORT
+    LIBANIMAMATHS_EXPORT
     double PochHammer(const double &x,
                       const unsigned int n);
 
     //! According to Muller, K. E. (2001) ‘Computing the confluent hypergeometric function, M (a, b, x)’, Numerische Mathematik, pp. 179–196. Method 1.C, p.5
-    ANIMAMATHSSPECIALFUNCTIONS_EXPORT
+    LIBANIMAMATHS_EXPORT
     double
     KummerMethod1(const double &x, const double &a, const double &b,
                   const unsigned int maxIter = 1000, const double tol = 1.0e-8);
 
     //! According to Muller, K. E. (2001) ‘Computing the confluent hypergeometric function, M (a, b, x)’, Numerische Mathematik, pp. 179–196. Method 2, p.6
-    ANIMAMATHSSPECIALFUNCTIONS_EXPORT
+    LIBANIMAMATHS_EXPORT
     double
     KummerMethod2(const double &x, const double &a, const double &b,
                   const unsigned int maxIter = 1000, const double tol = 1.0e-8);
 
     //! According to Muller, K. E. (2001) ‘Computing the confluent hypergeometric function, M (a, b, x)’, Numerische Mathematik, pp. 179–196. Method with integral if b > a > 0
-    ANIMAMATHSSPECIALFUNCTIONS_EXPORT
+    LIBANIMAMATHS_EXPORT
     double
     KummerIntegrandMethod(const double &x, const double &a, const double &b);
 
     //! Computes the confluent hypergeometric function 1F1 also known as the Kummer function M. It calls Kummer function core to get the value.
-    ANIMAMATHSSPECIALFUNCTIONS_EXPORT
+    LIBANIMAMATHS_EXPORT
     double
     GetKummerFunctionValue(const double &x, const double &a, const double &b,
                            const unsigned int maxIter = 1000, const double tol = 1.0e-8);
 
     //! Computes the confluent hypergeometric function 1F1 also known as the Kummer function M. It returns a scaled value: exp(-x) * M(x,a,b).
-    ANIMAMATHSSPECIALFUNCTIONS_EXPORT
+    LIBANIMAMATHS_EXPORT
     double
     GetScaledKummerFunctionValue(const double &x, const double &a, const double &b,
                                  const unsigned int maxIter = 1000, const double tol = 1.0e-8);

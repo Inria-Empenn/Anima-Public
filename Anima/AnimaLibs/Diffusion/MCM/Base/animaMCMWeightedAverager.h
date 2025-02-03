@@ -11,7 +11,7 @@
 #include <vnl/vnl_diag_matrix.h>
 #include <vnl/vnl_matrix.h>
 
-#include <AnimaDiffMCMExport.h>
+#include <libAnimaDiffusionExport.h>
 
 namespace anima
 {
@@ -21,7 +21,7 @@ namespace anima
  * time giving the number and type of output compartments but also its parameters are erased when performing Update
  * to get the result
  */
-class ANIMADIFFMCM_EXPORT MCMWeightedAverager : public itk::LightObject
+class LIBANIMADIFFUSION_EXPORT MCMWeightedAverager : public itk::LightObject
 {
 public:
     typedef MCMWeightedAverager Self;

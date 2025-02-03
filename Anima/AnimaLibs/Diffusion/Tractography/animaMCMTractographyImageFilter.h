@@ -4,12 +4,12 @@
 #include <animaMCMLinearInterpolateImageFunction.h>
 #include <animaMCMImage.h>
 
-#include "AnimaTractographyExport.h"
+#include <libAnimaDiffusionExport.h>
 
 namespace anima
 {
 
-class ANIMATRACTOGRAPHY_EXPORT MCMTractographyImageFilter : public anima::BaseTractographyImageFilter
+class LIBANIMADIFFUSION_EXPORT MCMTractographyImageFilter : public anima::BaseTractographyImageFilter
 {
 public:
     /** SmartPointer typedef support  */

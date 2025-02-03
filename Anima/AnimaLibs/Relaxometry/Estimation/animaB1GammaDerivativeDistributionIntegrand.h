@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AnimaRelaxoEstimationExport.h"
+#include <libAnimaRelaxometryExport.h>
 
 #include <vector>
 #include <map>
@@ -14,7 +14,7 @@ namespace anima
  * \class B1GammaDerivativeDistributionIntegrand
  * @brief Integrand to compute the internal derivative integral per distribution in B1GammaMixtureT2RelaxometryCostFunction
  */
-class ANIMARELAXOESTIMATION_EXPORT B1GammaDerivativeDistributionIntegrand : public B1GammaDistributionIntegrand
+class LIBANIMARELAXOMETRY_EXPORT B1GammaDerivativeDistributionIntegrand : public B1GammaDistributionIntegrand
 {
 public:
     using Superclass = B1GammaDistributionIntegrand;

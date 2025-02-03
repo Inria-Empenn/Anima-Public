@@ -2,12 +2,12 @@
 
 #include <animaBaseCompartment.h>
 #include <animaMatrixOperations.h>
-#include <AnimaDiffMCMExport.h>
+#include <libAnimaDiffusionExport.h>
 
 namespace anima
 {
 
-class ANIMADIFFMCM_EXPORT ZeppelinCompartment : public BaseCompartment
+class LIBANIMADIFFUSION_EXPORT ZeppelinCompartment : public BaseCompartment
 {
 public:
     // Useful typedefs

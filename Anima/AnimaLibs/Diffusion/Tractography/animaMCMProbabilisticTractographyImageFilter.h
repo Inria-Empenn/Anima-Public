@@ -4,12 +4,12 @@
 #include <animaMultiCompartmentModel.h>
 #include <animaMCMImage.h>
 
-#include "AnimaTractographyExport.h"
+#include <libAnimaDiffusionExport.h>
 
 namespace anima
 {
 
-class ANIMATRACTOGRAPHY_EXPORT MCMProbabilisticTractographyImageFilter : public BaseProbabilisticTractographyImageFilter < anima::MCMImage <double, 3> >
+class LIBANIMADIFFUSION_EXPORT MCMProbabilisticTractographyImageFilter : public BaseProbabilisticTractographyImageFilter < anima::MCMImage <double, 3> >
 {
 public:
     /** SmartPointer typedef support  */

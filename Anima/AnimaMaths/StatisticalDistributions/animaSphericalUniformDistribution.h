@@ -4,9 +4,11 @@
 
 #include <itkVector.h>
 
+#include <libAnimaMathsExport.h>
+
 namespace anima
 {
-    class ANIMAMATHSSTATISTICALDISTRIBUTIONS_EXPORT SphericalUniformDistribution : public BaseDistribution<itk::Vector<double, 3>>
+    class LIBANIMAMATHS_EXPORT SphericalUniformDistribution : public BaseDistribution<itk::Vector<double, 3>>
     {
     public:
         using UniformDistributionType = std::uniform_real_distribution<double>;

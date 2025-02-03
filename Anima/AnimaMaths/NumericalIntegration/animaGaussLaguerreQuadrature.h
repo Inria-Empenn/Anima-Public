@@ -1,5 +1,5 @@
 #pragma once
-#include "AnimaMathsNumericalIntegrationExport.h"
+#include <libAnimaMathsExport.h>
 #include <vector>
 
 #include <animaGaussLegendreQuadrature.h>
@@ -12,7 +12,7 @@ namespace anima
  * Recenters the function on the interest zone with an affine relation, then uses Gauss Legendre on the left out part of the
  * function and computes the main part with Gauss Laguerre.
  */
-class ANIMAMATHSNUMERICALINTEGRATION_EXPORT GaussLaguerreQuadrature
+class LIBANIMAMATHS_EXPORT GaussLaguerreQuadrature
 {
 public:
     GaussLaguerreQuadrature();

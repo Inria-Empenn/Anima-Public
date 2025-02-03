@@ -3,12 +3,12 @@
 #include <vector>
 #include <vnl/vnl_matrix.h>
 
-#include "AnimaRelaxoSimulationExport.h"
+#include <libAnimaRelaxometryExport.h>
 
 namespace anima
 {
     
-class ANIMARELAXOSIMULATION_EXPORT EPGSignalSimulator
+class LIBANIMARELAXOMETRY_EXPORT EPGSignalSimulator
 {
 public:
     EPGSignalSimulator();

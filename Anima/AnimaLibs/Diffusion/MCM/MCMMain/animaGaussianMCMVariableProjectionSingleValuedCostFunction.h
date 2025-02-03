@@ -2,12 +2,12 @@
 
 #include <itkSingleValuedCostFunction.h>
 #include <animaGaussianMCMVariableProjectionCost.h>
-#include <AnimaDiffMCMExport.h>
+#include <libAnimaDiffusionExport.h>
 
 namespace anima
 {
 
-class ANIMADIFFMCM_EXPORT GaussianMCMVariableProjectionSingleValuedCostFunction : public itk::SingleValuedCostFunction
+class LIBANIMADIFFUSION_EXPORT GaussianMCMVariableProjectionSingleValuedCostFunction : public itk::SingleValuedCostFunction
 {
 public:
     /** Standard class typedefs. */

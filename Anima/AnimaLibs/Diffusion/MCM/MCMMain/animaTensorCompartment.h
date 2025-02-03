@@ -3,12 +3,12 @@
 #include <animaBaseCompartment.h>
 #include <animaMatrixOperations.h>
 #include <animaBaseTensorTools.h>
-#include <AnimaDiffMCMExport.h>
+#include <libAnimaDiffusionExport.h>
 
 namespace anima
 {
 
-class ANIMADIFFMCM_EXPORT TensorCompartment : public BaseCompartment
+class LIBANIMADIFFUSION_EXPORT TensorCompartment : public BaseCompartment
 {
 public:
     // Useful typedefs

@@ -7,9 +7,11 @@
 
 #include <boost/math/distributions/beta.hpp>
 
+#include <libAnimaMathsExport.h>
+
 namespace anima
 {
-	class ANIMAMATHSSTATISTICALDISTRIBUTIONS_EXPORT DirichletDistribution : public BaseDistribution<std::vector<double>>
+	class LIBANIMAMATHS_EXPORT DirichletDistribution : public BaseDistribution<std::vector<double>>
 	{
 	public:
 		using UniformDistributionType = std::uniform_real_distribution<double>;

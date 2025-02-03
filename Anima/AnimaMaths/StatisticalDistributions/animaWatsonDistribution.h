@@ -5,9 +5,11 @@
 #include <itkMatrix.h>
 #include <itkVector.h>
 
+#include <libAnimaMathsExport.h>
+
 namespace anima
 {
-    class ANIMAMATHSSTATISTICALDISTRIBUTIONS_EXPORT WatsonDistribution : public BaseDistribution<itk::Vector<double, 3>>
+    class LIBANIMAMATHS_EXPORT WatsonDistribution : public BaseDistribution<itk::Vector<double, 3>>
     {
     public:
         using UniformDistributionType = std::uniform_real_distribution<double>;

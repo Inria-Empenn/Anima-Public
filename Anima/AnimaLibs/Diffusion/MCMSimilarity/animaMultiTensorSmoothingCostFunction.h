@@ -1,13 +1,14 @@
 #pragma once
 
 #include <itkSingleValuedCostFunction.h>
-#include <AnimaMCMSimilarityExport.h>
 #include <animaMultiCompartmentModel.h>
+
+#include <libAnimaDiffusionExport.h>
 
 namespace anima
 {
 
-class ANIMAMCMSIMILARITY_EXPORT MultiTensorSmoothingCostFunction : public itk::SingleValuedCostFunction
+class LIBANIMADIFFUSION_EXPORT MultiTensorSmoothingCostFunction : public itk::SingleValuedCostFunction
 {
 public:
     /** Standard class typedefs. */

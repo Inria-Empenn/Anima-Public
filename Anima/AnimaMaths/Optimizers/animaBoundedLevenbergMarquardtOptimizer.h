@@ -2,7 +2,7 @@
 
 #include <itkMultipleValuedNonLinearOptimizer.h>
 #include <animaBLMLambdaCostFunction.h>
-#include "AnimaMathsOptimizersExport.h"
+#include <libAnimaMathsExport.h>
 
 namespace anima
 {
@@ -18,7 +18,7 @@ namespace anima
  * properties for solving nonlinear equations with convex constraints. Journal of computational and
  * applied mathematics. 172:375-397, 2004.
  */
-class ANIMAMATHSOPTIMIZERS_EXPORT BoundedLevenbergMarquardtOptimizer:
+class LIBANIMAMATHS_EXPORT BoundedLevenbergMarquardtOptimizer:
         public itk::MultipleValuedNonLinearOptimizer
 {
 public:

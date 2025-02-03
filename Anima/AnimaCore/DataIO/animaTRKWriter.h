@@ -1,6 +1,6 @@
 #pragma once
 
-#include <AnimaCoreExport.h>
+#include <libAnimaCoreExport.h>
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 #include <itkImage.h>
@@ -11,7 +11,7 @@
 namespace anima
 {
 
-class ANIMACORE_EXPORT TRKWriter
+class LIBANIMACORE_EXPORT TRKWriter
 {
 public:
     TRKWriter()

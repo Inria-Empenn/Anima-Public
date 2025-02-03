@@ -5,7 +5,7 @@
 #include <itkOptimizerParameters.h>
 
 #include <animaMultiCompartmentModel.h>
-#include <AnimaDiffMCMExport.h>
+#include <libAnimaDiffusionExport.h>
 
 namespace anima
 {    
@@ -13,7 +13,7 @@ namespace anima
 /**
  * @brief Base cost function class to handle maximum likelihood estimation
  */
-class ANIMADIFFMCM_EXPORT BaseMCMCost : public itk::LightObject
+class LIBANIMADIFFUSION_EXPORT BaseMCMCost : public itk::LightObject
 {
 public:
     /** Standard class typedefs. */

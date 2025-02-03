@@ -3,12 +3,12 @@
 #include <itkObject.h>
 #include <itkSmartPointer.h>
 
-#include <AnimaMathsOptimizersExport.h>
+#include <libAnimaMathsExport.h>
 
 namespace anima
 {
 
-class ANIMAMATHSOPTIMIZERS_EXPORT NLOPTParametersConstraintFunction : public itk::Object
+class LIBANIMAMATHS_EXPORT NLOPTParametersConstraintFunction : public itk::Object
 {
 public:
     /** Standard class typedefs. */

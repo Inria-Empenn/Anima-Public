@@ -5,7 +5,7 @@
 #include <itkSingleValuedNonLinearOptimizer.h>
 
 #include <nlopt.hpp>
-#include <AnimaMathsOptimizersExport.h>
+#include <libAnimaMathsExport.h>
 
 #include <animaNLOPTParametersConstraintFunction.h>
 
@@ -91,7 +91,7 @@ namespace anima
      * \author	Benoit Scherrer
      * \date	July 2010
     *************************************************************************************************/
-    class ANIMAMATHSOPTIMIZERS_EXPORT NLOPTOptimizers:
+    class LIBANIMAMATHS_EXPORT NLOPTOptimizers:
         public itk::SingleValuedNonLinearOptimizer
     {
     public:

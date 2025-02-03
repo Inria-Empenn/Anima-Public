@@ -7,13 +7,13 @@
 #include <string>
 #include <animaBaseCompartment.h>
 
-#include <AnimaDiffMCMExport.h>
+#include <libAnimaDiffusionExport.h>
 
 namespace anima
 {
 
 // For distinguishing image internal pixel type, used for medInria plugins
-itk::IOComponentEnum ANIMADIFFMCM_EXPORT GetMCMComponentType(std::string fileName);
+itk::IOComponentEnum LIBANIMADIFFUSION_EXPORT GetMCMComponentType(std::string fileName);
 
 template <class PixelType, unsigned int ImageDimension>
 class MCMFileReader

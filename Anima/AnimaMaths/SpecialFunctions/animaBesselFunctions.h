@@ -1,6 +1,6 @@
 #pragma once
 
-#include "libAnimaMathsExport.h"
+#include <libAnimaMathsExport.h>
 
 namespace anima
 {

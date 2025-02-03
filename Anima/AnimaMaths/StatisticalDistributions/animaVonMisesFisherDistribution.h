@@ -9,9 +9,11 @@
 
 #include <boost/math/distributions/beta.hpp>
 
+#include <libAnimaMathsExport.h>
+
 namespace anima
 {
-    class ANIMAMATHSSTATISTICALDISTRIBUTIONS_EXPORT VonMisesFisherDistribution : public BaseDistribution<itk::Vector<double, 3>>
+    class LIBANIMAMATHS_EXPORT VonMisesFisherDistribution : public BaseDistribution<itk::Vector<double, 3>>
     {
     public:
         using UniformDistributionType = std::uniform_real_distribution<double>;

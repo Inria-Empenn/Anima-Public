@@ -1,7 +1,7 @@
 #pragma once
 
 #include <animaBaseCompartment.h>
-#include <AnimaDiffMCMExport.h>
+#include <libAnimaDiffusionExport.h>
 
 #include <tuple>
 #include <map>
@@ -9,7 +9,7 @@
 namespace anima
 {
 
-class ANIMADIFFMCM_EXPORT StaniszCompartment : public BaseCompartment
+class LIBANIMADIFFUSION_EXPORT StaniszCompartment : public BaseCompartment
 {
 public:
     // Useful typedefs

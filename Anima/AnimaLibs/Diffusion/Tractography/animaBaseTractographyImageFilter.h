@@ -9,14 +9,14 @@
 #include <itkProcessObject.h>
 #include <mutex>
 
-#include "AnimaTractographyExport.h"
+#include <libAnimaDiffusionExport.h>
 
 #include <vector>
 
 namespace anima
 {
 
-class ANIMATRACTOGRAPHY_EXPORT BaseTractographyImageFilter : public itk::ProcessObject
+class LIBANIMADIFFUSION_EXPORT BaseTractographyImageFilter : public itk::ProcessObject
 {
 public:
     /** SmartPointer typedef support  */

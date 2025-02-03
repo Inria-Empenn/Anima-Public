@@ -1,13 +1,13 @@
 #pragma once
 
 #include <animaBaseCompartment.h>
-#include <AnimaDiffMCMExport.h>
+#include <libAnimaDiffusionExport.h>
 #include <animaWatsonDistribution.h>
 
 namespace anima
 {
 
-class ANIMADIFFMCM_EXPORT NODDICompartment : public BaseCompartment
+class LIBANIMADIFFUSION_EXPORT NODDICompartment : public BaseCompartment
 {
 public:
     // Useful typedefs

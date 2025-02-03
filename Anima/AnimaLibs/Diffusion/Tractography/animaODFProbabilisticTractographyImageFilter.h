@@ -4,12 +4,12 @@
 #include <animaBaseProbabilisticTractographyImageFilter.h>
 #include <animaODFSphericalHarmonicBasis.h>
 
-#include "AnimaTractographyExport.h"
+#include <libAnimaDiffusionExport.h>
 
 namespace anima
 {
 
-class ANIMATRACTOGRAPHY_EXPORT ODFProbabilisticTractographyImageFilter : public anima::BaseProbabilisticTractographyImageFilter < itk::VectorImage <double, 3> >
+class LIBANIMADIFFUSION_EXPORT ODFProbabilisticTractographyImageFilter : public anima::BaseProbabilisticTractographyImageFilter < itk::VectorImage <double, 3> >
 {
 public:
     /** SmartPointer typedef support  */

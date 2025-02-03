@@ -2,9 +2,11 @@
 
 #include <animaBaseDistribution.h>
 
+#include <libAnimaMathsExport.h>
+
 namespace anima
 {
-	class ANIMAMATHSSTATISTICALDISTRIBUTIONS_EXPORT GammaDistribution : public BaseDistribution<double>
+	class LIBANIMAMATHS_EXPORT GammaDistribution : public BaseDistribution<double>
 	{
 	public:
 		using DistributionType = std::gamma_distribution<double>;

@@ -1,12 +1,13 @@
 #pragma once
 
 #include <complex>
-#include "AnimaMathsSHToolsExport.h"
+
+#include <libAnimaMathsExport.h>
 
 namespace anima
 {
 
-class ANIMAMATHSSHTOOLS_EXPORT SphericalHarmonic
+class LIBANIMAMATHS_EXPORT SphericalHarmonic
 {
 public:
     SphericalHarmonic();

@@ -6,7 +6,7 @@
 #include <animaBaseMCMCost.h>
 #include <animaNNLSOptimizer.h>
 #include <animaBaseTensorTools.h>
-#include <AnimaDiffMCMExport.h>
+#include <libAnimaDiffusionExport.h>
 
 #include <animaCholeskyDecomposition.h>
 
@@ -17,7 +17,7 @@ namespace anima
  * @brief Class for computing variable projection costs and derivatives. Right now, it is only available for Gaussian noise.
  * By the way, this is not thread safe at all so be sure to intantiate one per thread
  */
-class ANIMADIFFMCM_EXPORT GaussianMCMVariableProjectionCost : public anima::BaseMCMCost
+class LIBANIMADIFFUSION_EXPORT GaussianMCMVariableProjectionCost : public anima::BaseMCMCost
 {
 public:
     /** Standard class typedefs. */

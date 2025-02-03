@@ -4,7 +4,7 @@
 #include <vector>
 
 #include <itkSingleValuedCostFunction.h>
-#include "AnimaMathsOptimizersExport.h"
+#include <libAnimaMathsExport.h>
 
 namespace anima
 {
@@ -13,7 +13,7 @@ namespace anima
  * @brief Levenberg-Marquardt lambda update cost function (phi) used
  * for bounded levenberg marquardt optimizer @BLMLambdaCostFunction
  */
-class ANIMAMATHSOPTIMIZERS_EXPORT BLMLambdaCostFunction:
+class LIBANIMAMATHS_EXPORT BLMLambdaCostFunction:
         public itk::SingleValuedCostFunction
 {
 public:
