@@ -7,8 +7,8 @@
 #include <itkObjectFactory.h>
 #include <itkVariableLengthVector.h>
 
-#include <libAnimaDiffusionExport.h>
 #include <animaMCMConstants.h>
+#include <libAnimaDiffusionExport.h>
 
 namespace anima
 {

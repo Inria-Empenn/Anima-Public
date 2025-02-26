@@ -18,15 +18,7 @@ add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_CFILES})
 ## Link
 ## #############################################################################
 
-target_link_libraries(${PROJECT_NAME}
-  #${ITKIO_LIBRARIES}
-  #ITKOptimizers
-  #${NLOPT_LIBRARY}
-  #AnimaDiffMCM
-  #AnimaMathsOptimizers
-  #AnimaMathsSpecialFunctions
-  libAnimaDiffusion
-)
+target_link_libraries(${PROJECT_NAME} libAnimaDiffusion)
 
 ## #############################################################################
 ## install
