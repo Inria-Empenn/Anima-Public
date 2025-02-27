@@ -48,10 +48,6 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::PyramidalDenseSVFMatchingBridge
     m_MaximumIterations = 10;
     m_MinimalTransformError = 0.01;
     m_OptimizerMaximumIterations = 100;
-    m_SearchRadius = 2;
-    m_SearchAngleRadius = 5;
-    m_SearchScaleRadius = 0.1;
-    m_FinalRadius = 0.001;
     m_StepSize = 1;
     m_TranslateUpperBound = 50;
     m_AngleUpperBound = 180;
@@ -61,7 +57,6 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::PyramidalDenseSVFMatchingBridge
     m_ElasticSigma = 3;
     m_OutlierSigma = 3;
     m_MEstimateConvergenceThreshold = 0.01;
-    m_NeighborhoodApproximation = 2.5;
     m_BCHCompositionOrder = 1;
     m_ExponentiationOrder = 1;
     m_NumberOfPyramidLevels = 3;
@@ -131,17 +126,6 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
     minMaxFilter->Update();
 
     m_FloatingMinimalValue = minMaxFilter->GetMinimum();
-
-    // Only CT images are below zero, little hack to set minimal values to either -1024 or 0
-    if (m_ReferenceMinimalValue < 0.0)
-        m_ReferenceMinimalValue = -1024;
-    else
-        m_ReferenceMinimalValue = 0.0;
-
-    if (m_FloatingMinimalValue < 0.0)
-        m_FloatingMinimalValue = -1024;
-    else
-        m_FloatingMinimalValue = 0.0;    
 
     this->SetupPyramids();
 
@@ -214,9 +198,6 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
                 agreg->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
             agreg->SetGeometryInformation(refImage.GetPointer());
-
-            agreg->SetNeighborhoodHalfSize((unsigned int)floor(m_ExtrapolationSigma * m_NeighborhoodApproximation));
-            agreg->SetDistanceBoundary(m_ExtrapolationSigma * meanSpacing * m_NeighborhoodApproximation);
             agreg->SetMEstimateConvergenceThreshold(m_MEstimateConvergenceThreshold);
 
             agregPtr = agreg;
@@ -410,18 +391,6 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
         mainMatcher->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
         mainMatcher->SetOptimizerMaximumIterations(GetOptimizerMaximumIterations());
 
-        double sr = GetSearchRadius();
-        mainMatcher->SetSearchRadius(sr);
-
-        double sar = GetSearchAngleRadius();
-        mainMatcher->SetSearchAngleRadius(sar);
-
-        double scr = GetSearchScaleRadius();
-        mainMatcher->SetSearchScaleRadius(scr);
-
-        double fr = GetFinalRadius();
-        mainMatcher->SetFinalRadius(fr);
-
         double ss = GetStepSize();
         mainMatcher->SetStepSize(ss);
 
@@ -439,10 +408,6 @@ PyramidalDenseSVFMatchingBridge<ImageDimension>::Update()
             reverseMatcher->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
             reverseMatcher->SetOptimizerMaximumIterations(GetOptimizerMaximumIterations());
 
-            reverseMatcher->SetSearchRadius(sr);
-            reverseMatcher->SetSearchAngleRadius(sar);
-            reverseMatcher->SetSearchScaleRadius(scr);
-            reverseMatcher->SetFinalRadius(fr);
             reverseMatcher->SetStepSize(ss);
             reverseMatcher->SetTranslateMax(tub);
             reverseMatcher->SetAngleMax(aub);

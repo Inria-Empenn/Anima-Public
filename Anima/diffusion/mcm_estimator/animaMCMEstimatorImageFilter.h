@@ -137,7 +137,7 @@ public:
     std::vector< GradientType > &GetGradientDirections() {return m_GradientDirections;}
 
     MCMCreatorType *GetMCMCreator(unsigned int i) {return m_MCMCreators[i];}
-    virtual MCMCreatorType *GetNewMCMCreatorInstance();
+    MCMCreatorType *GetNewMCMCreatorInstance();
 
     // Output options
     OutputScalarImageType *GetAICcVolume () {return m_AICcVolume;}
@@ -231,7 +231,7 @@ protected:
     void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
 
     //! Create a cost function following the noise type and estimation mode
-    virtual CostFunctionBasePointer CreateCostFunction(std::vector<double> &observedSignals, MCMPointer &mcmModel);
+    CostFunctionBasePointer CreateCostFunction(std::vector<double> &observedSignals, MCMPointer &mcmModel);
 
     //! Create an optimizer following the optimizer type and estimation mode
     OptimizerPointer CreateOptimizer(CostFunctionBasePointer &cost, itk::Array<double> &lowerBounds, itk::Array<double> &upperBounds);

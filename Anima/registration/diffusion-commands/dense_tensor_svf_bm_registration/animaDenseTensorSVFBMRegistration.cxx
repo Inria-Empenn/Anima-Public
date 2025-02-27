@@ -38,13 +38,9 @@ int main(int ac, const char** av)
 
     TCLAP::ValueArg<unsigned int> optimizerMaxIterationsArg("","oi","Maximum iterations for local optimizer (default: 100)",false,100,"maximum local optimizer iterations",cmd);
 
-    TCLAP::ValueArg<double> searchRadiusArg("","sr","Search radius in pixels (exhaustive search window, rho start for bobyqa, default: 2)",false,2,"optimizer search radius",cmd);
-    TCLAP::ValueArg<double> searchAngleRadiusArg("","sar","Search angle radius in degrees (rho start for bobyqa, default: 5)",false,5,"optimizer search angle radius",cmd);
-    TCLAP::ValueArg<double> searchScaleRadiusArg("","scr","Search scale radius (rho start for bobyqa, default: 0.1)",false,0.1,"optimizer search scale radius",cmd);
-    TCLAP::ValueArg<double> finalRadiusArg("","fr","Final radius (rho end for bobyqa, default: 0.001)",false,0.001,"optimizer final radius",cmd);
     TCLAP::ValueArg<double> searchStepArg("","st","Search step for exhaustive search (default: 1)",false,1,"exhaustive optimizer search step",cmd);
 
-    TCLAP::ValueArg<double> translateUpperBoundArg("","tub","Upper bound on translation for bobyqa (in voxels, default: 10)",false,10,"Bobyqa translate upper bound",cmd);
+    TCLAP::ValueArg<double> translateUpperBoundArg("","tub","Upper bound on translation for bobyqa (in voxels, default: 3)",false,3,"Bobyqa translate upper bound",cmd);
     TCLAP::ValueArg<double> angleUpperBoundArg("","aub","Upper bound on angles for bobyqa (in degrees, default: 180)",false,180,"Bobyqa angle upper bound",cmd);
     TCLAP::ValueArg<double> scaleUpperBoundArg("","scu","Upper bound on scale for bobyqa (default: 3)",false,3,"Bobyqa scale upper bound",cmd);
     
@@ -56,7 +52,6 @@ int main(int ac, const char** av)
     TCLAP::ValueArg<double> elasticSigmaArg("","es","Sigma for elastic regularization (default: 3)",false,3,"elastic regularization sigma",cmd);
     TCLAP::ValueArg<double> outlierSigmaArg("","os","Sigma for outlier rejection among local pairings (default: 3)",false,3,"outlier rejection sigma",cmd);
     TCLAP::ValueArg<double> mEstimateConvergenceThresholdArg("","met","Threshold to consider m-estimator converged (default: 0.01)",false,0.01,"m-estimation convergence threshold",cmd);
-    TCLAP::ValueArg<double> neighborhoodApproximationArg("","na","Half size of the neighborhood approximation (multiplied by extrapolation sigma, default: 2.5)",false,2.5,"half size of neighborhood approximation",cmd);
     TCLAP::ValueArg<unsigned int> bchOrderArg("b","bch-order","BCH composition order (default: 1)",false,1,"BCH order",cmd);
     TCLAP::ValueArg<unsigned int> expOrderArg("e","exp-order","Order of field exponentiation approximation (in between 0 and 1, default: 0)",false,0,"exponentiation order",cmd);
 
@@ -122,11 +117,7 @@ int main(int ac, const char** av)
     matcher->SetOptimizer( (Optimizer) optimizerArg.getValue() );
     matcher->SetMaximumIterations( maxIterationsArg.getValue() );
     matcher->SetMinimalTransformError( minErrorArg.getValue() );
-    matcher->SetFinalRadius(finalRadiusArg.getValue());
     matcher->SetOptimizerMaximumIterations( optimizerMaxIterationsArg.getValue() );
-    matcher->SetSearchRadius( searchRadiusArg.getValue() );
-    matcher->SetSearchAngleRadius( searchAngleRadiusArg.getValue() );
-    matcher->SetSearchScaleRadius( searchScaleRadiusArg.getValue() );
     matcher->SetStepSize( searchStepArg.getValue() );
     matcher->SetTranslateUpperBound( translateUpperBoundArg.getValue() );
     matcher->SetAngleUpperBound( angleUpperBoundArg.getValue() );
@@ -137,7 +128,6 @@ int main(int ac, const char** av)
     matcher->SetElasticSigma(elasticSigmaArg.getValue());
     matcher->SetOutlierSigma(outlierSigmaArg.getValue());
     matcher->SetMEstimateConvergenceThreshold(mEstimateConvergenceThresholdArg.getValue());
-    matcher->SetNeighborhoodApproximation(neighborhoodApproximationArg.getValue());
     matcher->SetBCHCompositionOrder(bchOrderArg.getValue());
     matcher->SetExponentiationOrder(expOrderArg.getValue());
     matcher->SetNumberOfPyramidLevels( numPyramidLevelsArg.getValue() );

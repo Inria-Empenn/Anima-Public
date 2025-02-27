@@ -25,13 +25,13 @@ Anima scripts installation instructions
 
 .. code-block:: sh
 
-	git clone https://github.com/Inria-Visages/Anima-Scripts-Data-Public.git
+	git clone https://github.com/Inria-Empenn/Anima-Scripts-Data-Public.git
 
 * Get the release of Anima scripts from our `website <https://anima.irisa.fr/downloads/>`_ or clone the repository using 
 
 .. code-block:: sh
 
-	git clone https://github.com/Inria-Visages/Anima-Scripts-Public.git
+	git clone https://github.com/Inria-Empenn/Anima-Scripts-Public.git
 
 * Run the configure.py file inside Anima scripts public folder with your configuration. The default values assume you have followed this guide. An example of use:
 

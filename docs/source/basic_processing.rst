@@ -91,7 +91,7 @@ Image conversion
 Shapes format conversion
 ------------------------
 
-**animaConvertShapes** allows you to convert shapes (fibers, surfaces, etc.) between file formats supported by Anima (vtk, vtp, fds, csv).
+**animaConvertShapes** allows you to convert shapes (fibers, surfaces, etc.) between file formats supported by Anima (vtk, vtp, fds, csv, trk). TRK is a fiber track reader/writer similar to Trackvis (hopefully). We follow by default recommendations from `Tractometer <http://www.tractometer.org/ismrm_2015_challenge/tracts_file_specs>`_. When converting from a TRK file to any other format, the image used for tractography should be given as an input too using ``-r`` option. This input image should be in RAS format if following Tractometer rules, but can be anything really. We also provide a ``-V`` option to store coordinates in the TRK files as pure voxel coordinates instead of voxmm as suggested by Tractometer.
 
 *Example:* this converts a VTK ascii file to a VTP file.
 
@@ -111,7 +111,7 @@ If you give arguments size of zero the corresponding dimension will be collapsed
 Image smoothing
 ---------------
 
-**animaImageSmoother** simply applies Gaussian smoothing with a specific sigma value to an image using Young - Van Vliet's recursive smoothing filter implemented in ITK [1].
+**animaImageSmoother** simply applies Gaussian smoothing with a specific sigma value to an image using Young - Van Vliet's recursive smoothing filter implemented in ITK [1]. With the option ``-G``, the gradient of the image will be computed instead of the smoothed image.
 
 Morphological operations
 ------------------------

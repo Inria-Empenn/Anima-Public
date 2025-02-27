@@ -73,9 +73,9 @@ public:
 
     enum Metric
     {
-        SquaredCorrelation = 0,
+        MeanSquares = 0,
         Correlation,
-        MeanSquares
+        SquaredCorrelation
     };
 
     enum Optimizer
@@ -159,18 +159,6 @@ public:
     unsigned int GetOptimizerMaximumIterations() {return m_OptimizerMaximumIterations;}
     void SetOptimizerMaximumIterations(unsigned int OptimizerMaximumIterations) {m_OptimizerMaximumIterations=OptimizerMaximumIterations;}
 
-    double GetSearchRadius() {return m_SearchRadius;}
-    void SetSearchRadius(double SearchRadius) {m_SearchRadius=SearchRadius;}
-
-    double GetSearchAngleRadius() {return m_SearchAngleRadius;}
-    void SetSearchAngleRadius(double SearchAngleRadius) {m_SearchAngleRadius=SearchAngleRadius;}
-
-    double GetSearchScaleRadius() {return m_SearchScaleRadius;}
-    void SetSearchScaleRadius(double SearchScaleRadius) {m_SearchScaleRadius=SearchScaleRadius;}
-
-    double GetFinalRadius() {return m_FinalRadius;}
-    void SetFinalRadius(double FinalRadius) {m_FinalRadius=FinalRadius;}
-
     double GetStepSize() {return m_StepSize;}
     void SetStepSize(double StepSize) {m_StepSize=StepSize;}
 
@@ -197,9 +185,6 @@ public:
 
     double GetMEstimateConvergenceThreshold() {return m_MEstimateConvergenceThreshold;}
     void SetMEstimateConvergenceThreshold(double mEstimateConvergenceThreshold) {m_MEstimateConvergenceThreshold = mEstimateConvergenceThreshold;}
-
-    double GetNeighborhoodApproximation() {return m_NeighborhoodApproximation;}
-    void SetNeighborhoodApproximation(double neighborhoodApproximation) {m_NeighborhoodApproximation = neighborhoodApproximation;}
 
     unsigned int GetBCHCompositionOrder() {return m_BCHCompositionOrder;}
     void SetBCHCompositionOrder(unsigned int order) {m_BCHCompositionOrder = order;}
@@ -263,10 +248,6 @@ private:
     unsigned int m_MaximumIterations;
     double m_MinimalTransformError;
     unsigned int m_OptimizerMaximumIterations;
-    double m_SearchRadius;
-    double m_SearchAngleRadius;
-    double m_SearchScaleRadius;
-    double m_FinalRadius;
     double m_StepSize;
     double m_TranslateUpperBound;
     double m_AngleUpperBound;
@@ -276,7 +257,6 @@ private:
     double m_ElasticSigma;
     double m_OutlierSigma;
     double m_MEstimateConvergenceThreshold;
-    double m_NeighborhoodApproximation;
     unsigned int m_BCHCompositionOrder;
     unsigned int m_ExponentiationOrder;
 

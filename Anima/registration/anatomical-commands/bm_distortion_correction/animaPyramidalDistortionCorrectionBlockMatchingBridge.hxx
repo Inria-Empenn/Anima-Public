@@ -35,10 +35,6 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::PyramidalDisto
     m_StDevThreshold = 5;
     m_MaximumIterations = 10;
     m_OptimizerMaximumIterations = 100;
-    m_SearchRadius = 2;
-    m_SearchScaleRadius = 0.1;
-    m_SearchSkewRadius = 0.1;
-    m_FinalRadius = 0.001;
     m_TranlateUpperBound = 50;
     m_ScaleUpperBound = std::log(5.0);
     m_SkewUpperBound = std::tan(M_PI / 3.0);
@@ -50,7 +46,6 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::PyramidalDisto
     m_ElasticSigma = 3;
     m_OutlierSigma = 3;
     m_MEstimateConvergenceThreshold = 0.01;
-    m_NeighborhoodApproximation = 2.5;
     m_ExponentiationOrder = 1;
     m_NumberOfPyramidLevels = 3;
     m_LastPyramidLevel = 0;
@@ -208,9 +203,7 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
             
             agreg->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
             agreg->SetGeometryInformation(backwardImage.GetPointer());
-            
-            agreg->SetNeighborhoodHalfSize((unsigned int)floor(m_ExtrapolationSigma * m_NeighborhoodApproximation));
-            agreg->SetDistanceBoundary(m_ExtrapolationSigma * meanSpacing * m_NeighborhoodApproximation);
+
             agreg->SetMEstimateConvergenceThreshold(m_MEstimateConvergenceThreshold);
 
             agregPtr = agreg;
@@ -246,10 +239,6 @@ PyramidalDistortionCorrectionBlockMatchingBridge<ImageDimension>::Update()
         
         bmreg->SetCurrentTransform(m_OutputTransform.GetPointer());
 
-        mainMatcher->SetSearchRadius(m_SearchRadius);
-        mainMatcher->SetSearchScaleRadius(m_SearchScaleRadius);
-        mainMatcher->SetSearchSkewRadius(m_SearchSkewRadius);
-        mainMatcher->SetFinalRadius(m_FinalRadius);
         mainMatcher->SetTranslateMax(m_TranlateUpperBound);
         mainMatcher->SetScaleMax(m_ScaleUpperBound);
         mainMatcher->SetSkewMax(m_SkewUpperBound);

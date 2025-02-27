@@ -215,11 +215,7 @@ void PyramidalSymmetryBridge<PixelType,ScalarType>::Update()
     minMaxFilter->Update();
 
     double minValue = minMaxFilter->GetMinimum();
-
-    if (minValue < 0.0)
-        tmpResample->SetDefaultPixelValue(-1024.0);
-    else
-        tmpResample->SetDefaultPixelValue(0.0);
+    tmpResample->SetDefaultPixelValue(minValue);
 
     tmpResample->Update();
 

@@ -58,7 +58,7 @@ protected:
     void SafeReleaseThreadId(unsigned int threadId);
 
     void IncrementNumberOfProcessedPoints();
-
+    void ResetMultiThreadingPart();
 
     //! Utility function to initialize output images pixel to zero for vector images
     template <typename ScalarRealType>

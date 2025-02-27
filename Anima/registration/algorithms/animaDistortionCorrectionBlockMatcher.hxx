@@ -166,7 +166,8 @@ DistortionCorrectionBlockMatcher<TInputImageType>
             similarityWeight = 1;
 
         case Correlation:
-            similarityWeight = (val + 1) / 2.0;
+            similarityWeight = (val > 0) ? val : 0;
+            similarityWeight = (similarityWeight + 1) / 2.0;
 
         case SquaredCorrelation:
         default:
@@ -266,10 +267,9 @@ DistortionCorrectionBlockMatcher<TInputImageType>
     if (this->GetOptimizerType() == Superclass::Exhaustive)
         throw itk::ExceptionObject(__FILE__, __LINE__,"Exhaustive optimizer not supported in distortion correction",ITK_LOCATION);
 
-    typedef anima::BobyqaOptimizer LocalOptimizerType;
-    LocalOptimizerType::ScalesType tmpScales(this->GetBlockTransformPointer(0)->GetNumberOfParameters());
-    LocalOptimizerType::ScalesType lowerBounds(this->GetBlockTransformPointer(0)->GetNumberOfParameters());
-    LocalOptimizerType::ScalesType upperBounds(this->GetBlockTransformPointer(0)->GetNumberOfParameters());
+    typedef anima::NLOPTOptimizers LocalOptimizerType;
+    LocalOptimizerType::ParametersType lowerBounds(this->GetBlockTransformPointer(0)->GetNumberOfParameters());
+    LocalOptimizerType::ParametersType upperBounds(this->GetBlockTransformPointer(0)->GetNumberOfParameters());
     typename InputImageType::SpacingType fixedSpacing = this->GetReferenceImage()->GetSpacing();
 
     // Scale factor to ensure that max translations and skew can be reached
@@ -283,11 +283,6 @@ DistortionCorrectionBlockMatcher<TInputImageType>
     {
         case DirectionScaleSkew:
         {
-            tmpScales[0] = this->GetSearchRadius() / m_SearchScaleRadius;
-            tmpScales[1] = this->GetSearchRadius() / m_SearchSkewRadius;
-            tmpScales[2] = this->GetSearchRadius() / m_SearchSkewRadius;
-            tmpScales[3] = 1.0;
-
             lowerBounds[0] = - m_ScaleMax;
             upperBounds[0] = m_ScaleMax;
             lowerBounds[1] = - m_SkewMax * scaleFactor;
@@ -302,9 +297,6 @@ DistortionCorrectionBlockMatcher<TInputImageType>
 
         case DirectionScale:
         {
-            tmpScales[0] = this->GetSearchRadius() / m_SearchScaleRadius;
-            tmpScales[1] = 1.0;
-
             lowerBounds[0] = - m_ScaleMax;
             upperBounds[0] = m_ScaleMax;
             lowerBounds[1] = - m_TranslateMax * scaleFactor;
@@ -317,7 +309,6 @@ DistortionCorrectionBlockMatcher<TInputImageType>
         case Direction:
         default:
         {
-            tmpScales[0] = 1.0;
             lowerBounds[0] = - m_TranslateMax;
             upperBounds[0] = m_TranslateMax;
 
@@ -326,9 +317,8 @@ DistortionCorrectionBlockMatcher<TInputImageType>
     }
 
     LocalOptimizerType * tmpOpt = dynamic_cast <LocalOptimizerType *> (optimizer.GetPointer());
-    tmpOpt->SetScales(tmpScales);
-    tmpOpt->SetLowerBounds(lowerBounds);
-    tmpOpt->SetUpperBounds(upperBounds);
+    tmpOpt->SetLowerBoundParameters(lowerBounds);
+    tmpOpt->SetUpperBoundParameters(upperBounds);
 }
 
 } // end namespace anima

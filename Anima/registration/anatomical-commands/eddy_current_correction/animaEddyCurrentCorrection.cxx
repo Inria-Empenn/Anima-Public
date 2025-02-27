@@ -45,7 +45,7 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<double> stdevThresholdArg("s","stdev","Threshold block standard deviation (default: 5)",false,5,"block minimal standard deviation",cmd);
     TCLAP::ValueArg<double> percentageKeptArg("k","per-kept","Percentage of blocks with the highest variance kept (default: 0.8)",false,0.8,"percentage of blocks kept",cmd);
 
-    TCLAP::ValueArg<unsigned int> blockMetricArg("","metric","Similarity metric between blocks (0: squared correlation coefficient, 1: correlation coefficient, 2: mean squares, default: 0)",false,0,"similarity metric",cmd);
+    TCLAP::ValueArg<unsigned int> blockMetricArg("","metric","Similarity metric between blocks (0: mean squares, 1: correlation coefficient, 2: squared correlation coefficient, default: 2)",false,2,"similarity metric",cmd);
     TCLAP::ValueArg<unsigned int> optimizerArg("","opt","Optimizer for optimal block search (0: Exhaustive, 1: Bobyqa, default: 1)",false,1,"optimizer",cmd);
 
     TCLAP::ValueArg<unsigned int> maxIterationsArg("","mi","Maximum block match iterations (default: 10)",false,10,"maximum iterations",cmd);
@@ -53,10 +53,8 @@ int main(int argc, const char** argv)
 
     TCLAP::ValueArg<unsigned int> optimizerMaxIterationsArg("","oi","Maximum iterations for local optimizer (default: 100)",false,100,"maximum local optimizer iterations",cmd);
 
-    TCLAP::ValueArg<double> searchRadiusArg("","sr","Search radius in pixels (exhaustive search window, rho start for bobyqa, default: 2)",false,2,"optimizer search radius",cmd);
-    TCLAP::ValueArg<double> finalRadiusArg("","fr","Final radius (rho end for bobyqa, default: 0.001)",false,0.001,"optimizer final radius",cmd);
     TCLAP::ValueArg<double> searchStepArg("","st","Search step for exhaustive search (default: 2)",false,2,"exhaustive optimizer search step",cmd);
-    TCLAP::ValueArg<double> translateUpperBoundArg("","tub","Upper bound on translation for bobyqa (in voxels, default: 10)",false,10,"Bobyqa translate upper bound",cmd);
+    TCLAP::ValueArg<double> translateUpperBoundArg("","tub","Upper bound on translation for bobyqa (in voxels, default: 3)",false,3,"Bobyqa translate upper bound",cmd);
 
     TCLAP::ValueArg<unsigned int> symmetryArg("","sym-reg","Registration symmetry type (0: asymmetric, 1: symmetric, 2: kissing, default: 0)",false,0,"symmetry type",cmd);
     TCLAP::ValueArg<unsigned int> agregatorArg("a","agregator","Transformation agregator type (0: M-Estimation, 1: least squares, 2: least trimmed squares, default: 0)",false,0,"agregator type",cmd);
@@ -127,9 +125,7 @@ int main(int argc, const char** argv)
         matcher->SetOptimizer((PyramidBMType::Optimizer) optimizerArg.getValue());
         matcher->SetMaximumIterations(maxIterationsArg.getValue());
         matcher->SetMinimalTransformError(minErrorArg.getValue());
-        matcher->SetFinalRadius(finalRadiusArg.getValue());
         matcher->SetOptimizerMaximumIterations(optimizerMaxIterationsArg.getValue());
-        matcher->SetSearchRadius(searchRadiusArg.getValue());
         matcher->SetStepSize(searchStepArg.getValue());
         matcher->SetTranslateUpperBound(translateUpperBoundArg.getValue());
         matcher->SetSymmetryType((PyramidBMType::SymmetryType) symmetryArg.getValue());
@@ -211,9 +207,7 @@ int main(int argc, const char** argv)
         nonLinearMatcher->SetOptimizer((NonLinearPyramidBMType::Optimizer) optimizerArg.getValue());
         nonLinearMatcher->SetMaximumIterations(maxIterationsArg.getValue());
         nonLinearMatcher->SetMinimalTransformError(minErrorArg.getValue());
-        nonLinearMatcher->SetFinalRadius(finalRadiusArg.getValue());
         nonLinearMatcher->SetOptimizerMaximumIterations(optimizerMaxIterationsArg.getValue());
-        nonLinearMatcher->SetSearchRadius(searchRadiusArg.getValue());
         nonLinearMatcher->SetStepSize(searchStepArg.getValue());
         nonLinearMatcher->SetTranslateUpperBound(translateUpperBoundArg.getValue());
         nonLinearMatcher->SetSymmetryType((NonLinearPyramidBMType::SymmetryType) symmetryArg.getValue());

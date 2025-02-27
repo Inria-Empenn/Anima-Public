@@ -3,6 +3,9 @@
 #include <animaBaseCompartment.h>
 #include <AnimaMCMExport.h>
 
+#include <tuple>
+#include <map>
+
 namespace anima
 {
 
@@ -59,19 +62,15 @@ protected:
         m_EstimateTissueRadius = true;
         m_ChangedConstraints = true;
 
-        m_FirstSummation = 0.0;
-        m_SecondSummation = 0.0;
-        m_ThirdSummation = 0.0;
-        m_FourthSummation = 0.0;
-
-        m_CurrentSmallDelta = 0.0;
-        m_CurrentBigDelta = 0.0;
-        m_CurrentGradientStrength = 0.0;
-
-        m_ModifiedParameters = true;
+        m_SignalSummationTolerance = 1.0e-4;
     }
 
     virtual ~StaniszCompartment() {}
+
+    typedef std::tuple <unsigned int, unsigned int, unsigned int> KeyType;
+    typedef std::map <KeyType, double> MapType;
+
+    KeyType GenerateKey(double smallDelta, double bigDelta, double gradientStrength);
 
     void UpdateSignals(double smallDelta, double bigDelta, double gradientStrength);
 
@@ -80,16 +79,10 @@ private:
     bool m_ChangedConstraints;
     unsigned int m_NumberOfParameters;
 
-    double m_FirstSummation;
-    double m_SecondSummation;
-    double m_ThirdSummation;
-    double m_FourthSummation;
+    MapType m_FirstSummations, m_SecondSummations;
+    MapType m_ThirdSummations, m_FourthSummations;
 
-    double m_CurrentSmallDelta;
-    double m_CurrentBigDelta;
-    double m_CurrentGradientStrength;
-
-    bool m_ModifiedParameters;
+    double m_SignalSummationTolerance;
 
     const unsigned int m_MaximumNumberOfSumElements = 2000;
 };

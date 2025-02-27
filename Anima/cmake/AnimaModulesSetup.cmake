@@ -59,4 +59,5 @@ if (BUILD_MODULE_SEGMENTATION)
 endif()
 
 list_header_directories_to_include(${PROJECT_NAME} ${${PROJECT_NAME}_HEADER_PATHS})
+list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS ${CMAKE_BINARY_DIR}/exports)
 include_directories(${${PROJECT_NAME}_INCLUDE_DIRS})

@@ -45,10 +45,6 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::PyramidalDenseTensorSVFMa
     m_MaximumIterations = 10;
     m_MinimalTransformError = 0.01;
     m_OptimizerMaximumIterations = 100;
-    m_SearchRadius = 2;
-    m_SearchAngleRadius = 5;
-    m_SearchScaleRadius = 0.1;
-    m_FinalRadius = 0.001;
     m_StepSize = 1;
     m_TranslateUpperBound = 50;
     m_AngleUpperBound = 180;
@@ -58,7 +54,6 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::PyramidalDenseTensorSVFMa
     m_ElasticSigma = 3;
     m_OutlierSigma = 3;
     m_MEstimateConvergenceThreshold = 0.01;
-    m_NeighborhoodApproximation = 2.5;
     m_BCHCompositionOrder = 1;
     m_ExponentiationOrder = 1;
     m_NumberOfPyramidLevels = 3;
@@ -156,9 +151,6 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
                 agreg->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
             agreg->SetGeometryInformation(refImage.GetPointer());
-
-            agreg->SetNeighborhoodHalfSize((unsigned int)floor(m_ExtrapolationSigma * m_NeighborhoodApproximation));
-            agreg->SetDistanceBoundary(m_ExtrapolationSigma * meanSpacing * m_NeighborhoodApproximation);
             agreg->SetMEstimateConvergenceThreshold(m_MEstimateConvergenceThreshold);
 
             agregPtr = agreg;
@@ -345,18 +337,6 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
 
         mainMatcher->SetOptimizerMaximumIterations(m_OptimizerMaximumIterations);
 
-        double sr = m_SearchRadius;
-        mainMatcher->SetSearchRadius(sr);
-
-        double sar = m_SearchAngleRadius;
-        mainMatcher->SetSearchAngleRadius(sar);
-
-        double scr = m_SearchScaleRadius;
-        mainMatcher->SetSearchScaleRadius(scr);
-
-        double fr = m_FinalRadius;
-        mainMatcher->SetFinalRadius(fr);
-
         double ss = m_StepSize;
         mainMatcher->SetStepSize(ss);
 
@@ -374,10 +354,6 @@ PyramidalDenseTensorSVFMatchingBridge<ImageDimension>::Update()
             reverseMatcher->SetNumberOfWorkUnits(GetNumberOfWorkUnits());
             reverseMatcher->SetOptimizerMaximumIterations(GetOptimizerMaximumIterations());
 
-            reverseMatcher->SetSearchRadius(sr);
-            reverseMatcher->SetSearchAngleRadius(sar);
-            reverseMatcher->SetSearchScaleRadius(scr);
-            reverseMatcher->SetFinalRadius(fr);
             reverseMatcher->SetStepSize(ss);
             reverseMatcher->SetTranslateMax(tub);
             reverseMatcher->SetAngleMax(aub);

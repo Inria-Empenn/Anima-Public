@@ -1,0 +1,4 @@
+add_subdirectory(create_grid_from_pixels)
+add_subdirectory(ddi_averaging_on_a_grid)
+add_subdirectory(ddi_test_averaging_on_real_value)
+add_subdirectory(random_ddi_generator)

@@ -36,7 +36,7 @@ B1GammaMixtureT2RelaxometryCostFunction::PrepareDataForLLS() const
     if (!m_ConstrainedParameters)
     {
         for (unsigned int i = 1;i < numParameters;++i)
-            m_GammaMeans[i] = m_TestedParameters[i];
+            m_GammaMeans[i-1] = m_TestedParameters[i];
     }
     else
         m_GammaMeans[1] = m_TestedParameters[1];

@@ -24,7 +24,8 @@ add_library(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   AnimaMCMBase
   AnimaSpecialFunctions
-  AnimaOptimizers
+  AnimaStatisticalDistributions
+  ITKOptimizers
   ITKCommon
   ${TinyXML2_LIBRARY}
   )
@@ -36,7 +37,7 @@ target_link_libraries(${PROJECT_NAME}
 
 generate_export_header(${PROJECT_NAME}
   STATIC_DEFINE ${PROJECT_NAME}_BUILT_AS_STATIC
-  EXPORT_FILE_NAME "${PROJECT_NAME}Export.h"
+  EXPORT_FILE_NAME "${CMAKE_BINARY_DIR}/exports/${PROJECT_NAME}Export.h"
   )
 
 

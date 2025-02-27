@@ -51,6 +51,7 @@ public:
     itkSetMacro(ReferenceResidual, double)
     itkSetMacro(ReferenceRatio, double)
     itkGetMacro(CurrentResidual, double)
+    itkGetMacro(CurrentRegularizationResidual, double)
 
     ParametersType &GetOptimizedT2Weights() {return m_OptimizedT2Weights;}
     itkGetMacro(OptimizedM0Value, double)
@@ -86,6 +87,7 @@ private:
     mutable ParametersType m_OptimizedT2Weights;
     mutable double m_OptimizedM0Value;
     mutable double m_CurrentResidual;
+    mutable double m_CurrentRegularizationResidual;
 
     RegularizationType m_RegularizationType;
 };

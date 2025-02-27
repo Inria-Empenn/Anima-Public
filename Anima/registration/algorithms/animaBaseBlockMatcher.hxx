@@ -1,7 +1,7 @@
 #pragma once
 #include "animaBaseBlockMatcher.h"
 
-#include <animaBobyqaOptimizer.h>
+#include <animaNLOPTOptimizers.h>
 #include <animaVoxelExhaustiveOptimizer.h>
 #include <animaBlockMatchInitializer.h>
 #include <itkPoolMultiThreader.h>
@@ -22,8 +22,6 @@ BaseBlockMatcher <TInputImageType>
 
     m_BlockVarianceThreshold = 25;
 
-    m_SearchRadius = 2;
-    m_FinalRadius = 0.001;
     m_OptimizerMaximumIterations = 100;
     m_StepSize = 1.0;
 
@@ -80,15 +78,19 @@ BaseBlockMatcher <TInputImageType>
     {
         case Bobyqa:
         {
-            typedef anima::BobyqaOptimizer LocalOptimizerType;
-            optimizer = LocalOptimizerType::New();
-            LocalOptimizerType *tmpOpt = (LocalOptimizerType *)optimizer.GetPointer();
-            tmpOpt->SetRhoBegin(m_SearchRadius);
-            tmpOpt->SetRhoEnd(m_FinalRadius);
+            anima::NLOPTOptimizers::Pointer tmpOpt = anima::NLOPTOptimizers::New();
 
-            tmpOpt->SetNumberSamplingPoints(m_BlockTransformPointers[0]->GetNumberOfParameters() + 2);
-            tmpOpt->SetMaximumIteration(m_OptimizerMaximumIterations);
+            tmpOpt->SetAlgorithm(NLOPT_LN_BOBYQA);
+            double xTol = 1.0e-4;
+            double fTol = 1.0e-2 * xTol;
+
             tmpOpt->SetMaximize(this->GetMaximizedMetric());
+            tmpOpt->SetXTolRel(xTol);
+            tmpOpt->SetFTolRel(fTol);
+            tmpOpt->SetMaxEval(m_OptimizerMaximumIterations);
+            tmpOpt->SetVectorStorageSize(2000);
+
+            optimizer = tmpOpt;
 
             break;
         }
@@ -118,13 +120,9 @@ BaseBlockMatcher <TInputImageType>
 
             LocalOptimizerType::ScalesType tmpScales(InputImageType::ImageDimension);
 
-            for (unsigned i = 0; i < steps.Size(); ++i)
-            {
-                steps[i] = m_SearchRadius;
+            for (unsigned i = 0; i < tmpScales.Size(); ++i)
                 tmpScales[i] = m_StepSize;
-            }
 
-            tmpOpt->SetNumberOfSteps(steps);
             tmpOpt->SetScales(tmpScales);
             tmpOpt->SetMaximize(this->GetMaximizedMetric());
             break;

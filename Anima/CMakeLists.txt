@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10.2)
 
 cmake_policy(SET CMP0048 NEW)
-project(ANIMA VERSION 4.1.1)
+project(ANIMA VERSION 4.2)
 
 ## #############################################################################
 ## Add additional cmake modules
@@ -87,12 +87,6 @@ set(${PROJECT_NAME}_USE_FILE
   )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-configure_file(${CMAKE_SOURCE_DIR}/cmake/${PROJECT_NAME}Exports.cmake.in
-    ${${PROJECT_NAME}_BINARY_DIR}/cmake/${PROJECT_NAME}Exports.cmake
-    @ONLY IMMEDIATE
-)
-
-include(${PROJECT_NAME}Exports)
 
 ################################################################################
 # Find dependencies
@@ -101,7 +95,6 @@ include(${PROJECT_NAME}Exports)
 include(AnimaDependencies)
 include(AnimaModulesSetup)
 include(ITKLibs)
-
 
 ################################################################################
 # Documentation

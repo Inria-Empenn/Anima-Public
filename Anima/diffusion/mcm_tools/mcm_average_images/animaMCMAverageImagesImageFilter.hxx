@@ -1,6 +1,8 @@
 #pragma once
 #include "animaMCMAverageImagesImageFilter.h"
 
+#include <animaMCMWeightedAverager.h>
+
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIterator.h>
 
@@ -57,10 +59,10 @@ typename MCMAverageImagesImageFilter <TPixelType>::MCMAveragerPointer
 MCMAverageImagesImageFilter <TPixelType>
 ::CreateAverager()
 {
-    MCMAveragerPointer mcmAverager = anima::MCMWeightedAverager::New();
-    mcmAverager->SetOutputModel(m_ReferenceOutputModel);
-
-    return mcmAverager;
+	MCMAveragerPointer outAverager = anima::MCMWeightedAverager::New();
+    outAverager->SetOutputModel(m_ReferenceOutputModel);
+    outAverager->SetDDIInterpolationMethod(m_DDIAveragingMethod);
+    return outAverager;
 }
 
 template <class TPixelType>

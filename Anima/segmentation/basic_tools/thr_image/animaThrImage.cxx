@@ -4,7 +4,7 @@
 
 #include <animaReadWriteFunctions.h>
 
-#include <limits.h>
+#include <limits>
 #include <iostream>
 #include <fstream>
 #include <tclap/CmdLine.h>
@@ -20,7 +20,7 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> maskArg("m","maskfile","mask file",false,"","mask file",cmd);
 
     TCLAP::ValueArg<double> thrArg("t","thr","Threshold value",false,1.0,"Threshold value",cmd);
-    TCLAP::ValueArg<double> upperThrArg("u","uthr","Upper threshold value",false,USHRT_MAX,"Upper threshold value",cmd);
+    TCLAP::ValueArg<double> upperThrArg("u","uthr","Upper threshold value",false,std::numeric_limits <double>::max(),"Upper threshold value",cmd);
     TCLAP::ValueArg<double> adaptThrArg("a","adaptivethr","Adaptative threshold value (between 0 and 1)",false,0.0,"adaptative threshold value",cmd);
     
     TCLAP::SwitchArg invArg("I","inv","Computes 1-res",cmd,false);

@@ -74,9 +74,9 @@ public:
 
     enum Metric
     {
-        SquaredCorrelation = 0,
+        MeanSquares = 0,
         Correlation,
-        MeanSquares
+        SquaredCorrelation
     };
 
     enum Optimizer
@@ -143,7 +143,7 @@ public:
     void SetOutputNearestSimilarityTransformFile(std::string outputNearestSimilarityTransformFile) {m_outputNearestSimilarityTransformFile = outputNearestSimilarityTransformFile;}
 
     unsigned int GetBlockSize() {return m_BlockSize;}
-    void SetBlockSize(int blockSize) {m_BlockSize=blockSize;}
+    void SetBlockSize(unsigned int blockSize) {m_BlockSize=blockSize;}
 
     unsigned int GetBlockSpacing() {return m_BlockSpacing;}
     void SetBlockSpacing(unsigned int blockSpacing) {m_BlockSpacing=blockSpacing;}
@@ -174,18 +174,6 @@ public:
 
     unsigned int GetOptimizerMaximumIterations() {return m_OptimizerMaximumIterations;}
     void SetOptimizerMaximumIterations(unsigned int OptimizerMaximumIterations) {m_OptimizerMaximumIterations=OptimizerMaximumIterations;}
-
-    double GetSearchRadius() {return m_SearchRadius;}
-    void SetSearchRadius(double SearchRadius) {m_SearchRadius=SearchRadius;}
-
-    double GetSearchAngleRadius() {return m_SearchAngleRadius;}
-    void SetSearchAngleRadius(double SearchAngleRadius) {m_SearchAngleRadius=SearchAngleRadius;}
-
-    double GetSearchScaleRadius() {return m_SearchScaleRadius;}
-    void SetSearchScaleRadius(double SearchScaleRadius) {m_SearchScaleRadius=SearchScaleRadius;}
-
-    double GetFinalRadius() {return m_FinalRadius;}
-    void SetFinalRadius(double FinalRadius) {m_FinalRadius=FinalRadius;}
 
     double GetStepSize() {return m_StepSize;}
     void SetStepSize(double StepSize) {m_StepSize=StepSize;}
@@ -278,10 +266,6 @@ private:
     unsigned int m_MaximumIterations;
     double m_MinimalTransformError;
     unsigned int m_OptimizerMaximumIterations;
-    double m_SearchRadius;
-    double m_SearchAngleRadius;
-    double m_SearchScaleRadius;
-    double m_FinalRadius;
     double m_StepSize;
     double m_TranslateUpperBound;
     double m_AngleUpperBound;

@@ -9,9 +9,9 @@
 
 enum Metric
 {
-    Correlation = 0,
-    SquaredCorrelation,
-    MeanSquares
+    MeanSquares = 0,
+    Correlation,
+    SquaredCorrelation
 };
 
 enum TransformKind
@@ -100,18 +100,6 @@ public:
     
     unsigned int GetMaximumIterations() {return m_MaximumIterations;}
     void SetMaximumIterations(unsigned int MaximumIterations) {m_MaximumIterations=MaximumIterations;}
-
-    double GetSearchRadius() {return m_SearchRadius;}
-    void SetSearchRadius(double SearchRadius) {m_SearchRadius=SearchRadius;}
-
-    double GetSearchScaleRadius() {return m_SearchScaleRadius;}
-    void SetSearchScaleRadius(double SearchScaleRadius) {m_SearchScaleRadius=SearchScaleRadius;}
-
-    double GetSearchSkewRadius() {return m_SearchSkewRadius;}
-    void SetSearchSkewRadius(double SearchSkewRadius) {m_SearchSkewRadius=SearchSkewRadius;}
-
-    double GetFinalRadius() {return m_FinalRadius;}
-    void SetFinalRadius(double FinalRadius) {m_FinalRadius=FinalRadius;}
     
     double GetTranlateUpperBound() {return m_TranlateUpperBound;}
     void SetTranlateUpperBound(double TranlateUpperBound) {m_TranlateUpperBound=TranlateUpperBound;}
@@ -142,9 +130,6 @@ public:
     
     double GetMEstimateConvergenceThreshold() {return m_MEstimateConvergenceThreshold;}
     void SetMEstimateConvergenceThreshold(double mEstimateConvergenceThreshold) {m_MEstimateConvergenceThreshold = mEstimateConvergenceThreshold;}
-    
-    double GetNeighborhoodApproximation() {return m_NeighborhoodApproximation;}
-    void SetNeighborhoodApproximation(double neighborhoodApproximation) {m_NeighborhoodApproximation = neighborhoodApproximation;}
 
     unsigned int GetExponentiationOrder() {return m_ExponentiationOrder;}
     void SetExponentiationOrder(unsigned int order) {m_ExponentiationOrder = order;}
@@ -185,10 +170,6 @@ private:
     unsigned int m_MaximumIterations;
     unsigned int m_OptimizerMaximumIterations;
     unsigned int m_HistogramSize;
-    double m_SearchRadius;
-    double m_SearchScaleRadius;
-    double m_SearchSkewRadius;
-    double m_FinalRadius;
     double m_TranlateUpperBound;
     double m_ScaleUpperBound;
     double m_SkewUpperBound;
@@ -202,7 +183,6 @@ private:
     double m_ElasticSigma;
     double m_OutlierSigma;
     double m_MEstimateConvergenceThreshold;
-    double m_NeighborhoodApproximation;
     unsigned int m_ExponentiationOrder;
     
     unsigned int m_NumberOfPyramidLevels;

@@ -30,26 +30,20 @@ int main(int argc, const char** argv)
     
     TCLAP::ValueArg<unsigned int> directionArg("d","dir","Gradient phase direction in image (default: 1 = Y axis)",false,1,"gradient phase direction",cmd);
     TCLAP::ValueArg<unsigned int> optimizerMaxIterationsArg("","oi","Maximum iterations for local optimizer (default: 100)",false,100,"maximum local optimizer iterations",cmd);
-    
-    TCLAP::ValueArg<double> searchRadiusArg("","sr","Search radius in pixels (rho start for bobyqa, default: 2)",false,2,"optimizer search radius",cmd);
-    TCLAP::ValueArg<double> searchScaleRadiusArg("","scr","Search scale radius (rho start for bobyqa, default: 0.1)",false,0.1,"optimizer search scale radius",cmd);
-    TCLAP::ValueArg<double> searchSkewRadiusArg("","skr","Search skew radius (rho start for bobyqa, default: 0.1)",false,0.1,"optimizer search skew radius",cmd);
-    TCLAP::ValueArg<double> finalRadiusArg("","fr","Final radius (rho end for bobyqa, default: 0.001)",false,0.001,"optimizer final radius",cmd);
-    
-    TCLAP::ValueArg<double> translateUpperBoundArg("","tub","Upper bound on translation for bobyqa (in voxels, default: 10)",false,10,"Bobyqa translate upper bound",cmd);
+        
+    TCLAP::ValueArg<double> translateUpperBoundArg("","tub","Upper bound on translation for bobyqa (in voxels, default: 3)",false,3,"Bobyqa translate upper bound",cmd);
     TCLAP::ValueArg<double> scaleUpperBoundArg("","scu","Upper bound on scale for bobyqa (default: 5)",false,5,"Bobyqa scale upper bound",cmd);
     TCLAP::ValueArg<double> skewUpperBoundArg("","sku","Upper bound on skew for bobyqa (in degrees, default: 45)",false,45,"Bobyqa skew upper bound",cmd);
 
     TCLAP::ValueArg<unsigned int> blockTransfoArg("t","in-transform","Transformation computed between blocks (0: direction, 1: direction+scale, 2: direction+scale+skew, default: 2)",false,2,"transformation between blocks",cmd);
     TCLAP::ValueArg<unsigned int> agregatorArg("","agregator","Transformation agregator type (0: Baloo, 1: M-smoother, default: 0)",false,0,"agregator type",cmd);
-    TCLAP::ValueArg<unsigned int> blockMetricArg("","metric","Similarity metric between blocks (0: correlation coefficient, 1: squared correlation coefficient, 2: mean squares, default: 1)",false,1,"similarity metric",cmd);
+    TCLAP::ValueArg<unsigned int> blockMetricArg("","metric","Similarity metric between blocks (0: mean squares, 1: correlation coefficient, 2: squared correlation coefficient, default: 2)",false,2,"similarity metric",cmd);
 
     TCLAP::SwitchArg weightedAgregationArg("w","no-weighted-agregation", "If set, weighted agregation is deactivated", cmd, false);
     TCLAP::ValueArg<double> extrapolationSigmaArg("","fs","Sigma for extrapolation of local pairings (default: 3)",false,3,"extrapolation sigma",cmd);
     TCLAP::ValueArg<double> elasticSigmaArg("","es","Sigma for elastic regularization (default: 2)",false,2,"elastic regularization sigma",cmd);
     TCLAP::ValueArg<double> outlierSigmaArg("","os","Sigma for outlier rejection among local pairings (default: 3)",false,3,"outlier rejection sigma",cmd);
     TCLAP::ValueArg<double> mEstimateConvergenceThresholdArg("","met","Threshold to consider m-estimator converged (default: 0.01)",false,0.01,"m-estimation convergence threshold",cmd);
-    TCLAP::ValueArg<double> neighborhoodApproximationArg("","na","Half size of the neighborhood approximation (multiplied by extrapolation sigma, default: 2.5)",false,2.5,"half size of neighborhood approximation",cmd);
     
     TCLAP::ValueArg<unsigned int> expOrderArg("e","exp-order","Order of field exponentiation approximation (in between 0 and 1, default: 0)",false,0,"exponentiation order",cmd);
 
@@ -81,10 +75,6 @@ int main(int argc, const char** argv)
     matcher->SetStDevThreshold( stdevThresholdArg.getValue() );
     matcher->SetMaximumIterations( maxIterationsArg.getValue() );
     matcher->SetOptimizerMaximumIterations( optimizerMaxIterationsArg.getValue() );
-    matcher->SetSearchRadius( searchRadiusArg.getValue() );
-    matcher->SetSearchScaleRadius( searchScaleRadiusArg.getValue() );
-    matcher->SetSearchSkewRadius( searchSkewRadiusArg.getValue() );
-    matcher->SetFinalRadius(finalRadiusArg.getValue());
     matcher->SetTranlateUpperBound( translateUpperBoundArg.getValue() );
     matcher->SetScaleUpperBound( std::log(scaleUpperBoundArg.getValue()) );
     matcher->SetSkewUpperBound( std::tan(skewUpperBoundArg.getValue() * M_PI / 180.0) );
@@ -97,7 +87,6 @@ int main(int argc, const char** argv)
     matcher->SetElasticSigma(elasticSigmaArg.getValue());
     matcher->SetOutlierSigma(outlierSigmaArg.getValue());
     matcher->SetMEstimateConvergenceThreshold(mEstimateConvergenceThresholdArg.getValue());
-    matcher->SetNeighborhoodApproximation(neighborhoodApproximationArg.getValue());
     matcher->SetWeightedAgregation( weightedAgregationArg.isSet() );
     matcher->SetNumberOfPyramidLevels( numPyramidLevelsArg.getValue() );
     matcher->SetLastPyramidLevel( lastPyramidLevelArg.getValue() );

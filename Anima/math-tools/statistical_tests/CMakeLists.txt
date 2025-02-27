@@ -32,7 +32,7 @@ target_link_libraries(${PROJECT_NAME}
 
 generate_export_header(${PROJECT_NAME}
   STATIC_DEFINE ${PROJECT_NAME}_BUILT_AS_STATIC
-  EXPORT_FILE_NAME "${PROJECT_NAME}Export.h"
+  EXPORT_FILE_NAME "${CMAKE_BINARY_DIR}/exports/${PROJECT_NAME}Export.h"
   )
 
 
@@ -52,3 +52,7 @@ add_subdirectory(low_memory_tools)
 add_subdirectory(nlmeans_patient_to_group_comparison)
 add_subdirectory(patient_to_group_odf_comparison)
 add_subdirectory(patient_to_group_comparison)
+
+if (BUILD_TESTING)
+  add_subdirectory(cramers_test)
+endif()

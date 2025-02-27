@@ -1,10 +1,13 @@
 #include "animaVectorOperations.h"
-#include <cmath>
-
 #include <animaLogarithmFunctions.h>
 
 #include <vnl/vnl_diag_matrix.h>
+#include <vnl/vnl_matrix_fixed.h>
+
 #include <itkMacro.h>
+
+#include <cmath>
+#include <limits>
 
 namespace anima
 {
@@ -383,7 +386,7 @@ template <class VectorType> void ComputeHouseholderVector(const VectorType &inpu
         outputVector[i] = inputVector[i];
     }
 
-    if (sigma == 0.0)
+    if (sigma < std::numeric_limits<double>::epsilon())
         beta = 0.0;
     else
     {

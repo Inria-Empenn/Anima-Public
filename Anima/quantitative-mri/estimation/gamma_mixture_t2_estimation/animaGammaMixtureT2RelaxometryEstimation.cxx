@@ -81,7 +81,7 @@ int main(int argc, char **argv)
     if (nonUniformPulsesArg.isSet())
     {
         mainFilter->SetReferenceSliceThickness(refSliceThicknesshArg.getValue());
-        mainFilter->SetPulseWidthFactor(nonUniformPulsesArg.getValue());
+        mainFilter->SetPulseWidthFactor(pulseWidthFactorArg.getValue());
         if (pulseProfileArg.getValue() == "")
         {
             std::cerr << "Error: pulse profile needed when using non uniform pulse profiles" << std::endl;

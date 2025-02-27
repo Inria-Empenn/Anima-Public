@@ -24,6 +24,7 @@ int main(int argc, char **argv)
     
     TCLAP::SwitchArg expArg("E","exp","Exponentiate inputs (if not selected, composition will be done using BCH)",cmd,false);
     TCLAP::SwitchArg compositionArg("R","regular-composition","Use regular composition (transformations are taken as dense field (if not selected and no exponentiation is done, BCH will be used)",cmd,false);
+    TCLAP::SwitchArg normArg("N","norm","Compute vector amplitude at each voxel",cmd,false);
 
     TCLAP::ValueArg<unsigned int> bchArg("b","bch-order","Order of BCH composition (in between 1 and 4, default: 2)",false,2,"BCH order",cmd);
     TCLAP::ValueArg<unsigned int> expOrderArg("e","exp-order","Order of field exponentiation approximation (in between 0 and 1, default: 0)",false,0,"exponentiation order",cmd);
@@ -43,10 +44,11 @@ int main(int argc, char **argv)
 	
     typedef itk::StationaryVelocityFieldTransform <double,3> SVFTransformType;
     typedef rpi::DisplacementFieldTransform <double,3> DenseTransformType;
+    typedef itk::Image <double,3> NormImageType;
     typedef SVFTransformType::VectorFieldType FieldType;
     
     FieldType::Pointer inputField = anima::readImage <FieldType> (inArg.getValue());
-    FieldType::Pointer composeField = ITK_NULLPTR;
+    FieldType::Pointer composeField = nullptr;
     if (composeArg.getValue() != "")
         composeField = anima::readImage <FieldType> (composeArg.getValue());
 
@@ -150,7 +152,39 @@ int main(int argc, char **argv)
         }
     }
 
-    anima::writeImage <FieldType> (outArg.getValue(),inputField);
+    if (normArg.isSet())
+    {
+        NormImageType::Pointer outputNorm = NormImageType::New();
+        outputNorm->Initialize();
+        outputNorm->SetRegions(inputField->GetLargestPossibleRegion());
+        outputNorm->SetSpacing (inputField->GetSpacing());
+        outputNorm->SetOrigin (inputField->GetOrigin());
+        outputNorm->SetDirection (inputField->GetDirection());
+        outputNorm->Allocate();
+        outputNorm->FillBuffer(0);
+
+        itk::ImageRegionConstIterator <FieldType> fieldItr(inputField,inputField->GetLargestPossibleRegion());
+        itk::ImageRegionIterator <NormImageType> normItr(outputNorm,outputNorm->GetLargestPossibleRegion());
+        FieldType::PixelType tmpVal;
+
+        while (!fieldItr.IsAtEnd())
+        {
+            double norm = 0.0;
+            tmpVal = fieldItr.Get();
+
+            for (unsigned int i = 0;i < 3;++i)
+                norm += tmpVal[i] * tmpVal[i];
+
+            normItr.Set(std::sqrt(norm));
+
+            ++fieldItr;
+            ++normItr;
+        }
+
+        anima::writeImage <NormImageType> (outArg.getValue(),outputNorm);
+    }
+    else
+        anima::writeImage <FieldType> (outArg.getValue(),inputField);
 
     return EXIT_SUCCESS;
 }

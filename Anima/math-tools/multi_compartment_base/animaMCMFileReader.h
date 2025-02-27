@@ -33,7 +33,7 @@ public:
     void SetFileName(std::string fileName) {m_FileName = fileName;}
 
     void Update();
-    virtual anima::BaseCompartment::Pointer CreateCompartmentForType(std::string &compartmentType);
+    anima::BaseCompartment::Pointer CreateCompartmentForType(std::string &compartmentType);
 
 private:
     OutputImagePointer m_OutputImage;

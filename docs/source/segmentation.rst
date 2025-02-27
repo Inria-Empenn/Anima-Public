@@ -75,10 +75,21 @@ The parameters are as follows:
 * ``--out-gm`` : output GM map
 * ``--out-wm`` : output WM map
 
+EM brain tissues segmentation
+-----------------------------
+
+This tool provides a simple implementation of expectation-maximization based three classes segmentation (CSF, white and greay matter). It uses an atlas registered to the subject of interest to provide a prior on the classes. The tool is named **animaTissuesEMSegmentation**.
+
+*Example:* This example illustrates how to use **animaTissuesEMClassification**. It takes as inputs a list of different modalities (``-i`` option with a text file with on each line an image of a modality), and a tissues probability map (``-t`` option: 3D vector image registered on the input with each component of the vector denoting a tissue), and a brain mask (``-m`` option). It outputs the tissue classification after running the EM algorithm (``-o`` option).
+
+.. code-block:: sh
+
+	animaTissuesEMClassification -i dataList.txt -m brain_mask.nrrd -t Tissue_Priors.nrrd -o Tissue_classification.nrrd
+
 Segmentation validation tools
 -----------------------------
 
-We now provide tools that were used for the validation of the `MS segmentation challenge <http://go.nature.com/2SW1DhA>`_ held in 2016 and that can be used for other tasks as well.
+We provide tools that were used for the validation of the `MS segmentation challenge <http://go.nature.com/2SW1DhA>`_ held in 2016 and that can be used for other tasks as well.
 
 Dice measure
 ^^^^^^^^^^^^

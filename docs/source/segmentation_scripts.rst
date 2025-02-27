@@ -16,6 +16,11 @@ The script simply takes as an input the image or images to be brain-extracted an
 	
 	~/Anima-Scripts-Public/brain_extraction/animaAtlasBasedBrainExtraction.py -i T1Image.nrrd
 
+You may also now specify a folder with the ``-a`` option that contains another atlas than the one used by default in the script. The folder must contain three files to work:
+
+* ``Reference_T1.nrrd``: the atlas T1w image, not brain masked
+* ``Reference_T1_masked.nrrd``: the brain masked atlas T1w image
+* ``BrainMask.nrrd``: the atlas brain mask
 
 Multi-atlas segmentation
 ------------------------
@@ -39,3 +44,20 @@ Several options are available:
 .. code-block:: sh
 	
 	~/Anima-Scripts-Public/multi_atlas_segmentation/animaMultiAtlasSegmentation.py -i T13D.nrrd -a listAtlasImages.txt -s listAtlasSegmentations.txt -o T13D_segmented.nrrd
+
+Tissues classification
+----------------------
+
+This script performs the task of tissues classification of a brain image (possibly with several modalities) using an external atlas of tissue probabilities. It basically performs the regsitrations needed to bring the atlas onto the brain image to classify and then run tissues classification using :doc:`animaTissuesEMSegmentation <segmentation>`. The script name is **animaAtlasEMTissuesSegmentation** and can be used as follows.
+
+*Example:*
+
+.. code-block:: sh
+	
+	~/Anima-Scripts-Public/em_segmentation/animaAtlasEMTissuesSegmentation.py -i T1Image.nrrd -i T2Image.nrrd -m brain_mask.nrrd -o output_classification.nrrd
+
+Among the options used here, are the following:
+
+* ``-i``: anatomical image(s) of the brain to be segmented. The images need not be registered to each other
+* ``-m``: brain mask of the first input
+* ``-o``: output file name for the brain classification

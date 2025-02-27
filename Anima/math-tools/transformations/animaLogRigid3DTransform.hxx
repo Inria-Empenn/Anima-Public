@@ -125,7 +125,7 @@ LogRigid3DTransform<TScalarType>
 
     for (unsigned int i = 0;i < 3;++i)
     {
-        m_LogVector[i+3] = this->GetTranslation()[i];
+        m_LogVector[i+3] = this->GetTranslation()[i] + this->GetCenter()[i];
         for (unsigned int j = 0;j < 3;++j)
             m_LogVector[i+3] -= m_LogTransform(i,j) * this->GetCenter()[j];
     }
