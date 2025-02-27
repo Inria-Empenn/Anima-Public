@@ -22,20 +22,14 @@
 void ComputePropertiesOnOneCell(vtkCell *cell, anima::MCMLinearInterpolateImageFunction <anima::MCMImage <double, 3> > *mcmInterpolator,
                                 std::vector < vtkSmartPointer <vtkDoubleArray> > &myParameters, anima::MultiCompartmentModel *mcm)
 {   
-    typedef itk::VariableLengthVector <double> VectorType;
+    using VectorType = itk::VariableLengthVector <double>;
 
-    typedef anima::MCMImage <double, 3> ModelImageType;
-    typedef ModelImageType::Pointer ModelImagePointer;
+    using ModelImageType = anima::MCMImage <double, 3>;
+    using PointType = ModelImageType::PointType;
 
-    typedef ModelImageType::IndexType IndexType;
-    typedef ModelImageType::PointType PointType;
-    
-    typedef anima::BaseCompartment CompartmentType;
-    typedef CompartmentType::Pointer CompartmentPointer;
-
-    typedef anima::MultiCompartmentModel MCMType;
-    typedef MCMType::Pointer MCMPointer;
-    typedef MCMType::ModelOutputVectorType ModelOutputVectorType;
+    using MCMType = anima::MultiCompartmentModel;
+    using MCMPointer = MCMType::Pointer;
+    using ModelOutputVectorType = MCMType::ModelOutputVectorType;
     
     ModelOutputVectorType interpolatedValue;
 
@@ -47,10 +41,11 @@ void ComputePropertiesOnOneCell(vtkCell *cell, anima::MCMLinearInterpolateImageF
     vtkIdType nbOfCellPts = cellPts->GetNumberOfPoints();
 
     double currentPtPositionVTK[3];
+    double nextPtPositionVTK[3];
+    double lastPtPositionVTK[3];
 
-    PointType currentPtPosition;
-
-    itk::ContinuousIndex<double, 3> currentIndex;
+    PointType currentPtPosition, nextPtPosition, lastPtPosition;
+    itk::ContinuousIndex<double,3> currentIndex;
     std::vector <double> myParameterValues(nbOfComponents);
 
     vnl_vector <double> trackDirection(3);
@@ -59,23 +54,29 @@ void ComputePropertiesOnOneCell(vtkCell *cell, anima::MCMLinearInterpolateImageF
     vnl_vector <double> tempDirectionSphericalCordinate(3);
     vnl_vector <double> tempDirection(3);
 
-    int fwCompartmentIndex = -1;
-    int irwCompartmentIndex = -1;
-
-    for (unsigned int i = 0;i < mcm->GetNumberOfIsotropicCompartments();++i)
-    {
-        if (mcm->GetCompartment(i)->GetCompartmentType() == anima::FreeWater)
-            fwCompartmentIndex = i;
-        else if (mcm->GetCompartment(i)->GetCompartmentType() == anima::IsotropicRestrictedWater)
-            irwCompartmentIndex = i;
-    }
-
     for (int j = 0;j < nbOfCellPts;++j)
     {
+        //Get the track direction
         cellPts->GetPoint(j, currentPtPositionVTK);
+        int upperIndex = std::min((int)nbOfCellPts - 1,j + 1);
+        cellPts->GetPoint(upperIndex,nextPtPositionVTK);
+        int lowerIndex = std::max(0,j - 1);
+        cellPts->GetPoint(lowerIndex,lastPtPositionVTK);
+
         int ptId = cell->GetPointId(j);
+
         for (int k = 0; k < 3; ++k)
+        {
             currentPtPosition[k] = currentPtPositionVTK[k];
+            nextPtPosition[k] = nextPtPositionVTK[k];
+            lastPtPosition[k] = lastPtPositionVTK[k];
+        }
+
+        for (int k = 0; k < 3; ++k)
+            trackDirection[k] = nextPtPosition[k] - lastPtPosition[k];
+
+        if (trackDirection.two_norm() != 0)
+            trackDirection.normalize();
 
         //Convert physical points to continuous index and interpolate
         mcmInterpolator->GetInputImage()->TransformPhysicalPointToContinuousIndex(currentPtPosition, currentIndex);
@@ -95,10 +96,39 @@ void ComputePropertiesOnOneCell(vtkCell *cell, anima::MCMLinearInterpolateImageF
         }
         else if (std::abs(totalWeight - 1.0) > 0.0000001)
             std::cout << "Error some weight is not equal to 1, weight : " << totalWeight << std::endl;
+
+        // Find the closest fascicle direction from the workOutputModel to the current one
+        double maxDirectionDotProduct = -1;
+        double tempDotProduct = 0;
+        int digitOfSelectedCompartment = 0;
+
+        for (int k = nbOfIsotropicCompartment; k < nbOfCompartment; ++k)
+        {
+            tempDirectionSphericalCordinate[0] = workOutputModel->GetCompartment(k)->GetOrientationTheta();
+            tempDirectionSphericalCordinate[1] = workOutputModel->GetCompartment(k)->GetOrientationPhi();
+            tempDirectionSphericalCordinate[2] = 1;
+
+            anima::TransformSphericalToCartesianCoordinates(tempDirectionSphericalCordinate, tempDirection);
+
+            tempDotProduct = std::abs(dot_product(trackDirection, tempDirection));
+
+            if (tempDotProduct > maxDirectionDotProduct)
+            {
+                maxDirectionDotProduct = tempDotProduct;
+                digitOfSelectedCompartment = k;
+            }
+        }
+
+        if (digitOfSelectedCompartment < nbOfIsotropicCompartment)
+        {
+            std::cout << "The selected compartment is isotropic" << std::endl;
+            exit(-1);
+        }
         
         interpolatedValue = workOutputModel->GetModelVector();
+        myParameters[0]->SetValue(ptId, digitOfSelectedCompartment);
         for (unsigned int k = 0;k < workOutputModel->GetSize();++k)
-            myParameters[k]->SetValue(ptId, interpolatedValue[k]);
+            myParameters[k + 1]->SetValue(ptId, outputModelVector[k]);
     }
 }
 
@@ -137,7 +167,6 @@ ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION ThreadLabeler(void *arg)
     return ITK_THREAD_RETURN_DEFAULT_VALUE;
 }
 
-
 int main(int argc,  char **argv)
 {
     TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
@@ -158,14 +187,14 @@ int main(int argc,  char **argv)
         return EXIT_FAILURE;
     }
 
-    typedef anima::MCMImage <double, 3> ModelImageType;
-    typedef ModelImageType::Pointer ModelImagePointer;
+    using ModelImageType = anima::MCMImage <double, 3>;
+    using ModelImagePointer = ModelImageType::Pointer;
 
-    typedef anima::MCMLinearInterpolateImageFunction <ModelImageType> mcmInterpolatorType;
-    typedef mcmInterpolatorType::Pointer mcmInterpolatorPointer;
+    using mcmInterpolatorType = anima::MCMLinearInterpolateImageFunction <ModelImageType>;
+    using mcmInterpolatorPointer = mcmInterpolatorType::Pointer;
 
-    typedef anima::MultiCompartmentModel MCMType;
-    typedef MCMType::Pointer MCMPointer;
+    using MCMType = anima::MultiCompartmentModel;
+    using MCMPointer = MCMType::Pointer;
 
     anima::MCMFileReader <double,3> mcmReader;
     mcmReader.SetFileName(mcmArg.getValue());
@@ -193,14 +222,14 @@ int main(int argc,  char **argv)
 
     vtkIdType nbTotalCells = tracks->GetNumberOfCells();
 
-    std::cout << "nbTotalPts : " << nbTotalPts << std::endl;
-    std::cout << "nbTotalCells : " << nbTotalCells << std::endl;
+    std::cout << "Total number of points: " << nbTotalPts << std::endl;
+    std::cout << "Total number of celles: " << nbTotalCells << std::endl;
 
     mcmInterpolatorPointer mcmInterpolator = mcmInterpolatorType::New();
     mcmInterpolator->SetInputImage(inputImage);
     mcmInterpolator->SetReferenceOutputModel(mcm);
 
-    int nbOfComponents = mcm->GetSize();
+    int nbOfComponents = mcm->GetSize() + 1;
 
     std::vector < vtkSmartPointer <vtkDoubleArray> > myParameters(nbOfComponents);
     for (int i = 0; i < nbOfComponents; ++i)
@@ -211,11 +240,14 @@ int main(int argc,  char **argv)
     }
 
     unsigned int pos = 0;
+
+    myParameters[pos]->SetName("MostColinearIndex");
+    ++pos;
     
     for (unsigned int i = 0;i < mcm->GetNumberOfIsotropicCompartments();++i)
-        myParameters[i + pos]->SetName((std::string(anima::DiffusionModelCompartmentName[mcm->GetCompartment(i)->GetCompartmentType()]) + "CompartmentWeight").c_str());
+        myParameters[i + pos]->SetName((std::string(anima::DiffusionModelCompartmentName[mcm->GetCompartment(i)->GetCompartmentType()]) + "Weight").c_str());
     for (unsigned int i = mcm->GetNumberOfIsotropicCompartments();i < mcm->GetNumberOfCompartments();++i)
-        myParameters[i + pos]->SetName((std::string(anima::DiffusionModelCompartmentName[mcm->GetCompartment(i)->GetCompartmentType()]) + "Compartment" + std::to_string(i + 1 - mcm->GetNumberOfIsotropicCompartments()) + "Weight").c_str());
+        myParameters[i + pos]->SetName((std::string(anima::DiffusionModelCompartmentName[mcm->GetCompartment(i)->GetCompartmentType()]) + std::to_string(i + 1 - mcm->GetNumberOfIsotropicCompartments()) + "Weight").c_str());
     pos += mcm->GetNumberOfCompartments();
     
     unsigned int pos_in = 0;
@@ -224,7 +256,7 @@ int main(int argc,  char **argv)
         unsigned int compartmentSize = mcm->GetCompartment(i)->GetCompartmentSize();
         for (unsigned int j = 0;j < compartmentSize;++j)
         {
-            myParameters[pos_in + pos]->SetName((std::string(anima::DiffusionModelCompartmentName[mcm->GetCompartment(i)->GetCompartmentType()]) + "CompartmentParameter" + std::to_string(j + 1)).c_str());
+            myParameters[pos_in + pos]->SetName((std::string(anima::DiffusionModelCompartmentName[mcm->GetCompartment(i)->GetCompartmentType()]) + "Parameter" + std::to_string(j + 1)).c_str());
             ++pos_in;
         }
     }
@@ -233,7 +265,7 @@ int main(int argc,  char **argv)
         unsigned int compartmentSize = mcm->GetCompartment(i)->GetCompartmentSize();
         for (unsigned int j = 0;j < compartmentSize;++j)
         {
-            myParameters[pos_in + pos]->SetName((std::string(anima::DiffusionModelCompartmentName[mcm->GetCompartment(i)->GetCompartmentType()]) + "Compartment" + std::to_string(i + 1 - mcm->GetNumberOfIsotropicCompartments()) + "Parameter" + std::to_string(j + 1)).c_str());
+            myParameters[pos_in + pos]->SetName((std::string(anima::DiffusionModelCompartmentName[mcm->GetCompartment(i)->GetCompartmentType()]) + std::to_string(i + 1 - mcm->GetNumberOfIsotropicCompartments()) + "Parameter" + std::to_string(j + 1)).c_str());
             ++pos_in;
         }
     }
