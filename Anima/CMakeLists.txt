@@ -48,23 +48,17 @@ include(list_source_files)
 include(list_header_directories_to_include)
 include(set_exe_install_rules)
 include(set_lib_install_rules)
-
+include(GenerateOldExeName)
 
 ################################################################################
 # Output directories
 ################################################################################
 
-set(EXECUTABLE_OUTPUT_PATH
-  ${CMAKE_BINARY_DIR}/bin
-  CACHE PATH "Single output directory for building all executables."
-  )
-
 set(LIBRARY_OUTPUT_PATH
   ${CMAKE_BINARY_DIR}/lib
   CACHE PATH "Single output directory for building all libraries."
   )
-  
-  
+ 
 ################################################################################
 # Setup project
 ################################################################################

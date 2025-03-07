@@ -20,3 +20,5 @@ target_link_libraries(${PROJECT_NAME}
   ${ITKIO_LIBRARIES}
   libAnimaCore
 )
+
+set_exe_install_rules(${PROJECT_NAME} "animaSegPerfAnalyzer")

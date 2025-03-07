@@ -21,7 +21,6 @@ foreach(dir ${ARGV})
   file(GLOB HEADERS
     ${dir}/*.h
     ${dir}/*.hpp
-    ${dir}/*.hxx
     )
   set(${project_name}_HEADERS
     ${HEADERS}
@@ -49,6 +48,7 @@ foreach(dir ${ARGV})
 
   file(GLOB TEMPLATES
     ${dir}/*.txx
+    ${dir}/*.hxx
     )
   set(${project_name}_TEMPLATES
     ${SOURCES}
@@ -116,7 +116,6 @@ foreach(dir ${ARGV})
   file(GLOB_RECURSE HEADERS
     ${dir}/*.h
     ${dir}/*.hpp
-    ${dir}/*.hxx
     )
   set(${project_name}_HEADERS
     ${HEADERS}
@@ -144,6 +143,7 @@ foreach(dir ${ARGV})
 
   file(GLOB_RECURSE TEMPLATES
     ${dir}/*.txx
+    ${dir}/*.hxx
     )
   set(${project_name}_TEMPLATES
     ${SOURCES}
