@@ -16,11 +16,7 @@ add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_CFILES})
 ## Link
 ## #############################################################################
 
-target_link_libraries(${PROJECT_NAME}
-  #${ITKIO_LIBRARIES}
-  #AnimaDiffMCM
-  libAnimaDiffusion
-)
+target_link_libraries(${PROJECT_NAME} libAnimaDiffusion)
 
 ## #############################################################################
 ## install
