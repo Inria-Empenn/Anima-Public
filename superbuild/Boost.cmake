@@ -2,7 +2,7 @@ set (proj Boost)
 
 set (location "")
 if (NOT DEFINED ${proj}_SRC_DIR)
-  set(location URL https://boostorg.jfrog.io/artifactory/main/release/1.83.0/source/boost_1_83_0.tar.gz)
+  set(location URL https://archives.boost.io/release/1.83.0/source/boost_1_83_0.tar.gz)
 endif()
 
 ExternalProject_Add(${proj}
