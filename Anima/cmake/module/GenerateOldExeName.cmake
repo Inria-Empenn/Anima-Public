@@ -52,7 +52,7 @@ function(GenerateOldExeNameCommand target oldName oldPath OutVar_LINK_COMMAND)
   #   3. Determines the type of link (symbolic or hard) based on OLD_NAME_LINK_TYPE.
   #   4. Builds a CMake command that uses fsLink.cmake to create the compatibility link.
   #   5. Sets the generated command in the output variable OutVar_LINK_COMMAND in the parent scope.
-  #   6. Writes information to pairing files using pairing_txt_${target}.cmake.
+  #   6. Writes information to pairing files using pairing_csv_${target}.cmake.
 
   #####################################################
   ## Determine sourceFile variable value
@@ -101,9 +101,9 @@ function(GenerateOldExeNameCommand target oldName oldPath OutVar_LINK_COMMAND)
   #####################################################
   ## Write information files for pairing
   get_target_property(_outputDir_release ${target} RUNTIME_OUTPUT_DIRECTORY_RELEASE)
-  set(pairing_command "file(APPEND \"${_outputDir_release}/newToOld.txt\" \"${target};${oldName}\\n\")\nfile(APPEND \"${oldPath}/oldToNew.txt\" \"${oldName};${target}\\n\")\n")
+  set(pairing_command "file(APPEND \"${_outputDir_release}/newToOld.csv\" \"${target};${oldName}\\n\")\nfile(APPEND \"${oldPath}/oldToNew.csv\" \"${oldName};${target}\\n\")\n")
 
-  file(WRITE ${CMAKE_SOURCE_DIR}/cmake/pairing/pairing_txt_${target}.cmake "${pairing_command}")
+  file(WRITE ${CMAKE_SOURCE_DIR}/cmake/pairing/pairing_csv_${target}.cmake "${pairing_command}")
 endfunction()
 
 
@@ -148,7 +148,7 @@ macro(legacy_name target OLD_BIN_NAME)
                        COMMAND ${_OLD_NAME_LINK_COMMAND})
 
     # Adds a dependency to ensure the mapping files are created after the target is built.
-    add_dependencies(Z_CREATE_TXT_COMPATIBILITY_MAPPING ${target})
+    add_dependencies(Z_CREATE_CSV_COMPATIBILITY_MAPPING ${target})
   endif()
 endmacro()
 
@@ -160,8 +160,8 @@ if(${OLD_NAME_COMPATIBILITY})
   # Adds a custom target rebuild mapping files.
   # This target is used as a dependency to ensure the files are created after the executables are built.
 
-  # Defines the command to create the mapping files (newToOld.txt and oldToNew.txt).
-  set(PAIRING_TXT_COMMAND ${CMAKE_COMMAND}
+  # Defines the command to create the mapping files (newToOld.csv and oldToNew.csv).
+  set(PAIRING_CSV_COMMAND ${CMAKE_COMMAND}
                          -DNEW_TO_OLD_PATH:STRING=${CMAKE_BINARY_DIR}/bin
                          -DOLD_TO_NEW_PATH:STRING=${OLD_NAME_PATH}
                          -DPAIRING_DIR:STRING=${CMAKE_SOURCE_DIR}/cmake/pairing/
@@ -169,5 +169,5 @@ if(${OLD_NAME_COMPATIBILITY})
                          ${CMAKE_SOURCE_DIR}/cmake/pairing/pairing.cmake)
 
   # Adds a custom target to execute the mapping files creation command.
-  add_custom_target(Z_CREATE_TXT_COMPATIBILITY_MAPPING COMMAND ${PAIRING_TXT_COMMAND})
+  add_custom_target(Z_CREATE_CSV_COMPATIBILITY_MAPPING ALL COMMAND ${PAIRING_CSV_COMMAND})
 endif()
