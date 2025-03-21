@@ -24,4 +24,4 @@ target_link_libraries(${PROJECT_NAME}
 ## install
 ## #############################################################################
 
-set_exe_install_rules(${PROJECT_NAME})
+set_exe_install_rules(${PROJECT_NAME} "animaMaskImage")
