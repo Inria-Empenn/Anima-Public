@@ -7,16 +7,16 @@
 
 namespace anima
 {
-    class ODFAverageImageFilter : public anima::NumberedThreadImageToImageFilter<itk::VectorImage<float, 3>, itk::VectorImage<float, 3>>
+    class ODFAverageImageFilter : public anima::NumberedThreadImageToImageFilter<itk::VectorImage<double, 3>, itk::VectorImage<double, 3>>
     {
     public:
         ODFAverageImageFilter();
         ~ODFAverageImageFilter() override;
 
         using Self = ODFAverageImageFilter;
-        using InputImageType = itk::VectorImage<float, 3>;
-        using OutputImageType = itk::VectorImage<float, 3>;
-        using WeightImageType = itk::Image<float, 3>;
+        using InputImageType = itk::VectorImage<double, 3>;
+        using OutputImageType = itk::VectorImage<double, 3>;
+        using WeightImageType = itk::Image<double, 3>;
         using Superclass = anima::NumberedThreadImageToImageFilter<InputImageType, OutputImageType>;
         using Pointer = itk::SmartPointer<Self>;
         using ConstPointer = itk::SmartPointer<const Self>;
@@ -40,7 +40,7 @@ namespace anima
 
         /** Typedefs for computations. */
         using VectorType = std::vector<double>;
-        using HistoArrayType = std::vector<VectorType>;
+        using VectorArrayType = std::vector<VectorType>;
         using MatrixType = vnl_matrix<double>;
 
         void AddWeightImage(const unsigned int i, const WeightImagePointer &weightImage);
@@ -50,22 +50,30 @@ namespace anima
         void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) override;
         void AfterThreadedGenerateData() override;
 
-        void DiscretizeODF(const InputPixelType &Coef, VectorType &resHisto);
-        void GetAverageHisto(const HistoArrayType &coefs, const VectorType &weightValues, OutputPixelType &resCoef);
-        void NormalizeODF(const InputPixelType &inputCoef, InputPixelType &outputCoef);
-        VectorType GetSquareRootODFCoef(const VectorType &histo);
-        OutputPixelType GetSquareODFCoef(const VectorType &histo);
+        void ConvertODF(const InputPixelType &inputODF, VectorType &convertedODF);
+        int RemoveNullODFs(const VectorArrayType &allODFs, const VectorType &allweights, int nbODFs, VectorArrayType &selectedODFs, VectorType &selectedWeights);
+        int GetIndexODFtoNormalize(VectorArrayType &odfs, int &numNotNullODFs);
+        void DiscretizeODF(const VectorType &coefODF, VectorType &sampledODF);
+        double NormalizeODF(const VectorType &inputODF, VectorType &normalizedODF);
+        void InverseNormalization(const double &normValue, VectorType &odf);
+        VectorType GetSquareRootODFCoef(const VectorType &odf);
+        OutputPixelType GetSquareODFCoef(const VectorType &odf);
+        VectorType GetAverageHisto(const VectorArrayType &coefs, const VectorType &weightValues, int nbODFs);
 
     private:
         ITK_DISALLOW_COPY_AND_ASSIGN(ODFAverageImageFilter);
 
         unsigned int m_VectorLength;
-        double m_EpsValue;
+        double m_EpsValueTestNormalized;
+        double m_EpsValueTestNull;
 
         std::vector<WeightImagePointer> m_WeightImages;
         MatrixType m_SpherHarm;
         MatrixType m_SolveSHMatrix;
-
         anima::ODFSphericalHarmonicBasis *m_ODFSHBasis;
+
+        VectorArrayType m_SamplePoints;
+
+        
     };
 } // end of namespace anima

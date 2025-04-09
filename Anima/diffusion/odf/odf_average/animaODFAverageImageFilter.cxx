@@ -14,9 +14,11 @@ namespace anima
 {
     ODFAverageImageFilter::ODFAverageImageFilter()
     {
-        m_EpsValue = std::sqrt(std::numeric_limits<double>::epsilon());
+        m_EpsValueTestNormalized = std::pow(10, -6);
+        m_EpsValueTestNull = std::pow(10, -12);
         m_VectorLength = 0;
         m_ODFSHBasis = nullptr;
+        //m_SamplePoints = this->GetSamplePoints();
     }
 
     ODFAverageImageFilter::~ODFAverageImageFilter() = default;
@@ -98,25 +100,30 @@ namespace anima
 
         OutputImageIteratorType outItr(this->GetOutput(), outputRegionForThread); //iterator on output image
 
-        VectorType weightValues(numInputs);
-        VectorType workValue(NB_SAMPLES_PHI * NB_SAMPLES_THETA);
-        HistoArrayType workValues(numInputs);
-
-        InputPixelType inputValue(m_VectorLength);
+        VectorType coefODFValue(m_VectorLength);
+        VectorType sampledODFValue(NB_SAMPLES_PHI * NB_SAMPLES_THETA);
+        VectorArrayType currentODFs(numInputs);
+        VectorArrayType notNullCurrentODFs;
+        VectorType currentWeights(numInputs);
+        VectorType currentWeightsNotNullODFs;
+        VectorType inputValue(m_VectorLength);
         OutputPixelType outputValue(m_VectorLength);
 
         //Average computation
         while (!outItr.IsAtEnd())
         {
             double weightSum = 0.0;
+            double normValue = 1.0;
+            int numNotNullODFs;
+            int indexODFtoNormalize;
             for (unsigned int i = 0; i < numInputs; ++i)
             {
                 double weightValue = weightItrs[i].Get();
                 weightSum += weightValue;
-                weightValues[i] = weightValue;
+                currentWeights[i] = weightValue;
             }
 
-            if (weightSum < m_EpsValue)
+            if (weightSum < m_EpsValueTestNull)
             //If in a voxel, the sum of weights is equal (or very close) to 0, then we output a null distribution
             {
                 outputValue.Fill(0.0);
@@ -130,22 +137,108 @@ namespace anima
                 }
 
                 ++outItr;
-
                 this->IncrementNumberOfProcessedPoints();
             }
 
             else
             {
+                //std::cout<<"1"<<std::endl;
                 for (unsigned int i = 0; i < numInputs; ++i)
                 {
-                    this->NormalizeODF(inItrs[i].Get(), inputValue);
-                    this->DiscretizeODF(inputValue, workValue);
-                    workValues[i] = this->GetSquareRootODFCoef(workValue);
+                    this->ConvertODF(inItrs[i].Get(), inputValue);
+                    currentODFs[i] = inputValue;
+                    //std::cout<<"2"<<std::endl;
+
+                }
+                numNotNullODFs = this->RemoveNullODFs(currentODFs, currentWeights, numInputs, notNullCurrentODFs, currentWeightsNotNullODFs);
+                //std::cout<<"3"<<std::endl;
+                switch (numNotNullODFs)
+                {
+                    case 0:
+                        //std::cout<<"case 0"<<std::endl;
+                        outputValue.Fill(0.0);
+                        break;
+                    
+                    case 1:
+                        //std::cout<<"case 1"<<std::endl;
+                        for (unsigned int i = 0; i < m_VectorLength; i++){
+                            outputValue[i] = notNullCurrentODFs[0][i];
+                        }
+                        break;
+                    
+                    default:
+                        //std::cout<<"default case"<<std::endl;
+                        indexODFtoNormalize = this->GetIndexODFtoNormalize(notNullCurrentODFs, numNotNullODFs);
+                        //std::cout<<indexODFtoNormalize<<std::endl;
+                        for (unsigned int i = 0; i < numNotNullODFs; i++)
+                        {
+                            /*
+                            std::cout<<"Input ODF "<<i<<std::endl;
+                            std::cout<<"[";
+                            for (double v : notNullCurrentODFs[i])
+                            {
+                                std::cout<<v<<", ";
+                            }
+                            std::cout<<"]"<<std::endl;
+                            */
+                            this->DiscretizeODF(notNullCurrentODFs[i], sampledODFValue);
+                            coefODFValue = this->GetSquareRootODFCoef(sampledODFValue);
+                            //std::cout<<"5"<<std::endl;
+                            if (i == indexODFtoNormalize)
+                            {
+                                /*
+                                std::cout<<"Before normalization "<<i<<std::endl;
+                                std::cout<<"[";
+                                for (double v : coefODFValue)
+                                {
+                                    std::cout<<v<<", ";
+                                }
+                                std::cout<<"]"<<std::endl;
+                                */
+                                normValue = this->NormalizeODF(coefODFValue, notNullCurrentODFs[i]);
+                                /*
+                                std::cout<<"Normalized ODF "<<i<<std::endl;
+                                std::cout<<"[";
+                                for (double v : notNullCurrentODFs[i])
+                                {
+                                    std::cout<<v<<", ";
+                                }
+                                std::cout<<"]"<<std::endl;
+                                std::cout<<"index "<<i<<std::endl;
+                                std::cout<<normValue<<std::endl;
+                                */
+                            }
+                            else
+                            {
+                                notNullCurrentODFs[i] = coefODFValue;
+                                //std::cout<<"not index "<<i<<std::endl;
+                            }
+                            //std::cout<<std::endl;
+                            //std::cout<<std::endl;
+                        }
+                        coefODFValue = this->GetAverageHisto(notNullCurrentODFs, currentWeightsNotNullODFs, numNotNullODFs);
+                        /*
+                        std::cout<<"Average ODF"<<std::endl;
+                        std::cout<<"[";
+                        for (double v : coefODFValue)
+                        {
+                            std::cout<<v<<", ";
+                        }
+                        std::cout<<"]"<<std::endl;
+                        */
+                        //std::cout<<"6"<<std::endl;
+                        if (indexODFtoNormalize != -1)
+                        {
+                            this->InverseNormalization(normValue, coefODFValue);
+                            //std::cout<<"7"<<std::endl;
+                        }
+                        this->DiscretizeODF(coefODFValue, sampledODFValue);
+                        outputValue = this->GetSquareODFCoef(sampledODFValue);
+                        //std::cout<<"8"<<std::endl;
                 }
 
-                this->GetAverageHisto(workValues, weightValues, outputValue);
-                this->DiscretizeODF(outputValue, workValue);
-                outputValue = this->GetSquareODFCoef(workValue);
+                notNullCurrentODFs.clear();
+                currentWeightsNotNullODFs.clear();
 
                 outItr.Set(outputValue);
 
@@ -157,12 +250,12 @@ namespace anima
                 }
 
                 ++outItr;
-
                 this->IncrementNumberOfProcessedPoints();
+ 
             }
         }
     }
-
+            
 
     void ODFAverageImageFilter::AfterThreadedGenerateData()
     {
@@ -172,8 +265,56 @@ namespace anima
         delete m_ODFSHBasis;
     }
 
+    void ODFAverageImageFilter::ConvertODF(const InputPixelType &inputODF, VectorType &convertedODF)
+    {
+        for (unsigned int i = 0; i < m_VectorLength; i++){
+            convertedODF[i] = inputODF[i]; 
+        }
+    }
 
-    void ODFAverageImageFilter::DiscretizeODF(const InputPixelType &modelValue, VectorType &odf)
+    int ODFAverageImageFilter::RemoveNullODFs(const VectorArrayType &allODFs, const VectorType &allweights, int nbODFs, VectorArrayType &selectedODFs, VectorType &selectedWeights)
+    {
+        int numNotNullODFs = 0;
+        for (unsigned int i = 0; i < nbODFs; i++){
+            VectorType odf = allODFs[i];
+            bool currentODFisNull = true;
+            int j = 0;
+            while (currentODFisNull && j<m_VectorLength)
+            {
+                if (!std::abs(odf[j])<m_EpsValueTestNull)
+                {
+                    currentODFisNull = false;
+                }
+                j++;
+            }
+            if (!currentODFisNull)
+            {
+                selectedODFs.push_back(odf);
+                selectedWeights.push_back(allweights[i]);
+                numNotNullODFs++;
+            }
+        }
+        return numNotNullODFs;
+    }
+
+    int ODFAverageImageFilter::GetIndexODFtoNormalize(VectorArrayType &odfs, int &numNotNullODFs)
+    {
+        int index = -1; //if at the end, index is still -1, it means that not any ODF needs to be normalized
+        int i=0;
+        while (index == -1 && i < numNotNullODFs)
+        {
+            if (std::abs(odfs[i][0]-1/std::sqrt(4*M_PI)) >= m_EpsValueTestNormalized)
+            {
+                index = i;
+            }
+            i++;
+        }
+        return index;
+
+    }
+
+
+    void ODFAverageImageFilter::DiscretizeODF(const VectorType &coefODF, VectorType &sampledODF)
     {
         /**
          * Move an ODF from representation by SH coefficients to a sample form (vector with values at sample points)
@@ -185,29 +326,46 @@ namespace anima
             for (unsigned int j = 0; j < NB_SAMPLES_PHI; ++j)
             {
                 double phi = static_cast<double>(j) * DELTA_PHI;
-                odf[k] = m_ODFSHBasis->getValueAtPosition(modelValue, theta, phi);
+                sampledODF[k] = m_ODFSHBasis->getValueAtPosition(coefODF, theta, phi);
                 k++;
             }
         }
     }
 
 
-    void ODFAverageImageFilter::NormalizeODF(const InputPixelType &inputCoef, InputPixelType &outputCoef)
+    double ODFAverageImageFilter::NormalizeODF(const VectorType &inputODF, VectorType &normalizedODF)
     {
         /**
          * Normalizes an ODF so that it integrates to 1 over a sphere, by multiplying each SH component by a constant factor normValue
          */
+        double sumSquareCoefs = 0;
         double normValue;
-
-        if (std::abs(inputCoef[0]) < m_EpsValue){
-            outputCoef.Fill(0.0); 
+        for (unsigned int i = 0; i < m_VectorLength; i++){
+            sumSquareCoefs+=std::pow(inputODF[i],2);
         }
-        else{
-            normValue = 1/(inputCoef[0]*std::sqrt(4*M_PI)); //equivalent to normValue*inputCoef[0]
-            outputCoef[0] = 1/std::sqrt(4*M_PI);               
-            for (unsigned int j = 1; j < m_VectorLength; j++){
-                outputCoef[j] = normValue * inputCoef[j];
+        if (std::abs(sumSquareCoefs)<m_EpsValueTestNull){
+            normValue = 0.0;
+            for (unsigned int i = 0; i < m_VectorLength; i++){
+                normalizedODF[i] = normValue;
             }
+        }
+        else
+        {
+            normValue = 1/std::sqrt(sumSquareCoefs);
+            for (unsigned int i = 0; i < m_VectorLength; i++){
+                normalizedODF[i] = inputODF[i]*normValue;
+            }
+        }
+        return normValue;
+    }
+
+    void ODFAverageImageFilter::InverseNormalization(const double &normValue, VectorType &odf)
+    {
+        if (!std::abs(normValue) < m_EpsValueTestNull)
+        {
+            for (unsigned int j = 0; j < m_VectorLength; j++){
+                odf[j] = odf[j]/normValue;
+            }  
         }
     }
     
@@ -254,7 +412,7 @@ namespace anima
 
         //Compute the square of each sample point
         for (unsigned int i = 0; i < NB_SAMPLES_THETA * NB_SAMPLES_PHI; ++i)
-            squareOdf.put(i, 0, std::pow(odf[i], 2.0));
+            squareOdf.put(i, 0, std::pow(odf[i], 2));
 
         //Convert from sample form to representation by coefficients
         squareCoef = m_SolveSHMatrix * squareOdf;
@@ -268,7 +426,7 @@ namespace anima
     }
 
 
-    void ODFAverageImageFilter::GetAverageHisto(const HistoArrayType &coefs, const VectorType &weightValues, OutputPixelType &resCoef)
+    ODFAverageImageFilter::VectorType ODFAverageImageFilter::GetAverageHisto(const VectorArrayType &coefs, const VectorType &weightValues, int nbODFs)
     {
         /**
          * Compute the weighted average of input ODFs using method of Goh et al., 2O11 (Algorithm 1)
@@ -276,7 +434,6 @@ namespace anima
          * weightValues: Vector of size numInputs with the weights of the input ODFs (each element is a scalar)
          * resCoef: Output ODF represented by coefficients
          */
-        unsigned int numImages = this->GetNumberOfIndexedInputs();
 
         VectorType mean, nextMean = coefs[0];
         VectorType tangent(m_VectorLength), workValue(m_VectorLength);
@@ -292,7 +449,7 @@ namespace anima
 
             std::fill(tangent.begin(), tangent.end(), 0.0);
             double weightSum = 0.0;
-            for (unsigned int i = 0; i < numImages; ++i)
+            for (unsigned int i = 0; i < nbODFs; ++i)
             {
                 weightSum += weightValues[i];
                 std::fill(workValue.begin(), workValue.end(), 0.0);
@@ -302,7 +459,7 @@ namespace anima
             }
 
             for (unsigned int j = 0; j < m_VectorLength; ++j)
-                tangent[j] /= weightSum;
+                tangent[j] /= weightSum; //enables to make averaging work even if the sum of the weights is not equal to 1 (but to check)
 
             normTan = anima::ComputeNorm(tangent);
 
@@ -312,8 +469,7 @@ namespace anima
             nIter++;
         }
 
-        for (unsigned int i = 0; i < m_VectorLength; ++i)
-            resCoef[i] = nextMean[i];
+        return nextMean;
     }
 
 } //end namespace anima
