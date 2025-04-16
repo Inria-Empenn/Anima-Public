@@ -4,10 +4,7 @@
 
 #include <itkImageRegionIterator.h>
 
-#define NB_SAMPLES_THETA 10
-#define NB_SAMPLES_PHI   (2 * NB_SAMPLES_THETA)
-#define DELTA_PHI        (2.0 * M_PI / static_cast<double>(NB_SAMPLES_PHI))
-#define DELTA_THETA      (M_PI / (static_cast<double>(NB_SAMPLES_THETA) - 1.0))
+
 
 
 namespace anima
@@ -18,7 +15,8 @@ namespace anima
         m_EpsValueTestNull = std::pow(10, -12);
         m_VectorLength = 0;
         m_ODFSHBasis = nullptr;
-        //m_SamplePoints = this->GetSamplePoints();
+        m_SamplePoints = g_SphericalDesignPoints;
+        std::for_each(m_SamplePoints.begin(), m_SamplePoints.end(), [](VectorType &v){anima::TransformCartesianToSphericalCoordinates(v,v);});
     }
 
     ODFAverageImageFilter::~ODFAverageImageFilter() = default;
@@ -53,24 +51,18 @@ namespace anima
         unsigned int odfSHOrder = std::round(-1.5 + 0.5 * std::sqrt(8.0 * static_cast<double>(m_VectorLength) + 1.0));
 
         //Discretize SH (m_SpherHarm will contain the values of each spherical harmonic (columns) for each sample point (lines))
-        m_SpherHarm.set_size(NB_SAMPLES_PHI * NB_SAMPLES_THETA, m_VectorLength);
+        m_SpherHarm.set_size(NB_SAMPLE_POINTS, m_VectorLength);
         m_ODFSHBasis = new anima::ODFSphericalHarmonicBasis(odfSHOrder);
 
         double sqrt2 = std::sqrt(2.0);
-        unsigned int k = 0;
-        for (unsigned int i = 0; i < NB_SAMPLES_THETA; ++i)
+        VectorType currentPoint;
+        for (unsigned int i = 0; i < NB_SAMPLE_POINTS; i++)
         {
-            double theta = static_cast<double>(i) * DELTA_THETA;
-
-            for (unsigned int j = 0; j < NB_SAMPLES_PHI; ++j)
-            {
-                double phi = static_cast<double>(j) * DELTA_PHI;
-                unsigned int c = 0;
-                for (double l = 0; l <= odfSHOrder; l += 2)
-                    for (double m = -l; m <= l; m++)
-                        m_SpherHarm.put(k, c++, m_ODFSHBasis->getNthSHValueAtPosition(l, m, theta, phi));
-                k++;
-            }
+            currentPoint = m_SamplePoints[i];
+            unsigned int c = 0;
+            for (double l = 0; l <= odfSHOrder; l += 2)
+                for (double m = -l; m <= l; m++)
+                    m_SpherHarm.put(i, c++, m_ODFSHBasis->getNthSHValueAtPosition(l, m, currentPoint[0], currentPoint[1])); 
         }
 
         m_SolveSHMatrix = vnl_matrix_inverse<double>(m_SpherHarm.transpose() * m_SpherHarm).as_matrix() * m_SpherHarm.transpose();
@@ -101,9 +93,9 @@ namespace anima
         OutputImageIteratorType outItr(this->GetOutput(), outputRegionForThread); //iterator on output image
 
         VectorType coefODFValue(m_VectorLength);
-        VectorType sampledODFValue(NB_SAMPLES_PHI * NB_SAMPLES_THETA);
-        VectorArrayType currentODFs(numInputs);
-        VectorArrayType notNullCurrentODFs;
+        VectorType sampledODFValue(NB_SAMPLE_POINTS);
+        Vector2DType currentODFs(numInputs);
+        Vector2DType notNullCurrentODFs;
         VectorType currentWeights(numInputs);
         VectorType currentWeightsNotNullODFs;
         VectorType inputValue(m_VectorLength);
@@ -169,7 +161,6 @@ namespace anima
                     default:
                         //std::cout<<"default case"<<std::endl;
                         indexODFtoNormalize = this->GetIndexODFtoNormalize(notNullCurrentODFs, numNotNullODFs);
-                        //std::cout<<indexODFtoNormalize<<std::endl;
                         for (unsigned int i = 0; i < numNotNullODFs; i++)
                         {
                             /*
@@ -272,7 +263,7 @@ namespace anima
         }
     }
 
-    int ODFAverageImageFilter::RemoveNullODFs(const VectorArrayType &allODFs, const VectorType &allweights, int nbODFs, VectorArrayType &selectedODFs, VectorType &selectedWeights)
+    int ODFAverageImageFilter::RemoveNullODFs(const Vector2DType &allODFs, const VectorType &allweights, int nbODFs, Vector2DType &selectedODFs, VectorType &selectedWeights)
     {
         int numNotNullODFs = 0;
         for (unsigned int i = 0; i < nbODFs; i++){
@@ -297,7 +288,7 @@ namespace anima
         return numNotNullODFs;
     }
 
-    int ODFAverageImageFilter::GetIndexODFtoNormalize(VectorArrayType &odfs, int &numNotNullODFs)
+    int ODFAverageImageFilter::GetIndexODFtoNormalize(Vector2DType &odfs, int &numNotNullODFs)
     {
         int index = -1; //if at the end, index is still -1, it means that not any ODF needs to be normalized
         int i=0;
@@ -319,16 +310,11 @@ namespace anima
         /**
          * Move an ODF from representation by SH coefficients to a sample form (vector with values at sample points)
          */
-        unsigned int k = 0;
-        for (unsigned int i = 0; i < NB_SAMPLES_THETA; ++i)
+        VectorType currentPoint;
+        for (unsigned int i = 0; i < NB_SAMPLE_POINTS; i++)
         {
-            double theta = static_cast<double>(i) * DELTA_THETA;
-            for (unsigned int j = 0; j < NB_SAMPLES_PHI; ++j)
-            {
-                double phi = static_cast<double>(j) * DELTA_PHI;
-                sampledODF[k] = m_ODFSHBasis->getValueAtPosition(coefODF, theta, phi);
-                k++;
-            }
+            currentPoint = m_SamplePoints[i];
+            sampledODF[i] = m_ODFSHBasis->getValueAtPosition(coefODF, currentPoint[0], currentPoint[1]);
         }
     }
 
@@ -379,11 +365,11 @@ namespace anima
          * 
          */
 
-        MatrixType squareRootOdf(NB_SAMPLES_THETA * NB_SAMPLES_PHI, 1);
+        MatrixType squareRootOdf(NB_SAMPLE_POINTS, 1);
         MatrixType squareRootCoef(m_VectorLength, 1);
 
         //Compute square root of each sample point
-        for (unsigned int i = 0; i < NB_SAMPLES_THETA * NB_SAMPLES_PHI; ++i)
+        for (unsigned int i = 0; i < NB_SAMPLE_POINTS; ++i)
             squareRootOdf.put(i, 0, std::sqrt(std::max(0.0, odf[i])));
 
         //Convert from sample form to representation by coefficients
@@ -407,11 +393,11 @@ namespace anima
          * 
          */
 
-        MatrixType squareOdf(NB_SAMPLES_THETA * NB_SAMPLES_PHI, 1);
+        MatrixType squareOdf(NB_SAMPLE_POINTS, 1);
         MatrixType squareCoef(m_VectorLength, 1);
 
         //Compute the square of each sample point
-        for (unsigned int i = 0; i < NB_SAMPLES_THETA * NB_SAMPLES_PHI; ++i)
+        for (unsigned int i = 0; i < NB_SAMPLE_POINTS; ++i)
             squareOdf.put(i, 0, std::pow(odf[i], 2));
 
         //Convert from sample form to representation by coefficients
@@ -426,7 +412,7 @@ namespace anima
     }
 
 
-    ODFAverageImageFilter::VectorType ODFAverageImageFilter::GetAverageHisto(const VectorArrayType &coefs, const VectorType &weightValues, int nbODFs)
+    ODFAverageImageFilter::VectorType ODFAverageImageFilter::GetAverageHisto(const Vector2DType &coefs, const VectorType &weightValues, int nbODFs)
     {
         /**
          * Compute the weighted average of input ODFs using method of Goh et al., 2O11 (Algorithm 1)

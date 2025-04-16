@@ -1,9 +1,11 @@
 #pragma once
 
+#include "animaSphericalDesignPoints.h"
 #include <animaNumberedThreadImageToImageFilter.h>
 #include <animaODFSphericalHarmonicBasis.h>
 
 #include <itkVectorImage.h>
+
 
 namespace anima
 {
@@ -40,7 +42,7 @@ namespace anima
 
         /** Typedefs for computations. */
         using VectorType = std::vector<double>;
-        using VectorArrayType = std::vector<VectorType>;
+        using Vector2DType = std::vector<VectorType>;
         using MatrixType = vnl_matrix<double>;
 
         void AddWeightImage(const unsigned int i, const WeightImagePointer &weightImage);
@@ -51,14 +53,14 @@ namespace anima
         void AfterThreadedGenerateData() override;
 
         void ConvertODF(const InputPixelType &inputODF, VectorType &convertedODF);
-        int RemoveNullODFs(const VectorArrayType &allODFs, const VectorType &allweights, int nbODFs, VectorArrayType &selectedODFs, VectorType &selectedWeights);
-        int GetIndexODFtoNormalize(VectorArrayType &odfs, int &numNotNullODFs);
+        int RemoveNullODFs(const Vector2DType &allODFs, const VectorType &allweights, int nbODFs, Vector2DType &selectedODFs, VectorType &selectedWeights);
+        int GetIndexODFtoNormalize(Vector2DType &odfs, int &numNotNullODFs);
         void DiscretizeODF(const VectorType &coefODF, VectorType &sampledODF);
         double NormalizeODF(const VectorType &inputODF, VectorType &normalizedODF);
         void InverseNormalization(const double &normValue, VectorType &odf);
         VectorType GetSquareRootODFCoef(const VectorType &odf);
         OutputPixelType GetSquareODFCoef(const VectorType &odf);
-        VectorType GetAverageHisto(const VectorArrayType &coefs, const VectorType &weightValues, int nbODFs);
+        VectorType GetAverageHisto(const Vector2DType &coefs, const VectorType &weightValues, int nbODFs);
 
     private:
         ITK_DISALLOW_COPY_AND_ASSIGN(ODFAverageImageFilter);
@@ -72,7 +74,7 @@ namespace anima
         MatrixType m_SolveSHMatrix;
         anima::ODFSphericalHarmonicBasis *m_ODFSHBasis;
 
-        VectorArrayType m_SamplePoints;
+        Array2DType m_SamplePoints;
 
         
     };
