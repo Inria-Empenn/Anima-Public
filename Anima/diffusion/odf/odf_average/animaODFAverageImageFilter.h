@@ -29,12 +29,10 @@ namespace anima
         /** Run-time type information (and related methods) */
         itkTypeMacro(ODFAverageImageFilter, anima::NumberedThreadImageToImageFilter);
 
-        /** Image typedef support */
         using InputImagePointer = InputImageType::Pointer;
         using OutputImagePointer = OutputImageType::Pointer;
         using WeightImagePointer = WeightImageType::Pointer;
 
-        /** Superclass typedefs. */
         using InputImageRegionType = Superclass::InputImageRegionType;
         using OutputImageRegionType = Superclass::OutputImageRegionType;
         using InputPixelType = InputImageType::PixelType;
@@ -60,14 +58,14 @@ namespace anima
         void InverseNormalization(const double &normValue, VectorType &odf);
         VectorType GetSquareRootODFCoef(const VectorType &odf);
         OutputPixelType GetSquareODFCoef(const VectorType &odf);
-        VectorType GetAverageHisto(const Vector2DType &coefs, const VectorType &weightValues, int nbODFs);
+        VectorType ComputeAverage(const Vector2DType &coefs, const VectorType &weightValues, int nbODFs);
 
     private:
         ITK_DISALLOW_COPY_AND_ASSIGN(ODFAverageImageFilter);
 
         unsigned int m_VectorLength;
-        double m_EpsValueTestNormalized;
-        double m_EpsValueTestNull;
+        double m_EpsValueTestNormalized; //Will be used to test if an odf is normalized
+        double m_EpsValueTestNull; //Will be used to test if values are null (needs to be much smaller than m_EpsValueTestNormalized)
 
         std::vector<WeightImagePointer> m_WeightImages;
         MatrixType m_SpherHarm;
@@ -75,7 +73,5 @@ namespace anima
         anima::ODFSphericalHarmonicBasis *m_ODFSHBasis;
 
         Array2DType m_SamplePoints;
-
-        
     };
 } // end of namespace anima

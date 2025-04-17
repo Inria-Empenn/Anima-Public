@@ -6,9 +6,9 @@
 #define NB_SAMPLE_POINTS 240
 
 using Array2DType = std::array<std::vector<double>, NB_SAMPLE_POINTS>;
-//using VectorArrayType = std::vector<std::vector< double> >;
 
-//static const std::vector<std::vector<double>> g_SphericalDesignPoints (
+/*The following 3D points will be used to get a sampled representation of the ODF (namely a vector with the ODF's values on each of these points).
+These points are called spherical design. They enable to compute sums on the unit sphere instead of integrals without any loss of information (see Hardin and Sloane, 1995).*/
 static const Array2DType g_SphericalDesignPoints (
 {{
 	{ 0.8926535357627230E+00,  0.4125340536573610E+00, -0.1816186104542530E+00},
