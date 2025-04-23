@@ -8,3 +8,4 @@
 *.autosave
 CMakeLists.txt.user.*
 CMakeFiles
+pairing_*.cmake
