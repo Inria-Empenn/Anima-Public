@@ -1,7 +1,7 @@
 add_subdirectory(Combined)
 add_subdirectory(GammaMixtureT2)
 add_subdirectory(GMMT2)
-add_subdirectory(MultiT2)
+add_subdirectory(MULTIT2)
 add_subdirectory(T1)
 add_subdirectory(T1Se)
 add_subdirectory(T2)
