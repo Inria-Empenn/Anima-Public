@@ -68,8 +68,12 @@ function(GenerateOldExeNameCommand target oldName oldPath OutVar_LINK_COMMAND)
                  $<$<CONFIG:release>:${_outputDir_release}/${target}${CMAKE_EXECUTABLE_SUFFIX}>
                  $<$<CONFIG:MinSizeRel>:${_outputDir_minsize}/${target}${CMAKE_EXECUTABLE_SUFFIX}>
                  $<$<CONFIG:RelWithDebInfo>:${_outputDir_reldbg}/${target}${CMAKE_EXECUTABLE_SUFFIX}>)
+
+    set(sourceDir ${_outputDir_release})
+				 
   else()
     get_target_property(sourceFile ${target} RUNTIME_OUTPUT_DIRECTORY )
+    set(sourceDir  "${sourceFile}")
     set(sourceFile "${sourceFile}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
   endif()
 
@@ -100,8 +104,7 @@ function(GenerateOldExeNameCommand target oldName oldPath OutVar_LINK_COMMAND)
 
   #####################################################
   ## Write information files for pairing
-  get_target_property(_outputDir_release ${target} RUNTIME_OUTPUT_DIRECTORY_RELEASE)
-  set(pairing_command "file(APPEND \"${_outputDir_release}/newToOld.csv\" \"${target};${oldName}\\n\")\nfile(APPEND \"${oldPath}/oldToNew.csv\" \"${oldName};${target}\\n\")\n")
+  set(pairing_command "file(APPEND \"${sourceDir}/newToOld.csv\" \"${target};${oldName}\\n\")\nfile(APPEND \"${oldPath}/oldToNew.csv\" \"${oldName};${target}\\n\")\n")
 
   file(WRITE ${CMAKE_SOURCE_DIR}/cmake/pairing/pairing_csv_${target}.cmake "${pairing_command}")
 endfunction()
