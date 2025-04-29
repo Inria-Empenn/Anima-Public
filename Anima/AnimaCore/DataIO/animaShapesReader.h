@@ -30,6 +30,7 @@ protected:
     void ReadFileAsMedinriaFibers();
     void ReadFileAsCSV();
     void ReadFileAsTRK();
+    void ReadFileAsTCK();
 
 private:
     vtkSmartPointer <vtkPolyData> m_OutputData;

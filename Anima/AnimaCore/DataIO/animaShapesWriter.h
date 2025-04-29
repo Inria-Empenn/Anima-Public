@@ -38,6 +38,7 @@ protected:
     void WriteFileAsMedinriaFibers();
     void WriteFileAsCSV();
     void WriteFileAsTRK();
+    void WriteFileAsTCK();
 
 private:
     vtkSmartPointer <vtkPolyData> m_InputData;

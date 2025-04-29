@@ -113,6 +113,11 @@ void ShapesWriter::WriteFileAsTRK()
     trkWriter.Update();
 }
 
+void ShapesWriter::WriteFileAsTCK()
+{
+    //TODO
+}
+
 void ShapesWriter::WriteFileAsCSV()
 {
     vtkSmartPointer<vtkPointData> inputData = m_InputData->GetPointData();

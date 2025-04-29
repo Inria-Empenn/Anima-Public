@@ -118,6 +118,11 @@ void ShapesReader::ReadFileAsTRK()
     m_OutputData = trkReader.GetOutputData();
 }
 
+void ShapesReader::ReadFileAsTCK()
+{
+    //TODO
+}
+
 void ShapesReader::ReadFileAsCSV()
 {
     std::string extension = vtksys::SystemTools::GetFilenameLastExtension(m_FileName);
