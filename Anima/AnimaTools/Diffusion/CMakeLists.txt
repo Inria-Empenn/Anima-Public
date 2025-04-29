@@ -9,3 +9,6 @@ add_subdirectory(dti)
 add_subdirectory(MCM)
 add_subdirectory(FibersAnalysis)
 add_subdirectory(odf)
+add_subdirectory(Track)
+
+message("Track")
