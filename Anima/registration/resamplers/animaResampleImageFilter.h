@@ -1,218 +1,225 @@
 #pragma once
 
 #include <itkFixedArray.h>
-#include <itkTransform.h>
 #include <itkImageFunction.h>
 #include <itkImageRegionIterator.h>
 #include <itkImageToImageFilter.h>
 #include <itkInterpolateImageFunction.h>
 #include <itkMatrixOffsetTransformBase.h>
 #include <itkSize.h>
+#include <itkTransform.h>
 
-namespace anima
-{
+namespace anima {
 
-template <class TInputImage, class TOutputImage, class TInterpolatorPrecisionType=double>
-class ResampleImageFilter : public itk::ImageToImageFilter<TInputImage, TOutputImage>
-{
+template <class TInputImage, class TOutputImage,
+          class TInterpolatorPrecisionType = double>
+class ResampleImageFilter
+    : public itk::ImageToImageFilter<TInputImage, TOutputImage> {
 public:
-    /** Standard class typedefs. */
-    typedef ResampleImageFilter                           Self;
-    typedef itk::ImageToImageFilter<TInputImage,TOutputImage>  Superclass;
-    typedef itk::SmartPointer<Self>                            Pointer;
-    typedef itk::SmartPointer<const Self>                      ConstPointer;
+  /** Standard class typedefs. */
+  using Self = ResampleImageFilter;
+  using Superclass = itk::ImageToImageFilter<TInputImage, TOutputImage>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-    typedef TInputImage                             InputImageType;
-    typedef TOutputImage                            OutputImageType;
-    typedef typename InputImageType::Pointer        InputImagePointer;
-    typedef typename InputImageType::ConstPointer   InputImageConstPointer;
-    typedef typename OutputImageType::Pointer       OutputImagePointer;
-    typedef typename InputImageType::RegionType     InputImageRegionType;
-    typedef typename InputImageType::IndexType InputIndexType;
+  using InputImageType = TInputImage;
+  using OutputImageType = TOutputImage;
+  using InputImagePointer = typename InputImageType::Pointer;
+  using InputImageConstPointer = typename InputImageType::ConstPointer;
+  using OutputImagePointer = typename OutputImageType::Pointer;
+  using InputImageRegionType = typename InputImageType::RegionType;
+  using InputIndexType = typename InputImageType::IndexType;
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Run-time type information (and related methods). */
-    itkTypeMacro(ResampleImageFilter, itk::ImageToImageFilter)
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(ResampleImageFilter, itk::ImageToImageFilter);
 
-    /** Number of dimensions. */
-    itkStaticConstMacro(ImageDimension, unsigned int,
-                        TOutputImage::ImageDimension);
-    itkStaticConstMacro(InputImageDimension, unsigned int,
-                        TInputImage::ImageDimension);
+  /** Number of dimensions. */
+  itkStaticConstMacro(ImageDimension, unsigned int,
+                      TOutputImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension, unsigned int,
+                      TInputImage::ImageDimension);
 
-    /** Transform typedef. */
-    typedef itk::Transform<TInterpolatorPrecisionType,
-    itkGetStaticConstMacro(ImageDimension),
-    itkGetStaticConstMacro(ImageDimension)> TransformType;
-    typedef typename TransformType::ConstPointer TransformPointerType;
+  /** Transform typedef. */
+  using TransformType = itk::Transform<TInterpolatorPrecisionType,
+                                       itkGetStaticConstMacro(ImageDimension),
+                                       itkGetStaticConstMacro(ImageDimension)>;
+  using TransformPointerType = typename TransformType::ConstPointer;
 
-    typedef itk::MatrixOffsetTransformBase <TInterpolatorPrecisionType,
-    itkGetStaticConstMacro(ImageDimension),
-    itkGetStaticConstMacro(ImageDimension)> MatrixTransformType;
+  using MatrixTransformType =
+      itk::MatrixOffsetTransformBase<TInterpolatorPrecisionType,
+                                     itkGetStaticConstMacro(ImageDimension),
+                                     itkGetStaticConstMacro(ImageDimension)>;
 
-    /** Interpolator typedef. */
-    typedef itk::InterpolateImageFunction<InputImageType, TInterpolatorPrecisionType> InterpolatorType;
-    typedef typename InterpolatorType::Pointer  InterpolatorPointerType;
+  /** Interpolator typedef. */
+  using InterpolatorType =
+      itk::InterpolateImageFunction<InputImageType, TInterpolatorPrecisionType>;
+  using InterpolatorPointerType = typename InterpolatorType::Pointer;
 
-    /** Image size typedef. */
-    typedef itk::Size<itkGetStaticConstMacro(ImageDimension)> SizeType;
+  /** Image size typedef. */
+  using SizeType = itk::Size<itkGetStaticConstMacro(ImageDimension)>;
 
-    /** Image index typedef. */
-    typedef typename TOutputImage::IndexType IndexType;
+  /** Image index typedef. */
+  using IndexType = typename TOutputImage::IndexType;
 
-    /** Image point typedef. */
-    typedef typename InterpolatorType::PointType    PointType;
-    //typedef typename TOutputImage::PointType    PointType;
+  /** Image point typedef. */
+  using PointType = typename InterpolatorType::PointType;
+  // typedef typename TOutputImage::PointType    PointType;
 
-    /** Image pixel value typedef. */
-    typedef typename TOutputImage::PixelType   PixelType;
-    typedef typename TInputImage::PixelType    InputPixelType;
+  /** Image pixel value typedef. */
+  using PixelType = typename TOutputImage::PixelType;
+  using InputPixelType = typename TInputImage::PixelType;
 
-    /** Typedef to describe the output image region type. */
-    typedef typename TOutputImage::RegionType OutputImageRegionType;
+  /** Typedef to describe the output image region type. */
+  using OutputImageRegionType = typename TOutputImage::RegionType;
 
-    /** Image spacing,origin and direction typedef */
-    typedef typename TOutputImage::SpacingType   SpacingType;
-    typedef typename TOutputImage::PointType     OriginPointType;
-    typedef typename TOutputImage::DirectionType DirectionType;
+  /** Image spacing,origin and direction typedef */
+  using SpacingType = typename TOutputImage::SpacingType;
+  using OriginPointType = typename TOutputImage::PointType;
+  using DirectionType = typename TOutputImage::DirectionType;
 
-    /** base type for images of the current ImageDimension */
-    typedef itk::ImageBase<itkGetStaticConstMacro(ImageDimension)> ImageBaseType;
+  /** base type for images of the current ImageDimension */
+  using ImageBaseType = itk::ImageBase<itkGetStaticConstMacro(ImageDimension)>;
 
-    /** Set the coordinate transformation.
-         * Set the coordinate transform to use for resampling.  Note that this must
-         * be in physical coordinates and it is the output-to-input transform, NOT
-         * the input-to-output transform that you might naively expect.  By default
-         * the filter uses an Identity transform. You must provide a different
-         * transform here, before attempting to run the filter, if you do not want to
-         * use the default Identity transform. */
-    void SetTransform(TransformType *transform);
+  /** Set the coordinate transformation.
+   * Set the coordinate transform to use for resampling.  Note that this must
+   * be in physical coordinates and it is the output-to-input transform, NOT
+   * the input-to-output transform that you might naively expect.  By default
+   * the filter uses an Identity transform. You must provide a different
+   * transform here, before attempting to run the filter, if you do not want to
+   * use the default Identity transform. */
+  void SetTransform(TransformType *transform);
 
-    /** Get a pointer to the coordinate transform. */
-    itkGetConstObjectMacro(Transform, TransformType)
+  /** Get a pointer to the coordinate transform. */
+  itkGetConstObjectMacro(Transform, TransformType);
 
-    /** Set the interpolator function.  The default is
-         * itk::LinearInterpolateImageFunction<InputImageType, TInterpolatorPrecisionType>. Some
-         * other options are itk::NearestNeighborInterpolateImageFunction
-         * (useful for binary masks and other images with a small number of
-         * possible pixel values), and itk::BSplineInterpolateImageFunction
-         * (which provides a higher order of interpolation).  */
-    itkSetObjectMacro(Interpolator, InterpolatorType)
+  /** Set the interpolator function.  The default is
+   * itk::LinearInterpolateImageFunction<InputImageType,
+   * TInterpolatorPrecisionType>. Some other options are
+   * itk::NearestNeighborInterpolateImageFunction (useful for binary masks and
+   * other images with a small number of possible pixel values), and
+   * itk::BSplineInterpolateImageFunction (which provides a higher order of
+   * interpolation).  */
+  itkSetObjectMacro(Interpolator, InterpolatorType);
 
-    /** Get a pointer to the interpolator function. */
-    itkGetConstObjectMacro(Interpolator, InterpolatorType)
+  /** Get a pointer to the interpolator function. */
+  itkGetConstObjectMacro(Interpolator, InterpolatorType);
 
-    /** Set the size of the output image. */
-    itkSetMacro(Size, SizeType)
+  /** Set the size of the output image. */
+  itkSetMacro(Size, SizeType);
 
-    /** Get the size of the output image. */
-    itkGetConstReferenceMacro(Size, SizeType)
+  /** Get the size of the output image. */
+  itkGetConstReferenceMacro(Size, SizeType);
 
-    /** Set the pixel value when a transformed pixel is outside of the
-         * image.  The default default pixel value is 0. */
-    itkSetMacro(DefaultPixelValue, PixelType)
+  /** Set the pixel value when a transformed pixel is outside of the
+   * image.  The default default pixel value is 0. */
+  itkSetMacro(DefaultPixelValue, PixelType);
 
-    /** Get the pixel value when a transformed pixel is outside of the image */
-    itkGetConstReferenceMacro(DefaultPixelValue, PixelType)
+  /** Get the pixel value when a transformed pixel is outside of the image */
+  itkGetConstReferenceMacro(DefaultPixelValue, PixelType);
 
-    /** Set the output image spacing. */
-    itkSetMacro(OutputSpacing, SpacingType)
-    virtual void SetOutputSpacing(const double* values);
+  /** Set the output image spacing. */
+  itkSetMacro(OutputSpacing, SpacingType);
+  virtual void SetOutputSpacing(const double *values);
 
-    /** Get the output image spacing. */
-    itkGetConstReferenceMacro(OutputSpacing, SpacingType)
+  /** Get the output image spacing. */
+  itkGetConstReferenceMacro(OutputSpacing, SpacingType);
 
-    /** Set the output image origin. */
-    itkSetMacro(OutputOrigin, OriginPointType)
-    virtual void SetOutputOrigin(const double* values);
+  /** Set the output image origin. */
+  itkSetMacro(OutputOrigin, OriginPointType);
+  virtual void SetOutputOrigin(const double *values);
 
-    /** Get the output image origin. */
-    itkGetConstReferenceMacro(OutputOrigin, OriginPointType)
+  /** Get the output image origin. */
+  itkGetConstReferenceMacro(OutputOrigin, OriginPointType);
 
-    /** Set the output direciton cosine matrix. */
-    itkSetMacro(OutputDirection, DirectionType)
-    itkGetConstReferenceMacro(OutputDirection, DirectionType)
+  /** Set the output direciton cosine matrix. */
+  itkSetMacro(OutputDirection, DirectionType);
+  itkGetConstReferenceMacro(OutputDirection, DirectionType);
 
-    /** Helper method to set the output parameters based on this image */
-    void SetOutputParametersFromImage ( const ImageBaseType * image );
+  /** Helper method to set the output parameters based on this image */
+  void SetOutputParametersFromImage(const ImageBaseType *image);
 
-    /** Set the start index of the output largest possible region.
-         * The default is an index of all zeros. */
-    itkSetMacro(OutputStartIndex, IndexType)
+  /** Set the start index of the output largest possible region.
+   * The default is an index of all zeros. */
+  itkSetMacro(OutputStartIndex, IndexType);
 
-    /** Get the start index of the output largest possible region. */
-    itkGetConstReferenceMacro(OutputStartIndex, IndexType)
+  /** Get the start index of the output largest possible region. */
+  itkGetConstReferenceMacro(OutputStartIndex, IndexType);
 
-    /** Copy the output information from another Image.  By default,
-         *  the information is specified with the SetOutputSpacing, Origin,
-         *  and Direction methods. UseReferenceImage must be On and a
-         *  Reference image must be present to override the defaul behavior.
-         *  NOTE: This function seems redundant with the
-         *  SetOutputParametersFromImage( image ) function */
-    void SetReferenceImage (const TOutputImage *image);
-    const TOutputImage * GetReferenceImage() const;
+  /** Copy the output information from another Image.  By default,
+   *  the information is specified with the SetOutputSpacing, Origin,
+   *  and Direction methods. UseReferenceImage must be On and a
+   *  Reference image must be present to override the defaul behavior.
+   *  NOTE: This function seems redundant with the
+   *  SetOutputParametersFromImage( image ) function */
+  void SetReferenceImage(const TOutputImage *image);
+  const TOutputImage *GetReferenceImage() const;
 
-    itkSetMacro(UseReferenceImage, bool)
-    itkBooleanMacro(UseReferenceImage)
-    itkGetConstMacro(UseReferenceImage, bool)
+  itkSetMacro(UseReferenceImage, bool);
+  itkBooleanMacro(UseReferenceImage);
+  itkGetConstMacro(UseReferenceImage, bool);
 
-    /** ResampleImageFilter produces an image which is a different size
-         * than its input.  As such, it needs to provide an implementation
-         * for GenerateOutputInformation() in order to inform the pipeline
-         * execution model.  The original documentation of this method is
-         * below. \sa ProcessObject::GenerateOutputInformaton() */
-    virtual void GenerateOutputInformation() ITK_OVERRIDE;
+  /** ResampleImageFilter produces an image which is a different size
+   * than its input.  As such, it needs to provide an implementation
+   * for GenerateOutputInformation() in order to inform the pipeline
+   * execution model.  The original documentation of this method is
+   * below. \sa ProcessObject::GenerateOutputInformaton() */
+  virtual void GenerateOutputInformation() ITK_OVERRIDE;
 
-    /** ResampleImageFilter needs a different input requested region than
-         * the output requested region.  As such, ResampleImageFilter needs
-         * to provide an implementation for GenerateInputRequestedRegion()
-         * in order to inform the pipeline execution model.
-         * \sa ProcessObject::GenerateInputRequestedRegion() */
-    virtual void GenerateInputRequestedRegion() ITK_OVERRIDE;
+  /** ResampleImageFilter needs a different input requested region than
+   * the output requested region.  As such, ResampleImageFilter needs
+   * to provide an implementation for GenerateInputRequestedRegion()
+   * in order to inform the pipeline execution model.
+   * \sa ProcessObject::GenerateInputRequestedRegion() */
+  virtual void GenerateInputRequestedRegion() ITK_OVERRIDE;
 
-    /** This method is used to set the state of the filter before
-         * multi-threading. */
-    virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
+  /** This method is used to set the state of the filter before
+   * multi-threading. */
+  virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
 
-    /** This method is used to set the state of the filter after
-         * multi-threading. */
-    virtual void AfterThreadedGenerateData() ITK_OVERRIDE;
+  /** This method is used to set the state of the filter after
+   * multi-threading. */
+  virtual void AfterThreadedGenerateData() ITK_OVERRIDE;
 
-    /** Method Compute the Modified Time based on changed to the components. */
-    itk::ModifiedTimeType GetMTime() const ITK_OVERRIDE;
+  /** Method Compute the Modified Time based on changed to the components. */
+  itk::ModifiedTimeType GetMTime() const ITK_OVERRIDE;
 
-    void SetScaleIntensitiesWithJacobian(bool scale) {m_ScaleIntensitiesWithJacobian = scale;}
+  void SetScaleIntensitiesWithJacobian(bool scale) {
+    m_ScaleIntensitiesWithJacobian = scale;
+  }
 
 protected:
-    ResampleImageFilter();
-    virtual ~ResampleImageFilter() {}
+  ResampleImageFilter();
+  virtual ~ResampleImageFilter() {}
 
-    void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
+  void PrintSelf(std::ostream &os, itk::Indent indent) const ITK_OVERRIDE;
 
-    void DynamicThreadedGenerateData(const OutputImageRegionType& outputRegionForThread) ITK_OVERRIDE;
+  void DynamicThreadedGenerateData(
+      const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
 
-    double ComputeLinearJacobianValue();
-    double ComputeLocalJacobianValue(const InputIndexType &index);
+  double ComputeLinearJacobianValue();
+  double ComputeLocalJacobianValue(const InputIndexType &index);
 
-    virtual itk::LightObject::Pointer InternalClone() const ITK_OVERRIDE;
+  virtual itk::LightObject::Pointer InternalClone() const ITK_OVERRIDE;
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(ResampleImageFilter);
+  ITK_DISALLOW_COPY_AND_ASSIGN(ResampleImageFilter);
 
-    SizeType                m_Size;              // Size of the output image
-    TransformPointerType    m_Transform;         // Coordinate transform to use
-    InterpolatorPointerType m_Interpolator;      // Image function for interpolation
-    PixelType               m_DefaultPixelValue; // default pixel value if the point is outside the image
-    SpacingType             m_OutputSpacing;     // output image spacing
-    OriginPointType         m_OutputOrigin;      // output image origin
-    DirectionType           m_OutputDirection;   // output image direction cosines
-    IndexType               m_OutputStartIndex;  // output image start index
-    bool                    m_UseReferenceImage;
+  SizeType m_Size;                        // Size of the output image
+  TransformPointerType m_Transform;       // Coordinate transform to use
+  InterpolatorPointerType m_Interpolator; // Image function for interpolation
+  PixelType m_DefaultPixelValue;  // default pixel value if the point is outside
+                                  // the image
+  SpacingType m_OutputSpacing;    // output image spacing
+  OriginPointType m_OutputOrigin; // output image origin
+  DirectionType m_OutputDirection; // output image direction cosines
+  IndexType m_OutputStartIndex;    // output image start index
+  bool m_UseReferenceImage;
 
-    bool                    m_ScaleIntensitiesWithJacobian;
-    bool                    m_LinearTransform;
+  bool m_ScaleIntensitiesWithJacobian;
+  bool m_LinearTransform;
 };
 
 } // end namespace anima

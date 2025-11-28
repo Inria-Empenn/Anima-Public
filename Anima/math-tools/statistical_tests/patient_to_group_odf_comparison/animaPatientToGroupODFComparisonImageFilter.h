@@ -1,56 +1,57 @@
 #pragma once
 
-#include <animaPatientToGroupComparisonImageFilter.h>
 #include <animaODFSphericalHarmonicBasis.h>
+#include <animaPatientToGroupComparisonImageFilter.h>
 
-namespace anima
-{
+namespace anima {
 
 template <class PixelScalarType>
-class PatientToGroupODFComparisonImageFilter :
-        public PatientToGroupComparisonImageFilter <PixelScalarType>
-{
+class PatientToGroupODFComparisonImageFilter
+    : public PatientToGroupComparisonImageFilter<PixelScalarType> {
 public:
-    /** Standard class typedefs. */
-    typedef anima::PatientToGroupODFComparisonImageFilter<PixelScalarType> Self;
-    typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self> ConstPointer;
+  /** Standard class typedefs. */
+  using Self = anima::PatientToGroupODFComparisonImageFilter<PixelScalarType>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-    typedef anima::PatientToGroupComparisonImageFilter<PixelScalarType> Superclass;
-    typedef typename Superclass::VectorType VectorType;
+  using Superclass =
+      anima::PatientToGroupComparisonImageFilter<PixelScalarType>;
+  using VectorType = typename Superclass::VectorType;
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Run-time type information (and related methods) */
-    itkTypeMacro(PatientToGroupODFComparisonImageFilter, PatientToGroupComparisonImageFilter)
+  /** Run-time type information (and related methods) */
+  itkTypeMacro(PatientToGroupODFComparisonImageFilter,
+               PatientToGroupComparisonImageFilter);
 
-    void SetSampleDirections (std::vector < std::vector < double > > &input) {m_SampleDirections = input;}
+  void SetSampleDirections(std::vector<std::vector<double>> &input) {
+    m_SampleDirections = input;
+  }
 
 protected:
-    PatientToGroupODFComparisonImageFilter()
-        : Superclass()
-    {
-        m_SampleDirections.clear();
-        m_ShData = NULL;
-    }
+  PatientToGroupODFComparisonImageFilter() : Superclass() {
+    m_SampleDirections.clear();
+    m_ShData = NULL;
+  }
 
-    virtual ~PatientToGroupODFComparisonImageFilter()
-    {
-        if (m_ShData)
-            delete m_ShData;
-    }
+  virtual ~PatientToGroupODFComparisonImageFilter() {
+    if (m_ShData)
+      delete m_ShData;
+  }
 
-    virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
-    unsigned int SampleFromDiffusionModels(std::vector <VectorType> &databaseValues, VectorType &patientVectorValue) ITK_OVERRIDE;
+  virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
+  unsigned int
+  SampleFromDiffusionModels(std::vector<VectorType> &databaseValues,
+                            VectorType &patientVectorValue) ITK_OVERRIDE;
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(PatientToGroupODFComparisonImageFilter);
+  ITK_DISALLOW_COPY_AND_ASSIGN(PatientToGroupODFComparisonImageFilter);
 
-    std::vector < std::vector <double> > m_SampleDirections;
-    unsigned int m_LOrder;
+  std::vector<std::vector<double>> m_SampleDirections;
+  unsigned int m_LOrder;
 
-    anima::ODFSphericalHarmonicBasis *m_ShData;
+  anima::ODFSphericalHarmonicBasis *m_ShData;
 };
 
 } // end namespace anima

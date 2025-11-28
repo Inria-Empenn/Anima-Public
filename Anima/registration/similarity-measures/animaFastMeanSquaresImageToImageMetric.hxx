@@ -3,128 +3,124 @@
 
 #include <itkImageRegionConstIteratorWithIndex.h>
 
-namespace anima
-{
+namespace anima {
 
 template <class TFixedImage, class TMovingImage>
-FastMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
-::FastMeanSquaresImageToImageMetric()
-{
-    m_ScaleIntensities = false;
-    m_DefaultBackgroundValue = 0.0;
+FastMeanSquaresImageToImageMetric<
+    TFixedImage, TMovingImage>::FastMeanSquaresImageToImageMetric() {
+  m_ScaleIntensities = false;
+  m_DefaultBackgroundValue = 0.0;
 }
 
 template <class TFixedImage, class TMovingImage>
-typename FastMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>::MeasureType
-FastMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
-::GetValue( const TransformParametersType & parameters ) const
-{
-    FixedImageConstPointer fixedImage = this->m_FixedImage;
+typename FastMeanSquaresImageToImageMetric<TFixedImage,
+                                           TMovingImage>::MeasureType
+FastMeanSquaresImageToImageMetric<TFixedImage, TMovingImage>::GetValue(
+    const TransformParametersType &parameters) const {
+  FixedImageConstPointer fixedImage = this->m_FixedImage;
 
-    if( !fixedImage )
-    {
-        itkExceptionMacro( << "Fixed image has not been assigned" );
+  if (!fixedImage) {
+    itkExceptionMacro(<< "Fixed image has not been assigned");
+  }
+
+  if (this->m_NumberOfPixelsCounted == 0)
+    return 0;
+
+  MeasureType measure = 0;
+  this->SetTransformParameters(parameters);
+
+  OutputPointType transformedPoint;
+  ContinuousIndexType transformedIndex;
+  RealType movingValue;
+
+  for (unsigned int i = 0; i < this->m_NumberOfPixelsCounted; ++i) {
+    transformedPoint = this->m_Transform->TransformPoint(m_FixedImagePoints[i]);
+    bool isInside = this->m_Interpolator->GetInputImage()
+                        ->TransformPhysicalPointToContinuousIndex(
+                            transformedPoint, transformedIndex);
+
+    movingValue = m_DefaultBackgroundValue;
+
+    if (isInside && this->m_Interpolator->IsInsideBuffer(transformedIndex)) {
+      movingValue =
+          this->m_Interpolator->EvaluateAtContinuousIndex(transformedIndex);
+
+      if (m_ScaleIntensities) {
+        typedef itk::MatrixOffsetTransformBase<
+            typename TransformType::ScalarType, TFixedImage::ImageDimension,
+            TFixedImage::ImageDimension>
+            BaseTransformType;
+        BaseTransformType *currentTrsf =
+            dynamic_cast<BaseTransformType *>(this->m_Transform.GetPointer());
+
+        double factor =
+            vnl_determinant(currentTrsf->GetMatrix().GetVnlMatrix());
+        movingValue *= factor;
+      }
     }
 
-    if (this->m_NumberOfPixelsCounted == 0)
-        return 0;
+    measure += (movingValue - m_FixedImageValues[i]) *
+               (movingValue - m_FixedImageValues[i]);
+  }
 
-    MeasureType measure = 0;
-    this->SetTransformParameters( parameters );
+  measure /= this->m_NumberOfPixelsCounted;
 
-    OutputPointType transformedPoint;
-    ContinuousIndexType transformedIndex;
-    RealType movingValue;
-
-    for (unsigned int i = 0;i < this->m_NumberOfPixelsCounted;++i)
-    {
-        transformedPoint = this->m_Transform->TransformPoint( m_FixedImagePoints[i] );
-        this->m_Interpolator->GetInputImage()->TransformPhysicalPointToContinuousIndex(transformedPoint,transformedIndex);
-
-        movingValue = m_DefaultBackgroundValue;
-
-        if( this->m_Interpolator->IsInsideBuffer( transformedIndex ) )
-        {
-            movingValue = this->m_Interpolator->EvaluateAtContinuousIndex( transformedIndex );
-
-            if (m_ScaleIntensities)
-            {
-                typedef itk::MatrixOffsetTransformBase <typename TransformType::ScalarType,
-                        TFixedImage::ImageDimension, TFixedImage::ImageDimension> BaseTransformType;
-                BaseTransformType *currentTrsf = dynamic_cast<BaseTransformType *> (this->m_Transform.GetPointer());
-
-                double factor = vnl_determinant(currentTrsf->GetMatrix().GetVnlMatrix());
-                movingValue *= factor;
-            }
-        }
-
-        measure += (movingValue - m_FixedImageValues[i]) * (movingValue - m_FixedImageValues[i]);
-    }
-
-    measure /= this->m_NumberOfPixelsCounted;
-
-    return measure;
-}
-
-template < class TFixedImage, class TMovingImage>
-void
-FastMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
-::GetDerivative( const TransformParametersType & parameters,
-                 DerivativeType & derivative ) const
-{
-    itkExceptionMacro("Derivative not implemented yet...");
+  return measure;
 }
 
 template <class TFixedImage, class TMovingImage>
-void
-FastMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
-::GetValueAndDerivative(const TransformParametersType & parameters,
-                        MeasureType & value, DerivativeType  & derivative) const
-{
-    itkExceptionMacro("Derivative not implemented yet...");
+void FastMeanSquaresImageToImageMetric<TFixedImage, TMovingImage>::
+    GetDerivative(const TransformParametersType &parameters,
+                  DerivativeType &derivative) const {
+  itkExceptionMacro("Derivative not implemented yet...");
 }
 
 template <class TFixedImage, class TMovingImage>
-void
-FastMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
-::PreComputeFixedValues()
-{
-    FixedImageConstPointer fixedImage = this->m_FixedImage;
+void FastMeanSquaresImageToImageMetric<TFixedImage, TMovingImage>::
+    GetValueAndDerivative(const TransformParametersType &parameters,
+                          MeasureType &value,
+                          DerivativeType &derivative) const {
+  itkExceptionMacro("Derivative not implemented yet...");
+}
 
-    if( !fixedImage )
-    {
-        itkExceptionMacro( << "Fixed image has not been assigned" );
-    }
+template <class TFixedImage, class TMovingImage>
+void FastMeanSquaresImageToImageMetric<TFixedImage,
+                                       TMovingImage>::PreComputeFixedValues() {
+  FixedImageConstPointer fixedImage = this->m_FixedImage;
 
-    typedef itk::ImageRegionConstIteratorWithIndex<FixedImageType> FixedIteratorType;
+  if (!fixedImage) {
+    itkExceptionMacro(<< "Fixed image has not been assigned");
+  }
 
-    FixedIteratorType ti( fixedImage, this->GetFixedImageRegion() );
-    typename FixedImageType::IndexType index;
+  typedef itk::ImageRegionConstIteratorWithIndex<FixedImageType>
+      FixedIteratorType;
 
-    this->m_NumberOfPixelsCounted = this->GetFixedImageRegion().GetSize()[0];
-    for (unsigned int i = 1;i < TFixedImage::GetImageDimension();++i)
-        this->m_NumberOfPixelsCounted *= this->GetFixedImageRegion().GetSize()[i];
+  FixedIteratorType ti(fixedImage, this->GetFixedImageRegion());
+  typename FixedImageType::IndexType index;
 
-    m_FixedImagePoints.resize(this->m_NumberOfPixelsCounted);
-    m_FixedImageValues.resize(this->m_NumberOfPixelsCounted);
+  this->m_NumberOfPixelsCounted = this->GetFixedImageRegion().GetSize()[0];
+  for (unsigned int i = 1; i < TFixedImage::GetImageDimension(); ++i)
+    this->m_NumberOfPixelsCounted *= this->GetFixedImageRegion().GetSize()[i];
 
-    InputPointType inputPoint;
+  m_FixedImagePoints.resize(this->m_NumberOfPixelsCounted);
+  m_FixedImageValues.resize(this->m_NumberOfPixelsCounted);
 
-    unsigned int pos = 0;
-    RealType fixedValue;
+  InputPointType inputPoint;
 
-    while(!ti.IsAtEnd())
-    {
-        index = ti.GetIndex();
-        fixedImage->TransformIndexToPhysicalPoint( index, inputPoint );
+  unsigned int pos = 0;
+  RealType fixedValue;
 
-        m_FixedImagePoints[pos] = inputPoint;
-        fixedValue = ti.Value();
-        m_FixedImageValues[pos] = fixedValue;
+  while (!ti.IsAtEnd()) {
+    index = ti.GetIndex();
+    fixedImage->TransformIndexToPhysicalPoint(index, inputPoint);
 
-        ++ti;
-        ++pos;
-    }
+    m_FixedImagePoints[pos] = inputPoint;
+    fixedValue = ti.Value();
+    m_FixedImageValues[pos] = fixedValue;
+
+    ++ti;
+    ++pos;
+  }
 }
 
 } // end namespace anima

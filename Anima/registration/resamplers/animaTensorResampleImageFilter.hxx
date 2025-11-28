@@ -3,56 +3,64 @@
 
 #include <animaBaseTensorTools.h>
 
-namespace anima
-{
+namespace anima {
 
 template <typename TImageType, typename TInterpolatorPrecisionType>
-void
-TensorResampleImageFilter<TImageType, TInterpolatorPrecisionType>
-::BeforeThreadedGenerateData()
-{
-    this->Superclass::BeforeThreadedGenerateData();
+void TensorResampleImageFilter<
+    TImageType, TInterpolatorPrecisionType>::BeforeThreadedGenerateData() {
+  this->Superclass::BeforeThreadedGenerateData();
 
-    m_WorkMats.resize(this->GetNumberOfWorkUnits());
-    m_TmpTensors.resize(this->GetNumberOfWorkUnits());
+  m_WorkMats.resize(this->GetNumberOfWorkUnits());
+  m_TmpTensors.resize(this->GetNumberOfWorkUnits());
 
-    for (unsigned int i = 0;i < this->GetNumberOfWorkUnits();++i)
-    {
-        m_WorkMats[i].set_size(m_TensorDimension,m_TensorDimension);
-        m_TmpTensors[i].set_size(m_TensorDimension,m_TensorDimension);
-    }
+  for (unsigned int i = 0; i < this->GetNumberOfWorkUnits(); ++i) {
+    m_WorkMats[i].set_size(m_TensorDimension, m_TensorDimension);
+    m_TmpTensors[i].set_size(m_TensorDimension, m_TensorDimension);
+  }
 
-    if (!this->GetFiniteStrainReorientation())
-    {
-        m_WorkEigenValues.resize(this->GetNumberOfWorkUnits());
-        m_WorkEigenVectors.resize(this->GetNumberOfWorkUnits());
-        m_WorkPPDOrientationMatrices.resize(this->GetNumberOfWorkUnits());
-    }
+  if (!this->GetFiniteStrainReorientation()) {
+    m_WorkEigenValues.resize(this->GetNumberOfWorkUnits());
+    m_WorkEigenVectors.resize(this->GetNumberOfWorkUnits());
+    m_WorkPPDOrientationMatrices.resize(this->GetNumberOfWorkUnits());
+  }
 }
 
 template <typename TImageType, typename TInterpolatorPrecisionType>
-void
-TensorResampleImageFilter<TImageType, TInterpolatorPrecisionType>
-::ReorientInterpolatedModel(const InputPixelType &interpolatedModel, vnl_matrix <double> &modelOrientationMatrix,
-                            InputPixelType &rotatedModel, itk::ThreadIdType threadId)
-{
-    anima::GetTensorFromVectorRepresentation(interpolatedModel,m_WorkMats[threadId],m_TensorDimension,true);
+void TensorResampleImageFilter<TImageType, TInterpolatorPrecisionType>::
+    ReorientInterpolatedModel(const InputPixelType &interpolatedModel,
+                              vnl_matrix<double> &modelOrientationMatrix,
+                              InputPixelType &rotatedModel,
+                              itk::ThreadIdType threadId) {
+  anima::GetTensorFromVectorRepresentation(
+      interpolatedModel, m_WorkMats[threadId], m_TensorDimension, true);
 
-    if (this->GetFiniteStrainReorientation())
-        anima::RotateSymmetricMatrix(m_WorkMats[threadId],modelOrientationMatrix,m_TmpTensors[threadId]);
-    else
-    {
-        typedef itk::Matrix <double,3,3> MatrixType;
-        typedef vnl_vector_fixed <double,3> VectorType;
-        itk::SymmetricEigenAnalysis < MatrixType, VectorType, MatrixType> eigenComputer(3);
-        eigenComputer.ComputeEigenValuesAndVectors(m_WorkMats[threadId],m_WorkEigenValues[threadId],
-                                                   m_WorkEigenVectors[threadId]);
+  if (this->GetFiniteStrainReorientation())
+    anima::RotateSymmetricMatrix(m_WorkMats[threadId], modelOrientationMatrix,
+                                 m_TmpTensors[threadId]);
+  else {
+    typedef itk::Matrix<double, 3, 3> MatrixType;
+    typedef vnl_vector_fixed<double, 3> VectorType;
+    itk::SymmetricEigenAnalysis<MatrixType, VectorType, MatrixType>
+        eigenComputer(3);
 
-        anima::ExtractPPDRotationFromJacobianMatrix(modelOrientationMatrix,m_WorkPPDOrientationMatrices[threadId],m_WorkEigenVectors[threadId]);
-        anima::RotateSymmetricMatrix(m_WorkMats[threadId],m_WorkPPDOrientationMatrices[threadId],m_TmpTensors[threadId]);
-    }
+    MatrixType itkMatrix;
+    for (unsigned int i = 0; i < 3; ++i)
+      for (unsigned int j = 0; j < 3; ++j)
+        itkMatrix[i][j] = m_WorkMats[threadId](i, j);
 
-    anima::GetVectorRepresentation(m_TmpTensors[threadId],rotatedModel,m_VectorSize,true);
+    eigenComputer.ComputeEigenValuesAndVectors(
+        itkMatrix, m_WorkEigenValues[threadId], m_WorkEigenVectors[threadId]);
+
+    anima::ExtractPPDRotationFromJacobianMatrix(
+        modelOrientationMatrix, m_WorkPPDOrientationMatrices[threadId],
+        m_WorkEigenVectors[threadId]);
+    anima::RotateSymmetricMatrix(m_WorkMats[threadId],
+                                 m_WorkPPDOrientationMatrices[threadId],
+                                 m_TmpTensors[threadId]);
+  }
+
+  anima::GetVectorRepresentation(m_TmpTensors[threadId], rotatedModel,
+                                 m_VectorSize, true);
 }
 
 } // end of namespace anima

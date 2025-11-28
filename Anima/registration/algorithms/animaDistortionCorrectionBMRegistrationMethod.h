@@ -1,53 +1,62 @@
 #pragma once
 #include <animaBaseBMRegistrationMethod.h>
 
-namespace anima
-{
+namespace anima {
 
 template <typename TInputImageType>
-class DistortionCorrectionBMRegistrationMethod : public anima::BaseBMRegistrationMethod <TInputImageType>
-{
+class DistortionCorrectionBMRegistrationMethod
+    : public anima::BaseBMRegistrationMethod<TInputImageType> {
 public:
-    /** Standard class typedefs. */
-    typedef DistortionCorrectionBMRegistrationMethod Self;
-    typedef BaseBMRegistrationMethod <TInputImageType> Superclass;
-    typedef itk::SmartPointer <Self> Pointer;
-    typedef itk::SmartPointer <const Self> ConstPointer;
+  /** Standard class typedefs. */
+  using Self = DistortionCorrectionBMRegistrationMethod;
+  using Superclass = BaseBMRegistrationMethod<TInputImageType>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-    typedef typename Superclass::ImageScalarType ImageScalarType;
-    typedef typename Superclass::InputImageType InputImageType;
-    typedef typename Superclass::InputImagePointer InputImagePointer;
-    typedef typename Superclass::TransformType TransformType;
-    typedef typename Superclass::TransformPointer TransformPointer;
-    typedef typename Superclass::BlockMatcherType BlockMatcherType;
-    typedef typename Superclass::AgregatorType AgregatorType;
-    typedef typename Superclass::AgregatorScalarType AgregatorScalarType;
-    typedef typename Superclass::AffineTransformType AffineTransformType;
-    typedef typename Superclass::SVFTransformType SVFTransformType;
-    typedef typename Superclass::DisplacementFieldTransformType DisplacementFieldTransformType;
-    typedef typename Superclass::DisplacementFieldTransformPointer DisplacementFieldTransformPointer;
+  using ImageScalarType = typename Superclass::ImageScalarType;
+  using InputImageType = typename Superclass::InputImageType;
+  using InputImagePointer = typename Superclass::InputImagePointer;
+  using TransformType = typename Superclass::TransformType;
+  using TransformPointer = typename Superclass::TransformPointer;
+  using BlockMatcherType = typename Superclass::BlockMatcherType;
+  using AgregatorType = typename Superclass::AgregatorType;
+  using AgregatorScalarType = typename Superclass::AgregatorScalarType;
+  using AffineTransformType = typename Superclass::AffineTransformType;
+  using SVFTransformType = typename Superclass::SVFTransformType;
+  using DisplacementFieldTransformType =
+      typename Superclass::DisplacementFieldTransformType;
+  using DisplacementFieldTransformPointer =
+      typename Superclass::DisplacementFieldTransformPointer;
 
-    /** Run-time type information (and related methods). */
-    itkTypeMacro(DistortionCorrectionBMRegistrationMethod, BaseBMRegistrationMethod)
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(DistortionCorrectionBMRegistrationMethod,
+               BaseBMRegistrationMethod);
 
-    itkNewMacro(Self)
+  itkNewMacro(Self);
 
-    itkSetMacro(CurrentTransform, TransformPointer)
+  itkSetMacro(CurrentTransform, TransformPointer);
 
 protected:
-    DistortionCorrectionBMRegistrationMethod() {}
-    virtual ~DistortionCorrectionBMRegistrationMethod() {}
+  DistortionCorrectionBMRegistrationMethod() {}
+  virtual ~DistortionCorrectionBMRegistrationMethod() {}
 
-    virtual void SetupTransform(TransformPointer &optimizedTransform) ITK_OVERRIDE;
-    virtual void PerformOneIteration(InputImageType *refImage, InputImageType *movingImage, TransformPointer &addOn) ITK_OVERRIDE;
-    virtual void ResampleImages(TransformType *currentTransform, InputImagePointer &refImage, InputImagePointer &movingImage) ITK_OVERRIDE;
-    virtual bool ComposeAddOnWithTransform(TransformPointer &computedTransform, TransformType *addOn) ITK_OVERRIDE;
+  virtual void
+  SetupTransform(TransformPointer &optimizedTransform) ITK_OVERRIDE;
+  virtual void PerformOneIteration(InputImageType *refImage,
+                                   InputImageType *movingImage,
+                                   TransformPointer &addOn) ITK_OVERRIDE;
+  virtual void ResampleImages(TransformType *currentTransform,
+                              InputImagePointer &refImage,
+                              InputImagePointer &movingImage) ITK_OVERRIDE;
+  virtual bool ComposeAddOnWithTransform(TransformPointer &computedTransform,
+                                         TransformType *addOn) ITK_OVERRIDE;
 
 private:
-    DistortionCorrectionBMRegistrationMethod(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+  DistortionCorrectionBMRegistrationMethod(
+      const Self &);            // purposely not implemented
+  void operator=(const Self &); // purposely not implemented
 
-    TransformPointer m_CurrentTransform;
+  TransformPointer m_CurrentTransform;
 };
 
 } // end namespace anima

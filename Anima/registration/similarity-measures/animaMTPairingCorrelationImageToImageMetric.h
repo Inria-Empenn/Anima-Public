@@ -1,92 +1,103 @@
 #pragma once
 
 #include <animaBaseOrientedModelImageToImageMetric.h>
-#include <animaMultiCompartmentModel.h>
-#include <animaMCMImage.h>
 #include <animaBaseTensorTools.h>
+#include <animaMCMImage.h>
+#include <animaMultiCompartmentModel.h>
 
-namespace anima
-{
+namespace anima {
 
 /**
- * @brief Multi-tensor correlation similarity measure as defined by Taquet et al,
- * based on pairing of the individual compartments
+ * @brief Multi-tensor correlation similarity measure as defined by Taquet et
+ * al, based on pairing of the individual compartments
  *
- * M. Taquet et al. "A Mathematical Framework for the Registration and Analysis of Multi-Fascicle Models
- * for Population Studies of the Brain Microstructure". IEEE TMI 2014.
+ * M. Taquet et al. "A Mathematical Framework for the Registration and Analysis
+ * of Multi-Fascicle Models for Population Studies of the Brain Microstructure".
+ * IEEE TMI 2014.
  */
-template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >
-class MTPairingCorrelationImageToImageMetric :
-public BaseOrientedModelImageToImageMetric < anima::MCMImage < TFixedImagePixelType, ImageDimension >, anima::MCMImage < TMovingImagePixelType, ImageDimension > >
-{
+template <class TFixedImagePixelType, class TMovingImagePixelType,
+          unsigned int ImageDimension>
+class MTPairingCorrelationImageToImageMetric
+    : public BaseOrientedModelImageToImageMetric<
+          anima::MCMImage<TFixedImagePixelType, ImageDimension>,
+          anima::MCMImage<TMovingImagePixelType, ImageDimension>> {
 public:
-    /** Standard class typedefs. */
-    typedef anima::MCMImage < TFixedImagePixelType, ImageDimension > TFixedImage;
-    typedef anima::MCMImage < TMovingImagePixelType, ImageDimension > TMovingImage;
+  /** Standard class typedefs. */
+  using TFixedImage = anima::MCMImage<TFixedImagePixelType, ImageDimension>;
+  using TMovingImage = anima::MCMImage<TMovingImagePixelType, ImageDimension>;
 
-    typedef MTPairingCorrelationImageToImageMetric Self;
-    typedef BaseOrientedModelImageToImageMetric<TFixedImage, TMovingImage > Superclass;
-    typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self> ConstPointer;
+  using Self = MTPairingCorrelationImageToImageMetric;
+  using Superclass =
+      BaseOrientedModelImageToImageMetric<TFixedImage, TMovingImage>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-    typedef anima::MultiCompartmentModel MCModelType;
-    typedef typename MCModelType::Pointer MCModelPointer;
-    typedef typename MCModelType::Vector3DType GradientType;
+  using MCModelType = anima::MultiCompartmentModel;
+  using MCModelPointer = typename MCModelType::Pointer;
+  using GradientType = typename MCModelType::Vector3DType;
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Run-time type information (and related methods). */
-    itkTypeMacro(MTPairingCorrelationImageToImageMetric, BaseOrientedModelImageToImageMetric)
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(MTPairingCorrelationImageToImageMetric,
+               BaseOrientedModelImageToImageMetric);
 
-    /** Types transferred from the base class */
-    typedef typename TFixedImage::PixelType               PixelType;
+  /** Types transferred from the base class */
+  using PixelType = typename TFixedImage::PixelType;
 
-    typedef typename Superclass::TransformType            TransformType;
-    typedef typename Superclass::TransformPointer         TransformPointer;
-    typedef typename Superclass::TransformParametersType  TransformParametersType;
-    typedef typename Superclass::OutputPointType          OutputPointType;
-    typedef typename Superclass::InputPointType           InputPointType;
-    typedef typename itk::ContinuousIndex <double, ImageDimension> ContinuousIndexType;
+  using TransformType = typename Superclass::TransformType;
+  using TransformPointer = typename Superclass::TransformPointer;
+  using TransformParametersType = typename Superclass::TransformParametersType;
+  using OutputPointType = typename Superclass::OutputPointType;
+  using InputPointType = typename Superclass::InputPointType;
+  using ContinuousIndexType =
+      typename itk::ContinuousIndex<double, ImageDimension>;
 
-    typedef typename Superclass::CoordinateRepresentationType CoordinateRepresentationType;
+  using CoordinateRepresentationType =
+      typename Superclass::CoordinateRepresentationType;
 
-    typedef typename Superclass::MeasureType              MeasureType;
-    typedef typename Superclass::FixedImageType           FixedImageType;
-    typedef typename Superclass::MovingImageType          MovingImageType;
-    typedef typename Superclass::FixedImageConstPointer   FixedImageConstPointer;
-    typedef typename Superclass::MovingImageConstPointer  MovingImageConstPointer;
+  using MeasureType = typename Superclass::MeasureType;
+  using FixedImageType = typename Superclass::FixedImageType;
+  using MovingImageType = typename Superclass::MovingImageType;
+  using FixedImageConstPointer = typename Superclass::FixedImageConstPointer;
+  using MovingImageConstPointer = typename Superclass::MovingImageConstPointer;
 
-    using LECalculatorType = anima::LogEuclideanTensorCalculator <double>;
-    using LECalculatorPointer = typename LECalculatorType::Pointer;
+  using LECalculatorType = anima::LogEuclideanTensorCalculator<double>;
+  using LECalculatorPointer = typename LECalculatorType::Pointer;
 
-    /**  Get the value for single valued optimizers. */
-    MeasureType GetValue(const TransformParametersType &parameters) const ITK_OVERRIDE;
+  /**  Get the value for single valued optimizers. */
+  MeasureType
+  GetValue(const TransformParametersType &parameters) const ITK_OVERRIDE;
 
-    void PreComputeFixedValues();
+  void PreComputeFixedValues();
 
 protected:
-    MTPairingCorrelationImageToImageMetric();
-    virtual ~MTPairingCorrelationImageToImageMetric() {}
+  MTPairingCorrelationImageToImageMetric();
+  virtual ~MTPairingCorrelationImageToImageMetric() {}
 
-    bool CheckTensorCompatibility() const;
-    double ComputeMapping(const std::vector < std::vector <double> > &refImageCompartmentWeights, const std::vector < std::vector <PixelType> > &refImageLogTensors,
-                          const std::vector < std::vector <double> > &movingImageCompartmentWeights, const std::vector < std::vector <PixelType> > &movingImageLogTensors) const;
+  bool CheckTensorCompatibility() const;
+  double ComputeMapping(
+      const std::vector<std::vector<double>> &refImageCompartmentWeights,
+      const std::vector<std::vector<PixelType>> &refImageLogTensors,
+      const std::vector<std::vector<double>> &movingImageCompartmentWeights,
+      const std::vector<std::vector<PixelType>> &movingImageLogTensors) const;
 
-    bool isZero(PixelType &vector) const;
+  bool isZero(PixelType &vector) const;
 
 private:
-    MTPairingCorrelationImageToImageMetric(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+  MTPairingCorrelationImageToImageMetric(
+      const Self &);            // purposely not implemented
+  void operator=(const Self &); // purposely not implemented
 
-    MCModelPointer m_ZeroDiffusionModel;
+  MCModelPointer m_ZeroDiffusionModel;
 
-    std::vector <InputPointType> m_FixedImagePoints;
-    std::vector < std::vector <double> > m_FixedImageCompartmentWeights;
-    std::vector < std::vector <PixelType> > m_FixedImageLogTensors;
-    unsigned int m_NumberOfFixedCompartments;
+  std::vector<InputPointType> m_FixedImagePoints;
+  std::vector<std::vector<double>> m_FixedImageCompartmentWeights;
+  std::vector<std::vector<PixelType>> m_FixedImageLogTensors;
+  unsigned int m_NumberOfFixedCompartments;
 
-    LECalculatorPointer m_leCalculator;
+  LECalculatorPointer m_leCalculator;
 };
 
 } // end namespace anima
