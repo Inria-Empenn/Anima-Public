@@ -44,7 +44,7 @@ public:
   itkGetConstReferenceMacro(MaximumNumberOfIterations, unsigned long);
 
   /** Get the reason for termination */
-  std::string GetStopConditionDescription() const ITK_OVERRIDE;
+  const std::string GetStopConditionDescription() const ITK_OVERRIDE;
 
   /** Set if the Optimizer should Maximize the metric */
   itkSetMacro(Maximize, bool);

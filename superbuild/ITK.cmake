@@ -28,7 +28,7 @@ set (cmake_args
 
 set (location "")
 if (NOT DEFINED ${proj}_SRC_DIR)
-  set(tag v5.2.1)
+  set(tag v5.4.5)
   set(location GIT_REPOSITORY ${GITHUB_PREFIX}InsightSoftwareConsortium/ITK.git GIT_TAG ${tag})
 endif()
 
@@ -36,7 +36,7 @@ endif()
 ## Check if patch has to be applied
 ## #############################################################################
   
-ep_GeneratePatchCommand(ITK ITK_PATCH_COMMAND ITK.patch)
+#ep_GeneratePatchCommand(ITK ITK_PATCH_COMMAND ITK.patch)
 
 ## #############################################################################
 ## Add external-project

@@ -181,7 +181,8 @@ void VoxelExhaustiveOptimizer ::IncrementIndex(ParametersType &newPosition) {
         this->GetInitialPosition()[i];
 }
 
-std::string VoxelExhaustiveOptimizer ::GetStopConditionDescription() const {
+const std::string
+VoxelExhaustiveOptimizer ::GetStopConditionDescription() const {
   return m_StopConditionDescription.str();
 }
 
