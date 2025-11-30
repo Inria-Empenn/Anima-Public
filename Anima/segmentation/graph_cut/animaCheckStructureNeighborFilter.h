@@ -2,130 +2,133 @@
 
 #include <animaReadWriteFunctions.h>
 
-#include <itkImageToImageFilter.h>
-#include <itkImageRegionIterator.h>
-#include <itkImageRegionConstIterator.h>
-#include <itkRelabelComponentImageFilter.h>
-#include <itkConnectedComponentImageFilter.h>
-#include <itkGrayscaleDilateImageFilter.h>
 #include <itkBinaryBallStructuringElement.h>
 #include <itkBinaryImageToLabelMapFilter.h>
-#include <itkLabelMapToLabelImageFilter.h>
+#include <itkConnectedComponentImageFilter.h>
+#include <itkGrayscaleDilateImageFilter.h>
+#include <itkImageRegionConstIterator.h>
+#include <itkImageRegionIterator.h>
+#include <itkImageToImageFilter.h>
 #include <itkLabelContourImageFilter.h>
+#include <itkLabelMapToLabelImageFilter.h>
+#include <itkRelabelComponentImageFilter.h>
 
-namespace anima
-{
+namespace anima {
 /** @brief Class removing lesions that are not sufficiently in the white matter.
- * Intensity rules may not be enough to discard false positives, therefore we also use localization information.
- * Considering that MS lesions are typically located in WM, we remove the detected ones that do not sufficiently achieve this condition.
- * This filter take two entries: a lesion mask and a white matter map.
+ * Intensity rules may not be enough to discard false positives, therefore we
+ * also use localization information. Considering that MS lesions are typically
+ * located in WM, we remove the detected ones that do not sufficiently achieve
+ * this condition. This filter take two entries: a lesion mask and a white
+ * matter map.
  *
  */
-template<typename TInput, typename TMask, typename TOutput = TInput>
-class CheckStructureNeighborFilter :
-public itk::ImageToImageFilter< TInput , TOutput >
-{
+template <typename TInput, typename TMask, typename TOutput = TInput>
+class CheckStructureNeighborFilter
+    : public itk::ImageToImageFilter<TInput, TOutput> {
 public:
-    /** Standard class typedefs. */
-    typedef CheckStructureNeighborFilter Self;
-    typedef itk::ImageToImageFilter< TInput , TOutput > Superclass;
-    typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self>  ConstPointer;
+  /** Standard class typedefs. */
+  using Self = CheckStructureNeighborFilter;
+  using Superclass = itk::ImageToImageFilter<TInput, TOutput>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Run-time type information (and related methods) */
-    itkTypeMacro(CheckStructureNeighborFilter, ImageToImageFilter)
+  /** Run-time type information (and related methods) */
+  itkTypeMacro(CheckStructureNeighborFilter, ImageToImageFilter);
 
-    /** Image typedef support */
+  /** Image typedef support */
 
-    /**  Type of the input image. */
-    typedef TInput InputImageType;
-    typedef typename InputImageType::ConstPointer InputImageConstPointer;
-    typedef typename InputImageType::PixelType InputPixelType;
-    typedef typename itk::ImageRegionConstIterator< InputImageType > InputConstIteratorType;
+  /**  Type of the input image. */
+  using InputImageType = TInput;
+  using InputImageConstPointer = typename InputImageType::ConstPointer;
+  using InputPixelType = typename InputImageType::PixelType;
+  using InputConstIteratorType =
+      typename itk::ImageRegionConstIterator<InputImageType>;
 
-    /**  Type of the map image. */
-    typedef TMask MaskImageType;
-    typedef typename MaskImageType::ConstPointer MaskImageConstPointer;
-    typedef typename MaskImageType::PixelType MaskPixelType;
-    typedef typename itk::ImageRegionConstIterator< MaskImageType > MaskConstIteratorType;
+  /**  Type of the map image. */
+  using MaskImageType = TMask;
+  using MaskImageConstPointer = typename MaskImageType::ConstPointer;
+  using MaskPixelType = typename MaskImageType::PixelType;
+  using MaskConstIteratorType =
+      typename itk::ImageRegionConstIterator<MaskImageType>;
 
-    /**  Type of the mask image. */
-    typedef TOutput OutputImageType;
-    typedef typename OutputImageType::Pointer OutputImagePointer;
-    typedef typename OutputImageType::PixelType OutputPixelType;
-    typedef typename itk::ImageRegionIterator <OutputImageType> OutputIteratorType;
+  /**  Type of the mask image. */
+  using OutputImageType = TOutput;
+  using OutputImagePointer = typename OutputImageType::Pointer;
+  using OutputPixelType = typename OutputImageType::PixelType;
+  using OutputIteratorType = typename itk::ImageRegionIterator<OutputImageType>;
 
-    typedef int PixelTypeInt;
-    typedef itk::Image <PixelTypeInt,3> ImageTypeInt;
-    typedef itk::ImageRegionIterator <ImageTypeInt> ImageIteratorTypeInt;
+  using PixelTypeInt = int;
+  using ImageTypeInt = itk::Image<PixelTypeInt, 3>;
+  using ImageIteratorTypeInt = itk::ImageRegionIterator<ImageTypeInt>;
 
-    typedef typename itk::ConnectedComponentImageFilter <InputImageType,ImageTypeInt> ConnectedComponentFilterType;
-    typedef itk::LabelContourImageFilter<ImageTypeInt,ImageTypeInt> LabelContourFilterType;
-    typedef itk::BinaryBallStructuringElement<PixelTypeInt, 3> StructuringElementType;
-    typedef itk::GrayscaleDilateImageFilter <ImageTypeInt,ImageTypeInt,StructuringElementType> DilateFilterType;
+  using ConnectedComponentFilterType =
+      typename itk::ConnectedComponentImageFilter<InputImageType, ImageTypeInt>;
+  using LabelContourFilterType =
+      itk::LabelContourImageFilter<ImageTypeInt, ImageTypeInt>;
+  using StructuringElementType =
+      itk::BinaryBallStructuringElement<PixelTypeInt, 3>;
+  using DilateFilterType =
+      itk::GrayscaleDilateImageFilter<ImageTypeInt, ImageTypeInt,
+                                      StructuringElementType>;
 
-    /** The mri images.*/
-    void SetInputClassification(const TInput* image);
-    void SetInputMap(const TMask* image);
+  /** The mri images.*/
+  void SetInputClassification(const TInput *image);
+  void SetInputMap(const TMask *image);
 
-    void WriteOutputs();
+  void WriteOutputs();
 
-    void SetTol(const double tol)
-    {
-        this->SetCoordinateTolerance(tol);
-        this->SetDirectionTolerance(tol);
-        m_Tol = tol;
-    }
+  void SetTol(const double tol) {
+    this->SetCoordinateTolerance(tol);
+    this->SetDirectionTolerance(tol);
+    m_Tol = tol;
+  }
 
-    /** Superclass typedefs. */
-    typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
+  /** Superclass typedefs. */
+  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
 
-    itkSetMacro(LabelToCheck, int)
-    itkGetMacro(LabelToCheck, int)
+  itkSetMacro(LabelToCheck, int);
+  itkGetMacro(LabelToCheck, int);
 
-    itkSetMacro(Verbose, bool)
-    itkGetMacro(Verbose, bool)
+  itkSetMacro(Verbose, bool);
+  itkGetMacro(Verbose, bool);
 
-    itkSetMacro(Ratio, double)
-    itkGetMacro(Ratio, double)
+  itkSetMacro(Ratio, double);
+  itkGetMacro(Ratio, double);
 
-    std::string GetOutputFilename() {return m_OutputFilename;}
-    void SetOutputFilename(std::string filename) {m_OutputFilename=filename;}
+  std::string GetOutputFilename() { return m_OutputFilename; }
+  void SetOutputFilename(std::string filename) { m_OutputFilename = filename; }
 
 protected:
-    CheckStructureNeighborFilter()
-    {
-        this->SetNumberOfRequiredOutputs(1);
-        this->SetNumberOfRequiredInputs(2);
+  CheckStructureNeighborFilter() {
+    this->SetNumberOfRequiredOutputs(1);
+    this->SetNumberOfRequiredInputs(2);
 
-        m_Verbose=false;
-        m_Tol = 0.0001;
-        m_Ratio = 0;
+    m_Verbose = false;
+    m_Tol = 0.0001;
+    m_Ratio = 0;
 
-        this->SetNumberOfWorkUnits(itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads());
-    }
+    this->SetNumberOfWorkUnits(
+        itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads());
+  }
 
-    virtual ~CheckStructureNeighborFilter()
-    {
-    }
+  virtual ~CheckStructureNeighborFilter() {}
 
-    typename TInput::ConstPointer GetInputClassification();
-    typename TMask::ConstPointer GetInputMap();
+  typename TInput::ConstPointer GetInputClassification();
+  typename TMask::ConstPointer GetInputMap();
 
-    void GenerateData() ITK_OVERRIDE;
+  void GenerateData() ITK_OVERRIDE;
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(CheckStructureNeighborFilter);
+  ITK_DISALLOW_COPY_AND_ASSIGN(CheckStructureNeighborFilter);
 
-    std::string m_OutputFilename;
-    int m_LabelToCheck;
-    bool m_Verbose;
-    double m_Tol;
-    double m_Ratio;
-
+  std::string m_OutputFilename;
+  int m_LabelToCheck;
+  bool m_Verbose;
+  double m_Tol;
+  double m_Ratio;
 };
 
 } // end of namespace anima

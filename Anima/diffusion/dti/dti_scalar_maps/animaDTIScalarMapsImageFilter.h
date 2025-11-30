@@ -6,12 +6,11 @@
 #include <itkConfigure.h>
 
 #include <animaNumberedThreadImageToImageFilter.h>
-#include <itkVectorImage.h>
 #include <itkImage.h>
+#include <itkVectorImage.h>
 #include <vnl/vnl_matrix.h>
 
-namespace anima
-{
+namespace anima {
 /** \class DTIScalarMapsImageFilter
  * \brief Applies an variance filter to an image
  *
@@ -20,64 +19,74 @@ namespace anima
  *
  */
 template <unsigned int ImageDimension = 3>
-class DTIScalarMapsImageFilter :
-    public anima::NumberedThreadImageToImageFilter < itk::VectorImage <double, ImageDimension>, itk::Image <double, ImageDimension> >
-{
+class DTIScalarMapsImageFilter : public anima::NumberedThreadImageToImageFilter<
+                                     itk::VectorImage<double, ImageDimension>,
+                                     itk::Image<double, ImageDimension>> {
 public:
+  /** Convenient typedefs for simplifying declarations. */
+  using InputImageType = itk::VectorImage<double, ImageDimension>;
+  using OutputImageType = itk::Image<double, ImageDimension>;
+  using TensorImageType = InputImageType;
 
-    /** Convenient typedefs for simplifying declarations. */
-    typedef itk::VectorImage <double, ImageDimension> InputImageType;
-    typedef itk::Image <double, ImageDimension> OutputImageType;
-    typedef InputImageType TensorImageType;
+  /** Extract dimension from input and output image. */
+  itkStaticConstMacro(InputImageDimension, unsigned int,
+                      InputImageType::ImageDimension);
+  itkStaticConstMacro(OutputImageDimension, unsigned int,
+                      OutputImageType::ImageDimension);
 
-    /** Extract dimension from input and output image. */
-    itkStaticConstMacro(InputImageDimension, unsigned int,
-                        InputImageType::ImageDimension);
-    itkStaticConstMacro(OutputImageDimension, unsigned int,
-                        OutputImageType::ImageDimension);
+  /** Standard class typedefs. */
+  using Self = DTIScalarMapsImageFilter;
+  using Superclass =
+      anima::NumberedThreadImageToImageFilter<InputImageType, OutputImageType>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Standard class typedefs. */
-    typedef DTIScalarMapsImageFilter Self;
-    typedef anima::NumberedThreadImageToImageFilter <InputImageType, OutputImageType> Superclass;
-    typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self> ConstPointer;
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(DTIScalarMapsImageFilter,
+               anima::NumberedThreadImageToImageFilter);
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  /** Image typedef support. */
+  using TensorVectorType = typename TensorImageType::PixelType;
 
-    /** Run-time type information (and related methods). */
-    itkTypeMacro(DTIScalarMapsImageFilter, anima::NumberedThreadImageToImageFilter)
+  using TensorImageRegionType = typename TensorImageType::RegionType;
+  using OutputImageRegionType = typename OutputImageType::RegionType;
+  using TensorImageSizeType = typename TensorImageType::SizeType;
 
-    /** Image typedef support. */
-    typedef typename TensorImageType::PixelType TensorVectorType;
+  /**  Create the Output */
+  itk::DataObject::Pointer MakeOutput(
+      itk::ProcessObject::DataObjectPointerArraySizeType idx) ITK_OVERRIDE;
 
-    typedef typename TensorImageType::RegionType TensorImageRegionType;
-    typedef typename OutputImageType::RegionType OutputImageRegionType;
-    typedef typename TensorImageType::SizeType TensorImageSizeType;
+  typename OutputImageType::Pointer GetADCImage() { return this->GetOutput(0); }
+  typename OutputImageType::Pointer GetFAImage() { return this->GetOutput(1); }
+  typename OutputImageType::Pointer GetAxialDiffusivityImage() {
+    return this->GetOutput(2);
+  }
+  typename OutputImageType::Pointer GetRadialDiffusivityImage() {
+    return this->GetOutput(3);
+  }
+  typename OutputImageType::Pointer GetAnglesImage() {
+    return this->GetOutput(4);
+  }
+  typename OutputImageType::Pointer GetAzimuthAnglesImage() {
+    return this->GetOutput(5);
+  }
 
-    /**  Create the Output */
-    itk::DataObject::Pointer MakeOutput(itk::ProcessObject::DataObjectPointerArraySizeType idx) ITK_OVERRIDE;
-
-    typename OutputImageType::Pointer GetADCImage() {return this->GetOutput(0);}
-    typename OutputImageType::Pointer GetFAImage() {return this->GetOutput(1);}
-    typename OutputImageType::Pointer GetAxialDiffusivityImage() {return this->GetOutput(2);}
-    typename OutputImageType::Pointer GetRadialDiffusivityImage() {return this->GetOutput(3);}
-    typename OutputImageType::Pointer GetAnglesImage() {return this->GetOutput(4);}
-    typename OutputImageType::Pointer GetAzimuthAnglesImage() {return this->GetOutput(5);}
-
-    void SetAnglesMatrix(vnl_matrix <double> &affMatrix);
+  void SetAnglesMatrix(vnl_matrix<double> &affMatrix);
 
 protected:
-    DTIScalarMapsImageFilter();
-    virtual ~DTIScalarMapsImageFilter() {}
+  DTIScalarMapsImageFilter();
+  virtual ~DTIScalarMapsImageFilter() {}
 
-    void DynamicThreadedGenerateData(const OutputImageRegionType& outputRegionForThread) ITK_OVERRIDE;
+  void DynamicThreadedGenerateData(
+      const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(DTIScalarMapsImageFilter);
+  ITK_DISALLOW_COPY_AND_ASSIGN(DTIScalarMapsImageFilter);
 
-    vnl_matrix <double> m_RigidAnglesMatrix;
+  vnl_matrix<double> m_RigidAnglesMatrix;
 };
 
 } // end of namespace anima

@@ -8,98 +8,100 @@
 #include <string>
 #include <vector>
 
-namespace anima
-{
+namespace anima {
 
-    template <class TInputImage, class TOutputImage>
-    class QMRISampleCreationImageFilter
-        : public itk::ImageToImageFilter<TInputImage, TOutputImage>
-    {
-    public:
-        /** Standard class typedefs. */
-        typedef QMRISampleCreationImageFilter<TInputImage, TOutputImage> Self;
-        typedef TInputImage InputImageType;
-        typedef TOutputImage OutputImageType;
+template <class TInputImage, class TOutputImage>
+class QMRISampleCreationImageFilter
+    : public itk::ImageToImageFilter<TInputImage, TOutputImage> {
+public:
+  /** Standard class typedefs. */
+  using Self = QMRISampleCreationImageFilter<TInputImage, TOutputImage>;
+  using InputImageType = TInputImage;
+  using OutputImageType = TOutputImage;
 
-        typedef itk::ImageToImageFilter<TInputImage, TOutputImage> Superclass;
-        typedef itk::SmartPointer<Self> Pointer;
-        typedef itk::SmartPointer<const Self> ConstPointer;
+  using Superclass = itk::ImageToImageFilter<TInputImage, TOutputImage>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-        typedef itk::Image<unsigned short, 3> MaskImageType;
-        typedef MaskImageType::Pointer MaskImagePointer;
+  using MaskImageType = itk::Image<unsigned short, 3>;
+  using MaskImagePointer = MaskImageType::Pointer;
 
-        /** Method for creation through the object factory. */
-        itkNewMacro(Self);
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-        /** Type macro that defines a name for this class. */
-        itkTypeMacro(QMRISampleCreationImageFilter, ImageToImageFilter);
+  /** Type macro that defines a name for this class. */
+  itkTypeMacro(QMRISampleCreationImageFilter, ImageToImageFilter);
 
-        /** Smart pointer typedef support.  */
-        typedef typename TInputImage::Pointer InputImagePointer;
-        typedef typename TInputImage::ConstPointer InputImageConstPointer;
+  /** Smart pointer typedef support.  */
+  using InputImagePointer = typename TInputImage::Pointer;
+  using InputImageConstPointer = typename TInputImage::ConstPointer;
 
-        itkSetMacro(QMRILesionRelationshipsFile, std::string) void ReadLesionSizesDistributions(std::string sizeDistributionFile);
+  itkSetMacro(QMRILesionRelationshipsFile, std::string);
 
-        void AddQMRIVarianceImage(TInputImage *varImage);
+  void ReadLesionSizesDistributions(std::string sizeDistributionFile);
 
-        void SetLesionsProbabilityMap(TInputImage *probaImage)
-        {
-            m_LesionsProbabilityMap = probaImage;
-        }
+  void AddQMRIVarianceImage(TInputImage *varImage);
 
-        itkSetMacro(LesionDiffusionThreshold, double)
-            itkSetMacro(LesionMinimalSize, unsigned int)
-                itkSetMacro(MinimalDistanceBetweenLesions, double)
-                    itkSetMacro(NumberOfSeeds, unsigned int)
+  void SetLesionsProbabilityMap(TInputImage *probaImage) {
+    m_LesionsProbabilityMap = probaImage;
+  }
 
-                        itkGetMacro(LesionsOutputMask, MaskImageType *)
+  itkSetMacro(LesionDiffusionThreshold, double);
+  itkSetMacro(LesionMinimalSize, unsigned int);
+  itkSetMacro(MinimalDistanceBetweenLesions, double);
+  itkSetMacro(NumberOfSeeds, unsigned int);
 
-                            protected : QMRISampleCreationImageFilter();
-        virtual ~QMRISampleCreationImageFilter() {}
+  itkGetMacro(LesionsOutputMask, MaskImageType *);
 
-        void GenerateData() ITK_OVERRIDE;
+protected:
+  QMRISampleCreationImageFilter();
+  virtual ~QMRISampleCreationImageFilter() {}
 
-    private:
-        ITK_DISALLOW_COPY_AND_ASSIGN(QMRISampleCreationImageFilter);
+  void GenerateData() ITK_OVERRIDE;
 
-        void CheckDataCoherence();
-        void InitializeOutputs();
-        void ReadQMRILesionRelationships();
+private:
+  ITK_DISALLOW_COPY_AND_ASSIGN(QMRISampleCreationImageFilter);
 
-        void GenerateQMRIHealthySamples();
-        void GenerateAndGrowLesions();
-        void UpdateQMRIOnLesions();
-        double GetRandomLesionSizeFromDistribution();
+  void CheckDataCoherence();
+  void InitializeOutputs();
+  void ReadQMRILesionRelationships();
 
-        std::vector<InputImagePointer> m_QMRIStdevImages;
-        InputImagePointer m_LesionsProbabilityMap;
+  void GenerateQMRIHealthySamples();
+  void GenerateAndGrowLesions();
+  void UpdateQMRIOnLesions();
+  double GetRandomLesionSizeFromDistribution();
 
-        std::vector<double> m_XAxisLesionSizesDistribution;
-        std::vector<double> m_YAxisLesionSizesDistribution;
+  std::vector<InputImagePointer> m_QMRIStdevImages;
+  InputImagePointer m_LesionsProbabilityMap;
 
-        MaskImagePointer m_LesionsOutputMask;
+  std::vector<double> m_XAxisLesionSizesDistribution;
+  std::vector<double> m_YAxisLesionSizesDistribution;
 
-        //! Linear relationship between lesion size and number of iterations in diffusion: y=Ax + B
-        static const double m_LesionSizeAFactor, m_LesionSizeBFactor;
+  MaskImagePointer m_LesionsOutputMask;
 
-        //! Threshold for diffused lesions
-        double m_LesionDiffusionThreshold;
+  //! Linear relationship between lesion size and number of iterations in
+  //! diffusion: y=Ax + B
+  static const double m_LesionSizeAFactor, m_LesionSizeBFactor;
 
-        double m_MinimalDistanceBetweenLesions;
-        unsigned int m_LesionMinimalSize;
+  //! Threshold for diffused lesions
+  double m_LesionDiffusionThreshold;
 
-        //! Gaussian relationship between qMRI values inside and outside lesion: I / O ~ N(a,b^2)
-        std::string m_QMRILesionRelationshipsFile;
-        std::vector<double> m_QMRILesionMeanRelationships;
-        vnl_matrix<double> m_QMRILesionCovarianceRelationship;
-        anima::MultivariateNormalDistribution m_QMRINormalDistribution;
+  double m_MinimalDistanceBetweenLesions;
+  unsigned int m_LesionMinimalSize;
 
-        unsigned int m_NumberOfSeeds;
-        unsigned int m_NumberOfIndividualLesionsKept;
+  //! Gaussian relationship between qMRI values inside and outside lesion: I / O
+  //! ~ N(a,b^2)
+  std::string m_QMRILesionRelationshipsFile;
+  std::vector<double> m_QMRILesionMeanRelationships;
+  vnl_matrix<double> m_QMRILesionCovarianceRelationship;
+  anima::MultivariateNormalDistribution m_QMRINormalDistribution;
 
-        //! Random generator
-        std::mt19937 m_Generator;
-    };
+  unsigned int m_NumberOfSeeds;
+  unsigned int m_NumberOfIndividualLesionsKept;
+
+  //! Random generator
+  std::mt19937 m_Generator;
+};
 
 } // end of namespace anima
 

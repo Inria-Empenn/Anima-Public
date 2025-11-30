@@ -2,338 +2,342 @@
 #include <sstream>
 
 #include <animaMCMFileReader.h>
-#include <animaShapesWriter.h>
 #include <animaShapesReader.h>
+#include <animaShapesWriter.h>
 
 #include <tclap/CmdLine.h>
 
-#include <vtkSmartPointer.h>
-#include <vtkPoints.h>
-#include <vtkPointData.h>
-#include <vtkPolyData.h>
-#include <vtkGenericCell.h>
 #include <vtkDoubleArray.h>
 #include <vtkGenericCell.h>
+#include <vtkPointData.h>
+#include <vtkPoints.h>
+#include <vtkPolyData.h>
+#include <vtkSmartPointer.h>
 
-#include <animaMCMLinearInterpolateImageFunction.h>
 #include <animaHyperbolicFunctions.h>
+#include <animaMCMLinearInterpolateImageFunction.h>
 #include <itkPoolMultiThreader.h>
 
-void ComputePropertiesOnOneCell(vtkCell *cell, anima::MCMLinearInterpolateImageFunction <anima::MCMImage <double, 3> > *mcmInterpolator,
-                                std::vector < vtkSmartPointer <vtkDoubleArray> > &myParameters, anima::MultiCompartmentModel *mcm)
-{   
-    typedef itk::VariableLengthVector <double> VectorType;
+void ComputePropertiesOnOneCell(
+    vtkCell *cell,
+    anima::MCMLinearInterpolateImageFunction<anima::MCMImage<double, 3>>
+        *mcmInterpolator,
+    std::vector<vtkSmartPointer<vtkDoubleArray>> &myParameters,
+    anima::MultiCompartmentModel *mcm) {
+  typedef itk::VariableLengthVector<double> VectorType;
 
-    typedef anima::MCMImage <double, 3> ModelImageType;
-    typedef ModelImageType::Pointer ModelImagePointer;
+  typedef anima::MCMImage<double, 3> ModelImageType;
+  typedef ModelImageType::Pointer ModelImagePointer;
 
-    typedef ModelImageType::IndexType IndexType;
-    typedef ModelImageType::PointType PointType;
-    
-    typedef anima::BaseCompartment CompartmentType;
-    typedef CompartmentType::Pointer CompartmentPointer;
+  typedef ModelImageType::IndexType IndexType;
+  typedef ModelImageType::PointType PointType;
 
-    typedef anima::MultiCompartmentModel MCMType;
-    typedef MCMType::Pointer MCMPointer;
+  typedef anima::BaseCompartment CompartmentType;
+  typedef CompartmentType::Pointer CompartmentPointer;
 
-    int nbOfComponents = myParameters.size();
-    int nbOfIsotropicCompartment = mcm->GetNumberOfIsotropicCompartments();
-    int nbOfCompartment = mcm->GetNumberOfCompartments();
+  typedef anima::MultiCompartmentModel MCMType;
+  typedef MCMType::Pointer MCMPointer;
 
-    vtkPoints *cellPts = cell->GetPoints();
-    vtkIdType nbOfCellPts = cellPts->GetNumberOfPoints();
+  int nbOfComponents = myParameters.size();
+  int nbOfIsotropicCompartment = mcm->GetNumberOfIsotropicCompartments();
+  int nbOfCompartment = mcm->GetNumberOfCompartments();
 
-    double currentPtPositionVTK[3];
-    double nextPtPositionVTK[3];
-    double lastPtPositionVTK[3];
+  vtkPoints *cellPts = cell->GetPoints();
+  vtkIdType nbOfCellPts = cellPts->GetNumberOfPoints();
 
-    PointType currentPtPosition, nextPtPosition, lastPtPosition;
+  double currentPtPositionVTK[3];
+  double nextPtPositionVTK[3];
+  double lastPtPositionVTK[3];
 
-    itk::ContinuousIndex<double, 3> currentIndex;
-    std::vector <double> myParameterValues(nbOfComponents);
+  PointType currentPtPosition, nextPtPosition, lastPtPosition;
 
-    vnl_vector <double> trackDirection(3);
-    VectorType outputModelVector;
-    MCMPointer workOutputModel = mcm->Clone();
-    vnl_vector <double> tempDirectionSphericalCordinate(3);
-    vnl_vector <double> tempDirection(3);
+  itk::ContinuousIndex<double, 3> currentIndex;
+  std::vector<double> myParameterValues(nbOfComponents);
 
-    int fwCompartmentIndex = -1;
-    int irwCompartmentIndex = -1;
+  vnl_vector<double> trackDirection(3);
+  VectorType outputModelVector;
+  MCMPointer workOutputModel = mcm->Clone();
+  vnl_vector<double> tempDirectionSphericalCordinate(3);
+  vnl_vector<double> tempDirection(3);
 
-    for (unsigned int i = 0;i < mcm->GetNumberOfIsotropicCompartments();++i)
-    {
-        if (mcm->GetCompartment(i)->GetCompartmentType() == anima::FreeWater)
-            fwCompartmentIndex = i;
-        else if (mcm->GetCompartment(i)->GetCompartmentType() == anima::IsotropicRestrictedWater)
-            irwCompartmentIndex = i;
+  int fwCompartmentIndex = -1;
+  int irwCompartmentIndex = -1;
+
+  for (unsigned int i = 0; i < mcm->GetNumberOfIsotropicCompartments(); ++i) {
+    if (mcm->GetCompartment(i)->GetCompartmentType() == anima::FreeWater)
+      fwCompartmentIndex = i;
+    else if (mcm->GetCompartment(i)->GetCompartmentType() ==
+             anima::IsotropicRestrictedWater)
+      irwCompartmentIndex = i;
+  }
+
+  for (int j = 0; j < nbOfCellPts; ++j) {
+    // Get the track direction
+    cellPts->GetPoint(j, currentPtPositionVTK);
+    int upperIndex = std::min((int)nbOfCellPts - 1, j + 1);
+    cellPts->GetPoint(upperIndex, nextPtPositionVTK);
+    int lowerIndex = std::max(0, j - 1);
+    cellPts->GetPoint(lowerIndex, lastPtPositionVTK);
+
+    int ptId = cell->GetPointId(j);
+
+    for (int k = 0; k < 3; ++k) {
+      currentPtPosition[k] = currentPtPositionVTK[k];
+      nextPtPosition[k] = nextPtPositionVTK[k];
+      lastPtPosition[k] = lastPtPositionVTK[k];
     }
 
-    for (int j = 0;j < nbOfCellPts;++j)
-    {
-        //Get the track direction
-        cellPts->GetPoint(j, currentPtPositionVTK);
-        int upperIndex = std::min((int)nbOfCellPts - 1,j + 1);
-        cellPts->GetPoint(upperIndex,nextPtPositionVTK);
-        int lowerIndex = std::max(0,j - 1);
-        cellPts->GetPoint(lowerIndex,lastPtPositionVTK);
+    for (int k = 0; k < 3; ++k)
+      trackDirection[k] = nextPtPosition[k] - lastPtPosition[k];
 
-        int ptId = cell->GetPointId(j);
+    if (trackDirection.two_norm() != 0)
+      trackDirection.normalize();
 
-        for (int k = 0; k < 3; ++k)
-        {
-            currentPtPosition[k] = currentPtPositionVTK[k];
-            nextPtPosition[k] = nextPtPositionVTK[k];
-            lastPtPosition[k] = lastPtPositionVTK[k];
-        }
+    // Convert physical points to continuous index and interpolate
+    bool isInside = mcmInterpolator->GetInputImage()
+                        ->TransformPhysicalPointToContinuousIndex(
+                            currentPtPosition, currentIndex);
 
-        for (int k = 0; k < 3; ++k)
-            trackDirection[k] = nextPtPosition[k] - lastPtPosition[k];
+    outputModelVector =
+        mcmInterpolator->EvaluateAtContinuousIndex(currentIndex);
+    workOutputModel->SetModelVector(outputModelVector);
 
-        if (trackDirection.two_norm() != 0)
-            trackDirection.normalize();
+    double totalWeight = 0;
+    for (int k = 0; k < nbOfCompartment; ++k)
+      totalWeight += workOutputModel->GetCompartmentWeight(k);
 
-        //Convert physical points to continuous index and interpolate
-        mcmInterpolator->GetInputImage()->TransformPhysicalPointToContinuousIndex(currentPtPosition, currentIndex);
+    if (totalWeight == 0) {
+      for (int k = 0; k < nbOfComponents; ++k)
+        myParameters[k]->SetValue(ptId, 0);
+      continue;
+    } else if (std::abs(totalWeight - 1.0) > 0.0000001)
+      std::cout << "Error some weight is not equal to 1, weight : "
+                << totalWeight << std::endl;
 
-        outputModelVector = mcmInterpolator->EvaluateAtContinuousIndex(currentIndex);
-        workOutputModel->SetModelVector(outputModelVector);
+    // Find the closest fascicle direction from the workOutputModel to the
+    // current one
+    double maxDirectionDotProduct = -1;
+    double tempDotProduct = 0;
+    int digitOfSelectedCompartment = 0;
 
-        double totalWeight = 0;
-        for (int k = 0; k < nbOfCompartment; ++k)
-            totalWeight += workOutputModel->GetCompartmentWeight(k);
+    for (int k = nbOfIsotropicCompartment; k < nbOfCompartment; ++k) {
+      tempDirectionSphericalCordinate[0] =
+          workOutputModel->GetCompartment(k)->GetOrientationTheta();
+      tempDirectionSphericalCordinate[1] =
+          workOutputModel->GetCompartment(k)->GetOrientationPhi();
+      tempDirectionSphericalCordinate[2] = 1;
 
-        if (totalWeight == 0)
-        {
-            for (int k = 0; k < nbOfComponents; ++k)
-                myParameters[k]->SetValue(ptId, 0);
-            continue;
-        }
-        else if (std::abs(totalWeight - 1.0) > 0.0000001)
-            std::cout << "Error some weight is not equal to 1, weight : " << totalWeight << std::endl;
+      anima::TransformSphericalToCartesianCoordinates(
+          tempDirectionSphericalCordinate, tempDirection);
 
-        // Find the closest fascicle direction from the workOutputModel to the current one
-        double maxDirectionDotProduct = -1;
-        double tempDotProduct = 0;
-        int digitOfSelectedCompartment = 0;
+      tempDotProduct = std::abs(dot_product(trackDirection, tempDirection));
 
-        for (int k = nbOfIsotropicCompartment; k < nbOfCompartment; ++k)
-        {
-            tempDirectionSphericalCordinate[0] = workOutputModel->GetCompartment(k)->GetOrientationTheta();
-            tempDirectionSphericalCordinate[1] = workOutputModel->GetCompartment(k)->GetOrientationPhi();
-            tempDirectionSphericalCordinate[2] = 1;
-
-            anima::TransformSphericalToCartesianCoordinates(tempDirectionSphericalCordinate, tempDirection);
-
-            tempDotProduct = std::abs(dot_product(trackDirection, tempDirection));
-
-            if (tempDotProduct > maxDirectionDotProduct)
-            {
-                maxDirectionDotProduct = tempDotProduct;
-                digitOfSelectedCompartment = k;
-            }
-        }
-
-        if (digitOfSelectedCompartment < nbOfIsotropicCompartment)
-        {
-            std::cout << "The selected compartment is isotropic" << std::endl;
-            exit(-1);
-        }
-
-        CompartmentPointer outputCompartment = workOutputModel->GetCompartment(digitOfSelectedCompartment);
-
-        // Compute values from the selected compartment
-        myParameterValues[0] = outputCompartment->GetApparentParallelDiffusivity();
-        myParameterValues[1] = outputCompartment->GetApparentPerpendicularDiffusivity();
-        myParameterValues[2] = outputCompartment->GetApparentMeanDiffusivity();
-        myParameterValues[3] = outputCompartment->GetApparentFractionalAnisotropy();
-        unsigned int pos = 4;
-        if (fwCompartmentIndex != -1)
-        {
-            myParameterValues[pos] = workOutputModel->GetCompartmentWeight(fwCompartmentIndex);
-            ++pos;
-        }
-
-        if (irwCompartmentIndex != -1)
-        {
-            myParameterValues[pos] = workOutputModel->GetCompartmentWeight(irwCompartmentIndex);
-            ++pos;
-        }
-
-        for (int k = 0; k < nbOfComponents; ++k)
-        {
-            if (std::isnan(myParameterValues[k]))
-            {
-                std::cerr << "Output Nan for " << myParameters[k]->GetName() << " array" << std::endl;
-                exit(-1);
-            }
-        }
-
-        for (unsigned int i = 0;i < pos;++i)
-            myParameters[i]->SetValue(ptId, myParameterValues[i]);
+      if (tempDotProduct > maxDirectionDotProduct) {
+        maxDirectionDotProduct = tempDotProduct;
+        digitOfSelectedCompartment = k;
+      }
     }
+
+    if (digitOfSelectedCompartment < nbOfIsotropicCompartment) {
+      std::cout << "The selected compartment is isotropic" << std::endl;
+      exit(-1);
+    }
+
+    CompartmentPointer outputCompartment =
+        workOutputModel->GetCompartment(digitOfSelectedCompartment);
+
+    // Compute values from the selected compartment
+    myParameterValues[0] = outputCompartment->GetApparentParallelDiffusivity();
+    myParameterValues[1] =
+        outputCompartment->GetApparentPerpendicularDiffusivity();
+    myParameterValues[2] = outputCompartment->GetApparentMeanDiffusivity();
+    myParameterValues[3] = outputCompartment->GetApparentFractionalAnisotropy();
+    unsigned int pos = 4;
+    if (fwCompartmentIndex != -1) {
+      myParameterValues[pos] =
+          workOutputModel->GetCompartmentWeight(fwCompartmentIndex);
+      ++pos;
+    }
+
+    if (irwCompartmentIndex != -1) {
+      myParameterValues[pos] =
+          workOutputModel->GetCompartmentWeight(irwCompartmentIndex);
+      ++pos;
+    }
+
+    for (int k = 0; k < nbOfComponents; ++k) {
+      if (std::isnan(myParameterValues[k])) {
+        std::cerr << "Output Nan for " << myParameters[k]->GetName() << " array"
+                  << std::endl;
+        exit(-1);
+      }
+    }
+
+    for (unsigned int i = 0; i < pos; ++i)
+      myParameters[i]->SetValue(ptId, myParameterValues[i]);
+  }
 }
 
-typedef struct
-{
-    vtkPolyData *tracks;
-    anima::MCMLinearInterpolateImageFunction <anima::MCMImage <double, 3> > *mcmInterpolator;
-    std::vector < vtkSmartPointer <vtkDoubleArray> > myParameters;
-    anima::MultiCompartmentModel *mcm;
+typedef struct {
+  vtkPolyData *tracks;
+  anima::MCMLinearInterpolateImageFunction<anima::MCMImage<double, 3>>
+      *mcmInterpolator;
+  std::vector<vtkSmartPointer<vtkDoubleArray>> myParameters;
+  anima::MultiCompartmentModel *mcm;
 } ThreaderArguments;
 
-ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION ThreadLabeler(void *arg)
-{
-    itk::MultiThreaderBase::WorkUnitInfo *threadArgs = (itk::MultiThreaderBase::WorkUnitInfo *)arg;
-    unsigned int nbThread = threadArgs->WorkUnitID;
-    unsigned int numTotalThread = threadArgs->NumberOfWorkUnits;
+ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION ThreadLabeler(void *arg) {
+  itk::MultiThreaderBase::WorkUnitInfo *threadArgs =
+      (itk::MultiThreaderBase::WorkUnitInfo *)arg;
+  unsigned int nbThread = threadArgs->WorkUnitID;
+  unsigned int numTotalThread = threadArgs->NumberOfWorkUnits;
 
-    ThreaderArguments *tmpArg = (ThreaderArguments *)threadArgs->UserData;
-    unsigned int nbTotalCells = tmpArg->tracks->GetNumberOfCells();
+  ThreaderArguments *tmpArg = (ThreaderArguments *)threadArgs->UserData;
+  unsigned int nbTotalCells = tmpArg->tracks->GetNumberOfCells();
 
-    unsigned int step = nbTotalCells / numTotalThread;
-    unsigned int startIndex = nbThread * step;
-    unsigned int endIndex = (nbThread + 1) * step;
+  unsigned int step = nbTotalCells / numTotalThread;
+  unsigned int startIndex = nbThread * step;
+  unsigned int endIndex = (nbThread + 1) * step;
 
-    if (nbThread == numTotalThread - 1)
-        endIndex = nbTotalCells;
+  if (nbThread == numTotalThread - 1)
+    endIndex = nbTotalCells;
 
-    anima::MultiCompartmentModel::Pointer mcm = tmpArg->mcm->Clone();
-    vtkSmartPointer <vtkGenericCell> cell = vtkGenericCell::New();
-    for (int i = startIndex;i < endIndex;++i)
-    {
-        tmpArg->tracks->GetCell(i,cell);
-        ComputePropertiesOnOneCell(cell, tmpArg->mcmInterpolator, tmpArg->myParameters, mcm);
-    }
+  anima::MultiCompartmentModel::Pointer mcm = tmpArg->mcm->Clone();
+  vtkSmartPointer<vtkGenericCell> cell = vtkGenericCell::New();
+  for (int i = startIndex; i < endIndex; ++i) {
+    tmpArg->tracks->GetCell(i, cell);
+    ComputePropertiesOnOneCell(cell, tmpArg->mcmInterpolator,
+                               tmpArg->myParameters, mcm);
+  }
 
-    return ITK_THREAD_RETURN_DEFAULT_VALUE;
+  return ITK_THREAD_RETURN_DEFAULT_VALUE;
 }
 
+int main(int argc, char **argv) {
+  TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ', ANIMA_VERSION);
 
-int main(int argc,  char **argv)
-{
-    TCLAP::CmdLine cmd("INRIA / IRISA - VisAGeS/Empenn Team", ' ',ANIMA_VERSION);
+  TCLAP::ValueArg<std::string> inTrackArg("i", "in-tracks",
+                                          "input tracks (.vtp,.vtk,.fds)", true,
+                                          "", "input tracks", cmd);
+  TCLAP::ValueArg<std::string> mcmArg("m", "mcm",
+                                      "multi compartments model (.mcm)", true,
+                                      "", "multi compartments model", cmd);
+  TCLAP::ValueArg<std::string> outTrackArg("o", "out-tracks",
+                                           "out tracks name (.vtp,.vtk,.fds)",
+                                           true, "", "output tracks", cmd);
 
-    TCLAP::ValueArg<std::string> inTrackArg("i","in-tracks","input tracks (.vtp,.vtk,.fds)",true,"","input tracks",cmd);
-    TCLAP::ValueArg<std::string> mcmArg("m","mcm","multi compartments model (.mcm)",true,"","multi compartments model",cmd);
-    TCLAP::ValueArg<std::string> outTrackArg("o","out-tracks","out tracks name (.vtp,.vtk,.fds)",true,"","output tracks",cmd);
+  TCLAP::ValueArg<unsigned int> nbThreadsArg(
+      "T", "nb-threads", "Number of threads to run on (default: all available)",
+      false, itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),
+      "number of threads", cmd);
 
-    TCLAP::ValueArg<unsigned int> nbThreadsArg("T","nb-threads","Number of threads to run on (default: all available)",false,itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(),"number of threads",cmd);
+  try {
+    cmd.parse(argc, argv);
+  } catch (TCLAP::ArgException &e) {
+    std::cerr << "Error: " << e.error() << "for argument " << e.argId()
+              << std::endl;
+    return EXIT_FAILURE;
+  }
 
-    try
-    {
-        cmd.parse(argc,argv);
-    }
-    catch (TCLAP::ArgException& e)
-    {
-        std::cerr << "Error: " << e.error() << "for argument " << e.argId() << std::endl;
-        return EXIT_FAILURE;
-    }
+  typedef anima::MCMImage<double, 3> ModelImageType;
+  typedef ModelImageType::Pointer ModelImagePointer;
 
-    typedef anima::MCMImage <double, 3> ModelImageType;
-    typedef ModelImageType::Pointer ModelImagePointer;
+  typedef anima::MCMLinearInterpolateImageFunction<ModelImageType>
+      mcmInterpolatorType;
+  typedef mcmInterpolatorType::Pointer mcmInterpolatorPointer;
 
-    typedef anima::MCMLinearInterpolateImageFunction <ModelImageType> mcmInterpolatorType;
-    typedef mcmInterpolatorType::Pointer mcmInterpolatorPointer;
+  typedef anima::MultiCompartmentModel MCMType;
+  typedef MCMType::Pointer MCMPointer;
 
-    typedef anima::MultiCompartmentModel MCMType;
-    typedef MCMType::Pointer MCMPointer;
+  anima::MCMFileReader<double, 3> mcmReader;
+  mcmReader.SetFileName(mcmArg.getValue());
+  mcmReader.Update();
 
-    anima::MCMFileReader <double,3> mcmReader;
-    mcmReader.SetFileName(mcmArg.getValue());
-    mcmReader.Update();
+  ModelImagePointer inputImage = mcmReader.GetModelVectorImage();
+  MCMPointer mcm = inputImage->GetDescriptionModel();
 
-    ModelImagePointer inputImage = mcmReader.GetModelVectorImage();
-    MCMPointer mcm = inputImage->GetDescriptionModel();
+  anima::ShapesReader trackReader;
+  trackReader.SetFileName(inTrackArg.getValue());
+  trackReader.Update();
 
-    anima::ShapesReader trackReader;
-    trackReader.SetFileName(inTrackArg.getValue());
-    trackReader.Update();
+  vtkSmartPointer<vtkPolyData> tracks = trackReader.GetOutput();
 
-    vtkSmartPointer<vtkPolyData> tracks = trackReader.GetOutput();
+  // Get dummy cell so that it's thread safe
+  vtkSmartPointer<vtkGenericCell> dummyCell = vtkGenericCell::New();
+  tracks->GetCell(0, dummyCell);
 
-    // Get dummy cell so that it's thread safe
-    vtkSmartPointer <vtkGenericCell> dummyCell = vtkGenericCell::New();
-    tracks->GetCell(0,dummyCell);
-
-    vtkIdType nbTotalPts = tracks->GetNumberOfPoints();
-    if (nbTotalPts == 0)
-    {
-        std::cout << "No points in track file, nothing to do" << std::endl;
-        return EXIT_SUCCESS;
-    }
-
-    vtkIdType nbTotalCells = tracks->GetNumberOfCells();
-
-    std::cout << "nbTotalPts : " << nbTotalPts << std::endl;
-    std::cout << "nbTotalCells : " << nbTotalCells << std::endl;
-
-    mcmInterpolatorPointer mcmInterpolator = mcmInterpolatorType::New();
-    mcmInterpolator->SetInputImage(inputImage);
-    mcmInterpolator->SetReferenceOutputModel(mcm);
-
-    int nbOfComponents = 4;
-    bool hasFW = false;
-    bool hasIRW = false;
-    for (unsigned int i = 0;i < mcm->GetNumberOfIsotropicCompartments();++i)
-    {
-        if (mcm->GetCompartment(i)->GetCompartmentType() == anima::FreeWater)
-        {
-            ++nbOfComponents;
-            hasFW = true;
-        }
-
-        if (mcm->GetCompartment(i)->GetCompartmentType() == anima::IsotropicRestrictedWater)
-        {
-            ++nbOfComponents;
-            hasIRW = true;
-        }
-    }
-
-    std::vector < vtkSmartPointer <vtkDoubleArray> > myParameters(nbOfComponents);
-    for (int i = 0; i < nbOfComponents; ++i)
-    {
-        myParameters[i] = vtkDoubleArray::New();
-        myParameters[i]->SetNumberOfComponents(1);
-        myParameters[i]->SetNumberOfValues(nbTotalPts);
-    }
-
-    myParameters[0]->SetName("Parallel diffusivity");
-    myParameters[1]->SetName("Perpendicular diffusivity");
-    myParameters[2]->SetName("Mean diffusivity");
-    myParameters[3]->SetName("Fractional anisotropy");
-    unsigned int pos = 4;
-    if (hasFW)
-    {
-        myParameters[pos]->SetName("Free water fraction");
-        ++pos;
-    }
-
-    if (hasIRW)
-        myParameters[pos]->SetName("Isotropic restricted water fraction");
-
-    ThreaderArguments tmpStr;
-    tmpStr.mcm = mcm;
-    tmpStr.mcmInterpolator = mcmInterpolator;
-    tmpStr.myParameters = myParameters;
-    tmpStr.tracks = tracks;
-
-    itk::PoolMultiThreader::Pointer mThreader = itk::PoolMultiThreader::New();
-    mThreader->SetNumberOfWorkUnits(nbThreadsArg.getValue());
-    mThreader->SetSingleMethod(ThreadLabeler,&tmpStr);
-    mThreader->SingleMethodExecute();
-
-    for (int i = 0; i < nbOfComponents; ++i)
-    {
-        std::cout << "Add an array for " << myParameters[i]->GetName() << std::endl;
-        tracks->GetPointData()->AddArray(myParameters[i]);
-    }
-
-    anima::ShapesWriter writer;
-    writer.SetInputData(tracks);
-    writer.SetFileName(outTrackArg.getValue());
-    std::cout << "Writing tracks : " << outTrackArg.getValue() << std::endl;
-    writer.Update();
-
+  vtkIdType nbTotalPts = tracks->GetNumberOfPoints();
+  if (nbTotalPts == 0) {
+    std::cout << "No points in track file, nothing to do" << std::endl;
     return EXIT_SUCCESS;
+  }
+
+  vtkIdType nbTotalCells = tracks->GetNumberOfCells();
+
+  std::cout << "nbTotalPts : " << nbTotalPts << std::endl;
+  std::cout << "nbTotalCells : " << nbTotalCells << std::endl;
+
+  mcmInterpolatorPointer mcmInterpolator = mcmInterpolatorType::New();
+  mcmInterpolator->SetInputImage(inputImage);
+  mcmInterpolator->SetReferenceOutputModel(mcm);
+
+  int nbOfComponents = 4;
+  bool hasFW = false;
+  bool hasIRW = false;
+  for (unsigned int i = 0; i < mcm->GetNumberOfIsotropicCompartments(); ++i) {
+    if (mcm->GetCompartment(i)->GetCompartmentType() == anima::FreeWater) {
+      ++nbOfComponents;
+      hasFW = true;
+    }
+
+    if (mcm->GetCompartment(i)->GetCompartmentType() ==
+        anima::IsotropicRestrictedWater) {
+      ++nbOfComponents;
+      hasIRW = true;
+    }
+  }
+
+  std::vector<vtkSmartPointer<vtkDoubleArray>> myParameters(nbOfComponents);
+  for (int i = 0; i < nbOfComponents; ++i) {
+    myParameters[i] = vtkDoubleArray::New();
+    myParameters[i]->SetNumberOfComponents(1);
+    myParameters[i]->SetNumberOfValues(nbTotalPts);
+  }
+
+  myParameters[0]->SetName("Parallel diffusivity");
+  myParameters[1]->SetName("Perpendicular diffusivity");
+  myParameters[2]->SetName("Mean diffusivity");
+  myParameters[3]->SetName("Fractional anisotropy");
+  unsigned int pos = 4;
+  if (hasFW) {
+    myParameters[pos]->SetName("Free water fraction");
+    ++pos;
+  }
+
+  if (hasIRW)
+    myParameters[pos]->SetName("Isotropic restricted water fraction");
+
+  ThreaderArguments tmpStr;
+  tmpStr.mcm = mcm;
+  tmpStr.mcmInterpolator = mcmInterpolator;
+  tmpStr.myParameters = myParameters;
+  tmpStr.tracks = tracks;
+
+  itk::PoolMultiThreader::Pointer mThreader = itk::PoolMultiThreader::New();
+  mThreader->SetNumberOfWorkUnits(nbThreadsArg.getValue());
+  mThreader->SetSingleMethod(ThreadLabeler, &tmpStr);
+  mThreader->SingleMethodExecute();
+
+  for (int i = 0; i < nbOfComponents; ++i) {
+    std::cout << "Add an array for " << myParameters[i]->GetName() << std::endl;
+    tracks->GetPointData()->AddArray(myParameters[i]);
+  }
+
+  anima::ShapesWriter writer;
+  writer.SetInputData(tracks);
+  writer.SetFileName(outTrackArg.getValue());
+  std::cout << "Writing tracks : " << outTrackArg.getValue() << std::endl;
+  writer.Update();
+
+  return EXIT_SUCCESS;
 }

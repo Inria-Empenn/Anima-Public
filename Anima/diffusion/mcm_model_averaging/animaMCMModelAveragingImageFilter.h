@@ -1,118 +1,122 @@
 #pragma once
 
-#include <animaNumberedThreadImageToImageFilter.h>
 #include <animaMCMImage.h>
+#include <animaNumberedThreadImageToImageFilter.h>
 #include <itkImage.h>
 #include <itkSymmetricEigenAnalysis.h>
 
 #include <animaBaseCompartment.h>
 #include <animaMultiCompartmentModel.h>
 
-#include <vnl/vnl_vector_fixed.h>
 #include <vnl/vnl_matrix_fixed.h>
+#include <vnl/vnl_vector_fixed.h>
 
-namespace anima
-{
+namespace anima {
 
 template <class PixelScalarType>
-class MCMModelAveragingImageFilter :
-public anima::NumberedThreadImageToImageFilter < anima::MCMImage<PixelScalarType,3>, anima::MCMImage<PixelScalarType,3> >
-{
+class MCMModelAveragingImageFilter
+    : public anima::NumberedThreadImageToImageFilter<
+          anima::MCMImage<PixelScalarType, 3>,
+          anima::MCMImage<PixelScalarType, 3>> {
 public:
-    /** Standard class typedefs. */
-    typedef MCMModelAveragingImageFilter Self;
-    typedef anima::MCMImage<PixelScalarType,3> InputImageType;
-    typedef anima::MCMImage<PixelScalarType,3> OutputImageType;
-    typedef itk::Image<PixelScalarType,3> ScalarImageType;
-    typedef itk::Image<unsigned int,3> MoseImageType;
-    typedef itk::Image<PixelScalarType,4> Image4DType;
-    typedef anima::NumberedThreadImageToImageFilter <InputImageType, OutputImageType> Superclass;
-    typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self>  ConstPointer;
+  /** Standard class typedefs. */
+  using Self = MCMModelAveragingImageFilter;
+  using InputImageType = anima::MCMImage<PixelScalarType, 3>;
+  using OutputImageType = anima::MCMImage<PixelScalarType, 3>;
+  using ScalarImageType = itk::Image<PixelScalarType, 3>;
+  using MoseImageType = itk::Image<unsigned int, 3>;
+  using Image4DType = itk::Image<PixelScalarType, 4>;
+  using Superclass =
+      anima::NumberedThreadImageToImageFilter<InputImageType, OutputImageType>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-    typedef anima::MultiCompartmentModel MCModelType;
-    typedef typename MCModelType::Pointer MCModelPointer;
+  using MCModelType = anima::MultiCompartmentModel;
+  using MCModelPointer = typename MCModelType::Pointer;
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Run-time type information (and related methods) */
-    itkTypeMacro(MCMModelAveragingImageFilter, anima::NumberedThreadImageToImageFilter)
+  /** Run-time type information (and related methods) */
+  itkTypeMacro(MCMModelAveragingImageFilter,
+               anima::NumberedThreadImageToImageFilter);
 
-    /** Image typedef support */
-    typedef typename InputImageType::Pointer InputImagePointer;
-    typedef typename OutputImageType::Pointer OutputImagePointer;
-    typedef typename ScalarImageType::Pointer ScalarImagePointer;
-    typedef typename OutputImageType::PixelType OutputPixelType;
+  /** Image typedef support */
+  using InputImagePointer = typename InputImageType::Pointer;
+  using OutputImagePointer = typename OutputImageType::Pointer;
+  using ScalarImagePointer = typename ScalarImageType::Pointer;
+  using OutputPixelType = typename OutputImageType::PixelType;
 
-    /** Superclass typedefs. */
-    typedef typename Superclass::InputImageRegionType InputImageRegionType;
-    typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
+  /** Superclass typedefs. */
+  using InputImageRegionType = typename Superclass::InputImageRegionType;
+  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
 
-    /** Tensor typdefs. */
-    typedef vnl_matrix_fixed <double,3,3> MatrixType;
-    typedef vnl_vector_fixed <double,3> VectorType;
-    typedef itk::SymmetricEigenAnalysis <MatrixType,VectorType,MatrixType> EigenAnalysisType;
+  /** Tensor typdefs. */
+  using MatrixType = vnl_matrix_fixed<double, 3, 3>;
+  using VectorType = vnl_vector_fixed<double, 3>;
+  using EigenAnalysisType =
+      itk::SymmetricEigenAnalysis<MatrixType, VectorType, MatrixType>;
 
-    typedef anima::BaseCompartment BaseCompartmentType;
-    typedef std::vector <BaseCompartmentType> ModelDataType;
-    typedef std::vector <double> WeightDataType;
+  using BaseCompartmentType = anima::BaseCompartment;
+  using ModelDataType = std::vector<BaseCompartmentType>;
+  using WeightDataType = std::vector<double>;
 
-    itkSetMacro(WeightThreshold, double)
-    void SetAICcVolume(unsigned int i, ScalarImageType *vol);
-    void SetB0Volume(unsigned int i, ScalarImageType *vol);
-    void SetNoiseVolume(unsigned int i, ScalarImageType *vol);
+  itkSetMacro(WeightThreshold, double);
+  void SetAICcVolume(unsigned int i, ScalarImageType *vol);
+  void SetB0Volume(unsigned int i, ScalarImageType *vol);
+  void SetNoiseVolume(unsigned int i, ScalarImageType *vol);
 
-    itkSetMacro(SquaredSimilarity,bool)
-    itkSetMacro(SimplifyModels,bool)
+  itkSetMacro(SquaredSimilarity, bool);
+  itkSetMacro(SimplifyModels, bool);
 
-    MoseImageType *GetMoseMap () {return m_MoseMap;}
-    ScalarImageType *GetOutputB0Volume () {return m_OutputB0Volume;}
-    ScalarImageType *GetOutputNoiseVolume () {return m_OutputNoiseVolume;}
+  MoseImageType *GetMoseMap() { return m_MoseMap; }
+  ScalarImageType *GetOutputB0Volume() { return m_OutputB0Volume; }
+  ScalarImageType *GetOutputNoiseVolume() { return m_OutputNoiseVolume; }
 
 protected:
-    MCMModelAveragingImageFilter()
-    : Superclass()
-    {
-        m_WeightThreshold = 0.05;
-        m_SquaredSimilarity = false;
-        m_SimplifyModels = false;
-    }
+  MCMModelAveragingImageFilter() : Superclass() {
+    m_WeightThreshold = 0.05;
+    m_SquaredSimilarity = false;
+    m_SimplifyModels = false;
+  }
 
-    virtual ~MCMModelAveragingImageFilter() {}
+  virtual ~MCMModelAveragingImageFilter() {}
 
-    void GenerateOutputInformation() ITK_OVERRIDE;
-    void BeforeThreadedGenerateData() ITK_OVERRIDE;
-    void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
-    void AfterThreadedGenerateData() ITK_OVERRIDE;
+  void GenerateOutputInformation() ITK_OVERRIDE;
+  void BeforeThreadedGenerateData() ITK_OVERRIDE;
+  void DynamicThreadedGenerateData(
+      const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
+  void AfterThreadedGenerateData() ITK_OVERRIDE;
 
-    void InitializeReferenceOutputModel();
-    void IncrementModelPairingVector(std::vector <unsigned int> &modelPairingVector);
-    WeightDataType GetAkaikeWeights(const WeightDataType &aicData);
+  void InitializeReferenceOutputModel();
+  void
+  IncrementModelPairingVector(std::vector<unsigned int> &modelPairingVector);
+  WeightDataType GetAkaikeWeights(const WeightDataType &aicData);
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(MCMModelAveragingImageFilter);
+  ITK_DISALLOW_COPY_AND_ASSIGN(MCMModelAveragingImageFilter);
 
-    std::vector <MCModelPointer> m_ReferenceModels;
-    MCModelPointer m_ReferenceOutputModel;
-    std::vector <ScalarImagePointer> m_AICcVolumes;
-    std::vector <ScalarImagePointer> m_B0Volumes;
-    std::vector <ScalarImagePointer> m_NoiseVolumes;
-    std::vector <unsigned int> m_WorkNonFreeWaterCorrespondences, m_NumberOfNonFreeWaterCompartments;    
+  std::vector<MCModelPointer> m_ReferenceModels;
+  MCModelPointer m_ReferenceOutputModel;
+  std::vector<ScalarImagePointer> m_AICcVolumes;
+  std::vector<ScalarImagePointer> m_B0Volumes;
+  std::vector<ScalarImagePointer> m_NoiseVolumes;
+  std::vector<unsigned int> m_WorkNonFreeWaterCorrespondences,
+      m_NumberOfNonFreeWaterCompartments;
 
-    unsigned int m_NumberOfIsotropicCompartments;
+  unsigned int m_NumberOfIsotropicCompartments;
 
-    ScalarImagePointer m_OutputB0Volume;
-    ScalarImagePointer m_OutputNoiseVolume;
-    MoseImageType::Pointer m_MoseMap;
+  ScalarImagePointer m_OutputB0Volume;
+  ScalarImagePointer m_OutputNoiseVolume;
+  MoseImageType::Pointer m_MoseMap;
 
-    double m_WeightThreshold;
-    bool m_SquaredSimilarity;
-    bool m_SimplifyModels;
+  double m_WeightThreshold;
+  bool m_SquaredSimilarity;
+  bool m_SimplifyModels;
 
-    static const double m_ZeroThreshold;
+  static const double m_ZeroThreshold;
 };
-    
+
 } // end of namespace anima
 
 #include "animaMCMModelAveragingImageFilter.hxx"

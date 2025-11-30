@@ -1,82 +1,82 @@
 #pragma once
 
-#include <itkImageToImageFilter.h>
 #include <animaMCMImage.h>
+#include <itkImageToImageFilter.h>
 
 #include <animaMultiCompartmentModel.h>
 
-namespace anima
-{
+namespace anima {
 
 template <class TPixelType>
-class MCMScalarMapsImageFilter :
-public itk::ImageToImageFilter< anima::MCMImage <TPixelType, 3>, itk::Image<TPixelType, 3> >
-{
+class MCMScalarMapsImageFilter
+    : public itk::ImageToImageFilter<anima::MCMImage<TPixelType, 3>,
+                                     itk::Image<TPixelType, 3>> {
 public:
-    /** Standard class typedefs */
-    typedef MCMScalarMapsImageFilter Self;
-    typedef anima::MCMImage <TPixelType, 3> InputImageType;
-    typedef itk::Image <TPixelType, 3> OutputImageType;
-    typedef itk::ImageToImageFilter <InputImageType, OutputImageType > Superclass;
-    typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self> ConstPointer;
+  /** Standard class typedefs */
+  using Self = MCMScalarMapsImageFilter;
+  using InputImageType = anima::MCMImage<TPixelType, 3>;
+  using OutputImageType = itk::Image<TPixelType, 3>;
+  using Superclass = itk::ImageToImageFilter<InputImageType, OutputImageType>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Run-time type information (and related methods) */
-    itkTypeMacro(MCMScalarMapsImageFilter, itk::ImageToImageFilter)
+  /** Run-time type information (and related methods) */
+  itkTypeMacro(MCMScalarMapsImageFilter, itk::ImageToImageFilter);
 
-    typedef typename InputImageType::ConstPointer InputImagePointer;
-    typedef typename OutputImageType::Pointer OutputImagePointer;
+  using InputImagePointer = typename InputImageType::ConstPointer;
+  using OutputImagePointer = typename OutputImageType::Pointer;
 
-    typedef typename InputImageType::RegionType InputRegionType;
-    typedef typename InputImageType::IndexType InputIndexType;
-    typedef typename InputImageType::PixelType PixelType;
+  using InputRegionType = typename InputImageType::RegionType;
+  using InputIndexType = typename InputImageType::IndexType;
+  using PixelType = typename InputImageType::PixelType;
 
-    // Multi-compartment models typedefs
-    typedef anima::MultiCompartmentModel MCModelType;
-    typedef MCModelType::Pointer MCModelPointer;
+  // Multi-compartment models typedefs
+  using MCModelType = anima::MultiCompartmentModel;
+  using MCModelPointer = MCModelType::Pointer;
 
-    itkSetMacro(IncludeIsotropicWeights, bool)
+  itkSetMacro(IncludeIsotropicWeights, bool);
 
 protected:
-    MCMScalarMapsImageFilter ()
-    {
-        // Seven outputs for now:
-        // - free water weight, isotropic restricted weight (sum of IR or Stanisz compartments)
-        // - anisotropic weight
-        // - FA and MD
-        // - Apparent parallel and perpendicular diffusivities
-        unsigned int numOutputs = 7;
-        this->SetNumberOfRequiredOutputs(numOutputs);
+  MCMScalarMapsImageFilter() {
+    // Seven outputs for now:
+    // - free water weight, isotropic restricted weight (sum of IR or Stanisz
+    // compartments)
+    // - anisotropic weight
+    // - FA and MD
+    // - Apparent parallel and perpendicular diffusivities
+    unsigned int numOutputs = 7;
+    this->SetNumberOfRequiredOutputs(numOutputs);
 
-        for (unsigned int i = 0;i < numOutputs;++i)
-            this->SetNthOutput(i,this->MakeOutput(i));
+    for (unsigned int i = 0; i < numOutputs; ++i)
+      this->SetNthOutput(i, this->MakeOutput(i));
 
-        m_IncludeIsotropicWeights = false;
+    m_IncludeIsotropicWeights = false;
+  }
+
+  virtual ~MCMScalarMapsImageFilter() {}
+
+  template <class T>
+  bool isZero(const itk::VariableLengthVector<T> &value) const {
+    for (unsigned int i = 0; i < value.GetNumberOfElements(); ++i) {
+      if (value[i] != 0.0)
+        return false;
     }
 
-    virtual ~MCMScalarMapsImageFilter () {}
+    return true;
+  }
 
-    template <class T> bool isZero(const itk::VariableLengthVector <T> &value) const
-    {
-        for (unsigned int i = 0;i < value.GetNumberOfElements();++i)
-        {
-            if (value[i] != 0.0)
-                return false;
-        }
-
-        return true;
-    }
-
-    void DynamicThreadedGenerateData(const InputRegionType &outputRegionForThread) ITK_OVERRIDE;
+  void DynamicThreadedGenerateData(const InputRegionType &outputRegionForThread)
+      ITK_OVERRIDE;
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(MCMScalarMapsImageFilter);
+  ITK_DISALLOW_COPY_AND_ASSIGN(MCMScalarMapsImageFilter);
 
-    // Use to compute FA and MD measures with or without iso compartments contributions
-    bool m_IncludeIsotropicWeights;
+  // Use to compute FA and MD measures with or without iso compartments
+  // contributions
+  bool m_IncludeIsotropicWeights;
 };
 
 } // end namespace anima
