@@ -1,76 +1,83 @@
 #pragma once
 
 #include <animaBaseOrientedModelImageToImageMetric.h>
-#include <itkVectorImage.h>
 #include <itkCovariantVector.h>
 #include <itkPoint.h>
+#include <itkVectorImage.h>
 
-namespace anima
-{
+namespace anima {
 
 /**
  * @brief Tensor correlation similarity measure as defined by Taquet et al
  *
- * M. Taquet et al. "A Mathematical Framework for the Registration and Analysis of Multi-Fascicle Models
- * for Population Studies of the Brain Microstructure". IEEE TMI 2014.
+ * M. Taquet et al. "A Mathematical Framework for the Registration and Analysis
+ * of Multi-Fascicle Models for Population Studies of the Brain Microstructure".
+ * IEEE TMI 2014.
  */
-template <class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension>
-class TensorCorrelationImageToImageMetric :
-public BaseOrientedModelImageToImageMetric < itk::VectorImage <TFixedImagePixelType, ImageDimension>, itk::VectorImage <TMovingImagePixelType, ImageDimension> >
-{
+template <class TFixedImagePixelType, class TMovingImagePixelType,
+          unsigned int ImageDimension>
+class TensorCorrelationImageToImageMetric
+    : public BaseOrientedModelImageToImageMetric<
+          itk::VectorImage<TFixedImagePixelType, ImageDimension>,
+          itk::VectorImage<TMovingImagePixelType, ImageDimension>> {
 public:
+  /** Standard class typedefs. */
+  using TFixedImage = itk::VectorImage<TFixedImagePixelType, ImageDimension>;
+  using TMovingImage = itk::VectorImage<TMovingImagePixelType, ImageDimension>;
 
-    /** Standard class typedefs. */
-    typedef itk::VectorImage <TFixedImagePixelType, ImageDimension> TFixedImage;
-    typedef itk::VectorImage <TMovingImagePixelType, ImageDimension> TMovingImage;
+  using Self = TensorCorrelationImageToImageMetric;
+  using Superclass =
+      BaseOrientedModelImageToImageMetric<TFixedImage, TMovingImage>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-    typedef TensorCorrelationImageToImageMetric Self;
-    typedef BaseOrientedModelImageToImageMetric<TFixedImage, TMovingImage > Superclass;
-    typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self> ConstPointer;
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(TensorCorrelationImageToImageMetric,
+               BaseOrientedModelImageToImageMetric);
 
-    /** Run-time type information (and related methods). */
-    itkTypeMacro(TensorCorrelationImageToImageMetric, BaseOrientedModelImageToImageMetric)
+  /** Types transferred from the base class */
+  using PixelType = typename TFixedImage::PixelType;
 
-    /** Types transferred from the base class */
-    typedef typename TFixedImage::PixelType PixelType;
+  using TransformType = typename Superclass::TransformType;
+  using TransformPointer = typename Superclass::TransformPointer;
+  using TransformParametersType = typename Superclass::TransformParametersType;
+  using OutputPointType = typename Superclass::OutputPointType;
+  using InputPointType = typename Superclass::InputPointType;
+  using ContinuousIndexType =
+      typename itk::ContinuousIndex<double, ImageDimension>;
 
-    typedef typename Superclass::TransformType TransformType;
-    typedef typename Superclass::TransformPointer TransformPointer;
-    typedef typename Superclass::TransformParametersType TransformParametersType;
-    typedef typename Superclass::OutputPointType OutputPointType;
-    typedef typename Superclass::InputPointType InputPointType;
-    typedef typename itk::ContinuousIndex <double, ImageDimension> ContinuousIndexType;
+  using CoordinateRepresentationType =
+      typename Superclass::CoordinateRepresentationType;
 
-    typedef typename Superclass::CoordinateRepresentationType CoordinateRepresentationType;
+  using MeasureType = typename Superclass::MeasureType;
+  using FixedImageType = typename Superclass::FixedImageType;
+  using MovingImageType = typename Superclass::MovingImageType;
+  using FixedImageConstPointer = typename Superclass::FixedImageConstPointer;
+  using MovingImageConstPointer = typename Superclass::MovingImageConstPointer;
 
-    typedef typename Superclass::MeasureType MeasureType;
-    typedef typename Superclass::FixedImageType FixedImageType;
-    typedef typename Superclass::MovingImageType MovingImageType;
-    typedef typename Superclass::FixedImageConstPointer FixedImageConstPointer;
-    typedef typename Superclass::MovingImageConstPointer MovingImageConstPointer;
+  /**  Get the value for single valued optimizers. */
+  MeasureType
+  GetValue(const TransformParametersType &parameters) const ITK_OVERRIDE;
 
-    /**  Get the value for single valued optimizers. */
-    MeasureType GetValue(const TransformParametersType & parameters) const ITK_OVERRIDE;
-
-    void PreComputeFixedValues();
+  void PreComputeFixedValues();
 
 protected:
-    TensorCorrelationImageToImageMetric();
-    virtual ~TensorCorrelationImageToImageMetric() {}
+  TensorCorrelationImageToImageMetric();
+  virtual ~TensorCorrelationImageToImageMetric() {}
 
 private:
-    TensorCorrelationImageToImageMetric(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+  TensorCorrelationImageToImageMetric(const Self &); // purposely not
+                                                     // implemented
+  void operator=(const Self &); // purposely not implemented
 
-    double m_FixedTProduct, m_FixedDenominator;
-    double m_LogEpsilon;
+  double m_FixedTProduct, m_FixedDenominator;
+  double m_LogEpsilon;
 
-    std::vector <InputPointType> m_FixedImagePoints;
-    std::vector <PixelType> m_FixedImageValues;
+  std::vector<InputPointType> m_FixedImagePoints;
+  std::vector<PixelType> m_FixedImageValues;
 };
 
 } // end namespace anima

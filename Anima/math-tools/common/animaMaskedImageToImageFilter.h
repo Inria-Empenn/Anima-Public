@@ -1,63 +1,61 @@
 #pragma once
 
-#include <iostream>
 #include <animaNumberedThreadImageToImageFilter.h>
+#include <iostream>
 #include <itkNumericTraits.h>
 
-namespace anima
-{
+namespace anima {
 
 template <typename TInputImage, typename TOutputImage>
-class MaskedImageToImageFilter :
-        public anima::NumberedThreadImageToImageFilter <TInputImage, TOutputImage>
-{
+class MaskedImageToImageFilter
+    : public anima::NumberedThreadImageToImageFilter<TInputImage,
+                                                     TOutputImage> {
 public:
-    /** Standard class typedefs. */
-    typedef MaskedImageToImageFilter Self;
-    typedef anima::NumberedThreadImageToImageFilter <TInputImage, TOutputImage> Superclass;
-    typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self>  ConstPointer;
+  /** Standard class typedefs. */
+  using Self = MaskedImageToImageFilter;
+  using Superclass =
+      anima::NumberedThreadImageToImageFilter<TInputImage, TOutputImage>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Run-time type information (and related methods) */
-    itkTypeMacro(MaskedImageToImageFilter, anima::NumberedThreadImageToImageFilter)
+  /** Run-time type information (and related methods) */
+  itkTypeMacro(MaskedImageToImageFilter,
+               anima::NumberedThreadImageToImageFilter);
 
-    /** Superclass typedefs. */
-    typedef typename Superclass::InputImageRegionType InputImageRegionType;
-    typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
-    typedef typename itk::ImageSource<TOutputImage>::ThreadStruct ThreadStruct;
+  /** Superclass typedefs. */
+  using InputImageRegionType = typename Superclass::InputImageRegionType;
+  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using ThreadStruct = typename itk::ImageSource<TOutputImage>::ThreadStruct;
 
-    /** Mask typedefs */
-    typedef itk::Image <unsigned char,TInputImage::ImageDimension> MaskImageType;
-    typedef typename MaskImageType::RegionType MaskRegionType;
-    typedef typename MaskImageType::Pointer MaskImagePointer;
-    typedef typename MaskImageType::IndexType MaskIndexType;
-    typedef typename MaskImageType::SizeType MaskSizeType;
+  /** Mask typedefs */
+  using MaskImageType = itk::Image<unsigned char, TInputImage::ImageDimension>;
+  using MaskRegionType = typename MaskImageType::RegionType;
+  using MaskImagePointer = typename MaskImageType::Pointer;
+  using MaskIndexType = typename MaskImageType::IndexType;
+  using MaskSizeType = typename MaskImageType::SizeType;
 
-    /** Set/Get the mask on which to compute estimates. */
-    itkSetMacro(ComputationMask, MaskImagePointer)
-    itkGetMacro(ComputationMask, MaskImageType *)
+  /** Set/Get the mask on which to compute estimates. */
+  itkSetMacro(ComputationMask, MaskImagePointer);
+  itkGetMacro(ComputationMask, MaskImageType *);
 
 protected:
-    MaskedImageToImageFilter()
-    {
-        m_ComputationMask = ITK_NULLPTR;
-    }
+  MaskedImageToImageFilter() { m_ComputationMask = ITK_NULLPTR; }
 
-    virtual ~MaskedImageToImageFilter() {}
+  virtual ~MaskedImageToImageFilter() {}
 
-    virtual void CheckComputationMask();
-    void InitializeComputationRegionFromMask();
-    virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
+  virtual void CheckComputationMask();
+  void InitializeComputationRegionFromMask();
+  virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(MaskedImageToImageFilter);
+  ITK_DISALLOW_COPY_AND_ASSIGN(MaskedImageToImageFilter);
 
-    MaskImagePointer m_ComputationMask;
+  MaskImagePointer m_ComputationMask;
 };
 
-} //end namespace anima
+} // end namespace anima
 
 #include "animaMaskedImageToImageFilter.hxx"

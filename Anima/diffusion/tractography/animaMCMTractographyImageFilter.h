@@ -1,62 +1,70 @@
 #pragma once
 
 #include <animaBaseTractographyImageFilter.h>
-#include <animaMCMLinearInterpolateImageFunction.h>
 #include <animaMCMImage.h>
+#include <animaMCMLinearInterpolateImageFunction.h>
 
 #include "AnimaTractographyExport.h"
 
-namespace anima
-{
+namespace anima {
 
-class ANIMATRACTOGRAPHY_EXPORT MCMTractographyImageFilter : public anima::BaseTractographyImageFilter
-{
+class ANIMATRACTOGRAPHY_EXPORT MCMTractographyImageFilter
+    : public anima::BaseTractographyImageFilter {
 public:
-    /** SmartPointer typedef support  */
-    typedef MCMTractographyImageFilter Self;
-    typedef anima::BaseTractographyImageFilter Superclass;
+  /** SmartPointer typedef support  */
+  using Self = MCMTractographyImageFilter;
+  using Superclass = anima::BaseTractographyImageFilter;
 
-    typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self> ConstPointer;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-    itkNewMacro(Self)
+  itkNewMacro(Self);
 
-    itkTypeMacro(MCMTractographyImageFilter,anima::BaseTractographyImageFilter)
-    
-    typedef Superclass::ModelImageType ModelImageType;
-    typedef anima::MCMImage <ModelImageType::IOPixelType, ModelImageType::ImageDimension> MCMImageType;
-    typedef MCMImageType::Pointer MCMImagePointer;
-    typedef MCMImageType::MCMPointer MCMPointer;
+  itkTypeMacro(MCMTractographyImageFilter, anima::BaseTractographyImageFilter);
 
-    typedef Superclass::VectorType VectorType;
-    typedef Superclass::PointType PointType;
-    typedef anima::MCMLinearInterpolateImageFunction <MCMImageType> MCMInterpolatorType;
-    typedef MCMInterpolatorType::Pointer MCMInterpolatorPointer;
-        
-    virtual void SetInputImage(ModelImageType *input) ITK_OVERRIDE;
+  using ModelImageType = Superclass::ModelImageType;
+  using MCMImageType = anima::MCMImage<ModelImageType::IOPixelType,
+                                       ModelImageType::ImageDimension>;
+  using MCMImagePointer = MCMImageType::Pointer;
+  using MCMPointer = MCMImageType::MCMPointer;
 
-    void SetStopIsoWeightThreshold(double num) {m_StopIsoWeightThreshold = num;}
-    void SetMinimalDirectionRelativeWeight(double num) {m_MinimalDirectionRelativeWeight = num;}
+  using VectorType = Superclass::VectorType;
+  using PointType = Superclass::PointType;
+  using MCMInterpolatorType =
+      anima::MCMLinearInterpolateImageFunction<MCMImageType>;
+  using MCMInterpolatorPointer = MCMInterpolatorType::Pointer;
+
+  virtual void SetInputImage(ModelImageType *input) ITK_OVERRIDE;
+
+  void SetStopIsoWeightThreshold(double num) { m_StopIsoWeightThreshold = num; }
+  void SetMinimalDirectionRelativeWeight(double num) {
+    m_MinimalDirectionRelativeWeight = num;
+  }
 
 protected:
-    MCMTractographyImageFilter();
-    virtual ~MCMTractographyImageFilter();
+  MCMTractographyImageFilter();
+  virtual ~MCMTractographyImageFilter();
 
-    virtual void PrepareTractography() ITK_OVERRIDE;
-    virtual bool CheckModelCompatibility(VectorType &modelValue, itk::ThreadIdType threadId) ITK_OVERRIDE;
-    virtual bool CheckIndexInImageBounds(ContinuousIndexType &index) ITK_OVERRIDE;
-    virtual void GetModelValue(ContinuousIndexType &index, VectorType &modelValue) ITK_OVERRIDE;
-    virtual std::vector <PointType> GetModelPrincipalDirections(VectorType &modelValue, bool is2d, itk::ThreadIdType threadId) ITK_OVERRIDE;
-    virtual PointType GetNextDirection(PointType &previousDirection, VectorType &modelValue, bool is2d,
+  virtual void PrepareTractography() ITK_OVERRIDE;
+  virtual bool CheckModelCompatibility(VectorType &modelValue,
                                        itk::ThreadIdType threadId) ITK_OVERRIDE;
+  virtual bool CheckIndexInImageBounds(ContinuousIndexType &index) ITK_OVERRIDE;
+  virtual void GetModelValue(ContinuousIndexType &index,
+                             VectorType &modelValue) ITK_OVERRIDE;
+  virtual std::vector<PointType>
+  GetModelPrincipalDirections(VectorType &modelValue, bool is2d,
+                              itk::ThreadIdType threadId) ITK_OVERRIDE;
+  virtual PointType GetNextDirection(PointType &previousDirection,
+                                     VectorType &modelValue, bool is2d,
+                                     itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(MCMTractographyImageFilter);
+  ITK_DISALLOW_COPY_AND_ASSIGN(MCMTractographyImageFilter);
 
-    double m_StopIsoWeightThreshold;
-    double m_MinimalDirectionRelativeWeight;
-    MCMInterpolatorPointer m_MCMInterpolator;
-    std::vector <MCMPointer> m_MCMData;
+  double m_StopIsoWeightThreshold;
+  double m_MinimalDirectionRelativeWeight;
+  MCMInterpolatorPointer m_MCMInterpolator;
+  std::vector<MCMPointer> m_MCMData;
 };
 
 } // end of namespace anima

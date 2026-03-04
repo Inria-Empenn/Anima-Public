@@ -2,42 +2,39 @@
 
 #include <itkImageToImageFilter.h>
 
-namespace anima
-{
+namespace anima {
 
 template <class TPixelType>
-class MajorityLabelVotingImageFilter :
-public itk::ImageToImageFilter< itk::Image <TPixelType, 3>, itk::Image<TPixelType, 3> >
-{
+class MajorityLabelVotingImageFilter
+    : public itk::ImageToImageFilter<itk::Image<TPixelType, 3>,
+                                     itk::Image<TPixelType, 3>> {
 public:
-    /** Standard class type def */
+  /** Standard class type alias */
 
-    using Self = MajorityLabelVotingImageFilter;
-    using InputImageType = itk::Image <TPixelType, 3>;
-    using OutputImageType = itk::Image <TPixelType, 3>;
-    using Superclass = itk::ImageToImageFilter <InputImageType, OutputImageType>;
-    using Pointer = itk::SmartPointer<Self>;
-    using ConstPointer = itk::SmartPointer<const Self>;
+  using Self = MajorityLabelVotingImageFilter;
+  using InputImageType = itk::Image<TPixelType, 3>;
+  using OutputImageType = itk::Image<TPixelType, 3>;
+  using Superclass = itk::ImageToImageFilter<InputImageType, OutputImageType>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Run-time type information (and related methods) */
-    itkTypeMacro(MajorityLabelVotingImageFilter, ImageToImageFilter)
+  /** Run-time type information (and related methods) */
+  itkTypeMacro(MajorityLabelVotingImageFilter, ImageToImageFilter);
 
-    using InputRegionType = typename InputImageType::RegionType;
+  using InputRegionType = typename InputImageType::RegionType;
 
 protected:
-    MajorityLabelVotingImageFilter ()
-    {
-    }
+  MajorityLabelVotingImageFilter() {}
 
-    virtual ~MajorityLabelVotingImageFilter () {}
+  virtual ~MajorityLabelVotingImageFilter() {}
 
-    void DynamicThreadedGenerateData(const InputRegionType &region) ITK_OVERRIDE;
+  void DynamicThreadedGenerateData(const InputRegionType &region) ITK_OVERRIDE;
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(MajorityLabelVotingImageFilter);
+  ITK_DISALLOW_COPY_AND_ASSIGN(MajorityLabelVotingImageFilter);
 };
 
 } // end namespace anima

@@ -1,83 +1,79 @@
 #pragma once
 
-#include <vnl/vnl_matrix.h>
 #include <vector>
+#include <vnl/vnl_matrix.h>
 
 #include <itkOptimizer.h>
 
-#include <animaCholeskyDecomposition.h>
 #include "AnimaOptimizersExport.h"
+#include <animaCholeskyDecomposition.h>
 
-namespace anima
-{
+namespace anima {
 /** \class NNLSOptimizer
  * \brief Non negative least squares optimizer. Implements Lawson et al method,
- * of squared problem is activated, assumes we pass AtA et AtB and uses Bro and de Jong method
+ * of squared problem is activated, assumes we pass AtA et AtB and uses Bro and
+ * de Jong method
  *
  * \ingroup Numerics Optimizers
  */
-class ANIMAOPTIMIZERS_EXPORT NNLSOptimizer : public itk::Optimizer
-{
+class ANIMAOPTIMIZERS_EXPORT NNLSOptimizer : public itk::Optimizer {
 public:
-    /** Standard class typedefs. */
-    typedef NNLSOptimizer Self;
-    typedef itk::Optimizer Superclass;
-    typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self> ConstPointer;
+  /** Standard class typedefs. */
+  using Self = NNLSOptimizer;
+  using Superclass = itk::Optimizer;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-    typedef Superclass::ParametersType ParametersType;
+  using ParametersType = Superclass::ParametersType;
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Run-time type information (and related methods). */
-    itkTypeMacro(NNLSOptimizer, Optimizer)
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(NNLSOptimizer, Optimizer);
 
-    /** Type of the input matrix data */
-    typedef vnl_matrix <double> MatrixType;
-    typedef vnl_vector <double> VectorType;
+  /** Type of the input matrix data */
+  using MatrixType = vnl_matrix<double>;
+  using VectorType = vnl_vector<double>;
 
-    /** Start optimization. */
-    void StartOptimization() ITK_OVERRIDE;
+  /** Start optimization. */
+  void StartOptimization() ITK_OVERRIDE;
 
-    void SetDataMatrix(const MatrixType &data) {m_DataMatrix = data;}
-    void SetPoints(const ParametersType &points) {m_Points = points;}
+  void SetDataMatrix(const MatrixType &data) { m_DataMatrix = data; }
+  void SetPoints(const ParametersType &points) { m_Points = points; }
 
-    double GetCurrentResidual();
+  double GetCurrentResidual();
 
-    itkSetMacro(SquaredProblem, bool)
+  itkSetMacro(SquaredProblem, bool);
 
 protected:
-    NNLSOptimizer()
-    {
-        m_SquaredProblem = false;
-    }
+  NNLSOptimizer() { m_SquaredProblem = false; }
 
-    virtual ~NNLSOptimizer() ITK_OVERRIDE {}
+  virtual ~NNLSOptimizer() ITK_OVERRIDE {}
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(NNLSOptimizer);
+  ITK_DISALLOW_COPY_AND_ASSIGN(NNLSOptimizer);
 
-    unsigned int UpdateProcessedIndexes();
-    void ComputeSPVector();
-    void ComputeWVector();
+  unsigned int UpdateProcessedIndexes();
+  void ComputeSPVector();
+  void ComputeWVector();
 
-    MatrixType m_DataMatrix;
-    ParametersType m_Points;
+  MatrixType m_DataMatrix;
+  ParametersType m_Points;
 
-    static const double m_EpsilonValue;
+  static const double m_EpsilonValue;
 
-    //! Flag to indicate if the inputs are already AtA and AtB
-    bool m_SquaredProblem;
+  //! Flag to indicate if the inputs are already AtA and AtB
+  bool m_SquaredProblem;
 
-    // Working values
-    std::vector <unsigned short> m_TreatedIndexes;
-    std::vector <unsigned int> m_ProcessedIndexes;
-    std::vector <double> m_WVector;
-    VectorType m_SPVector;
-    MatrixType m_DataMatrixP;
+  // Working values
+  std::vector<unsigned short> m_TreatedIndexes;
+  std::vector<unsigned int> m_ProcessedIndexes;
+  std::vector<double> m_WVector;
+  VectorType m_SPVector;
+  MatrixType m_DataMatrixP;
 
-    anima::CholeskyDecomposition m_CholeskySolver;
+  anima::CholeskyDecomposition m_CholeskySolver;
 };
 
 } // end of namespace anima

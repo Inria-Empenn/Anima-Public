@@ -2,57 +2,56 @@
 
 #include <itkImageToImageFilter.h>
 
-namespace anima
-{
+namespace anima {
 
-template< class TImage>
-class SimuBlochIRGRE:public itk::ImageToImageFilter< TImage, TImage >
-{
+template <class TImage>
+class SimuBlochIRGRE : public itk::ImageToImageFilter<TImage, TImage> {
 public:
-    /** Standard class typedefs. */
-    typedef SimuBlochIRGRE Self;
-    typedef itk::ImageToImageFilter <TImage, TImage> Superclass;
-    typedef itk::SmartPointer <Self> Pointer;
+  /** Standard class typedefs. */
+  using Self = SimuBlochIRGRE;
+  using Superclass = itk::ImageToImageFilter<TImage, TImage>;
+  using Pointer = itk::SmartPointer<Self>;
 
-    typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
+  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Run-time type information (and related methods). */
-    itkTypeMacro(SimuBlochIRGRE, ImageToImageFilter)
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(SimuBlochIRGRE, ImageToImageFilter);
 
-    itkSetMacro(TR, double)
-    itkGetMacro(TR, double)
+  itkSetMacro(TR, double);
+  itkGetMacro(TR, double);
 
-    itkSetMacro(TE, double)
-    itkGetMacro(TE, double)
+  itkSetMacro(TE, double);
+  itkGetMacro(TE, double);
 
-    itkSetMacro(TI, double)
-    itkGetMacro(TI, double)
+  itkSetMacro(TI, double);
+  itkGetMacro(TI, double);
 
-    /** T1 map */
-    void SetInputT1(const TImage* T1);
+  /** T1 map */
+  void SetInputT1(const TImage *T1);
 
-    /** T2s map */
-    void SetInputT2s(const TImage* T2s);
+  /** T2s map */
+  void SetInputT2s(const TImage *T2s);
 
-    /** M0 image / Rho map */
-    void SetInputM0(const TImage* M0);
+  /** M0 image / Rho map */
+  void SetInputM0(const TImage *M0);
 
 protected:
-    SimuBlochIRGRE();
-    virtual ~SimuBlochIRGRE() {}
+  SimuBlochIRGRE();
+  virtual ~SimuBlochIRGRE() {}
 
-    /** Does the real work. */
-    virtual void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
+  /** Does the real work. */
+  virtual void DynamicThreadedGenerateData(
+      const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(SimuBlochIRGRE);
+  ITK_DISALLOW_COPY_AND_ASSIGN(SimuBlochIRGRE);
 
-    double m_TR;
-    double m_TE;
-    double m_TI;
+  double m_TR;
+  double m_TE;
+  double m_TI;
 };
 
 } // end of namespace anima

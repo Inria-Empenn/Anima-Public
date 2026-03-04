@@ -2,58 +2,62 @@
 
 #include <animaOrientedModelBaseResampleImageFilter.h>
 
-namespace anima
-{
+namespace anima {
 
-template <typename TImageType, typename TInterpolatorPrecisionType=double>
-class TensorResampleImageFilter :
-        public OrientedModelBaseResampleImageFilter <TImageType,TInterpolatorPrecisionType>
-{
+template <typename TImageType, typename TInterpolatorPrecisionType = double>
+class TensorResampleImageFilter
+    : public OrientedModelBaseResampleImageFilter<TImageType,
+                                                  TInterpolatorPrecisionType> {
 public:
-    /** Standard class typedefs. */
-    typedef TensorResampleImageFilter Self;
+  /** Standard class typedefs. */
+  using Self = TensorResampleImageFilter;
 
-    typedef OrientedModelBaseResampleImageFilter <TImageType,TInterpolatorPrecisionType> Superclass;
-    typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self>  ConstPointer;
+  using Superclass =
+      OrientedModelBaseResampleImageFilter<TImageType,
+                                           TInterpolatorPrecisionType>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-    typedef typename Superclass::InputPixelType InputPixelType;
-    typedef typename Superclass::InputImageType InputImageType;
-    itkStaticConstMacro(ImageDimension, unsigned int,InputImageType::ImageDimension);
+  using InputPixelType = typename Superclass::InputPixelType;
+  using InputImageType = typename Superclass::InputImageType;
+  itkStaticConstMacro(ImageDimension, unsigned int,
+                      InputImageType::ImageDimension);
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Run-time type information (and related methods) */
-    itkTypeMacro(TensorResampleImageFilter, OrientedModelBaseResampleImageFilter)
+  /** Run-time type information (and related methods) */
+  itkTypeMacro(TensorResampleImageFilter, OrientedModelBaseResampleImageFilter);
 
 protected:
-    TensorResampleImageFilter()
-    {
-        m_VectorSize = ImageDimension * (ImageDimension + 1) / 2;
-        m_TensorDimension = ImageDimension;
-    }
+  TensorResampleImageFilter() {
+    m_VectorSize = ImageDimension * (ImageDimension + 1) / 2;
+    m_TensorDimension = ImageDimension;
+  }
 
-    virtual ~TensorResampleImageFilter() {}
+  virtual ~TensorResampleImageFilter() {}
 
-    virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
-    virtual void ReorientInterpolatedModel(const InputPixelType &interpolatedModel, vnl_matrix <double> &modelOrientationMatrix,
-                                           InputPixelType &rotatedModel, itk::ThreadIdType threadId) ITK_OVERRIDE;
+  virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
+  virtual void
+  ReorientInterpolatedModel(const InputPixelType &interpolatedModel,
+                            vnl_matrix<double> &modelOrientationMatrix,
+                            InputPixelType &rotatedModel,
+                            itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(TensorResampleImageFilter);
+  ITK_DISALLOW_COPY_AND_ASSIGN(TensorResampleImageFilter);
 
-    unsigned int m_VectorSize;
-    unsigned int m_TensorDimension;
+  unsigned int m_VectorSize;
+  unsigned int m_TensorDimension;
 
-    // Work variables
-    std::vector < vnl_matrix <double> > m_WorkMats;
-    std::vector < vnl_matrix <double> > m_TmpTensors;
+  // Work variables
+  std::vector<vnl_matrix<double>> m_WorkMats;
+  std::vector<vnl_matrix<double>> m_TmpTensors;
 
-    // Work vars for PPD
-    std::vector < vnl_vector_fixed <double, 3> > m_WorkEigenValues;
-    std::vector < itk::Matrix <double, 3, 3> > m_WorkEigenVectors;
-    std::vector < vnl_matrix <double> > m_WorkPPDOrientationMatrices;
+  // Work vars for PPD
+  std::vector<vnl_vector_fixed<double, 3>> m_WorkEigenValues;
+  std::vector<itk::Matrix<double, 3, 3>> m_WorkEigenVectors;
+  std::vector<vnl_matrix<double>> m_WorkPPDOrientationMatrices;
 };
 
 } // end namespace anima

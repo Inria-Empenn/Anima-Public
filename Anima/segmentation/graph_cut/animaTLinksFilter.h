@@ -1,163 +1,165 @@
 #pragma once
 
-#include <itkImageToImageFilter.h>
-#include <itkImageRegionIterator.h>
 #include <itkImageRegionConstIterator.h>
+#include <itkImageRegionIterator.h>
+#include <itkImageToImageFilter.h>
 #include <itkVariableSizeMatrix.h>
 
-enum TLinkMode
-{
-    singleGaussianTLink = 0,
-    stremTLink,
+enum TLinkMode {
+  singleGaussianTLink = 0,
+  stremTLink,
 };
 
-namespace anima
-{
+namespace anima {
 /**
- * @brief Class computing the probability maps that are used to create the t-links
- * - single gaussian method computes probability maps using binary masks as input.
+ * @brief Class computing the probability maps that are used to create the
+ * t-links
+ * - single gaussian method computes probability maps using binary masks as
+ * input.
  *
  */
 template <typename TInput, typename TOutput>
-class TLinksFilter :
-        public itk::ImageToImageFilter< TInput,TOutput>
-{
+class TLinksFilter : public itk::ImageToImageFilter<TInput, TOutput> {
 public:
-    /** Standard class typedefs. */
-    typedef TLinksFilter Self;
-    typedef itk::ImageToImageFilter< TInput ,TOutput > Superclass;
-    typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self>  ConstPointer;
+  /** Standard class typedefs. */
+  using Self = TLinksFilter;
+  using Superclass = itk::ImageToImageFilter<TInput, TOutput>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Run-time type information (and related methods) */
-    itkTypeMacro(TLinksFilter, ImageToImageFilter)
+  /** Run-time type information (and related methods) */
+  itkTypeMacro(TLinksFilter, ImageToImageFilter);
 
-    /** Image typedef support */
-    typedef typename TInput::PixelType InputPixelType;
-    typedef typename TInput::Pointer InputImagePointer;
-    typedef typename TInput::ConstPointer InputImageConstPointer;
-    typedef itk::ImageRegionConstIterator< TInput > InConstIteratorType;
-    typedef itk::ImageRegionIterator< TInput > InIteratorType;
+  /** Image typedef support */
+  using InputPixelType = typename TInput::PixelType;
+  using InputImagePointer = typename TInput::Pointer;
+  using InputImageConstPointer = typename TInput::ConstPointer;
+  using InConstIteratorType = itk::ImageRegionConstIterator<TInput>;
+  using InIteratorType = itk::ImageRegionIterator<TInput>;
 
-    typedef typename TOutput::PixelType OutputPixelType;
-    typedef typename TOutput::Pointer OutputImagePointer;
-    typedef itk::ImageRegionIterator< TOutput > OutRegionIteratorType;
+  using OutputPixelType = typename TOutput::PixelType;
+  using OutputImagePointer = typename TOutput::Pointer;
+  using OutRegionIteratorType = itk::ImageRegionIterator<TOutput>;
 
-    typedef double 	PixelTypeD;
-    typedef itk::Image <PixelTypeD,3> TSeedProba;
-    typedef itk::ImageRegionConstIterator< TSeedProba > SeedProbaRegionConstIteratorType;
+  using PixelTypeD = double;
+  using TSeedProba = itk::Image<PixelTypeD, 3>;
+  using SeedProbaRegionConstIteratorType =
+      itk::ImageRegionConstIterator<TSeedProba>;
 
-    typedef unsigned char PixelTypeUC;
-    typedef itk::Image <PixelTypeUC,3> TSeedMask;
-    typedef TSeedMask::Pointer TSeedMaskPointer;
-    typedef itk::ImageRegionIterator< TSeedMask > SeedMaskRegionIteratorType;
-    typedef itk::ImageRegionConstIterator< TSeedMask > SeedMaskRegionConstIteratorType;
+  using PixelTypeUC = unsigned char;
+  using TSeedMask = itk::Image<PixelTypeUC, 3>;
+  using TSeedMaskPointer = TSeedMask::Pointer;
+  using SeedMaskRegionIteratorType = itk::ImageRegionIterator<TSeedMask>;
+  using SeedMaskRegionConstIteratorType =
+      itk::ImageRegionConstIterator<TSeedMask>;
 
-    typedef double NumericType;
-    typedef itk::VariableSizeMatrix<NumericType> DoubleVariableSizeMatrixType;
-    typedef itk::Matrix<double, 1, 1> MatrixTypeRes;
+  using NumericType = double;
+  using DoubleVariableSizeMatrixType = itk::VariableSizeMatrix<NumericType>;
+  using MatrixTypeRes = itk::Matrix<double, 1, 1>;
 
-    /** The mri images.*/
-    void SetInputImage(unsigned int i, const TInput* image);
+  /** The mri images.*/
+  void SetInputImage(unsigned int i, const TInput *image);
 
-    /** probabilities containing the seeds for the object and the background or binary masks containing the seeds for the object and the background
-     */
-    void SetInputSeedSourcesMask(const TSeedMask* mask);
-    void SetInputSeedSinksMask(const TSeedMask* mask);
+  /** probabilities containing the seeds for the object and the background or
+   * binary masks containing the seeds for the object and the background
+   */
+  void SetInputSeedSourcesMask(const TSeedMask *mask);
+  void SetInputSeedSinksMask(const TSeedMask *mask);
 
-    void SetInputSeedSourcesProba(const TSeedProba* mask);
-    void SetInputSeedSinksProba(const TSeedProba* mask);
+  void SetInputSeedSourcesProba(const TSeedProba *mask);
+  void SetInputSeedSinksProba(const TSeedProba *mask);
 
-    TLinkMode GetTLinkMode() {return m_TLinkMode;}
-    void SetTLinkMode(TLinkMode m) {m_TLinkMode=m;}
+  TLinkMode GetTLinkMode() { return m_TLinkMode; }
+  void SetTLinkMode(TLinkMode m) { m_TLinkMode = m; }
 
-    TOutput* GetOutputSources();
-    TOutput* GetOutputSinks();
+  TOutput *GetOutputSources();
+  TOutput *GetOutputSinks();
 
-    void SetTol(const double tol)
-    {
-        this->SetCoordinateTolerance(tol);
-        this->SetDirectionTolerance(tol);
-    }
+  void SetTol(const double tol) {
+    this->SetCoordinateTolerance(tol);
+    this->SetDirectionTolerance(tol);
+  }
 
-    /** Superclass typedefs. */
-    typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
+  /** Superclass typedefs. */
+  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
 
-    itkSetMacro(Alpha, double)
-    itkGetMacro(Alpha, double)
+  itkSetMacro(Alpha, double);
+  itkGetMacro(Alpha, double);
 
-    itkSetMacro(MultiVarSources, double)
-    itkGetMacro(MultiVarSources, double)
+  itkSetMacro(MultiVarSources, double);
+  itkGetMacro(MultiVarSources, double);
 
-    itkSetMacro(MultiVarSinks, double)
-    itkGetMacro(MultiVarSinks, double)
+  itkSetMacro(MultiVarSinks, double);
+  itkGetMacro(MultiVarSinks, double);
 
-    itkSetMacro(NbModalities, unsigned int)
-    itkGetMacro(NbModalities, unsigned int)
+  itkSetMacro(NbModalities, unsigned int);
+  itkGetMacro(NbModalities, unsigned int);
 
-    itkSetMacro(Verbose, bool)
-    itkGetMacro(Verbose, bool)
+  itkSetMacro(Verbose, bool);
+  itkGetMacro(Verbose, bool);
 
 protected:
-    TLinksFilter()
-    {
-        m_Alpha = 10;
-        m_MultiVarSources = 1;
-        m_MultiVarSinks = 1;
-        m_TLinkMode = singleGaussianTLink;
-        m_NbModalities = 0;
-        m_NbInputs = 1;
-        m_Verbose=false;
+  TLinksFilter() {
+    m_Alpha = 10;
+    m_MultiVarSources = 1;
+    m_MultiVarSinks = 1;
+    m_TLinkMode = singleGaussianTLink;
+    m_NbModalities = 0;
+    m_NbInputs = 1;
+    m_Verbose = false;
 
-        m_NbMaxImage = 11;
-        m_IndexSourcesMask= m_NbMaxImage, m_IndexSourcesProba= m_NbMaxImage,m_IndexSinksMask= m_NbMaxImage, m_IndexSinksProba= m_NbMaxImage;
+    m_NbMaxImage = 11;
+    m_IndexSourcesMask = m_NbMaxImage, m_IndexSourcesProba = m_NbMaxImage,
+    m_IndexSinksMask = m_NbMaxImage, m_IndexSinksProba = m_NbMaxImage;
 
-        this->SetNumberOfRequiredOutputs(2);
-        this->SetNumberOfRequiredInputs(2);
+    this->SetNumberOfRequiredOutputs(2);
+    this->SetNumberOfRequiredInputs(2);
 
-        this->SetNthOutput( 0, this->MakeOutput(0) );
-        this->SetNthOutput( 1, this->MakeOutput(1) );
-    }
+    this->SetNthOutput(0, this->MakeOutput(0));
+    this->SetNthOutput(1, this->MakeOutput(1));
+  }
 
-    virtual ~TLinksFilter()
-    {
-    }
+  virtual ~TLinksFilter() {}
 
-    TSeedMask::ConstPointer GetInputSeedSourcesMask();
-    TSeedMask::ConstPointer GetInputSeedSinksMask();
+  TSeedMask::ConstPointer GetInputSeedSourcesMask();
+  TSeedMask::ConstPointer GetInputSeedSinksMask();
 
-    TSeedProba::ConstPointer GetInputSeedSourcesProba();
-    TSeedProba::ConstPointer GetInputSeedSinksProba();
+  TSeedProba::ConstPointer GetInputSeedSourcesProba();
+  TSeedProba::ConstPointer GetInputSeedSinksProba();
 
-    void GenerateData() ITK_OVERRIDE;
-    void computeSingleGaussian();
-    void computeSingleGaussianSeeds(TSeedMask::ConstPointer seedMask, OutputImagePointer output, double multiVar, TSeedMask::ConstPointer seedMaskOpp = ITK_NULLPTR);
-    void computeStrem();
+  void GenerateData() ITK_OVERRIDE;
+  void computeSingleGaussian();
+  void
+  computeSingleGaussianSeeds(TSeedMask::ConstPointer seedMask,
+                             OutputImagePointer output, double multiVar,
+                             TSeedMask::ConstPointer seedMaskOpp = ITK_NULLPTR);
+  void computeStrem();
 
-    /**  Create the Output */
-    itk::DataObject::Pointer MakeOutput(unsigned int idx);
+  /**  Create the Output */
+  itk::DataObject::Pointer MakeOutput(unsigned int idx);
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(TLinksFilter);
+  ITK_DISALLOW_COPY_AND_ASSIGN(TLinksFilter);
 
-    /** mixing energies parameters: E_region = m_Alpha * E_intensity
-     */
-    double m_Alpha;
-    double m_MultiVarSources;
-    double m_MultiVarSinks;
-    TLinkMode m_TLinkMode;
-    bool m_Verbose;
-    unsigned int m_NbModalities;
-    unsigned int m_NbInputs, m_NbMaxImage;
-    unsigned int m_IndexSourcesMask, m_IndexSourcesProba, m_IndexSinksMask, m_IndexSinksProba;
+  /** mixing energies parameters: E_region = m_Alpha * E_intensity
+   */
+  double m_Alpha;
+  double m_MultiVarSources;
+  double m_MultiVarSinks;
+  TLinkMode m_TLinkMode;
+  bool m_Verbose;
+  unsigned int m_NbModalities;
+  unsigned int m_NbInputs, m_NbMaxImage;
+  unsigned int m_IndexSourcesMask, m_IndexSourcesProba, m_IndexSinksMask,
+      m_IndexSinksProba;
 
-    std::vector<InConstIteratorType> m_imagesVectorIt;
-    std::vector<InIteratorType> m_imagesVectorIt2;
-    std::vector<InputImageConstPointer> m_imagesVector;
-    std::vector<InputImagePointer> m_imagesVector2;
+  std::vector<InConstIteratorType> m_imagesVectorIt;
+  std::vector<InIteratorType> m_imagesVectorIt2;
+  std::vector<InputImageConstPointer> m_imagesVector;
+  std::vector<InputImagePointer> m_imagesVector2;
 };
 
 } // end of namespace anima

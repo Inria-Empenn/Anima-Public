@@ -2,61 +2,59 @@
 
 #include <itkImageToImageFilter.h>
 
-namespace anima
-{
+namespace anima {
 template <class TInputImage, class TOutputImage>
-class PickLesionSeedImageFilter :
-public itk::ImageToImageFilter <TInputImage, TOutputImage>
-{
+class PickLesionSeedImageFilter
+    : public itk::ImageToImageFilter<TInputImage, TOutputImage> {
 public:
-    /** Standard class typedefs. */
-    typedef PickLesionSeedImageFilter <TInputImage, TOutputImage> Self;
-    typedef typename itk::ImageToImageFilter< TInputImage, TOutputImage > Superclass;
-    typedef TInputImage InputImageType;
-    typedef TOutputImage OutputImageType;
-    typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self>  ConstPointer;
+  /** Standard class typedefs. */
+  using Self = PickLesionSeedImageFilter<TInputImage, TOutputImage>;
+  using Superclass = itk::ImageToImageFilter<TInputImage, TOutputImage>;
+  using InputImageType = TInputImage;
+  using OutputImageType = TOutputImage;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Run-time type information (and related methods) */
-    itkTypeMacro(PickLesionSeedImageFilter, ImageToImageFilter)
+  /** Run-time type information (and related methods) */
+  itkTypeMacro(PickLesionSeedImageFilter, ImageToImageFilter);
 
-    typedef typename TInputImage::Pointer InputImagePointer;
-    typedef typename TInputImage::PixelType InputImagePixel;
-    typedef typename TInputImage::IndexType IndexType;
-    typedef typename TOutputImage::Pointer OutputImagePointer;
+  using InputImagePointer = typename TInputImage::Pointer;
+  using InputImagePixel = typename TInputImage::PixelType;
+  using IndexType = typename TInputImage::IndexType;
+  using OutputImagePointer = typename TOutputImage::Pointer;
 
-    /** Superclass typedefs. */
-    typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
+  /** Superclass typedefs. */
+  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
 
-    itkSetMacro(NumberOfSeeds, unsigned int)
-    itkSetMacro(ProximityThreshold, double)
+  itkSetMacro(NumberOfSeeds, unsigned int);
+  itkSetMacro(ProximityThreshold, double);
 
-    struct pair_comparator
-    {
-        bool operator() (const std::pair<IndexType, double> & f, const std::pair<IndexType, double> & s)
-        { return (f.second < s.second); }
-    };
+  struct pair_comparator {
+    bool operator()(const std::pair<IndexType, double> &f,
+                    const std::pair<IndexType, double> &s) {
+      return (f.second < s.second);
+    }
+  };
 
 protected:
-    PickLesionSeedImageFilter()
-    {
-        m_NumberOfSeeds = 1;
-        m_ProximityThreshold = 10;
-        srand(time(0));
-    }
+  PickLesionSeedImageFilter() {
+    m_NumberOfSeeds = 1;
+    m_ProximityThreshold = 10;
+    srand(time(0));
+  }
 
-    virtual ~PickLesionSeedImageFilter() {}
+  virtual ~PickLesionSeedImageFilter() {}
 
-    void GenerateData() ITK_OVERRIDE;
+  void GenerateData() ITK_OVERRIDE;
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(PickLesionSeedImageFilter);
+  ITK_DISALLOW_COPY_AND_ASSIGN(PickLesionSeedImageFilter);
 
-    unsigned int m_NumberOfSeeds;
-    double m_ProximityThreshold;
+  unsigned int m_NumberOfSeeds;
+  double m_ProximityThreshold;
 };
 
 } // end namespace anima

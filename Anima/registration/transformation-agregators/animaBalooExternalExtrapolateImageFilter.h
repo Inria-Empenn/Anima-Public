@@ -1,64 +1,66 @@
 #pragma once
 
 #include <iostream>
-#include <itkInPlaceImageFilter.h>
 #include <itkImage.h>
+#include <itkInPlaceImageFilter.h>
 
-namespace anima
-{
+namespace anima {
 
-template <class TScalarType, unsigned int NDegreesOfFreedom, unsigned int NDimensions = 3>
-class BalooExternalExtrapolateImageFilter :
-public itk::InPlaceImageFilter < itk::Image < itk::Vector <TScalarType,NDegreesOfFreedom>, NDimensions > >
-{
+template <class TScalarType, unsigned int NDegreesOfFreedom,
+          unsigned int NDimensions = 3>
+class BalooExternalExtrapolateImageFilter
+    : public itk::InPlaceImageFilter<itk::Image<
+          itk::Vector<TScalarType, NDegreesOfFreedom>, NDimensions>> {
 public:
-    /** Standard class typedefs. */
-    typedef BalooExternalExtrapolateImageFilter Self;
-    typedef itk::Image <TScalarType, NDimensions> WeightImageType;
-    typedef typename WeightImageType::Pointer WeightImagePointer;
-    typedef itk::Image < itk::Vector <TScalarType,NDegreesOfFreedom>, NDimensions > TInputImage;
-    typedef itk::Image < itk::Vector <TScalarType,NDegreesOfFreedom>, NDimensions > TOutputImage;
-    typedef itk::InPlaceImageFilter <TInputImage, TOutputImage> Superclass;
-    typedef itk::SmartPointer <Self> Pointer;
-    typedef itk::SmartPointer <const Self> ConstPointer;
+  /** Standard class typedefs. */
+  using Self = BalooExternalExtrapolateImageFilter;
+  using WeightImageType = itk::Image<TScalarType, NDimensions>;
+  using WeightImagePointer = typename WeightImageType::Pointer;
+  using TInputImage =
+      itk::Image<itk::Vector<TScalarType, NDegreesOfFreedom>, NDimensions>;
+  using TOutputImage =
+      itk::Image<itk::Vector<TScalarType, NDegreesOfFreedom>, NDimensions>;
+  using Superclass = itk::InPlaceImageFilter<TInputImage, TOutputImage>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Run-time type information (and related methods) */
-    itkTypeMacro(BalooExternalExtrapolateImageFilter, InPlaceImageFilter)
+  /** Run-time type information (and related methods) */
+  itkTypeMacro(BalooExternalExtrapolateImageFilter, InPlaceImageFilter);
 
-    typedef typename TOutputImage::PixelType OutputPixelType;
-    typedef typename TInputImage::PixelType InputPixelType;
-    typedef typename TInputImage::IndexType InputIndexType;
-    typedef typename TInputImage::PointType InputPointType;
+  using OutputPixelType = typename TOutputImage::PixelType;
+  using InputPixelType = typename TInputImage::PixelType;
+  using InputIndexType = typename TInputImage::IndexType;
+  using InputPointType = typename TInputImage::PointType;
 
-    /** Image typedef support */
-    typedef typename TInputImage::Pointer InputImagePointer;
-    typedef typename TOutputImage::Pointer OutputImagePointer;
+  /** Image typedef support */
+  using InputImagePointer = typename TInputImage::Pointer;
+  using OutputImagePointer = typename TOutputImage::Pointer;
 
-    /** Superclass typedefs. */
-    typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
+  /** Superclass typedefs. */
+  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
 
-    itkSetMacro(WeightImage, WeightImagePointer)
-    itkSetMacro(ExtrapolationSigma, double)
+  itkSetMacro(WeightImage, WeightImagePointer);
+  itkSetMacro(ExtrapolationSigma, double);
 
 protected:
-    BalooExternalExtrapolateImageFilter()
-    {
-        this->SetInPlace(true);
-        m_ExtrapolationSigma = 3.0;
-    }
+  BalooExternalExtrapolateImageFilter() {
+    this->SetInPlace(true);
+    m_ExtrapolationSigma = 3.0;
+  }
 
-    virtual ~BalooExternalExtrapolateImageFilter() {}
+  virtual ~BalooExternalExtrapolateImageFilter() {}
 
-    void BeforeThreadedGenerateData() ITK_OVERRIDE;
-    void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
+  void BeforeThreadedGenerateData() ITK_OVERRIDE;
+  void DynamicThreadedGenerateData(
+      const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(BalooExternalExtrapolateImageFilter);
-    WeightImagePointer m_WeightImage, m_DistanceImage;
-    double m_ExtrapolationSigma;
+  ITK_DISALLOW_COPY_AND_ASSIGN(BalooExternalExtrapolateImageFilter);
+  WeightImagePointer m_WeightImage, m_DistanceImage;
+  double m_ExtrapolationSigma;
 };
 
 } // end namespace anima

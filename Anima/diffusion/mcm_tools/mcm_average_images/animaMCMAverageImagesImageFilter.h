@@ -1,84 +1,83 @@
 #pragma once
 
-#include <itkImageToImageFilter.h>
 #include <animaMCMImage.h>
+#include <itkImageToImageFilter.h>
 
-#include <animaMultiCompartmentModel.h>
 #include <animaMCMWeightedAverager.h>
+#include <animaMultiCompartmentModel.h>
 
-namespace anima
-{
+namespace anima {
 
 template <class TPixelType>
-class MCMAverageImagesImageFilter :
-public itk::ImageToImageFilter< anima::MCMImage <TPixelType, 3>, anima::MCMImage<TPixelType, 3> >
-{
+class MCMAverageImagesImageFilter
+    : public itk::ImageToImageFilter<anima::MCMImage<TPixelType, 3>,
+                                     anima::MCMImage<TPixelType, 3>> {
 public:
-    /** Standard class type def */
+  /** Standard class type def */
 
-    typedef MCMAverageImagesImageFilter Self;
-    typedef anima::MCMImage <TPixelType, 3> InputImageType;
-    typedef anima::MCMImage <TPixelType, 3> OutputImageType;
-    typedef itk::ImageToImageFilter <InputImageType, OutputImageType > Superclass;
-    typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self> ConstPointer;
+  using Self = MCMAverageImagesImageFilter;
+  using InputImageType = anima::MCMImage<TPixelType, 3>;
+  using OutputImageType = anima::MCMImage<TPixelType, 3>;
+  using Superclass = itk::ImageToImageFilter<InputImageType, OutputImageType>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Run-time type information (and related methods) */
-    itkTypeMacro(MCMAverageImagesImageFilter, ImageToImageFilter)
+  /** Run-time type information (and related methods) */
+  itkTypeMacro(MCMAverageImagesImageFilter, ImageToImageFilter);
 
-    typedef typename InputImageType::ConstPointer InputImagePointer;
-    typedef typename OutputImageType::Pointer OutputImagePointer;
+  using InputImagePointer = typename InputImageType::ConstPointer;
+  using OutputImagePointer = typename OutputImageType::Pointer;
 
-    typedef typename InputImageType::RegionType InputRegionType;
-    typedef typename InputImageType::IndexType InputIndexType;
-    typedef typename InputImageType::PixelType PixelType;
+  using InputRegionType = typename InputImageType::RegionType;
+  using InputIndexType = typename InputImageType::IndexType;
+  using PixelType = typename InputImageType::PixelType;
 
-    using MaskImageType = itk::Image <unsigned char, 3>;
-    using MaskImagePointer = typename MaskImageType::Pointer;
+  using MaskImageType = itk::Image<unsigned char, 3>;
+  using MaskImagePointer = typename MaskImageType::Pointer;
 
-    // Multi-compartment models typedefs
-    typedef anima::MultiCompartmentModel MCModelType;
-    typedef MCModelType::Pointer MCModelPointer;
+  // Multi-compartment models typedefs
+  using MCModelType = anima::MultiCompartmentModel;
+  using MCModelPointer = MCModelType::Pointer;
 
-    typedef anima::MCMWeightedAverager MCMAveragerType;
-    typedef typename MCMAveragerType::Pointer MCMAveragerPointer;
+  using MCMAveragerType = anima::MCMWeightedAverager;
+  using MCMAveragerPointer = typename MCMAveragerType::Pointer;
 
-    void SetReferenceOutputModel(MCModelPointer &model);
-    MCModelType *GetReferenceOutputModel() {return m_ReferenceOutputModel;}
+  void SetReferenceOutputModel(MCModelPointer &model);
+  MCModelType *GetReferenceOutputModel() { return m_ReferenceOutputModel; }
 
-    void AddMaskImage(MaskImageType *maskImage) {m_MaskImages.push_back(maskImage);}
-    
-    itkSetMacro(DDIAveragingMethod, int)
+  void AddMaskImage(MaskImageType *maskImage) {
+    m_MaskImages.push_back(maskImage);
+  }
+
+  itkSetMacro(DDIAveragingMethod, int);
 
 protected:
-    MCMAverageImagesImageFilter() {m_DDIAveragingMethod = 3;}
-    virtual ~MCMAverageImagesImageFilter() {}
+  MCMAverageImagesImageFilter() { m_DDIAveragingMethod = 3; }
+  virtual ~MCMAverageImagesImageFilter() {}
 
-    bool isZero(const itk::VariableLengthVector <double> &value) const
-    {
-        for (unsigned int i = 0;i < value.GetNumberOfElements();++i)
-        {
-            if (value[i] != 0)
-                return false;
-        }
-
-        return true;
+  bool isZero(const itk::VariableLengthVector<double> &value) const {
+    for (unsigned int i = 0; i < value.GetNumberOfElements(); ++i) {
+      if (value[i] != 0)
+        return false;
     }
 
-    void BeforeThreadedGenerateData() ITK_OVERRIDE;
-    void DynamicThreadedGenerateData(const InputRegionType &region) ITK_OVERRIDE;
-    virtual MCMAveragerPointer CreateAverager();
+    return true;
+  }
+
+  void BeforeThreadedGenerateData() ITK_OVERRIDE;
+  void DynamicThreadedGenerateData(const InputRegionType &region) ITK_OVERRIDE;
+  virtual MCMAveragerPointer CreateAverager();
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(MCMAverageImagesImageFilter);
+  ITK_DISALLOW_COPY_AND_ASSIGN(MCMAverageImagesImageFilter);
 
-    std::vector <MCModelPointer> m_ReferenceInputModels;
-    std::vector <MaskImagePointer> m_MaskImages;
-    MCModelPointer m_ReferenceOutputModel;
-    int m_DDIAveragingMethod;
+  std::vector<MCModelPointer> m_ReferenceInputModels;
+  std::vector<MaskImagePointer> m_MaskImages;
+  MCModelPointer m_ReferenceOutputModel;
+  int m_DDIAveragingMethod;
 };
 
 } // end namespace anima

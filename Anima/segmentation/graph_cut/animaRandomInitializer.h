@@ -4,81 +4,77 @@
 #include "animaModelInitializer.h"
 #include "time.h"
 
-namespace anima
-{
+namespace anima {
 
 /** @brief Class initializing ramdomly a gaussian model
  *
-   */
-class ANIMAGRAPHCUTSEGMENTATION_EXPORT RandomInitializer: public ModelInitializer
-{
+ */
+class ANIMAGRAPHCUTSEGMENTATION_EXPORT RandomInitializer
+    : public ModelInitializer {
 public:
+  /** Standard class typedefs. */
+  using Self = RandomInitializer;
+  using Superclass = itk::ProcessObject;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-    /** Standard class typedefs. */
-    typedef RandomInitializer  Self;
-    typedef itk::ProcessObject Superclass;
-    typedef itk::SmartPointer <Self> Pointer;
-    typedef itk::SmartPointer <const Self> ConstPointer;
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(RandomInitializer, itk::ProcessObject);
 
-    /** Run-time type information (and related methods). */
-    itkTypeMacro(RandomInitializer, itk::ProcessObject)
+  using MeasurementVectorType = itk::VariableLengthVector<double>;
+  using GaussianFunctionType =
+      itk::Statistics::GaussianMembershipFunction<MeasurementVectorType>;
 
-    typedef itk::VariableLengthVector<double> MeasurementVectorType;
-    typedef itk::Statistics::GaussianMembershipFunction< MeasurementVectorType > GaussianFunctionType;
+  void Update() ITK_OVERRIDE;
 
-    void Update() ITK_OVERRIDE;
+  /** @brief Set min values of random means
+   */
+  void SetMinValues(std::vector<double> &min) { this->minValues = min; }
 
-    /** @brief Set min values of random means
-       */
-    void SetMinValues(std::vector<double> &min){this->minValues=min;}
+  /** @brief Set max values of random means
+   */
+  void SetMaxValues(std::vector<double> &max) { this->maxValues = max; }
 
-    /** @brief Set max values of random means
-       */
-    void SetMaxValues(std::vector<double> &max){this->maxValues=max;}
+  itkSetMacro(NbGaussian, unsigned int);
+  itkGetMacro(NbGaussian, unsigned int);
 
-    itkSetMacro(NbGaussian, unsigned int)
-    itkGetMacro(NbGaussian, unsigned int)
-
-    itkSetMacro(DimensionGaussian, unsigned int)
-    itkGetMacro(DimensionGaussian, unsigned int)
+  itkSetMacro(DimensionGaussian, unsigned int);
+  itkGetMacro(DimensionGaussian, unsigned int);
 
 protected:
-    RandomInitializer(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+  RandomInitializer(const Self &); // purposely not implemented
+  void operator=(const Self &);    // purposely not implemented
 
-    RandomInitializer()
-    {
-        srand(time(NULL));
+  RandomInitializer() {
+    srand(time(NULL));
 
-        m_NbGaussian = 1;
-        m_DimensionGaussian= 1;
+    m_NbGaussian = 1;
+    m_DimensionGaussian = 1;
+  }
+  virtual ~RandomInitializer() {}
 
-    }
-    virtual ~RandomInitializer(){}
+  /** @brief initilize a Gaussian distribution
+   *
+   */
+  itk::Statistics::GaussianMembershipFunction<
+      itk::VariableLengthVector<double>>::Pointer
+  randomDistribution();
 
-    /** @brief initilize a Gaussian distribution
-     *
-       */
-    itk::Statistics::GaussianMembershipFunction<itk::VariableLengthVector<double> >::Pointer randomDistribution();
+  double randUniform(double min, double max);
 
-    double randUniform(double min,double max);
+  /** @brief min values
+   */
+  std::vector<double> minValues;
 
+  /** @brief max values
+   */
+  std::vector<double> maxValues;
 
-    /** @brief min values
-        */
-    std::vector<double> minValues;
-
-    /** @brief max values
-       */
-    std::vector<double> maxValues;
-
-    unsigned int m_NbGaussian;
-    unsigned int m_DimensionGaussian;
-
+  unsigned int m_NbGaussian;
+  unsigned int m_DimensionGaussian;
 };
 
-}
-
+} // namespace anima

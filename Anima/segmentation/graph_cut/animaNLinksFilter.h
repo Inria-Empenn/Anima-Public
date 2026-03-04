@@ -1,206 +1,204 @@
 #pragma once
 
-#include <itkImageToImageFilter.h>
-#include <itkImageRegionIterator.h>
-#include <itkImageRegionConstIterator.h>
-#include <itkVariableSizeMatrix.h>
-#include <itkCSVArray2DFileReader.h>
 #include "animaGraph.h"
+#include <itkCSVArray2DFileReader.h>
+#include <itkImageRegionConstIterator.h>
+#include <itkImageRegionIterator.h>
+#include <itkImageToImageFilter.h>
+#include <itkVariableSizeMatrix.h>
 
-namespace anima
-{
+namespace anima {
 /**
  * @brief Class creating a 3D graph in a graph cut framework
  *
  * The nodes correspond to the voxels of the image to segment.
  * Two additional nodes represent the object (SOURCE) and the background (SINK).
  * N-links represent edges between neighboring nodes/voxels.
- * T-links that bind each classical node to both the SOURCE and the SINK represent the probability
- * for the corresponding voxel to belong respectively to the object and to the background.
+ * T-links that bind each classical node to both the SOURCE and the SINK
+ * represent the probability for the corresponding voxel to belong respectively
+ * to the object and to the background.
  *
  */
 template <typename TInput, typename TOutput>
-class NLinksFilter :
-        public itk::ImageToImageFilter< TInput , TOutput >
-{
+class NLinksFilter : public itk::ImageToImageFilter<TInput, TOutput> {
 public:
-    /** Standard class typedefs. */
-    typedef NLinksFilter Self;
-    typedef itk::ImageToImageFilter< TInput , TOutput> Superclass;
-    typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self>  ConstPointer;
+  /** Standard class typedefs. */
+  using Self = NLinksFilter;
+  using Superclass = itk::ImageToImageFilter<TInput, TOutput>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Run-time type information (and related methods) */
-    itkTypeMacro(NLinksFilter, ImageToImageFilter)
+  /** Run-time type information (and related methods) */
+  itkTypeMacro(NLinksFilter, ImageToImageFilter);
 
-    /** Image typedef support */
-    typedef typename TInput::Pointer InputImagePointer;
-    typedef typename TInput::ConstPointer InputImageConstPointer;
-    typedef itk::ImageRegionConstIterator< TInput > InRegionConstIteratorType;
-    typedef typename TInput::PixelType InputPixelType;
+  /** Image typedef support */
+  using InputImagePointer = typename TInput::Pointer;
+  using InputImageConstPointer = typename TInput::ConstPointer;
+  using InRegionConstIteratorType = itk::ImageRegionConstIterator<TInput>;
+  using InputPixelType = typename TInput::PixelType;
 
-    typedef typename TOutput::Pointer OutputImagePointer;
-    typedef typename TOutput::PixelType OutputPixelType;
-    typedef typename itk::ImageRegionIterator < TOutput > OutputIteratorType;
+  using OutputImagePointer = typename TOutput::Pointer;
+  using OutputPixelType = typename TOutput::PixelType;
+  using OutputIteratorType = typename itk::ImageRegionIterator<TOutput>;
 
-    typedef double 	PixelTypeD;
-    typedef itk::Image <PixelTypeD,3> TSeedProba;
-    typedef TSeedProba::Pointer ImagePointerProba;
-    typedef itk::ImageRegionIterator <TSeedProba> ImageIteratorTypeProba;
-    typedef TSeedProba::PixelType SeedProbaPixelType;
+  using PixelTypeD = double;
+  using TSeedProba = itk::Image<PixelTypeD, 3>;
+  using ImagePointerProba = TSeedProba::Pointer;
+  using ImageIteratorTypeProba = itk::ImageRegionIterator<TSeedProba>;
+  using SeedProbaPixelType = TSeedProba::PixelType;
 
-    typedef int 	PixelTypeInt;
-    typedef itk::Image <PixelTypeInt,3> ImageTypeInt;
-    typedef ImageTypeInt::IndexType pixelIndexInt;
-    typedef itk::ImageRegionIterator <ImageTypeInt> ImageIteratorTypeInt;
+  using PixelTypeInt = int;
+  using ImageTypeInt = itk::Image<PixelTypeInt, 3>;
+  using pixelIndexInt = ImageTypeInt::IndexType;
+  using ImageIteratorTypeInt = itk::ImageRegionIterator<ImageTypeInt>;
 
-    typedef unsigned char 	PixelTypeUC;
-    typedef itk::Image <PixelTypeUC,3> TMask;
-    typedef TMask::Pointer TMaskPointer;
-    typedef itk::ImageRegionIterator< TMask > MaskRegionIteratorType;
-    typedef itk::ImageRegionConstIterator< TMask > MaskRegionConstIteratorType;
+  using PixelTypeUC = unsigned char;
+  using TMask = itk::Image<PixelTypeUC, 3>;
+  using TMaskPointer = TMask::Pointer;
+  using MaskRegionIteratorType = itk::ImageRegionIterator<TMask>;
+  using MaskRegionConstIteratorType = itk::ImageRegionConstIterator<TMask>;
 
-    typedef Graph<double,double,double> GraphType;
+  using GraphType = Graph<double, double, double>;
 
-    typedef double NumericType;
-    typedef itk::VariableSizeMatrix<NumericType> doubleVariableSizeMatrixType;
+  using NumericType = double;
+  using doubleVariableSizeMatrixType = itk::VariableSizeMatrix<NumericType>;
 
-    /** The mri images.*/
-    void SetInputImage1(const TInput* image);
-    void SetInputImage2(const TInput* image);
-    void SetInputImage3(const TInput* image);
-    void SetInputImage4(const TInput* image);
-    void SetInputImage5(const TInput* image);
+  /** The mri images.*/
+  void SetInputImage1(const TInput *image);
+  void SetInputImage2(const TInput *image);
+  void SetInputImage3(const TInput *image);
+  void SetInputImage4(const TInput *image);
+  void SetInputImage5(const TInput *image);
 
-    /** mask in which the segmentation will be performed
-     */
-    void SetMask(const TMask* mask);
+  /** mask in which the segmentation will be performed
+   */
+  void SetMask(const TMask *mask);
 
-    /** probabilities of the object and the background, respectively
-     */
-    void SetInputSeedProbaSources(const TSeedProba* mask);
-    void SetInputSeedProbaSinks(const TSeedProba* mask);
+  /** probabilities of the object and the background, respectively
+   */
+  void SetInputSeedProbaSources(const TSeedProba *mask);
+  void SetInputSeedProbaSinks(const TSeedProba *mask);
 
-    void SetMatFilename(std::string mat){m_MatFilename=mat;}
-    void SetMatrix(doubleVariableSizeMatrixType mat){m_Matrix=mat;}
+  void SetMatFilename(std::string mat) { m_MatFilename = mat; }
+  void SetMatrix(doubleVariableSizeMatrixType mat) { m_Matrix = mat; }
 
-    OutputImagePointer GetOutput();
-    OutputImagePointer GetOutputBackground();
+  OutputImagePointer GetOutput();
+  OutputImagePointer GetOutputBackground();
 
-    /** Superclass typedefs. */
-    typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
+  /** Superclass typedefs. */
+  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
 
-    void SetTol(const double tol)
-    {
-        this->SetCoordinateTolerance(tol);
-        this->SetDirectionTolerance(tol);
-        m_Tol = tol;
-    }
+  void SetTol(const double tol) {
+    this->SetCoordinateTolerance(tol);
+    this->SetDirectionTolerance(tol);
+    m_Tol = tol;
+  }
 
-    itkSetMacro(Sigma, double)
-    itkGetMacro(Sigma, double)
+  itkSetMacro(Sigma, double);
+  itkGetMacro(Sigma, double);
 
-    itkSetMacro(UseSpectralGradient, bool)
-    itkGetMacro(UseSpectralGradient, bool)
+  itkSetMacro(UseSpectralGradient, bool);
+  itkGetMacro(UseSpectralGradient, bool);
 
-    itkSetMacro(NbModalities, unsigned int)
-    itkGetMacro(NbModalities, unsigned int)
+  itkSetMacro(NbModalities, unsigned int);
+  itkGetMacro(NbModalities, unsigned int);
 
-    itkSetMacro(Verbose, bool)
-    itkGetMacro(Verbose, bool)
+  itkSetMacro(Verbose, bool);
+  itkGetMacro(Verbose, bool);
 
 protected:
-    NLinksFilter()
-    {
-        this->SetNthOutput( 0, this->MakeOutput(0) );
-        this->SetNthOutput( 1, this->MakeOutput(1) );
+  NLinksFilter() {
+    this->SetNthOutput(0, this->MakeOutput(0));
+    this->SetNthOutput(1, this->MakeOutput(1));
 
-        m_Sigma = 0.6;
-        m_UseSpectralGradient=true;
-        m_Verbose=false;
-        m_NbModalities = 0;
-        m_NbInputs = 4;
-        m_NbMaxImage = 10;
-        m_IndexImage1=m_NbMaxImage,m_IndexImage2=m_NbMaxImage,m_IndexImage3=m_NbMaxImage, m_IndexImage4=m_NbMaxImage,m_IndexImage5=m_NbMaxImage;
+    m_Sigma = 0.6;
+    m_UseSpectralGradient = true;
+    m_Verbose = false;
+    m_NbModalities = 0;
+    m_NbInputs = 4;
+    m_NbMaxImage = 10;
+    m_IndexImage1 = m_NbMaxImage, m_IndexImage2 = m_NbMaxImage,
+    m_IndexImage3 = m_NbMaxImage, m_IndexImage4 = m_NbMaxImage,
+    m_IndexImage5 = m_NbMaxImage;
 
-        m_Tol = 0.0001;
+    m_Tol = 0.0001;
 
-        this->SetNumberOfRequiredOutputs(2);
-        this->SetNumberOfRequiredInputs(4);
-    }
+    this->SetNumberOfRequiredOutputs(2);
+    this->SetNumberOfRequiredInputs(4);
+  }
 
-    virtual ~NLinksFilter()
-    {
-    }
+  virtual ~NLinksFilter() {}
 
-    /**  Create the Output */
-    itk::DataObject::Pointer MakeOutput(unsigned int idx);
+  /**  Create the Output */
+  itk::DataObject::Pointer MakeOutput(unsigned int idx);
 
-    typename TInput::ConstPointer GetInputImage1();
-    typename TInput::ConstPointer GetInputImage2();
-    typename TInput::ConstPointer GetInputImage3();
-    typename TInput::ConstPointer GetInputImage4();
-    typename TInput::ConstPointer GetInputImage5();
-    typename TInput::ConstPointer GetInputImage6();
+  typename TInput::ConstPointer GetInputImage1();
+  typename TInput::ConstPointer GetInputImage2();
+  typename TInput::ConstPointer GetInputImage3();
+  typename TInput::ConstPointer GetInputImage4();
+  typename TInput::ConstPointer GetInputImage5();
+  typename TInput::ConstPointer GetInputImage6();
 
-    TMask::ConstPointer GetMask();
+  TMask::ConstPointer GetMask();
 
-    TSeedProba::ConstPointer GetInputSeedProbaSources();
-    TSeedProba::ConstPointer GetInputSeedProbaSinks();
+  TSeedProba::ConstPointer GetInputSeedProbaSources();
+  TSeedProba::ConstPointer GetInputSeedProbaSinks();
 
-    doubleVariableSizeMatrixType GetMatrix(void){return m_Matrix;}
-    std::string GetMatFilename(void){return m_MatFilename;}
+  doubleVariableSizeMatrixType GetMatrix(void) { return m_Matrix; }
+  std::string GetMatFilename(void) { return m_MatFilename; }
 
-    bool readMatrixFile();
+  bool readMatrixFile();
 
-    void CheckSpectralGradient(void);
-    void GenerateData() ITK_OVERRIDE;
-    void SetGraph();
-    bool isInside (unsigned int x,unsigned int y,unsigned int z ) const;
-    void CreateGraph();
-    double computeNLink(int i1, int j1, int k1, int i2, int j2, int k2);
+  void CheckSpectralGradient(void);
+  void GenerateData() ITK_OVERRIDE;
+  void SetGraph();
+  bool isInside(unsigned int x, unsigned int y, unsigned int z) const;
+  void CreateGraph();
+  double computeNLink(int i1, int j1, int k1, int i2, int j2, int k2);
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(NLinksFilter);
+  ITK_DISALLOW_COPY_AND_ASSIGN(NLinksFilter);
 
-    /** set to true to use the spectral gradient instead of a simple gradient
-     */
-    bool m_UseSpectralGradient;
+  /** set to true to use the spectral gradient instead of a simple gradient
+   */
+  bool m_UseSpectralGradient;
 
-    /** width of the Gaussian kernel to compute n-links
-     */
-    double m_Sigma;
+  /** width of the Gaussian kernel to compute n-links
+   */
+  double m_Sigma;
 
-    /** the created graph
-     */
-    GraphType *m_graph;
+  /** the created graph
+   */
+  GraphType *m_graph;
 
-    /** transformation matrix (from im1,im2,im3 to e,el,ell)
-     */
-    std::string m_MatFilename;
-    doubleVariableSizeMatrixType m_Matrix;
+  /** transformation matrix (from im1,im2,im3 to e,el,ell)
+   */
+  std::string m_MatFilename;
+  doubleVariableSizeMatrixType m_Matrix;
 
-    typename TOutput::SizeType m_size;
+  typename TOutput::SizeType m_size;
 
-    /** input images: T1 T2 PD FLAIR etc
-     */
-    std::vector<InputImageConstPointer > m_ListImages;
+  /** input images: T1 T2 PD FLAIR etc
+   */
+  std::vector<InputImageConstPointer> m_ListImages;
 
-    bool m_Verbose;
+  bool m_Verbose;
 
-    ImageTypeInt::Pointer pix;
+  ImageTypeInt::Pointer pix;
 
-    /** spectral derivatives (e,el,ell)
-     */
-    TSeedProba::Pointer m_e1, m_e2; // Precomputed spectral grad quantities (keep track of 2 images instead of 3...
-    unsigned int m_NbModalities;
-    unsigned int m_NbInputs, m_NbMaxImage;
-    unsigned int m_IndexImage1, m_IndexImage2, m_IndexImage3, m_IndexImage4,m_IndexImage5;
+  /** spectral derivatives (e,el,ell)
+   */
+  TSeedProba::Pointer m_e1, m_e2; // Precomputed spectral grad quantities (keep
+                                  // track of 2 images instead of 3...
+  unsigned int m_NbModalities;
+  unsigned int m_NbInputs, m_NbMaxImage;
+  unsigned int m_IndexImage1, m_IndexImage2, m_IndexImage3, m_IndexImage4,
+      m_IndexImage5;
 
-    double m_Tol;
+  double m_Tol;
 };
 
 } // end of namespace anima

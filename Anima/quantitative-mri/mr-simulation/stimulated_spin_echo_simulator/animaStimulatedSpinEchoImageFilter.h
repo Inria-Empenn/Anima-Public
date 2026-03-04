@@ -1,80 +1,80 @@
 #pragma once
 
-#include <itkImageToImageFilter.h>
 #include <complex>
+#include <itkImageToImageFilter.h>
 #include <vector>
 
-namespace anima
-{
-    
+namespace anima {
+
 template <class TImage, class TOutputImage>
-class StimulatedSpinEchoImageFilter : public itk::ImageToImageFilter <TImage, TOutputImage>
-{
+class StimulatedSpinEchoImageFilter
+    : public itk::ImageToImageFilter<TImage, TOutputImage> {
 public:
-    /** Standard class typedefs. */
-    typedef StimulatedSpinEchoImageFilter Self;
-    typedef itk::ImageToImageFilter <TImage, TOutputImage> Superclass;
-    typedef itk::SmartPointer <Self> Pointer;
+  /** Standard class typedefs. */
+  using Self = StimulatedSpinEchoImageFilter;
+  using Superclass = itk::ImageToImageFilter<TImage, TOutputImage>;
+  using Pointer = itk::SmartPointer<Self>;
 
-    typedef itk::Image <typename TImage::PixelType, 4> Image4DType;
-    typedef typename Image4DType::Pointer Image4DPointer;
-    typedef TOutputImage OutputImageType;
-    typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
-    typedef std::vector < std::complex <double> > ComplexVectorType;
-    typedef std::vector <ComplexVectorType> MatrixType;
+  using Image4DType = itk::Image<typename TImage::PixelType, 4>;
+  using Image4DPointer = typename Image4DType::Pointer;
+  using OutputImageType = TOutputImage;
+  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using ComplexVectorType = std::vector<std::complex<double>>;
+  using MatrixType = std::vector<ComplexVectorType>;
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Run-time type information (and related methods). */
-    itkTypeMacro(StimulatedSpinEchoImageFilter, itk::ImageToImageFilter)
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(StimulatedSpinEchoImageFilter, itk::ImageToImageFilter);
 
-    itkSetMacro(EchoSpacing, double)
-    itkGetMacro(EchoSpacing, double)
+  itkSetMacro(EchoSpacing, double);
+  itkGetMacro(EchoSpacing, double);
 
-    itkSetMacro(NumberOfEchoes, unsigned int)
-    itkGetMacro(NumberOfEchoes, unsigned int)
+  itkSetMacro(NumberOfEchoes, unsigned int);
+  itkGetMacro(NumberOfEchoes, unsigned int);
 
-    itkSetMacro(FlipAngle, double)
-    itkGetMacro(FlipAngle, double)
+  itkSetMacro(FlipAngle, double);
+  itkGetMacro(FlipAngle, double);
 
-    itkSetMacro(ExcitationFlipAngle, double)
-    itkGetMacro(ExcitationFlipAngle, double)
+  itkSetMacro(ExcitationFlipAngle, double);
+  itkGetMacro(ExcitationFlipAngle, double);
 
-    /** T1 map */
-    void SetInputT1(const TImage* T1);
+  /** T1 map */
+  void SetInputT1(const TImage *T1);
 
-    /** T2 map */
-    void SetInputT2(const TImage* T2);
+  /** T2 map */
+  void SetInputT2(const TImage *T2);
 
-    /** M0 image / Rho map */
-    void SetInputM0(const TImage* M0);
+  /** M0 image / Rho map */
+  void SetInputM0(const TImage *M0);
 
-    /** B1 inhomogeneity image */
-    void SetInputB1(const TImage* B1);
+  /** B1 inhomogeneity image */
+  void SetInputB1(const TImage *B1);
 
-    Image4DType *GetOutputAs4DImage();
+  Image4DType *GetOutputAs4DImage();
 
 protected:
-    StimulatedSpinEchoImageFilter();
-    virtual ~StimulatedSpinEchoImageFilter() {}
+  StimulatedSpinEchoImageFilter();
+  virtual ~StimulatedSpinEchoImageFilter() {}
 
-    /** Does the real work. */
-    virtual void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
+  /** Does the real work. */
+  virtual void DynamicThreadedGenerateData(
+      const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
 
-    void GenerateOutputInformation() ITK_OVERRIDE;
+  void GenerateOutputInformation() ITK_OVERRIDE;
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(StimulatedSpinEchoImageFilter);
+  ITK_DISALLOW_COPY_AND_ASSIGN(StimulatedSpinEchoImageFilter);
 
-    double m_EchoSpacing;
-    double m_ExcitationFlipAngle;
-    double m_FlipAngle;
-    unsigned int m_NumberOfEchoes;
+  double m_EchoSpacing;
+  double m_ExcitationFlipAngle;
+  double m_FlipAngle;
+  unsigned int m_NumberOfEchoes;
 
-    Image4DPointer m_Output4D;
+  Image4DPointer m_Output4D;
 };
-    
+
 } // end of namespace anima
 
 #include "animaStimulatedSpinEchoImageFilter.hxx"

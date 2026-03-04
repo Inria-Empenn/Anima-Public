@@ -1,87 +1,101 @@
 #pragma once
 
 #include <animaBaseOrientedModelImageToImageMetric.h>
-#include <animaMultiCompartmentModel.h>
 #include <animaMCMImage.h>
 #include <animaMCML2DistanceComputer.h>
+#include <animaMultiCompartmentModel.h>
 
-namespace anima
-{
+namespace anima {
 
-template < class TFixedImagePixelType, class TMovingImagePixelType, unsigned int ImageDimension >
-class MCMMeanSquaresImageToImageMetric :
-public BaseOrientedModelImageToImageMetric< anima::MCMImage < TFixedImagePixelType, ImageDimension >, anima::MCMImage < TMovingImagePixelType, ImageDimension > >
-{
+template <class TFixedImagePixelType, class TMovingImagePixelType,
+          unsigned int ImageDimension>
+class MCMMeanSquaresImageToImageMetric
+    : public BaseOrientedModelImageToImageMetric<
+          anima::MCMImage<TFixedImagePixelType, ImageDimension>,
+          anima::MCMImage<TMovingImagePixelType, ImageDimension>> {
 public:
-    /** Standard class typedefs. */
-    typedef anima::MCMImage < TFixedImagePixelType, ImageDimension > TFixedImage;
-    typedef anima::MCMImage < TMovingImagePixelType, ImageDimension > TMovingImage;
+  /** Standard class typedefs. */
+  using TFixedImage = anima::MCMImage<TFixedImagePixelType, ImageDimension>;
+  using TMovingImage = anima::MCMImage<TMovingImagePixelType, ImageDimension>;
 
-    typedef MCMMeanSquaresImageToImageMetric Self;
-    typedef BaseOrientedModelImageToImageMetric<TFixedImage, TMovingImage > Superclass;
-    typedef itk::SmartPointer<Self> Pointer;
-    typedef itk::SmartPointer<const Self> ConstPointer;
+  using Self = MCMMeanSquaresImageToImageMetric;
+  using Superclass =
+      BaseOrientedModelImageToImageMetric<TFixedImage, TMovingImage>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-    typedef anima::MultiCompartmentModel MCModelType;
-    typedef typename MCModelType::Pointer MCModelPointer;
-    typedef typename MCModelType::Vector3DType GradientType;
+  using MCModelType = anima::MultiCompartmentModel;
+  using MCModelPointer = typename MCModelType::Pointer;
+  using GradientType = typename MCModelType::Vector3DType;
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Run-time type information (and related methods). */
-    itkTypeMacro(MCMMeanSquaresImageToImageMetric, BaseOrientedModelImageToImageMetric)
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(MCMMeanSquaresImageToImageMetric,
+               BaseOrientedModelImageToImageMetric);
 
-    /** Types transferred from the base class */
-    typedef typename TFixedImage::PixelType               PixelType;
+  /** Types transferred from the base class */
+  using PixelType = typename TFixedImage::PixelType;
 
-    typedef typename Superclass::TransformType            TransformType;
-    typedef typename Superclass::TransformPointer         TransformPointer;
-    typedef typename Superclass::TransformParametersType  TransformParametersType;
-    typedef typename Superclass::OutputPointType          OutputPointType;
-    typedef typename Superclass::InputPointType           InputPointType;
-    typedef typename itk::ContinuousIndex <double, ImageDimension> ContinuousIndexType;
+  using TransformType = typename Superclass::TransformType;
+  using TransformPointer = typename Superclass::TransformPointer;
+  using TransformParametersType = typename Superclass::TransformParametersType;
+  using OutputPointType = typename Superclass::OutputPointType;
+  using InputPointType = typename Superclass::InputPointType;
+  using ContinuousIndexType =
+      typename itk::ContinuousIndex<double, ImageDimension>;
 
-    typedef typename Superclass::CoordinateRepresentationType CoordinateRepresentationType;
+  using CoordinateRepresentationType =
+      typename Superclass::CoordinateRepresentationType;
 
-    typedef typename Superclass::MeasureType              MeasureType;
-    typedef typename Superclass::FixedImageType           FixedImageType;
-    typedef typename Superclass::MovingImageType          MovingImageType;
-    typedef typename Superclass::FixedImageConstPointer   FixedImageConstPointer;
-    typedef typename Superclass::MovingImageConstPointer  MovingImageConstPointer;
+  using MeasureType = typename Superclass::MeasureType;
+  using FixedImageType = typename Superclass::FixedImageType;
+  using MovingImageType = typename Superclass::MovingImageType;
+  using FixedImageConstPointer = typename Superclass::FixedImageConstPointer;
+  using MovingImageConstPointer = typename Superclass::MovingImageConstPointer;
 
-    typedef anima::MCML2DistanceComputer::Pointer MCML2DistanceComputerPointer;
+  using MCML2DistanceComputerPointer = anima::MCML2DistanceComputer::Pointer;
 
-    /**  Get the value for single valued optimizers. */
-    MeasureType GetValue(const TransformParametersType & parameters) const ITK_OVERRIDE;
+  /**  Get the value for single valued optimizers. */
+  MeasureType
+  GetValue(const TransformParametersType &parameters) const ITK_OVERRIDE;
 
-    void SetSmallDelta(double val) {m_L2DistanceComputer->SetSmallDelta(val);}
-    void SetBigDelta(double val) {m_L2DistanceComputer->SetBigDelta(val);}
-    void SetGradientStrengths(std::vector <double> &val) {m_L2DistanceComputer->SetGradientStrengths(val);}
-    void SetGradientDirections(std::vector <GradientType> &val) {m_L2DistanceComputer->SetGradientDirections(val);}
+  void SetSmallDelta(double val) { m_L2DistanceComputer->SetSmallDelta(val); }
+  void SetBigDelta(double val) { m_L2DistanceComputer->SetBigDelta(val); }
+  void SetGradientStrengths(std::vector<double> &val) {
+    m_L2DistanceComputer->SetGradientStrengths(val);
+  }
+  void SetGradientDirections(std::vector<GradientType> &val) {
+    m_L2DistanceComputer->SetGradientDirections(val);
+  }
 
-    void SetForceApproximation(bool val) {m_L2DistanceComputer->SetForceApproximation(val);}
-    void SetLowPassGaussianSigma(double val) {m_L2DistanceComputer->SetLowPassGaussianSigma(val);}
+  void SetForceApproximation(bool val) {
+    m_L2DistanceComputer->SetForceApproximation(val);
+  }
+  void SetLowPassGaussianSigma(double val) {
+    m_L2DistanceComputer->SetLowPassGaussianSigma(val);
+  }
 
-    void PreComputeFixedValues();
+  void PreComputeFixedValues();
 
 protected:
-    MCMMeanSquaresImageToImageMetric();
-    virtual ~MCMMeanSquaresImageToImageMetric() {}
+  MCMMeanSquaresImageToImageMetric();
+  virtual ~MCMMeanSquaresImageToImageMetric() {}
 
-    bool isZero(PixelType &vector) const;
+  bool isZero(PixelType &vector) const;
 
 private:
-    MCMMeanSquaresImageToImageMetric(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+  MCMMeanSquaresImageToImageMetric(const Self &); // purposely not implemented
+  void operator=(const Self &);                   // purposely not implemented
 
-    std::vector <InputPointType> m_FixedImagePoints;
-    std::vector <MCModelPointer> m_FixedImageValues;
+  std::vector<InputPointType> m_FixedImagePoints;
+  std::vector<MCModelPointer> m_FixedImageValues;
 
-    MCML2DistanceComputerPointer m_L2DistanceComputer;
+  MCML2DistanceComputerPointer m_L2DistanceComputer;
 
-    MCModelPointer m_ZeroDiffusionModel;
-    PixelType m_ZeroDiffusionVector;
+  MCModelPointer m_ZeroDiffusionModel;
+  PixelType m_ZeroDiffusionVector;
 };
 
 } // end namespace anima

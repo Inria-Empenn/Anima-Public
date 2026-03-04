@@ -2,98 +2,98 @@
 
 #include <animaInhomogeneousAOSLineDiffusionImageFilter.h>
 #include <itkCastImageFilter.h>
+#include <itkCommand.h>
 #include <itkImage.h>
 #include <itkPixelTraits.h>
-#include <itkCommand.h>
 
-namespace anima
-{
+namespace anima {
 
-template <typename TInputImage, typename TDiffusionScalarImage=TInputImage, typename TOutputImage=TInputImage>
-class InhomogeneousDiffusionImageFilter :
-        public itk::ImageToImageFilter<TInputImage,TOutputImage>
-{
+template <typename TInputImage, typename TDiffusionScalarImage = TInputImage,
+          typename TOutputImage = TInputImage>
+class InhomogeneousDiffusionImageFilter
+    : public itk::ImageToImageFilter<TInputImage, TOutputImage> {
 public:
-    /** Standard class typedefs. */
-    typedef InhomogeneousDiffusionImageFilter          Self;
-    typedef itk::ImageToImageFilter<TInputImage,TOutputImage>      Superclass;
-    typedef itk::SmartPointer<Self>                                Pointer;
-    typedef itk::SmartPointer<const Self>                          ConstPointer;
+  /** Standard class typedefs. */
+  using Self = InhomogeneousDiffusionImageFilter;
+  using Superclass = itk::ImageToImageFilter<TInputImage, TOutputImage>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
-    /** Pixel Type of the input image */
-    typedef TInputImage                                       InputImageType;
-    typedef TDiffusionScalarImage                             DiffusionScalarsImageType;
-    typedef TOutputImage                                      OutputImageType;
-    typedef typename TInputImage::PixelType                   PixelType;
-    typedef typename itk::NumericTraits<PixelType>::RealType       RealType;
-    typedef typename itk::NumericTraits<PixelType>::ScalarRealType ScalarRealType;
+  /** Pixel Type of the input image */
+  using InputImageType = TInputImage;
+  using DiffusionScalarsImageType = TDiffusionScalarImage;
+  using OutputImageType = TOutputImage;
+  using PixelType = typename TInputImage::PixelType;
+  using RealType = typename itk::NumericTraits<PixelType>::RealType;
+  using ScalarRealType = typename itk::NumericTraits<PixelType>::ScalarRealType;
 
+  /** Runtime information support. */
+  itkTypeMacro(InhomogeneousDiffusionImageFilter, ImageToImageFilter);
 
-    /** Runtime information support. */
-    itkTypeMacro(InhomogeneousDiffusionImageFilter,
-                 ImageToImageFilter)
+  /** Image dimension. */
+  itkStaticConstMacro(ImageDimension, unsigned int,
+                      TInputImage::ImageDimension);
 
-    /** Image dimension. */
-    itkStaticConstMacro(ImageDimension, unsigned int,
-                        TInputImage::ImageDimension);
+  /** Define the image type for internal computations
+       RealType is usually 'double' in NumericTraits.
+       Here we prefer double in order to save memory.  */
 
-    /** Define the image type for internal computations
-         RealType is usually 'double' in NumericTraits.
-         Here we prefer double in order to save memory.  */
+  using InternalRealType = typename itk::NumericTraits<PixelType>::RealType;
+  using RealImageType =
+      typename InputImageType::template Rebind<InternalRealType>::Type;
 
-    typedef typename itk::NumericTraits< PixelType >::RealType   InternalRealType;
-    typedef typename InputImageType::template Rebind<InternalRealType>::Type RealImageType;
+  /**  The first in the pipeline  */
+  using InternalAOSDiffusionFilterType =
+      anima::InhomogeneousAOSLineDiffusionImageFilter<
+          RealImageType, DiffusionScalarsImageType, RealImageType>;
 
-    /**  The first in the pipeline  */
-    typedef anima::InhomogeneousAOSLineDiffusionImageFilter <
-    RealImageType,
-    DiffusionScalarsImageType,
-    RealImageType
-    > InternalAOSDiffusionFilterType;
+  using RealCastingFilterType =
+      itk::CastImageFilter<InputImageType, RealImageType>;
+  using OutCastingFilterType =
+      itk::CastImageFilter<RealImageType, OutputImageType>;
 
-    typedef itk::CastImageFilter <InputImageType,RealImageType> RealCastingFilterType;
-    typedef itk::CastImageFilter <RealImageType,OutputImageType> OutCastingFilterType;
+  /**  Pointer to a gaussian filter.  */
+  using InternalAOSDiffusionFilterPointer =
+      typename InternalAOSDiffusionFilterType::Pointer;
 
-    /**  Pointer to a gaussian filter.  */
-    typedef typename InternalAOSDiffusionFilterType::Pointer    InternalAOSDiffusionFilterPointer;
+  using DiffusionScalarsImagePointer =
+      typename DiffusionScalarsImageType::Pointer;
+  using OutputImagePointer = typename OutputImageType::Pointer;
 
-    typedef typename DiffusionScalarsImageType::Pointer     DiffusionScalarsImagePointer;
-    typedef typename OutputImageType::Pointer               OutputImagePointer;
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
-
-    itkSetMacro(NumberOfSteps, unsigned int)
-    itkSetMacro(StepLength, double)
-    itkSetMacro(DiffusionSourceFactor, double)
-    itkSetObjectMacro(DiffusionScalarsImage, DiffusionScalarsImageType)
+  itkSetMacro(NumberOfSteps, unsigned int);
+  itkSetMacro(StepLength, double);
+  itkSetMacro(DiffusionSourceFactor, double);
+  itkSetObjectMacro(DiffusionScalarsImage, DiffusionScalarsImageType);
 
 protected:
-    InhomogeneousDiffusionImageFilter();
-    virtual ~InhomogeneousDiffusionImageFilter() {}
-    void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
+  InhomogeneousDiffusionImageFilter();
+  virtual ~InhomogeneousDiffusionImageFilter() {}
+  void PrintSelf(std::ostream &os, itk::Indent indent) const ITK_OVERRIDE;
 
-    /** Generate Data */
-    void GenerateData() ITK_OVERRIDE;
+  /** Generate Data */
+  void GenerateData() ITK_OVERRIDE;
 
-    /** InhomogeneousDiffusionImageFilter needs all of the input to produce an
-         * output. Therefore, InhomogeneousDiffusionImageFilter needs to provide
-         * an implementation for GenerateInputRequestedRegion in order to inform
-         * the pipeline execution model.
-         * \sa ImageToImageFilter::GenerateInputRequestedRegion() */
-    virtual void GenerateInputRequestedRegion() ITK_OVERRIDE;
+  /** InhomogeneousDiffusionImageFilter needs all of the input to produce an
+   * output. Therefore, InhomogeneousDiffusionImageFilter needs to provide
+   * an implementation for GenerateInputRequestedRegion in order to inform
+   * the pipeline execution model.
+   * \sa ImageToImageFilter::GenerateInputRequestedRegion() */
+  virtual void GenerateInputRequestedRegion() ITK_OVERRIDE;
 
-    // Override since the filter produces the entire dataset
-    void EnlargeOutputRequestedRegion(itk::DataObject *output) ITK_OVERRIDE;
+  // Override since the filter produces the entire dataset
+  void EnlargeOutputRequestedRegion(itk::DataObject *output) ITK_OVERRIDE;
 
 private:
-    ITK_DISALLOW_COPY_AND_ASSIGN(InhomogeneousDiffusionImageFilter);
+  ITK_DISALLOW_COPY_AND_ASSIGN(InhomogeneousDiffusionImageFilter);
 
-    DiffusionScalarsImagePointer m_DiffusionScalarsImage;
+  DiffusionScalarsImagePointer m_DiffusionScalarsImage;
 
-    unsigned int m_NumberOfSteps;
-    double m_StepLength;
-    double m_DiffusionSourceFactor;
+  unsigned int m_NumberOfSteps;
+  double m_StepLength;
+  double m_DiffusionSourceFactor;
 };
 
 } // end namespace anima
